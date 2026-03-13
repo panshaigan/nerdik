@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Jobs\NotifyWaitlistPromotedJob;
+use App\Models\Activity;
+use App\Models\ActivityParticipant;
+use App\Models\ActivityWaitlistEntry;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class ParticipationController extends Controller
+{
+    public function join(Activity $activity)
+    {
+        $user = Auth::user();
+
+        if ($activity->participants()->where('user_id', $user->id)->exists()) {
+            return redirect()->back()->with('status', __('You are already participating.'));
+        }
+
+        if ($activity->waitlist()->where('user_id', $user->id)->exists()) {
+            return redirect()->back()->with('status', __('You are on the waitlist. Leave it first if you want to join directly.'));
+        }
+
+        $count = $activity->participants()->count();
+        $max = $activity->max_participants;
+
+        if ($max !== null && $count >= $max) {
+            return redirect()->back()->with('status', __('Activity is full. You can join the waitlist.'));
+        }
+
+        $activity->participants()->create([
+            'user_id' => $user->id,
+            'is_host' => false,
+        ]);
+
+        return redirect()->back()->with('status', __('You joined the activity.'));
+    }
+
+    public function leave(Activity $activity)
+    {
+        $user = Auth::user();
+
+        $participant = $activity->participants()->where('user_id', $user->id)->first();
+        if (! $participant) {
+            return redirect()->back()->with('status', __('You are not participating.'));
+        }
+
+        DB::transaction(function () use ($participant, $activity) {
+            $participant->delete();
+
+            $first = $activity->waitlist()->orderBy('position')->with('user')->first();
+            if ($first) {
+                $promotedUser = $first->user;
+                $first->delete();
+                $activity->participants()->create([
+                    'user_id' => $promotedUser->id,
+                    'is_host' => false,
+                ]);
+                $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index) {
+                    $entry->update(['position' => $index + 1]);
+                });
+                NotifyWaitlistPromotedJob::dispatch($promotedUser, $activity);
+            }
+        });
+
+        return redirect()->back()->with('status', __('You left the activity.'));
+    }
+
+    public function joinWaitlist(Activity $activity)
+    {
+        $user = Auth::user();
+
+        if ($activity->participants()->where('user_id', $user->id)->exists()) {
+            return redirect()->back()->with('status', __('You are already participating.'));
+        }
+
+        if ($activity->waitlist()->where('user_id', $user->id)->exists()) {
+            return redirect()->back()->with('status', __('You are already on the waitlist.'));
+        }
+
+        $nextPosition = $activity->waitlist()->max('position') + 1;
+        $activity->waitlist()->create([
+            'user_id' => $user->id,
+            'position' => $nextPosition,
+        ]);
+
+        return redirect()->back()->with('status', __('You joined the waitlist.'));
+    }
+
+    public function leaveWaitlist(Activity $activity)
+    {
+        $user = Auth::user();
+
+        $entry = $activity->waitlist()->where('user_id', $user->id)->first();
+        if (! $entry) {
+            return redirect()->back()->with('status', __('You are not on the waitlist.'));
+        }
+
+        $pos = $entry->position;
+        $entry->delete();
+        $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+
+        return redirect()->back()->with('status', __('You left the waitlist.'));
+    }
+
+    public function markAbsent(Request $request, ActivityParticipant $participant)
+    {
+        $activity = $participant->activity;
+        $user = Auth::user();
+
+        if ($activity->host_user_id !== $user->id) {
+            abort(403, __('Only the activity host can mark participants absent.'));
+        }
+
+        $participant->update(['is_absent' => true]);
+
+        return redirect()->back()->with('status', __('Participant marked absent.'));
+    }
+}
