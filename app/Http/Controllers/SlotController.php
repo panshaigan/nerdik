@@ -33,7 +33,7 @@ class SlotController extends Controller
         $places = Place::orderBy('name')->get();
 
         return view('slots.create', [
-            'slot' => new Slot(),
+            'slot' => new Slot,
             'instances' => $instances,
             'places' => $places,
         ]);
@@ -59,6 +59,12 @@ class SlotController extends Controller
         ]);
 
         $validated['requires_approval'] = $request->boolean('requires_approval');
+        if (! empty($validated['starts_at'])) {
+            $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        }
+        if (! empty($validated['ends_at'])) {
+            $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+        }
 
         Slot::create($validated);
 
@@ -104,6 +110,12 @@ class SlotController extends Controller
         ]);
 
         $validated['requires_approval'] = $request->boolean('requires_approval');
+        if (! empty($validated['starts_at'])) {
+            $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        }
+        if (! empty($validated['ends_at'])) {
+            $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+        }
 
         $slot->update($validated);
 
@@ -138,12 +150,15 @@ class SlotController extends Controller
         ]);
 
         $requiresApproval = $request->boolean('requires_approval');
+        $startsAtUtc = ! empty($validated['starts_at'])
+            ? parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString()
+            : null;
 
         for ($i = 1; $i <= $validated['count']; $i++) {
             Slot::create([
                 'event_instance_id' => $validated['event_instance_id'],
                 'name' => sprintf('%s #%02d', $validated['base_name'], $i),
-                'starts_at' => $validated['starts_at'] ?? null,
+                'starts_at' => $startsAtUtc,
                 'ends_at' => null,
                 'place_id' => $validated['place_id'] ?? null,
                 'requires_approval' => $requiresApproval,

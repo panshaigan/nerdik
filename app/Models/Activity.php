@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
+    use HasMetaColumns, SoftDeletes;
+
     protected $fillable = [
         'name',
         'type',
@@ -14,6 +18,8 @@ class Activity extends Model
         'age_limit',
         'price',
         'host_user_id',
+        'created_by',
+        'updated_by',
         'is_restricted',
         'signoff_deadline_hours',
         'status',

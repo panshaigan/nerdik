@@ -12,7 +12,7 @@ class OrganizationController extends Controller
      */
     public function index()
     {
-        $organizations = Organization::orderBy('name')->get();
+        $organizations = Organization::with('creator')->orderBy('name')->get();
 
         return view('organizations.index', compact('organizations'));
     }
@@ -23,7 +23,7 @@ class OrganizationController extends Controller
     public function create()
     {
         return view('organizations.create', [
-            'organization' => new Organization(),
+            'organization' => new Organization,
         ]);
     }
 
@@ -67,7 +67,7 @@ class OrganizationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:organizations,slug,' . $organization->id],
+            'slug' => ['required', 'string', 'max:255', 'unique:organizations,slug,'.$organization->id],
             'desc' => ['nullable', 'string'],
         ]);
 

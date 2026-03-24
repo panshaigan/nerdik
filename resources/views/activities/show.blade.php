@@ -21,6 +21,12 @@
                         <dt class="text-sm font-medium text-gray-500">{{ __('Host') }}</dt>
                         <dd class="mt-1 text-sm text-gray-900">{{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}</dd>
                     </div>
+                    @if ($activity->creator)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('Created by') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $activity->creator->nickname ?? $activity->creator->email }}</dd>
+                        </div>
+                    @endif
                     <div>
                         <dt class="text-sm font-medium text-gray-500">{{ __('Participants') }}</dt>
                         <dd class="mt-1 text-sm text-gray-900">
@@ -37,9 +43,27 @@
                         </div>
                     @endif
                 </dl>
+                @if ($activity->tags->isNotEmpty())
+                    <div class="mt-4">
+                        <p class="text-sm font-medium text-gray-500 mb-2">{{ __('Tags') }}</p>
+                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
+                    </div>
+                @endif
 
                 @auth
-                    <div class="mt-6 flex flex-wrap gap-3">
+                    <div class="mt-6 flex flex-wrap gap-3 items-center">
+                        @if ($inWishlist)
+                            <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-sm text-amber-600 hover:text-amber-800">★ {{ __('Remove from wishlist') }}</button>
+                            </form>
+                        @else
+                            <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-sm text-gray-600 hover:text-amber-600">☆ {{ __('Add to wishlist') }}</button>
+                            </form>
+                        @endif
                         @if ($isParticipant)
                             <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
                                 @csrf
@@ -117,10 +141,14 @@
                 </div>
             @endif
 
-            <div class="flex gap-3">
+            <div class="flex flex-wrap gap-3 items-center">
                 <a href="{{ route('activities.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
                     {{ __('Back to activities') }}
                 </a>
+                <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-sm text-gray-500 hover:text-gray-700" :title="copied ? '{{ __('Copied!') }}' : '{{ __('Copy link') }}'">
+                    <span x-show="!copied">{{ __('Share') }}</span>
+                    <span x-show="copied" x-cloak>{{ __('Link copied!') }}</span>
+                </button>
                 @auth
                     @if ($activity->host_user_id === auth()->id() || $activity->participants()->where('user_id', auth()->id())->exists())
                         <a href="{{ route('activities.edit', $activity) }}" class="text-sm text-indigo-600 hover:text-indigo-900">

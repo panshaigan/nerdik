@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EventInstance;
 use App\Models\Event;
+use App\Models\EventInstance;
 use Illuminate\Http\Request;
 
 class EventInstanceController extends Controller
@@ -13,7 +13,7 @@ class EventInstanceController extends Controller
      */
     public function index()
     {
-        $instances = EventInstance::with('event')
+        $instances = EventInstance::with('event.creator')
             ->orderBy('starts_at', 'desc')
             ->get();
 
@@ -28,7 +28,7 @@ class EventInstanceController extends Controller
         $events = Event::orderBy('name')->get();
 
         return view('event-instances.create', [
-            'instance' => new EventInstance(),
+            'instance' => new EventInstance,
             'events' => $events,
         ]);
     }
@@ -47,6 +47,9 @@ class EventInstanceController extends Controller
             'desc' => ['nullable', 'string'],
         ]);
 
+        $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+
         EventInstance::create($validated);
 
         return redirect()->route('event-instances.index')
@@ -58,7 +61,19 @@ class EventInstanceController extends Controller
      */
     public function show(EventInstance $eventInstance)
     {
-        //
+        $eventInstance->load(['event.creator', 'event.tags.translations', 'slots.place', 'slots.activity']);
+        $pendingProposals = $eventInstance->proposals()
+            ->with(['activity', 'creator'])
+            ->where('status', 'pending')
+            ->orderBy('created_at')
+            ->get();
+        $isOwner = auth()->check() && $eventInstance->event->created_by === auth()->id();
+
+        return view('event-instances.show', [
+            'instance' => $eventInstance,
+            'pendingProposals' => $pendingProposals,
+            'isOwner' => $isOwner,
+        ]);
     }
 
     /**
@@ -84,9 +99,12 @@ class EventInstanceController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
-            'slug' => ['required', 'string', 'max:255', 'unique:event_instances,slug,' . $eventInstance->id],
+            'slug' => ['required', 'string', 'max:255', 'unique:event_instances,slug,'.$eventInstance->id],
             'desc' => ['nullable', 'string'],
         ]);
+
+        $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
         $eventInstance->update($validated);
 

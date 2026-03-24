@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Slot extends Model
 {
+    use HasMetaColumns, SoftDeletes;
+
     protected $fillable = [
         'event_instance_id',
+        'created_by',
         'name',
         'starts_at',
         'ends_at',
@@ -15,6 +20,7 @@ class Slot extends Model
         'requires_approval',
         'activity_id',
         'max_capacity',
+        'updated_by',
     ];
 
     protected $casts = [

@@ -72,7 +72,7 @@ Features:
 		
 	- Activity proposal/approval
 		- (user) propose own activity for an event instance (for given time and type of slots or to a concrete slot or without any conditions). [MVP]
-			- techinically an user is creating an activity and then proposing it to some given slots in an event instance (ones which accept the same activity type and time/place chosen by the user) or to event instance directly without conditions other than type of activity
+			- technically an user is creating an activity and then proposing it to some given slots in an event instance (ones which accept the same activity type and time/place chosen by the user) or to event instance directly without conditions other than type of activity
 			- it exists in the system as an activity without event assigned until its getting accepted by the event organizer.
 		 	- can be totally new activity or using an existing one [MVP]
 		 	- if the chosen existing one is already assigned to some other event instance, its being duplicated (treated as a template) [MVP]
@@ -185,21 +185,12 @@ Entities:
 	- event
 		- name
 		- desc
-		- default_places (many to many)
+		- places (many to many; if empty, it should be copied from the event)
 		- (optional) organisation
 		- is public?
-		- so called "organizer" is just an owner of an event. meaning user pointed by created_by column
-		- CRUD Meta columns
-		- tags
-		- logo/cover
-		- slug
-	- event_instance
-		- (optional) name
-		- (optional) desc
-		- places (many to many; if empty, it should be copied from the event)
 		- date range
 		- CRUD Meta columns
-		- tags (base is copied from event)
+		- tags
 		- logo/cover
 		- slug
 	- organization
@@ -419,6 +410,10 @@ FUTURE:
 		- Better matching across languages, typos, synonyms.
 	- paid activities (if user wants money for hosting an activity, he needs to pay to the app as well - fair)
 	- any other fair ideas for monetization?
+	- common journeys to the events
+	- contacting
+	- timed opening of subscriptions
+	- confirming the presence before the meeting
 
 Monetization
 - buycofee at will to help covering the server costs

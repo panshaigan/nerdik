@@ -6,11 +6,13 @@ use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventInstanceController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
@@ -33,8 +35,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('events', EventController::class)
         ->except(['show']);
 
-    Route::resource('event-instances', EventInstanceController::class)
-        ->except(['show']);
+    Route::resource('event-instances', EventInstanceController::class);
+
+    Route::get('event-instances/{eventInstance}/propose', [ActivityProposalController::class, 'create'])->name('event-instances.propose');
 
     Route::resource('slots', SlotController::class)
         ->except(['show']);
@@ -49,12 +52,23 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('activity-proposals', ActivityProposalController::class)
         ->only(['index', 'store']);
+    Route::post('activity-proposals/{proposal}/accept', [ActivityProposalController::class, 'accept'])->name('activity-proposals.accept');
+    Route::post('activity-proposals/{proposal}/reject', [ActivityProposalController::class, 'reject'])->name('activity-proposals.reject');
 
     Route::post('activities/{activity}/join', [ParticipationController::class, 'join'])->name('activities.join');
     Route::post('activities/{activity}/leave', [ParticipationController::class, 'leave'])->name('activities.leave');
     Route::post('activities/{activity}/join-waitlist', [ParticipationController::class, 'joinWaitlist'])->name('activities.join-waitlist');
     Route::post('activities/{activity}/leave-waitlist', [ParticipationController::class, 'leaveWaitlist'])->name('activities.leave-waitlist');
     Route::post('activity-participants/{participant}/mark-absent', [ParticipationController::class, 'markAbsent'])->name('activity-participants.mark-absent');
+
+    Route::post('events/{event}/wishlist', [WishlistController::class, 'addEvent'])->name('wishlist.events.add');
+    Route::delete('events/{event}/wishlist', [WishlistController::class, 'removeEvent'])->name('wishlist.events.remove');
+    Route::post('activities/{activity}/wishlist', [WishlistController::class, 'addActivity'])->name('wishlist.activities.add');
+    Route::delete('activities/{activity}/wishlist', [WishlistController::class, 'removeActivity'])->name('wishlist.activities.remove');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
 });
 
 require __DIR__.'/auth.php';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
@@ -24,8 +25,11 @@ class ActivityController extends Controller
      */
     public function create()
     {
+        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+
         return view('activities.create', [
-            'activity' => new Activity(),
+            'activity' => new Activity,
+            'tags' => $tags,
         ]);
     }
 
@@ -35,8 +39,15 @@ class ActivityController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateData($request);
+        $request->validate([
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
+        ]);
+
+        $tagIds = $request->input('tag_ids', []);
 
         $activity = Activity::create($validated);
+        $activity->tags()->sync($tagIds);
 
         return redirect()->route('activities.index')
             ->with('status', __('Activity created.'));
@@ -47,14 +58,15 @@ class ActivityController extends Controller
      */
     public function show(Activity $activity)
     {
-        $activity->load(['host', 'participants.user', 'waitlist.user']);
+        $activity->load(['host', 'creator', 'tags.translations', 'participants.user', 'waitlist.user']);
         $isParticipant = auth()->check() && $activity->participants()->where('user_id', auth()->id())->exists();
         $onWaitlist = auth()->check() && $activity->waitlist()->where('user_id', auth()->id())->exists();
         $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist;
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
         $isHost = auth()->check() && $activity->host_user_id === auth()->id();
+        $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
 
-        return view('activities.show', compact('activity', 'isParticipant', 'onWaitlist', 'canJoin', 'isFull', 'isHost'));
+        return view('activities.show', compact('activity', 'isParticipant', 'onWaitlist', 'canJoin', 'isFull', 'isHost', 'inWishlist'));
     }
 
     /**
@@ -62,7 +74,10 @@ class ActivityController extends Controller
      */
     public function edit(Activity $activity)
     {
-        return view('activities.edit', compact('activity'));
+        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $activity->load('tags');
+
+        return view('activities.edit', compact('activity', 'tags'));
     }
 
     /**
@@ -71,8 +86,15 @@ class ActivityController extends Controller
     public function update(Request $request, Activity $activity)
     {
         $validated = $this->validateData($request, $activity);
+        $request->validate([
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
+        ]);
+
+        $tagIds = $request->input('tag_ids', []);
 
         $activity->update($validated);
+        $activity->tags()->sync($tagIds);
 
         return redirect()->route('activities.index')
             ->with('status', __('Activity updated.'));
@@ -103,7 +125,7 @@ class ActivityController extends Controller
             'duration_minutes' => ['nullable', 'integer', 'min:0'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'signoff_deadline_hours' => ['nullable', 'integer', 'min:0'],
-            'slug' => ['required', 'string', 'max:255', 'unique:activities,slug,' . $id],
+            'slug' => ['required', 'string', 'max:255', 'unique:activities,slug,'.$id],
             'is_restricted' => ['nullable', 'boolean'],
             'open_for_observers' => ['nullable', 'boolean'],
         ]);

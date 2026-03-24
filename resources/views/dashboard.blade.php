@@ -103,6 +103,55 @@
                         </a>
                     @endif
                 </div>
+
+                <div class="bg-white shadow sm:rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('Wishlist – events') }}</h3>
+                    @if ($wishlistEvents->isEmpty())
+                        <p class="text-sm text-gray-500">{{ __('No events in wishlist.') }}</p>
+                        <a href="{{ route('browse.events') }}" class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-900">{{ __('Browse events') }} →</a>
+                    @else
+                        <ul class="divide-y divide-gray-200">
+                            @foreach ($wishlistEvents as $event)
+                                <li class="py-2 flex items-center justify-between">
+                                    @php $firstInstance = $event->instances->first(); @endphp
+                                    @if ($firstInstance)
+                                        <a href="{{ route('event-instances.show', $firstInstance) }}" class="text-indigo-600 hover:text-indigo-900">{{ $event->name }}</a>
+                                    @else
+                                        <span class="text-gray-900">{{ $event->name }}</span>
+                                    @endif
+                                    <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs text-gray-500 hover:text-red-600">{{ __('Remove') }}</button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <a href="{{ route('browse.events') }}" class="mt-2 inline-block text-sm text-gray-600 hover:text-gray-900">{{ __('Browse events') }} →</a>
+                    @endif
+                </div>
+
+                <div class="bg-white shadow sm:rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('Wishlist – activities') }}</h3>
+                    @if ($wishlistActivities->isEmpty())
+                        <p class="text-sm text-gray-500">{{ __('No activities in wishlist.') }}</p>
+                        <a href="{{ route('browse.activities') }}" class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-900">{{ __('Browse activities') }} →</a>
+                    @else
+                        <ul class="divide-y divide-gray-200">
+                            @foreach ($wishlistActivities as $activity)
+                                <li class="py-2 flex items-center justify-between">
+                                    <a href="{{ route('activities.show', $activity) }}" class="text-indigo-600 hover:text-indigo-900">{{ $activity->name }}</a>
+                                    <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs text-gray-500 hover:text-red-600">{{ __('Remove') }}</button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <a href="{{ route('browse.activities') }}" class="mt-2 inline-block text-sm text-gray-600 hover:text-gray-900">{{ __('Browse activities') }} →</a>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

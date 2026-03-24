@@ -7,7 +7,7 @@
             @foreach ($instances as $instance)
                 <option value="{{ $instance->id }}"
                     @selected((string) old('event_instance_id', $slot->event_instance_id ?? '') === (string) $instance->id)>
-                    {{ $instance->event->name }} – {{ $instance->name ?? $instance->starts_at->format('Y-m-d') }}
+                    {{ $instance->event->name }} – {{ $instance->name ?? format_in_user_tz($instance->starts_at, 'Y-m-d') }}
                 </option>
             @endforeach
         </select>
@@ -25,14 +25,14 @@
         <div>
             <x-input-label for="starts_at" :value="__('Starts at (optional)')" />
             <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('starts_at', optional($slot->starts_at)->format('Y-m-d\TH:i') ?? '') }}" />
+                          value="{{ old('starts_at', $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}" />
             <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
         </div>
 
         <div>
             <x-input-label for="ends_at" :value="__('Ends at (optional)')" />
             <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('ends_at', optional($slot->ends_at)->format('Y-m-d\TH:i') ?? '') }}" />
+                          value="{{ old('ends_at', $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}" />
             <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
         </div>
     </div>

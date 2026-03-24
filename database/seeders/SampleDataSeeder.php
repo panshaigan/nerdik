@@ -3,11 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\EventInstance;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -15,25 +17,44 @@ use Illuminate\Support\Facades\Hash;
 class SampleDataSeeder extends Seeder
 {
     /**
-     * Seed sample data for local testing: users, orgs, events, instances, slots, activities.
-     * Safe to run multiple times (uses firstOrCreate by slug/email).
+     * Seed sample data for local testing: users, orgs, events, instances, slots, activities, proposals.
+     * All entities get created_by set. Safe to run multiple times (uses firstOrCreate by slug/email).
      */
     public function run(): void
     {
-        $user1 = User::firstOrCreate(
+        $alice = User::firstOrCreate(
             ['email' => 'alice@nerdik.test'],
             [
                 'name' => 'Alice',
                 'nickname' => 'alice',
                 'password' => Hash::make('password'),
+                'is_admin' => true,
             ]
         );
 
-        $user2 = User::firstOrCreate(
+        $bob = User::firstOrCreate(
             ['email' => 'bob@nerdik.test'],
             [
                 'name' => 'Bob',
                 'nickname' => 'bob',
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        $charlie = User::firstOrCreate(
+            ['email' => 'charlie@nerdik.test'],
+            [
+                'name' => 'Charlie',
+                'nickname' => 'charlie',
+                'password' => Hash::make('password'),
+            ]
+        );
+
+        $diana = User::firstOrCreate(
+            ['email' => 'diana@nerdik.test'],
+            [
+                'name' => 'Diana',
+                'nickname' => 'diana',
                 'password' => Hash::make('password'),
             ]
         );
@@ -43,6 +64,16 @@ class SampleDataSeeder extends Seeder
             [
                 'name' => 'Nerdik Club',
                 'desc' => 'Local RPG & board game club.',
+                'created_by' => $alice->id,
+            ]
+        );
+
+        $org2 = Organization::firstOrCreate(
+            ['slug' => 'wroclaw-gamers'],
+            [
+                'name' => 'Wrocław Gamers',
+                'desc' => 'Community for tabletop gamers in Wrocław.',
+                'created_by' => $bob->id,
             ]
         );
 
@@ -53,7 +84,7 @@ class SampleDataSeeder extends Seeder
                 'desc' => 'Regular evening of one-shots and short campaigns.',
                 'organization_id' => $org->id,
                 'is_public' => true,
-                'created_by' => $user1->id,
+                'created_by' => $alice->id,
             ]
         );
 
@@ -64,18 +95,31 @@ class SampleDataSeeder extends Seeder
                 'desc' => 'Annual convention with multiple tracks.',
                 'organization_id' => null,
                 'is_public' => true,
-                'created_by' => $user1->id,
+                'created_by' => $alice->id,
+            ]
+        );
+
+        $event3 = Event::firstOrCreate(
+            ['slug' => 'board-game-evening'],
+            [
+                'name' => 'Board Game Evening',
+                'desc' => 'Casual board game night at the club.',
+                'organization_id' => $org2->id,
+                'is_public' => true,
+                'created_by' => $bob->id,
             ]
         );
 
         $wroclaw = Place::where('slug', 'wroclaw')->first();
         $warszawa = Place::where('slug', 'warszawa')->first();
+        $placeId = $wroclaw?->id ?? $warszawa?->id;
 
         $now = now();
         $instance1 = EventInstance::firstOrCreate(
             ['slug' => 'monthly-rpg-night-'.($now->format('Y-m'))],
             [
                 'event_id' => $event1->id,
+                'created_by' => $alice->id,
                 'name' => $now->format('F Y').' edition',
                 'starts_at' => $now->copy()->next('Friday')->setTime(18, 0),
                 'ends_at' => $now->copy()->next('Friday')->setTime(23, 0),
@@ -87,6 +131,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'convention-2026-main'],
             [
                 'event_id' => $event2->id,
+                'created_by' => $alice->id,
                 'name' => 'Main weekend',
                 'starts_at' => $now->copy()->addMonths(2)->startOfWeek()->setTime(10, 0),
                 'ends_at' => $now->copy()->addMonths(2)->startOfWeek()->addDays(2)->setTime(20, 0),
@@ -94,29 +139,47 @@ class SampleDataSeeder extends Seeder
             ]
         );
 
-        foreach ([$instance1, $instance2] as $instance) {
+        $instance3 = EventInstance::firstOrCreate(
+            ['slug' => 'board-game-evening-'.($now->format('Y-m-d'))],
+            [
+                'event_id' => $event3->id,
+                'created_by' => $bob->id,
+                'name' => $now->format('F j').' session',
+                'starts_at' => $now->copy()->next('Wednesday')->setTime(17, 0),
+                'ends_at' => $now->copy()->next('Wednesday')->setTime(22, 0),
+                'desc' => 'Drop-in board games.',
+            ]
+        );
+
+        $organizerForInstance = fn ($instance) => $instance->event->created_by;
+
+        foreach ([$instance1, $instance2, $instance3] as $instance) {
             $start = $instance->starts_at;
+            $createdBy = $organizerForInstance($instance);
             if (! $instance->slots()->exists()) {
                 Slot::create([
                     'event_instance_id' => $instance->id,
+                    'created_by' => $createdBy,
                     'name' => 'Table #01',
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
-                    'place_id' => $wroclaw?->id ?? $warszawa?->id,
+                    'place_id' => $placeId,
                     'requires_approval' => false,
                     'max_capacity' => 6,
                 ]);
                 Slot::create([
                     'event_instance_id' => $instance->id,
+                    'created_by' => $createdBy,
                     'name' => 'Table #02',
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
-                    'place_id' => $wroclaw?->id ?? $warszawa?->id,
+                    'place_id' => $placeId,
                     'requires_approval' => true,
                     'max_capacity' => 6,
                 ]);
                 Slot::create([
                     'event_instance_id' => $instance->id,
+                    'created_by' => $createdBy,
                     'name' => 'Table #03',
                     'starts_at' => $start->copy()->setTime(18, 30),
                     'ends_at' => $start->copy()->setTime(21, 30),
@@ -134,10 +197,10 @@ class SampleDataSeeder extends Seeder
                 'type' => 'rpg',
                 'min_participants' => 2,
                 'max_participants' => 5,
-                'host_user_id' => $user1->id,
+                'host_user_id' => $alice->id,
+                'created_by' => $alice->id,
                 'status' => 'planned',
                 'duration_minutes' => 240,
-                'slug' => 'sample-dnd-one-shot',
             ]
         );
 
@@ -148,10 +211,38 @@ class SampleDataSeeder extends Seeder
                 'type' => 'rpg',
                 'min_participants' => 2,
                 'max_participants' => 5,
-                'host_user_id' => $user2->id,
+                'host_user_id' => $bob->id,
+                'created_by' => $bob->id,
                 'status' => 'planned',
                 'duration_minutes' => 180,
-                'slug' => 'sample-forbidden-lands',
+            ]
+        );
+
+        $activity3 = Activity::firstOrCreate(
+            ['slug' => 'sample-talisman'],
+            [
+                'name' => 'Talisman – board game open table',
+                'type' => 'board',
+                'min_participants' => 2,
+                'max_participants' => 6,
+                'host_user_id' => $charlie->id,
+                'created_by' => $charlie->id,
+                'status' => 'planned',
+                'duration_minutes' => 180,
+            ]
+        );
+
+        $activity4 = Activity::firstOrCreate(
+            ['slug' => 'sample-call-of-cthulhu'],
+            [
+                'name' => 'Call of Cthulhu one-shot',
+                'type' => 'rpg',
+                'min_participants' => 2,
+                'max_participants' => 5,
+                'host_user_id' => $diana->id,
+                'created_by' => $diana->id,
+                'status' => 'planned',
+                'duration_minutes' => 240,
             ]
         );
 
@@ -162,6 +253,43 @@ class SampleDataSeeder extends Seeder
         }
         if ($slot2 && ! $slot2->activity_id) {
             $slot2->update(['activity_id' => $activity2->id]);
+        }
+
+        $slotBoard = $instance3->slots()->where('name', 'Table #01')->first();
+        if ($slotBoard && ! $slotBoard->activity_id) {
+            $slotBoard->update(['activity_id' => $activity3->id]);
+        }
+
+        // Pending proposal: Diana proposes her activity to the convention (instance2)
+        $freeSlotConvention = $instance2->slots()->whereNull('activity_id')->first();
+        if ($freeSlotConvention && ! ActivityProposal::where('activity_id', $activity4->id)->where('event_instance_id', $instance2->id)->where('status', 'pending')->exists()) {
+            $proposal = ActivityProposal::create([
+                'activity_id' => $activity4->id,
+                'event_instance_id' => $instance2->id,
+                'created_by' => $diana->id,
+                'status' => 'pending',
+            ]);
+            $proposal->proposedSlots()->sync([$freeSlotConvention->id]);
+        }
+
+        // Sample tags on events & activities (TagSeeder must run first)
+        $t = fn (string $slug) => Tag::where('slug', $slug)->first();
+        if ($t('dungeons-and-dragons-5e')) {
+            $event1->tags()->syncWithoutDetaching([$t('dungeons-and-dragons-5e')->id]);
+            $activity1->tags()->syncWithoutDetaching([$t('dungeons-and-dragons-5e')->id]);
+        }
+        if ($t('forbidden-lands')) {
+            $event1->tags()->syncWithoutDetaching([$t('forbidden-lands')->id]);
+            $activity2->tags()->syncWithoutDetaching([$t('forbidden-lands')->id]);
+        }
+        if ($t('horror')) {
+            $event2->tags()->syncWithoutDetaching([$t('horror')->id]);
+        }
+        if ($t('call-of-cthulhu')) {
+            $activity4->tags()->syncWithoutDetaching([$t('call-of-cthulhu')->id]);
+        }
+        if ($t('violence')) {
+            $activity1->tags()->syncWithoutDetaching([$t('violence')->id]);
         }
     }
 }

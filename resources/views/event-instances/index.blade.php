@@ -30,6 +30,9 @@
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {{ __('End') }}
                             </th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ __('Owner') }}
+                            </th>
                             <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
@@ -40,13 +43,16 @@
                                     {{ $instance->event->name }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $instance->name ?? '—' }}
+                                    <a href="{{ route('event-instances.show', $instance) }}" class="text-indigo-600 hover:text-indigo-900">{{ $instance->name ?? format_in_user_tz($instance->starts_at, 'Y-m-d') }}</a>
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $instance->starts_at->format('Y-m-d H:i') }}
+                                    {{ format_in_user_tz($instance->starts_at) }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $instance->ends_at->format('Y-m-d H:i') }}
+                                    {{ format_in_user_tz($instance->ends_at) }}
+                                </td>
+                                <td class="px-4 py-2 text-sm text-gray-500">
+                                    {{ $instance->event->creator?->nickname ?? $instance->event->creator?->email ?? '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
                                     <a href="{{ route('event-instances.edit', $instance) }}"
@@ -67,7 +73,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">
+                                <td colspan="6" class="px-4 py-4 text-sm text-gray-500 text-center">
                                     {{ __('No event instances yet.') }}
                                 </td>
                             </tr>

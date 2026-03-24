@@ -39,6 +39,9 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard', compact('myEvents', 'myActivities', 'participations', 'myProposals'));
+        $wishlistEvents = $user->wishlistEvents()->with(['organization', 'instances'])->orderBy('name')->limit(10)->get();
+        $wishlistActivities = $user->wishlistActivities()->with('host')->orderBy('name')->limit(10)->get();
+
+        return view('dashboard', compact('myEvents', 'myActivities', 'participations', 'myProposals', 'wishlistEvents', 'wishlistActivities'));
     }
 }
