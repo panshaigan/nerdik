@@ -25,14 +25,14 @@
         <div>
             <x-input-label for="starts_at" :value="__('Starts at')" />
             <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('starts_at', optional($instance->starts_at)->format('Y-m-d\TH:i') ?? '') }}" required />
+                          value="{{ old('starts_at', $instance->starts_at ? format_in_user_tz($instance->starts_at, 'Y-m-d\TH:i') : '') }}" required />
             <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
         </div>
 
         <div>
             <x-input-label for="ends_at" :value="__('Ends at')" />
             <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('ends_at', optional($instance->ends_at)->format('Y-m-d\TH:i') ?? '') }}" required />
+                          value="{{ old('ends_at', $instance->ends_at ? format_in_user_tz($instance->ends_at, 'Y-m-d\TH:i') : '') }}" required />
             <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
         </div>
     </div>

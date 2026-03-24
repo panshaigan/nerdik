@@ -20,7 +20,7 @@
                                 @foreach ($instances as $instance)
                                     <option value="{{ $instance->id }}"
                                         @selected((string) old('event_instance_id') === (string) $instance->id)>
-                                        {{ $instance->event->name }} – {{ $instance->name ?? $instance->starts_at->format('Y-m-d') }}
+                                        {{ $instance->event->name }} – {{ $instance->name ?? format_in_user_tz($instance->starts_at, 'Y-m-d') }}
                                     </option>
                                 @endforeach
                             </select>

@@ -9,17 +9,26 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     public string $name = '';
+
     public string $nickname = '';
+
     public string $email = '';
+
+    public string $discord_handle = '';
+
+    public string $timezone = '';
 
     /**
      * Mount the component.
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name ?? '';
-        $this->nickname = Auth::user()->nickname ?? '';
-        $this->email = Auth::user()->email;
+        $u = Auth::user();
+        $this->name = $u->name ?? '';
+        $this->nickname = $u->nickname ?? '';
+        $this->email = $u->email;
+        $this->discord_handle = $u->discord_handle ?? '';
+        $this->timezone = $u->timezone ?? '';
     }
 
     /**
@@ -33,6 +42,8 @@ new class extends Component
             'name' => ['nullable', 'string', 'max:255'],
             'nickname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'discord_handle' => ['nullable', 'string', 'max:255'],
+            'timezone' => ['nullable', 'string', 'timezone'],
         ]);
 
         $user->fill($validated);
@@ -87,6 +98,34 @@ new class extends Component
             <x-input-label for="name" :value="__('Name (optional)')" />
             <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
+        </div>
+
+        <div class="mt-4">
+            <x-input-label for="discord_handle" :value="__('Discord (optional)')" />
+            <x-text-input wire:model="discord_handle" id="discord_handle" name="discord_handle" type="text" class="mt-1 block w-full" placeholder="username" autocomplete="off" />
+            <x-input-error class="mt-2" :messages="$errors->get('discord_handle')" />
+        </div>
+
+        <div class="mt-4">
+            <x-input-label for="timezone" :value="__('Timezone (for displaying dates)')" />
+            <select wire:model="timezone" id="timezone" name="timezone" class="mt-1 block w-full rounded-md border-gray-300">
+                <option value="">{{ __('Use server default (UTC)') }}</option>
+                @if ($timezone && ! in_array($timezone, ['UTC', 'Europe/Warsaw', 'Europe/London', 'Europe/Berlin', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney'], true))
+                    <option value="{{ $timezone }}" selected>{{ $timezone }}</option>
+                @endif
+                <option value="UTC">UTC</option>
+                <option value="Europe/Warsaw">Europe/Warsaw</option>
+                <option value="Europe/London">Europe/London</option>
+                <option value="Europe/Berlin">Europe/Berlin</option>
+                <option value="Europe/Paris">Europe/Paris</option>
+                <option value="America/New_York">America/New_York</option>
+                <option value="America/Chicago">America/Chicago</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                <option value="Australia/Sydney">Australia/Sydney</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500">{{ __('All times are stored in UTC; your timezone only affects how they are shown.') }}</p>
+            <x-input-error class="mt-2" :messages="$errors->get('timezone')" />
         </div>
 
         <div>

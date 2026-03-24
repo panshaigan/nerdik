@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tag extends Model
 {
+    use HasMetaColumns, SoftDeletes;
+
     protected $fillable = [
         'category',
         'parent_id',
         'slug',
         'description',
         'logo_path',
+        'created_by',
+        'updated_by',
     ];
 
     public function parent()

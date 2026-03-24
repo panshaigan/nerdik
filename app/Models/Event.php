@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
+    use HasMetaColumns, SoftDeletes;
+
     protected $fillable = [
         'name',
         'desc',
         'organization_id',
         'is_public',
         'created_by',
+        'updated_by',
         'logo_path',
         'slug',
     ];

@@ -6,8 +6,10 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\EventInstance;
 use App\Models\Slot;
-use Illuminate\Support\Facades\Auth;
+use App\Notifications\ProposalAcceptedNotification;
+use App\Notifications\ProposalRejectedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityProposalController extends Controller
 {
@@ -24,11 +26,17 @@ class ActivityProposalController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for proposing an activity to an event instance.
      */
-    public function create()
+    public function create(EventInstance $eventInstance)
     {
-        //
+        $eventInstance->load('event', 'slots');
+        $myActivities = Activity::where('host_user_id', Auth::id())->orderBy('name')->get();
+
+        return view('activity-proposals.create', [
+            'instance' => $eventInstance,
+            'myActivities' => $myActivities,
+        ]);
     }
 
     /**
@@ -79,39 +87,62 @@ class ActivityProposalController extends Controller
             }
         }
 
-        return redirect()->back()
+        return redirect()->route('event-instances.show', $instance)
             ->with('status', __('Proposal submitted.'));
     }
 
     /**
-     * Display the specified resource.
+     * Accept a proposal: assign the activity to the chosen slot.
      */
-    public function show(ActivityProposal $activityProposal)
+    public function accept(Request $request, ActivityProposal $proposal)
     {
-        //
+        $instance = $proposal->eventInstance;
+        if ($instance->event->created_by !== Auth::id()) {
+            abort(403, __('Only the event owner can accept proposals.'));
+        }
+        if ($proposal->status !== 'pending') {
+            return redirect()->back()->with('status', __('Proposal is not pending.'));
+        }
+
+        $validated = $request->validate([
+            'slot_id' => ['required', 'exists:slots,id'],
+        ]);
+
+        $slot = Slot::where('id', $validated['slot_id'])
+            ->where('event_instance_id', $instance->id)
+            ->whereNull('activity_id')
+            ->firstOrFail();
+
+        $proposal->update([
+            'status' => 'accepted',
+            'accepted_slot_id' => $slot->id,
+        ]);
+        $slot->update(['activity_id' => $proposal->activity_id]);
+
+        $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'eventInstance.event'])));
+
+        return redirect()->route('event-instances.show', $instance)
+            ->with('status', __('Proposal accepted.'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Reject a proposal.
      */
-    public function edit(ActivityProposal $activityProposal)
+    public function reject(ActivityProposal $proposal)
     {
-        //
-    }
+        $instance = $proposal->eventInstance;
+        if ($instance->event->created_by !== Auth::id()) {
+            abort(403, __('Only the event owner can reject proposals.'));
+        }
+        if ($proposal->status !== 'pending') {
+            return redirect()->back()->with('status', __('Proposal is not pending.'));
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, ActivityProposal $activityProposal)
-    {
-        //
-    }
+        $proposal->update(['status' => 'rejected']);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ActivityProposal $activityProposal)
-    {
-        //
+        $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'eventInstance.event'])));
+
+        return redirect()->route('event-instances.show', $instance)
+            ->with('status', __('Proposal rejected.'));
     }
 }

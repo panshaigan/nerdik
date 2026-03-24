@@ -24,6 +24,9 @@
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {{ __('Slug') }}
                             </th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ __('Owner') }}
+                            </th>
                             <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
@@ -35,6 +38,9 @@
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
                                     {{ $organization->slug }}
+                                </td>
+                                <td class="px-4 py-2 text-sm text-gray-500">
+                                    {{ $organization->creator?->nickname ?? $organization->creator?->email ?? '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
                                     <a href="{{ route('organizations.edit', $organization) }}"
@@ -55,7 +61,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-4 py-4 text-sm text-gray-500 text-center">
+                                <td colspan="4" class="px-4 py-4 text-sm text-gray-500 text-center">
                                     {{ __('No organizations yet.') }}
                                 </td>
                             </tr>

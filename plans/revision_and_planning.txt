@@ -1,0 +1,23 @@
+What remains for the first release:
+    - auto filling slugs
+
+    - creating a new event instance (with slot structure) on the basis of existing, owned one
+    - if an organization is attached to an event, it should be displayed as host
+    - organize menu
+    - make the tables more functionable
+    - is event instance a good name? for sure not for frontend
+    - slot management: adding/deleting should be possible from the event instance screen
+    - slot: lacks of activity type, end time
+    - sofisticated place adding
+    - sofisticated tag adding
+    - testing
+    - translation
+    - the ownership is not being restricted
+    - the activity which is already assigned to some slot is not being duplicated at proposal
+    - graphics
+    - GOOGLE login (create app + add widget to login page)
+
+
+- screens
+- flows
+- notifications

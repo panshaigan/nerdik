@@ -42,13 +42,13 @@
                         @forelse ($slots as $slot)
                             <tr>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    {{ $slot->eventInstance->event->name }} – {{ $slot->eventInstance->name ?? $slot->eventInstance->starts_at->format('Y-m-d') }}
+                                    {{ $slot->eventInstance->event->name }} – {{ $slot->eventInstance->name ?? format_in_user_tz($slot->eventInstance->starts_at, 'Y-m-d') }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
                                     {{ $slot->name }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $slot->starts_at?->format('Y-m-d H:i') ?? '—' }}
+                                    {{ $slot->starts_at ? format_in_user_tz($slot->starts_at) : '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
                                     {{ $slot->place?->name ?? '—' }}

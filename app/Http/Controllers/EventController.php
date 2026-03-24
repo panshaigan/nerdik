@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Organization;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
@@ -27,10 +28,12 @@ class EventController extends Controller
     public function create()
     {
         $organizations = Organization::orderBy('name')->get();
+        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
 
         return view('events.create', [
-            'event' => new Event(),
+            'event' => new Event,
             'organizations' => $organizations,
+            'tags' => $tags,
         ]);
     }
 
@@ -45,12 +48,18 @@ class EventController extends Controller
             'slug' => ['required', 'string', 'max:255', 'unique:events,slug'],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['is_public'] = $request->boolean('is_public', true);
 
-        Event::create($validated);
+        $tagIds = $validated['tag_ids'] ?? [];
+        unset($validated['tag_ids']);
+
+        $event = Event::create($validated);
+        $event->tags()->sync($tagIds);
 
         return redirect()->route('events.index')
             ->with('status', __('Event created.'));
@@ -70,8 +79,10 @@ class EventController extends Controller
     public function edit(Event $event)
     {
         $organizations = Organization::orderBy('name')->get();
+        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $event->load('tags');
 
-        return view('events.edit', compact('event', 'organizations'));
+        return view('events.edit', compact('event', 'organizations', 'tags'));
     }
 
     /**
@@ -82,14 +93,20 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
-            'slug' => ['required', 'string', 'max:255', 'unique:events,slug,' . $event->id],
+            'slug' => ['required', 'string', 'max:255', 'unique:events,slug,'.$event->id],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $validated['is_public'] = $request->boolean('is_public', true);
 
+        $tagIds = $validated['tag_ids'] ?? [];
+        unset($validated['tag_ids']);
+
         $event->update($validated);
+        $event->tags()->sync($tagIds);
 
         return redirect()->route('events.index')
             ->with('status', __('Event updated.'));

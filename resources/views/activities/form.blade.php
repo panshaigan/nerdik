@@ -101,6 +101,18 @@
                       value="{{ old('slug', $activity->slug ?? '') }}" required />
         <x-input-error :messages="$errors->get('slug')" class="mt-2" />
     </div>
+
+    @if (isset($tags) && $tags->isNotEmpty())
+        <div class="border-t border-gray-200 pt-4 mt-4">
+            <x-input-label :value="__('Tags')" />
+            <p class="text-xs text-gray-500 mb-3">{{ __('Select tags (game system, publisher, triggers, etc.).') }}</p>
+            @include('tags.partials.selector', [
+                'tags' => $tags,
+                'selectedIds' => old('tag_ids', $activity->exists ? $activity->tags->pluck('id')->toArray() : []),
+            ])
+            <x-input-error :messages="$errors->get('tag_ids')" class="mt-2" />
+        </div>
+    @endif
 </div>
 
 <div class="mt-6 flex justify-end gap-3">
