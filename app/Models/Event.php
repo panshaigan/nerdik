@@ -19,6 +19,14 @@ class Event extends Model
         'updated_by',
         'logo_path',
         'slug',
+        'starts_at',
+        'ends_at',
+    ];
+
+    protected $casts = [
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'is_public' => 'boolean',
     ];
 
     public function organization()
@@ -26,9 +34,14 @@ class Event extends Model
         return $this->belongsTo(Organization::class);
     }
 
-    public function instances()
+    public function slots()
     {
-        return $this->hasMany(EventInstance::class);
+        return $this->hasMany(Slot::class);
+    }
+
+    public function proposals()
+    {
+        return $this->hasMany(ActivityProposal::class);
     }
 
     public function creator()

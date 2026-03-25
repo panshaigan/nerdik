@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Propose an activity') }} · {{ $instance->event->name }}
+            {{ __('Propose an activity') }} · {{ $event->name }}
         </h2>
     </x-slot>
 
@@ -9,12 +9,12 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow sm:rounded-lg p-6">
                 <p class="text-sm text-gray-600 mb-4">
-                    {{ $instance->name ?? format_in_user_tz($instance->starts_at, 'Y-m-d') }}
+                    {{ format_in_user_tz($event->starts_at, 'Y-m-d H:i') }} – {{ format_in_user_tz($event->ends_at, 'Y-m-d H:i') }}
                 </p>
 
                 <form method="POST" action="{{ route('activity-proposals.store') }}">
                     @csrf
-                    <input type="hidden" name="event_instance_id" value="{{ $instance->id }}">
+                    <input type="hidden" name="event_id" value="{{ $event->id }}">
 
                     <div class="space-y-4">
                         <div>
@@ -44,7 +44,7 @@
                             <x-input-label :value="__('Preferred slots (optional)')" />
                             <p class="text-sm text-gray-500 mb-2">{{ __('Select slots you would like to run this activity in. Leave empty to let the organizer decide.') }}</p>
                             <div class="space-y-2">
-                                @foreach ($instance->slots as $slot)
+                                @foreach ($event->slots as $slot)
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="slot_ids[]" value="{{ $slot->id }}" @checked(in_array((string) $slot->id, (array) old('slot_ids', []))) class="rounded border-gray-300">
                                         <span class="text-sm">{{ $slot->name }}</span>
@@ -69,7 +69,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
-                        <a href="{{ route('event-instances.show', $instance) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Cancel') }}</a>
+                        <a href="{{ route('events.show', $event) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Cancel') }}</a>
                         <x-primary-button type="submit">{{ __('Submit proposal') }}</x-primary-button>
                     </div>
                 </form>

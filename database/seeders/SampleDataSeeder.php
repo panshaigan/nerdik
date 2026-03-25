@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
-use App\Models\EventInstance;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 class SampleDataSeeder extends Seeder
 {
     /**
-     * Seed sample data for local testing: users, orgs, events, instances, slots, activities, proposals.
+     * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
      * All entities get created_by set. Safe to run multiple times (uses firstOrCreate by slug/email).
      */
     public function run(): void
@@ -77,36 +76,44 @@ class SampleDataSeeder extends Seeder
             ]
         );
 
+        $now = now();
+
         $event1 = Event::firstOrCreate(
-            ['slug' => 'monthly-rpg-night'],
+            ['slug' => 'monthly-rpg-night-'.($now->format('Y-m'))],
             [
                 'name' => 'Monthly RPG Night',
                 'desc' => 'Regular evening of one-shots and short campaigns.',
                 'organization_id' => $org->id,
                 'is_public' => true,
                 'created_by' => $alice->id,
+                'starts_at' => $now->copy()->next('Friday')->setTime(18, 0),
+                'ends_at' => $now->copy()->next('Friday')->setTime(23, 0),
             ]
         );
 
         $event2 = Event::firstOrCreate(
-            ['slug' => 'convention-2026'],
+            ['slug' => 'convention-2026-main'],
             [
                 'name' => 'Convention 2026',
                 'desc' => 'Annual convention with multiple tracks.',
                 'organization_id' => null,
                 'is_public' => true,
                 'created_by' => $alice->id,
+                'starts_at' => $now->copy()->addMonths(2)->startOfWeek()->setTime(10, 0),
+                'ends_at' => $now->copy()->addMonths(2)->startOfWeek()->addDays(2)->setTime(20, 0),
             ]
         );
 
         $event3 = Event::firstOrCreate(
-            ['slug' => 'board-game-evening'],
+            ['slug' => 'board-game-evening-'.($now->format('Y-m-d'))],
             [
                 'name' => 'Board Game Evening',
                 'desc' => 'Casual board game night at the club.',
                 'organization_id' => $org2->id,
                 'is_public' => true,
                 'created_by' => $bob->id,
+                'starts_at' => $now->copy()->next('Wednesday')->setTime(17, 0),
+                'ends_at' => $now->copy()->next('Wednesday')->setTime(22, 0),
             ]
         );
 
@@ -114,51 +121,14 @@ class SampleDataSeeder extends Seeder
         $warszawa = Place::where('slug', 'warszawa')->first();
         $placeId = $wroclaw?->id ?? $warszawa?->id;
 
-        $now = now();
-        $instance1 = EventInstance::firstOrCreate(
-            ['slug' => 'monthly-rpg-night-'.($now->format('Y-m'))],
-            [
-                'event_id' => $event1->id,
-                'created_by' => $alice->id,
-                'name' => $now->format('F Y').' edition',
-                'starts_at' => $now->copy()->next('Friday')->setTime(18, 0),
-                'ends_at' => $now->copy()->next('Friday')->setTime(23, 0),
-                'desc' => null,
-            ]
-        );
+        $organizerForEvent = fn (Event $e) => $e->created_by;
 
-        $instance2 = EventInstance::firstOrCreate(
-            ['slug' => 'convention-2026-main'],
-            [
-                'event_id' => $event2->id,
-                'created_by' => $alice->id,
-                'name' => 'Main weekend',
-                'starts_at' => $now->copy()->addMonths(2)->startOfWeek()->setTime(10, 0),
-                'ends_at' => $now->copy()->addMonths(2)->startOfWeek()->addDays(2)->setTime(20, 0),
-                'desc' => 'Friday–Sunday.',
-            ]
-        );
-
-        $instance3 = EventInstance::firstOrCreate(
-            ['slug' => 'board-game-evening-'.($now->format('Y-m-d'))],
-            [
-                'event_id' => $event3->id,
-                'created_by' => $bob->id,
-                'name' => $now->format('F j').' session',
-                'starts_at' => $now->copy()->next('Wednesday')->setTime(17, 0),
-                'ends_at' => $now->copy()->next('Wednesday')->setTime(22, 0),
-                'desc' => 'Drop-in board games.',
-            ]
-        );
-
-        $organizerForInstance = fn ($instance) => $instance->event->created_by;
-
-        foreach ([$instance1, $instance2, $instance3] as $instance) {
-            $start = $instance->starts_at;
-            $createdBy = $organizerForInstance($instance);
-            if (! $instance->slots()->exists()) {
+        foreach ([$event1, $event2, $event3] as $event) {
+            $start = $event->starts_at;
+            $createdBy = $organizerForEvent($event);
+            if (! $event->slots()->exists()) {
                 Slot::create([
-                    'event_instance_id' => $instance->id,
+                    'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #01',
                     'starts_at' => $start->copy()->setTime(18, 0),
@@ -168,7 +138,7 @@ class SampleDataSeeder extends Seeder
                     'max_capacity' => 6,
                 ]);
                 Slot::create([
-                    'event_instance_id' => $instance->id,
+                    'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #02',
                     'starts_at' => $start->copy()->setTime(18, 0),
@@ -178,7 +148,7 @@ class SampleDataSeeder extends Seeder
                     'max_capacity' => 6,
                 ]);
                 Slot::create([
-                    'event_instance_id' => $instance->id,
+                    'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #03',
                     'starts_at' => $start->copy()->setTime(18, 30),
@@ -246,8 +216,8 @@ class SampleDataSeeder extends Seeder
             ]
         );
 
-        $slot1 = $instance1->slots()->where('name', 'Table #01')->first();
-        $slot2 = $instance1->slots()->where('name', 'Table #03')->first();
+        $slot1 = $event1->slots()->where('name', 'Table #01')->first();
+        $slot2 = $event1->slots()->where('name', 'Table #03')->first();
         if ($slot1 && ! $slot1->activity_id) {
             $slot1->update(['activity_id' => $activity1->id]);
         }
@@ -255,17 +225,17 @@ class SampleDataSeeder extends Seeder
             $slot2->update(['activity_id' => $activity2->id]);
         }
 
-        $slotBoard = $instance3->slots()->where('name', 'Table #01')->first();
+        $slotBoard = $event3->slots()->where('name', 'Table #01')->first();
         if ($slotBoard && ! $slotBoard->activity_id) {
             $slotBoard->update(['activity_id' => $activity3->id]);
         }
 
-        // Pending proposal: Diana proposes her activity to the convention (instance2)
-        $freeSlotConvention = $instance2->slots()->whereNull('activity_id')->first();
-        if ($freeSlotConvention && ! ActivityProposal::where('activity_id', $activity4->id)->where('event_instance_id', $instance2->id)->where('status', 'pending')->exists()) {
+        // Pending proposal: Diana proposes her activity to the convention (event2)
+        $freeSlotConvention = $event2->slots()->whereNull('activity_id')->first();
+        if ($freeSlotConvention && ! ActivityProposal::where('activity_id', $activity4->id)->where('event_id', $event2->id)->where('status', 'pending')->exists()) {
             $proposal = ActivityProposal::create([
                 'activity_id' => $activity4->id,
-                'event_instance_id' => $instance2->id,
+                'event_id' => $event2->id,
                 'created_by' => $diana->id,
                 'status' => 'pending',
             ]);

@@ -10,27 +10,25 @@
             <form method="GET" class="mb-6 flex flex-wrap gap-4 items-end">
                 <div>
                     <label for="q" class="block text-sm font-medium text-gray-700">{{ __('Search') }}</label>
-                    <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Activity name…') }}" class="mt-1 block rounded-md border-gray-300 w-48">
+                    <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Activity name…') }}" class="mt-1 block rounded-md border-gray-300 w-64">
                 </div>
                 <div>
-                    <label for="from_date" class="block text-sm font-medium text-gray-700">{{ __('From date') }}</label>
+                    <label for="from_date" class="block text-sm font-medium text-gray-700">{{ __('From') }}</label>
                     <input type="date" id="from_date" name="from_date" value="{{ request('from_date') }}" class="mt-1 block rounded-md border-gray-300">
                 </div>
                 <div>
-                    <label for="to_date" class="block text-sm font-medium text-gray-700">{{ __('To date') }}</label>
+                    <label for="to_date" class="block text-sm font-medium text-gray-700">{{ __('To') }}</label>
                     <input type="date" id="to_date" name="to_date" value="{{ request('to_date') }}" class="mt-1 block rounded-md border-gray-300">
                 </div>
-                @if ($places->isNotEmpty())
-                    <div>
-                        <label for="place_id" class="block text-sm font-medium text-gray-700">{{ __('Place') }}</label>
-                        <select id="place_id" name="place_id" class="mt-1 block rounded-md border-gray-300">
-                            <option value="">{{ __('Any') }}</option>
-                            @foreach ($places as $place)
-                                <option value="{{ $place->id }}" @selected(request('place_id') == $place->id)>{{ $place->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
+                <div>
+                    <label for="place_id" class="block text-sm font-medium text-gray-700">{{ __('Place') }}</label>
+                    <select id="place_id" name="place_id" class="mt-1 block rounded-md border-gray-300">
+                        <option value="">{{ __('Any') }}</option>
+                        @foreach ($places as $place)
+                            <option value="{{ $place->id }}" @selected(request('place_id') == $place->id)>{{ $place->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 @if ($tags->isNotEmpty())
                     <div>
                         <label for="tag_id" class="block text-sm font-medium text-gray-700">{{ __('Tag') }}</label>
@@ -55,20 +53,14 @@
                     @forelse ($activities as $activity)
                         <li class="p-4 flex items-start justify-between gap-4">
                             <div class="min-w-0 flex-1">
-                                <a href="{{ route('activities.show', $activity) }}" class="font-medium text-indigo-600 hover:text-indigo-900">
-                                    {{ $activity->name }}
-                                </a>
+                                <a href="{{ route('activities.show', $activity) }}" class="font-medium text-indigo-600 hover:text-indigo-900">{{ $activity->name }}</a>
                                 <span class="text-gray-500 text-sm"> · {{ ucfirst($activity->type) }}</span>
-                                @if ($activity->slot && $activity->slot->eventInstance)
-                                    <span class="text-gray-500 text-sm"> · {{ $activity->slot->eventInstance->event->name }}</span>
-                                    @if ($activity->slot->starts_at)
-                                        <span class="text-gray-500 text-sm"> · {{ format_in_user_tz($activity->slot->starts_at) }}</span>
-                                    @endif
+                                @if ($activity->host)
+                                    <span class="text-gray-500 text-sm"> · {{ __('Host') }}: {{ $activity->host->nickname ?? $activity->host->email }}</span>
                                 @endif
-                                <p class="text-sm text-gray-500 mt-1">
-                                    {{ __('Host') }}: {{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}
-                                    · {{ $activity->participants()->count() }}{{ $activity->max_participants ? '/'.$activity->max_participants : '' }} {{ __('participants') }}
-                                </p>
+                                @if ($activity->slot && $activity->slot->event)
+                                    <span class="text-gray-500 text-sm"> · {{ $activity->slot->event->name }}</span>
+                                @endif
                                 @include('tags.partials.inline', ['tags' => $activity->tags])
                             </div>
                             @auth

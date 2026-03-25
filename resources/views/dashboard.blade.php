@@ -92,7 +92,7 @@
                                 <li class="py-2">
                                     <span class="font-medium">{{ $proposal->activity->name }}</span>
                                     <span class="text-gray-500 text-sm">
-                                        → {{ $proposal->eventInstance->event->name }}
+                                        → {{ $proposal->event->name }}
                                         ({{ ucfirst($proposal->status) }})
                                     </span>
                                 </li>
@@ -113,12 +113,7 @@
                         <ul class="divide-y divide-gray-200">
                             @foreach ($wishlistEvents as $event)
                                 <li class="py-2 flex items-center justify-between">
-                                    @php $firstInstance = $event->instances->first(); @endphp
-                                    @if ($firstInstance)
-                                        <a href="{{ route('event-instances.show', $firstInstance) }}" class="text-indigo-600 hover:text-indigo-900">{{ $event->name }}</a>
-                                    @else
-                                        <span class="text-gray-900">{{ $event->name }}</span>
-                                    @endif
+                                    <a href="{{ route('events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900">{{ $event->name }}</a>
                                     <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')

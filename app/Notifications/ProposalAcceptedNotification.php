@@ -32,14 +32,14 @@ class ProposalAcceptedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $activity = $this->proposal->activity;
-        $eventName = $this->proposal->eventInstance->event->name ?? __('the event');
+        $eventName = $this->proposal->event->name ?? __('the event');
 
         return (new MailMessage)
             ->subject(__('Proposal accepted: :activity', ['activity' => $activity->name]))
             ->line(__('Your activity proposal has been accepted.'))
             ->line(__('Activity: :name', ['name' => $activity->name]))
             ->line(__('Event: :name', ['name' => $eventName]))
-            ->action(__('View event'), route('event-instances.show', $this->proposal->eventInstance));
+            ->action(__('View event'), route('events.show', $this->proposal->event));
     }
 
     /**
@@ -51,9 +51,9 @@ class ProposalAcceptedNotification extends Notification implements ShouldQueue
             'type' => 'proposal_accepted',
             'proposal_id' => $this->proposal->id,
             'activity_name' => $this->proposal->activity->name,
-            'event_name' => $this->proposal->eventInstance->event->name ?? null,
-            'event_instance_id' => $this->proposal->event_instance_id,
-            'url' => route('event-instances.show', $this->proposal->eventInstance),
+            'event_name' => $this->proposal->event->name ?? null,
+            'event_id' => $this->proposal->event_id,
+            'url' => route('events.show', $this->proposal->event),
         ];
     }
 }

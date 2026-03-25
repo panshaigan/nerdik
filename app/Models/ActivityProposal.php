@@ -12,7 +12,7 @@ class ActivityProposal extends Model
 
     protected $fillable = [
         'activity_id',
-        'event_instance_id',
+        'event_id',
         'created_by',
         'updated_by',
         'preferred_start_time',
@@ -29,9 +29,9 @@ class ActivityProposal extends Model
         return $this->belongsTo(Activity::class);
     }
 
-    public function eventInstance()
+    public function event()
     {
-        return $this->belongsTo(EventInstance::class);
+        return $this->belongsTo(Event::class);
     }
 
     public function creator()

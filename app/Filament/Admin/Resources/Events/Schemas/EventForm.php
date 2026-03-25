@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Events\Schemas;
 
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -18,22 +20,21 @@ class EventForm
                 Textarea::make('desc')
                     ->default(null)
                     ->columnSpanFull(),
-                TextInput::make('organization_id')
-                    ->numeric()
-                    ->default(null),
+                Select::make('organization_id')
+                    ->relationship('organization', 'name')
+                    ->searchable()
+                    ->preload(),
                 Toggle::make('is_public')
+                    ->default(true),
+                DateTimePicker::make('starts_at')
                     ->required(),
-                TextInput::make('created_by')
-                    ->required()
-                    ->numeric(),
+                DateTimePicker::make('ends_at')
+                    ->required(),
                 TextInput::make('logo_path')
                     ->default(null),
                 TextInput::make('slug')
                     ->required(),
-                TextInput::make('deleted_by')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('updated_by')
+                TextInput::make('created_by')
                     ->numeric()
                     ->default(null),
             ]);

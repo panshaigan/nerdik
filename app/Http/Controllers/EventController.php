@@ -16,7 +16,7 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::with('organization')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('starts_at', 'desc')
             ->get();
 
         return view('events.index', compact('events'));
@@ -48,12 +48,16 @@ class EventController extends Controller
             'slug' => ['required', 'string', 'max:255', 'unique:events,slug'],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['required', 'date', 'after:starts_at'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['is_public'] = $request->boolean('is_public', true);
+        $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
         $tagIds = $validated['tag_ids'] ?? [];
         unset($validated['tag_ids']);
@@ -70,7 +74,15 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        //
+        $event->load(['creator', 'tags.translations', 'organization', 'slots.place', 'slots.activity']);
+        $pendingProposals = $event->proposals()
+            ->with(['activity', 'creator'])
+            ->where('status', 'pending')
+            ->orderBy('created_at')
+            ->get();
+        $isOwner = auth()->check() && $event->created_by === auth()->id();
+
+        return view('events.show', compact('event', 'pendingProposals', 'isOwner'));
     }
 
     /**
@@ -96,11 +108,15 @@ class EventController extends Controller
             'slug' => ['required', 'string', 'max:255', 'unique:events,slug,'.$event->id],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['required', 'date', 'after:starts_at'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
         ]);
 
         $validated['is_public'] = $request->boolean('is_public', true);
+        $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+        $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
         $tagIds = $validated['tag_ids'] ?? [];
         unset($validated['tag_ids']);

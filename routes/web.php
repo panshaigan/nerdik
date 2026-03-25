@@ -5,7 +5,6 @@ use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\EventInstanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
@@ -20,6 +19,8 @@ Route::view('/', 'welcome');
 Route::get('browse/events', [BrowseController::class, 'events'])->name('browse.events');
 Route::get('browse/activities', [BrowseController::class, 'activities'])->name('browse.activities');
 
+Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+
 Route::get('dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -32,12 +33,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('organizations', OrganizationController::class)
         ->except(['show']);
 
-    Route::resource('events', EventController::class)
-        ->except(['show']);
-
-    Route::resource('event-instances', EventInstanceController::class);
-
-    Route::get('event-instances/{eventInstance}/propose', [ActivityProposalController::class, 'create'])->name('event-instances.propose');
+    Route::get('events/{event}/propose', [ActivityProposalController::class, 'create'])->name('events.propose');
+    Route::resource('events', EventController::class)->except(['show']);
 
     Route::resource('slots', SlotController::class)
         ->except(['show']);
