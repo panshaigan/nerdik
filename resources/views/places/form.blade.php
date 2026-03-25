@@ -36,13 +36,6 @@
     </div>
 
     <div>
-        <x-input-label for="slug" :value="__('Slug')" />
-        <x-text-input id="slug" name="slug" type="text" class="mt-1 block w-full"
-                      value="{{ old('slug', $place->slug ?? '') }}" required />
-        <x-input-error :messages="$errors->get('slug')" class="mt-2" />
-    </div>
-
-    <div>
         <x-input-label for="links" :value="__('Links (optional)')" />
         <x-text-input id="links" name="links" type="text" class="mt-1 block w-full"
                       value="{{ old('links', $place->links ?? '') }}" />

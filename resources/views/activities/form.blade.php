@@ -95,13 +95,6 @@
         </div>
     </div>
 
-    <div>
-        <x-input-label for="slug" :value="__('Slug')" />
-        <x-text-input id="slug" name="slug" type="text" class="mt-1 block w-full"
-                      value="{{ old('slug', $activity->slug ?? '') }}" required />
-        <x-input-error :messages="$errors->get('slug')" class="mt-2" />
-    </div>
-
     @if (isset($tags) && $tags->isNotEmpty())
         <div class="border-t border-gray-200 pt-4 mt-4">
             <x-input-label :value="__('Tags')" />

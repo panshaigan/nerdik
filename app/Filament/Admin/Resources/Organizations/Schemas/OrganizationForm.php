@@ -22,8 +22,6 @@ class OrganizationForm
                     ->columnSpanFull(),
                 TextInput::make('logo_path')
                     ->default(null),
-                TextInput::make('slug')
-                    ->required(),
                 TextInput::make('deleted_by')
                     ->numeric()
                     ->default(null),

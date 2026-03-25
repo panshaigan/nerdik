@@ -39,13 +39,6 @@
     </div>
 
     <div>
-        <x-input-label for="slug" :value="__('Slug')" />
-        <x-text-input id="slug" name="slug" type="text" class="mt-1 block w-full"
-                      value="{{ old('slug', $event->slug ?? '') }}" required />
-        <x-input-error :messages="$errors->get('slug')" class="mt-2" />
-    </div>
-
-    <div>
         <x-input-label for="desc" :value="__('Description (optional)')" />
         <textarea id="desc" name="desc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" rows="3">{{ old('desc', $event->desc ?? '') }}</textarea>
         <x-input-error :messages="$errors->get('desc')" class="mt-2" />

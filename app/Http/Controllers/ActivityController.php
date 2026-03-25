@@ -125,7 +125,6 @@ class ActivityController extends Controller
             'duration_minutes' => ['nullable', 'integer', 'min:0'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'signoff_deadline_hours' => ['nullable', 'integer', 'min:0'],
-            'slug' => ['required', 'string', 'max:255', 'unique:activities,slug,'.$id],
             'is_restricted' => ['nullable', 'boolean'],
             'open_for_observers' => ['nullable', 'boolean'],
         ]);

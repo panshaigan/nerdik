@@ -32,8 +32,6 @@ class EventForm
                     ->required(),
                 TextInput::make('logo_path')
                     ->default(null),
-                TextInput::make('slug')
-                    ->required(),
                 TextInput::make('created_by')
                     ->numeric()
                     ->default(null),

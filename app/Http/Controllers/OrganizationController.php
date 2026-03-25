@@ -34,7 +34,6 @@ class OrganizationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:organizations,slug'],
             'desc' => ['nullable', 'string'],
         ]);
 
@@ -67,7 +66,6 @@ class OrganizationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:organizations,slug,'.$organization->id],
             'desc' => ['nullable', 'string'],
         ]);
 
