@@ -12,9 +12,9 @@ class BrowseController extends Controller
 {
     public function events(Request $request)
     {
-        $query = Event::with(['organization', 'instances', 'creator', 'tags.translations'])
+        $query = Event::with(['organization', 'creator', 'tags.translations'])
             ->where('is_public', true)
-            ->orderBy('updated_at', 'desc');
+            ->orderBy('starts_at', 'desc');
 
         if ($request->filled('q')) {
             $term = '%'.$request->q.'%';
@@ -36,8 +36,8 @@ class BrowseController extends Controller
 
     public function activities(Request $request)
     {
-        $query = Activity::with(['host', 'tags.translations', 'slot.eventInstance.event'])
-            ->whereHas('slot', fn ($q) => $q->whereHas('eventInstance.event', fn ($e) => $e->where('is_public', true)))
+        $query = Activity::with(['host', 'tags.translations', 'slot.event'])
+            ->whereHas('slot', fn ($q) => $q->whereHas('event', fn ($e) => $e->where('is_public', true)))
             ->orderBy('updated_at', 'desc');
 
         if ($request->filled('from_date')) {

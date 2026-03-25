@@ -32,7 +32,7 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $activity = $this->proposal->activity;
-        $eventName = $this->proposal->eventInstance->event->name ?? __('the event');
+        $eventName = $this->proposal->event->name ?? __('the event');
 
         return (new MailMessage)
             ->subject(__('Proposal rejected: :activity', ['activity' => $activity->name]))
@@ -51,7 +51,7 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue
             'type' => 'proposal_rejected',
             'proposal_id' => $this->proposal->id,
             'activity_name' => $this->proposal->activity->name,
-            'event_name' => $this->proposal->eventInstance->event->name ?? null,
+            'event_name' => $this->proposal->event->name ?? null,
             'url' => route('activity-proposals.index'),
         ];
     }

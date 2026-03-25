@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityProposal;
-use App\Models\EventInstance;
+use App\Models\Event;
 use App\Models\Slot;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
@@ -18,7 +18,7 @@ class ActivityProposalController extends Controller
      */
     public function index()
     {
-        $proposals = ActivityProposal::with(['activity', 'eventInstance.event', 'creator', 'acceptedSlot'])
+        $proposals = ActivityProposal::with(['activity', 'event', 'creator', 'acceptedSlot'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -26,15 +26,15 @@ class ActivityProposalController extends Controller
     }
 
     /**
-     * Show the form for proposing an activity to an event instance.
+     * Show the form for proposing an activity to an event.
      */
-    public function create(EventInstance $eventInstance)
+    public function create(Event $event)
     {
-        $eventInstance->load('event', 'slots');
+        $event->load('slots');
         $myActivities = Activity::where('host_user_id', Auth::id())->orderBy('name')->get();
 
         return view('activity-proposals.create', [
-            'instance' => $eventInstance,
+            'event' => $event,
             'myActivities' => $myActivities,
         ]);
     }
@@ -46,18 +46,18 @@ class ActivityProposalController extends Controller
     {
         $validated = $request->validate([
             'activity_id' => ['required', 'exists:activities,id'],
-            'event_instance_id' => ['required', 'exists:event_instances,id'],
+            'event_id' => ['required', 'exists:events,id'],
             'preferred_start_time' => ['nullable', 'date'],
             'slot_ids' => ['nullable', 'array'],
             'slot_ids.*' => ['integer', 'exists:slots,id'],
         ]);
 
         $activity = Activity::findOrFail($validated['activity_id']);
-        $instance = EventInstance::findOrFail($validated['event_instance_id']);
+        $event = Event::findOrFail($validated['event_id']);
 
         $proposal = ActivityProposal::create([
             'activity_id' => $activity->id,
-            'event_instance_id' => $instance->id,
+            'event_id' => $event->id,
             'created_by' => Auth::id(),
             'preferred_start_time' => $validated['preferred_start_time'] ?? null,
             'status' => 'pending',
@@ -66,7 +66,7 @@ class ActivityProposalController extends Controller
         // Attach compatible slots if provided
         if (! empty($validated['slot_ids'])) {
             $slots = Slot::whereIn('id', $validated['slot_ids'])
-                ->where('event_instance_id', $instance->id)
+                ->where('event_id', $event->id)
                 ->get();
 
             foreach ($slots as $slot) {
@@ -87,7 +87,7 @@ class ActivityProposalController extends Controller
             }
         }
 
-        return redirect()->route('event-instances.show', $instance)
+        return redirect()->route('events.show', $event)
             ->with('status', __('Proposal submitted.'));
     }
 
@@ -96,8 +96,8 @@ class ActivityProposalController extends Controller
      */
     public function accept(Request $request, ActivityProposal $proposal)
     {
-        $instance = $proposal->eventInstance;
-        if ($instance->event->created_by !== Auth::id()) {
+        $event = $proposal->event;
+        if ($event->created_by !== Auth::id()) {
             abort(403, __('Only the event owner can accept proposals.'));
         }
         if ($proposal->status !== 'pending') {
@@ -109,7 +109,7 @@ class ActivityProposalController extends Controller
         ]);
 
         $slot = Slot::where('id', $validated['slot_id'])
-            ->where('event_instance_id', $instance->id)
+            ->where('event_id', $event->id)
             ->whereNull('activity_id')
             ->firstOrFail();
 
@@ -119,9 +119,9 @@ class ActivityProposalController extends Controller
         ]);
         $slot->update(['activity_id' => $proposal->activity_id]);
 
-        $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'eventInstance.event'])));
+        $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
 
-        return redirect()->route('event-instances.show', $instance)
+        return redirect()->route('events.show', $event)
             ->with('status', __('Proposal accepted.'));
     }
 
@@ -130,8 +130,8 @@ class ActivityProposalController extends Controller
      */
     public function reject(ActivityProposal $proposal)
     {
-        $instance = $proposal->eventInstance;
-        if ($instance->event->created_by !== Auth::id()) {
+        $event = $proposal->event;
+        if ($event->created_by !== Auth::id()) {
             abort(403, __('Only the event owner can reject proposals.'));
         }
         if ($proposal->status !== 'pending') {
@@ -140,9 +140,9 @@ class ActivityProposalController extends Controller
 
         $proposal->update(['status' => 'rejected']);
 
-        $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'eventInstance.event'])));
+        $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
 
-        return redirect()->route('event-instances.show', $instance)
+        return redirect()->route('events.show', $event)
             ->with('status', __('Proposal rejected.'));
     }
 }

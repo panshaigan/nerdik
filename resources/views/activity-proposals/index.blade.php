@@ -15,7 +15,7 @@
                                 {{ __('Activity') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Event instance') }}
+                                {{ __('Event') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {{ __('Proposer') }}
@@ -33,9 +33,9 @@
                                     {{ $proposal->activity->name }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $proposal->eventInstance->event->name }}
+                                    {{ $proposal->event->name }}
                                     –
-                                    {{ $proposal->eventInstance->name ?? format_in_user_tz($proposal->eventInstance->starts_at, 'Y-m-d') }}
+                                    {{ format_in_user_tz($proposal->event->starts_at, 'Y-m-d') }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
                                     {{ $proposal->creator->nickname ?? $proposal->creator->email }}
@@ -64,4 +64,3 @@
         </div>
     </div>
 </x-app-layout>
-

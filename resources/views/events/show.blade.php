@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $instance->name ?? $instance->event->name }} · {{ $instance->event->name }}
+            {{ $event->name }}
         </h2>
     </x-slot>
 
@@ -13,38 +13,44 @@
 
             <div class="bg-white shadow sm:rounded-lg p-6">
                 <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('Event') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $instance->event->name }}</dd>
-                    </div>
-                    @if ($instance->event->creator)
+                    @if ($event->organization)
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('Event owner') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $instance->event->creator->nickname ?? $instance->event->creator->email }}</dd>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('Organization') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $event->organization->name }}</dd>
+                        </div>
+                    @endif
+                    @if ($event->creator)
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('Organizer') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $event->creator->nickname ?? $event->creator->email }}</dd>
                         </div>
                     @endif
                     <div>
                         <dt class="text-sm font-medium text-gray-500">{{ __('Start') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($instance->starts_at) }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($event->starts_at) }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">{{ __('End') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($instance->ends_at) }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($event->ends_at) }}</dd>
                     </div>
                 </dl>
-                @if ($instance->event->tags->isNotEmpty())
+                @if ($event->tags->isNotEmpty())
                     <div class="mt-4">
-                        <p class="text-sm font-medium text-gray-500 mb-2">{{ __('Event tags') }}</p>
-                        @include('tags.partials.inline', ['tags' => $instance->event->tags, 'class' => ''])
+                        <p class="text-sm font-medium text-gray-500 mb-2">{{ __('Tags') }}</p>
+                        @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
                     </div>
                 @endif
-                @if ($instance->desc)
-                    <p class="mt-4 text-sm text-gray-600">{{ $instance->desc }}</p>
+                @if ($event->desc)
+                    <p class="mt-4 text-sm text-gray-600">{{ $event->desc }}</p>
                 @endif
                 <div class="mt-4 flex flex-wrap gap-3 items-center">
-                    <a href="{{ route('event-instances.edit', $instance) }}" class="text-sm text-indigo-600 hover:text-indigo-900">{{ __('Edit') }}</a>
                     @auth
-                        <a href="{{ route('event-instances.propose', $instance) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                        @if ($event->created_by === auth()->id())
+                            <a href="{{ route('events.edit', $event) }}" class="text-sm text-indigo-600 hover:text-indigo-900">{{ __('Edit') }}</a>
+                        @endif
+                    @endauth
+                    @auth
+                        <a href="{{ route('events.propose', $event) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
                             {{ __('Propose an activity') }}
                         </a>
                     @endauth
@@ -58,7 +64,7 @@
             <div class="bg-white shadow sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('Slots') }}</h3>
                 <ul class="divide-y divide-gray-200">
-                    @forelse ($instance->slots as $slot)
+                    @forelse ($event->slots as $slot)
                         <li class="py-3 flex items-center justify-between">
                             <div>
                                 <span class="font-medium">{{ $slot->name }}</span>
@@ -97,7 +103,7 @@
                                     <span class="font-medium">{{ $proposal->activity->name }}</span>
                                     <span class="text-gray-500 text-sm"> · {{ __('by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
                                 </div>
-                                @php $freeSlots = $instance->slots->where('activity_id', null); @endphp
+                                @php $freeSlots = $event->slots->where('activity_id', null); @endphp
                                 <div class="flex flex-wrap gap-2 items-center">
                                     @if ($freeSlots->isNotEmpty())
                                         <form action="{{ route('activity-proposals.accept', $proposal) }}" method="POST" class="inline flex items-center gap-1">
@@ -125,7 +131,7 @@
             @endif
 
             <div class="flex gap-3">
-                <a href="{{ route('event-instances.index') }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Back to event instances') }}</a>
+                <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Back to events') }}</a>
             </div>
         </div>
     </div>

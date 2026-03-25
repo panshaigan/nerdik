@@ -14,7 +14,7 @@ Initial implementation order for ver 0.1
     - Places & tags (foundations)
         - Migrations + basic CRUD UIs.
         - Seed Polish cities and core tags (popular RPGs + triggers).
-    - Events & event_instances
+    - Events
         - Models, migrations, basic user CRUD.
         - Attach organization (simple CRUD).
     - Slots
@@ -22,7 +22,7 @@ Initial implementation order for ver 0.1
     - Activities & proposals
         - Activity CRUD (just enough fields).
         - Proposal flow:
-            - Propose to event_instance and/or slots.
+            - Propose to event and/or slots.
             - Auto‑accept on “no approval needed” slots.
     - Participation & waitlists
         - Join/leave logic (with waitlist).
@@ -56,33 +56,31 @@ Features:
         - Apple [FUTURE]
 	- Event creation/slot management
 		- (user) CRUD event [MVP]
-			- kind of a template. For example "Sessions in some Pub" which happen every month. or can be one-time event as well.
-			- having established Event, you can always CRUD an event instance [MVP]
 			- calendar for easily picking dates [FUTURE]
-			- for the reoccuring ones should be some easy way to duplicate the slots from the previous event instances, or maybe it should even do this by default [FUTURE]
+			- for the reoccuring ones should be some easy way to duplicate the slots from the owned existing events, or maybe it should even do this by default [FUTURE]
 		- (user) CRUD organization [MVP]
 			- user can attach it to his events [MVP]
-		- (organizer - owner of event) CRUD slot(s) inside event instance. slots is a time/activity_type/place container [MVP]
-			- it should allow and suggest the time within the event instance [MVP]
+		- (organizer - owner of event) CRUD slot(s) inside event. slots is a time/activity_type/place container [MVP]
+			- it should allow and suggest the time within the event [MVP]
 			- it should allow mass slot creation. for example: 10 slots for rpg at 13:00 in event place X. allow auto incremental names, like Table #01, Table #02 [MVP]
 			- it should accept multiple types of activity in one slot. but i expect the most cases will one type per slot.
 			- no place, time is required since beginning. it can be filled later if the organizer doesnt know yet
 		- (organizer) should be able to organize slots not only by editing, but also by drag and dropping to the timeline of the event [FUTURE]
-		- notifications: "instance event soon!", "instance event soon - empty slots", "instance event soon - no slots planned" [FUTURE]
+		- notifications: "event soon!", "event soon - empty slots", "event soon - no slots planned" [FUTURE]
 		
 	- Activity proposal/approval
-		- (user) propose own activity for an event instance (for given time and type of slots or to a concrete slot or without any conditions). [MVP]
-			- technically an user is creating an activity and then proposing it to some given slots in an event instance (ones which accept the same activity type and time/place chosen by the user) or to event instance directly without conditions other than type of activity
+		- (user) propose own activity for an event (for given time and type of slots or to a concrete slot or without any conditions). [MVP]
+			- technically an user is creating an activity and then proposing it to some given slots in an event (ones which accept the same activity type and time/place chosen by the user) or to event directly without conditions other than type of activity
 			- it exists in the system as an activity without event assigned until its getting accepted by the event organizer.
 		 	- can be totally new activity or using an existing one [MVP]
-		 	- if the chosen existing one is already assigned to some other event instance, its being duplicated (treated as a template) [MVP]
+		 	- if the chosen existing one is already assigned to some other event, its being duplicated (treated as a template) [MVP]
 			- in an activity user sets a name, description, game, triggers and other tags, capacity, etc [MVP]
 			- all proposals are being saved in user's list. then just attached to a slot if accepted. if not, they can be later used as stand-alone activity or proposed to another event [MVP]
 			- checkbox for adding yourself as a host of the activity (like Game Master in RPG). host shoulnt be set automatically, because of the following scenario: organizer sets a table for playing a board game "Talisman", but he is not going to play himself. [MVP]
 			- if there is some fitting slot of which doesnt need approval, its being auto confirmed [MVP]
 		- (organizer) accepting propositions what effects in adding proposed activity to a free slot of given time and type (or a slot chosen by the organizer) [MVP]
 		- (user) CRUD activity [MVP]
-			- if user is not going to attach it to any existing event instance, he might activate it as stand-alone activity. he just need to add place and time [FUTURE]
+			- if user is not going to attach it to any existing event, he might activate it as stand-alone activity. he just need to add place and time [FUTURE]
 			- should be possible to add links for external resources. [MVP]	
 		- notifications: "proposal waiting for acceptance", "proposal accepted/rejected" [MVP]
 
@@ -103,14 +101,14 @@ Features:
 		- (user) adding tags to his "wishlist". like you can add games/conventions/trigger/anything which you are willing to play/spot. [FUTURE]
 		- (user) adding places to his wishlist. cities, pubs, libraries, etc. [FUTURE]
 		- (user) saving existing events and activities to "wishlist" [MVP]
-		- (anyone) social sharing events(and event instances), activities [MVP]
+		- (anyone) social sharing events, activities [MVP]
 		- (user) export to calendars [FUTURE]
 
 	- Search/discovery
 		- (user) browsing events/activities [MVP]
 		- (user) searching for events/activities. by name, dates, tags, places. filters. remember last search [MVP]
 		- (user) browsing/searching for users added specific tags to wishlist. and places. like you can find a person who wants to play fantasy rpg in wrocław. [FUTURE]
-		- (guest) Browse (list) public events and event instances (read-only)
+		- (guest) Browse (list) public events (read-only)
 		- (guest) Browse (list) public activities (accepted ones in public events) (read-only)
 	
 	- User Dashboard
@@ -159,7 +157,6 @@ Features:
 
 	- Adding logo/covers to the main entities
 		- event [MVP]
-		- event instance [MVP]
 		- organization [MVP]
 		- activity [MVP]
 		- place [FUTURE]
@@ -201,8 +198,8 @@ Entities:
 		- slug
 	- slot
 		- name (e.g. "Table 1")
-		- event instance
-		- (nullable) time (within event instance's date range)
+		- event
+		- (nullable) time (within event's date range)
 		- types of activity (many to many)
 		- (nullable) place (one place per slot)
 		- tags (blocks, misc)
@@ -235,7 +232,7 @@ Entities:
         - extra (json, e.g. for rpg type: extra = { "is_beginner_friendly": true, "needs_lore_knowledge": false, "needs_mechanics_knowledge": true, "scenario_type": "custom",  "duration" : "one-shot"})
 	- activity_proposal
 		- activity_id
-		- event_instance_id
+		- event_id
 		- created_by (proposer - set it from the current user when creating the proposal)
 		- (nullable) preferred_start_time
 		- status: pending|accepted|rejected
@@ -312,13 +309,11 @@ Prefilled data:
 
 UX & Workflows {TO CHECK}:
 	Key flows:
-		Creating an event and its instances
+		Creating an event
 			- Create event
-			- Create one or more event_instances by choosing the dates/date ranges in calendar. the name/desc/places/tags are initially copied from the main event
-			- Adjust event_instances on need
-		Creating slots within instance
-			- Open event instance. 
-			- Choose base name (e.g. "Table"), activity type(s), place, time (within instance's time range), need approval flag
+		Creating slots within event
+			- Open event 
+			- Choose base name (e.g. "Table"), activity type(s), place, time (within event's time range), need approval flag
 			- Set count (e.g. 10 slots for RPG at 13:00 or 1 slot for board games)
 			- Generate N slots in one action.
 		Proposing an activity flow
@@ -332,7 +327,7 @@ UX & Workflows {TO CHECK}:
 				- organizer accepts - activity gets attached to the chosen slot, or if there was no chosen slot, organizer can see the prefered slots and choose it himself. can be by drag and drop
 				- reject - activity stays in user's list for reuse/stand-alone.
 			- technicals:
-				- User creates a proposal and attaches it to an event instance and optionally a set of compatible slots (same type) via activity_proposal_slot or just set the preferred time or leaves everything for the organizer's decision.
+				- User creates a proposal and attaches it to an event and optionally a set of compatible slots (same type) via activity_proposal_slot or just set the preferred time or leaves everything for the organizer's decision.
 				- If any of those slots has "no approval needed", auto-accept: set accepted_slot_id and set status = accepted, set slot.activity_id = activity_id.
 				- Otherwise organizer chooses one slot from that set and set the same properties
 		Joining/leaving an accepted activity
@@ -341,7 +336,7 @@ UX & Workflows {TO CHECK}:
 			- On leave (if time allows), optional refill from waitlist. (the new participant should be notified)
 			- Capacity and "slots for users" come from activity.
 		Browsing activities
-		 	- From event instance: list accepted activities (and maybe free slots). 
+		 	- From event: list accepted activities (and maybe free slots). 
 		 	- From dashboard: my participations, my proposals, wishlist, owned activities/events
 		 	- from events/activities catalog
 	 	Tag system
@@ -428,7 +423,7 @@ Privacy/data: [FUTURE]
 	- Requirement: Implement account deletion that either deletes or anonymizes personal data, while preserving system integrity (past activities/events).
 	- Requirement: Provide a machine‑readable export (JSON/ZIP) of user‑related data on demand.
 	- Request logs with minimal PII (IP, user_id if logged in, route).
-	- DB audit logs on critical entities: event, event_instance, organization, activity, activity_proposal, user profile changes, tags.
+	- DB audit logs on critical entities: event, organization, activity, activity_proposal, user profile changes, tags.
 	- Only a small set of admin users can access detailed logs and user data; every admin action on user data (viewing profile, changing status, banning, editing content) should be recorded with timestamp and admin id.
 	- Log retention is limited (e.g. 12 months) unless needed for legal reasons.
 

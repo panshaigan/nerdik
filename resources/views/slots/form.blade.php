@@ -2,16 +2,16 @@
 
 <div class="space-y-4">
     <div>
-        <x-input-label for="event_instance_id" :value="__('Event instance')" />
-        <select id="event_instance_id" name="event_instance_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-            @foreach ($instances as $instance)
-                <option value="{{ $instance->id }}"
-                    @selected((string) old('event_instance_id', $slot->event_instance_id ?? '') === (string) $instance->id)>
-                    {{ $instance->event->name }} – {{ $instance->name ?? format_in_user_tz($instance->starts_at, 'Y-m-d') }}
+        <x-input-label for="event_id" :value="__('Event')" />
+        <select id="event_id" name="event_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            @foreach ($events as $ev)
+                <option value="{{ $ev->id }}"
+                    @selected((string) old('event_id', $slot->event_id ?? '') === (string) $ev->id)>
+                    {{ $ev->name }} · {{ format_in_user_tz($ev->starts_at, 'Y-m-d H:i') }}
                 </option>
             @endforeach
         </select>
-        <x-input-error :messages="$errors->get('event_instance_id')" class="mt-2" />
+        <x-input-error :messages="$errors->get('event_id')" class="mt-2" />
     </div>
 
     <div>

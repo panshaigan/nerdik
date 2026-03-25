@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EventInstance;
+use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ class SlotController extends Controller
      */
     public function index()
     {
-        $slots = Slot::with(['eventInstance.event', 'place'])
+        $slots = Slot::with(['event', 'place'])
             ->orderBy('starts_at')
             ->get();
 
@@ -26,15 +26,13 @@ class SlotController extends Controller
      */
     public function create()
     {
-        $instances = EventInstance::with('event')
-            ->orderBy('starts_at', 'desc')
-            ->get();
+        $events = Event::orderBy('starts_at', 'desc')->get();
 
         $places = Place::orderBy('name')->get();
 
         return view('slots.create', [
             'slot' => new Slot,
-            'instances' => $instances,
+            'events' => $events,
             'places' => $places,
         ]);
     }
@@ -49,7 +47,7 @@ class SlotController extends Controller
         }
 
         $validated = $request->validate([
-            'event_instance_id' => ['required', 'exists:event_instances,id'],
+            'event_id' => ['required', 'exists:events,id'],
             'name' => ['required', 'string', 'max:255'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
@@ -85,13 +83,11 @@ class SlotController extends Controller
      */
     public function edit(Slot $slot)
     {
-        $instances = EventInstance::with('event')
-            ->orderBy('starts_at', 'desc')
-            ->get();
+        $events = Event::orderBy('starts_at', 'desc')->get();
 
         $places = Place::orderBy('name')->get();
 
-        return view('slots.edit', compact('slot', 'instances', 'places'));
+        return view('slots.edit', compact('slot', 'events', 'places'));
     }
 
     /**
@@ -100,7 +96,7 @@ class SlotController extends Controller
     public function update(Request $request, Slot $slot)
     {
         $validated = $request->validate([
-            'event_instance_id' => ['required', 'exists:event_instances,id'],
+            'event_id' => ['required', 'exists:events,id'],
             'name' => ['required', 'string', 'max:255'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
@@ -135,12 +131,12 @@ class SlotController extends Controller
     }
 
     /**
-     * Mass create slots for an event instance.
+     * Mass create slots for an event.
      */
     protected function storeMass(Request $request)
     {
         $validated = $request->validate([
-            'event_instance_id' => ['required', 'exists:event_instances,id'],
+            'event_id' => ['required', 'exists:events,id'],
             'base_name' => ['required', 'string', 'max:255'],
             'count' => ['required', 'integer', 'min:1', 'max:100'],
             'starts_at' => ['nullable', 'date'],
@@ -156,7 +152,7 @@ class SlotController extends Controller
 
         for ($i = 1; $i <= $validated['count']; $i++) {
             Slot::create([
-                'event_instance_id' => $validated['event_instance_id'],
+                'event_id' => $validated['event_id'],
                 'name' => sprintf('%s #%02d', $validated['base_name'], $i),
                 'starts_at' => $startsAtUtc,
                 'ends_at' => null,

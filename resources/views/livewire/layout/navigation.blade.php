@@ -33,8 +33,8 @@ new class extends Component
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('event-instances.index')" :active="request()->routeIs('event-instances.*')" wire:navigate>
-                        {{ __('Event instances') }}
+                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" wire:navigate>
+                        {{ __('Events') }}
                     </x-nav-link>
                     <x-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
                         {{ __('Events') }}
@@ -110,8 +110,8 @@ new class extends Component
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('event-instances.index')" :active="request()->routeIs('event-instances.*')" wire:navigate>
-                {{ __('Event instances') }}
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" wire:navigate>
+                {{ __('Events') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
                 {{ __('Events') }}

@@ -11,7 +11,7 @@ class Slot extends Model
     use HasMetaColumns, SoftDeletes;
 
     protected $fillable = [
-        'event_instance_id',
+        'event_id',
         'created_by',
         'name',
         'starts_at',
@@ -29,9 +29,9 @@ class Slot extends Model
         'requires_approval' => 'boolean',
     ];
 
-    public function eventInstance()
+    public function event()
     {
-        return $this->belongsTo(EventInstance::class);
+        return $this->belongsTo(Event::class);
     }
 
     public function place()

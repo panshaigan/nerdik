@@ -24,7 +24,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Event instance') }}
+                                {{ __('Event') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {{ __('Name') }}
@@ -42,7 +42,7 @@
                         @forelse ($slots as $slot)
                             <tr>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    {{ $slot->eventInstance->event->name }} – {{ $slot->eventInstance->name ?? format_in_user_tz($slot->eventInstance->starts_at, 'Y-m-d') }}
+                                    {{ $slot->event->name }} · {{ format_in_user_tz($slot->event->starts_at, 'Y-m-d') }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
                                     {{ $slot->name }}

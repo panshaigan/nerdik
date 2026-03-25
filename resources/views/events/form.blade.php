@@ -22,6 +22,22 @@
         <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
     </div>
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <x-input-label for="starts_at" :value="__('Starts at')" />
+            <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 block w-full"
+                          value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}" required />
+            <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="ends_at" :value="__('Ends at')" />
+            <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 block w-full"
+                          value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}" required />
+            <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
+        </div>
+    </div>
+
     <div>
         <x-input-label for="slug" :value="__('Slug')" />
         <x-text-input id="slug" name="slug" type="text" class="mt-1 block w-full"
@@ -63,4 +79,3 @@
         {{ $submitLabel ?? __('Save') }}
     </x-primary-button>
 </div>
-

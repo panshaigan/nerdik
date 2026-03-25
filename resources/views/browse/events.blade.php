@@ -51,17 +51,15 @@
                                 @if ($event->creator)
                                     <span class="text-gray-500 text-sm"> · {{ __('by') }} {{ $event->creator->nickname ?? $event->creator->email }}</span>
                                 @endif
+                                <p class="text-sm text-gray-500 mt-1">{{ format_in_user_tz($event->starts_at) }} – {{ format_in_user_tz($event->ends_at) }}</p>
                                 <p class="text-sm text-gray-500 mt-1">{{ Str::limit($event->desc, 120) }}</p>
                                 @include('tags.partials.inline', ['tags' => $event->tags])
-                                @if ($event->instances->isNotEmpty())
-                                    @php $firstInstance = $event->instances->sortBy('starts_at')->first(); @endphp
-                                    <span class="inline-flex items-center gap-2 mt-2">
-                                        <a href="{{ route('event-instances.show', $firstInstance) }}" class="text-sm text-indigo-600 hover:text-indigo-900">
-                                            {{ __('View instance & propose activity') }} →
-                                        </a>
-                                        <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ route('event-instances.show', $firstInstance) }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-xs text-gray-400 hover:text-gray-600" title="{{ __('Copy link') }}"><span x-show="!copied">{{ __('Share') }}</span><span x-show="copied" x-cloak>{{ __('Copied!') }}</span></button>
-                                    </span>
-                                @endif
+                                <span class="inline-flex items-center gap-2 mt-2">
+                                    <a href="{{ route('events.show', $event) }}" class="text-sm text-indigo-600 hover:text-indigo-900">
+                                        {{ __('View event & propose activity') }} →
+                                    </a>
+                                    <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ route('events.show', $event) }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-xs text-gray-400 hover:text-gray-600" title="{{ __('Copy link') }}"><span x-show="!copied">{{ __('Share') }}</span><span x-show="copied" x-cloak>{{ __('Copied!') }}</span></button>
+                                </span>
                             </div>
                             @auth
                                 <div class="shrink-0">
