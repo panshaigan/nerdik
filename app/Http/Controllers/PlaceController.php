@@ -28,7 +28,7 @@ class PlaceController extends Controller
         $parents = Place::orderBy('name')->get();
 
         return view('places.create', [
-            'place' => new Place(),
+            'place' => new Place,
             'parents' => $parents,
         ]);
     }
@@ -42,7 +42,6 @@ class PlaceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:country,state,city,venue,room'],
             'parent_id' => ['nullable', 'exists:places,id'],
-            'slug' => ['required', 'string', 'max:255', 'unique:places,slug'],
             'links' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
             'is_online' => ['nullable', 'boolean'],
@@ -87,7 +86,6 @@ class PlaceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:country,state,city,venue,room'],
             'parent_id' => ['nullable', 'exists:places,id'],
-            'slug' => ['required', 'string', 'max:255', 'unique:places,slug,' . $place->id],
             'links' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
             'is_online' => ['nullable', 'boolean'],

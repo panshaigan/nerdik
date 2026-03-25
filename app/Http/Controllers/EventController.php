@@ -45,7 +45,6 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
-            'slug' => ['required', 'string', 'max:255', 'unique:events,slug'],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
@@ -61,6 +60,9 @@ class EventController extends Controller
 
         $tagIds = $validated['tag_ids'] ?? [];
         unset($validated['tag_ids']);
+
+        // Slug is auto-generated in the model (from `name`).
+        unset($validated['slug']);
 
         $event = Event::create($validated);
         $event->tags()->sync($tagIds);
@@ -105,7 +107,6 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', 'exists:organizations,id'],
-            'slug' => ['required', 'string', 'max:255', 'unique:events,slug,'.$event->id],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
@@ -120,6 +121,9 @@ class EventController extends Controller
 
         $tagIds = $validated['tag_ids'] ?? [];
         unset($validated['tag_ids']);
+
+        // Slug is auto-generated in the model (from `name`).
+        unset($validated['slug']);
 
         $event->update($validated);
         $event->tags()->sync($tagIds);

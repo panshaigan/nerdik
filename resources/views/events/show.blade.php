@@ -13,16 +13,10 @@
 
             <div class="bg-white shadow sm:rounded-lg p-6">
                 <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    @if ($event->organization)
+                    @if ($event->hostDisplayName())
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('Organization') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $event->organization->name }}</dd>
-                        </div>
-                    @endif
-                    @if ($event->creator)
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('Organizer') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $event->creator->nickname ?? $event->creator->email }}</dd>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('Host') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $event->hostDisplayName() }}</dd>
                         </div>
                     @endif
                     <div>

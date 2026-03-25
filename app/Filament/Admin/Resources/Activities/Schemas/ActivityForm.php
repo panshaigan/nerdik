@@ -54,8 +54,6 @@ class ActivityForm
                     ->default(null),
                 Toggle::make('open_for_observers')
                     ->required(),
-                TextInput::make('slug')
-                    ->required(),
                 Textarea::make('extra')
                     ->default(null)
                     ->columnSpanFull(),

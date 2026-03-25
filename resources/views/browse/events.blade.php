@@ -45,11 +45,8 @@
                                 @else
                                     <span class="font-medium text-gray-900">{{ $event->name }}</span>
                                 @endauth
-                                @if ($event->organization)
-                                    <span class="text-gray-500 text-sm"> · {{ $event->organization->name }}</span>
-                                @endif
-                                @if ($event->creator)
-                                    <span class="text-gray-500 text-sm"> · {{ __('by') }} {{ $event->creator->nickname ?? $event->creator->email }}</span>
+                                @if ($event->hostDisplayName())
+                                    <span class="text-gray-500 text-sm"> · {{ $event->hostDisplayName() }}</span>
                                 @endif
                                 <p class="text-sm text-gray-500 mt-1">{{ format_in_user_tz($event->starts_at) }} – {{ format_in_user_tz($event->ends_at) }}</p>
                                 <p class="text-sm text-gray-500 mt-1">{{ Str::limit($event->desc, 120) }}</p>
