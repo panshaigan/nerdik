@@ -150,7 +150,7 @@
                     <span x-show="copied" x-cloak>{{ __('Link copied!') }}</span>
                 </button>
                 @auth
-                    @if ($activity->host_user_id === auth()->id() || $activity->participants()->where('user_id', auth()->id())->exists())
+                    @if ($activity->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
                         <a href="{{ route('activities.edit', $activity) }}" class="text-sm text-indigo-600 hover:text-indigo-900">
                             {{ __('Edit activity') }}
                         </a>

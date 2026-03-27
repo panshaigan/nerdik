@@ -19,8 +19,6 @@ Route::view('/', 'welcome');
 Route::get('browse/events', [BrowseController::class, 'events'])->name('browse.events');
 Route::get('browse/activities', [BrowseController::class, 'activities'])->name('browse.activities');
 
-Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
-
 Route::get('dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -34,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
         ->except(['show']);
 
     Route::get('events/{event}/propose', [ActivityProposalController::class, 'create'])->name('events.propose');
+    Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
     Route::resource('events', EventController::class)->except(['show']);
 
     Route::resource('slots', SlotController::class)
@@ -67,5 +66,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
 });
+
+// Public event detail route.
+// Must be declared after more specific routes like `events/create` and `events/*/edit`,
+// otherwise `events/{event}` can consume `create` as the `{event}` slug.
+Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
 
 require __DIR__.'/auth.php';

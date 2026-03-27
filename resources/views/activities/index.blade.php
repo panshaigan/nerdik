@@ -45,20 +45,22 @@
                                     {{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
-                                    <a href="{{ route('activities.edit', $activity) }}"
-                                       class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                        {{ __('Edit') }}
-                                    </a>
+                                    @if ($activity->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        <a href="{{ route('activities.edit', $activity) }}"
+                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            {{ __('Edit') }}
+                                        </a>
 
-                                    <form action="{{ route('activities.destroy', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                class="text-red-600 hover:text-red-900">
-                                            {{ __('Delete') }}
-                                        </button>
-                                    </form>
+                                        <form action="{{ route('activities.destroy', $activity) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    onclick="return confirm('{{ __('Are you sure?') }}')"
+                                                    class="text-red-600 hover:text-red-900">
+                                                {{ __('Delete') }}
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
+    use AuthorizesOwnership;
+
     /**
      * Display a listing of the resource.
      */
@@ -56,6 +59,8 @@ class OrganizationController extends Controller
      */
     public function edit(Organization $organization)
     {
+        $this->authorizeCreatedBy($organization);
+
         return view('organizations.edit', compact('organization'));
     }
 
@@ -64,6 +69,8 @@ class OrganizationController extends Controller
      */
     public function update(Request $request, Organization $organization)
     {
+        $this->authorizeCreatedBy($organization);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
@@ -80,6 +87,8 @@ class OrganizationController extends Controller
      */
     public function destroy(Organization $organization)
     {
+        $this->authorizeCreatedBy($organization);
+
         $organization->delete();
 
         return redirect()->route('organizations.index')
