@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Place;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
 class PlaceController extends Controller
 {
+    use AuthorizesOwnership;
+
     /**
      * Display a listing of the resource.
      */
@@ -70,6 +73,8 @@ class PlaceController extends Controller
      */
     public function edit(Place $place)
     {
+        $this->authorizeCreatedBy($place);
+
         $parents = Place::where('id', '!=', $place->id)
             ->orderBy('name')
             ->get();
@@ -82,6 +87,8 @@ class PlaceController extends Controller
      */
     public function update(Request $request, Place $place)
     {
+        $this->authorizeCreatedBy($place);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:country,state,city,venue,room'],
@@ -106,6 +113,8 @@ class PlaceController extends Controller
      */
     public function destroy(Place $place)
     {
+        $this->authorizeCreatedBy($place);
+
         $place->delete();
 
         return redirect()->route('places.index')

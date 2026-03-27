@@ -54,20 +54,22 @@
                                     {{ $slot->place?->name ?? '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
-                                    <a href="{{ route('slots.edit', $slot) }}"
-                                       class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                        {{ __('Edit') }}
-                                    </a>
+                                    @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        <a href="{{ route('slots.edit', $slot) }}"
+                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            {{ __('Edit') }}
+                                        </a>
 
-                                    <form action="{{ route('slots.destroy', $slot) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                class="text-red-600 hover:text-red-900">
-                                            {{ __('Delete') }}
-                                        </button>
-                                    </form>
+                                        <form action="{{ route('slots.destroy', $slot) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    onclick="return confirm('{{ __('Are you sure?') }}')"
+                                                    class="text-red-600 hover:text-red-900">
+                                                {{ __('Delete') }}
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

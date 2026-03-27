@@ -48,6 +48,16 @@
                             {{ __('Propose an activity') }}
                         </a>
                     @endauth
+                    @auth
+                        @if ($event->created_by === auth()->id())
+                            <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">
+                                    {{ __('Copy event') }}
+                                </button>
+                            </form>
+                        @endif
+                    @endauth
                     <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-sm text-gray-500 hover:text-gray-700" :title="copied ? '{{ __('Copied!') }}' : '{{ __('Copy link') }}'">
                         <span x-show="!copied">{{ __('Share') }}</span>
                         <span x-show="copied" x-cloak>{{ __('Link copied!') }}</span>
@@ -77,7 +87,9 @@
                                 @endif
                             </div>
                             @auth
-                                <a href="{{ route('slots.edit', $slot) }}" class="text-xs text-gray-500 hover:text-gray-700">{{ __('Edit slot') }}</a>
+                                @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                    <a href="{{ route('slots.edit', $slot) }}" class="text-xs text-gray-500 hover:text-gray-700">{{ __('Edit slot') }}</a>
+                                @endif
                             @endauth
                         </li>
                     @empty

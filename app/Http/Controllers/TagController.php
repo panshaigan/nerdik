@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use App\Models\TagTranslation;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
+    use AuthorizesOwnership;
+
     /**
      * Display a listing of the resource.
      */
@@ -27,7 +30,7 @@ class TagController extends Controller
     public function create()
     {
         return view('tags.create', [
-            'tag' => new Tag(),
+            'tag' => new Tag,
             'labelEn' => '',
             'labelPl' => '',
         ]);
@@ -77,6 +80,8 @@ class TagController extends Controller
      */
     public function edit(Tag $tag)
     {
+        $this->authorizeCreatedBy($tag);
+
         $labelEn = $tag->translations->firstWhere('locale', 'en')?->label ?? '';
         $labelPl = $tag->translations->firstWhere('locale', 'pl')?->label ?? '';
 
@@ -88,9 +93,11 @@ class TagController extends Controller
      */
     public function update(Request $request, Tag $tag)
     {
+        $this->authorizeCreatedBy($tag);
+
         $validated = $request->validate([
             'category' => ['required', 'string', 'max:50'],
-            'slug' => ['required', 'string', 'max:255', 'unique:tags,slug,' . $tag->id],
+            'slug' => ['required', 'string', 'max:255', 'unique:tags,slug,'.$tag->id],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
@@ -122,6 +129,8 @@ class TagController extends Controller
      */
     public function destroy(Tag $tag)
     {
+        $this->authorizeCreatedBy($tag);
+
         $tag->delete();
 
         return redirect()->route('tags.index')

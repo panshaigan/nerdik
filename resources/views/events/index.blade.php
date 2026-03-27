@@ -49,20 +49,34 @@
                                     {{ $event->is_public ? __('Yes') : __('No') }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
-                                    <a href="{{ route('events.edit', $event) }}"
-                                       class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                        {{ __('Edit') }}
-                                    </a>
+                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        <a href="{{ route('events.edit', $event) }}"
+                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            {{ __('Edit') }}
+                                        </a>
+                                    @endif
 
-                                    <form action="{{ route('events.destroy', $event) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                class="text-red-600 hover:text-red-900">
-                                            {{ __('Delete') }}
-                                        </button>
-                                    </form>
+                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="text-sm text-gray-500 hover:text-gray-700 mr-3">
+                                                {{ __('Copy') }}
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        <form action="{{ route('events.destroy', $event) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    onclick="return confirm('{{ __('Are you sure?') }}')"
+                                                    class="text-red-600 hover:text-red-900">
+                                                {{ __('Delete') }}
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

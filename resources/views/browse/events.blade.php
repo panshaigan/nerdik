@@ -31,6 +31,15 @@
                 @endif
             </form>
 
+            @auth
+                <div class="flex justify-end mb-4">
+                    <a href="{{ route('events.create') }}"
+                       class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500">
+                        {{ __('Create event') }}
+                    </a>
+                </div>
+            @endauth
+
             <div class="bg-white shadow sm:rounded-lg overflow-hidden">
                 <ul class="divide-y divide-gray-200">
                     @forelse ($events as $event)
@@ -76,7 +85,14 @@
                             @endauth
                         </li>
                     @empty
-                        <li class="p-6 text-center text-gray-500">{{ __('No public events found.') }}</li>
+                        <li class="p-6 text-center text-gray-500">
+                            {{ __('No public events found.') }}
+                            @auth
+                                <div class="mt-3">
+                                    <a href="{{ route('events.create') }}" class="text-sm text-indigo-600 hover:text-indigo-900">{{ __('Create one') }}</a>
+                                </div>
+                            @endauth
+                        </li>
                     @endforelse
                 </ul>
                 @if ($events->hasPages())

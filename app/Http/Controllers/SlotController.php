@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
 class SlotController extends Controller
 {
+    use AuthorizesOwnership;
+
     /**
      * Display a listing of the resource.
      */
@@ -83,6 +86,8 @@ class SlotController extends Controller
      */
     public function edit(Slot $slot)
     {
+        $this->authorizeCreatedBy($slot);
+
         $events = Event::orderBy('starts_at', 'desc')->get();
 
         $places = Place::orderBy('name')->get();
@@ -95,6 +100,8 @@ class SlotController extends Controller
      */
     public function update(Request $request, Slot $slot)
     {
+        $this->authorizeCreatedBy($slot);
+
         $validated = $request->validate([
             'event_id' => ['required', 'exists:events,id'],
             'name' => ['required', 'string', 'max:255'],
@@ -124,6 +131,8 @@ class SlotController extends Controller
      */
     public function destroy(Slot $slot)
     {
+        $this->authorizeCreatedBy($slot);
+
         $slot->delete();
 
         return redirect()->route('slots.index')

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Tag;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
+    use AuthorizesOwnership;
+
     /**
      * Display a listing of the resource.
      */
@@ -74,6 +77,8 @@ class ActivityController extends Controller
      */
     public function edit(Activity $activity)
     {
+        $this->authorizeCreatedBy($activity);
+
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
         $activity->load('tags');
 
@@ -85,6 +90,8 @@ class ActivityController extends Controller
      */
     public function update(Request $request, Activity $activity)
     {
+        $this->authorizeCreatedBy($activity);
+
         $validated = $this->validateData($request, $activity);
         $request->validate([
             'tag_ids' => ['nullable', 'array'],
@@ -105,6 +112,8 @@ class ActivityController extends Controller
      */
     public function destroy(Activity $activity)
     {
+        $this->authorizeCreatedBy($activity);
+
         $activity->delete();
 
         return redirect()->route('activities.index')
