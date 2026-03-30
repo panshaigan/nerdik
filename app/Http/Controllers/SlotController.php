@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SlotController extends Controller
@@ -27,16 +28,27 @@ class SlotController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $lockedEvent = null;
+        if ($request->filled('event')) {
+            $lockedEvent = Event::where('slug', $request->string('event'))->firstOrFail();
+        }
+
         $events = Event::orderBy('starts_at', 'desc')->get();
 
         $places = Place::orderBy('name')->get();
 
+        $slot = new Slot;
+        if ($lockedEvent) {
+            $slot->event_id = $lockedEvent->id;
+        }
+
         return view('slots.create', [
-            'slot' => new Slot,
+            'slot' => $slot,
             'events' => $events,
             'places' => $places,
+            'lockedEvent' => $lockedEvent,
         ]);
     }
 
@@ -69,8 +81,7 @@ class SlotController extends Controller
 
         Slot::create($validated);
 
-        return redirect()->route('slots.index')
-            ->with('status', __('Slot created.'));
+        return $this->redirectAfterSlotStore($request, (int) $validated['event_id']);
     }
 
     /**
@@ -171,7 +182,26 @@ class SlotController extends Controller
             ]);
         }
 
+        return $this->redirectAfterSlotStore($request, (int) $validated['event_id']);
+    }
+
+    /**
+     * After creating slot(s), return to the event page when the form was opened with a locked event.
+     */
+    protected function redirectAfterSlotStore(Request $request, int $eventId): RedirectResponse
+    {
+        $message = $request->boolean('mass') ? __('Slots created.') : __('Slot created.');
+
+        if ($request->filled('redirect_to_event_slug')) {
+            $slug = $request->string('redirect_to_event_slug');
+            $event = Event::where('slug', $slug)->first();
+            if ($event && $event->id === $eventId) {
+                return redirect()->route('events.show', $event)
+                    ->with('status', $message);
+            }
+        }
+
         return redirect()->route('slots.index')
-            ->with('status', __('Slots created.'));
+            ->with('status', $message);
     }
 }

@@ -22,14 +22,13 @@
             <x-input-error :messages="$errors->get('type')" class="mt-2" />
         </div>
 
-        <div>
-            <x-input-label for="host_user_id" :value="__('Host (optional)')" />
-            <x-text-input id="host_user_id" name="host_user_id" type="number" min="1" class="mt-1 block w-full"
-                          value="{{ old('host_user_id', $activity->host_user_id ?? '') }}" />
-            <x-input-error :messages="$errors->get('host_user_id')" class="mt-2" />
-            <p class="mt-1 text-xs text-gray-500">
-                {{ __('For now enter user ID; later this will be a selector.') }}
-            </p>
+        <div class="flex items-end">
+            <div class="flex items-center gap-2 pb-0.5">
+                <input type="hidden" name="creator_as_host" value="0" />
+                <input id="creator_as_host" name="creator_as_host" type="checkbox" value="1"
+                       @checked(old('creator_as_host', ($activity->exists ?? false) && (int) ($activity->host_user_id ?? 0) === (int) auth()->id() ? '1' : '0') === '1') />
+                <x-input-label for="creator_as_host" :value="__('I am the host')" />
+            </div>
         </div>
     </div>
 
@@ -65,20 +64,11 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <x-input-label for="price" :value="__('Price (optional)')" />
-            <x-text-input id="price" name="price" type="number" step="0.01" min="0" class="mt-1 block w-full"
-                          value="{{ old('price', $activity->price ?? '') }}" />
-            <x-input-error :messages="$errors->get('price')" class="mt-2" />
-        </div>
-
-        <div>
-            <x-input-label for="signoff_deadline_hours" :value="__('Signoff deadline (hours before start)')" />
-            <x-text-input id="signoff_deadline_hours" name="signoff_deadline_hours" type="number" min="0" class="mt-1 block w-full"
-                          value="{{ old('signoff_deadline_hours', $activity->signoff_deadline_hours ?? '') }}" />
-            <x-input-error :messages="$errors->get('signoff_deadline_hours')" class="mt-2" />
-        </div>
+    <div>
+        <x-input-label for="signoff_deadline_hours" :value="__('Signoff deadline (hours before start)')" />
+        <x-text-input id="signoff_deadline_hours" name="signoff_deadline_hours" type="number" min="0" class="mt-1 block w-full max-w-md"
+                      value="{{ old('signoff_deadline_hours', $activity->signoff_deadline_hours ?? '') }}" />
+        <x-input-error :messages="$errors->get('signoff_deadline_hours')" class="mt-2" />
     </div>
 
     <div class="flex items-center gap-4">
