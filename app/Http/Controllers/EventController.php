@@ -81,7 +81,7 @@ class EventController extends Controller
     {
         $event->load(['creator', 'tags.translations', 'organization', 'slots.place', 'slots.activity']);
         $pendingProposals = $event->proposals()
-            ->with(['activity', 'creator'])
+            ->with(['activity', 'creator', 'proposedSlots'])
             ->where('status', 'pending')
             ->orderBy('created_at')
             ->get();

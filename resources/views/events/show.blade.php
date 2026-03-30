@@ -66,7 +66,21 @@
             </div>
 
             <div class="bg-white shadow sm:rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('Slots') }}</h3>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <h3 class="text-lg font-medium text-gray-900">{{ __('Slots') }}</h3>
+                    @auth
+                        @if ($event->created_by === auth()->id())
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('slots.create', ['event' => $event->slug]) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-500">
+                                    {{ __('Create slot') }}
+                                </a>
+                                <a href="{{ route('slots.create', ['event' => $event->slug, 'mode' => 'mass']) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                                    {{ __('Mass create slots') }}
+                                </a>
+                            </div>
+                        @endif
+                    @endauth
+                </div>
                 <ul class="divide-y divide-gray-200">
                     @forelse ($event->slots as $slot)
                         <li class="py-3 flex items-center justify-between">
@@ -105,9 +119,25 @@
                     <ul class="divide-y divide-gray-200">
                         @foreach ($pendingProposals as $proposal)
                             <li class="py-3 flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                    <span class="font-medium">{{ $proposal->activity->name }}</span>
-                                    <span class="text-gray-500 text-sm"> · {{ __('by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
+                                <div class="space-y-1 min-w-0 flex-1">
+                                    <div>
+                                        <a href="{{ route('activities.show', $proposal->activity) }}" class="font-medium text-indigo-600 hover:underline">
+                                            {{ $proposal->activity->name }}
+                                        </a>
+                                        <span class="text-gray-500 text-sm"> · {{ __('by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
+                                    </div>
+                                    @if ($proposal->proposedSlots->isNotEmpty())
+                                        <p class="text-sm text-gray-600">
+                                            <span class="font-medium text-gray-700">{{ __('Preferred slots') }}:</span>
+                                            {{ $proposal->proposedSlots->pluck('name')->join(', ') }}
+                                        </p>
+                                    @endif
+                                    @if ($proposal->preferred_start_time)
+                                        <p class="text-sm text-gray-600">
+                                            <span class="font-medium text-gray-700">{{ __('Preferred time') }}:</span>
+                                            {{ format_in_user_tz($proposal->preferred_start_time) }}
+                                        </p>
+                                    @endif
                                 </div>
                                 @php $freeSlots = $event->slots->where('activity_id', null); @endphp
                                 <div class="flex flex-wrap gap-2 items-center">

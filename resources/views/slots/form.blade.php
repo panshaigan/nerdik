@@ -3,14 +3,23 @@
 <div class="space-y-4">
     <div>
         <x-input-label for="event_id" :value="__('Event')" />
-        <select id="event_id" name="event_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-            @foreach ($events as $ev)
-                <option value="{{ $ev->id }}"
-                    @selected((string) old('event_id', $slot->event_id ?? '') === (string) $ev->id)>
-                    {{ $ev->name }} · {{ format_in_user_tz($ev->starts_at, 'Y-m-d H:i') }}
-                </option>
-            @endforeach
-        </select>
+        @if (isset($lockedEvent) && $lockedEvent)
+            <input type="hidden" name="event_id" value="{{ $lockedEvent->id }}" />
+            <input type="hidden" name="redirect_to_event_slug" value="{{ $lockedEvent->slug }}" />
+            <p id="event_id" class="mt-1 text-sm text-gray-900 border border-gray-200 rounded-md px-3 py-2 bg-gray-50">
+                {{ $lockedEvent->name }} · {{ format_in_user_tz($lockedEvent->starts_at, 'Y-m-d H:i') }}
+            </p>
+            <p class="mt-1 text-xs text-gray-500">{{ __('Event is fixed for this page.') }}</p>
+        @else
+            <select id="event_id" name="event_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                @foreach ($events as $ev)
+                    <option value="{{ $ev->id }}"
+                        @selected((string) old('event_id', $slot->event_id ?? '') === (string) $ev->id)>
+                        {{ $ev->name }} · {{ format_in_user_tz($ev->starts_at, 'Y-m-d H:i') }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
         <x-input-error :messages="$errors->get('event_id')" class="mt-2" />
     </div>
 

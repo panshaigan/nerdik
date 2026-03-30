@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
+use App\Notifications\ProposalSubmittedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -62,6 +63,12 @@ class ActivityProposalController extends Controller
             'preferred_start_time' => $validated['preferred_start_time'] ?? null,
             'status' => 'pending',
         ]);
+        $proposal->load(['activity', 'event', 'creator']);
+
+        // Notify event owner about new incoming proposal.
+        if ($event->created_by !== Auth::id()) {
+            $event->creator?->notify(new ProposalSubmittedNotification($proposal));
+        }
 
         // Attach compatible slots if provided
         if (! empty($validated['slot_ids'])) {
@@ -84,6 +91,9 @@ class ActivityProposalController extends Controller
                     'accepted_slot_id' => $autoSlot->id,
                 ]);
                 $autoSlot->update(['activity_id' => $activity->id]);
+
+                // Auto-accept path should also notify the proposer.
+                $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
             }
         }
 

@@ -127,12 +127,10 @@ class ActivityController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'string', 'max:50'],
-            'host_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'min_participants' => ['nullable', 'integer', 'min:1'],
             'max_participants' => ['nullable', 'integer', 'min:1'],
             'age_limit' => ['nullable', 'integer', 'min:0'],
             'duration_minutes' => ['nullable', 'integer', 'min:0'],
-            'price' => ['nullable', 'numeric', 'min:0'],
             'signoff_deadline_hours' => ['nullable', 'integer', 'min:0'],
             'is_restricted' => ['nullable', 'boolean'],
             'open_for_observers' => ['nullable', 'boolean'],
@@ -140,6 +138,8 @@ class ActivityController extends Controller
 
         $validated['is_restricted'] = $request->boolean('is_restricted');
         $validated['open_for_observers'] = $request->boolean('open_for_observers');
+        $validated['host_user_id'] = $request->boolean('creator_as_host') ? auth()->id() : null;
+        unset($validated['creator_as_host']);
 
         return $validated;
     }

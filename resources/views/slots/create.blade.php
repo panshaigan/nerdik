@@ -9,7 +9,7 @@
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow sm:rounded-lg p-6">
                 @if (request('mode') === 'mass')
-                    @include('slots.mass-create')
+                    @include('slots.mass-create', ['lockedEvent' => $lockedEvent ?? null])
                 @else
                     <form method="POST" action="{{ route('slots.store') }}">
                         @include('slots.form', ['submitLabel' => __('Create')])
