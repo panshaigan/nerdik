@@ -98,7 +98,7 @@ class ActivityProposalController extends Controller
         }
 
         return redirect()->route('events.show', $event)
-            ->with('status', __('Proposal submitted.'));
+            ->with('status', __('ui.status.proposal_submitted'));
     }
 
     /**
@@ -108,10 +108,10 @@ class ActivityProposalController extends Controller
     {
         $event = $proposal->event;
         if ($event->created_by !== Auth::id()) {
-            abort(403, __('Only the event owner can accept proposals.'));
+            abort(403, __('ui.status.forbidden_accept'));
         }
         if ($proposal->status !== 'pending') {
-            return redirect()->back()->with('status', __('Proposal is not pending.'));
+            return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }
 
         $validated = $request->validate([
@@ -132,7 +132,7 @@ class ActivityProposalController extends Controller
         $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
 
         return redirect()->route('events.show', $event)
-            ->with('status', __('Proposal accepted.'));
+            ->with('status', __('ui.status.proposal_accepted'));
     }
 
     /**
@@ -142,10 +142,10 @@ class ActivityProposalController extends Controller
     {
         $event = $proposal->event;
         if ($event->created_by !== Auth::id()) {
-            abort(403, __('Only the event owner can reject proposals.'));
+            abort(403, __('ui.status.forbidden_reject'));
         }
         if ($proposal->status !== 'pending') {
-            return redirect()->back()->with('status', __('Proposal is not pending.'));
+            return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }
 
         $proposal->update(['status' => 'rejected']);
@@ -153,6 +153,6 @@ class ActivityProposalController extends Controller
         $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
 
         return redirect()->route('events.show', $event)
-            ->with('status', __('Proposal rejected.'));
+            ->with('status', __('ui.status.proposal_rejected'));
     }
 }

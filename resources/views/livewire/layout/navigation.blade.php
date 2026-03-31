@@ -46,6 +46,17 @@ new class extends Component
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-2">
+                <div class="inline-flex items-center rounded-md border border-gray-200 bg-white p-1 text-xs">
+                    <span class="px-2 text-gray-500">{{ __('ui.common.language') }}</span>
+                    <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
+                       class="rounded px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        {{ __('ui.common.language_en') }}
+                    </a>
+                    <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
+                       class="rounded px-2 py-1 {{ app()->getLocale() === 'pl' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        {{ __('ui.common.language_pl') }}
+                    </a>
+                </div>
                 <a href="{{ route('notifications.index') }}" wire:navigate class="relative p-2 text-gray-500 hover:text-gray-700 rounded-md">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -129,6 +140,19 @@ new class extends Component
             </div>
 
             <div class="mt-3 space-y-1">
+                <div class="px-4 py-2">
+                    <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('ui.common.language') }}</p>
+                    <div class="mt-2 flex gap-2">
+                        <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
+                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'en' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700' }}">
+                            {{ __('ui.common.language_en') }}
+                        </a>
+                        <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
+                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'pl' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700' }}">
+                            {{ __('ui.common.language_pl') }}
+                        </a>
+                    </div>
+                </div>
                 <x-responsive-nav-link :href="route('notifications.index')" wire:navigate>
                     {{ __('Notifications') }}
                     @if (auth()->user()->unreadNotifications->count() > 0)

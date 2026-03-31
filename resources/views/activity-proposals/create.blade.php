@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Propose an activity') }} · {{ $event->name }}
+            {{ __('ui.proposals.propose_activity') }} · {{ $event->name }}
         </h2>
     </x-slot>
 
@@ -18,9 +18,9 @@
 
                     <div class="space-y-4">
                         <div>
-                            <x-input-label for="activity_id" :value="__('Your activity')" />
+                            <x-input-label for="activity_id" :value="__('ui.proposals.your_activity')" />
                             <select id="activity_id" name="activity_id" class="mt-1 block w-full rounded-md border-gray-300" required>
-                                <option value="">{{ __('Choose an activity') }}</option>
+                                <option value="">{{ __('ui.proposals.choose_activity') }}</option>
                                 @foreach ($myActivities as $activity)
                                     <option value="{{ $activity->id }}" @selected(old('activity_id') == $activity->id)>
                                         {{ $activity->name }} ({{ ucfirst($activity->type) }})
@@ -30,19 +30,19 @@
                             <x-input-error :messages="$errors->get('activity_id')" class="mt-2" />
                             @if ($myActivities->isEmpty())
                                 <p class="mt-1 text-sm text-amber-600">
-                                    {{ __('You have no activities yet.') }}
-                                    <a href="{{ route('activities.create') }}" class="underline">{{ __('Create one') }}</a>
+                                    {{ __('ui.proposals.no_activities_yet') }}
+                                    <a href="{{ route('activities.create') }}" class="underline">{{ __('ui.proposals.create_one') }}</a>
                                 </p>
                             @else
                                 <p class="mt-1 text-sm text-gray-500">
-                                    <a href="{{ route('activities.create') }}" class="text-indigo-600 hover:text-indigo-900">{{ __('Create a new activity') }}</a>
+                                    <a href="{{ route('activities.create') }}" class="text-indigo-600 hover:text-indigo-900">{{ __('ui.proposals.create_new_activity') }}</a>
                                 </p>
                             @endif
                         </div>
 
                         <div>
-                            <x-input-label :value="__('Preferred slots (optional)')" />
-                            <p class="text-sm text-gray-500 mb-2">{{ __('Select slots you would like to run this activity in. Leave empty to let the organizer decide.') }}</p>
+                            <x-input-label :value="__('ui.proposals.preferred_slots_optional')" />
+                            <p class="text-sm text-gray-500 mb-2">{{ __('ui.proposals.preferred_slots_help') }}</p>
                             <div class="space-y-2">
                                 @foreach ($event->slots as $slot)
                                     <label class="flex items-center gap-2">
@@ -52,7 +52,7 @@
                                             <span class="text-gray-500 text-xs">{{ format_in_user_tz($slot->starts_at, 'H:i') }}</span>
                                         @endif
                                         @if ($slot->activity_id)
-                                            <span class="text-gray-400 text-xs">({{ __('taken') }})</span>
+                                            <span class="text-gray-400 text-xs">({{ __('ui.proposals.taken') }})</span>
                                         @endif
                                     </label>
                                 @endforeach
@@ -61,7 +61,7 @@
                         </div>
 
                         <div>
-                            <x-input-label for="preferred_start_time" :value="__('Preferred start time (optional)')" />
+                            <x-input-label for="preferred_start_time" :value="__('ui.proposals.preferred_start_time_optional')" />
                             <x-text-input id="preferred_start_time" name="preferred_start_time" type="datetime-local" class="mt-1 block w-full"
                                           value="{{ old('preferred_start_time') }}" />
                             <x-input-error :messages="$errors->get('preferred_start_time')" class="mt-2" />
@@ -69,8 +69,8 @@
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
-                        <a href="{{ route('events.show', $event) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Cancel') }}</a>
-                        <x-primary-button type="submit">{{ __('Submit proposal') }}</x-primary-button>
+                        <a href="{{ route('events.show', $event) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('ui.common.cancel') }}</a>
+                        <x-primary-button type="submit">{{ __('ui.proposals.submit_proposal') }}</x-primary-button>
                     </div>
                 </form>
             </div>

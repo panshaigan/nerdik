@@ -12,9 +12,23 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WishlistController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
+
+Route::get('locale/{locale}', function (Request $request, string $locale) {
+    abort_unless(in_array($locale, ['en', 'pl'], true), 404);
+
+    session(['locale' => $locale]);
+
+    $redirectTo = (string) $request->query('redirect', '');
+    if (! str_starts_with($redirectTo, '/')) {
+        $redirectTo = route('dashboard');
+    }
+
+    return redirect($redirectTo)->cookie('locale', $locale, 60 * 24 * 365);
+})->name('locale.switch');
 
 Route::get('browse/events', [BrowseController::class, 'events'])->name('browse.events');
 Route::get('browse/activities', [BrowseController::class, 'activities'])->name('browse.activities');
