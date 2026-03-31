@@ -32,14 +32,14 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $activity = $this->proposal->activity;
-        $eventName = $this->proposal->event->name ?? __('the event');
+        $eventName = $this->proposal->event->name ?? __('ui.proposals.event');
 
         return (new MailMessage)
-            ->subject(__('Proposal rejected: :activity', ['activity' => $activity->name]))
-            ->line(__('Your activity proposal has been rejected by the event organizer.'))
-            ->line(__('Activity: :name', ['name' => $activity->name]))
-            ->line(__('Event: :name', ['name' => $eventName]))
-            ->line(__('You can still use this activity for other events or propose it again elsewhere.'));
+            ->subject(__('ui.notifications.proposal_rejected_subject', ['activity' => $activity->name]))
+            ->line(__('ui.notifications.proposal_rejected_line_1'))
+            ->line(__('ui.notifications.activity_label', ['name' => $activity->name]))
+            ->line(__('ui.notifications.event_label', ['name' => $eventName]))
+            ->line(__('ui.notifications.proposal_rejected_line_2'));
     }
 
     /**

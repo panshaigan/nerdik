@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ request('mode') === 'mass' ? __('Mass create slots') : __('Create slot') }}
+            {{ request('mode') === 'mass' ? __('ui.slots.mass_create_slots') : __('ui.slots.create_slot') }}
         </h2>
     </x-slot>
 
@@ -12,7 +12,7 @@
                     @include('slots.mass-create', ['lockedEvent' => $lockedEvent ?? null])
                 @else
                     <form method="POST" action="{{ route('slots.store') }}">
-                        @include('slots.form', ['submitLabel' => __('Create')])
+                        @include('slots.form', ['submitLabel' => __('ui.common.create')])
                     </form>
                 @endif
             </div>

@@ -32,10 +32,10 @@ class WaitlistPromotedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('You got a place on :activity', ['activity' => $this->activity->name]))
-            ->line(__('You have been moved from the waitlist and are now a participant in the activity:'))
+            ->subject(__('ui.notifications.waitlist_promoted_subject', ['activity' => $this->activity->name]))
+            ->line(__('ui.notifications.waitlist_promoted_line_1'))
             ->line($this->activity->name)
-            ->action(__('View activity'), route('activities.show', $this->activity));
+            ->action(__('ui.notifications.view_activity'), route('activities.show', $this->activity));
     }
 
     /**

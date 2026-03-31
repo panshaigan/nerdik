@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Activity proposals') }}
+            {{ __('ui.proposals.activity_proposals') }}
         </h2>
     </x-slot>
 
@@ -12,16 +12,16 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Activity') }}
+                                {{ __('ui.proposals.activity') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Event') }}
+                                {{ __('ui.proposals.event') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Proposer') }}
+                                {{ __('ui.proposals.proposer') }}
                             </th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Status') }}
+                                {{ __('ui.proposals.status') }}
                             </th>
                             <th class="px-4 py-2"></th>
                         </tr>
@@ -46,7 +46,7 @@
                                 <td class="px-4 py-2 text-right text-sm">
                                     @if ($proposal->acceptedSlot)
                                         <span class="text-xs text-green-700">
-                                            {{ __('Accepted in slot') }}: {{ $proposal->acceptedSlot->name }}
+                                            {{ __('ui.proposals.accepted_in_slot') }}: {{ $proposal->acceptedSlot->name }}
                                         </span>
                                     @endif
                                 </td>
@@ -54,7 +54,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">
-                                    {{ __('No proposals yet.') }}
+                                    {{ __('ui.proposals.no_proposals_yet') }}
                                 </td>
                             </tr>
                         @endforelse

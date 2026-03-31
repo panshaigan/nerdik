@@ -36,11 +36,11 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
         $proposer = $this->proposal->creator;
 
         return (new MailMessage)
-            ->subject(__('New proposal for :event', ['event' => $event->name]))
-            ->line(__('A new activity proposal was submitted for your event.'))
-            ->line(__('Activity: :name', ['name' => $activity->name]))
-            ->line(__('Proposed by: :name', ['name' => $proposer?->nickname ?? $proposer?->email ?? __('Unknown user')]))
-            ->action(__('Review proposal'), route('events.show', $event));
+            ->subject(__('ui.notifications.proposal_submitted_subject', ['event' => $event->name]))
+            ->line(__('ui.notifications.proposal_submitted_line_1'))
+            ->line(__('ui.notifications.activity_label', ['name' => $activity->name]))
+            ->line(__('ui.notifications.proposal_submitted_line_2', ['name' => $proposer?->nickname ?? $proposer?->email ?? __('ui.common.unknown_user')]))
+            ->action(__('ui.notifications.review_proposal'), route('events.show', $event));
     }
 
     /**
