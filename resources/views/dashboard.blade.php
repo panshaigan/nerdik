@@ -11,6 +11,65 @@
                 <p class="text-sm text-green-600">{{ session('status') }}</p>
             @endif
 
+            <section class="space-y-4">
+                <div class="rounded-2xl border border-base-300 bg-base-100/90 p-6 shadow-xl">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="space-y-3">
+                            <span class="inline-flex rounded-full bg-success/20 px-3 py-1 text-xs font-semibold text-success-content">
+                                Completed
+                            </span>
+                            <h3 class="text-3xl font-bold tracking-tight">
+                                Sesje RPG w Mistrzu i Malgorzacie - luty 2026
+                            </h3>
+                            <p class="text-sm opacity-70">Sunday, February 8 · 13:30-17:30</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
+                            <div class="rounded-xl bg-emerald-900/40 p-4 text-center">
+                                <p class="text-3xl font-bold text-emerald-300">{{ $myActivities->count() }}</p>
+                                <p class="text-xs uppercase tracking-wide text-emerald-200">Sessions</p>
+                            </div>
+                            <div class="rounded-xl bg-rose-900/40 p-4 text-center">
+                                <p class="text-3xl font-bold text-rose-300">{{ $participations->count() }}</p>
+                                <p class="text-xs uppercase tracking-wide text-rose-200">Players</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div class="flex-1">
+                        <label class="input input-bordered flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.85-4.65a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
+                            </svg>
+                            <input type="text" class="grow" placeholder="Filter by title or host..." />
+                        </label>
+                    </div>
+                    <button class="btn btn-outline">Filters</button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($myActivities->take(3) as $activity)
+                        <article class="rounded-2xl border border-base-300 bg-base-100 p-5 shadow-lg">
+                            <h4 class="text-2xl font-semibold">{{ $activity->name }}</h4>
+                            <p class="mt-2 text-sm opacity-70">
+                                {{ $activity->desc ?? 'Activity description preview. This card style is the design baseline for polish stage.' }}
+                            </p>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <span class="badge badge-neutral">{{ ucfirst($activity->type) }}</span>
+                                @if ($activity->age_limit)
+                                    <span class="badge badge-outline">Age {{ $activity->age_limit }}+</span>
+                                @endif
+                            </div>
+                            <div class="mt-5 flex items-center justify-between text-xs opacity-70">
+                                <span>Table preview</span>
+                                <a href="{{ route('activities.show', $activity) }}" class="link link-hover">Open</a>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     {{ __("You're logged in!") }}

@@ -11,26 +11,56 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <script>
+            (() => {
+                window.applyTheme = () => {
+                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                };
+
+                window.toggleTheme = () => {
+                    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    window.applyTheme();
+                };
+
+                window.applyTheme();
+                document.addEventListener('livewire:navigated', window.applyTheme);
+            })();
+        </script>
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body class="font-sans antialiased bg-base-200 text-base-content">
+        <div class="min-h-screen bg-base-200 flex flex-col">
             <livewire:layout.navigation />
 
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="border-b border-base-300 bg-base-100/90 shadow-sm backdrop-blur">
+                    <div class="max-w-7xl mx-auto py-6 px-4 text-base-content sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="flex-1">
                 {{ $slot }}
             </main>
+
+            <footer class="mt-10 border-t border-base-300 bg-base-100/90">
+                <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+                    <p class="opacity-70">Copyright {{ date('Y') }} Nerdik. All rights reserved.</p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <a href="#" class="link link-hover opacity-80">Privacy</a>
+                        <a href="#" class="link link-hover opacity-80">Terms</a>
+                        <a href="#" class="link link-hover opacity-80">Contact</a>
+                    </div>
+                </div>
+            </footer>
         </div>
     </body>
 </html>

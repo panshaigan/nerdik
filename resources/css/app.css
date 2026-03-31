@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Keep legacy Breeze heading classes readable in dark mode. */
+[data-theme='dark'] header .text-gray-800,
+[data-theme='dark'] header .text-gray-900 {
+    color: hsl(var(--bc)) !important;
+}
