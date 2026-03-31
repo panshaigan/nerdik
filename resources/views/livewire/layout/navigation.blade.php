@@ -16,7 +16,7 @@ new class extends Component
     }
 }; ?>
 
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="border-b border-base-300 bg-base-100/90 backdrop-blur">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -24,7 +24,7 @@ new class extends Component
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto fill-current text-base-content" />
                     </a>
                 </div>
 
@@ -46,18 +46,23 @@ new class extends Component
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-2">
-                <div class="inline-flex items-center rounded-md border border-gray-200 bg-white p-1 text-xs">
-                    <span class="px-2 text-gray-500">{{ __('ui.common.language') }}</span>
+                <button type="button"
+                        onclick="window.toggleTheme()"
+                        class="rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs hover:bg-base-200">
+                    <span>{{ __('Theme') }}</span>
+                </button>
+                <div class="inline-flex items-center rounded-md border border-base-300 bg-base-100 p-1 text-xs">
+                    <span class="px-2 opacity-70">{{ __('ui.common.language') }}</span>
                     <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
-                       class="rounded px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                       class="rounded px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-primary text-primary-content' : 'opacity-80 hover:bg-base-200' }}">
                         {{ __('ui.common.language_en') }}
                     </a>
                     <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
-                       class="rounded px-2 py-1 {{ app()->getLocale() === 'pl' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                       class="rounded px-2 py-1 {{ app()->getLocale() === 'pl' ? 'bg-primary text-primary-content' : 'opacity-80 hover:bg-base-200' }}">
                         {{ __('ui.common.language_pl') }}
                     </a>
                 </div>
-                <a href="{{ route('notifications.index') }}" wire:navigate class="relative p-2 text-gray-500 hover:text-gray-700 rounded-md">
+                <a href="{{ route('notifications.index') }}" wire:navigate class="relative rounded-md p-2 opacity-80 hover:bg-base-200 hover:opacity-100">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
@@ -67,20 +72,22 @@ new class extends Component
                         </span>
                     @endif
                 </a>
-                <x-dropdown align="right" width="48">
+                <x-dropdown align="right" width="56">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                        <button class="rounded-full border border-base-300 p-0.5 transition hover:border-primary focus:outline-none">
+                            <img
+                                src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=334155&color=ffffff&bold=true"
+                                alt="Profile avatar"
+                                class="h-9 w-9 rounded-full object-cover"
+                            />
                         </button>
                     </x-slot>
 
                     <x-slot name="content">
+                        <div class="px-4 py-3 border-b border-base-300">
+                            <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
+                            <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
+                        </div>
                         <x-dropdown-link :href="route('notifications.index')" wire:navigate>
                             {{ __('Notifications') }}
                             @if (auth()->user()->unreadNotifications->count() > 0)
@@ -91,6 +98,12 @@ new class extends Component
                         </x-dropdown-link>
                         <x-dropdown-link :href="route('profile')" wire:navigate>
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link href="#">
+                            {{ __('Dummy menu item') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link href="#">
+                            {{ __('Another quick action') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -105,7 +118,7 @@ new class extends Component
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-md p-2 opacity-70 hover:bg-base-200 hover:opacity-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -133,22 +146,27 @@ new class extends Component
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="border-t border-base-300 pt-4 pb-1">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="font-medium text-sm text-gray-500">{{ auth()->user()->email }}</div>
+                <div class="font-medium text-base" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                <div class="font-medium text-sm opacity-70">{{ auth()->user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
                 <div class="px-4 py-2">
-                    <p class="text-xs uppercase tracking-wide text-gray-500">{{ __('ui.common.language') }}</p>
+                    <button type="button"
+                            onclick="window.toggleTheme()"
+                            class="mb-3 rounded border border-base-300 px-2 py-1 text-xs">
+                        {{ __('Theme') }}
+                    </button>
+                    <p class="text-xs uppercase tracking-wide opacity-70">{{ __('ui.common.language') }}</p>
                     <div class="mt-2 flex gap-2">
                         <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
-                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'en' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700' }}">
+                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'en' ? 'border-primary bg-primary text-primary-content' : 'border-base-300' }}">
                             {{ __('ui.common.language_en') }}
                         </a>
                         <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
-                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'pl' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700' }}">
+                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'pl' ? 'border-primary bg-primary text-primary-content' : 'border-base-300' }}">
                             {{ __('ui.common.language_pl') }}
                         </a>
                     </div>
