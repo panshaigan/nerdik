@@ -16,7 +16,14 @@ return [
     'activities' => [
         'name' => 'Nazwa',
         'type' => 'Typ',
-        'i_am_host' => 'Jestem prowadzacym',
+        'choose_type' => 'Wybierz typ',
+        'passive_host' => 'Pasywny prowadzacy (organizator nie zajmuje miejsca gracza)',
+        'clear_numeric_fields' => 'Wyczysc pola liczbowe',
+        'clear_field' => 'Wyczysc',
+        'description' => 'Opis (opcjonalnie)',
+        'description_placeholder' => 'Opisz aktywnosc…',
+        'max_participants_gte_min' => 'Maksimum uczestnikow nie moze byc mniejsze niz minimum.',
+        'min_participants_lte_max' => 'Minimum uczestnikow nie moze byc wieksze niz maksimum.',
         'min_participants' => 'Min. liczba uczestnikow',
         'max_participants' => 'Maks. liczba uczestnikow',
         'age_limit' => 'Limit wieku (min)',
@@ -26,6 +33,7 @@ return [
         'open_for_observers' => 'Otwarte dla obserwatorow',
         'tags' => 'Tagi',
         'tags_help' => 'Wybierz tagi (system gry, wydawca, triggery itp.).',
+        'activity_options' => 'Opcje aktywnosci',
     ],
     'events' => [
         'host' => 'Organizator',
