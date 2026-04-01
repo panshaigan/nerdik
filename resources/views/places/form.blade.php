@@ -8,6 +8,21 @@
         <x-input-error :messages="$errors->get('name')" class="mt-2" />
     </div>
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <x-input-label for="city" :value="__('City (optional)')" />
+            <x-text-input id="city" name="city" type="text" class="mt-1 block w-full"
+                          value="{{ old('city', $place->city ?? '') }}" />
+            <x-input-error :messages="$errors->get('city')" class="mt-2" />
+        </div>
+        <div>
+            <x-input-label for="country" :value="__('Country (optional)')" />
+            <x-text-input id="country" name="country" type="text" class="mt-1 block w-full"
+                          value="{{ old('country', $place->country ?? '') }}" />
+            <x-input-error :messages="$errors->get('country')" class="mt-2" />
+        </div>
+    </div>
+
     <div>
         <x-input-label for="type" :value="__('Type')" />
         <select id="type" name="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>

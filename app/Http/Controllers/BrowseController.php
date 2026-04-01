@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -24,7 +25,26 @@ class BrowseController extends Controller
             $query->whereHas('tags', fn ($q) => $q->where('tags.id', $request->tag_id));
         }
 
-        $events = $query->paginate(12);
+        if ($request->filled(['min_lat', 'max_lat', 'min_lng', 'max_lng'])) {
+            $minLat = (float) $request->min_lat;
+            $maxLat = (float) $request->max_lat;
+            $minLng = (float) $request->min_lng;
+            $maxLng = (float) $request->max_lng;
+            if ($minLat > $maxLat) {
+                [$minLat, $maxLat] = [$maxLat, $minLat];
+            }
+            if ($minLng > $maxLng) {
+                [$minLng, $maxLng] = [$maxLng, $minLng];
+            }
+            $query->whereHas('places', function ($q) use ($minLat, $maxLat, $minLng, $maxLng) {
+                $q->whereNotNull('latitude')
+                    ->whereNotNull('longitude')
+                    ->whereBetween('latitude', [$minLat, $maxLat])
+                    ->whereBetween('longitude', [$minLng, $maxLng]);
+            });
+        }
+
+        $events = $query->paginate(12)->withQueryString();
 
         $places = Place::orderBy('name')->get();
         $tags = Tag::with('translations')->orderBy('category')->get();
@@ -65,5 +85,20 @@ class BrowseController extends Controller
         $wishlistActivityIds = auth()->check() ? auth()->user()->wishlistActivities()->pluck('activities.id')->toArray() : [];
 
         return view('browse.activities', compact('activities', 'places', 'tags', 'wishlistActivityIds'));
+    }
+
+    public function organizations(Request $request)
+    {
+        $query = Organization::with('creator')
+            ->orderBy('name');
+
+        if ($request->filled('q')) {
+            $term = '%'.$request->q.'%';
+            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('desc', 'like', $term));
+        }
+
+        $organizations = $query->paginate(12);
+
+        return view('browse.organizations', compact('organizations'));
     }
 }

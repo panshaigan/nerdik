@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Place;
 use App\Models\Tag;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
@@ -30,12 +32,16 @@ class EventController extends Controller
      */
     public function create()
     {
-        $organizations = Organization::orderBy('name')->get();
+        $organizations = Organization::where('created_by', Auth::id())
+            ->orderBy('name')
+            ->get();
+        $places = Place::orderBy('name')->get();
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
 
         return view('events.create', [
             'event' => new Event,
             'organizations' => $organizations,
+            'places' => $places,
             'tags' => $tags,
         ]);
     }
@@ -47,13 +53,21 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
+            'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
+            'place_ids' => ['nullable', 'array'],
+            'place_ids.*' => ['integer', 'exists:places,id'],
+            'new_places' => ['nullable', 'array'],
+            'new_places.*.name' => ['nullable', 'string', 'max:255'],
+            'new_places.*.city' => ['nullable', 'string', 'max:255'],
+            'new_places.*.country' => ['nullable', 'string', 'max:255'],
+            'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -62,13 +76,16 @@ class EventController extends Controller
         $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
         $tagIds = $validated['tag_ids'] ?? [];
+        $placeIds = $validated['place_ids'] ?? [];
         unset($validated['tag_ids']);
+        unset($validated['place_ids'], $validated['new_places']);
 
         // Slug is auto-generated in the model (from `name`).
         unset($validated['slug']);
 
         $event = Event::create($validated);
         $event->tags()->sync($tagIds);
+        $this->syncEventPlaces($event, $placeIds, $request);
 
         return redirect()->route('events.index')
             ->with('status', __('Event created.'));
@@ -97,11 +114,14 @@ class EventController extends Controller
     {
         $this->authorizeCreatedBy($event);
 
-        $organizations = Organization::orderBy('name')->get();
+        $organizations = Organization::where('created_by', Auth::id())
+            ->orderBy('name')
+            ->get();
+        $places = Place::orderBy('name')->get();
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
-        $event->load('tags');
+        $event->load(['tags', 'places']);
 
-        return view('events.edit', compact('event', 'organizations', 'tags'));
+        return view('events.edit', compact('event', 'organizations', 'places', 'tags'));
     }
 
     /**
@@ -113,13 +133,21 @@ class EventController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
+            'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
+            'place_ids' => ['nullable', 'array'],
+            'place_ids.*' => ['integer', 'exists:places,id'],
+            'new_places' => ['nullable', 'array'],
+            'new_places.*.name' => ['nullable', 'string', 'max:255'],
+            'new_places.*.city' => ['nullable', 'string', 'max:255'],
+            'new_places.*.country' => ['nullable', 'string', 'max:255'],
+            'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $validated['is_public'] = $request->boolean('is_public', true);
@@ -127,13 +155,16 @@ class EventController extends Controller
         $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
         $tagIds = $validated['tag_ids'] ?? [];
+        $placeIds = $validated['place_ids'] ?? [];
         unset($validated['tag_ids']);
+        unset($validated['place_ids'], $validated['new_places']);
 
         // Slug is auto-generated in the model (from `name`).
         unset($validated['slug']);
 
         $event->update($validated);
         $event->tags()->sync($tagIds);
+        $this->syncEventPlaces($event, $placeIds, $request);
 
         return redirect()->route('events.index')
             ->with('status', __('Event updated.'));
@@ -190,5 +221,37 @@ class EventController extends Controller
 
         return redirect()->route('events.show', $newEvent)
             ->with('status', __('Event copied.'));
+    }
+
+    protected function syncEventPlaces(Event $event, array $placeIds, Request $request): void
+    {
+        $placeIds = array_values(array_unique(array_map('intval', $placeIds)));
+
+        foreach ($request->input('new_places', []) as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+            $lat = $row['latitude'] ?? null;
+            $lng = $row['longitude'] ?? null;
+            if ($lat === null || $lat === '' || $lng === null || $lng === '') {
+                continue;
+            }
+            $newPlace = Place::create([
+                'name' => $name,
+                'type' => 'venue',
+                'city' => isset($row['city']) && trim((string) $row['city']) !== '' ? trim((string) $row['city']) : null,
+                'country' => isset($row['country']) && trim((string) $row['country']) !== '' ? trim((string) $row['country']) : null,
+                'latitude' => (float) $lat,
+                'longitude' => (float) $lng,
+                'is_online' => false,
+            ]);
+            $placeIds[] = $newPlace->id;
+        }
+
+        $event->places()->sync(array_values(array_unique($placeIds)));
     }
 }

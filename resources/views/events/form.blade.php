@@ -1,5 +1,65 @@
 @csrf
 
+@php
+    $selectedPlaceIds = collect(old('place_ids', isset($event) && $event->exists ? $event->places->pluck('id')->all() : []))
+        ->map(fn ($id) => (int) $id)
+        ->values()
+        ->all();
+
+    $placesUnified = collect($places ?? [])
+        ->map(function ($place) {
+            $location = trim(implode(', ', array_filter([$place->city, $place->country])));
+
+            return [
+                'id' => (int) $place->id,
+                'label' => $location !== '' ? "{$place->name} ({$location})" : $place->name,
+                'lat' => $place->latitude !== null ? (float) $place->latitude : null,
+                'lng' => $place->longitude !== null ? (float) $place->longitude : null,
+            ];
+        })
+        ->values()
+        ->all();
+
+    $initialNewPlaces = [];
+    $oldNewPlaces = old('new_places');
+    if (is_array($oldNewPlaces)) {
+        foreach ($oldNewPlaces as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $lat = $row['latitude'] ?? null;
+            $lng = $row['longitude'] ?? null;
+            if ($lat === null || $lat === '' || $lng === null || $lng === '') {
+                continue;
+            }
+            $initialNewPlaces[] = [
+                'lat' => (float) $lat,
+                'lng' => (float) $lng,
+                'name' => (string) ($row['name'] ?? ''),
+                'city' => (string) ($row['city'] ?? ''),
+                'country' => (string) ($row['country'] ?? ''),
+            ];
+        }
+    }
+
+    $eventPlacesConfig = [
+        'places' => $placesUnified,
+        'initialSelectedIds' => $selectedPlaceIds,
+        'initialNewPlaces' => $initialNewPlaces,
+        'searchUrl' => route('geocode.search'),
+        'reverseUrl' => route('geocode.reverse'),
+        'strings' => [
+            'yourPlaces' => __('Your places'),
+            'mapSearch' => __('Map search'),
+            'noResults' => __('No results'),
+            'newVenuesHeading' => __('New venues (created when you save)'),
+            'newVenueNumber' => __('Venue'),
+            'removeVenue' => __('Remove'),
+            'addedThisForm' => __('Added on this form'),
+        ],
+    ];
+@endphp
+
 <div class="space-y-4">
     <div>
         <x-input-label for="name" :value="__('Name')" />
@@ -20,6 +80,54 @@
             @endforeach
         </select>
         <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
+    </div>
+
+    <div>
+        <x-input-label :value="__('Where (optional)')" />
+        <p class="mb-3 text-sm text-base-content/80">
+            {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
+        </p>
+
+        <div data-event-places-unified class="space-y-3">
+            <script type="application/json" data-ep-config>@json($eventPlacesConfig)</script>
+            <div class="relative z-[1000]">
+                <input
+                    type="search"
+                    data-ep-search
+                    class="input input-bordered w-full border-base-300 bg-base-100"
+                    placeholder="{{ __('Search places or address… (double-click map to add)') }}"
+                    autocomplete="off"
+                />
+                <div
+                    data-ep-results
+                    class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                ></div>
+            </div>
+
+            <div
+                data-ep-map
+                class="z-0 w-full overflow-hidden rounded-xl border border-base-300 bg-base-200/30"
+                style="min-height: 280px; height: min(420px, 50vh);"
+            ></div>
+
+            <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
+
+            <div
+                data-ep-new-venues-wrap
+                class="{{ count($initialNewPlaces) ? '' : 'hidden' }} space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3"
+            >
+                <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
+                <div data-ep-new-venues class="space-y-3"></div>
+            </div>
+
+            <div data-ep-place-ids></div>
+        </div>
+
+        <x-input-error :messages="$errors->get('place_ids')" class="mt-2" />
+        <x-input-error :messages="$errors->get('place_ids.*')" class="mt-2" />
+        <x-input-error :messages="$errors->get('new_places')" class="mt-2" />
+        <x-input-error :messages="$errors->get('new_places.*')" class="mt-2" />
+        <x-input-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

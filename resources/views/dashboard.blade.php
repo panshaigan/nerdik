@@ -83,7 +83,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <a href="{{ route('events.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        <a href="{{ route('browse.events') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
                             {{ __('All events') }} →
                         </a>
                     @endif
@@ -104,7 +104,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <a href="{{ route('activities.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        <a href="{{ route('browse.activities') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
                             {{ __('All activities') }} →
                         </a>
                     @endif
@@ -124,7 +124,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <a href="{{ route('activities.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        <a href="{{ route('browse.activities') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
                             {{ __('Browse activities') }} →
                         </a>
                     @endif

@@ -18,6 +18,8 @@ class Place extends Model
 
     protected $fillable = [
         'name',
+        'city',
+        'country',
         'parent_id',
         'type',
         'links',
@@ -39,5 +41,10 @@ class Place extends Model
     public function children()
     {
         return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_place')->withTimestamps();
     }
 }

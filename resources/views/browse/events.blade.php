@@ -7,30 +7,47 @@
 
     <div class="py-12">
         <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-            <form method="GET" class="card border border-base-300 bg-base-100 p-4 shadow-sm">
-                <div class="flex flex-wrap items-end gap-4">
-                    <div>
-                        <label for="q" class="block text-sm font-medium opacity-80">{{ __('Search') }}</label>
-                        <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Name or description…') }}" class="input input-bordered mt-1 w-64">
-                    </div>
-                    @if ($tags->isNotEmpty())
+            <form method="GET" class="space-y-4">
+                <div class="card border border-base-300 bg-base-100 p-4 shadow-sm">
+                    <div class="flex flex-wrap items-end gap-4">
                         <div>
-                            <label for="tag_id" class="block text-sm font-medium opacity-80">{{ __('Tag') }}</label>
-                            <select id="tag_id" name="tag_id" class="select select-bordered mt-1">
-                                <option value="">{{ __('Any') }}</option>
-                                @foreach ($tags as $tag)
-                                    <option value="{{ $tag->id }}" @selected(request('tag_id') == $tag->id)>
-                                        {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label for="q" class="block text-sm font-medium opacity-80">{{ __('Search') }}</label>
+                            <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Name or description…') }}" class="input input-bordered mt-1 w-64">
                         </div>
-                    @endif
-                    <button type="submit" class="btn btn-primary">{{ __('Search') }}</button>
-                    @if (request()->hasAny(['q', 'tag_id']))
-                        <a href="{{ route('browse.events') }}" class="btn btn-ghost">{{ __('Clear') }}</a>
-                    @endif
+                        @if ($tags->isNotEmpty())
+                            <div>
+                                <label for="tag_id" class="block text-sm font-medium opacity-80">{{ __('Tag') }}</label>
+                                <select id="tag_id" name="tag_id" class="select select-bordered mt-1">
+                                    <option value="">{{ __('Any') }}</option>
+                                    @foreach ($tags as $tag)
+                                        <option value="{{ $tag->id }}" @selected(request('tag_id') == $tag->id)>
+                                            {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        <input type="hidden" name="min_lat" id="bbox_min_lat" value="{{ request('min_lat') }}">
+                        <input type="hidden" name="max_lat" id="bbox_max_lat" value="{{ request('max_lat') }}">
+                        <input type="hidden" name="min_lng" id="bbox_min_lng" value="{{ request('min_lng') }}">
+                        <input type="hidden" name="max_lng" id="bbox_max_lng" value="{{ request('max_lng') }}">
+                        <button type="submit" class="btn btn-primary">{{ __('Search') }}</button>
+                        @if (request()->hasAny(['q', 'tag_id', 'min_lat', 'max_lat', 'min_lng', 'max_lng']))
+                            <a href="{{ route('browse.events') }}" class="btn btn-ghost">{{ __('Clear') }}</a>
+                        @endif
+                    </div>
                 </div>
+
+                <details class="card border border-base-300 bg-base-100 p-4 shadow-sm" @if (request()->filled('min_lat') && request()->filled('max_lat') && request()->filled('min_lng') && request()->filled('max_lng')) open @endif>
+                    <summary class="cursor-pointer text-sm font-medium text-base-content">{{ __('Filter by map area') }}</summary>
+                    <div class="mt-4 space-y-3">
+                        <p class="text-sm opacity-80">{{ __('Draw a rectangle on the map, then click Search. Only events linked to a place with coordinates inside the area are shown.') }}</p>
+                        <div
+                            data-browse-bbox-map
+                            class="leaflet-container z-0 h-80 min-h-[280px] w-full rounded-lg border border-base-300"
+                        ></div>
+                    </div>
+                </details>
             </form>
 
             @auth
