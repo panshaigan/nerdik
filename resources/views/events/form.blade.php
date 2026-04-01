@@ -63,10 +63,20 @@
 @endphp
 
 <div class="space-y-4">
-    <div>
+    <div class="relative">
         <x-input-label for="name" :value="__('Name')" />
         <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
-                      value="{{ old('name', $event->name ?? '') }}" required />
+                      value="{{ old('name', $event->name ?? '') }}"
+                      autocomplete="off"
+                      data-event-name-input
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="event-name-suggestions-popup"
+                      required />
+        <div id="event-name-suggestions-popup"
+             class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+             data-event-name-popup
+             role="listbox"></div>
         <x-input-error :messages="$errors->get('name')" class="mt-2" />
     </div>
 
@@ -172,6 +182,114 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.querySelector('[data-event-name-input]');
+        const popup = document.querySelector('[data-event-name-popup]');
+        if (!input || !popup) return;
+
+        const suggestions = @json($nameSuggestions ?? []);
+        let shown = [];
+        let active = -1;
+
+        function closePopup() {
+            popup.classList.add('hidden');
+            popup.innerHTML = '';
+            active = -1;
+            input.setAttribute('aria-expanded', 'false');
+        }
+
+        function openPopup() {
+            if (shown.length === 0) {
+                closePopup();
+                return;
+            }
+            popup.classList.remove('hidden');
+            input.setAttribute('aria-expanded', 'true');
+        }
+
+        function applyActive() {
+            [...popup.querySelectorAll('[data-suggestion-idx]')].forEach((el, idx) => {
+                const isActive = idx === active;
+                el.classList.toggle('bg-base-200', isActive);
+                el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+        }
+
+        function choose(value) {
+            input.value = value;
+            closePopup();
+        }
+
+        function render(items) {
+            shown = items.slice(0, 8);
+            popup.innerHTML = '';
+            active = -1;
+
+            if (shown.length === 0) {
+                closePopup();
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+            shown.forEach((name, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                btn.textContent = name;
+                btn.dataset.suggestionIdx = String(idx);
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('aria-selected', 'false');
+                btn.addEventListener('mousedown', (e) => e.preventDefault());
+                btn.addEventListener('click', () => choose(name));
+                frag.appendChild(btn);
+            });
+            popup.appendChild(frag);
+            openPopup();
+        }
+
+        function updateFromInput() {
+            const q = input.value.trim().toLowerCase();
+            if (q.length < 1) {
+                closePopup();
+                return;
+            }
+
+            const items = suggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q);
+            render(items);
+        }
+
+        input.addEventListener('input', updateFromInput);
+        input.addEventListener('focus', updateFromInput);
+        input.addEventListener('keydown', (e) => {
+            if (popup.classList.contains('hidden') || shown.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                active = (active + 1) % shown.length;
+                applyActive();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                active = active <= 0 ? shown.length - 1 : active - 1;
+                applyActive();
+            } else if (e.key === 'Enter') {
+                if (active >= 0 && active < shown.length) {
+                    e.preventDefault();
+                    choose(shown[active]);
+                }
+            } else if (e.key === 'Escape') {
+                closePopup();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!popup.contains(e.target) && e.target !== input) {
+                closePopup();
+            }
+        });
+    });
+</script>
 
 <div class="mt-6 flex justify-end gap-3">
     <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:text-gray-900">

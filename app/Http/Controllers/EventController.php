@@ -50,6 +50,7 @@ class EventController extends Controller
             'organizations' => $organizations,
             'places' => $places,
             'tags' => $tags,
+            'nameSuggestions' => $this->nameSuggestionsForCurrentUser(),
         ]);
     }
 
@@ -132,7 +133,13 @@ class EventController extends Controller
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
         $event->load(['tags', 'places']);
 
-        return view('events.edit', compact('event', 'organizations', 'places', 'tags'));
+        return view('events.edit', [
+            'event' => $event,
+            'organizations' => $organizations,
+            'places' => $places,
+            'tags' => $tags,
+            'nameSuggestions' => $this->nameSuggestionsForCurrentUser($event->id),
+        ]);
     }
 
     /**
@@ -268,5 +275,29 @@ class EventController extends Controller
         }
 
         $event->places()->sync(array_values(array_unique($placeIds)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function nameSuggestionsForCurrentUser(?int $exceptEventId = null): array
+    {
+        $query = Event::query()
+            ->where('created_by', Auth::id());
+
+        if ($exceptEventId !== null) {
+            $query->where('id', '!=', $exceptEventId);
+        }
+
+        return $query
+            ->whereNotNull('name')
+            ->orderBy('starts_at', 'desc')
+            ->limit(40)
+            ->pluck('name')
+            ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+            ->map(fn ($name) => trim($name))
+            ->unique()
+            ->values()
+            ->all();
     }
 }
