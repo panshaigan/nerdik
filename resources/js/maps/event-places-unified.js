@@ -58,7 +58,7 @@ export function initEventPlacesUnified(root) {
     const places = Array.isArray(cfg.places) ? cfg.places : [];
     const selectedIds = new Set((cfg.initialSelectedIds || []).map(Number));
     const initialList = Array.isArray(cfg.initialNewPlaces) ? cfg.initialNewPlaces : [];
-    /** @type {{ id: string, lat: number, lng: number, name: string, city: string, country: string }[]} */
+    /** @type {{ id: string, lat: number, lng: number, name: string, city: string, country: string, cityId: string, countryId: string }[]} */
     let newVenues = initialList
         .filter((r) => r.lat != null && r.lng != null)
         .map((r) => ({
@@ -68,6 +68,8 @@ export function initEventPlacesUnified(root) {
             name: r.name || '',
             city: r.city || '',
             country: r.country || '',
+            cityId: r.city_id != null && r.city_id !== '' ? String(r.city_id) : '',
+            countryId: r.country_id != null && r.country_id !== '' ? String(r.country_id) : '',
         }));
 
     const mapEl = root.querySelector('[data-ep-map]');
@@ -185,12 +187,16 @@ export function initEventPlacesUnified(root) {
         }
         try {
             const { data } = await axios.get(cfg.reverseUrl, { params: { lat, lng } });
-            if (data.city) {
-                v.city = data.city;
+            const cityDisp = data.city_display ?? data.city ?? '';
+            const countryDisp = data.country_display ?? data.country ?? '';
+            if (cityDisp) {
+                v.city = cityDisp;
             }
-            if (data.country) {
-                v.country = data.country;
+            if (countryDisp) {
+                v.country = countryDisp;
             }
+            v.cityId = data.city_id != null && data.city_id !== '' ? String(data.city_id) : '';
+            v.countryId = data.country_id != null && data.country_id !== '' ? String(data.country_id) : '';
             const row = newVenuesEl.querySelector(`[data-ep-nv-id="${escapeAttr(venueId)}"]`);
             if (row) {
                 const c = row.querySelector('[data-ep-city]');
@@ -200,6 +206,14 @@ export function initEventPlacesUnified(root) {
                 }
                 if (co) {
                     co.value = v.country;
+                }
+                const hCid = row.querySelector('[data-ep-city-id]');
+                const hCoid = row.querySelector('[data-ep-country-id]');
+                if (hCid) {
+                    hCid.value = v.cityId;
+                }
+                if (hCoid) {
+                    hCoid.value = v.countryId;
                 }
                 const hLat = row.querySelector('[data-ep-lat]');
                 const hLng = row.querySelector('[data-ep-lng]');
@@ -251,9 +265,12 @@ export function initEventPlacesUnified(root) {
         });
     }
 
-    function addNewVenue({ lat, lng, name = '', city = '', country = '' }, { skipReverse = false } = {}) {
+    function addNewVenue(
+        { lat, lng, name = '', city = '', country = '', cityId = '', countryId = '' },
+        { skipReverse = false } = {},
+    ) {
         const id = randomId();
-        const venue = { id, lat, lng, name, city, country };
+        const venue = { id, lat, lng, name, city, country, cityId: String(cityId), countryId: String(countryId) };
         newVenues.push(venue);
 
         const idx = newVenues.length;
@@ -326,6 +343,11 @@ export function initEventPlacesUnified(root) {
             inpCity.placeholder = 'City';
             inpCity.addEventListener('input', () => {
                 v.city = inpCity.value;
+                v.cityId = '';
+                const hc = row.querySelector('[data-ep-city-id]');
+                if (hc) {
+                    hc.value = '';
+                }
             });
 
             const inpCountry = document.createElement('input');
@@ -337,9 +359,26 @@ export function initEventPlacesUnified(root) {
             inpCountry.placeholder = 'Country';
             inpCountry.addEventListener('input', () => {
                 v.country = inpCountry.value;
+                v.countryId = '';
+                const hco = row.querySelector('[data-ep-country-id]');
+                if (hco) {
+                    hco.value = '';
+                }
             });
 
             grid.append(inpCity, inpCountry);
+
+            const hCityId = document.createElement('input');
+            hCityId.type = 'hidden';
+            hCityId.name = `new_places[${i}][city_id]`;
+            hCityId.value = v.cityId;
+            hCityId.dataset.epCityId = '1';
+
+            const hCountryId = document.createElement('input');
+            hCountryId.type = 'hidden';
+            hCountryId.name = `new_places[${i}][country_id]`;
+            hCountryId.value = v.countryId;
+            hCountryId.dataset.epCountryId = '1';
 
             const hLat = document.createElement('input');
             hLat.type = 'hidden';
@@ -353,7 +392,7 @@ export function initEventPlacesUnified(root) {
             hLng.value = String(v.lng);
             hLng.dataset.epLng = '1';
 
-            row.append(head, inpName, grid, hLat, hLng);
+            row.append(head, inpName, grid, hCityId, hCountryId, hLat, hLng);
             newVenuesEl.appendChild(row);
         });
 
@@ -487,8 +526,10 @@ export function initEventPlacesUnified(root) {
                         lat: r.lat,
                         lng: r.lon,
                         name: shortName,
-                        city: r.city || '',
-                        country: r.country || '',
+                        city: r.city_display || r.city || '',
+                        country: r.country_display || r.country || '',
+                        cityId: r.city_id != null && r.city_id !== '' ? String(r.city_id) : '',
+                        countryId: r.country_id != null && r.country_id !== '' ? String(r.country_id) : '',
                     });
                     resultsEl.classList.add('hidden');
                     searchInput.value = '';

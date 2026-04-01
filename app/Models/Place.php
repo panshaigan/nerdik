@@ -18,8 +18,8 @@ class Place extends Model
 
     protected $fillable = [
         'name',
-        'city',
-        'country',
+        'city_id',
+        'country_id',
         'parent_id',
         'type',
         'links',
@@ -46,5 +46,29 @@ class Place extends Model
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_place')->withTimestamps();
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Localized "City, Country" for UI lists.
+     */
+    public function locationLabel(?string $locale = null): string
+    {
+        $locale = $locale ?? app()->getLocale();
+        $parts = array_filter([
+            $this->city?->name($locale),
+            $this->country?->name($locale),
+        ]);
+
+        return implode(', ', $parts);
     }
 }

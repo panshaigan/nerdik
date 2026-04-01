@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
+use App\Services\LocationResolver;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,10 @@ use Illuminate\Validation\Rule;
 class EventController extends Controller
 {
     use AuthorizesOwnership;
+
+    public function __construct(
+        private readonly LocationResolver $locationResolver
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -35,7 +40,9 @@ class EventController extends Controller
         $organizations = Organization::where('created_by', Auth::id())
             ->orderBy('name')
             ->get();
-        $places = Place::orderBy('name')->get();
+        $places = Place::with(['city.translations', 'country.translations'])
+            ->orderBy('name')
+            ->get();
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
 
         return view('events.create', [
@@ -66,6 +73,8 @@ class EventController extends Controller
             'new_places.*.name' => ['nullable', 'string', 'max:255'],
             'new_places.*.city' => ['nullable', 'string', 'max:255'],
             'new_places.*.country' => ['nullable', 'string', 'max:255'],
+            'new_places.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
@@ -117,7 +126,9 @@ class EventController extends Controller
         $organizations = Organization::where('created_by', Auth::id())
             ->orderBy('name')
             ->get();
-        $places = Place::orderBy('name')->get();
+        $places = Place::with(['city.translations', 'country.translations'])
+            ->orderBy('name')
+            ->get();
         $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
         $event->load(['tags', 'places']);
 
@@ -146,6 +157,8 @@ class EventController extends Controller
             'new_places.*.name' => ['nullable', 'string', 'max:255'],
             'new_places.*.city' => ['nullable', 'string', 'max:255'],
             'new_places.*.country' => ['nullable', 'string', 'max:255'],
+            'new_places.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
@@ -240,11 +253,13 @@ class EventController extends Controller
             if ($lat === null || $lat === '' || $lng === null || $lng === '') {
                 continue;
             }
+            $resolved = $this->locationResolver->resolvePlaceRow($row);
+
             $newPlace = Place::create([
                 'name' => $name,
                 'type' => 'venue',
-                'city' => isset($row['city']) && trim((string) $row['city']) !== '' ? trim((string) $row['city']) : null,
-                'country' => isset($row['country']) && trim((string) $row['country']) !== '' ? trim((string) $row['country']) : null,
+                'city_id' => $resolved['city_id'],
+                'country_id' => $resolved['country_id'],
                 'latitude' => (float) $lat,
                 'longitude' => (float) $lng,
                 'is_online' => false,
