@@ -2,16 +2,16 @@
 
 <div class="space-y-4">
     <div>
-        <x-input-label for="event_id" :value="__('ui.slots.event')" />
+        <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.slots.event') }}</p>
         @if (isset($lockedEvent) && $lockedEvent)
             <input type="hidden" name="event_id" value="{{ $lockedEvent->id }}" />
             <input type="hidden" name="redirect_to_event_slug" value="{{ $lockedEvent->slug }}" />
-            <p id="event_id" class="mt-1 text-sm text-gray-900 border border-gray-200 rounded-md px-3 py-2 bg-gray-50">
+            <p id="event_id" class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm text-base-content">
                 {{ $lockedEvent->name }} · {{ format_in_user_tz($lockedEvent->starts_at, 'Y-m-d H:i') }}
             </p>
-            <p class="mt-1 text-xs text-gray-500">{{ __('ui.slots.event_fixed') }}</p>
+            <p class="mt-1 text-xs text-base-content/60">{{ __('ui.slots.event_fixed') }}</p>
         @else
-            <select id="event_id" name="event_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            <select id="event_id" name="event_id" class="select select-bordered mt-1 w-full" required>
                 @foreach ($events as $ev)
                     <option value="{{ $ev->id }}"
                         @selected((string) old('event_id', $slot->event_id ?? '') === (string) $ev->id)>
@@ -20,67 +20,80 @@
                 @endforeach
             </select>
         @endif
-        <x-input-error :messages="$errors->get('event_id')" class="mt-2" />
+        <x-field-error :messages="$errors->get('event_id')" class="mt-2" />
     </div>
 
     <div>
-        <x-input-label for="name" :value="__('ui.activities.name')" />
-        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
-                      value="{{ old('name', $slot->name ?? '') }}" required />
-        <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        <x-input
+            label="{{ __('ui.activities.name') }}"
+            name="name"
+            type="text"
+            value="{{ old('name', $slot->name ?? '') }}"
+            error-field="name"
+            required
+        />
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <x-input-label for="starts_at" :value="__('ui.slots.starts_at_optional')" />
-            <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('starts_at', $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}" />
-            <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
+            <x-input
+                label="{{ __('ui.slots.starts_at_optional') }}"
+                name="starts_at"
+                type="datetime-local"
+                value="{{ old('starts_at', $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
+                error-field="starts_at"
+            />
         </div>
 
         <div>
-            <x-input-label for="ends_at" :value="__('ui.slots.ends_at_optional')" />
-            <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('ends_at', $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}" />
-            <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
+            <x-input
+                label="{{ __('ui.slots.ends_at_optional') }}"
+                name="ends_at"
+                type="datetime-local"
+                value="{{ old('ends_at', $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
+                error-field="ends_at"
+            />
         </div>
     </div>
 
     <div>
-        <x-input-label for="place_id" :value="__('ui.slots.place_optional')" />
-        <select id="place_id" name="place_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            <option value="">{{ __('ui.common.none') }}</option>
-            @foreach ($places as $place)
-                <option value="{{ $place->id }}"
-                    @selected((string) old('place_id', $slot->place_id ?? '') === (string) $place->id)>
-                    {{ $place->name }} ({{ $place->type }})
-                </option>
-            @endforeach
-        </select>
-        <x-input-error :messages="$errors->get('place_id')" class="mt-2" />
+        <fieldset class="fieldset py-0">
+            <legend class="fieldset-legend mb-0.5">{{ __('ui.slots.place_optional') }}</legend>
+            <select id="place_id" name="place_id" class="select select-bordered w-full">
+                <option value="">{{ __('ui.common.none') }}</option>
+                @foreach ($places as $place)
+                    <option value="{{ $place->id }}"
+                        @selected((string) old('place_id', $slot->place_id ?? '') === (string) $place->id)>
+                        {{ $place->name }} ({{ $place->type }})
+                    </option>
+                @endforeach
+            </select>
+        </fieldset>
+        <x-field-error :messages="$errors->get('place_id')" class="mt-2" />
     </div>
 
     <div class="flex items-center gap-2">
-        <input id="requires_approval" name="requires_approval" type="checkbox" value="1"
+        <input id="requires_approval" name="requires_approval" type="checkbox" value="1" class="checkbox checkbox-sm"
                @checked(old('requires_approval', $slot->requires_approval ?? false)) />
-        <x-input-label for="requires_approval" :value="__('ui.slots.requires_approval')" />
+        <label for="requires_approval" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
     </div>
 
     <div>
-        <x-input-label for="max_capacity" :value="__('ui.slots.max_capacity_optional')" />
-        <x-text-input id="max_capacity" name="max_capacity" type="number" min="1" class="mt-1 block w-full"
-                      value="{{ old('max_capacity', $slot->max_capacity ?? '') }}" />
-        <x-input-error :messages="$errors->get('max_capacity')" class="mt-2" />
+        <x-input
+            label="{{ __('ui.slots.max_capacity_optional') }}"
+            name="max_capacity"
+            type="number"
+            min="1"
+            value="{{ old('max_capacity', $slot->max_capacity ?? '') }}"
+            error-field="max_capacity"
+        />
     </div>
 </div>
 
 <div class="mt-6 flex justify-end gap-3">
-    <a href="{{ route('slots.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+    <a href="{{ route('slots.index') }}" class="btn btn-outline">
         {{ __('ui.common.cancel') }}
     </a>
 
-    <x-primary-button>
-        {{ $submitLabel ?? __('ui.common.save') }}
-    </x-primary-button>
+    <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('ui.common.save') }}</x-button>
 </div>
-

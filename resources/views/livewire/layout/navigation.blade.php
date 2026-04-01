@@ -16,36 +16,45 @@ new class extends Component
     }
 }; ?>
 
+@php
+    $navLink = function (bool $active): string {
+        return $active
+            ? 'border-primary text-base-content'
+            : 'border-transparent text-base-content/70 hover:border-base-300 hover:text-base-content';
+    };
+@endphp
+
 <nav x-data="{ open: false }" class="border-b border-base-300 bg-base-100/90 backdrop-blur">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 justify-between">
             <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="flex shrink-0 items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-base-content" />
+                        <x-brand-logo class="block h-9 w-auto fill-current text-base-content" />
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                    <a href="{{ route('dashboard') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('dashboard')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Dashboard') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
+                    </a>
+                    <a href="{{ route('browse.events') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('browse.events')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Events') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('browse.activities')" :active="request()->routeIs('browse.activities')" wire:navigate>
+                    </a>
+                    <a href="{{ route('browse.activities') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('browse.activities')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Activities') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('browse.organizations')" :active="request()->routeIs('browse.organizations')" wire:navigate>
+                    </a>
+                    <a href="{{ route('browse.organizations') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('browse.organizations')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Organizations') }}
-                    </x-nav-link>
+                    </a>
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-2">
+            <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
                 <button type="button"
                         onclick="window.toggleTheme()"
                         class="rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs hover:bg-base-200">
@@ -72,53 +81,41 @@ new class extends Component
                         </span>
                     @endif
                 </a>
-                <x-dropdown align="right" width="56">
-                    <x-slot name="trigger">
-                        <button class="rounded-full border border-base-300 p-0.5 transition hover:border-primary focus:outline-none">
+
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar border border-base-300">
+                        <div class="w-9 rounded-full">
                             <img
                                 src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=334155&color=ffffff&bold=true"
-                                alt="Profile avatar"
-                                class="h-9 w-9 rounded-full object-cover"
+                                alt=""
                             />
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <div class="px-4 py-3 border-b border-base-300">
+                        </div>
+                    </div>
+                    <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
+                        <li class="mb-2 border-b border-base-300 px-2 pb-2">
                             <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                             <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
-                        </div>
-                        <x-dropdown-link :href="route('notifications.index')" wire:navigate>
-                            {{ __('Notifications') }}
-                            @if (auth()->user()->unreadNotifications->count() > 0)
-                                <span class="ms-1 rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
-                                    {{ auth()->user()->unreadNotifications->count() }}
-                                </span>
-                            @endif
-                        </x-dropdown-link>
-                        <x-dropdown-link :href="route('profile')" wire:navigate>
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-                        <x-dropdown-link href="#">
-                            {{ __('Dummy menu item') }}
-                        </x-dropdown-link>
-                        <x-dropdown-link href="#">
-                            {{ __('Another quick action') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <button wire:click="logout" class="w-full text-start">
-                            <x-dropdown-link>
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </button>
-                    </x-slot>
-                </x-dropdown>
+                        </li>
+                        <li>
+                            <a wire:navigate href="{{ route('notifications.index') }}">
+                                {{ __('Notifications') }}
+                                @if (auth()->user()->unreadNotifications->count() > 0)
+                                    <span class="badge badge-sm badge-error">{{ auth()->user()->unreadNotifications->count() }}</span>
+                                @endif
+                            </a>
+                        </li>
+                        <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
+                        <li><a href="#">{{ __('Dummy menu item') }}</a></li>
+                        <li><a href="#">{{ __('Another quick action') }}</a></li>
+                        <li>
+                            <button type="button" wire:click="logout" class="w-full text-start">{{ __('Log Out') }}</button>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-md p-2 opacity-70 hover:bg-base-200 hover:opacity-100 focus:outline-none transition duration-150 ease-in-out">
+                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-md p-2 opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -128,28 +125,30 @@ new class extends Component
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+        <div class="space-y-1 pb-3 pt-2">
+            <a href="{{ route('dashboard') }}" wire:navigate
+               class="{{ $navLink(request()->routeIs('dashboard')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
+            </a>
+            <a href="{{ route('browse.events') }}" wire:navigate
+               class="{{ $navLink(request()->routeIs('browse.events')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Events') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('browse.activities')" :active="request()->routeIs('browse.activities')" wire:navigate>
+            </a>
+            <a href="{{ route('browse.activities') }}" wire:navigate
+               class="{{ $navLink(request()->routeIs('browse.activities')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Activities') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('browse.organizations')" :active="request()->routeIs('browse.organizations')" wire:navigate>
+            </a>
+            <a href="{{ route('browse.organizations') }}" wire:navigate
+               class="{{ $navLink(request()->routeIs('browse.organizations')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Organizations') }}
-            </x-responsive-nav-link>
+            </a>
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="border-t border-base-300 pt-4 pb-1">
+        <div class="border-t border-base-300 pb-1 pt-4">
             <div class="px-4">
-                <div class="font-medium text-base" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="font-medium text-sm opacity-70">{{ auth()->user()->email }}</div>
+                <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
@@ -171,21 +170,19 @@ new class extends Component
                         </a>
                     </div>
                 </div>
-                <x-responsive-nav-link :href="route('notifications.index')" wire:navigate>
+                <a href="{{ route('notifications.index') }}" wire:navigate
+                   class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Notifications') }}
                     @if (auth()->user()->unreadNotifications->count() > 0)
                         <span class="rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">{{ auth()->user()->unreadNotifications->count() }}</span>
                     @endif
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('profile')" wire:navigate>
+                </a>
+                <a href="{{ route('profile') }}" wire:navigate
+                   class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <button wire:click="logout" class="w-full text-start">
-                    <x-responsive-nav-link>
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                </a>
+                <button type="button" wire:click="logout" class="w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-base-content/80">
+                    {{ __('Log Out') }}
                 </button>
             </div>
         </div>

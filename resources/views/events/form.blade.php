@@ -66,25 +66,29 @@
 <div class="space-y-4">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="relative sm:col-span-2">
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1"
-                          value="{{ old('name', $event->name ?? '') }}"
-                          autocomplete="off"
-                          data-event-name-input
-                          aria-autocomplete="list"
-                          aria-expanded="false"
-                          aria-controls="event-name-suggestions-popup"
-                          required />
+            <x-input
+                label="{{ __('Name') }}"
+                name="name"
+                type="text"
+                value="{{ old('name', $event->name ?? '') }}"
+                error-field="name"
+                required
+                autocomplete="off"
+                data-event-name-input
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="event-name-suggestions-popup"
+            />
             <div id="event-name-suggestions-popup"
                  class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                  data-event-name-popup
                  role="listbox"></div>
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
         <div>
-            <x-input-label for="organization_id" :value="__('Organization (optional)')" />
-            <select id="organization_id" name="organization_id" class="select select-bordered mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content">
+            <fieldset class="fieldset py-0">
+                <legend class="fieldset-legend mb-0.5">{{ __('Organization (optional)') }}</legend>
+                <select id="organization_id" name="organization_id" class="select select-bordered w-full">
                 <option value="">{{ __('None') }}</option>
                 @foreach ($organizations as $organization)
                     <option value="{{ $organization->id }}"
@@ -93,37 +97,64 @@
                     </option>
                 @endforeach
             </select>
-            <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
+            </fieldset>
+            <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
         </div>
     </div>
 
     <div>
-        <x-input-label for="desc" :value="__('Description (optional)')" />
+        <p class="fieldset-legend mb-0.5 font-medium">{{ __('Description (optional)') }}</p>
         <input id="desc" type="hidden" name="desc" value="{{ old('desc', $event->desc ?? '') }}">
-        <div class="mt-1">
-            <div data-event-desc-editor class="overflow-hidden rounded-md border border-base-300 bg-base-100"></div>
+        <div class="mt-1 overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
+            <div data-event-desc-editor class="min-h-[11rem]"></div>
         </div>
-        <x-input-error :messages="$errors->get('desc')" class="mt-2" />
+        <x-field-error :messages="$errors->get('desc')" class="mt-2" />
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <x-input-label for="starts_at" :value="__('Starts at')" />
-            <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1" data-event-start-at data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
-                          value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}" required />
-            <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
+    <div class="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
+        <div class="lg:col-span-3 lg:max-w-[14rem]">
+            <x-input
+                label="{{ __('Starts at') }}"
+                name="starts_at"
+                type="datetime-local"
+                value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}"
+                error-field="starts_at"
+                required
+                data-event-start-at
+                data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
+                class="w-full"
+            />
         </div>
 
-        <div>
-            <x-input-label for="ends_at" :value="__('Ends at')" />
-            <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1" data-event-ends-at
-                          value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}" required />
-            <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
+        <div class="lg:col-span-3 lg:max-w-[14rem]">
+            <x-input
+                label="{{ __('Ends at') }}"
+                name="ends_at"
+                type="datetime-local"
+                value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}"
+                error-field="ends_at"
+                required
+                data-event-ends-at
+                class="w-full"
+            />
+        </div>
+
+        <div class="rounded-lg border border-base-300 bg-base-100 p-3 lg:col-span-6">
+            <label for="is_public" class="flex items-start gap-3">
+                <input id="is_public" name="is_public" type="checkbox" value="1" class="checkbox checkbox-sm mt-1"
+                       @checked(old('is_public', $event->is_public ?? true)) />
+                <span>
+                    <span class="block text-sm font-medium text-base-content">{{ __('Public event') }}</span>
+                    <span class="block text-xs text-base-content/70">
+                        {{ __('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.') }}
+                    </span>
+                </span>
+            </label>
         </div>
     </div>
 
     <div>
-        <x-input-label :value="__('Where (optional)')" />
+        <p class="fieldset-legend font-medium text-base-content">{{ __('Where (optional)') }}</p>
         <p class="mb-3 text-sm text-base-content/80">
             {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
         </p>
@@ -163,44 +194,49 @@
             <div data-ep-place-ids></div>
         </div>
 
-        <x-input-error :messages="$errors->get('place_ids')" class="mt-2" />
-        <x-input-error :messages="$errors->get('place_ids.*')" class="mt-2" />
-        <x-input-error :messages="$errors->get('new_places')" class="mt-2" />
-        <x-input-error :messages="$errors->get('new_places.*')" class="mt-2" />
-        <x-input-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
+        <x-field-error :messages="$errors->get('place_ids')" class="mt-2" />
+        <x-field-error :messages="$errors->get('place_ids.*')" class="mt-2" />
+        <x-field-error :messages="$errors->get('new_places')" class="mt-2" />
+        <x-field-error :messages="$errors->get('new_places.*')" class="mt-2" />
+        <x-field-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
     @if (isset($tags))
         <div class="mt-4 border-t border-base-300 pt-4">
-            <x-input-label :value="__('Tags')" />
+            <p class="fieldset-legend font-medium text-base-content">{{ __('Tags') }}</p>
             <p class="mb-3 text-xs text-base-content/70">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>
             @include('tags.partials.selector', [
                 'tags' => $tags,
                 'selectedIds' => old('tag_ids', $event->exists ? $event->tags->pluck('id')->toArray() : []),
             ])
-            <x-input-error :messages="$errors->get('tag_ids')" class="mt-2" />
-            <x-input-error :messages="$errors->get('new_tags')" class="mt-2" />
-            <x-input-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-            <x-input-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
+            <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
+            <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
+            <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
+            <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
         </div>
     @endif
-
-    <div class="rounded-lg border border-base-300 bg-base-100 p-3">
-        <label for="is_public" class="flex items-start gap-3">
-            <input id="is_public" name="is_public" type="checkbox" value="1" class="mt-1"
-                   @checked(old('is_public', $event->is_public ?? true)) />
-            <span>
-                <span class="block text-sm font-medium text-base-content">{{ __('Public event') }}</span>
-                <span class="block text-xs text-base-content/70">
-                    {{ __('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.') }}
-                </span>
-            </span>
-        </label>
-    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const eventForm = document.querySelector('form[data-event-form]');
+        if (eventForm) {
+            eventForm.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter') return;
+                const t = e.target;
+                if (t.closest('.ql-editor') || t.closest('.ql-toolbar')) return;
+                if (t.tagName === 'TEXTAREA') return;
+                if (t.tagName === 'BUTTON') return;
+                if (t.tagName === 'INPUT' && (t.type === 'checkbox' || t.type === 'radio' || t.type === 'submit' || t.type === 'button')) return;
+                if (t.hasAttribute('data-ts-input')) return;
+                if (t.hasAttribute('data-ep-search')) return;
+                if (t.hasAttribute('data-event-name-input')) return;
+                if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
+                    e.preventDefault();
+                }
+            });
+        }
+
         const input = document.querySelector('[data-event-name-input]');
         const popup = document.querySelector('[data-event-name-popup]');
         const startsAtEl = document.querySelector('[data-event-start-at]');
@@ -294,8 +330,8 @@
                 active = active <= 0 ? shown.length - 1 : active - 1;
                 applyActive();
             } else if (e.key === 'Enter') {
+                e.preventDefault();
                 if (active >= 0 && active < shown.length) {
-                    e.preventDefault();
                     choose(shown[active]);
                 }
             } else if (e.key === 'Escape') {
@@ -391,7 +427,5 @@
         {{ __('Cancel') }}
     </a>
 
-    <x-primary-button>
-        {{ $submitLabel ?? __('Save') }}
-    </x-primary-button>
+    <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('Save') }}</x-button>
 </div>

@@ -175,6 +175,20 @@ export function initTagSelector(root) {
         renderPendingNew();
     }
 
+    /** Returns the tag object if the query matches an existing tag label/slug/alias exactly. */
+    function exactTagForQuery(q) {
+        const qn = norm(q);
+        if (!qn) return null;
+        return (
+            allTags.find((t) => {
+                const labels = Object.values(t.labels || {}).map(norm);
+                const aliases = (t.aliases || []).map(norm);
+                const hay = [...labels, ...aliases, norm(t.slug)];
+                return hay.includes(qn);
+            }) || null
+        );
+    }
+
     function buildResults(q) {
         results.innerHTML = '';
         activeIndex = -1;
@@ -258,19 +272,46 @@ export function initTagSelector(root) {
     });
     input.addEventListener('keydown', (e) => {
         const items = resultButtons();
-        if (results.classList.contains('hidden') || !items.length) return;
+        const dropdownOpen = !results.classList.contains('hidden') && items.length > 0;
+
         if (e.key === 'ArrowDown') {
+            if (!dropdownOpen) return;
             e.preventDefault();
             activeIndex = (activeIndex + 1 + items.length) % items.length;
             paintActive();
-        } else if (e.key === 'ArrowUp') {
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            if (!dropdownOpen) return;
             e.preventDefault();
             activeIndex = (activeIndex - 1 + items.length) % items.length;
             paintActive();
-        } else if (e.key === 'Enter' && activeIndex >= 0) {
+            return;
+        }
+        if (e.key === 'Enter') {
             e.preventDefault();
-            items[activeIndex]?.click();
-        } else if (e.key === 'Escape') {
+            const q = input.value.trim();
+            if (!q) {
+                closeResults();
+                return;
+            }
+            if (dropdownOpen && activeIndex >= 0) {
+                items[activeIndex]?.click();
+                return;
+            }
+            const exact = exactTagForQuery(q);
+            if (exact) {
+                addWithAttached(exact.id);
+                input.value = '';
+                closeResults();
+                return;
+            }
+            addNewTagLabel(q);
+            input.value = '';
+            closeResults();
+            return;
+        }
+        if (e.key === 'Escape') {
             closeResults();
         }
     });
