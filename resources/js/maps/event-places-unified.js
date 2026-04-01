@@ -408,6 +408,23 @@ export function initEventPlacesUnified(root) {
     });
 
     let searchTimer;
+    let activeResultIndex = -1;
+
+    function resultButtons() {
+        return Array.from(resultsEl.querySelectorAll('button[data-ep-result-item="1"]'));
+    }
+
+    function paintActiveResult() {
+        const items = resultButtons();
+        items.forEach((el, idx) => {
+            const active = idx === activeResultIndex;
+            el.classList.toggle('bg-base-200', active);
+        });
+        if (activeResultIndex >= 0 && items[activeResultIndex]) {
+            items[activeResultIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(runSearch, 280);
@@ -421,6 +438,36 @@ export function initEventPlacesUnified(root) {
     document.addEventListener('click', (e) => {
         if (!root.contains(e.target)) {
             resultsEl.classList.add('hidden');
+            activeResultIndex = -1;
+        }
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        const items = resultButtons();
+        if (resultsEl.classList.contains('hidden') || items.length === 0) {
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeResultIndex = (activeResultIndex + 1 + items.length) % items.length;
+            paintActiveResult();
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeResultIndex = (activeResultIndex - 1 + items.length) % items.length;
+            paintActiveResult();
+            return;
+        }
+        if (e.key === 'Enter' && activeResultIndex >= 0) {
+            e.preventDefault();
+            items[activeResultIndex]?.click();
+            return;
+        }
+        if (e.key === 'Escape') {
+            resultsEl.classList.add('hidden');
+            activeResultIndex = -1;
         }
     });
 
@@ -428,6 +475,7 @@ export function initEventPlacesUnified(root) {
         const raw = searchInput.value.trim();
         const qLower = raw.toLowerCase();
         resultsEl.innerHTML = '';
+        activeResultIndex = -1;
 
         if (raw.length < 2) {
             resultsEl.classList.add('hidden');
@@ -476,6 +524,7 @@ export function initEventPlacesUnified(root) {
             localSaved.forEach((p) => {
                 const b = document.createElement('button');
                 b.type = 'button';
+                b.dataset.epResultItem = '1';
                 b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = p.label;
                 b.addEventListener('click', () => {
@@ -501,6 +550,7 @@ export function initEventPlacesUnified(root) {
             localDraft.forEach((d) => {
                 const b = document.createElement('button');
                 b.type = 'button';
+                b.dataset.epResultItem = '1';
                 b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = d.label;
                 b.addEventListener('click', () => {
@@ -518,6 +568,7 @@ export function initEventPlacesUnified(root) {
             remote.forEach((r) => {
                 const b = document.createElement('button');
                 b.type = 'button';
+                b.dataset.epResultItem = '1';
                 b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = r.label;
                 b.addEventListener('click', () => {
@@ -546,6 +597,7 @@ export function initEventPlacesUnified(root) {
         }
 
         resultsEl.appendChild(frag);
+        paintActiveResult();
     }
 
     rebuildPlaceMarkers();

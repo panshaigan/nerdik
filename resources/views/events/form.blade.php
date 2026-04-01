@@ -60,38 +60,66 @@
             'addedThisForm' => __('Added on this form'),
         ],
     ];
+    $enforceFutureDates = ! ($event->exists ?? false);
 @endphp
 
 <div class="space-y-4">
-    <div class="relative">
-        <x-input-label for="name" :value="__('Name')" />
-        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
-                      value="{{ old('name', $event->name ?? '') }}"
-                      autocomplete="off"
-                      data-event-name-input
-                      aria-autocomplete="list"
-                      aria-expanded="false"
-                      aria-controls="event-name-suggestions-popup"
-                      required />
-        <div id="event-name-suggestions-popup"
-             class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-             data-event-name-popup
-             role="listbox"></div>
-        <x-input-error :messages="$errors->get('name')" class="mt-2" />
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="relative sm:col-span-2">
+            <x-input-label for="name" :value="__('Name')" />
+            <x-text-input id="name" name="name" type="text" class="mt-1"
+                          value="{{ old('name', $event->name ?? '') }}"
+                          autocomplete="off"
+                          data-event-name-input
+                          aria-autocomplete="list"
+                          aria-expanded="false"
+                          aria-controls="event-name-suggestions-popup"
+                          required />
+            <div id="event-name-suggestions-popup"
+                 class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                 data-event-name-popup
+                 role="listbox"></div>
+            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="organization_id" :value="__('Organization (optional)')" />
+            <select id="organization_id" name="organization_id" class="select select-bordered mt-1 w-full rounded-md border-base-300 bg-base-100 text-base-content">
+                <option value="">{{ __('None') }}</option>
+                @foreach ($organizations as $organization)
+                    <option value="{{ $organization->id }}"
+                        @selected((string) old('organization_id', $event->organization_id ?? '') === (string) $organization->id)>
+                        {{ $organization->name }}
+                    </option>
+                @endforeach
+            </select>
+            <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
+        </div>
     </div>
 
     <div>
-        <x-input-label for="organization_id" :value="__('Organization (optional)')" />
-        <select id="organization_id" name="organization_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            <option value="">{{ __('None') }}</option>
-            @foreach ($organizations as $organization)
-                <option value="{{ $organization->id }}"
-                    @selected((string) old('organization_id', $event->organization_id ?? '') === (string) $organization->id)>
-                    {{ $organization->name }}
-                </option>
-            @endforeach
-        </select>
-        <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
+        <x-input-label for="desc" :value="__('Description (optional)')" />
+        <input id="desc" type="hidden" name="desc" value="{{ old('desc', $event->desc ?? '') }}">
+        <div class="mt-1">
+            <div data-event-desc-editor class="overflow-hidden rounded-md border border-base-300 bg-base-100"></div>
+        </div>
+        <x-input-error :messages="$errors->get('desc')" class="mt-2" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <x-input-label for="starts_at" :value="__('Starts at')" />
+            <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1" data-event-start-at data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
+                          value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}" required />
+            <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="ends_at" :value="__('Ends at')" />
+            <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1" data-event-ends-at
+                          value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}" required />
+            <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
+        </div>
     </div>
 
     <div>
@@ -106,7 +134,7 @@
                 <input
                     type="search"
                     data-ep-search
-                    class="input input-bordered w-full border-base-300 bg-base-100"
+                    class="input input-bordered w-full rounded-md border-base-300 bg-base-100"
                     placeholder="{{ __('Search places or address… (double-click map to add)') }}"
                     autocomplete="off"
                 />
@@ -118,7 +146,7 @@
 
             <div
                 data-ep-map
-                class="z-0 w-full overflow-hidden rounded-xl border border-base-300 bg-base-200/30"
+                class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30"
                 style="min-height: 280px; height: min(420px, 50vh);"
             ></div>
 
@@ -142,51 +170,43 @@
         <x-input-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <x-input-label for="starts_at" :value="__('Starts at')" />
-            <x-text-input id="starts_at" name="starts_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}" required />
-            <x-input-error :messages="$errors->get('starts_at')" class="mt-2" />
-        </div>
-
-        <div>
-            <x-input-label for="ends_at" :value="__('Ends at')" />
-            <x-text-input id="ends_at" name="ends_at" type="datetime-local" class="mt-1 block w-full"
-                          value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}" required />
-            <x-input-error :messages="$errors->get('ends_at')" class="mt-2" />
-        </div>
-    </div>
-
-    <div>
-        <x-input-label for="desc" :value="__('Description (optional)')" />
-        <textarea id="desc" name="desc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" rows="3">{{ old('desc', $event->desc ?? '') }}</textarea>
-        <x-input-error :messages="$errors->get('desc')" class="mt-2" />
-    </div>
-
-    <div class="flex items-center gap-2">
-        <input id="is_public" name="is_public" type="checkbox" value="1"
-               @checked(old('is_public', $event->is_public ?? true)) />
-        <x-input-label for="is_public" :value="__('Public event')" />
-    </div>
-
-    @if (isset($tags) && $tags->isNotEmpty())
-        <div class="border-t border-gray-200 pt-4 mt-4">
+    @if (isset($tags))
+        <div class="mt-4 border-t border-base-300 pt-4">
             <x-input-label :value="__('Tags')" />
-            <p class="text-xs text-gray-500 mb-3">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>
+            <p class="mb-3 text-xs text-base-content/70">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>
             @include('tags.partials.selector', [
                 'tags' => $tags,
                 'selectedIds' => old('tag_ids', $event->exists ? $event->tags->pluck('id')->toArray() : []),
             ])
             <x-input-error :messages="$errors->get('tag_ids')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
         </div>
     @endif
+
+    <div class="rounded-lg border border-base-300 bg-base-100 p-3">
+        <label for="is_public" class="flex items-start gap-3">
+            <input id="is_public" name="is_public" type="checkbox" value="1" class="mt-1"
+                   @checked(old('is_public', $event->is_public ?? true)) />
+            <span>
+                <span class="block text-sm font-medium text-base-content">{{ __('Public event') }}</span>
+                <span class="block text-xs text-base-content/70">
+                    {{ __('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.') }}
+                </span>
+            </span>
+        </label>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const input = document.querySelector('[data-event-name-input]');
         const popup = document.querySelector('[data-event-name-popup]');
+        const startsAtEl = document.querySelector('[data-event-start-at]');
+        const endsAtEl = document.querySelector('[data-event-ends-at]');
+        const descInput = document.getElementById('desc');
+        const descEditorEl = document.querySelector('[data-event-desc-editor]');
         if (!input || !popup) return;
 
         const suggestions = @json($nameSuggestions ?? []);
@@ -288,11 +308,86 @@
                 closePopup();
             }
         });
+
+        function nowForDateTimeLocal() {
+            const d = new Date();
+            d.setSeconds(0);
+            d.setMilliseconds(0);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function syncDateGuards() {
+            if (!startsAtEl || !endsAtEl) return;
+
+            const minNow = nowForDateTimeLocal();
+            const enforceFuture = startsAtEl.getAttribute('data-enforce-future') === '1';
+            startsAtEl.min = enforceFuture ? minNow : '';
+            endsAtEl.min = startsAtEl.value || (enforceFuture ? minNow : '');
+
+            if (startsAtEl.value && endsAtEl.value && endsAtEl.value < startsAtEl.value) {
+                endsAtEl.value = startsAtEl.value;
+            }
+
+            startsAtEl.setCustomValidity('');
+            endsAtEl.setCustomValidity('');
+            if (enforceFuture && startsAtEl.value && startsAtEl.value < minNow) {
+                startsAtEl.setCustomValidity('{{ __('Start date cannot be in the past.') }}');
+            }
+            if (endsAtEl.value && endsAtEl.value < (startsAtEl.value || (enforceFuture ? minNow : endsAtEl.value))) {
+                endsAtEl.setCustomValidity('{{ __('End date cannot be earlier than start date.') }}');
+            }
+        }
+
+        if (startsAtEl && endsAtEl) {
+            syncDateGuards();
+            startsAtEl.addEventListener('change', syncDateGuards);
+            startsAtEl.addEventListener('input', syncDateGuards);
+            endsAtEl.addEventListener('change', syncDateGuards);
+            endsAtEl.addEventListener('input', syncDateGuards);
+
+            const form = startsAtEl.closest('form');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    syncDateGuards();
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        form.reportValidity();
+                    }
+                });
+            }
+        }
+
+        if (descInput && descEditorEl && window.Quill) {
+            const quill = new window.Quill(descEditorEl, {
+                theme: 'snow',
+                placeholder: '{{ __('Write event description...') }}',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ list: 'ordered' }, { list: 'bullet' }, 'blockquote', 'code-block'],
+                        ['link'],
+                        ['clean'],
+                    ],
+                },
+            });
+
+            const initialHtml = (descInput.value || '').trim();
+            if (initialHtml) {
+                quill.clipboard.dangerouslyPasteHTML(initialHtml);
+            }
+
+            quill.on('text-change', () => {
+                const html = quill.root.innerHTML.trim();
+                descInput.value = html === '<p><br></p>' ? '' : html;
+            });
+        }
+
     });
 </script>
 
 <div class="mt-6 flex justify-end gap-3">
-    <a href="{{ route('events.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+    <a href="{{ route('events.index') }}" class="btn btn-outline">
         {{ __('Cancel') }}
     </a>
 

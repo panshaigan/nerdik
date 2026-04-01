@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    @if (isset($tags) && $tags->isNotEmpty())
+    @if (isset($tags))
         <div class="border-t border-gray-200 pt-4 mt-4">
             <x-input-label :value="__('ui.activities.tags')" />
             <p class="text-xs text-gray-500 mb-3">{{ __('ui.activities.tags_help') }}</p>
@@ -94,6 +94,9 @@
                 'selectedIds' => old('tag_ids', $activity->exists ? $activity->tags->pluck('id')->toArray() : []),
             ])
             <x-input-error :messages="$errors->get('tag_ids')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
+            <x-input-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
         </div>
     @endif
 </div>

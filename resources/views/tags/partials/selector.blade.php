@@ -1,21 +1,73 @@
 @php
-    $selected = collect(old('tag_ids', $selectedIds ?? []))->map(fn ($id) => (string) $id)->toArray();
+    use App\Services\TagSelectionService;
+
+    $locale = app()->getLocale();
+    $selected = collect(old('tag_ids', $selectedIds ?? []))
+        ->map(fn ($id) => (int) $id)
+        ->filter()
+        ->values()
+        ->all();
+    $oldNewTags = old('new_tags', []);
+    $initialNewTags = collect(is_array($oldNewTags) ? $oldNewTags : [])
+        ->filter(fn ($row) => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['category'] ?? '')) !== '')
+        ->map(fn ($row) => [
+            'label' => trim((string) $row['label']),
+            'category' => trim((string) $row['category']),
+        ])
+        ->values()
+        ->all();
+    $categories = TagSelectionService::CATEGORY_OPTIONS;
+    $tagsForJs = collect($tags ?? [])->map(function ($tag) {
+        return [
+            'id' => (int) $tag->id,
+            'category' => (string) $tag->category,
+            'slug' => (string) $tag->slug,
+            'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
+            'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
+            'attached_ids' => collect($tag->attachedTags ?? [])->pluck('attached_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
+        ];
+    })->values()->all();
+    $tagSelectorConfig = [
+        'locale' => $locale,
+        'tags' => $tagsForJs,
+        'categories' => $categories,
+        'initialSelectedIds' => $selected,
+        'initialNewTags' => $initialNewTags,
+        'strings' => [
+            'createTag' => __('Create tag'),
+            'auto' => __('auto'),
+        ],
+    ];
 @endphp
-@if ($tags->isEmpty())
-    <p class="text-sm text-gray-500">{{ __('No tags in the system yet. Admins can add tags in the admin panel.') }}</p>
-@else
-    @foreach ($tags->groupBy('category') as $category => $categoryTags)
-        <div class="mb-4">
-            <p class="text-sm font-medium text-gray-700 mb-2">{{ ucfirst($category) }}</p>
-            <div class="flex flex-wrap gap-x-4 gap-y-2">
-                @foreach ($categoryTags as $tag)
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="tag_ids[]" value="{{ $tag->id }}"
-                            @checked(in_array((string) $tag->id, $selected, true))>
-                        <span class="text-sm text-gray-800">{{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </div>
-    @endforeach
+
+@if (empty($tagsForJs))
+    <p class="text-sm text-base-content/70">{{ __('No tags in the system yet. Start typing to create the first ones.') }}</p>
 @endif
+
+<div data-tag-selector class="space-y-3">
+    <script type="application/json" data-ts-config>
+        @json($tagSelectorConfig)
+    </script>
+    <div class="relative z-[1000]">
+        <input
+            type="search"
+            data-ts-input
+            class="input input-bordered w-full rounded-md border-base-300 bg-base-100"
+            placeholder="{{ __('Type to search tags (or create a new one)') }}"
+            autocomplete="off"
+        />
+        <div
+            data-ts-results
+            class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+        ></div>
+    </div>
+
+    <div data-ts-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
+
+    <div data-ts-new-wrap class="hidden space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+        <p class="text-xs font-medium text-base-content">{{ __('New tags to create') }}</p>
+        <div data-ts-new class="space-y-2"></div>
+    </div>
+
+    <div data-ts-hidden-ids></div>
+</div>

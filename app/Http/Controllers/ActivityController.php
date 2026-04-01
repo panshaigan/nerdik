@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Tag;
+use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ActivityController extends Controller
 {
     use AuthorizesOwnership;
+
+    public function __construct(
+        private readonly TagSelectionService $tagSelectionService
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -28,7 +34,7 @@ class ActivityController extends Controller
      */
     public function create()
     {
-        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
 
         return view('activities.create', [
             'activity' => new Activity,
@@ -45,9 +51,15 @@ class ActivityController extends Controller
         $request->validate([
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
+            'new_tags' => ['nullable', 'array'],
+            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
+            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ]);
 
-        $tagIds = $request->input('tag_ids', []);
+        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
+            (array) $request->input('tag_ids', []),
+            (array) $request->input('new_tags', [])
+        );
 
         $activity = Activity::create($validated);
         $activity->tags()->sync($tagIds);
@@ -79,7 +91,7 @@ class ActivityController extends Controller
     {
         $this->authorizeCreatedBy($activity);
 
-        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $activity->load('tags');
 
         return view('activities.edit', compact('activity', 'tags'));
@@ -96,9 +108,15 @@ class ActivityController extends Controller
         $request->validate([
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
+            'new_tags' => ['nullable', 'array'],
+            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
+            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ]);
 
-        $tagIds = $request->input('tag_ids', []);
+        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
+            (array) $request->input('tag_ids', []),
+            (array) $request->input('new_tags', [])
+        );
 
         $activity->update($validated);
         $activity->tags()->sync($tagIds);

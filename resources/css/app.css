@@ -1,3 +1,4 @@
+@import 'quill/dist/quill.snow.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,4 +15,79 @@
 [data-theme='dark'] header .text-gray-800,
 [data-theme='dark'] header .text-gray-900 {
     color: hsl(var(--bc)) !important;
+}
+
+/* Quill theming for Daisy light/dark compatibility. */
+.ql-toolbar.ql-snow,
+.ql-container.ql-snow,
+.ql-snow.ql-toolbar,
+.ql-snow.ql-container {
+    border: 0 !important;
+    @apply bg-base-100 text-base-content;
+}
+
+.ql-toolbar.ql-snow,
+.ql-snow.ql-toolbar {
+    @apply border-b border-base-300;
+}
+
+.ql-container.ql-snow,
+.ql-snow.ql-container {
+    border-top: 0 !important;
+}
+
+.ql-snow .ql-picker-label,
+.ql-snow .ql-picker-item,
+.ql-snow .ql-formats button {
+    color: currentColor;
+    @apply text-base-content;
+}
+
+.ql-snow .ql-stroke {
+    stroke: currentColor;
+}
+
+.ql-snow .ql-fill {
+    fill: currentColor;
+}
+
+.ql-snow .ql-picker-options {
+    @apply border border-base-300 bg-base-100 text-base-content;
+    opacity: 1 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 30 !important;
+}
+
+.ql-snow .ql-formats button:hover,
+.ql-snow .ql-formats button.ql-active,
+.ql-snow .ql-picker-label:hover,
+.ql-snow .ql-picker-label.ql-active {
+    @apply text-primary;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    @apply border-base-300 text-base-content;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-options .ql-picker-item {
+    @apply text-base-content;
+}
+
+.ql-snow .ql-picker.ql-expanded .ql-picker-options .ql-picker-item:hover,
+.ql-snow .ql-picker.ql-expanded .ql-picker-options .ql-picker-item.ql-selected {
+    @apply bg-base-200 text-primary;
+}
+
+.ql-snow .ql-picker-label::before,
+.ql-snow .ql-picker-item::before {
+    color: currentColor !important;
+}
+
+.ql-editor {
+    min-height: 11rem;
+    @apply text-base-content;
+}
+
+.ql-editor.ql-blank::before {
+    @apply text-base-content opacity-60;
 }
