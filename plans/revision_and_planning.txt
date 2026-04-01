@@ -1,32 +1,11 @@
-Ensure if all the forms are safe. Check CSRF, XSS and other types of attack.
 
-Screen review
-    - Event screen
-        - missing create slots button. if you click it, the event dropdown should be blocked and set for the event from where the click comes
-        - pending proposals should display prefered slots, prefered time and link to the proposed activity
-    - Activity screen
-        - host shouldn't be an input field. it should be a checkbox. if its checked, the creator of the activity should be automatically added as host
-        - price is FUTURE. should be hidden
-
-
-
-
-- review every screen and add missing features
-- review and ensure flows
-- introduce restricted features? like only admin approved people can add events
-- organize jobs (will be used for email notifications)
-- notifications
-- add automatic testing
-- add possibility to translate to other languages
 - graphics/ui enhancements
-    - Create Event
-        - calendar widget for dates
-        - Add place (advanced)
-        - Add tag (advances)
-    - Event screen
-        - calendar widget for dates
     - Activities
         - Add place (advanced)
         - Add tag (advances)
+- Ensure if all the forms are safe. Check CSRF, XSS and other types of attack.
+- add automatic testing
+- performance
 
+- introduce restricted features? like only admin approved people can add events
 - GOOGLE login (create app + add widget to login page)

@@ -18,12 +18,14 @@ class Activity extends Model
 
     protected $fillable = [
         'name',
+        'desc',
         'type',
         'min_participants',
         'max_participants',
         'age_limit',
         'price',
         'host_user_id',
+        'passive_host',
         'created_by',
         'updated_by',
         'is_restricted',
@@ -41,6 +43,7 @@ class Activity extends Model
         'price' => 'decimal:2',
         'is_restricted' => 'boolean',
         'open_for_observers' => 'boolean',
+        'passive_host' => 'boolean',
         'languages' => 'array',
         'extra' => 'array',
     ];

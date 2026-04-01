@@ -13,6 +13,9 @@ class ActivityController extends Controller
 {
     use AuthorizesOwnership;
 
+    /** @var list<string> */
+    public const ACTIVITY_TYPES = ['rpg', 'board', 'card', 'larp', 'lecture', 'workshop', 'competition', 'show'];
+
     public function __construct(
         private readonly TagSelectionService $tagSelectionService
     ) {}
@@ -140,15 +143,40 @@ class ActivityController extends Controller
 
     protected function validateData(Request $request, ?Activity $activity = null): array
     {
-        $id = $activity?->id;
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:50'],
-            'min_participants' => ['nullable', 'integer', 'min:1'],
-            'max_participants' => ['nullable', 'integer', 'min:1'],
+            'desc' => ['nullable', 'string'],
+            'type' => ['required', 'string', Rule::in(self::ACTIVITY_TYPES)],
+            'min_participants' => [
+                'nullable',
+                'integer',
+                'min:1',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $max = $request->input('max_participants');
+                    if ($max !== null && $max !== '' && (int) $value > (int) $max) {
+                        $fail(__('ui.activities.min_participants_lte_max'));
+                    }
+                },
+            ],
+            'max_participants' => [
+                'nullable',
+                'integer',
+                'min:1',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $min = $request->input('min_participants');
+                    if ($min !== null && $min !== '' && (int) $value < (int) $min) {
+                        $fail(__('ui.activities.max_participants_gte_min'));
+                    }
+                },
+            ],
             'age_limit' => ['nullable', 'integer', 'min:0'],
-            'duration_minutes' => ['nullable', 'integer', 'min:0'],
+            'duration_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
             'signoff_deadline_hours' => ['nullable', 'integer', 'min:0'],
             'is_restricted' => ['nullable', 'boolean'],
             'open_for_observers' => ['nullable', 'boolean'],
@@ -156,8 +184,8 @@ class ActivityController extends Controller
 
         $validated['is_restricted'] = $request->boolean('is_restricted');
         $validated['open_for_observers'] = $request->boolean('open_for_observers');
-        $validated['host_user_id'] = $request->boolean('creator_as_host') ? auth()->id() : null;
-        unset($validated['creator_as_host']);
+        $validated['passive_host'] = $request->boolean('passive_host');
+        $validated['host_user_id'] = auth()->id();
 
         return $validated;
     }

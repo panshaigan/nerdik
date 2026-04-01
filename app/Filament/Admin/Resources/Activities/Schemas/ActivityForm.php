@@ -15,6 +15,9 @@ class ActivityForm
             ->components([
                 TextInput::make('name')
                     ->required(),
+                Textarea::make('desc')
+                    ->rows(4)
+                    ->columnSpanFull(),
                 TextInput::make('type')
                     ->required(),
                 TextInput::make('min_participants')
@@ -33,6 +36,8 @@ class ActivityForm
                 TextInput::make('host_user_id')
                     ->numeric()
                     ->default(null),
+                Toggle::make('passive_host')
+                    ->default(false),
                 TextInput::make('created_by')
                     ->numeric()
                     ->default(null),

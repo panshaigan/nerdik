@@ -16,7 +16,14 @@ return [
     'activities' => [
         'name' => 'Name',
         'type' => 'Type',
-        'i_am_host' => 'I am the host',
+        'choose_type' => 'Choose type',
+        'passive_host' => 'Passive host (organizer does not take a player slot)',
+        'clear_numeric_fields' => 'Clear optional numbers',
+        'clear_field' => 'Clear',
+        'description' => 'Description (optional)',
+        'description_placeholder' => 'Write activity description…',
+        'max_participants_gte_min' => 'Maximum participants cannot be less than minimum.',
+        'min_participants_lte_max' => 'Minimum participants cannot be greater than maximum.',
         'min_participants' => 'Min participants',
         'max_participants' => 'Max participants',
         'age_limit' => 'Age limit (min)',
@@ -26,6 +33,7 @@ return [
         'open_for_observers' => 'Open for observers',
         'tags' => 'Tags',
         'tags_help' => 'Select tags (game system, publisher, triggers, etc.).',
+        'activity_options' => 'Activity options',
     ],
     'events' => [
         'host' => 'Host',
