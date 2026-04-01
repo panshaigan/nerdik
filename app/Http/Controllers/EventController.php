@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
 use App\Services\LocationResolver;
+use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,8 @@ class EventController extends Controller
     use AuthorizesOwnership;
 
     public function __construct(
-        private readonly LocationResolver $locationResolver
+        private readonly LocationResolver $locationResolver,
+        private readonly TagSelectionService $tagSelectionService
     ) {}
 
     /**
@@ -43,7 +45,7 @@ class EventController extends Controller
         $places = Place::with(['city.translations', 'country.translations'])
             ->orderBy('name')
             ->get();
-        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
 
         return view('events.create', [
             'event' => new Event,
@@ -78,6 +80,9 @@ class EventController extends Controller
             'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'new_tags' => ['nullable', 'array'],
+            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
+            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -85,10 +90,13 @@ class EventController extends Controller
         $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
         $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
-        $tagIds = $validated['tag_ids'] ?? [];
+        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
+            $validated['tag_ids'] ?? [],
+            $validated['new_tags'] ?? []
+        );
         $placeIds = $validated['place_ids'] ?? [];
         unset($validated['tag_ids']);
-        unset($validated['place_ids'], $validated['new_places']);
+        unset($validated['place_ids'], $validated['new_places'], $validated['new_tags']);
 
         // Slug is auto-generated in the model (from `name`).
         unset($validated['slug']);
@@ -130,7 +138,7 @@ class EventController extends Controller
         $places = Place::with(['city.translations', 'country.translations'])
             ->orderBy('name')
             ->get();
-        $tags = Tag::with('translations')->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $event->load(['tags', 'places']);
 
         return view('events.edit', [
@@ -168,16 +176,22 @@ class EventController extends Controller
             'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'new_tags' => ['nullable', 'array'],
+            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
+            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ]);
 
         $validated['is_public'] = $request->boolean('is_public', true);
         $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
         $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
-        $tagIds = $validated['tag_ids'] ?? [];
+        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
+            $validated['tag_ids'] ?? [],
+            $validated['new_tags'] ?? []
+        );
         $placeIds = $validated['place_ids'] ?? [];
         unset($validated['tag_ids']);
-        unset($validated['place_ids'], $validated['new_places']);
+        unset($validated['place_ids'], $validated['new_places'], $validated['new_tags']);
 
         // Slug is auto-generated in the model (from `name`).
         unset($validated['slug']);
