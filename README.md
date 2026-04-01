@@ -1,12 +1,14 @@
 # Nerdik
 
-A system for organizing and participating in nerd events (RPG sessions, board game meetings, lectures, conventions). Built with Laravel, Livewire, and Breeze.
+A system for organizing and participating in nerd events (RPG sessions, board game meetings, lectures, conventions). Built with Laravel, Livewire, **Mary**, **DaisyUI**, and **Vite**.
 
 ## Development
 
 - **Stack:** Laravel 12, Sail (Docker), MariaDB, Redis, Mailpit, Adminer
+- **Frontend:** Tailwind CSS v4 (via `@tailwindcss/vite`), DaisyUI v5, Mary UI (Livewire components). Source CSS: `resources/css/app.css` (`@import "tailwindcss"`, `@plugin "daisyui"`, `@source` globs for views, JS, Mary, pagination, and Filament Blade under `vendor/filament`).
 - **Start:** `make up` then open http://localhost (or your Sail URL)
 - **Artisan:** run via Sail, e.g. `./vendor/bin/sail artisan migrate` or use Makefile: `make migrate`, `make seed`, `make test`, `make queue`
+- **Assets:** after `git pull` or dependency changes, run `make npm-install` then `make npm-build` (or `make npm-dev` while developing). Production builds use `npm run build` (Vite); the admin panel (Filament) ships its own compiled CSS separately from this bundle.
 
 ## Seeding sample data
 

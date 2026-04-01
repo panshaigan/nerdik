@@ -1,7 +1,23 @@
+@import 'tailwindcss';
 @import 'quill/dist/quill.snow.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+@theme {
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Scan paths for Tailwind class detection (v4 CSS-first pipeline). */
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../../vendor/robsontenorio/mary/src/View/Components/**/*.php';
+/* Filament: include vendor Blade so any shared utility classes in panel views are not purged from this bundle if referenced. */
+@source '../../vendor/filament/**/*.blade.php';
+
+@plugin "daisyui" {
+    themes: light --default, dark --prefersdark, cupcake;
+}
 
 /*
  * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
@@ -9,12 +25,6 @@
  */
 .leaflet-container img {
     max-width: none !important;
-}
-
-/* Keep legacy Breeze heading classes readable in dark mode. */
-[data-theme='dark'] header .text-gray-800,
-[data-theme='dark'] header .text-gray-900 {
-    color: hsl(var(--bc)) !important;
 }
 
 /* Quill theming for Daisy light/dark compatibility. */

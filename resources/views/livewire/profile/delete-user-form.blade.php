@@ -8,6 +8,8 @@ new class extends Component
 {
     public string $password = '';
 
+    public bool $confirmingUserDeletion = false;
+
     /**
      * Delete the currently authenticated user.
      */
@@ -25,54 +27,36 @@ new class extends Component
 
 <section class="space-y-6">
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="text-lg font-medium text-base-content">
             {{ __('Delete Account') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm text-base-content/70">
             {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
         </p>
     </header>
 
-    <x-danger-button
-        x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
-    >{{ __('Delete Account') }}</x-danger-button>
+    <x-button type="button" class="btn-error" wire:click="$set('confirmingUserDeletion', true)">
+        {{ __('Delete Account') }}
+    </x-button>
 
-    <x-modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable>
-        <form wire:submit="deleteUser" class="p-6">
+    <x-modal wire:model="confirmingUserDeletion" :title="__('Are you sure you want to delete your account?')" :subtitle="__('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.')">
+        <form wire:submit="deleteUser" class="space-y-4">
+            <x-password
+                wire:model="password"
+                label="{{ __('Password') }}"
+                name="password"
+                error-field="password"
+                placeholder="{{ __('Password') }}"
+            />
 
-            <h2 class="text-lg font-medium text-gray-900">
-                {{ __('Are you sure you want to delete your account?') }}
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-600">
-                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
-            </p>
-
-            <div class="mt-6">
-                <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
-
-                <x-text-input
-                    wire:model="password"
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="mt-1 block w-3/4"
-                    placeholder="{{ __('Password') }}"
-                />
-
-                <x-input-error :messages="$errors->get('password')" class="mt-2" />
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <x-secondary-button x-on:click="$dispatch('close')">
+            <div class="modal-action">
+                <x-button type="button" class="btn-ghost" wire:click="$set('confirmingUserDeletion', false)">
                     {{ __('Cancel') }}
-                </x-secondary-button>
-
-                <x-danger-button class="ms-3">
+                </x-button>
+                <x-button type="submit" class="btn-error">
                     {{ __('Delete Account') }}
-                </x-danger-button>
+                </x-button>
             </div>
         </form>
     </x-modal>

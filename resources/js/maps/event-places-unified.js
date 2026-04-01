@@ -443,6 +443,16 @@ export function initEventPlacesUnified(root) {
     });
 
     searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const items = resultButtons();
+            if (!resultsEl.classList.contains('hidden') && items.length > 0) {
+                const idx = activeResultIndex >= 0 ? activeResultIndex : 0;
+                items[idx]?.click();
+            }
+            return;
+        }
+
         const items = resultButtons();
         if (resultsEl.classList.contains('hidden') || items.length === 0) {
             return;
@@ -458,11 +468,6 @@ export function initEventPlacesUnified(root) {
             e.preventDefault();
             activeResultIndex = (activeResultIndex - 1 + items.length) % items.length;
             paintActiveResult();
-            return;
-        }
-        if (e.key === 'Enter' && activeResultIndex >= 0) {
-            e.preventDefault();
-            items[activeResultIndex]?.click();
             return;
         }
         if (e.key === 'Escape') {
