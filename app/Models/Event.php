@@ -60,6 +60,11 @@ class Event extends Model
         return $this->belongsToMany(Tag::class, 'event_tag');
     }
 
+    public function places()
+    {
+        return $this->belongsToMany(Place::class, 'event_place')->withTimestamps();
+    }
+
     /**
      * Human-friendly owner/host label:
      * - if an organization is attached, show organization name

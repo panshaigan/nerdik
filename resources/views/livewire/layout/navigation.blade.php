@@ -33,14 +33,14 @@ new class extends Component
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" wire:navigate>
-                        {{ __('Events') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
                         {{ __('Events') }}
                     </x-nav-link>
                     <x-nav-link :href="route('browse.activities')" :active="request()->routeIs('browse.activities')" wire:navigate>
                         {{ __('Activities') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('browse.organizations')" :active="request()->routeIs('browse.organizations')" wire:navigate>
+                        {{ __('Organizations') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -134,14 +134,14 @@ new class extends Component
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" wire:navigate>
-                {{ __('Events') }}
-            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('browse.events')" :active="request()->routeIs('browse.events')" wire:navigate>
                 {{ __('Events') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('browse.activities')" :active="request()->routeIs('browse.activities')" wire:navigate>
                 {{ __('Activities') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('browse.organizations')" :active="request()->routeIs('browse.organizations')" wire:navigate>
+                {{ __('Organizations') }}
             </x-responsive-nav-link>
         </div>
 

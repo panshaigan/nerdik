@@ -5,6 +5,7 @@ use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
@@ -32,6 +33,15 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
 
 Route::get('browse/events', [BrowseController::class, 'events'])->name('browse.events');
 Route::get('browse/activities', [BrowseController::class, 'activities'])->name('browse.activities');
+Route::get('browse/organizations', [BrowseController::class, 'organizations'])->name('browse.organizations');
+
+Route::get('geocode/reverse', [GeocodeController::class, 'reverse'])
+    ->middleware('throttle:60,1')
+    ->name('geocode.reverse');
+
+Route::get('geocode/search', [GeocodeController::class, 'search'])
+    ->middleware('throttle:30,1')
+    ->name('geocode.search');
 
 Route::get('dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])

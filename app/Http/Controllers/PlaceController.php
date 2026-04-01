@@ -43,6 +43,8 @@ class PlaceController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
             'type' => ['required', 'in:country,state,city,venue,room'],
             'parent_id' => ['nullable', 'exists:places,id'],
             'links' => ['nullable', 'string', 'max:255'],
@@ -91,6 +93,8 @@ class PlaceController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
             'type' => ['required', 'in:country,state,city,venue,room'],
             'parent_id' => ['nullable', 'exists:places,id'],
             'links' => ['nullable', 'string', 'max:255'],

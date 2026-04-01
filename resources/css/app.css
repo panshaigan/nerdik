@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
+ * (tiles shrink / fail to align → blank gray map).
+ */
+.leaflet-container img {
+    max-width: none !important;
+}
+
 /* Keep legacy Breeze heading classes readable in dark mode. */
 [data-theme='dark'] header .text-gray-800,
 [data-theme='dark'] header .text-gray-900 {
