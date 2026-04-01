@@ -39,9 +39,6 @@ class EventController extends Controller
      */
     public function create()
     {
-        $organizations = Organization::where('created_by', Auth::id())
-            ->orderBy('name')
-            ->get();
         $places = Place::with(['city.translations', 'country.translations'])
             ->orderBy('name')
             ->get();
@@ -49,10 +46,10 @@ class EventController extends Controller
 
         return view('events.create', [
             'event' => new Event,
-            'organizations' => $organizations,
             'places' => $places,
             'tags' => $tags,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser(),
+            'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
         ]);
     }
 
@@ -64,6 +61,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
+            'organization_name' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
@@ -89,6 +87,12 @@ class EventController extends Controller
         $validated['is_public'] = $request->boolean('is_public', true);
         $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
         $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+
+        $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
+            $validated['organization_id'] ?? null,
+            $validated['organization_name'] ?? null
+        );
+        unset($validated['organization_name']);
 
         $tagIds = $this->tagSelectionService->resolveFinalTagIds(
             $validated['tag_ids'] ?? [],
@@ -132,21 +136,18 @@ class EventController extends Controller
     {
         $this->authorizeCreatedBy($event);
 
-        $organizations = Organization::where('created_by', Auth::id())
-            ->orderBy('name')
-            ->get();
         $places = Place::with(['city.translations', 'country.translations'])
             ->orderBy('name')
             ->get();
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
-        $event->load(['tags', 'places']);
+        $event->load(['tags', 'places', 'organization']);
 
         return view('events.edit', [
             'event' => $event,
-            'organizations' => $organizations,
             'places' => $places,
             'tags' => $tags,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($event->id),
+            'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
         ]);
     }
 
@@ -160,6 +161,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
+            'organization_name' => ['nullable', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
@@ -180,6 +182,12 @@ class EventController extends Controller
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ]);
+
+        $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
+            $validated['organization_id'] ?? null,
+            $validated['organization_name'] ?? null
+        );
+        unset($validated['organization_name']);
 
         $validated['is_public'] = $request->boolean('is_public', true);
         $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
@@ -313,5 +321,65 @@ class EventController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    protected function organizationSuggestionsForCurrentUser(): array
+    {
+        return Organization::query()
+            ->where('created_by', Auth::id())
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Organization $org) => ['id' => $org->id, 'name' => $org->name])
+            ->values()
+            ->all();
+    }
+
+    protected function resolveOrganizationIdFromRequest(mixed $organizationId, ?string $organizationName): ?int
+    {
+        $id = $organizationId;
+        if ($id === null || $id === '') {
+            $id = null;
+        } else {
+            $id = (int) $id;
+        }
+
+        if ($id !== null) {
+            $exists = Organization::query()
+                ->where('id', $id)
+                ->where('created_by', Auth::id())
+                ->exists();
+
+            if ($exists) {
+                return $id;
+            }
+        }
+
+        $name = trim((string) $organizationName);
+        if ($name === '') {
+            return null;
+        }
+
+        return $this->findOrCreateOrganizationForUser($name)->id;
+    }
+
+    protected function findOrCreateOrganizationForUser(string $name): Organization
+    {
+        $userId = Auth::id();
+
+        $existing = Organization::query()
+            ->where('created_by', $userId)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return Organization::create([
+            'name' => $name,
+        ]);
     }
 }

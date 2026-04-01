@@ -85,20 +85,28 @@
                  role="listbox"></div>
         </div>
 
-        <div>
-            <fieldset class="fieldset py-0">
-                <legend class="fieldset-legend mb-0.5">{{ __('Organization (optional)') }}</legend>
-                <select id="organization_id" name="organization_id" class="select select-bordered w-full">
-                <option value="">{{ __('None') }}</option>
-                @foreach ($organizations as $organization)
-                    <option value="{{ $organization->id }}"
-                        @selected((string) old('organization_id', $event->organization_id ?? '') === (string) $organization->id)>
-                        {{ $organization->name }}
-                    </option>
-                @endforeach
-            </select>
-            </fieldset>
+        <div class="relative sm:col-span-1">
+            <input type="hidden" name="organization_id"
+                   value="{{ old('organization_id', $event->organization_id ?? '') }}"
+                   data-event-org-id />
+            <x-input
+                label="{{ __('Organization (optional)') }}"
+                name="organization_name"
+                type="text"
+                value="{{ old('organization_name', optional($event->organization)->name ?? '') }}"
+                error-field="organization_name"
+                autocomplete="off"
+                data-event-org-input
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="event-org-suggestions-popup"
+            />
+            <div id="event-org-suggestions-popup"
+                 class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                 data-event-org-popup
+                 role="listbox"></div>
             <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
+            <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
         </div>
     </div>
 
@@ -231,6 +239,7 @@
                 if (t.hasAttribute('data-ts-input')) return;
                 if (t.hasAttribute('data-ep-search')) return;
                 if (t.hasAttribute('data-event-name-input')) return;
+                if (t.hasAttribute('data-event-org-input')) return;
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
                 }
@@ -243,107 +252,232 @@
         const endsAtEl = document.querySelector('[data-event-ends-at]');
         const descInput = document.getElementById('desc');
         const descEditorEl = document.querySelector('[data-event-desc-editor]');
-        if (!input || !popup) return;
 
-        const suggestions = @json($nameSuggestions ?? []);
-        let shown = [];
-        let active = -1;
+        if (input && popup) {
+            const suggestions = @json($nameSuggestions ?? []);
+            let shown = [];
+            let active = -1;
 
-        function closePopup() {
-            popup.classList.add('hidden');
-            popup.innerHTML = '';
-            active = -1;
-            input.setAttribute('aria-expanded', 'false');
-        }
-
-        function openPopup() {
-            if (shown.length === 0) {
-                closePopup();
-                return;
-            }
-            popup.classList.remove('hidden');
-            input.setAttribute('aria-expanded', 'true');
-        }
-
-        function applyActive() {
-            [...popup.querySelectorAll('[data-suggestion-idx]')].forEach((el, idx) => {
-                const isActive = idx === active;
-                el.classList.toggle('bg-base-200', isActive);
-                el.setAttribute('aria-selected', isActive ? 'true' : 'false');
-            });
-        }
-
-        function choose(value) {
-            input.value = value;
-            closePopup();
-        }
-
-        function render(items) {
-            shown = items.slice(0, 8);
-            popup.innerHTML = '';
-            active = -1;
-
-            if (shown.length === 0) {
-                closePopup();
-                return;
+            function closePopup() {
+                popup.classList.add('hidden');
+                popup.innerHTML = '';
+                active = -1;
+                input.setAttribute('aria-expanded', 'false');
             }
 
-            const frag = document.createDocumentFragment();
-            shown.forEach((name, idx) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
-                btn.textContent = name;
-                btn.dataset.suggestionIdx = String(idx);
-                btn.setAttribute('role', 'option');
-                btn.setAttribute('aria-selected', 'false');
-                btn.addEventListener('mousedown', (e) => e.preventDefault());
-                btn.addEventListener('click', () => choose(name));
-                frag.appendChild(btn);
-            });
-            popup.appendChild(frag);
-            openPopup();
-        }
-
-        function updateFromInput() {
-            const q = input.value.trim().toLowerCase();
-            if (q.length < 1) {
-                closePopup();
-                return;
-            }
-
-            const items = suggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q);
-            render(items);
-        }
-
-        input.addEventListener('input', updateFromInput);
-        input.addEventListener('focus', updateFromInput);
-        input.addEventListener('keydown', (e) => {
-            if (popup.classList.contains('hidden') || shown.length === 0) return;
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                active = (active + 1) % shown.length;
-                applyActive();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                active = active <= 0 ? shown.length - 1 : active - 1;
-                applyActive();
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (active >= 0 && active < shown.length) {
-                    choose(shown[active]);
+            function openPopup() {
+                if (shown.length === 0) {
+                    closePopup();
+                    return;
                 }
-            } else if (e.key === 'Escape') {
-                closePopup();
+                popup.classList.remove('hidden');
+                input.setAttribute('aria-expanded', 'true');
             }
-        });
 
-        document.addEventListener('click', (e) => {
-            if (!popup.contains(e.target) && e.target !== input) {
+            function applyActive() {
+                [...popup.querySelectorAll('[data-suggestion-idx]')].forEach((el, idx) => {
+                    const isActive = idx === active;
+                    el.classList.toggle('bg-base-200', isActive);
+                    el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            }
+
+            function choose(value) {
+                input.value = value;
                 closePopup();
             }
-        });
+
+            function render(items) {
+                shown = items.slice(0, 8);
+                popup.innerHTML = '';
+                active = -1;
+
+                if (shown.length === 0) {
+                    closePopup();
+                    return;
+                }
+
+                const frag = document.createDocumentFragment();
+                shown.forEach((name, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.textContent = name;
+                    btn.dataset.suggestionIdx = String(idx);
+                    btn.setAttribute('role', 'option');
+                    btn.setAttribute('aria-selected', 'false');
+                    btn.addEventListener('mousedown', (e) => e.preventDefault());
+                    btn.addEventListener('click', () => choose(name));
+                    frag.appendChild(btn);
+                });
+                popup.appendChild(frag);
+                openPopup();
+            }
+
+            function updateFromInput() {
+                const q = input.value.trim().toLowerCase();
+                if (q.length < 1) {
+                    closePopup();
+                    return;
+                }
+
+                const items = suggestions.filter((s) => s.toLowerCase().includes(q) && s.toLowerCase() !== q);
+                render(items);
+            }
+
+            input.addEventListener('input', updateFromInput);
+            input.addEventListener('focus', updateFromInput);
+            input.addEventListener('keydown', (e) => {
+                if (popup.classList.contains('hidden') || shown.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    active = (active + 1) % shown.length;
+                    applyActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    active = active <= 0 ? shown.length - 1 : active - 1;
+                    applyActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (active >= 0 && active < shown.length) {
+                        choose(shown[active]);
+                    }
+                } else if (e.key === 'Escape') {
+                    closePopup();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!popup.contains(e.target) && e.target !== input) {
+                    closePopup();
+                }
+            });
+        }
+
+        const orgInput = document.querySelector('[data-event-org-input]');
+        const orgPopup = document.querySelector('[data-event-org-popup]');
+        const orgIdInput = document.querySelector('[data-event-org-id]');
+        if (orgInput && orgPopup && orgIdInput) {
+            const orgSuggestions = @json($organizationSuggestions ?? []);
+            let orgShown = [];
+            let orgActive = -1;
+            let selectedOrg = null;
+            const oid = orgIdInput.value.trim();
+            const oname = orgInput.value.trim();
+            if (oid !== '' && oname !== '') {
+                selectedOrg = { id: parseInt(oid, 10), name: oname };
+            }
+
+            function syncOrgSelectionFromInput() {
+                const t = orgInput.value.trim();
+                if (selectedOrg && t.toLowerCase() !== selectedOrg.name.toLowerCase()) {
+                    orgIdInput.value = '';
+                    selectedOrg = null;
+                }
+            }
+
+            function closeOrgPopup() {
+                orgPopup.classList.add('hidden');
+                orgPopup.innerHTML = '';
+                orgActive = -1;
+                orgInput.setAttribute('aria-expanded', 'false');
+            }
+
+            function openOrgPopup() {
+                if (orgShown.length === 0) {
+                    closeOrgPopup();
+                    return;
+                }
+                orgPopup.classList.remove('hidden');
+                orgInput.setAttribute('aria-expanded', 'true');
+            }
+
+            function applyOrgActive() {
+                [...orgPopup.querySelectorAll('[data-org-suggestion-idx]')].forEach((el, idx) => {
+                    const isActive = idx === orgActive;
+                    el.classList.toggle('bg-base-200', isActive);
+                    el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            }
+
+            function chooseOrg(item) {
+                orgInput.value = item.name;
+                orgIdInput.value = String(item.id);
+                selectedOrg = { id: item.id, name: item.name };
+                closeOrgPopup();
+            }
+
+            function renderOrg(items) {
+                orgShown = items.slice(0, 8);
+                orgPopup.innerHTML = '';
+                orgActive = -1;
+
+                if (orgShown.length === 0) {
+                    closeOrgPopup();
+                    return;
+                }
+
+                const frag = document.createDocumentFragment();
+                orgShown.forEach((item, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.textContent = item.name;
+                    btn.dataset.orgSuggestionIdx = String(idx);
+                    btn.setAttribute('role', 'option');
+                    btn.setAttribute('aria-selected', 'false');
+                    btn.addEventListener('mousedown', (e) => e.preventDefault());
+                    btn.addEventListener('click', () => chooseOrg(item));
+                    frag.appendChild(btn);
+                });
+                orgPopup.appendChild(frag);
+                openOrgPopup();
+            }
+
+            function updateOrgFromInput() {
+                syncOrgSelectionFromInput();
+                const q = orgInput.value.trim().toLowerCase();
+                if (q.length < 1) {
+                    closeOrgPopup();
+                    return;
+                }
+
+                const items = orgSuggestions.filter(
+                    (o) => o.name.toLowerCase().includes(q) && o.name.toLowerCase() !== q
+                );
+                renderOrg(items);
+            }
+
+            orgInput.addEventListener('input', updateOrgFromInput);
+            orgInput.addEventListener('focus', updateOrgFromInput);
+            orgInput.addEventListener('keydown', (e) => {
+                if (orgPopup.classList.contains('hidden') || orgShown.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    orgActive = (orgActive + 1) % orgShown.length;
+                    applyOrgActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    orgActive = orgActive <= 0 ? orgShown.length - 1 : orgActive - 1;
+                    applyOrgActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (orgActive >= 0 && orgActive < orgShown.length) {
+                        chooseOrg(orgShown[orgActive]);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeOrgPopup();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!orgPopup.contains(e.target) && e.target !== orgInput) {
+                    closeOrgPopup();
+                }
+            });
+        }
 
         function nowForDateTimeLocal() {
             const d = new Date();
