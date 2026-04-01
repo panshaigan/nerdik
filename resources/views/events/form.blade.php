@@ -439,7 +439,7 @@
                 syncOrgSelectionFromInput();
                 const q = orgInput.value.trim().toLowerCase();
                 if (q.length < 1) {
-                    closeOrgPopup();
+                    renderOrg(orgSuggestions.slice(0, 8));
                     return;
                 }
 

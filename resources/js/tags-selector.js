@@ -193,21 +193,27 @@ export function initTagSelector(root) {
         results.innerHTML = '';
         activeIndex = -1;
         const qn = norm(q);
+
+        let found;
         if (!qn) {
+            found = allTags.slice(0, 18);
+        } else {
+            found = allTags
+                .map((tag) => {
+                    const labels = Object.values(tag.labels || {}).map(norm);
+                    const aliases = (tag.aliases || []).map((a) => norm(a));
+                    const hay = [...labels, ...aliases, norm(tag.slug)];
+                    const matched = hay.some((h) => h.includes(qn));
+                    return matched ? tag : null;
+                })
+                .filter(Boolean)
+                .slice(0, 18);
+        }
+
+        if (!found.length) {
             closeResults();
             return;
         }
-
-        const found = allTags
-            .map((tag) => {
-                const labels = Object.values(tag.labels || {}).map(norm);
-                const aliases = (tag.aliases || []).map((a) => norm(a));
-                const hay = [...labels, ...aliases, norm(tag.slug)];
-                const matched = hay.some((h) => h.includes(qn));
-                return matched ? tag : null;
-            })
-            .filter(Boolean)
-            .slice(0, 18);
 
         const grouped = new Map();
         found.forEach((tag) => {
@@ -216,9 +222,13 @@ export function initTagSelector(root) {
             grouped.get(cat).push(tag);
         });
 
-        const exact = found.some((t) =>
-            [norm(displayLabel(t, locale)), norm(t.labels?.en || ''), ...(t.aliases || []).map(norm)].includes(qn)
-        );
+        const exact = qn
+            ? found.some((t) =>
+                  [norm(displayLabel(t, locale)), norm(t.labels?.en || ''), ...(t.aliases || []).map(norm)].includes(
+                      qn
+                  )
+              )
+            : false;
 
         const frag = document.createDocumentFragment();
         grouped.forEach((rows, cat) => {
@@ -243,7 +253,7 @@ export function initTagSelector(root) {
             });
         });
 
-        if (!exact) {
+        if (qn && !exact) {
             const make = document.createElement('button');
             make.type = 'button';
             make.dataset.tsItem = '1';
@@ -257,19 +267,12 @@ export function initTagSelector(root) {
             frag.appendChild(make);
         }
 
-        if (!found.length && exact) {
-            closeResults();
-            return;
-        }
-
         results.appendChild(frag);
         results.classList.remove('hidden');
     }
 
     input.addEventListener('input', () => buildResults(input.value));
-    input.addEventListener('focus', () => {
-        if (input.value.trim().length) buildResults(input.value);
-    });
+    input.addEventListener('focus', () => buildResults(input.value));
     input.addEventListener('keydown', (e) => {
         const items = resultButtons();
         const dropdownOpen = !results.classList.contains('hidden') && items.length > 0;
