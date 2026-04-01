@@ -2,6 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Places\Schemas;
 
+use App\Models\City;
+use App\Models\Country;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -19,6 +21,18 @@ class PlaceForm
                     ->default(null),
                 TextInput::make('name')
                     ->required(),
+                Select::make('country_id')
+                    ->label('Country (location)')
+                    ->options(fn () => Country::query()->with('translations')->orderBy('iso_alpha2')->get()
+                        ->mapWithKeys(fn (Country $c) => [$c->id => $c->name()]))
+                    ->searchable()
+                    ->nullable(),
+                Select::make('city_id')
+                    ->label('City (location)')
+                    ->options(fn () => City::query()->with(['translations', 'country'])->get()
+                        ->mapWithKeys(fn (City $c) => [$c->id => $c->name()]))
+                    ->searchable()
+                    ->nullable(),
                 TextInput::make('parent_id')
                     ->numeric()
                     ->default(null),

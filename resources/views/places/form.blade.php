@@ -1,5 +1,9 @@
 @csrf
 
+@php
+    $locale = app()->getLocale();
+@endphp
+
 <div class="space-y-4">
     <div>
         <x-input-label for="name" :value="__('Name')" />
@@ -10,16 +14,32 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-            <x-input-label for="city" :value="__('City (optional)')" />
-            <x-text-input id="city" name="city" type="text" class="mt-1 block w-full"
-                          value="{{ old('city', $place->city ?? '') }}" />
-            <x-input-error :messages="$errors->get('city')" class="mt-2" />
+            <x-input-label for="place_country_id" :value="__('Country (optional)')" />
+            <select id="place_country_id" name="country_id"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <option value="">{{ __('None') }}</option>
+                @foreach ($countries as $c)
+                    <option value="{{ $c->id }}"
+                        @selected((string) old('country_id', $place->country_id ?? '') === (string) $c->id)>
+                        {{ $c->name($locale) }}
+                    </option>
+                @endforeach
+            </select>
+            <x-input-error :messages="$errors->get('country_id')" class="mt-2" />
         </div>
         <div>
-            <x-input-label for="country" :value="__('Country (optional)')" />
-            <x-text-input id="country" name="country" type="text" class="mt-1 block w-full"
-                          value="{{ old('country', $place->country ?? '') }}" />
-            <x-input-error :messages="$errors->get('country')" class="mt-2" />
+            <x-input-label for="place_city_id" :value="__('City (optional)')" />
+            <select id="place_city_id" name="city_id"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <option value="">{{ __('None') }}</option>
+                @foreach ($cities as $ct)
+                    <option value="{{ $ct->id }}" data-country="{{ $ct->country_id }}"
+                        @selected((string) old('city_id', $place->city_id ?? '') === (string) $ct->id)>
+                        {{ $ct->name($locale) }}
+                    </option>
+                @endforeach
+            </select>
+            <x-input-error :messages="$errors->get('city_id')" class="mt-2" />
         </div>
     </div>
 
@@ -95,4 +115,36 @@
         {{ $submitLabel ?? __('Save') }}
     </x-primary-button>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const countryEl = document.getElementById('place_country_id');
+        const cityEl = document.getElementById('place_city_id');
+        if (!countryEl || !cityEl) return;
+
+        function filterCities() {
+            const cid = countryEl.value;
+            [...cityEl.options].forEach((opt) => {
+                if (!opt.value) {
+                    opt.hidden = false;
+                    return;
+                }
+                opt.hidden = Boolean(cid && opt.dataset.country !== cid);
+            });
+            const sel = cityEl.options[cityEl.selectedIndex];
+            if (sel && sel.hidden) {
+                cityEl.value = '';
+            }
+        }
+
+        countryEl.addEventListener('change', () => {
+            const sel = cityEl.options[cityEl.selectedIndex];
+            if (sel && sel.value && countryEl.value && sel.dataset.country !== countryEl.value) {
+                cityEl.value = '';
+            }
+            filterCities();
+        });
+        filterCities();
+    });
+</script>
 

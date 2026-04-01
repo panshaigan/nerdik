@@ -8,11 +8,11 @@
 
     $placesUnified = collect($places ?? [])
         ->map(function ($place) {
-            $location = trim(implode(', ', array_filter([$place->city, $place->country])));
+            $loc = $place->locationLabel();
 
             return [
                 'id' => (int) $place->id,
-                'label' => $location !== '' ? "{$place->name} ({$location})" : $place->name,
+                'label' => $loc !== '' ? "{$place->name} ({$loc})" : $place->name,
                 'lat' => $place->latitude !== null ? (float) $place->latitude : null,
                 'lng' => $place->longitude !== null ? (float) $place->longitude : null,
             ];
@@ -38,6 +38,8 @@
                 'name' => (string) ($row['name'] ?? ''),
                 'city' => (string) ($row['city'] ?? ''),
                 'country' => (string) ($row['country'] ?? ''),
+                'city_id' => isset($row['city_id']) && $row['city_id'] !== '' ? (int) $row['city_id'] : null,
+                'country_id' => isset($row['country_id']) && $row['country_id'] !== '' ? (int) $row['country_id'] : null,
             ];
         }
     }
