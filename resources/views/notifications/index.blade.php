@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if (session('status'))
                 <p class="mb-4 text-sm text-green-600">{{ session('status') }}</p>
             @endif
