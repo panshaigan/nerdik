@@ -108,9 +108,9 @@
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
                                 {{ $group['label'] }}
                             </p>
-                            <ul class="divide-y divide-base-300 rounded-lg border border-base-300">
+                            <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 @foreach ($group['slots'] as $slot)
-                                    <li class="flex flex-wrap items-start justify-between gap-3 px-3 py-3 sm:items-center">
+                                    <li class="flex flex-col gap-2 rounded-lg border border-base-300 bg-base-100/50 p-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0 flex-1 space-y-1.5">
                                             <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                                                 <span class="font-medium text-base-content">{{ $slot->name }}</span>
