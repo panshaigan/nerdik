@@ -55,10 +55,13 @@
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
                                     @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                        <a href="{{ route('slots.edit', $slot) }}"
-                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                        <button
+                                            type="button"
+                                            class="mr-3 text-primary hover:underline"
+                                            onclick="window.openSlotEditModal?.({{ $slot->id }})"
+                                        >
                                             {{ __('Edit') }}
-                                        </a>
+                                        </button>
 
                                         <form action="{{ route('slots.destroy', $slot) }}" method="POST" class="inline">
                                             @csrf
@@ -82,6 +85,8 @@
                     </tbody>
                 </table>
             </div>
+
+            @include('slots.partials.edit-modal-shell')
         </div>
     </div>
 </x-app-layout>

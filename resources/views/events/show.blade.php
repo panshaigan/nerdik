@@ -120,7 +120,11 @@
                             </div>
                             @auth
                                 @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                    <a href="{{ route('slots.edit', $slot) }}" class="btn btn-ghost btn-xs">{{ __('ui.events.edit_slot') }}</a>
+                                    <button
+                                        type="button"
+                                        class="btn btn-ghost btn-xs"
+                                        onclick="window.openSlotEditModal?.({{ $slot->id }})"
+                                    >{{ __('ui.events.edit_slot') }}</button>
                                 @endif
                             @endauth
                         </li>
@@ -140,6 +144,8 @@
                                     'lockedEvent' => $event,
                                     'events' => collect([$event]),
                                     'places' => $places,
+                                    'tags' => $slotFormTags,
+                                    'slotNameSuggestions' => $slotNameSuggestions,
                                     'embeddedInModal' => true,
                                 ])
                             </div>
@@ -204,6 +210,8 @@
                     </ul>
                 </div>
             @endif
+
+            @include('slots.partials.edit-modal-shell')
 
             <div class="flex gap-3">
                 <a href="{{ route('events.index') }}" class="btn btn-ghost btn-sm">{{ __('ui.events.back_to_events') }}</a>

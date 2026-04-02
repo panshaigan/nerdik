@@ -78,6 +78,11 @@ return [
         'create_slots' => 'Utworz sloty',
         'starts_at_optional' => 'Start (opcjonalnie)',
         'ends_at_optional' => 'Koniec (opcjonalnie)',
+        'end_requires_start' => 'Ustaw czas startu, jesli podajesz czas konca.',
+        'ends_after_start' => 'Czas konca musi byc taki sam lub pozniejszy niz start.',
+        'activity_types' => 'Typy aktywnosci (opcjonalnie)',
+        'activity_types_help' => 'Te wskazowki dotycza aktywnosci, ktore beda korzystac z tych slotow.',
+        'activity_types_multiselect_hint' => 'Przytrzymaj Ctrl (Cmd na Macu), aby wybrac wiele typow.',
     ],
     'proposals' => [
         'activity_proposals' => 'Propozycje aktywnosci',
