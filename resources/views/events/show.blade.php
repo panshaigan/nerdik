@@ -108,7 +108,7 @@
                                     <span class="text-base-content/70 text-sm"> · {{ format_in_user_tz($slot->starts_at, 'H:i') }}</span>
                                 @endif
                                 @if ($slot->place)
-                                    <span class="text-base-content/70 text-sm"> · {{ $slot->place->name }}</span>
+                                    <span class="text-base-content/70 text-sm"> · {{ $slot->place->venueRoomLabel() }}</span>
                                 @endif
                                 @if ($slot->activity)
                                     <span class="text-sm text-primary">
@@ -143,9 +143,11 @@
                                 @include('slots.mass-create', [
                                     'lockedEvent' => $event,
                                     'events' => collect([$event]),
-                                    'places' => $places,
                                     'tags' => $slotFormTags,
                                     'slotNameSuggestions' => $slotNameSuggestions,
+                                    'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+                                    'slotMassVenues' => $slotMassVenues,
+                                    'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
                                     'embeddedInModal' => true,
                                 ])
                             </div>

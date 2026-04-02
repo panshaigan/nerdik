@@ -120,7 +120,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        $event->load(['creator', 'tags.translations', 'organization', 'places', 'slots.place', 'slots.activity']);
+        $event->load(['creator', 'tags.translations', 'organization', 'places', 'slots.place.parent', 'slots.activity']);
         $places = Place::orderBy('name')->get();
         $pendingProposals = $event->proposals()
             ->with(['activity', 'creator', 'proposedSlots'])
@@ -131,9 +131,33 @@ class EventController extends Controller
 
         $slotFormTags = null;
         $slotNameSuggestions = [];
+        $slotMassVenues = collect();
+        $slotMassRoomsByVenueId = [];
+        $slotBaseNameSuggestions = [];
         if ($isOwner) {
             $slotFormTags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
             $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
+            $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
+
+            $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+            if ($venues->isEmpty()) {
+                $venues = $event->places->values();
+            }
+            $slotMassVenues = $venues;
+            $venueIds = $venues->pluck('id');
+            if ($venueIds->isNotEmpty()) {
+                $children = Place::query()
+                    ->whereIn('parent_id', $venueIds)
+                    ->orderBy('name')
+                    ->get()
+                    ->groupBy('parent_id');
+                foreach ($venues as $v) {
+                    $slotMassRoomsByVenueId[$v->id] = ($children[$v->id] ?? collect())
+                        ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
+                        ->values()
+                        ->all();
+                }
+            }
         }
 
         return view('events.show', compact(
@@ -142,7 +166,10 @@ class EventController extends Controller
             'pendingProposals',
             'isOwner',
             'slotFormTags',
-            'slotNameSuggestions'
+            'slotNameSuggestions',
+            'slotMassVenues',
+            'slotMassRoomsByVenueId',
+            'slotBaseNameSuggestions'
         ));
     }
 

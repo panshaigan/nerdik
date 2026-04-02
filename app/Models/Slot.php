@@ -14,7 +14,6 @@ class Slot extends Model
         'event_id',
         'created_by',
         'name',
-        'activity_types',
         'starts_at',
         'ends_at',
         'place_id',
@@ -25,7 +24,6 @@ class Slot extends Model
     ];
 
     protected $casts = [
-        'activity_types' => 'array',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'requires_approval' => 'boolean',
@@ -49,6 +47,76 @@ class Slot extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'slot_tag');
+    }
+
+    public function activityTypes()
+    {
+        return $this->hasMany(SlotActivityType::class, 'slot_id');
+    }
+
+    /**
+     * Expose slot activity types as `$slot->activity_types` even though they are stored
+     * in a join table.
+     *
+     * @return list<string>
+     */
+    public function getActivityTypesAttribute(): array
+    {
+        if ($this->relationLoaded('activityTypes')) {
+            $loaded = $this->getRelationValue('activityTypes');
+
+            return $loaded
+                ? $loaded->pluck('activity_type')->values()->all()
+                : [];
+        }
+
+        return $this->activityTypes()
+            ->pluck('activity_type')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Replace all activity types for this slot.
+     *
+     * @param  list<string>  $types
+     */
+    public function setActivityTypes(array $types): void
+    {
+        $types = array_values(array_unique(array_filter($types, fn ($t) => is_string($t) && $t !== '')));
+        $this->activityTypes()->delete();
+
+        if ($types === []) {
+            return;
+        }
+
+        $rows = array_map(fn ($t) => [
+            'slot_id' => $this->id,
+            'activity_type' => $t,
+        ], $types);
+
+        SlotActivityType::query()->insert($rows);
+    }
+
+    /**
+     * Base names for mass slot creation (strip trailing " #42" suffix from slot titles).
+     *
+     * @return list<string>
+     */
+    public static function baseNameSuggestionsForUser(?int $userId): array
+    {
+        $raw = static::distinctNameSuggestionsForUser($userId);
+
+        $out = [];
+        foreach ($raw as $name) {
+            $base = preg_replace('/\s*#\s*\d+\s*$/u', '', $name);
+            $base = trim((string) $base);
+            if ($base !== '') {
+                $out[] = $base;
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     /**

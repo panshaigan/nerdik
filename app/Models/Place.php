@@ -72,4 +72,17 @@ class Place extends Model
 
         return implode(', ', $parts);
     }
+
+    /**
+     * For slot UIs: "Venue · Room" when this place is a room under a venue; otherwise the place name.
+     */
+    public function venueRoomLabel(): string
+    {
+        $this->loadMissing('parent');
+        if ($this->parent_id && $this->parent) {
+            return $this->parent->name.' · '.$this->name;
+        }
+
+        return (string) $this->name;
+    }
 }
