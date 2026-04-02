@@ -28,6 +28,12 @@
             'none' => __('ui.common.none'),
         ],
     ];
+    $defaultRequiresApproval = ($editMode && $slot) ? (bool) $slot->requires_approval : true;
+    $requiresApprovalChecked = filter_var(
+        old('requires_approval', $defaultRequiresApproval ? '1' : '0'),
+        FILTER_VALIDATE_BOOLEAN
+    );
+    $approvalFieldId = $editMode ? 'requires_approval_modal_edit' : 'requires_approval_modal_create';
 @endphp
 
 <form
@@ -38,6 +44,7 @@
     @if ($editMode) data-slot-edit-form @endif
 >
     @csrf
+    <input type="hidden" name="requires_approval" value="0">
     @if ($editMode)
         @method('PUT')
     @else
@@ -54,6 +61,30 @@
     @endif
 
     <div class="space-y-4">
+        @if ($embeddedInModal)
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <h3
+                    class="text-lg font-semibold leading-tight text-base-content"
+                    @if ($editMode) id="slot-edit-modal-title" @endif
+                >
+                    {{ $editMode ? __('ui.events.edit_slot') : __('ui.slots.create_slots') }}
+                </h3>
+                <div class="flex max-w-[min(100%,22rem)] flex-col items-end gap-1 text-end">
+                    <div class="flex items-center gap-2">
+                        <input
+                            id="{{ $approvalFieldId }}"
+                            name="requires_approval"
+                            type="checkbox"
+                            value="1"
+                            class="checkbox checkbox-sm"
+                            @checked($requiresApprovalChecked)
+                        />
+                        <label for="{{ $approvalFieldId }}" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if (! $lockedEvent)
             <div>
                 <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.slots.event') }}</p>
@@ -132,24 +163,50 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-                <x-input
-                    label="{{ __('ui.slots.starts_at_optional') }}"
-                    name="starts_at"
-                    type="datetime-local"
-                    value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
-                    error-field="starts_at"
-                />
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <x-input
+                        label="{{ __('ui.slots.starts_at_optional') }}"
+                        name="starts_at"
+                        type="datetime-local"
+                        value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
+                        error-field="starts_at"
+                    />
+                </div>
+                <div>
+                    <x-input
+                        label="{{ __('ui.slots.ends_at_optional') }}"
+                        name="ends_at"
+                        type="datetime-local"
+                        value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
+                        error-field="ends_at"
+                    />
+                </div>
             </div>
-            <div>
-                <x-input
-                    label="{{ __('ui.slots.ends_at_optional') }}"
-                    name="ends_at"
-                    type="datetime-local"
-                    value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
-                    error-field="ends_at"
-                />
+            <div @class([
+                'grid grid-cols-1 gap-4',
+                'sm:grid-cols-2 sm:items-end' => ! $embeddedInModal,
+            ])>
+                <div>
+                    <x-input
+                        label="{{ __('ui.slots.max_capacity_optional') }}"
+                        name="max_capacity"
+                        type="number"
+                        min="1"
+                        value="{{ old('max_capacity', $editMode && $slot ? $slot->max_capacity : '') }}"
+                        error-field="max_capacity"
+                    />
+                </div>
+                @unless ($embeddedInModal)
+                    <div class="flex flex-col gap-1 pb-0.5 sm:pb-1">
+                        <div class="flex items-center gap-2">
+                            <input id="requires_approval" name="requires_approval" type="checkbox" value="1" class="checkbox checkbox-sm"
+                                   @checked($requiresApprovalChecked) />
+                            <label for="requires_approval" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
+                        </div>
+                    </div>
+                @endunless
             </div>
         </div>
 
@@ -174,10 +231,90 @@
             <x-field-error :messages="$errors->get('activity_types.*')" class="mt-2" />
         </div>
 
+        <div class="border-t border-base-300 pt-4" data-slot-mass-place-root>
+            @if ($lockedEvent && $slotMassVenues->isEmpty())
+                <p class="text-sm text-base-content/70">{{ __('ui.slots.no_places_on_event') }}</p>
+            @else
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+                    <div class="min-w-0">
+                        <fieldset class="fieldset py-0">
+                            <legend class="fieldset-legend mb-0.5">{{ __('ui.slots.venue_optional') }}</legend>
+                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.venue_help') }}</p>
+
+                            @if ($singleVenueLocked)
+                                <input
+                                    type="hidden"
+                                    name="venue_place_id"
+                                    value="{{ $slotMassVenues->first()->id }}"
+                                    data-slot-venue-id
+                                />
+                                <select class="select select-bordered w-full" disabled>
+                                    <option selected>{{ $slotMassVenues->first()->name }}</option>
+                                </select>
+                            @elseif ($lockedEvent && $slotMassVenues->isNotEmpty())
+                                <select
+                                    name="venue_place_id"
+                                    id="venue_place_id"
+                                    class="select select-bordered w-full"
+                                    data-slot-venue-select
+                                >
+                                    <option value="">{{ __('ui.common.none') }}</option>
+                                    @foreach ($slotMassVenues as $v)
+                                        <option value="{{ $v->id }}" @selected((string) $defaultVenuePlaceId === (string) $v->id)>
+                                            {{ $v->name }} ({{ $v->type }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <select
+                                    name="venue_place_id"
+                                    id="venue_place_id"
+                                    class="select select-bordered w-full"
+                                    data-slot-venue-select
+                                >
+                                    <option value="">{{ __('ui.common.none') }}</option>
+                                </select>
+                            @endif
+                            <x-field-error :messages="$errors->get('venue_place_id')" class="mt-2" />
+                        </fieldset>
+                    </div>
+
+                    @if (($lockedEvent && $slotMassVenues->isNotEmpty()) || ! $lockedEvent)
+                        <div class="min-w-0" data-slot-room-block>
+                            <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
+                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.room_help') }}</p>
+                            <div class="relative">
+                                <x-input
+                                    label=""
+                                    name="new_room_name"
+                                    type="text"
+                                    value="{{ $defaultRoomName }}"
+                                    error-field="new_room_name"
+                                    autocomplete="off"
+                                    placeholder="{{ __('ui.slots.room_placeholder') }}"
+                                    data-slot-room-input
+                                    aria-autocomplete="list"
+                                    aria-expanded="false"
+                                    aria-controls="slot-room-suggestions-popup"
+                                />
+                                <div
+                                    id="slot-room-suggestions-popup"
+                                    class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                                    data-slot-room-popup
+                                    role="listbox"
+                                ></div>
+                            </div>
+                            <x-field-error :messages="$errors->get('new_room_name')" class="mt-2" />
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+
         @isset($tags)
             <div class="border-t border-base-300 pt-4">
-                <p class="fieldset-legend font-medium text-base-content">{{ __('ui.activities.tags') }}</p>
-                <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
+                <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
+                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
                 @include('tags.partials.selector', [
                     'tags' => $tags,
                     'selectedIds' => old('tag_ids', ($editMode && $slot && $slot->exists) ? $slot->tags->pluck('id')->toArray() : []),
@@ -188,96 +325,6 @@
                 <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
             </div>
         @endisset
-
-        <div class="border-t border-base-300 pt-4" data-slot-mass-place-root>
-            <fieldset class="fieldset py-0">
-                <legend class="fieldset-legend mb-0.5">{{ __('ui.slots.venue_optional') }}</legend>
-                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.venue_help') }}</p>
-
-                @if ($lockedEvent && $slotMassVenues->isEmpty())
-                    <p class="text-sm text-base-content/70">{{ __('ui.slots.no_places_on_event') }}</p>
-                @elseif ($singleVenueLocked)
-                    <input
-                        type="hidden"
-                        name="venue_place_id"
-                        value="{{ $slotMassVenues->first()->id }}"
-                        data-slot-venue-id
-                    />
-                    <select class="select select-bordered w-full" disabled>
-                        <option selected>{{ $slotMassVenues->first()->name }}</option>
-                    </select>
-                @elseif ($lockedEvent && $slotMassVenues->isNotEmpty())
-                    <select
-                        name="venue_place_id"
-                        id="venue_place_id"
-                        class="select select-bordered w-full"
-                        data-slot-venue-select
-                    >
-                        <option value="">{{ __('ui.common.none') }}</option>
-                        @foreach ($slotMassVenues as $v)
-                            <option value="{{ $v->id }}" @selected((string) $defaultVenuePlaceId === (string) $v->id)>
-                                {{ $v->name }} ({{ $v->type }})
-                            </option>
-                        @endforeach
-                    </select>
-                @else
-                    <select
-                        name="venue_place_id"
-                        id="venue_place_id"
-                        class="select select-bordered w-full"
-                        data-slot-venue-select
-                    >
-                        <option value="">{{ __('ui.common.none') }}</option>
-                    </select>
-                @endif
-                <x-field-error :messages="$errors->get('venue_place_id')" class="mt-2" />
-            </fieldset>
-
-            @if (($lockedEvent && $slotMassVenues->isNotEmpty()) || ! $lockedEvent)
-                <div class="mt-3" data-slot-room-block>
-                    <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.room_help') }}</p>
-                    <div class="relative">
-                        <x-input
-                            label="{{ __('ui.slots.room_optional') }}"
-                            name="new_room_name"
-                            type="text"
-                            value="{{ $defaultRoomName }}"
-                            error-field="new_room_name"
-                            autocomplete="off"
-                            placeholder="{{ __('ui.slots.room_placeholder') }}"
-                            data-slot-room-input
-                            aria-autocomplete="list"
-                            aria-expanded="false"
-                            aria-controls="slot-room-suggestions-popup"
-                        />
-                        <div
-                            id="slot-room-suggestions-popup"
-                            class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                            data-slot-room-popup
-                            role="listbox"
-                        ></div>
-                    </div>
-                    <x-field-error :messages="$errors->get('new_room_name')" class="mt-2" />
-                </div>
-            @endif
-        </div>
-
-        <div class="flex items-center gap-2">
-            <input id="requires_approval" name="requires_approval" type="checkbox" value="1" class="checkbox checkbox-sm"
-                   @checked(old('requires_approval', $editMode && $slot ? $slot->requires_approval : false)) />
-            <label for="requires_approval" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
-        </div>
-
-        <div>
-            <x-input
-                label="{{ __('ui.slots.max_capacity_optional') }}"
-                name="max_capacity"
-                type="number"
-                min="1"
-                value="{{ old('max_capacity', $editMode && $slot ? $slot->max_capacity : '') }}"
-                error-field="max_capacity"
-            />
-        </div>
 
         <script type="application/json" data-slot-mass-config>@json($slotMassConfig)</script>
         <script type="application/json" data-slot-mass-event-venues>@json($eventVenuesByEventId)</script>

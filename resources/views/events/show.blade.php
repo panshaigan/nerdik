@@ -138,19 +138,16 @@
                 @if ($event->created_by === auth()->id())
                     <dialog id="event-slots-create-modal" class="modal">
                         <div class="modal-box max-w-3xl">
-                            <h3 class="text-lg font-semibold text-base-content">{{ __('ui.slots.create_slots') }}</h3>
-                            <div class="mt-4">
-                                @include('slots.mass-create', [
-                                    'lockedEvent' => $event,
-                                    'events' => collect([$event]),
-                                    'tags' => $slotFormTags,
-                                    'slotNameSuggestions' => $slotNameSuggestions,
-                                    'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
-                                    'slotMassVenues' => $slotMassVenues,
-                                    'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
-                                    'embeddedInModal' => true,
-                                ])
-                            </div>
+                            @include('slots.mass-create', [
+                                'lockedEvent' => $event,
+                                'events' => collect([$event]),
+                                'tags' => $slotFormTags,
+                                'slotNameSuggestions' => $slotNameSuggestions,
+                                'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+                                'slotMassVenues' => $slotMassVenues,
+                                'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
+                                'embeddedInModal' => true,
+                            ])
                         </div>
                         <form method="dialog" class="modal-backdrop">
                             <button>{{ __('ui.common.cancel') }}</button>

@@ -1,8 +1,7 @@
 @auth
     <dialog id="slot-edit-modal" class="modal">
         <div class="modal-box max-w-3xl">
-            <h3 class="text-lg font-semibold text-base-content" id="slot-edit-modal-title">{{ __('ui.events.edit_slot') }}</h3>
-            <div id="slot-edit-modal-body" class="mt-4 min-h-[4rem]"></div>
+            <div id="slot-edit-modal-body" class="min-h-[4rem]"></div>
         </div>
         <form method="dialog" class="modal-backdrop">
             <button type="submit" aria-label="{{ __('ui.common.cancel') }}">{{ __('ui.common.cancel') }}</button>
