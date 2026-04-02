@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
@@ -128,7 +129,21 @@ class EventController extends Controller
             ->get();
         $isOwner = auth()->check() && $event->created_by === auth()->id();
 
-        return view('events.show', compact('event', 'places', 'pendingProposals', 'isOwner'));
+        $slotFormTags = null;
+        $slotNameSuggestions = [];
+        if ($isOwner) {
+            $slotFormTags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
+            $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
+        }
+
+        return view('events.show', compact(
+            'event',
+            'places',
+            'pendingProposals',
+            'isOwner',
+            'slotFormTags',
+            'slotNameSuggestions'
+        ));
     }
 
     /**

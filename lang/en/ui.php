@@ -78,6 +78,11 @@ return [
         'create_slots' => 'Create slots',
         'starts_at_optional' => 'Starts at (optional)',
         'ends_at_optional' => 'Ends at (optional)',
+        'end_requires_start' => 'Set a start time when you set an end time.',
+        'ends_after_start' => 'End time must be the same as or after start time.',
+        'activity_types' => 'Activity types (optional)',
+        'activity_types_help' => 'These hints apply to activities that will use these slots.',
+        'activity_types_multiselect_hint' => 'Hold Ctrl (Cmd on Mac) to select multiple types.',
     ],
     'proposals' => [
         'activity_proposals' => 'Activity proposals',
