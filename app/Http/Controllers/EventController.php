@@ -118,7 +118,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        $event->load(['creator', 'tags.translations', 'organization', 'slots.place', 'slots.activity']);
+        $event->load(['creator', 'tags.translations', 'organization', 'places', 'slots.place', 'slots.activity']);
         $pendingProposals = $event->proposals()
             ->with(['activity', 'creator', 'proposedSlots'])
             ->where('status', 'pending')
