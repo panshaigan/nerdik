@@ -61,8 +61,8 @@
 
     @if (isset($tags))
         <div class="mt-4 border-t border-base-300 pt-4">
-            <p class="fieldset-legend font-medium text-base-content">{{ __('ui.activities.tags') }}</p>
-            <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
+            <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
+            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
             @include('tags.partials.selector', [
                 'tags' => $tags,
                 'selectedIds' => old('tag_ids', $activity->exists ? $activity->tags->pluck('id')->toArray() : []),
