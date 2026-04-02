@@ -116,7 +116,7 @@
                     <x-slot:append>
                         <button
                             type="button"
-                            class="btn btn-outline btn-xs min-h-8 px-2"
+                            class="btn btn-outline btn-xs"
                             data-activity-clear-one="min_participants"
                             aria-label="{{ __('ui.activities.clear_field') }}"
                         >×</button>
@@ -135,7 +135,7 @@
                     <x-slot:append>
                         <button
                             type="button"
-                            class="btn btn-outline btn-xs min-h-8 px-2"
+                            class="btn btn-outline btn-xs"
                             data-activity-clear-one="max_participants"
                             aria-label="{{ __('ui.activities.clear_field') }}"
                         >×</button>
@@ -154,7 +154,7 @@
                     <x-slot:append>
                         <button
                             type="button"
-                            class="btn btn-outline btn-xs min-h-8 px-2"
+                            class="btn btn-outline btn-xs"
                             data-activity-clear-one="age_limit"
                             aria-label="{{ __('ui.activities.clear_field') }}"
                         >×</button>
@@ -174,7 +174,7 @@
                     <x-slot:append>
                         <button
                             type="button"
-                            class="btn btn-outline btn-xs min-h-8 px-2"
+                            class="btn btn-outline btn-xs"
                             data-activity-clear-one="duration_minutes"
                             aria-label="{{ __('ui.activities.clear_field') }}"
                         >×</button>
@@ -205,7 +205,7 @@
                 <x-slot:append>
                     <button
                         type="button"
-                        class="btn btn-outline btn-xs min-h-8 px-2"
+                        class="btn btn-outline btn-xs"
                         data-activity-clear-one="signoff_deadline_hours"
                         aria-label="{{ __('ui.activities.clear_field') }}"
                     >×</button>
