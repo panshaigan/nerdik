@@ -45,7 +45,7 @@ User Roles:
 	- event organizer
 	- activity host (e.g. GM)
 	- regular participant
-	- they are no special kind of users. they are determined just by the creation of entities. if you create an event, you are the event organizer. if you create an activity, you may add yourself as the activity host if the activity type needs one (e.g. RPG sessions, lectures)
+	- there are no special kind of users. they are determined just by the creation of entities. if you create an event, you are the event organizer. if you create an activity, you may add yourself as the activity host if the activity type needs one (e.g. RPG sessions, lectures)
 	- the only special kind of user are Admins, who have godmode on everything
 
 Features:
