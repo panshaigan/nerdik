@@ -29,6 +29,7 @@ return [
         'age_limit' => 'Limit wieku (min)',
         'duration_minutes' => 'Czas trwania (minuty)',
         'signoff_deadline_hours' => 'Termin wypisu (godziny przed startem)',
+        'signoff_deadline_description' => 'Jeśli ustawisz tę wartość, rezygnacja bez potwierdzenia jest zablokowana w ostatnich skonfigurowanych godzinach przed rozpoczęciem aktywności.',
         'restricted' => 'Ograniczone (prowadzacy zatwierdza liste rezerwowa)',
         'open_for_observers' => 'Otwarte dla obserwatorow',
         'tags' => 'Tagi',

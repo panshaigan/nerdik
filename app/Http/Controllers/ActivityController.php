@@ -38,10 +38,12 @@ class ActivityController extends Controller
     public function create()
     {
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
+        $nameSuggestions = $this->nameSuggestionsForCurrentUser();
 
         return view('activities.create', [
             'activity' => new Activity,
             'tags' => $tags,
+            'nameSuggestions' => $nameSuggestions,
         ]);
     }
 
@@ -96,8 +98,13 @@ class ActivityController extends Controller
 
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $activity->load('tags');
+        $nameSuggestions = $this->nameSuggestionsForCurrentUser($activity->id);
 
-        return view('activities.edit', compact('activity', 'tags'));
+        return view('activities.edit', [
+            'activity' => $activity,
+            'tags' => $tags,
+            'nameSuggestions' => $nameSuggestions,
+        ]);
     }
 
     /**
@@ -188,5 +195,29 @@ class ActivityController extends Controller
         $validated['host_user_id'] = auth()->id();
 
         return $validated;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function nameSuggestionsForCurrentUser(?int $exceptActivityId = null): array
+    {
+        $query = Activity::query()
+            ->where('created_by', auth()->id());
+
+        if ($exceptActivityId !== null) {
+            $query->where('id', '!=', $exceptActivityId);
+        }
+
+        return $query
+            ->whereNotNull('name')
+            ->orderBy('created_at', 'desc')
+            ->limit(40)
+            ->pluck('name')
+            ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+            ->map(fn ($name) => trim($name))
+            ->unique()
+            ->values()
+            ->all();
     }
 }
