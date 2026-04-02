@@ -11,57 +11,78 @@
                 <p class="text-sm text-green-600">{{ session('status') }}</p>
             @endif
 
-            <div class="bg-white shadow sm:rounded-lg p-6">
-                <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    @if ($event->hostDisplayName())
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('ui.events.host') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $event->hostDisplayName() }}</dd>
+            @php
+                $eventPlaces = $event->places
+                    ->filter(fn ($place) => $place && $place->latitude !== null && $place->longitude !== null)
+                    ->unique('id')
+                    ->values();
+                $eventPlacesMapConfig = [
+                    'places' => $eventPlaces->map(fn ($place) => [
+                        'name' => (string) $place->name,
+                        'lat' => (float) $place->latitude,
+                        'lng' => (float) $place->longitude,
+                    ])->all(),
+                ];
+                $eventPlaceNames = $eventPlaces->pluck('name')->filter()->implode(', ');
+                $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
+            @endphp
+
+            <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+                <div class="relative isolate" data-event-show-map-root>
+                    <script type="application/json" data-event-show-map-config>@json($eventPlacesMapConfig)</script>
+                    <div
+                        data-event-show-map
+                        class="relative z-0 w-full bg-base-200/30"
+                        style="min-height: 260px; height: min(420px, 50vh);"
+                    ></div>
+                    <div class="absolute inset-x-0 bottom-0 z-[1000] bg-black/55 px-4 py-3 text-white backdrop-blur-[1px]">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-medium">{{ $eventPlaceNames !== '' ? $eventPlaceNames : __('No mapped places yet') }}</p>
+                                <p class="text-xs text-white/90">{{ $eventDateSummary }}</p>
+                            </div>
+                            <div class="text-right">
+                                @if ($event->hostDisplayName())
+                                    <p class="text-xs text-white/90">{{ __('Organized by') }} {{ $event->hostDisplayName() }}</p>
+                                @endif
+                                <button
+                                    type="button"
+                                    x-data="{ copied: false }"
+                                    x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="pointer-events-auto mt-1 text-xs text-white/90 underline decoration-white/50 underline-offset-2 hover:text-white"
+                                    :title="copied ? '{{ __('ui.events.copied') }}' : '{{ __('ui.events.copy_link') }}'"
+                                >
+                                    <span x-show="!copied">{{ __('ui.events.share') }}</span>
+                                    <span x-show="copied" x-cloak>{{ __('ui.events.link_copied') }}</span>
+                                </button>
+                            </div>
                         </div>
-                    @endif
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('ui.events.start') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($event->starts_at) }}</dd>
                     </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('ui.events.end') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ format_in_user_tz($event->ends_at) }}</dd>
-                    </div>
-                </dl>
+                </div>
+                <div class="p-6">
                 @if ($event->tags->isNotEmpty())
-                    <div class="mt-4">
-                        <p class="text-sm font-medium text-gray-500 mb-2">{{ __('ui.events.tags') }}</p>
+                    <div>
                         @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
                     </div>
                 @endif
                 @if ($event->desc)
                     <p class="mt-4 text-sm text-gray-600">{{ $event->desc }}</p>
                 @endif
-                <div class="mt-4 flex flex-wrap gap-3 items-center">
+                @php
+                    $canManageEvent = auth()->check() && ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false));
+                @endphp
+                <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
                     @auth
-                        @if ($event->created_by === auth()->id())
-                            <a href="{{ route('events.edit', $event) }}" class="text-sm text-indigo-600 hover:text-indigo-900">{{ __('ui.events.edit') }}</a>
+                        @if ($canManageEvent)
+                            <a href="{{ route('events.edit', $event) }}" class="btn btn-outline btn-sm btn-manage">
+                                {{ __('ui.events.edit') }}
+                            </a>
                         @endif
-                    @endauth
-                    @auth
-                        <a href="{{ route('events.propose', $event) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                        <a href="{{ route('events.propose', $event) }}" class="btn btn-primary btn-sm">
                             {{ __('ui.events.propose_activity') }}
                         </a>
                     @endauth
-                    @auth
-                        @if ($event->created_by === auth()->id())
-                            <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">
-                                    {{ __('ui.events.copy_event') }}
-                                </button>
-                            </form>
-                        @endif
-                    @endauth
-                    <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-sm text-gray-500 hover:text-gray-700" :title="copied ? '{{ __('ui.events.copied') }}' : '{{ __('ui.events.copy_link') }}'">
-                        <span x-show="!copied">{{ __('ui.events.share') }}</span>
-                        <span x-show="copied" x-cloak>{{ __('ui.events.link_copied') }}</span>
-                    </button>
+                </div>
                 </div>
             </div>
 
