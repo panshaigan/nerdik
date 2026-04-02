@@ -29,6 +29,7 @@ return [
         'age_limit' => 'Age limit (min)',
         'duration_minutes' => 'Duration (minutes)',
         'signoff_deadline_hours' => 'Signoff deadline (hours before start)',
+        'signoff_deadline_description' => 'If set, opting out freely is disabled during the last configured hours before the activity starts.',
         'restricted' => 'Restricted (host approves waitlist)',
         'open_for_observers' => 'Open for observers',
         'tags' => 'Tags',
