@@ -72,6 +72,7 @@ class EventController extends Controller
             'place_ids.*' => ['integer', 'exists:places,id'],
             'new_places' => ['nullable', 'array'],
             'new_places.*.name' => ['nullable', 'string', 'max:255'],
+            'new_places.*.address' => ['nullable', 'string', 'max:500'],
             'new_places.*.city' => ['nullable', 'string', 'max:255'],
             'new_places.*.country' => ['nullable', 'string', 'max:255'],
             'new_places.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
@@ -172,6 +173,7 @@ class EventController extends Controller
             'place_ids.*' => ['integer', 'exists:places,id'],
             'new_places' => ['nullable', 'array'],
             'new_places.*.name' => ['nullable', 'string', 'max:255'],
+            'new_places.*.address' => ['nullable', 'string', 'max:500'],
             'new_places.*.city' => ['nullable', 'string', 'max:255'],
             'new_places.*.country' => ['nullable', 'string', 'max:255'],
             'new_places.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
@@ -283,9 +285,11 @@ class EventController extends Controller
                 continue;
             }
             $resolved = $this->locationResolver->resolvePlaceRow($row);
+            $address = trim((string) ($row['address'] ?? ''));
 
             $newPlace = Place::create([
                 'name' => $name,
+                'address' => $address !== '' ? $address : null,
                 'type' => 'venue',
                 'city_id' => $resolved['city_id'],
                 'country_id' => $resolved['country_id'],

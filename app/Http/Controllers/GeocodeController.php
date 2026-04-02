@@ -71,6 +71,7 @@ class GeocodeController extends Controller
             ?? null;
 
         $resolved = $this->locationResolver->resolveFromNominatimAddress($address, $city);
+        $addressShort = $this->shortAddressFromNominatimAddress($address);
 
         $loc = app()->getLocale();
         $country = Country::with('translations')->find($resolved['country_id']);
@@ -78,6 +79,7 @@ class GeocodeController extends Controller
 
         return response()->json([
             'display_name' => $raw['display_name'],
+            'address_short' => $addressShort,
             'city' => $city,
             'country' => $address['country'] ?? null,
             'country_code' => isset($address['country_code']) ? strtoupper((string) $address['country_code']) : null,
@@ -133,6 +135,7 @@ class GeocodeController extends Controller
                 ?? $address['village']
                 ?? $address['municipality']
                 ?? null;
+            $addressShort = $this->shortAddressFromNominatimAddress($address);
 
             $resolved = $this->locationResolver->resolveFromNominatimAddress($address, $city);
 
@@ -141,6 +144,7 @@ class GeocodeController extends Controller
 
             return [
                 'label' => $item['display_name'] ?? '',
+                'address_short' => $addressShort,
                 'lat' => isset($item['lat']) ? (float) $item['lat'] : null,
                 'lon' => isset($item['lon']) ? (float) $item['lon'] : null,
                 'city' => $city,
@@ -154,5 +158,29 @@ class GeocodeController extends Controller
         })->filter(fn (array $r) => $r['lat'] !== null && $r['lon'] !== null && $r['label'] !== '')->values()->all();
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Build short address as "Street HouseNumber" when possible.
+     *
+     * @param  array<string, mixed>  $address
+     */
+    private function shortAddressFromNominatimAddress(array $address): ?string
+    {
+        $street = trim((string) (
+            $address['road']
+            ?? $address['pedestrian']
+            ?? $address['footway']
+            ?? $address['cycleway']
+            ?? $address['path']
+            ?? ''
+        ));
+        $houseNumber = trim((string) ($address['house_number'] ?? ''));
+
+        if ($street === '') {
+            return null;
+        }
+
+        return trim($street.' '.$houseNumber);
     }
 }

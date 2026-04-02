@@ -36,6 +36,7 @@
                 'lat' => (float) $lat,
                 'lng' => (float) $lng,
                 'name' => (string) ($row['name'] ?? ''),
+                'address' => (string) ($row['address'] ?? ''),
                 'city' => (string) ($row['city'] ?? ''),
                 'country' => (string) ($row['country'] ?? ''),
                 'city_id' => isset($row['city_id']) && $row['city_id'] !== '' ? (int) $row['city_id'] : null,

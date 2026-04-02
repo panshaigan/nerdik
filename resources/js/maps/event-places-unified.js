@@ -58,7 +58,7 @@ export function initEventPlacesUnified(root) {
     const places = Array.isArray(cfg.places) ? cfg.places : [];
     const selectedIds = new Set((cfg.initialSelectedIds || []).map(Number));
     const initialList = Array.isArray(cfg.initialNewPlaces) ? cfg.initialNewPlaces : [];
-    /** @type {{ id: string, lat: number, lng: number, name: string, city: string, country: string, cityId: string, countryId: string }[]} */
+    /** @type {{ id: string, lat: number, lng: number, name: string, address: string, city: string, country: string, cityId: string, countryId: string }[]} */
     let newVenues = initialList
         .filter((r) => r.lat != null && r.lng != null)
         .map((r) => ({
@@ -66,6 +66,7 @@ export function initEventPlacesUnified(root) {
             lat: Number(r.lat),
             lng: Number(r.lng),
             name: r.name || '',
+            address: r.address || '',
             city: r.city || '',
             country: r.country || '',
             cityId: r.city_id != null && r.city_id !== '' ? String(r.city_id) : '',
@@ -195,6 +196,7 @@ export function initEventPlacesUnified(root) {
             if (countryDisp) {
                 v.country = countryDisp;
             }
+            v.address = data.address_short || v.address || '';
             v.cityId = data.city_id != null && data.city_id !== '' ? String(data.city_id) : '';
             v.countryId = data.country_id != null && data.country_id !== '' ? String(data.country_id) : '';
             const row = newVenuesEl.querySelector(`[data-ep-nv-id="${escapeAttr(venueId)}"]`);
@@ -217,11 +219,15 @@ export function initEventPlacesUnified(root) {
                 }
                 const hLat = row.querySelector('[data-ep-lat]');
                 const hLng = row.querySelector('[data-ep-lng]');
+                const hAddress = row.querySelector('[data-ep-address]');
                 if (hLat) {
                     hLat.value = String(lat);
                 }
                 if (hLng) {
                     hLng.value = String(lng);
+                }
+                if (hAddress) {
+                    hAddress.value = v.address;
                 }
             }
         } catch {
@@ -266,11 +272,11 @@ export function initEventPlacesUnified(root) {
     }
 
     function addNewVenue(
-        { lat, lng, name = '', city = '', country = '', cityId = '', countryId = '' },
+        { lat, lng, name = '', address = '', city = '', country = '', cityId = '', countryId = '' },
         { skipReverse = false } = {},
     ) {
         const id = randomId();
-        const venue = { id, lat, lng, name, city, country, cityId: String(cityId), countryId: String(countryId) };
+        const venue = { id, lat, lng, name, address, city, country, cityId: String(cityId), countryId: String(countryId) };
         newVenues.push(venue);
 
         const idx = newVenues.length;
@@ -331,42 +337,17 @@ export function initEventPlacesUnified(root) {
                 v.name = inpName.value;
             });
 
-            const grid = document.createElement('div');
-            grid.className = 'grid grid-cols-1 gap-2 sm:grid-cols-2';
+            const hCity = document.createElement('input');
+            hCity.type = 'hidden';
+            hCity.name = `new_places[${i}][city]`;
+            hCity.value = v.city;
+            hCity.dataset.epCity = '1';
 
-            const inpCity = document.createElement('input');
-            inpCity.type = 'text';
-            inpCity.name = `new_places[${i}][city]`;
-            inpCity.value = v.city;
-            inpCity.dataset.epCity = '1';
-            inpCity.className = 'input input-bordered input-sm w-full border-base-300';
-            inpCity.placeholder = 'City';
-            inpCity.addEventListener('input', () => {
-                v.city = inpCity.value;
-                v.cityId = '';
-                const hc = row.querySelector('[data-ep-city-id]');
-                if (hc) {
-                    hc.value = '';
-                }
-            });
-
-            const inpCountry = document.createElement('input');
-            inpCountry.type = 'text';
-            inpCountry.name = `new_places[${i}][country]`;
-            inpCountry.value = v.country;
-            inpCountry.dataset.epCountry = '1';
-            inpCountry.className = 'input input-bordered input-sm w-full border-base-300';
-            inpCountry.placeholder = 'Country';
-            inpCountry.addEventListener('input', () => {
-                v.country = inpCountry.value;
-                v.countryId = '';
-                const hco = row.querySelector('[data-ep-country-id]');
-                if (hco) {
-                    hco.value = '';
-                }
-            });
-
-            grid.append(inpCity, inpCountry);
+            const hCountry = document.createElement('input');
+            hCountry.type = 'hidden';
+            hCountry.name = `new_places[${i}][country]`;
+            hCountry.value = v.country;
+            hCountry.dataset.epCountry = '1';
 
             const hCityId = document.createElement('input');
             hCityId.type = 'hidden';
@@ -392,7 +373,13 @@ export function initEventPlacesUnified(root) {
             hLng.value = String(v.lng);
             hLng.dataset.epLng = '1';
 
-            row.append(head, inpName, grid, hCityId, hCountryId, hLat, hLng);
+            const hAddress = document.createElement('input');
+            hAddress.type = 'hidden';
+            hAddress.name = `new_places[${i}][address]`;
+            hAddress.value = v.address || '';
+            hAddress.dataset.epAddress = '1';
+
+            row.append(head, inpName, hCity, hCountry, hCityId, hCountryId, hLat, hLng, hAddress);
             newVenuesEl.appendChild(row);
         });
 
@@ -582,6 +569,7 @@ export function initEventPlacesUnified(root) {
                         lat: r.lat,
                         lng: r.lon,
                         name: shortName,
+                        address: r.address_short || '',
                         city: r.city_display || r.city || '',
                         country: r.country_display || r.country || '',
                         cityId: r.city_id != null && r.city_id !== '' ? String(r.city_id) : '',
