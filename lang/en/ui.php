@@ -93,6 +93,7 @@ return [
         'room_placeholder' => 'Search or add a room…',
         'room_existing_none' => 'Existing room…',
         'new_room_name' => 'New room name',
+        'venue_required_when_event_has_places' => 'Choose a venue — this event has places, so the slot needs one.',
         'venue_not_linked_to_event' => 'The selected venue is not linked to this event.',
         'room_invalid_for_venue' => 'The selected room does not belong to the chosen venue.',
     ],

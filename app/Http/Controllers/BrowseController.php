@@ -67,7 +67,7 @@ class BrowseController extends Controller
             $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '<=', $request->to_date));
         }
         if ($request->filled('place_id')) {
-            $query->whereHas('slot', fn ($q) => $q->where('place_id', $request->place_id));
+            $query->whereHas('slot.places', fn ($q) => $q->where('places.id', (int) $request->place_id));
         }
         if ($request->filled('tag_id')) {
             $query->whereHas('tags', fn ($q) => $q->where('tags.id', $request->tag_id));

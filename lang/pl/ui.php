@@ -93,6 +93,7 @@ return [
         'room_placeholder' => 'Szukaj lub dodaj pomieszczenie…',
         'room_existing_none' => 'Istniejace pomieszczenie…',
         'new_room_name' => 'Nazwa nowego pomieszczenia',
+        'venue_required_when_event_has_places' => 'Wybierz lokalizacje — to wydarzenie ma przypisane miejsca, wiec slot musi miec wybrana.',
         'venue_not_linked_to_event' => 'Wybrane miejsce nie jest przypiete do tego wydarzenia.',
         'room_invalid_for_venue' => 'Wybrane pomieszczenie nie nalezy do wybranego miejsca.',
     ],

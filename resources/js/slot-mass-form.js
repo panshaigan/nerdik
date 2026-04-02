@@ -210,10 +210,12 @@ export function initSlotMassForm(form) {
         massForm.querySelector('[data-slot-venue-hidden]')?.remove();
         const list = eventVenuesById[eventId] || [];
         venueSelect.innerHTML = '';
-        const opt0 = document.createElement('option');
-        opt0.value = '';
-        opt0.textContent = noneLabel;
-        venueSelect.appendChild(opt0);
+        if (list.length === 0) {
+            const opt0 = document.createElement('option');
+            opt0.value = '';
+            opt0.textContent = noneLabel;
+            venueSelect.appendChild(opt0);
+        }
         list.forEach((v) => {
             const o = document.createElement('option');
             o.value = String(v.id);
@@ -236,8 +238,21 @@ export function initSlotMassForm(form) {
         } else {
             venueSelect.name = 'venue_place_id';
             venueSelect.disabled = false;
+            if (list.length > 0) {
+                const ids = new Set(list.map((v) => String(v.id)));
+                const preferred =
+                    oldVenue != null && ids.has(String(oldVenue)) ? String(oldVenue) : String(list[0].id);
+                venueSelect.value = preferred;
+            }
         }
         refreshRoomList();
+    }
+
+    function hideRoomPopupIfAny() {
+        if (roomPopup) {
+            roomPopup.classList.add('hidden');
+            roomPopup.innerHTML = '';
+        }
     }
 
     venueSelect?.addEventListener('change', () => {
@@ -245,6 +260,7 @@ export function initSlotMassForm(form) {
             roomInput.value = '';
         }
         refreshRoomList();
+        hideRoomPopupIfAny();
     });
 
     eventSelect?.addEventListener('change', () => {
@@ -252,6 +268,7 @@ export function initSlotMassForm(form) {
             roomInput.value = '';
         }
         fillVenueOptionsForEvent(String(eventSelect.value));
+        hideRoomPopupIfAny();
     });
 
     if (eventSelect && venueSelect) {
@@ -283,6 +300,57 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
     let shown = [];
     let active = -1;
 
+    /**
+     * Popups on document.body render behind open <dialog> (top layer). Keep the list inside the dialog.
+     */
+    function ensurePopupInDialogLayer() {
+        const dialog = massForm.closest('dialog');
+        if (dialog) {
+            if (roomPopup.parentElement !== dialog) {
+                dialog.appendChild(roomPopup);
+            }
+
+            return;
+        }
+        if (roomPopup.parentElement !== document.body) {
+            document.body.appendChild(roomPopup);
+        }
+    }
+
+    function isEventOnRoomField(e) {
+        if (e.target === roomInput || roomInput.contains(e.target)) {
+            return true;
+        }
+        const labelWrap = roomInput.closest('label');
+        if (labelWrap && e.target instanceof Node && labelWrap.contains(e.target)) {
+            return true;
+        }
+        const roomBlock = massForm.querySelector('[data-slot-room-block]');
+        if (roomBlock && e.target instanceof Node && roomBlock.contains(e.target)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function positionRoomPopup() {
+        if (roomPopup.classList.contains('hidden')) {
+            return;
+        }
+        const r = roomInput.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const margin = 8;
+        let left = r.left;
+        let width = r.width;
+        if (left + width > vw - margin) {
+            left = Math.max(margin, vw - margin - width);
+        }
+        left = Math.max(margin, left);
+        roomPopup.style.left = `${left}px`;
+        roomPopup.style.top = `${r.bottom + 4}px`;
+        roomPopup.style.width = `${width}px`;
+    }
+
     function closeRoomPopup() {
         roomPopup.classList.add('hidden');
         roomPopup.innerHTML = '';
@@ -296,8 +364,11 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
 
             return;
         }
+        ensurePopupInDialogLayer();
         roomPopup.classList.remove('hidden');
         roomInput.setAttribute('aria-expanded', 'true');
+        positionRoomPopup();
+        requestAnimationFrame(() => positionRoomPopup());
     }
 
     function applyActive() {
@@ -343,18 +414,21 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
 
     function updateFromInput() {
         const q = roomInput.value.trim().toLowerCase();
-        if (q.length < 1) {
-            closeRoomPopup();
-
-            return;
-        }
-
         const rooms = getRooms();
-        const items = rooms.filter(
-            (r) => r.name.toLowerCase().includes(q) && r.name.toLowerCase() !== q
-        );
+        let items;
+        if (q.length < 1) {
+            items = rooms.slice(0, 8);
+        } else {
+            items = rooms.filter(
+                (r) => r.name.toLowerCase().includes(q) && r.name.toLowerCase() !== q
+            );
+        }
         render(items);
     }
+
+    const reposition = () => positionRoomPopup();
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
 
     roomInput.addEventListener('input', updateFromInput);
     roomInput.addEventListener('focus', updateFromInput);
@@ -381,11 +455,17 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
         }
     });
 
-    const boundary = massForm?.closest('.modal-box') || massForm;
-    boundary?.addEventListener('click', (e) => {
-        if (!roomPopup.contains(e.target) && e.target !== roomInput) {
-            closeRoomPopup();
+    document.addEventListener('click', (e) => {
+        if (roomPopup.classList.contains('hidden')) {
+            return;
         }
+        if (isEventOnRoomField(e)) {
+            return;
+        }
+        if (roomPopup.contains(e.target)) {
+            return;
+        }
+        closeRoomPopup();
     });
 }
 
