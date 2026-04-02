@@ -11,6 +11,7 @@ use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -27,7 +28,7 @@ class SlotController extends Controller
      */
     public function index()
     {
-        $slots = Slot::with(['event', 'place'])
+        $slots = Slot::with(['event', 'place.parent'])
             ->orderBy('starts_at')
             ->get();
 
@@ -46,24 +47,203 @@ class SlotController extends Controller
 
         $events = Event::orderBy('starts_at', 'desc')->get();
 
-        $places = Place::orderBy('name')->get();
-
         $slot = new Slot;
         if ($lockedEvent) {
             $slot->event_id = $lockedEvent->id;
         }
 
+        $slotMassVenues = collect();
+        $slotMassRoomsByVenueId = [];
+        if ($lockedEvent) {
+            $slotMassVenues = $this->venuesForEventMassForm($lockedEvent);
+            $slotMassRoomsByVenueId = $this->roomOptionsByVenueId($slotMassVenues);
+        }
+
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
+        $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
+        $massPlaceData = $this->slotMassFormPlaceDataForAllEvents();
 
         return view('slots.create', [
             'slot' => $slot,
             'events' => $events,
-            'places' => $places,
             'lockedEvent' => $lockedEvent,
             'tags' => $tags,
             'slotNameSuggestions' => $slotNameSuggestions,
-        ]);
+            'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+            'slotMassVenues' => $slotMassVenues,
+            'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
+        ] + $massPlaceData);
+    }
+
+    /**
+     * Venues and room lists for the mass-create form when the event is not locked.
+     *
+     * @return array{eventVenuesByEventId: array<int, list<array{id:int,name:string,type:string}>>, roomsByEventAndVenue: array<int, array<int, list<array{id:int,name:string}>>>}
+     */
+    protected function slotMassFormPlaceDataForAllEvents(): array
+    {
+        $events = Event::with(['places' => fn ($q) => $q->orderBy('name')])
+            ->orderBy('starts_at', 'desc')
+            ->get();
+
+        $eventVenuesByEventId = [];
+        $roomsByEventAndVenue = [];
+
+        foreach ($events as $event) {
+            $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+            if ($venues->isEmpty()) {
+                $venues = $event->places->values();
+            }
+
+            $eventVenuesByEventId[$event->id] = $venues
+                ->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'type' => $p->type])
+                ->values()
+                ->all();
+
+            $venueIds = $venues->pluck('id');
+            if ($venueIds->isEmpty()) {
+                continue;
+            }
+
+            $children = Place::query()
+                ->whereIn('parent_id', $venueIds)
+                ->orderBy('name')
+                ->get()
+                ->groupBy('parent_id');
+
+            foreach ($venues as $v) {
+                $roomsByEventAndVenue[$event->id][$v->id] = ($children[$v->id] ?? collect())
+                    ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
+                    ->values()
+                    ->all();
+            }
+        }
+
+        return [
+            'eventVenuesByEventId' => $eventVenuesByEventId,
+            'roomsByEventAndVenue' => $roomsByEventAndVenue,
+        ];
+    }
+
+    /**
+     * Venues linked to an event (prefer `type = venue`, else all).
+     *
+     * @return Collection<int, Place>
+     */
+    protected function venuesForEventMassForm(Event $event): Collection
+    {
+        $event->loadMissing(['places' => fn ($q) => $q->orderBy('name')]);
+        $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+        if ($venues->isEmpty()) {
+            $venues = $event->places->values();
+        }
+
+        return $venues;
+    }
+
+    /**
+     * @return array<int, list<array{id:int,name:string}>>
+     */
+    protected function roomOptionsByVenueId(Collection $venues): array
+    {
+        $out = [];
+        $venueIds = $venues->pluck('id');
+        if ($venueIds->isEmpty()) {
+            return [];
+        }
+
+        $children = Place::query()
+            ->whereIn('parent_id', $venueIds)
+            ->orderBy('name')
+            ->get()
+            ->groupBy('parent_id');
+
+        foreach ($venues as $v) {
+            $out[$v->id] = ($children[$v->id] ?? collect())
+                ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
+                ->values()
+                ->all();
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array{venue_place_id: int|null, room_name: string|null}
+     */
+    protected function slotVenueRoomDefaultsFromPlace(Slot $slot): array
+    {
+        $slot->loadMissing(['place.parent', 'event.places']);
+        $place = $slot->place;
+        if (! $place) {
+            return ['venue_place_id' => null, 'room_name' => null];
+        }
+
+        $venues = $this->venuesForEventMassForm($slot->event);
+        $venueIds = $venues->pluck('id')->flip();
+
+        if ($venueIds->has($place->id)) {
+            return ['venue_place_id' => (int) $place->id, 'room_name' => null];
+        }
+
+        if ($place->parent_id && $venueIds->has($place->parent_id)) {
+            return ['venue_place_id' => (int) $place->parent_id, 'room_name' => $place->name];
+        }
+
+        return ['venue_place_id' => null, 'room_name' => null];
+    }
+
+    /**
+     * Resolve venue + optional room into a single `places.id` for slot placement.
+     */
+    protected function resolveMassSlotPlaceId(Request $request, Event $event): ?int
+    {
+        $venueRaw = $request->input('venue_place_id');
+        if ($venueRaw === null || $venueRaw === '') {
+            return null;
+        }
+
+        $venueId = (int) $venueRaw;
+
+        $eventPlaceIds = $event->places()->pluck('places.id');
+        if (! $eventPlaceIds->contains($venueId)) {
+            throw ValidationException::withMessages([
+                'venue_place_id' => [__('ui.slots.venue_not_linked_to_event')],
+            ]);
+        }
+
+        $venue = Place::query()->findOrFail($venueId);
+
+        $newRoomName = trim((string) $request->input('new_room_name', ''));
+        if ($newRoomName !== '') {
+            $existing = Place::query()
+                ->where('parent_id', $venueId)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($newRoomName)])
+                ->first();
+
+            if ($existing) {
+                return (int) $existing->id;
+            }
+
+            $room = Place::create([
+                'name' => $newRoomName,
+                'type' => 'room',
+                'parent_id' => $venueId,
+                'city_id' => $venue->city_id,
+                'country_id' => $venue->country_id,
+                'latitude' => $venue->latitude,
+                'longitude' => $venue->longitude,
+                'is_online' => (bool) $venue->is_online,
+                'address' => $venue->address,
+            ]);
+
+            $event->places()->syncWithoutDetaching([$room->id]);
+
+            return (int) $room->id;
+        }
+
+        return $venueId;
     }
 
     /**
@@ -71,69 +251,11 @@ class SlotController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->boolean('mass')) {
-            return $this->storeMass($request);
+        if (! $request->boolean('mass')) {
+            return redirect()->route('slots.create');
         }
 
-        $validated = $request->validate([
-            'event_id' => ['required', 'exists:events,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date'],
-            'place_id' => ['nullable', 'exists:places,id'],
-            'requires_approval' => ['nullable', 'boolean'],
-            'max_capacity' => ['nullable', 'integer', 'min:1'],
-            'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => [Rule::in(ActivityController::ACTIVITY_TYPES)],
-            'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => ['integer', 'exists:tags,id'],
-            'new_tags' => ['nullable', 'array'],
-            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
-        ]);
-
-        if (! empty($validated['ends_at']) && empty($validated['starts_at'])) {
-            throw ValidationException::withMessages(['ends_at' => [__('ui.slots.end_requires_start')]]);
-        }
-
-        if (! empty($validated['starts_at']) && ! empty($validated['ends_at'])) {
-            $startUtc = parse_datetime_to_utc($validated['starts_at']);
-            $endUtc = parse_datetime_to_utc($validated['ends_at']);
-            if ($startUtc && $endUtc && $endUtc->lt($startUtc)) {
-                throw ValidationException::withMessages(['ends_at' => [__('ui.slots.ends_after_start')]]);
-            }
-        }
-
-        $activityTypes = array_values(array_unique(array_filter(
-            $validated['activity_types'] ?? [],
-            fn ($t) => in_array($t, ActivityController::ACTIVITY_TYPES, true)
-        )));
-
-        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
-            (array) $request->input('tag_ids', []),
-            (array) $request->input('new_tags', [])
-        );
-
-        $data = Arr::except($validated, ['activity_types']);
-        $data['activity_types'] = ! empty($activityTypes) ? $activityTypes : null;
-        $data['requires_approval'] = $request->boolean('requires_approval');
-        if (! empty($data['starts_at'])) {
-            $data['starts_at'] = parse_datetime_to_utc($data['starts_at'])?->toDateTimeString();
-        } else {
-            $data['starts_at'] = null;
-        }
-        if (! empty($data['ends_at'])) {
-            $data['ends_at'] = parse_datetime_to_utc($data['ends_at'])?->toDateTimeString();
-        } else {
-            $data['ends_at'] = null;
-        }
-
-        $slot = Slot::create($data);
-        if (! empty($tagIds)) {
-            $slot->tags()->sync($tagIds);
-        }
-
-        return $this->redirectAfterSlotStore($request, (int) $validated['event_id']);
+        return $this->storeMass($request);
     }
 
     /**
@@ -151,19 +273,38 @@ class SlotController extends Controller
     {
         $this->authorizeCreatedBy($slot);
 
-        $slot->load(['tags', 'event']);
+        $slot->load(['tags', 'event.places', 'place.parent', 'activityTypes']);
 
         $events = Event::orderBy('starts_at', 'desc')->get();
-
-        $places = Place::orderBy('name')->get();
 
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
 
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
+        $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
+
+        $massPlaceData = $this->slotMassFormPlaceDataForAllEvents();
+
+        $slotVenueRoomDefaults = $this->slotVenueRoomDefaultsFromPlace($slot);
 
         $lockedEvent = $request->boolean('modal') ? $slot->event : null;
 
-        $payload = compact('slot', 'events', 'places', 'tags', 'slotNameSuggestions', 'lockedEvent');
+        $slotMassVenues = $lockedEvent ? $this->venuesForEventMassForm($slot->event) : collect();
+        $slotMassRoomsByVenueId = $lockedEvent ? $this->roomOptionsByVenueId($slotMassVenues) : [];
+
+        $payload = array_merge(
+            compact(
+                'slot',
+                'events',
+                'tags',
+                'slotNameSuggestions',
+                'slotBaseNameSuggestions',
+                'slotMassVenues',
+                'slotMassRoomsByVenueId',
+                'slotVenueRoomDefaults',
+                'lockedEvent'
+            ),
+            $massPlaceData
+        );
 
         if ($request->boolean('modal')) {
             return view('slots.edit-modal', $payload);
@@ -185,7 +326,8 @@ class SlotController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'starts_at' => ['nullable', 'date'],
                 'ends_at' => ['nullable', 'date'],
-                'place_id' => ['nullable', 'exists:places,id'],
+                'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
+                'new_room_name' => ['nullable', 'string', 'max:255'],
                 'requires_approval' => ['nullable', 'boolean'],
                 'max_capacity' => ['nullable', 'integer', 'min:1'],
                 'activity_types' => ['nullable', 'array'],
@@ -226,8 +368,16 @@ class SlotController extends Controller
             (array) $request->input('new_tags', [])
         );
 
-        $data = Arr::except($validated, ['activity_types']);
-        $data['activity_types'] = ! empty($activityTypes) ? $activityTypes : null;
+        $event = Event::query()->findOrFail((int) $validated['event_id']);
+
+        try {
+            $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
+        } catch (ValidationException $e) {
+            return $this->redirectSlotUpdateValidationFailed($request, $slot, $e->errors());
+        }
+
+        $data = Arr::except($validated, ['activity_types', 'venue_place_id', 'new_room_name']);
+        $data['place_id'] = $resolvedPlaceId;
         $data['requires_approval'] = $request->boolean('requires_approval');
         if (! empty($data['starts_at'])) {
             $data['starts_at'] = parse_datetime_to_utc($data['starts_at'])?->toDateTimeString();
@@ -241,6 +391,11 @@ class SlotController extends Controller
         }
 
         $slot->update($data);
+        if (! empty($activityTypes)) {
+            $slot->setActivityTypes($activityTypes);
+        } else {
+            $slot->setActivityTypes([]);
+        }
         $slot->tags()->sync($tagIds);
 
         return $this->redirectAfterSlotUpdate($request, $slot);
@@ -306,7 +461,8 @@ class SlotController extends Controller
             'count' => ['required', 'integer', 'min:1', 'max:100'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date'],
-            'place_id' => ['nullable', 'exists:places,id'],
+            'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
+            'new_room_name' => ['nullable', 'string', 'max:255'],
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'activity_types' => ['nullable', 'array'],
@@ -340,6 +496,14 @@ class SlotController extends Controller
             (array) $request->input('new_tags', [])
         );
 
+        $event = Event::query()->findOrFail((int) $validated['event_id']);
+
+        try {
+            $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        }
+
         $requiresApproval = $request->boolean('requires_approval');
         $startsAtUtc = ! empty($validated['starts_at'])
             ? parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString()
@@ -352,13 +516,16 @@ class SlotController extends Controller
             $slot = Slot::create([
                 'event_id' => $validated['event_id'],
                 'name' => sprintf('%s #%02d', $validated['base_name'], $i),
-                'activity_types' => ! empty($activityTypes) ? $activityTypes : null,
                 'starts_at' => $startsAtUtc,
                 'ends_at' => $endsAtUtc,
-                'place_id' => $validated['place_id'] ?? null,
+                'place_id' => $resolvedPlaceId,
                 'requires_approval' => $requiresApproval,
                 'max_capacity' => $validated['max_capacity'] ?? null,
             ]);
+
+            if (! empty($activityTypes)) {
+                $slot->setActivityTypes($activityTypes);
+            }
 
             if (! empty($tagIds)) {
                 $slot->tags()->sync($tagIds);

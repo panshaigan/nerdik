@@ -51,7 +51,7 @@
                                     {{ $slot->starts_at ? format_in_user_tz($slot->starts_at) : '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $slot->place?->name ?? '—' }}
+                                    {{ $slot->place?->venueRoomLabel() ?? '—' }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-sm">
                                     @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
