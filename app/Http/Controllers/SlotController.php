@@ -195,6 +195,23 @@ class SlotController extends Controller
     }
 
     /**
+     * When the event lists candidate venues/places, a slot must pick one (UI defaults the first).
+     */
+    protected function ensureVenueWhenEventHasPlaces(Request $request, Event $event): void
+    {
+        if ($this->venuesForEventMassForm($event)->isEmpty()) {
+            return;
+        }
+
+        $raw = $request->input('venue_place_id');
+        if ($raw === null || $raw === '') {
+            throw ValidationException::withMessages([
+                'venue_place_id' => [__('ui.slots.venue_required_when_event_has_places')],
+            ]);
+        }
+    }
+
+    /**
      * Resolve venue + optional room into a single `places.id` for slot placement.
      */
     protected function resolveMassSlotPlaceId(Request $request, Event $event): ?int
@@ -237,8 +254,6 @@ class SlotController extends Controller
                 'is_online' => (bool) $venue->is_online,
                 'address' => $venue->address,
             ]);
-
-            $event->places()->syncWithoutDetaching([$room->id]);
 
             return (int) $room->id;
         }
@@ -371,13 +386,13 @@ class SlotController extends Controller
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
         try {
+            $this->ensureVenueWhenEventHasPlaces($request, $event);
             $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
         } catch (ValidationException $e) {
             return $this->redirectSlotUpdateValidationFailed($request, $slot, $e->errors());
         }
 
         $data = Arr::except($validated, ['activity_types', 'venue_place_id', 'new_room_name']);
-        $data['place_id'] = $resolvedPlaceId;
         $data['requires_approval'] = $request->boolean('requires_approval');
         if (! empty($data['starts_at'])) {
             $data['starts_at'] = parse_datetime_to_utc($data['starts_at'])?->toDateTimeString();
@@ -391,6 +406,7 @@ class SlotController extends Controller
         }
 
         $slot->update($data);
+        $slot->places()->sync($resolvedPlaceId !== null ? [$resolvedPlaceId] : []);
         if (! empty($activityTypes)) {
             $slot->setActivityTypes($activityTypes);
         } else {
@@ -499,6 +515,7 @@ class SlotController extends Controller
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
         try {
+            $this->ensureVenueWhenEventHasPlaces($request, $event);
             $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -518,10 +535,13 @@ class SlotController extends Controller
                 'name' => sprintf('%s #%02d', $validated['base_name'], $i),
                 'starts_at' => $startsAtUtc,
                 'ends_at' => $endsAtUtc,
-                'place_id' => $resolvedPlaceId,
                 'requires_approval' => $requiresApproval,
                 'max_capacity' => $validated['max_capacity'] ?? null,
             ]);
+
+            if ($resolvedPlaceId !== null) {
+                $slot->places()->attach($resolvedPlaceId);
+            }
 
             if (! empty($activityTypes)) {
                 $slot->setActivityTypes($activityTypes);

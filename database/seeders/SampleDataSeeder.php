@@ -127,33 +127,36 @@ class SampleDataSeeder extends Seeder
             $start = $event->starts_at;
             $createdBy = $organizerForEvent($event);
             if (! $event->slots()->exists()) {
-                Slot::create([
+                $s1 = Slot::create([
                     'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #01',
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
-                    'place_id' => $placeId,
                     'requires_approval' => false,
                     'max_capacity' => 6,
                 ]);
-                Slot::create([
+                if ($placeId) {
+                    $s1->places()->attach($placeId);
+                }
+                $s2 = Slot::create([
                     'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #02',
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
-                    'place_id' => $placeId,
                     'requires_approval' => true,
                     'max_capacity' => 6,
                 ]);
+                if ($placeId) {
+                    $s2->places()->attach($placeId);
+                }
                 Slot::create([
                     'event_id' => $event->id,
                     'created_by' => $createdBy,
                     'name' => 'Table #03',
                     'starts_at' => $start->copy()->setTime(18, 30),
                     'ends_at' => $start->copy()->setTime(21, 30),
-                    'place_id' => null,
                     'requires_approval' => false,
                     'max_capacity' => 4,
                 ]);

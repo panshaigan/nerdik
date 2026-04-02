@@ -4,6 +4,10 @@
     $slot = $slot ?? null;
     $slotVenueRoomDefaults = $slotVenueRoomDefaults ?? ['venue_place_id' => null, 'room_name' => null];
     $defaultVenuePlaceId = old('venue_place_id', $slotVenueRoomDefaults['venue_place_id']);
+    $slotMassVenues = $slotMassVenues ?? collect();
+    if ($slotMassVenues->isNotEmpty() && ($defaultVenuePlaceId === null || $defaultVenuePlaceId === '')) {
+        $defaultVenuePlaceId = $slotMassVenues->first()->id;
+    }
     $defaultRoomName = old('new_room_name', $slotVenueRoomDefaults['room_name'] ?? '');
     $defaultEventId = ($editMode && $slot) ? $slot->event_id : null;
     $countDefault = $countDefault ?? 5;
@@ -14,14 +18,13 @@
     }
     $slotBaseNameSuggestions = $slotBaseNameSuggestions ?? [];
     $slotNameSuggestions = $slotNameSuggestions ?? [];
-    $slotMassVenues = $slotMassVenues ?? collect();
     $slotMassRoomsByVenueId = $slotMassRoomsByVenueId ?? [];
     $eventVenuesByEventId = $eventVenuesByEventId ?? [];
     $roomsByEventAndVenue = $roomsByEventAndVenue ?? [];
     $lockedEvent = $lockedEvent ?? null;
     $singleVenueLocked = $lockedEvent && $slotMassVenues->count() === 1;
     $slotMassConfig = [
-        'oldVenuePlaceId' => $defaultVenuePlaceId,
+        'oldVenuePlaceId' => $defaultVenuePlaceId !== null && $defaultVenuePlaceId !== '' ? (int) $defaultVenuePlaceId : null,
         'isEdit' => $editMode,
         'initialActivityTypes' => $oldActivityTypes,
         'strings' => [
@@ -231,12 +234,12 @@
             <x-field-error :messages="$errors->get('activity_types.*')" class="mt-2" />
         </div>
 
-        <div class="border-t border-base-300 pt-4" data-slot-mass-place-root>
+        <div class="border-t border-base-300 pt-4 overflow-visible" data-slot-mass-place-root>
             @if ($lockedEvent && $slotMassVenues->isEmpty())
                 <p class="text-sm text-base-content/70">{{ __('ui.slots.no_places_on_event') }}</p>
             @else
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
-                    <div class="min-w-0">
+                <div class="grid grid-cols-1 gap-4 overflow-visible lg:grid-cols-2 lg:items-start">
+                    <div class="min-w-0 overflow-visible">
                         <fieldset class="fieldset py-0">
                             <legend class="fieldset-legend mb-0.5">{{ __('ui.slots.venue_optional') }}</legend>
                             <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.venue_help') }}</p>
@@ -258,7 +261,6 @@
                                     class="select select-bordered w-full"
                                     data-slot-venue-select
                                 >
-                                    <option value="">{{ __('ui.common.none') }}</option>
                                     @foreach ($slotMassVenues as $v)
                                         <option value="{{ $v->id }}" @selected((string) $defaultVenuePlaceId === (string) $v->id)>
                                             {{ $v->name }} ({{ $v->type }})
@@ -280,10 +282,10 @@
                     </div>
 
                     @if (($lockedEvent && $slotMassVenues->isNotEmpty()) || ! $lockedEvent)
-                        <div class="min-w-0" data-slot-room-block>
+                        <div class="min-w-0 overflow-visible" data-slot-room-block>
                             <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
                             <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.room_help') }}</p>
-                            <div class="relative">
+                            <div class="relative overflow-visible">
                                 <x-input
                                     label=""
                                     name="new_room_name"
@@ -299,7 +301,7 @@
                                 />
                                 <div
                                     id="slot-room-suggestions-popup"
-                                    class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                                    class="fixed z-[9999] hidden max-h-[min(14rem,50vh)] overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                                     data-slot-room-popup
                                     role="listbox"
                                 ></div>

@@ -294,16 +294,18 @@ class EventController extends Controller
 
         $newEvent->tags()->sync($event->tags->pluck('id')->all());
 
-        foreach ($event->slots()->get() as $slot) {
-            $newEvent->slots()->create([
+        foreach ($event->slots()->with('place')->get() as $slot) {
+            $newSlot = $newEvent->slots()->create([
                 'name' => $slot->name,
                 'starts_at' => $slot->starts_at,
                 'ends_at' => $slot->ends_at,
-                'place_id' => $slot->place_id,
                 'requires_approval' => $slot->requires_approval,
                 'max_capacity' => $slot->max_capacity,
                 'activity_id' => null, // important: new event has empty slots
             ]);
+            if ($slot->place) {
+                $newSlot->places()->sync([$slot->place->id]);
+            }
         }
 
         return redirect()->route('events.show', $newEvent)
