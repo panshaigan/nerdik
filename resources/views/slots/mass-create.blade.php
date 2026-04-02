@@ -1,3 +1,7 @@
+@php
+    $embeddedInModal = $embeddedInModal ?? false;
+@endphp
+
 <form method="POST" action="{{ route('slots.store') }}">
     @csrf
 
@@ -97,9 +101,15 @@
     </div>
 
     <div class="mt-6 flex justify-end gap-3">
-        <a href="{{ route('slots.index') }}" class="btn btn-outline">
-            {{ __('ui.common.cancel') }}
-        </a>
+        @if ($embeddedInModal)
+            <button type="button" class="btn btn-outline" onclick="this.closest('dialog')?.close()">
+                {{ __('ui.common.cancel') }}
+            </button>
+        @else
+            <a href="{{ route('slots.index') }}" class="btn btn-outline">
+                {{ __('ui.common.cancel') }}
+            </a>
+        @endif
 
         <x-button class="btn-primary" type="submit">{{ __('ui.slots.create_slots') }}</x-button>
     </div>

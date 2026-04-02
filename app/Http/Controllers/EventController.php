@@ -120,6 +120,7 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $event->load(['creator', 'tags.translations', 'organization', 'places', 'slots.place', 'slots.activity']);
+        $places = Place::orderBy('name')->get();
         $pendingProposals = $event->proposals()
             ->with(['activity', 'creator', 'proposedSlots'])
             ->where('status', 'pending')
@@ -127,7 +128,7 @@ class EventController extends Controller
             ->get();
         $isOwner = auth()->check() && $event->created_by === auth()->id();
 
-        return view('events.show', compact('event', 'pendingProposals', 'isOwner'));
+        return view('events.show', compact('event', 'places', 'pendingProposals', 'isOwner'));
     }
 
     /**

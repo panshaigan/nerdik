@@ -92,12 +92,9 @@
                     @auth
                         @if ($event->created_by === auth()->id())
                             <div class="flex flex-wrap gap-2">
-                                <a href="{{ route('slots.create', ['event' => $event->slug]) }}" class="btn btn-primary btn-sm">
-                                    {{ __('ui.events.create_slot') }}
-                                </a>
-                                <a href="{{ route('slots.create', ['event' => $event->slug, 'mode' => 'mass']) }}" class="btn btn-outline btn-sm">
-                                    {{ __('ui.events.mass_create_slots') }}
-                                </a>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('event-slots-create-modal')?.showModal()">
+                                    {{ __('ui.slots.create_slots') }}
+                                </button>
                             </div>
                         @endif
                     @endauth
@@ -132,6 +129,27 @@
                     @endforelse
                 </ul>
             </div>
+
+            @auth
+                @if ($event->created_by === auth()->id())
+                    <dialog id="event-slots-create-modal" class="modal">
+                        <div class="modal-box max-w-3xl">
+                            <h3 class="text-lg font-semibold text-base-content">{{ __('ui.slots.create_slots') }}</h3>
+                            <div class="mt-4">
+                                @include('slots.mass-create', [
+                                    'lockedEvent' => $event,
+                                    'events' => collect([$event]),
+                                    'places' => $places,
+                                    'embeddedInModal' => true,
+                                ])
+                            </div>
+                        </div>
+                        <form method="dialog" class="modal-backdrop">
+                            <button>{{ __('ui.common.cancel') }}</button>
+                        </form>
+                    </dialog>
+                @endif
+            @endauth
 
             @if ($isOwner && $pendingProposals->isNotEmpty())
                 <div class="rounded-lg border border-warning/40 bg-base-100 p-6 shadow">
