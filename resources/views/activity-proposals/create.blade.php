@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
                 <p class="mb-4 text-sm text-base-content/80">
                     {{ format_in_user_tz($event->starts_at, 'Y-m-d H:i') }} – {{ format_in_user_tz($event->ends_at, 'Y-m-d H:i') }}
