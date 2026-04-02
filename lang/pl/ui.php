@@ -54,6 +54,7 @@ return [
         'free' => 'wolny',
         'edit_slot' => 'Edytuj slot',
         'no_slots_yet' => 'Brak slotow.',
+        'slots_group_no_time' => 'Bez godziny startu',
         'pending_proposals' => 'Oczekujace propozycje',
         'pending_proposals_help' => 'Jako organizator wydarzenia wybierz slot dla kazdej aktywnosci i kliknij Akceptuj albo Odrzuc.',
         'preferred_slots' => 'Preferowane sloty',

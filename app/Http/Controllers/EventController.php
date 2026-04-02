@@ -11,6 +11,7 @@ use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
@@ -120,7 +121,20 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        $event->load(['creator', 'tags.translations', 'organization', 'places', 'slots.place.parent', 'slots.activity']);
+        $event->load([
+            'creator',
+            'tags.translations',
+            'organization',
+            'places',
+            'slots' => fn ($q) => $q->with([
+                'place.parent',
+                'activity.tags.translations',
+                'tags.translations',
+            ])->orderBy('starts_at'),
+        ]);
+
+        $slotListActivityTagCategories = ['game', 'world', 'convention', 'engine', 'block'];
+        $slotHourGroups = $this->slotHourGroupsForEvent($event);
         $places = Place::orderBy('name')->get();
         $pendingProposals = $event->proposals()
             ->with(['activity', 'creator', 'proposedSlots'])
@@ -169,8 +183,42 @@ class EventController extends Controller
             'slotNameSuggestions',
             'slotMassVenues',
             'slotMassRoomsByVenueId',
-            'slotBaseNameSuggestions'
+            'slotBaseNameSuggestions',
+            'slotHourGroups',
+            'slotListActivityTagCategories'
         ));
+    }
+
+    /**
+     * Group slots by calendar hour (user timezone) for the event schedule list.
+     *
+     * @return list<array{label: string, slots: Collection<int, Slot>}>
+     */
+    protected function slotHourGroupsForEvent(Event $event): array
+    {
+        $sorted = $event->slots
+            ->sortBy(fn (Slot $s) => $s->starts_at?->getTimestamp() ?? PHP_INT_MAX)
+            ->values();
+
+        $grouped = $sorted->groupBy(function (Slot $slot) {
+            if (! $slot->starts_at) {
+                return '__no_time__';
+            }
+
+            return format_in_user_tz($slot->starts_at, 'Y-m-d H');
+        })->sortKeys();
+
+        $out = [];
+        foreach ($grouped as $key => $groupSlots) {
+            $out[] = [
+                'label' => $key === '__no_time__'
+                    ? __('ui.events.slots_group_no_time')
+                    : format_in_user_tz($groupSlots->first()->starts_at, 'D, M j · H:00'),
+                'slots' => $groupSlots,
+            ];
+        }
+
+        return $out;
     }
 
     /**

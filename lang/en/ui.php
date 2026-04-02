@@ -54,6 +54,7 @@ return [
         'free' => 'free',
         'edit_slot' => 'Edit slot',
         'no_slots_yet' => 'No slots yet.',
+        'slots_group_no_time' => 'No start time',
         'pending_proposals' => 'Pending proposals',
         'pending_proposals_help' => 'As the event organizer, choose a slot for each activity below and click Accept, or Reject.',
         'preferred_slots' => 'Preferred slots',
