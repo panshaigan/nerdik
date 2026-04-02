@@ -99,34 +99,79 @@
                         @endif
                     @endauth
                 </div>
-                <ul class="divide-y divide-base-300">
-                    @forelse ($event->slots as $slot)
-                        <li class="py-3 flex items-center justify-between">
-                            <div>
-                                <span class="font-medium">{{ $slot->name }}</span>
-                                @if ($slot->starts_at)
-                                    <span class="text-base-content/70 text-sm"> · {{ format_in_user_tz($slot->starts_at, 'H:i') }}</span>
-                                @endif
-                                @if ($slot->place)
-                                    <span class="text-base-content/70 text-sm"> · {{ $slot->place->venueRoomLabel() }}</span>
-                                @endif
-                                @if ($slot->activity)
-                                    <span class="text-sm text-primary">
-                                        → <a href="{{ route('activities.show', $slot->activity) }}" class="hover:underline">{{ $slot->activity->name }}</a>
-                                    </span>
-                                @else
-                                    <span class="text-sm text-base-content/50">— {{ __('ui.events.free') }}</span>
-                                @endif
-                            </div>
-                            @auth
-                                @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                    <button
-                                        type="button"
-                                        class="btn btn-ghost btn-xs"
-                                        onclick="window.openSlotEditModal?.({{ $slot->id }})"
-                                    >{{ __('ui.events.edit_slot') }}</button>
-                                @endif
-                            @endauth
+                @php
+                    $tagCategoryOrder = array_flip($slotListActivityTagCategories);
+                @endphp
+                <ul class="space-y-6">
+                    @forelse ($slotHourGroups as $group)
+                        <li class="list-none">
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                {{ $group['label'] }}
+                            </p>
+                            <ul class="divide-y divide-base-300 rounded-lg border border-base-300">
+                                @foreach ($group['slots'] as $slot)
+                                    <li class="flex flex-wrap items-start justify-between gap-3 px-3 py-3 sm:items-center">
+                                        <div class="min-w-0 flex-1 space-y-1.5">
+                                            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                                <span class="font-medium text-base-content">{{ $slot->name }}</span>
+                                                @if ($slot->starts_at || $slot->ends_at)
+                                                    <span class="text-sm text-base-content/70">
+                                                        <span class="whitespace-pre"> · </span>
+                                                        <span class="tabular-nums">
+                                                            @if ($slot->starts_at && $slot->ends_at)
+                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50">–</span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                            @elseif ($slot->starts_at)
+                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}
+                                                            @else
+                                                                {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                            @endif
+                                                        </span>
+                                                    </span>
+                                                @endif
+                                                @if ($slot->place)
+                                                    <span class="text-sm text-base-content/70">
+                                                        · {{ $slot->place->venueRoomLabel() }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if ($slot->activity)
+                                                <div class="text-sm">
+                                                    <a href="{{ route('activities.show', $slot->activity) }}" class="text-primary hover:underline">
+                                                        {{ $slot->activity->name }}
+                                                    </a>
+                                                </div>
+                                                @php
+                                                    $listTags = $slot->activity->tags
+                                                        ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
+                                                        ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                                @endphp
+                                                @if ($listTags->isNotEmpty())
+                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => ''])
+                                                @endif
+                                            @else
+                                                <p class="text-sm text-base-content/50">— {{ __('ui.events.free') }}</p>
+                                                @php
+                                                    $listTags = $slot->tags
+                                                        ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
+                                                        ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                                @endphp
+                                                @if ($listTags->isNotEmpty())
+                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => ''])
+                                                @endif
+                                            @endif
+                                        </div>
+                                        @auth
+                                            @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-ghost btn-xs shrink-0"
+                                                    onclick="window.openSlotEditModal?.({{ $slot->id }})"
+                                                >{{ __('ui.events.edit_slot') }}</button>
+                                            @endif
+                                        @endauth
+                                    </li>
+                                @endforeach
+                            </ul>
                         </li>
                     @empty
                         <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
