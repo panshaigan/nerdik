@@ -24,7 +24,7 @@ new class extends Component
     };
 @endphp
 
-<nav x-data="{ open: false }" class="border-b border-base-300 bg-base-100/90 backdrop-blur">
+<nav x-data="{ open: false }" class="relative z-20 border-b border-base-300 bg-base-100/90 backdrop-blur">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 justify-between">
             <div class="flex">
@@ -82,36 +82,40 @@ new class extends Component
                     @endif
                 </a>
 
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar border border-base-300">
-                        <div class="w-9 rounded-full">
-                            <img
-                                src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=334155&color=ffffff&bold=true"
-                                alt=""
-                            />
+                <x-dropdown :right="true">
+                    <x-slot:trigger>
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar border border-base-300">
+                            <div class="w-9 rounded-full">
+                                <img
+                                    src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=334155&color=ffffff&bold=true"
+                                    alt=""
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
-                        <li class="mb-2 border-b border-base-300 px-2 pb-2">
-                            <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
-                            <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
-                        </li>
-                        <li>
-                            <a wire:navigate href="{{ route('notifications.index') }}">
-                                {{ __('Notifications') }}
-                                @if (auth()->user()->unreadNotifications->count() > 0)
-                                    <span class="badge badge-sm badge-error">{{ auth()->user()->unreadNotifications->count() }}</span>
-                                @endif
-                            </a>
-                        </li>
-                        <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
-                        <li><a href="#">{{ __('Dummy menu item') }}</a></li>
-                        <li><a href="#">{{ __('Another quick action') }}</a></li>
-                        <li>
-                            <button type="button" wire:click="logout" class="w-full text-start">{{ __('Log Out') }}</button>
-                        </li>
-                    </ul>
-                </div>
+                    </x-slot:trigger>
+
+                    <li class="mb-2 border-b border-base-300 px-2 pb-2">
+                        <p class="text-sm font-semibold"
+                           x-data="{{ json_encode(['name' => auth()->user()->name]) }}"
+                           x-text="name"
+                           x-on:profile-updated.window="name = $event.detail.name"></p>
+                        <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
+                    </li>
+                    <li>
+                        <a wire:navigate href="{{ route('notifications.index') }}">
+                            {{ __('Notifications') }}
+                            @if (auth()->user()->unreadNotifications->count() > 0)
+                                <span class="badge badge-sm badge-error">{{ auth()->user()->unreadNotifications->count() }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
+                    <li><a href="#">{{ __('Dummy menu item') }}</a></li>
+                    <li><a href="#">{{ __('Another quick action') }}</a></li>
+                    <li>
+                        <button type="button" wire:click="logout" class="w-full text-start">{{ __('Log Out') }}</button>
+                    </li>
+                </x-dropdown>
             </div>
 
             <div class="-me-2 flex items-center sm:hidden">
