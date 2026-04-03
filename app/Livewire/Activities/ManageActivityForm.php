@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Activities;
 
-use App\Http\Controllers\ActivityController;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Tag;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Services\TagSelectionService;
+use App\Support\ActivityTypes;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
@@ -166,7 +166,7 @@ class ManageActivityForm extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
-            'type' => ['required', 'string', Rule::in(ActivityController::ACTIVITY_TYPES)],
+            'type' => ['required', 'string', Rule::in(ActivityTypes::VALUES)],
             'min_participants' => [
                 'nullable',
                 'integer',
