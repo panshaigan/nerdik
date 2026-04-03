@@ -73,6 +73,11 @@ class ManageActivityForm extends Component
             $this->open_for_observers = (bool) $activity->open_for_observers;
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
+        } elseif (request()->filled('proposal_event_id')) {
+            $id = (int) request()->query('proposal_event_id');
+            if ($id > 0) {
+                $this->proposal_event_id = $id;
+            }
         }
     }
 
