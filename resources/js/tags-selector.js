@@ -6,6 +6,34 @@ function displayLabel(tag, locale) {
     return tag.labels?.[locale] || tag.labels?.en || tag.slug || `#${tag.id}`;
 }
 
+/**
+ * Sync tag state into the nearest Livewire component that wraps this selector.
+ * Window-level Alpine listeners using $wire can attach to the wrong component when multiple Livewire roots exist (e.g. nav + form).
+ */
+function syncLivewireTagState(root, tagIds, newTagsPayload) {
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+        return;
+    }
+
+    const host = root.closest('[wire\\:id]');
+    if (!host) {
+        return;
+    }
+
+    const id = host.getAttribute('wire:id');
+    if (!id) {
+        return;
+    }
+
+    const wire = window.Livewire.find(id);
+    if (!wire || typeof wire.set !== 'function') {
+        return;
+    }
+
+    wire.set('tag_ids', tagIds);
+    wire.set('new_tags', newTagsPayload);
+}
+
 export function initTagSelector(root) {
     if (root.dataset.tsInitialized) return;
 
@@ -39,14 +67,15 @@ export function initTagSelector(root) {
         const tagIds = Array.from(selected)
             .sort((a, b) => a - b)
             .map((id) => Number(id));
-        const newTags = pendingNew.map((t) => ({
+        const newTagsPayload = pendingNew.map((t) => ({
             label: t.label,
             category: t.category,
         }));
+        syncLivewireTagState(root, tagIds, newTagsPayload);
         root.dispatchEvent(
             new CustomEvent('tags-changed', {
                 bubbles: true,
-                detail: { tagIds, newTags },
+                detail: { tagIds, newTags: newTagsPayload },
             })
         );
     }

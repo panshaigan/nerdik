@@ -7,11 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 
-<div
-    class="space-y-4"
-    x-data
-    x-on:tags-changed.window="$wire.set('tag_ids', $event.detail.tagIds); $wire.set('new_tags', $event.detail.newTags);"
->
+<div class="space-y-4">
     <form wire:submit.prevent="save" class="space-y-4" data-activity-form>
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <div>
