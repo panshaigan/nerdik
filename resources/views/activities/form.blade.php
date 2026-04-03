@@ -215,6 +215,52 @@
     </div>
 </div>
 
+    <div class="mt-4 border-t border-base-300 pt-4">
+        <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.activities.propose_to_event') }}</p>
+        <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.propose_to_event_help') }}</p>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+                <label for="proposal_event_id" class="mb-1 block text-sm font-medium text-base-content">
+                    {{ __('ui.activities.proposal_event') }}
+                </label>
+                <select
+                    id="proposal_event_id"
+                    name="proposal_event_id"
+                    class="select select-bordered w-full border-base-300 bg-base-100"
+                >
+                    <option value="">{{ __('ui.activities.proposal_event_none') }}</option>
+                    @foreach ($futureEvents ?? [] as $ev)
+                        <option value="{{ $ev->id }}" @selected((string) old('proposal_event_id') === (string) $ev->id)>
+                            {{ $ev->name }}
+                            @if ($ev->starts_at)
+                                — {{ $ev->starts_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                @if (collect($futureEvents ?? [])->isEmpty())
+                    <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_no_future_events') }}</p>
+                @endif
+                <x-field-error :messages="$errors->get('proposal_event_id')" class="mt-2" />
+            </div>
+
+            <div>
+                <label for="proposal_preferred_start_time" class="mb-1 block text-sm font-medium text-base-content">
+                    {{ __('ui.activities.proposal_preferred_start_time') }}
+                </label>
+                <input
+                    type="datetime-local"
+                    name="proposal_preferred_start_time"
+                    id="proposal_preferred_start_time"
+                    class="input input-bordered w-full border-base-300 bg-base-100"
+                    value="{{ old('proposal_preferred_start_time') }}"
+                />
+                <x-field-error :messages="$errors->get('proposal_preferred_start_time')" class="mt-2" />
+            </div>
+        </div>
+    </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const activityForm = document.querySelector('form[data-activity-form]');

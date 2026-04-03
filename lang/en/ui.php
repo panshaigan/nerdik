@@ -35,6 +35,12 @@ return [
         'tags' => 'Tags',
         'tags_help' => 'Select tags (game system, publisher, triggers, etc.).',
         'activity_options' => 'Activity options',
+        'propose_to_event' => 'Propose to an event (optional)',
+        'propose_to_event_help' => 'If you pick an upcoming event, saving will store this activity and submit a pending proposal to that event organizer. You can suggest when you would like to run it; the organizer assigns a slot.',
+        'proposal_event' => 'Event',
+        'proposal_event_none' => '— No proposal —',
+        'proposal_no_future_events' => 'No upcoming events are available right now.',
+        'proposal_preferred_start_time' => 'Preferred date & time (optional)',
     ],
     'events' => [
         'host' => 'Host',
@@ -142,5 +148,7 @@ return [
         'proposal_not_pending' => 'Proposal is not pending.',
         'forbidden_accept' => 'Only the event owner can accept proposals.',
         'forbidden_reject' => 'Only the event owner can reject proposals.',
+        'activity_saved_with_proposal' => 'Activity created. A proposal was submitted for :event.',
+        'activity_updated_with_proposal' => 'Activity updated. A proposal was submitted for :event.',
     ],
 ];
