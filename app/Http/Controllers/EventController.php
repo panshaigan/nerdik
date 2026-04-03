@@ -129,6 +129,7 @@ class EventController extends Controller
             'slots' => fn ($q) => $q->with([
                 'place.parent',
                 'activity.tags.translations',
+                'activityTypes',
                 'tags.translations',
             ])->orderBy('starts_at'),
         ]);
