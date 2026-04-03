@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tags', TagController::class)
         ->except(['show']);
 
-    Route::resource('activities', ActivityController::class);
+    Route::resource('activities', ActivityController::class)->except(['store', 'update']);
 
     Route::resource('activity-proposals', ActivityProposalController::class)
         ->only(['index', 'store']);

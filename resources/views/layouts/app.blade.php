@@ -30,6 +30,8 @@
             })();
         </script>
 
+        @stack('head')
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -62,5 +64,7 @@
                 </div>
             </footer>
         </div>
+
+        @stack('scripts')
     </body>
 </html>
