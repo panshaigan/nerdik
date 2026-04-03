@@ -38,13 +38,18 @@
             'auto' => __('auto'),
         ],
     ];
+    $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
 @endphp
 
 @if (empty($tagsForJs))
     <p class="text-sm text-base-content/70">{{ __('No tags in the system yet. Start typing to create the first ones.') }}</p>
 @endif
 
-<div data-tag-selector class="space-y-3">
+<div
+    data-tag-selector
+    class="space-y-3"
+    @if ($skipLivewireSync) data-ts-skip-livewire-sync="1" @endif
+>
     <script type="application/json" data-ts-config>
         @json($tagSelectorConfig)
     </script>

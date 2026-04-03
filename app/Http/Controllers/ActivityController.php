@@ -33,22 +33,6 @@ class ActivityController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Activity $activity)
-    {
-        $activity->load(['host', 'creator', 'tags.translations', 'participants.user', 'waitlist.user']);
-        $isParticipant = auth()->check() && $activity->participants()->where('user_id', auth()->id())->exists();
-        $onWaitlist = auth()->check() && $activity->waitlist()->where('user_id', auth()->id())->exists();
-        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist;
-        $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
-        $isHost = auth()->check() && $activity->host_user_id === auth()->id();
-        $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
-
-        return view('activities.show', compact('activity', 'isParticipant', 'onWaitlist', 'canJoin', 'isFull', 'isHost', 'inWishlist'));
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Activity $activity)

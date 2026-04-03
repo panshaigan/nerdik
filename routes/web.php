@@ -10,6 +10,7 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\WishlistController;
+use App\Models\Activity;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -68,7 +69,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tags', TagController::class)
         ->except(['show']);
 
-    Route::resource('activities', ActivityController::class)->except(['store', 'update']);
+    Route::resource('activities', ActivityController::class)->except(['store', 'update', 'show']);
+    Route::get('activities/{activity}', function (Activity $activity) {
+        return view('activities.show', compact('activity'));
+    })->name('activities.show');
 
     Route::view('activity-proposals', 'activity-proposals.index')->name('activity-proposals.index');
     Route::post('activity-proposals/{proposal}/accept', [ActivityProposalController::class, 'accept'])->name('activity-proposals.accept');
@@ -91,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
 // Public event detail route.
 // Must be declared after more specific routes like `events/create` and `events/*/edit`,
 // otherwise `events/{event}` can consume `create` as the `{event}` slug.
-Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+Route::get('events/{event}', function (Event $event) {
+    return view('events.show', compact('event'));
+})->name('events.show');
 
 require __DIR__.'/auth.php';

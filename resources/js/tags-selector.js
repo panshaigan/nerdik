@@ -11,6 +11,10 @@ function displayLabel(tag, locale) {
  * Window-level Alpine listeners using $wire can attach to the wrong component when multiple Livewire roots exist (e.g. nav + form).
  */
 function syncLivewireTagState(root, tagIds, newTagsPayload) {
+    if (root.dataset.tsSkipLivewireSync === '1') {
+        return;
+    }
+
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
         return;
     }

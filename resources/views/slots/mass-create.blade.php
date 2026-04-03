@@ -320,6 +320,7 @@
                 @include('tags.partials.selector', [
                     'tags' => $tags,
                     'selectedIds' => old('tag_ids', ($editMode && $slot && $slot->exists) ? $slot->tags->pluck('id')->toArray() : []),
+                    'skipLivewireSync' => true,
                 ])
                 <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
