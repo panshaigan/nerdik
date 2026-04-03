@@ -149,16 +149,14 @@
         </div>
 
         <div class="rounded-lg border border-base-300 bg-base-100 p-3 lg:col-span-6">
-            <label for="is_public" class="flex items-start gap-3">
-                <input id="is_public" name="is_public" type="checkbox" value="1" class="checkbox checkbox-sm mt-1"
-                       @checked(old('is_public', $event->is_public ?? true)) />
-                <span>
-                    <span class="block text-sm font-medium text-base-content">{{ __('Public event') }}</span>
-                    <span class="block text-xs text-base-content/70">
-                        {{ __('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.') }}
-                    </span>
-                </span>
-            </label>
+            <x-checkbox
+                id="is_public"
+                name="is_public"
+                value="1"
+                :label="__('Public event')"
+                :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
+                :checked="(bool) old('is_public', $event->is_public ?? true)"
+            />
         </div>
     </div>
 
@@ -171,12 +169,13 @@
         <div data-event-places-unified class="space-y-3">
             <script type="application/json" data-ep-config>@json($eventPlacesConfig)</script>
             <div class="relative z-[1000]">
-                <input
+                <x-input
                     type="search"
                     data-ep-search
-                    class="input input-bordered w-full rounded-md border-base-300 bg-base-100"
-                    placeholder="{{ __('Search places or address… (double-click map to add)') }}"
                     autocomplete="off"
+                    :placeholder="__('Search places or address… (double-click map to add)')"
+                    class="w-full"
+                    :omit-error="true"
                 />
                 <div
                     data-ep-results
@@ -194,7 +193,7 @@
 
             <div
                 data-ep-new-venues-wrap
-                class="{{ count($initialNewPlaces) ? '' : 'hidden' }} space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3"
+                class="{{ count($initialNewPlaces) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3"
             >
                 <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
                 <div data-ep-new-venues class="space-y-3"></div>
@@ -558,9 +557,7 @@
 </script>
 
 <div class="mt-6 flex justify-end gap-3">
-    <a href="{{ route('events.index') }}" class="btn btn-outline">
-        {{ __('Cancel') }}
-    </a>
+    <x-button :link="route('events.index')" class="btn-outline">{{ __('Cancel') }}</x-button>
 
     <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('Save') }}</x-button>
 </div>

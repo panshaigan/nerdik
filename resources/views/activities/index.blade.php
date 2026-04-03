@@ -1,79 +1,68 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="text-xl font-semibold leading-tight text-base-content">
             {{ __('Activities') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex justify-end mb-4">
-                <a href="{{ route('activities.create') }}"
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500">
-                    {{ __('Add activity') }}
-                </a>
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="mb-4 flex justify-end">
+                <x-button :link="route('activities.create')" class="btn-primary">{{ __('Add activity') }}</x-button>
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Name') }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Type') }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Host') }}
-                            </th>
-                            <th class="px-4 py-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse ($activities as $activity)
+            <div class="overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <a href="{{ route('activities.show', $activity) }}" class="text-indigo-600 hover:text-indigo-900">
-                                        {{ $activity->name }}
-                                    </a>
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ strtoupper($activity->type) }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}
-                                </td>
-                                <td class="px-4 py-2 text-right text-sm">
-                                    @if ($activity->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                        <a href="{{ route('activities.edit', $activity) }}"
-                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                            {{ __('Edit') }}
+                                <th>{{ __('Name') }}</th>
+                                <th>{{ __('Type') }}</th>
+                                <th>{{ __('Host') }}</th>
+                                <th class="w-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($activities as $activity)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('activities.show', $activity) }}" class="link link-primary font-medium">
+                                            {{ $activity->name }}
                                         </a>
+                                    </td>
+                                    <td class="opacity-80">{{ strtoupper($activity->type) }}</td>
+                                    <td class="opacity-80">{{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}</td>
+                                    <td class="text-end">
+                                        @if ($activity->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                            <a href="{{ route('activities.edit', $activity) }}" class="link link-primary me-3">
+                                                {{ __('Edit') }}
+                                            </a>
 
-                                        <form action="{{ route('activities.destroy', $activity) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
+                                            <form action="{{ route('activities.destroy', $activity) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button
+                                                    type="submit"
                                                     onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                    class="text-red-600 hover:text-red-900">
-                                                {{ __('Delete') }}
-                                            </button>
-                                        </form>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="px-4 py-4 text-sm text-gray-500 text-center">
-                                    {{ __('No activities yet.') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                                    class="btn btn-ghost btn-sm text-error"
+                                                >
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center opacity-70">
+                                        {{ __('No activities yet.') }}
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </x-app-layout>
-

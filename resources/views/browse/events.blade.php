@@ -10,30 +10,33 @@
             <form method="GET" class="space-y-4">
                 <div class="card border border-base-300 bg-base-100 p-4 shadow-sm">
                     <div class="flex flex-wrap items-end gap-4">
-                        <div>
-                            <label for="q" class="block text-sm font-medium opacity-80">{{ __('Search') }}</label>
-                            <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Name or description…') }}" class="input input-bordered mt-1 w-64">
-                        </div>
+                        <x-input
+                            id="q"
+                            name="q"
+                            type="text"
+                            value="{{ request('q') }}"
+                            :label="__('Search')"
+                            :placeholder="__('Name or description…')"
+                            class="w-full max-w-xs"
+                            :omit-error="true"
+                        />
                         @if ($tags->isNotEmpty())
-                            <div>
-                                <label for="tag_id" class="block text-sm font-medium opacity-80">{{ __('Tag') }}</label>
-                                <select id="tag_id" name="tag_id" class="select select-bordered mt-1">
-                                    <option value="">{{ __('Any') }}</option>
-                                    @foreach ($tags as $tag)
-                                        <option value="{{ $tag->id }}" @selected(request('tag_id') == $tag->id)>
-                                            {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            <x-form-select id="tag_id" name="tag_id" :label="__('Tag')">
+                                <option value="">{{ __('Any') }}</option>
+                                @foreach ($tags as $tag)
+                                    <option value="{{ $tag->id }}" @selected(request('tag_id') == $tag->id)>
+                                        {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
+                                    </option>
+                                @endforeach
+                            </x-form-select>
                         @endif
                         <input type="hidden" name="min_lat" id="bbox_min_lat" value="{{ request('min_lat') }}">
                         <input type="hidden" name="max_lat" id="bbox_max_lat" value="{{ request('max_lat') }}">
                         <input type="hidden" name="min_lng" id="bbox_min_lng" value="{{ request('min_lng') }}">
                         <input type="hidden" name="max_lng" id="bbox_max_lng" value="{{ request('max_lng') }}">
-                        <button type="submit" class="btn btn-primary">{{ __('Search') }}</button>
+                        <x-button type="submit" class="btn-primary">{{ __('Search') }}</x-button>
                         @if (request()->hasAny(['q', 'tag_id', 'min_lat', 'max_lat', 'min_lng', 'max_lng']))
-                            <a href="{{ route('browse.events') }}" class="btn btn-ghost">{{ __('Clear') }}</a>
+                            <x-button :link="route('browse.events')" class="btn-ghost">{{ __('Clear') }}</x-button>
                         @endif
                     </div>
                 </div>
@@ -52,10 +55,7 @@
 
             @auth
                 <div class="mb-1 flex justify-end">
-                    <a href="{{ route('events.create') }}"
-                       class="btn btn-primary">
-                        {{ __('Create event') }}
-                    </a>
+                    <x-button :link="route('events.create')" class="btn-primary">{{ __('Create event') }}</x-button>
                 </div>
             @endauth
 

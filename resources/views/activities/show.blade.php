@@ -1,35 +1,35 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="text-xl font-semibold leading-tight text-base-content">
             {{ $activity->name }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
             @if (session('status'))
-                <p class="text-sm text-green-600">{{ session('status') }}</p>
+                <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
             @endif
 
-            <div class="bg-white shadow sm:rounded-lg p-6">
+            <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
                 <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('Type') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ ucfirst($activity->type) }}</dd>
+                        <dt class="text-sm font-medium opacity-70">{{ __('Type') }}</dt>
+                        <dd class="mt-1 text-sm text-base-content">{{ ucfirst($activity->type) }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('Host') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}</dd>
+                        <dt class="text-sm font-medium opacity-70">{{ __('Host') }}</dt>
+                        <dd class="mt-1 text-sm text-base-content">{{ $activity->host?->nickname ?? $activity->host?->email ?? '—' }}</dd>
                     </div>
                     @if ($activity->creator)
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('Created by') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $activity->creator->nickname ?? $activity->creator->email }}</dd>
+                            <dt class="text-sm font-medium opacity-70">{{ __('Created by') }}</dt>
+                            <dd class="mt-1 text-sm text-base-content">{{ $activity->creator->nickname ?? $activity->creator->email }}</dd>
                         </div>
                     @endif
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">{{ __('Participants') }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
+                        <dt class="text-sm font-medium opacity-70">{{ __('Participants') }}</dt>
+                        <dd class="mt-1 text-sm text-base-content">
                             {{ $activity->participants()->count() }}
                             @if ($activity->max_participants !== null)
                                 / {{ $activity->max_participants }}
@@ -38,30 +38,30 @@
                     </div>
                     @if ($activity->duration_minutes)
                         <div>
-                            <dt class="text-sm font-medium text-gray-500">{{ __('Duration') }}</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $activity->duration_minutes }} min</dd>
+                            <dt class="text-sm font-medium opacity-70">{{ __('Duration') }}</dt>
+                            <dd class="mt-1 text-sm text-base-content">{{ $activity->duration_minutes }} min</dd>
                         </div>
                     @endif
                 </dl>
                 @if ($activity->tags->isNotEmpty())
                     <div class="mt-4">
-                        <p class="text-sm font-medium text-gray-500 mb-2">{{ __('Tags') }}</p>
+                        <p class="mb-2 text-sm font-medium opacity-70">{{ __('Tags') }}</p>
                         @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
                     </div>
                 @endif
 
                 @auth
-                    <div class="mt-6 flex flex-wrap gap-3 items-center">
+                    <div class="mt-6 flex flex-wrap items-center gap-3">
                         @if ($inWishlist)
                             <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-sm text-amber-600 hover:text-amber-800">★ {{ __('Remove from wishlist') }}</button>
+                                <x-button type="submit" class="btn-ghost btn-sm text-warning">★ {{ __('Remove from wishlist') }}</x-button>
                             </form>
                         @else
                             <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="text-sm text-gray-600 hover:text-amber-600">☆ {{ __('Add to wishlist') }}</button>
+                                <x-button type="submit" class="btn-ghost btn-sm">☆ {{ __('Add to wishlist') }}</x-button>
                             </form>
                         @endif
                         @if ($isParticipant)
@@ -88,44 +88,40 @@
                         @elseif ($canJoin && ! $isFull)
                             <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                                    {{ __('Or join waitlist') }}
-                                </button>
+                                <x-button type="submit" class="btn-link btn-sm">{{ __('Or join waitlist') }}</x-button>
                             </form>
                         @endif
                     </div>
                 @endauth
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Participants') }}</h3>
-                <ul class="divide-y divide-gray-200">
+            <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+                <h3 class="mb-2 text-lg font-medium text-base-content">{{ __('Participants') }}</h3>
+                <ul class="divide-y divide-base-300">
                     @forelse ($activity->participants as $p)
-                        <li class="py-2 flex items-center justify-between">
+                        <li class="flex items-center justify-between py-2">
                             <span class="text-sm">
                                 {{ $p->user->nickname ?? $p->user->email }}
-                                @if ($p->is_host) <span class="text-gray-500">({{ __('Host') }})</span> @endif
-                                @if ($p->is_absent) <span class="text-red-600">({{ __('Absent') }})</span> @endif
+                                @if ($p->is_host) <span class="opacity-70">({{ __('Host') }})</span> @endif
+                                @if ($p->is_absent) <span class="text-error">({{ __('Absent') }})</span> @endif
                             </span>
                             @if ($isHost && ! $p->is_host && ! $p->is_absent)
                                 <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="text-xs text-red-600 hover:text-red-800">
-                                        {{ __('Mark absent') }}
-                                    </button>
+                                    <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
                                 </form>
                             @endif
                         </li>
                     @empty
-                        <li class="py-2 text-sm text-gray-500">{{ __('No participants yet.') }}</li>
+                        <li class="py-2 text-sm opacity-70">{{ __('No participants yet.') }}</li>
                     @endforelse
                 </ul>
             </div>
 
             @if ($activity->waitlist->isNotEmpty())
-                <div class="bg-white shadow sm:rounded-lg p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Waitlist') }}</h3>
-                    <ul class="divide-y divide-gray-200">
+                <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+                    <h3 class="mb-2 text-lg font-medium text-base-content">{{ __('Waitlist') }}</h3>
+                    <ul class="divide-y divide-base-300">
                         @foreach ($activity->waitlist as $entry)
                             <li class="py-2 text-sm">
                                 #{{ $entry->position }} {{ $entry->user->nickname ?? $entry->user->email }}
@@ -135,17 +131,23 @@
                 </div>
             @endif
 
-            <div class="flex flex-wrap gap-3 items-center">
-                <a href="{{ route('activities.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('activities.index') }}" class="link link-hover text-sm opacity-80">
                     {{ __('Back to activities') }}
                 </a>
-                <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)" class="text-sm text-gray-500 hover:text-gray-700" :title="copied ? '{{ __('Copied!') }}' : '{{ __('Copy link') }}'">
+                <button
+                    type="button"
+                    x-data="{ copied: false }"
+                    x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                    class="link link-hover text-sm opacity-70"
+                    :title="copied ? '{{ __('Copied!') }}' : '{{ __('Copy link') }}'"
+                >
                     <span x-show="!copied">{{ __('Share') }}</span>
                     <span x-show="copied" x-cloak>{{ __('Link copied!') }}</span>
                 </button>
                 @auth
                     @if ($activity->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                        <a href="{{ route('activities.edit', $activity) }}" class="text-sm text-indigo-600 hover:text-indigo-900">
+                        <a href="{{ route('activities.edit', $activity) }}" class="link link-primary text-sm">
                             {{ __('Edit activity') }}
                         </a>
                     @endif
