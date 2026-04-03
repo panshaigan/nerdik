@@ -2,18 +2,14 @@
 
 <div class="space-y-4">
     <div>
-        <fieldset class="fieldset py-0">
-            <legend class="fieldset-legend mb-0.5">{{ __('Category') }}</legend>
-            <select id="category" name="category" class="select select-bordered w-full" required>
-                @foreach (['game','publisher','world','convention','engine','trigger','block','misc'] as $cat)
-                    <option value="{{ $cat }}"
-                        @selected(old('category', $tag->category ?? '') === $cat)>
-                        {{ ucfirst($cat) }}
-                    </option>
-                @endforeach
-            </select>
-        </fieldset>
-        <x-field-error :messages="$errors->get('category')" class="mt-2" />
+        <x-form-select id="category" name="category" :label="__('Category')" error-field="category" required>
+            @foreach (['game','publisher','world','convention','engine','trigger','block','misc'] as $cat)
+                <option value="{{ $cat }}"
+                    @selected(old('category', $tag->category ?? '') === $cat)>
+                    {{ ucfirst($cat) }}
+                </option>
+            @endforeach
+        </x-form-select>
     </div>
 
     <div>
@@ -49,9 +45,7 @@
 </div>
 
 <div class="mt-6 flex justify-end gap-3">
-    <a href="{{ route('tags.index') }}" class="btn btn-outline">
-        {{ __('Cancel') }}
-    </a>
+    <x-button :link="route('tags.index')" class="btn-outline">{{ __('Cancel') }}</x-button>
 
     <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('Save') }}</x-button>
 </div>

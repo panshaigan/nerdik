@@ -18,18 +18,20 @@
 
                     <div class="space-y-4">
                         <div>
-                            <fieldset class="fieldset py-0">
-                                <legend class="fieldset-legend mb-0.5">{{ __('ui.proposals.your_activity') }}</legend>
-                                <select id="activity_id" name="activity_id" class="select select-bordered w-full" required>
-                                    <option value="">{{ __('ui.proposals.choose_activity') }}</option>
-                                    @foreach ($myActivities as $activity)
-                                        <option value="{{ $activity->id }}" @selected(old('activity_id') == $activity->id)>
-                                            {{ $activity->name }} ({{ ucfirst($activity->type) }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </fieldset>
-                            <x-field-error :messages="$errors->get('activity_id')" class="mt-2" />
+                            <x-form-select
+                                id="activity_id"
+                                name="activity_id"
+                                :label="__('ui.proposals.your_activity')"
+                                error-field="activity_id"
+                                required
+                            >
+                                <option value="">{{ __('ui.proposals.choose_activity') }}</option>
+                                @foreach ($myActivities as $activity)
+                                    <option value="{{ $activity->id }}" @selected(old('activity_id') == $activity->id)>
+                                        {{ $activity->name }} ({{ ucfirst($activity->type) }})
+                                    </option>
+                                @endforeach
+                            </x-form-select>
                             @if ($myActivities->isEmpty())
                                 <p class="mt-1 text-sm text-warning">
                                     {{ __('ui.proposals.no_activities_yet') }}
@@ -47,16 +49,22 @@
                             <p class="mb-2 text-sm text-base-content/60">{{ __('ui.proposals.preferred_slots_help') }}</p>
                             <div class="space-y-2">
                                 @foreach ($event->slots as $slot)
-                                    <label class="flex cursor-pointer items-center gap-2">
-                                        <input type="checkbox" name="slot_ids[]" value="{{ $slot->id }}" @checked(in_array((string) $slot->id, (array) old('slot_ids', []))) class="checkbox checkbox-sm" />
-                                        <span class="text-sm">{{ $slot->name }}</span>
-                                        @if ($slot->starts_at)
-                                            <span class="text-xs text-base-content/50">{{ format_in_user_tz($slot->starts_at, 'H:i') }}</span>
-                                        @endif
-                                        @if ($slot->activity_id)
-                                            <span class="text-xs text-base-content/40">({{ __('ui.proposals.taken') }})</span>
-                                        @endif
-                                    </label>
+                                    @php
+                                        $slotLabel = $slot->name;
+                                        if ($slot->starts_at) {
+                                            $slotLabel .= ' · '.format_in_user_tz($slot->starts_at, 'H:i');
+                                        }
+                                        if ($slot->activity_id) {
+                                            $slotLabel .= ' ('.__('ui.proposals.taken').')';
+                                        }
+                                    @endphp
+                                    <x-checkbox
+                                        id="proposal-slot-{{ $slot->id }}"
+                                        name="slot_ids[]"
+                                        value="{{ $slot->id }}"
+                                        label="{{ $slotLabel }}"
+                                        :checked="in_array((string) $slot->id, (array) old('slot_ids', []))"
+                                    />
                                 @endforeach
                             </div>
                             <x-field-error :messages="$errors->get('slot_ids')" class="mt-2" />
@@ -74,7 +82,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
-                        <a href="{{ route('events.show', $event) }}" class="btn btn-outline">{{ __('ui.common.cancel') }}</a>
+                        <x-button :link="route('events.show', $event)" class="btn-outline">{{ __('ui.common.cancel') }}</x-button>
                         <x-button class="btn-primary" type="submit">{{ __('ui.proposals.submit_proposal') }}</x-button>
                     </div>
                 </form>

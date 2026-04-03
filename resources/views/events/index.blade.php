@@ -1,93 +1,80 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="text-xl font-semibold leading-tight text-base-content">
             {{ __('Events') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex justify-end mb-4">
-                <a href="{{ route('events.create') }}"
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500">
-                    {{ __('Add event') }}
-                </a>
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="mb-4 flex justify-end">
+                <x-button :link="route('events.create')" class="btn-primary">{{ __('Add event') }}</x-button>
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Name') }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('When') }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Organization') }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ __('Public') }}
-                            </th>
-                            <th class="px-4 py-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse ($events as $event)
+            <div class="overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <a href="{{ route('events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900">{{ $event->name }}</a>
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
-                                    {{ format_in_user_tz($event->starts_at, 'Y-m-d H:i') }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $event->organization?->name ?? '—' }}
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-500">
-                                    {{ $event->is_public ? __('Yes') : __('No') }}
-                                </td>
-                                <td class="px-4 py-2 text-right text-sm">
-                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                        <a href="{{ route('events.edit', $event) }}"
-                                           class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                            {{ __('Edit') }}
-                                        </a>
-                                    @endif
+                                <th>{{ __('Name') }}</th>
+                                <th>{{ __('When') }}</th>
+                                <th>{{ __('Organization') }}</th>
+                                <th>{{ __('Public') }}</th>
+                                <th class="w-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($events as $event)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('events.show', $event) }}" class="link link-primary font-medium">{{ $event->name }}</a>
+                                    </td>
+                                    <td class="whitespace-nowrap opacity-80">
+                                        {{ format_in_user_tz($event->starts_at, 'Y-m-d H:i') }}
+                                    </td>
+                                    <td class="opacity-80">{{ $event->organization?->name ?? '—' }}</td>
+                                    <td class="opacity-80">{{ $event->is_public ? __('Yes') : __('No') }}</td>
+                                    <td class="text-end">
+                                        @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                            <a href="{{ route('events.edit', $event) }}" class="link link-primary me-3">
+                                                {{ __('Edit') }}
+                                            </a>
+                                        @endif
 
-                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                        <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit"
-                                                    class="text-sm text-gray-500 hover:text-gray-700 mr-3">
-                                                {{ __('Copy') }}
-                                            </button>
-                                        </form>
-                                    @endif
+                                        @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                            <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-ghost btn-sm me-3">
+                                                    {{ __('Copy') }}
+                                                </button>
+                                            </form>
+                                        @endif
 
-                                    @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                        <form action="{{ route('events.destroy', $event) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
+                                        @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                            <form action="{{ route('events.destroy', $event) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button
+                                                    type="submit"
                                                     onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                    class="text-red-600 hover:text-red-900">
-                                                {{ __('Delete') }}
-                                            </button>
-                                        </form>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">
-                                    {{ __('No events yet.') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                                    class="btn btn-ghost btn-sm text-error"
+                                                >
+                                                    {{ __('Delete') }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center opacity-70">
+                                        {{ __('No events yet.') }}
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

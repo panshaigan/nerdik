@@ -76,7 +76,7 @@ new class extends Component
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     @if (auth()->user()->unreadNotifications->count() > 0)
-                        <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                        <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-medium text-error-content">
                             {{ auth()->user()->unreadNotifications->count() > 9 ? '9+' : auth()->user()->unreadNotifications->count() }}
                         </span>
                     @endif
@@ -174,7 +174,7 @@ new class extends Component
                    class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Notifications') }}
                     @if (auth()->user()->unreadNotifications->count() > 0)
-                        <span class="rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">{{ auth()->user()->unreadNotifications->count() }}</span>
+                        <span class="badge badge-error badge-sm">{{ auth()->user()->unreadNotifications->count() }}</span>
                     @endif
                 </a>
                 <a href="{{ route('profile') }}" wire:navigate

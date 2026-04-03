@@ -18,9 +18,7 @@
 </div>
 
 <div class="mt-6 flex justify-end gap-3">
-    <a href="{{ route('organizations.index') }}" class="btn btn-outline">
-        {{ __('Cancel') }}
-    </a>
+    <x-button :link="route('organizations.index')" class="btn-outline">{{ __('Cancel') }}</x-button>
 
     <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('Save') }}</x-button>
 </div>

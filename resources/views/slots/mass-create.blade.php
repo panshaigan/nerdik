@@ -338,13 +338,11 @@
 
     <div class="mt-6 flex justify-end gap-3">
         @if ($embeddedInModal)
-            <button type="button" class="btn btn-outline" onclick="this.closest('dialog')?.close()">
+            <x-button type="button" class="btn-outline" onclick="this.closest('dialog')?.close()">
                 {{ __('ui.common.cancel') }}
-            </button>
+            </x-button>
         @else
-            <a href="{{ route('slots.index') }}" class="btn btn-outline">
-                {{ __('ui.common.cancel') }}
-            </a>
+            <x-button :link="route('slots.index')" class="btn-outline">{{ __('ui.common.cancel') }}</x-button>
         @endif
 
         <x-button class="btn-primary" type="submit">{{ $editMode ? __('ui.common.save') : __('ui.slots.create_slots') }}</x-button>

@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             @if (session('status'))
-                <p class="text-sm text-green-600">{{ session('status') }}</p>
+                <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
             @endif
 
             <section class="space-y-4">
@@ -24,13 +24,13 @@
                             <p class="text-sm opacity-70">Sunday, February 8 · 13:30-17:30</p>
                         </div>
                         <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
-                            <div class="rounded-xl bg-emerald-900/40 p-4 text-center">
-                                <p class="text-3xl font-bold text-emerald-300">{{ $myActivities->count() }}</p>
-                                <p class="text-xs uppercase tracking-wide text-emerald-200">Sessions</p>
+                            <div class="rounded-xl bg-primary/15 p-4 text-center">
+                                <p class="text-3xl font-bold text-primary">{{ $myActivities->count() }}</p>
+                                <p class="text-xs uppercase tracking-wide opacity-80">Sessions</p>
                             </div>
-                            <div class="rounded-xl bg-rose-900/40 p-4 text-center">
-                                <p class="text-3xl font-bold text-rose-300">{{ $participations->count() }}</p>
-                                <p class="text-xs uppercase tracking-wide text-rose-200">Players</p>
+                            <div class="rounded-xl bg-secondary/15 p-4 text-center">
+                                <p class="text-3xl font-bold text-secondary">{{ $participations->count() }}</p>
+                                <p class="text-xs uppercase tracking-wide opacity-80">Players</p>
                             </div>
                         </div>
                     </div>
@@ -38,14 +38,15 @@
 
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
                     <div class="flex-1">
-                        <label class="input input-bordered flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.85-4.65a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-                            </svg>
-                            <input type="text" class="grow" placeholder="Filter by title or host..." />
-                        </label>
+                        <x-input
+                            type="text"
+                            icon="o-magnifying-glass"
+                            placeholder="Filter by title or host..."
+                            class="w-full"
+                            :omit-error="true"
+                        />
                     </div>
-                    <button class="btn btn-outline">Filters</button>
+                    <x-button type="button" class="btn-outline">Filters</x-button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -165,7 +166,7 @@
                                     <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-ghost btn-xs">{{ __('Remove') }}</button>
+                                        <x-button type="submit" class="btn-ghost btn-xs">{{ __('Remove') }}</x-button>
                                     </form>
                                 </li>
                             @endforeach
@@ -187,7 +188,7 @@
                                     <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-ghost btn-xs">{{ __('Remove') }}</button>
+                                        <x-button type="submit" class="btn-ghost btn-xs">{{ __('Remove') }}</x-button>
                                     </form>
                                 </li>
                             @endforeach

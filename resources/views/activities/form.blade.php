@@ -31,21 +31,20 @@
             </div>
 
             <div>
-                <fieldset class="fieldset py-0">
-                    <legend class="fieldset-legend mb-0.5 font-medium">
-                        {{ __('ui.activities.type') }}
-                        <span class="text-error">*</span>
-                    </legend>
-                    <select id="type" name="type" class="select select-bordered w-full border-base-300 bg-base-100" required>
-                        <option value="" disabled @selected($currentType === '')>{{ __('ui.activities.choose_type') }}</option>
-                        @foreach ($activityTypes as $type)
-                            <option value="{{ $type }}" @selected($currentType === $type)>
-                                {{ ucfirst($type) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </fieldset>
-                <x-field-error :messages="$errors->get('type')" class="mt-2" />
+                <x-form-select
+                    id="type"
+                    name="type"
+                    :label="__('ui.activities.type')"
+                    error-field="type"
+                    required
+                >
+                    <option value="" disabled @selected($currentType === '')>{{ __('ui.activities.choose_type') }}</option>
+                    @foreach ($activityTypes as $type)
+                        <option value="{{ $type }}" @selected($currentType === $type)>
+                            {{ ucfirst($type) }}
+                        </option>
+                    @endforeach
+                </x-form-select>
             </div>
         </div>
     </div>
@@ -79,26 +78,29 @@
             <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex h-full items-center">
                 
                 <div class="space-y-4">
-                    <label for="passive_host" class="flex cursor-pointer items-start gap-3">
-                        <input id="passive_host" name="passive_host" type="checkbox" value="1"
-                               class="checkbox checkbox-sm mt-1"
-                               @checked(old('passive_host', $activity->passive_host ?? false)) />
-                        <span class="text-sm text-base-content">{{ __('ui.activities.passive_host') }}</span>
-                    </label>
+                    <x-checkbox
+                        id="passive_host"
+                        name="passive_host"
+                        value="1"
+                        :label="__('ui.activities.passive_host')"
+                        :checked="(bool) old('passive_host', $activity->passive_host ?? false)"
+                    />
 
-                    <label for="is_restricted" class="flex cursor-pointer items-start gap-3">
-                        <input id="is_restricted" name="is_restricted" type="checkbox" value="1"
-                               class="checkbox checkbox-sm mt-1"
-                               @checked(old('is_restricted', $activity->is_restricted ?? false)) />
-                        <span class="text-sm text-base-content">{{ __('ui.activities.restricted') }}</span>
-                    </label>
+                    <x-checkbox
+                        id="is_restricted"
+                        name="is_restricted"
+                        value="1"
+                        :label="__('ui.activities.restricted')"
+                        :checked="(bool) old('is_restricted', $activity->is_restricted ?? false)"
+                    />
 
-                    <label for="open_for_observers" class="flex cursor-pointer items-start gap-3">
-                        <input id="open_for_observers" name="open_for_observers" type="checkbox" value="1"
-                               class="checkbox checkbox-sm mt-1"
-                               @checked(old('open_for_observers', $activity->open_for_observers ?? false)) />
-                        <span class="text-sm text-base-content">{{ __('ui.activities.open_for_observers') }}</span>
-                    </label>
+                    <x-checkbox
+                        id="open_for_observers"
+                        name="open_for_observers"
+                        value="1"
+                        :label="__('ui.activities.open_for_observers')"
+                        :checked="(bool) old('open_for_observers', $activity->open_for_observers ?? false)"
+                    />
                 </div>
             </div>
 
@@ -114,12 +116,12 @@
                     error-field="min_participants"
                 >
                     <x-slot:append>
-                        <button
+                        <x-button
                             type="button"
-                            class="btn btn-outline btn-xs"
+                            class="btn-outline btn-xs"
                             data-activity-clear-one="min_participants"
-                            aria-label="{{ __('ui.activities.clear_field') }}"
-                        >×</button>
+                            :aria-label="__('ui.activities.clear_field')"
+                        >×</x-button>
                     </x-slot:append>
                 </x-input>
 
@@ -133,12 +135,12 @@
                     error-field="max_participants"
                 >
                     <x-slot:append>
-                        <button
+                        <x-button
                             type="button"
-                            class="btn btn-outline btn-xs"
+                            class="btn-outline btn-xs"
                             data-activity-clear-one="max_participants"
-                            aria-label="{{ __('ui.activities.clear_field') }}"
-                        >×</button>
+                            :aria-label="__('ui.activities.clear_field')"
+                        >×</x-button>
                     </x-slot:append>
                 </x-input>
 
@@ -152,12 +154,12 @@
                     error-field="age_limit"
                 >
                     <x-slot:append>
-                        <button
+                        <x-button
                             type="button"
-                            class="btn btn-outline btn-xs"
+                            class="btn-outline btn-xs"
                             data-activity-clear-one="age_limit"
-                            aria-label="{{ __('ui.activities.clear_field') }}"
-                        >×</button>
+                            :aria-label="__('ui.activities.clear_field')"
+                        >×</x-button>
                     </x-slot:append>
                 </x-input>
 
@@ -172,12 +174,12 @@
                     error-field="duration_minutes"
                 >
                     <x-slot:append>
-                        <button
+                        <x-button
                             type="button"
-                            class="btn btn-outline btn-xs"
+                            class="btn-outline btn-xs"
                             data-activity-clear-one="duration_minutes"
-                            aria-label="{{ __('ui.activities.clear_field') }}"
-                        >×</button>
+                            :aria-label="__('ui.activities.clear_field')"
+                        >×</x-button>
                     </x-slot:append>
                 </x-input>
                 
@@ -190,10 +192,9 @@
         <div class="h-full"></div>
 
         <div class="space-y-1">
-            <p class="text-sm font-medium text-base-content">{{ __('ui.activities.signoff_deadline_hours') }}</p>
-            <p class="text-xs text-base-content/70">{{ __('ui.activities.signoff_deadline_description') }}</p>
-
             <x-input
+                :label="__('ui.activities.signoff_deadline_hours')"
+                :hint="__('ui.activities.signoff_deadline_description')"
                 name="signoff_deadline_hours"
                 type="number"
                 min="0"
@@ -203,12 +204,12 @@
                 error-field="signoff_deadline_hours"
             >
                 <x-slot:append>
-                    <button
+                    <x-button
                         type="button"
-                        class="btn btn-outline btn-xs"
+                        class="btn-outline btn-xs"
                         data-activity-clear-one="signoff_deadline_hours"
-                        aria-label="{{ __('ui.activities.clear_field') }}"
-                    >×</button>
+                        :aria-label="__('ui.activities.clear_field')"
+                    >×</x-button>
                 </x-slot:append>
             </x-input>
         </div>
@@ -221,13 +222,11 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-                <label for="proposal_event_id" class="mb-1 block text-sm font-medium text-base-content">
-                    {{ __('ui.activities.proposal_event') }}
-                </label>
-                <select
+                <x-form-select
                     id="proposal_event_id"
                     name="proposal_event_id"
-                    class="select select-bordered w-full border-base-300 bg-base-100"
+                    :label="__('ui.activities.proposal_event')"
+                    error-field="proposal_event_id"
                 >
                     <option value="">{{ __('ui.activities.proposal_event_none') }}</option>
                     @foreach ($futureEvents ?? [] as $ev)
@@ -238,25 +237,22 @@
                             @endif
                         </option>
                     @endforeach
-                </select>
+                </x-form-select>
                 @if (collect($futureEvents ?? [])->isEmpty())
                     <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_no_future_events') }}</p>
                 @endif
-                <x-field-error :messages="$errors->get('proposal_event_id')" class="mt-2" />
             </div>
 
             <div>
-                <label for="proposal_preferred_start_time" class="mb-1 block text-sm font-medium text-base-content">
-                    {{ __('ui.activities.proposal_preferred_start_time') }}
-                </label>
-                <input
-                    type="datetime-local"
-                    name="proposal_preferred_start_time"
+                <x-input
                     id="proposal_preferred_start_time"
-                    class="input input-bordered w-full border-base-300 bg-base-100"
+                    class="w-full"
+                    :label="__('ui.activities.proposal_preferred_start_time')"
+                    name="proposal_preferred_start_time"
+                    type="datetime-local"
                     value="{{ old('proposal_preferred_start_time') }}"
+                    error-field="proposal_preferred_start_time"
                 />
-                <x-field-error :messages="$errors->get('proposal_preferred_start_time')" class="mt-2" />
             </div>
         </div>
     </div>
@@ -477,13 +473,11 @@
 </script>
 
 <div class="mt-6 flex justify-end gap-3">
-    <button type="button" data-activity-clear-numeric class="btn btn-outline">
+    <x-button type="button" class="btn-outline" data-activity-clear-numeric>
         {{ __('ui.activities.clear_numeric_fields') }}
-    </button>
+    </x-button>
 
-    <a href="{{ route('activities.index') }}" class="btn btn-outline">
-        {{ __('ui.common.cancel') }}
-    </a>
+    <x-button :link="route('activities.index')" class="btn-outline">{{ __('ui.common.cancel') }}</x-button>
 
     <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('ui.common.save') }}</x-button>
 </div>
