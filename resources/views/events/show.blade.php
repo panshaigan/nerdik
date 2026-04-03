@@ -110,53 +110,70 @@
                             </p>
                             <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 @foreach ($group['slots'] as $slot)
-                                    <li class="flex flex-col gap-2 rounded-lg border border-base-300 bg-base-100/50 p-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <li class="flex flex-col gap-3 rounded-lg border border-base-300 bg-base-100/50 p-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0 flex-1 space-y-1.5">
-                                            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                                <span class="font-medium text-base-content">{{ $slot->name }}</span>
-                                                @if ($slot->starts_at || $slot->ends_at)
-                                                    <span class="text-sm text-base-content/70">
-                                                        <span class="whitespace-pre"> · </span>
-                                                        <span class="tabular-nums">
-                                                            @if ($slot->starts_at && $slot->ends_at)
-                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50">–</span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                            @elseif ($slot->starts_at)
-                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}
-                                                            @else
-                                                                {{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                            @endif
-                                                        </span>
-                                                    </span>
-                                                @endif
-                                                @if ($slot->place)
-                                                    <span class="text-sm text-base-content/70">
-                                                        · {{ $slot->place->venueRoomLabel() }}
-                                                    </span>
-                                                @endif
-                                            </div>
                                             @if ($slot->activity)
-                                                <div class="text-sm">
+                                                <div class="mb-1 text-sm">
                                                     <a href="{{ route('activities.show', $slot->activity) }}" class="text-primary hover:underline">
                                                         {{ $slot->activity->name }}
                                                     </a>
                                                 </div>
+                                            @endif
+                                            <div class="space-y-0.5">
+                                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
+                                                    <span class="font-medium text-base-content">{{ $slot->name }}</span>
+                                                    @if ($slot->starts_at || $slot->ends_at)
+                                                        <span class="text-sm text-base-content/70">
+                                                            <span class="whitespace-pre"> · </span>
+                                                            <span class="tabular-nums">
+                                                                @if ($slot->starts_at && $slot->ends_at)
+                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                @elseif ($slot->starts_at)
+                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}
+                                                                @else
+                                                                    {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                @endif
+                                                            </span>
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                @if ($slot->place)
+                                                    <p class="text-sm text-base-content/70">
+                                                        {{ $slot->place->venueRoomLabel() }}
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            @if ($slot->activity)
                                                 @php
                                                     $listTags = $slot->activity->tags
                                                         ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
                                                         ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
                                                 @endphp
                                                 @if ($listTags->isNotEmpty())
-                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => ''])
+                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'mt-1'])
                                                 @endif
                                             @else
-                                                <p class="text-sm text-base-content/50">— {{ __('ui.events.free') }}</p>
+                                                @php
+                                                    $slotActivityTypes = collect($slot->activity_types)
+                                                        ->filter(fn ($t) => is_string($t) && trim($t) !== '')
+                                                        ->map(fn ($t) => trim($t))
+                                                        ->unique()
+                                                        ->values();
+                                                @endphp
+                                                @if ($slotActivityTypes->isNotEmpty())
+                                                    <div class="my-2 flex flex-wrap gap-1">
+                                                        @foreach ($slotActivityTypes as $type)
+                                                            <span class="badge badge-outline badge-info capitalize">{{ $type }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                                 @php
                                                     $listTags = $slot->tags
                                                         ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
                                                         ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
                                                 @endphp
                                                 @if ($listTags->isNotEmpty())
-                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => ''])
+                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'my-2'])
                                                 @endif
                                             @endif
                                         </div>
