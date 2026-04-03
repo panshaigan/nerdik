@@ -41,6 +41,33 @@ function randomId() {
 }
 
 /**
+ * Sync selected places + draft venues into the nearest Livewire component (event form).
+ */
+function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload) {
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+        return;
+    }
+
+    const host = root.closest('[wire\\:id]');
+    if (!host) {
+        return;
+    }
+
+    const id = host.getAttribute('wire:id');
+    if (!id) {
+        return;
+    }
+
+    const wire = window.Livewire.find(id);
+    if (!wire || typeof wire.set !== 'function') {
+        return;
+    }
+
+    wire.set('place_ids', placeIds);
+    wire.set('new_places', newPlacesPayload);
+}
+
+/**
  * @param {HTMLElement} root
  */
 export function initEventPlacesUnified(root) {
@@ -88,6 +115,23 @@ export function initEventPlacesUnified(root) {
 
     if (headingEl && cfg.strings?.newVenuesHeading) {
         headingEl.textContent = cfg.strings.newVenuesHeading;
+    }
+
+    function emitEventPlacesChange() {
+        const placeIds = Array.from(selectedIds)
+            .map((id) => Number(id))
+            .sort((a, b) => a - b);
+        const newPlacesPayload = newVenues.map((v) => ({
+            name: v.name || '',
+            address: v.address || '',
+            city: v.city || '',
+            country: v.country || '',
+            city_id: v.cityId !== '' && v.cityId != null ? parseInt(v.cityId, 10) : null,
+            country_id: v.countryId !== '' && v.countryId != null ? parseInt(v.countryId, 10) : null,
+            latitude: v.lat,
+            longitude: v.lng,
+        }));
+        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
     }
 
     const map = L.map(mapEl, { scrollWheelZoom: true }).setView([52.1, 19.4], 5);
@@ -179,6 +223,7 @@ export function initEventPlacesUnified(root) {
             });
             chipsEl.appendChild(chip);
         });
+        emitEventPlacesChange();
     }
 
     async function reverseFillVenue(venueId, lat, lng) {
@@ -230,6 +275,7 @@ export function initEventPlacesUnified(root) {
                     hAddress.value = v.address;
                 }
             }
+            emitEventPlacesChange();
         } catch {
             /* optional */
         }
@@ -335,6 +381,7 @@ export function initEventPlacesUnified(root) {
             inpName.placeholder = 'Name';
             inpName.addEventListener('input', () => {
                 v.name = inpName.value;
+                emitEventPlacesChange();
             });
 
             const hCity = document.createElement('input');
@@ -387,6 +434,7 @@ export function initEventPlacesUnified(root) {
             newVenuesWrap.classList.toggle('hidden', newVenues.length === 0);
         }
         refreshNewMarkerIcons();
+        emitEventPlacesChange();
     }
 
     map.on('dblclick', (e) => {
