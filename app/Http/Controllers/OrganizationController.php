@@ -11,16 +11,6 @@ class OrganizationController extends Controller
     use AuthorizesOwnership;
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $organizations = Organization::with('creator')->orderBy('name')->get();
-
-        return view('organizations.index', compact('organizations'));
-    }
-
-    /**
      * Show the form for creating a new resource.
      */
     public function create()

@@ -38,7 +38,7 @@ class BrowseActivities extends Component
         $this->resetPage();
         $this->reset(['q', 'from_date', 'to_date', 'place_id', 'tag_id']);
 
-        return $this->redirectRoute('browse.activities');
+        return $this->redirectRoute('activities.index');
     }
 
     public function hasActiveFilters(): bool

@@ -40,7 +40,7 @@ class BrowseEvents extends Component
         $this->resetPage();
         $this->reset(['q', 'tag_id', 'min_lat', 'max_lat', 'min_lng', 'max_lng']);
 
-        return $this->redirectRoute('browse.events');
+        return $this->redirectRoute('events.index');
     }
 
     public function hasActiveFilters(): bool
