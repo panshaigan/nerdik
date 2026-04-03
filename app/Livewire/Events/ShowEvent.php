@@ -20,15 +20,48 @@ class ShowEvent extends Component
     /** Bumped when slots change via async JS so the component re-renders. */
     public int $slotListVersion = 0;
 
+    /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
+    public array $proposalSlotIds = [];
+
     public function mount(Event $event): void
     {
         $this->eventId = $event->id;
+    }
+
+    public function toggleProposalSlot(int $slotId): void
+    {
+        $slot = Slot::query()
+            ->whereKey($slotId)
+            ->where('event_id', $this->eventId)
+            ->whereNull('activity_id')
+            ->first();
+        if ($slot === null) {
+            return;
+        }
+
+        $ids = array_map('intval', $this->proposalSlotIds);
+        $key = array_search($slotId, $ids, true);
+        if ($key !== false) {
+            unset($ids[$key]);
+            $this->proposalSlotIds = array_values($ids);
+        } else {
+            $this->proposalSlotIds = [...$ids, $slotId];
+        }
     }
 
     #[On('slot-mutations-refresh')]
     public function refreshAfterSlotMutation(): void
     {
         $this->slotListVersion++;
+        $event = Event::query()->whereKey($this->eventId)->first();
+        if ($event !== null) {
+            $event->loadMissing('slots');
+            $freeIds = $event->slots->whereNull('activity_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $this->proposalSlotIds = array_values(array_intersect(
+                array_map('intval', $this->proposalSlotIds),
+                $freeIds
+            ));
+        }
     }
 
     public function deleteEvent(): void
@@ -51,6 +84,10 @@ class ShowEvent extends Component
 
         $this->authorizeCreatedBy($slot);
         $slot->delete();
+        $this->proposalSlotIds = array_values(array_filter(
+            $this->proposalSlotIds,
+            fn ($id) => (int) $id !== (int) $slotId
+        ));
     }
 
     /**

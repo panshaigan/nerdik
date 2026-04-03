@@ -5,7 +5,9 @@ namespace App\Livewire\Activities;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
+use App\Models\Slot;
 use App\Models\Tag;
+use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Services\TagSelectionService;
 use App\Support\ActivityTypes;
@@ -49,6 +51,9 @@ class ManageActivityForm extends Component
     public ?string $proposal_preferred_start_time = null;
 
     /** @var list<int> */
+    public array $proposal_slot_ids = [];
+
+    /** @var list<int> */
     public array $tag_ids = [];
 
     /** @var list<array{label: string, category: string}> */
@@ -79,6 +84,22 @@ class ManageActivityForm extends Component
                 $this->proposal_event_id = $id;
             }
         }
+
+        if (request()->has('proposal_slot_ids')) {
+            $raw = request()->query('proposal_slot_ids');
+            if (is_array($raw)) {
+                $this->proposal_slot_ids = array_values(array_filter(array_map('intval', $raw)));
+            } elseif (is_string($raw) && $raw !== '') {
+                $this->proposal_slot_ids = array_values(array_filter(array_map('intval', explode(',', $raw))));
+            }
+        }
+    }
+
+    public function updatedProposalEventId(mixed $value): void
+    {
+        if ($value === '' || $value === null || (int) $value === 0) {
+            $this->proposal_slot_ids = [];
+        }
     }
 
     /**
@@ -102,6 +123,11 @@ class ManageActivityForm extends Component
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
         }
+
+        $this->proposal_slot_ids = array_values(array_unique(array_filter(
+            array_map('intval', $this->proposal_slot_ids),
+            fn (int $id) => $id > 0
+        )));
 
         foreach (array_keys($attributes) as $key) {
             if (property_exists($this, $key)) {
@@ -133,7 +159,7 @@ class ManageActivityForm extends Component
 
         $payload = Arr::except(
             $validated,
-            ['proposal_event_id', 'proposal_preferred_start_time', 'tag_ids', 'new_tags']
+            ['proposal_event_id', 'proposal_preferred_start_time', 'proposal_slot_ids', 'tag_ids', 'new_tags']
         );
 
         $tagIds = $tagSelectionService->resolveFinalTagIds(
@@ -160,6 +186,10 @@ class ManageActivityForm extends Component
         }
 
         session()->flash('status', $message);
+
+        if ($proposalCreated !== null) {
+            return redirect()->route('events.show', $proposalCreated->event);
+        }
 
         return redirect()->route('activities.index');
     }
@@ -237,6 +267,18 @@ class ManageActivityForm extends Component
                 }),
             ],
             'proposal_preferred_start_time' => ['nullable', 'date'],
+            'proposal_slot_ids' => ['nullable', 'array'],
+            'proposal_slot_ids.*' => [
+                'integer',
+                Rule::exists('slots', 'id')->where(function ($query) {
+                    if ($this->proposal_event_id === null || $this->proposal_event_id === 0) {
+                        $query->whereRaw('1 = 0');
+
+                        return;
+                    }
+                    $query->where('event_id', $this->proposal_event_id)->whereNull('activity_id');
+                }),
+            ],
         ];
     }
 
@@ -286,6 +328,28 @@ class ManageActivityForm extends Component
             $event->creator?->notify(new ProposalSubmittedNotification($proposal));
         }
 
+        if (! empty($this->proposal_slot_ids)) {
+            $validIds = Slot::query()
+                ->where('event_id', $event->id)
+                ->whereNull('activity_id')
+                ->whereIn('id', $this->proposal_slot_ids)
+                ->pluck('id')
+                ->all();
+            $proposal->proposedSlots()->sync($validIds);
+
+            $slots = Slot::whereIn('id', $validIds)->get();
+            $autoSlot = $slots->firstWhere('requires_approval', false);
+            if ($autoSlot) {
+                $proposal->update([
+                    'status' => 'accepted',
+                    'accepted_slot_id' => $autoSlot->id,
+                ]);
+                $autoSlot->update(['activity_id' => $activity->id]);
+
+                $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+            }
+        }
+
         return $proposal;
     }
 
@@ -317,10 +381,21 @@ class ManageActivityForm extends Component
     {
         $exceptId = $this->editingActivityId;
 
+        $proposalEventSlots = collect();
+        if ($this->proposal_event_id) {
+            $proposalEventSlots = Event::query()
+                ->whereKey($this->proposal_event_id)
+                ->first()
+                ?->slots()
+                ->orderBy('starts_at')
+                ->get() ?? collect();
+        }
+
         return view('livewire.activities.manage-activity-form', [
             'tags' => Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get(),
             'futureEvents' => $this->futureEventsForProposal(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
+            'proposalEventSlots' => $proposalEventSlots,
         ]);
     }
 }
