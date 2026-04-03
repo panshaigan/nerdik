@@ -39,18 +39,6 @@ class EventController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $events = Event::with('organization')
-            ->orderBy('starts_at', 'desc')
-            ->get();
-
-        return view('events.index', compact('events'));
-    }
-
-    /**
      * Show the form for creating a new resource.
      */
     public function create()

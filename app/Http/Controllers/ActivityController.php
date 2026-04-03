@@ -14,18 +14,6 @@ class ActivityController extends Controller
     public const ACTIVITY_TYPES = ActivityTypes::VALUES;
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $activities = Activity::with('host')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('activities.index', compact('activities'));
-    }
-
-    /**
      * Show the form for creating a new resource.
      */
     public function create()

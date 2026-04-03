@@ -30,9 +30,17 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
     return redirect($redirectTo)->cookie('locale', $locale, 60 * 24 * 365);
 })->name('locale.switch');
 
-Route::view('browse/events', 'browse.events')->name('browse.events');
-Route::view('browse/activities', 'browse.activities')->name('browse.activities');
-Route::view('browse/organizations', 'browse.organizations')->name('browse.organizations');
+/*
+| Public entity lists (Livewire browse UI). Named *.index so redirects and links stay stable.
+| Authenticated CRUD uses the same route names without a second list page.
+*/
+Route::view('events', 'browse.events')->name('events.index');
+Route::view('activities', 'browse.activities')->name('activities.index');
+Route::view('organizations', 'browse.organizations')->name('organizations.index');
+
+Route::redirect('browse/events', '/events', 301);
+Route::redirect('browse/activities', '/activities', 301);
+Route::redirect('browse/organizations', '/organizations', 301);
 
 Route::get('geocode/reverse', [GeocodeController::class, 'reverse'])
     ->middleware('throttle:60,1')
@@ -52,14 +60,14 @@ Route::view('profile', 'profile')
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('organizations', OrganizationController::class)
-        ->except(['show']);
+        ->except(['show', 'index']);
 
     Route::get('events/{event}/propose', function (Event $event) {
         return view('activity-proposals.create', compact('event'));
     })->name('events.propose');
     Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
     Route::post('events/{event}/slots/mass', [EventController::class, 'massStoreSlots'])->name('events.slots.mass');
-    Route::resource('events', EventController::class)->except(['show', 'store', 'update']);
+    Route::resource('events', EventController::class)->except(['show', 'store', 'update', 'index']);
 
     Route::view('slots', 'slots.index')->name('slots.index');
     Route::resource('slots', SlotController::class)
@@ -71,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tags', TagController::class)
         ->except(['show']);
 
-    Route::resource('activities', ActivityController::class)->except(['store', 'update', 'show']);
+    Route::resource('activities', ActivityController::class)->except(['store', 'update', 'show', 'index']);
     Route::get('activities/{activity}', function (Activity $activity) {
         return view('activities.show', compact('activity'));
     })->name('activities.show');

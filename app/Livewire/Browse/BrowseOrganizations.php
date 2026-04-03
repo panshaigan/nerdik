@@ -24,7 +24,7 @@ class BrowseOrganizations extends Component
         $this->resetPage();
         $this->reset(['q']);
 
-        return $this->redirectRoute('browse.organizations');
+        return $this->redirectRoute('organizations.index');
     }
 
     public function hasActiveFilters(): bool

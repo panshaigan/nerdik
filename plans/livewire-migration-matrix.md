@@ -20,16 +20,16 @@ This document maps **user-facing** screens to a recommended stack: **keep Blade*
 |------|----------------|---------------|------------------|----------|
 | Welcome | `/` | Blade | Blade (ok) | — |
 | Locale | `locale/{locale}` | Closure | Blade (ok) | — |
-| Browse | `browse/events`, `browse/activities`, `browse/organizations` | Controller + Blade | → Livewire | **P1** |
+| Lists | `events`, `activities`, `organizations` (GET; Livewire browse UI) | Livewire (done) | — | — |
 | Dashboard | `dashboard` | Controller + Blade | → Livewire | **P1** |
 | Profile | `profile` | Blade shell + Livewire forms | Livewire (done) | — |
 | Auth | login, register, forgot/reset, verify, confirm | Volt (Livewire) | Livewire (done) | — |
 | Nav | layout | `livewire/layout/navigation` | Livewire (done) | — |
-| **Activities** | index, create, edit, show | Controller + Blade (+ Quill JS) | → Livewire | **P0** |
-| **Events** | index, create, edit, show | Controller + Blade (+ Quill/Leaflet JS) | → Livewire | **P0** |
+| **Activities** | create, edit, show | Controller + Blade (+ Quill JS) | → Livewire | **P0** |
+| **Events** | create, edit, show | Controller + Blade (+ Quill/Leaflet JS) | → Livewire | **P0** |
 | Slots | index, create, edit, mass-create, edit modal | Controller + Blade (+ modal JS) | → Livewire | **P2** |
 | Places | index, create, edit | Controller + Blade | Blade (later) / → Livewire if you add maps/validation UX | P3 |
-| Organizations | index, create, edit | Controller + Blade | Blade (later) | P3 |
+| Organizations | create, edit | Controller + Blade | Blade (later) | P3 |
 | Tags | index, create, edit | Controller + Blade | Blade (later) | P3 |
 | Activity proposals | index, create | Controller + Blade | → Livewire | **P2** |
 | Notifications | `notifications` | Controller + Blade | → Livewire | **P2** |
