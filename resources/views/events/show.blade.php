@@ -74,13 +74,13 @@
                 <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
                     @auth
                         @if ($canManageEvent)
-                            <a href="{{ route('events.edit', $event) }}" class="btn btn-outline btn-sm">
+                            <x-button :link="route('events.edit', $event)" class="btn-outline btn-sm">
                                 {{ __('ui.events.edit') }}
-                            </a>
+                            </x-button>
                         @endif
-                        <a href="{{ route('events.propose', $event) }}" class="btn btn-primary btn-sm">
+                        <x-button :link="route('events.propose', $event)" class="btn-primary btn-sm">
                             {{ __('ui.events.propose_activity') }}
-                        </a>
+                        </x-button>
                     @endauth
                 </div>
                 </div>
@@ -92,9 +92,9 @@
                     @auth
                         @if ($event->created_by === auth()->id())
                             <div class="flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('event-slots-create-modal')?.showModal()">
+                                <x-button type="button" class="btn-outline btn-sm" onclick="document.getElementById('event-slots-create-modal')?.showModal()">
                                     {{ __('ui.slots.create_slots') }}
-                                </button>
+                                </x-button>
                             </div>
                         @endif
                     @endauth
@@ -114,7 +114,7 @@
                                         <div class="min-w-0 flex-1 space-y-1.5">
                                             @if ($slot->activity)
                                                 <div class="mb-1 text-sm">
-                                                    <a href="{{ route('activities.show', $slot->activity) }}" class="text-primary hover:underline">
+                                                    <a href="{{ route('activities.show', $slot->activity) }}" class="link link-primary">
                                                         {{ $slot->activity->name }}
                                                     </a>
                                                 </div>
@@ -180,9 +180,9 @@
                                         @auth
                                             @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
                                                 <div class="flex shrink-0 items-center gap-1 self-start sm:self-center">
-                                                    <button
+                                                    <x-button
                                                         type="button"
-                                                        class="btn btn-ghost btn-xs btn-square"
+                                                        class="btn-ghost btn-xs btn-square"
                                                         title="{{ __('ui.events.edit_slot') }}"
                                                         aria-label="{{ __('ui.events.edit_slot') }}"
                                                         onclick="window.openSlotEditModal?.({{ $slot->id }})"
@@ -190,13 +190,13 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                             <path d="M17.414 2.586a2 2 0 010 2.828l-9.5 9.5a1 1 0 01-.454.263l-4 1a1 1 0 01-1.212-1.212l1-4a1 1 0 01.263-.454l9.5-9.5a2 2 0 012.828 0zM6.207 11.379l-.5 2 2-.5 8.293-8.293-1.5-1.5-8.293 8.293z"/>
                                                         </svg>
-                                                    </button>
+                                                    </x-button>
                                                     <form action="{{ route('slots.destroy', $slot) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button
+                                                        <x-button
                                                             type="submit"
-                                                            class="btn btn-ghost btn-xs btn-square text-error"
+                                                            class="btn-ghost btn-xs btn-square text-error"
                                                             title="{{ __('Delete') }}"
                                                             aria-label="{{ __('Delete') }}"
                                                             onclick="return confirm('{{ __('Are you sure?') }}')"
@@ -204,7 +204,7 @@
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                                 <path fill-rule="evenodd" d="M8.5 2A1.5 1.5 0 007 3.5V4H4.5a.5.5 0 000 1h.538l.853 10.236A2 2 0 007.884 17h4.232a2 2 0 001.993-1.764L14.962 5h.538a.5.5 0 000-1H13v-.5A1.5 1.5 0 0011.5 2h-3zM12 4v-.5a.5.5 0 00-.5-.5h-3a.5.5 0 00-.5.5V4h4zm-4.5 3a.5.5 0 011 0v7a.5.5 0 11-1 0V7zm4 0a.5.5 0 10-1 0v7a.5.5 0 101 0V7z" clip-rule="evenodd"/>
                                                             </svg>
-                                                        </button>
+                                                        </x-button>
                                                     </form>
                                                 </div>
                                             @endif
@@ -250,7 +250,7 @@
                             <li class="py-3 flex flex-wrap items-center justify-between gap-2">
                                 <div class="space-y-1 min-w-0 flex-1">
                                     <div>
-                                        <a href="{{ route('activities.show', $proposal->activity) }}" class="font-medium text-primary hover:underline">
+                                        <a href="{{ route('activities.show', $proposal->activity) }}" class="link link-primary font-medium">
                                             {{ $proposal->activity->name }}
                                         </a>
                                         <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
@@ -271,22 +271,22 @@
                                 @php $freeSlots = $event->slots->where('activity_id', null); @endphp
                                 <div class="flex flex-wrap gap-2 items-center">
                                     @if ($freeSlots->isNotEmpty())
-                                        <form action="{{ route('activity-proposals.accept', $proposal) }}" method="POST" class="inline flex items-center gap-1">
+                                        <form action="{{ route('activity-proposals.accept', $proposal) }}" method="POST" class="inline flex items-end gap-1">
                                             @csrf
-                                            <select name="slot_id" required class="select select-bordered select-sm">
+                                            <x-form-select name="slot_id" required class="select-sm" :omit-error="true">
                                                 <option value="">{{ __('ui.events.choose_slot') }}</option>
                                                 @foreach ($freeSlots as $s)
                                                     <option value="{{ $s->id }}">{{ $s->name }}</option>
                                                 @endforeach
-                                            </select>
-                                            <button type="submit" class="btn btn-success btn-xs">{{ __('ui.events.accept') }}</button>
+                                            </x-form-select>
+                                            <x-button type="submit" class="btn-success btn-xs">{{ __('ui.events.accept') }}</x-button>
                                         </form>
                                     @else
                                         <span class="text-sm text-base-content/50">{{ __('ui.events.no_free_slots') }}</span>
                                     @endif
                                     <form action="{{ route('activity-proposals.reject', $proposal) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-error btn-xs">{{ __('ui.events.reject') }}</button>
+                                        <x-button type="submit" class="btn-error btn-xs">{{ __('ui.events.reject') }}</x-button>
                                     </form>
                                 </div>
                             </li>
@@ -298,7 +298,7 @@
             @include('slots.partials.edit-modal-shell')
 
             <div class="flex gap-3">
-                <a href="{{ route('events.index') }}" class="btn btn-ghost btn-sm">{{ __('ui.events.back_to_events') }}</a>
+                <x-button :link="route('events.index')" class="btn-ghost btn-sm">{{ __('ui.events.back_to_events') }}</x-button>
             </div>
         </div>
     </div>

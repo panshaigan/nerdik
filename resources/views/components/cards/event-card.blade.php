@@ -9,7 +9,7 @@
             <h3 class="card-title text-xl leading-tight">
                 @auth
                     @if ($event->created_by === auth()->id())
-                        <a href="{{ route('events.edit', $event) }}" class="hover:underline">{{ $event->name }}</a>
+                        <a href="{{ route('events.edit', $event) }}" class="link link-primary">{{ $event->name }}</a>
                     @else
                         <span>{{ $event->name }}</span>
                     @endif
@@ -23,12 +23,12 @@
                         <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-ghost btn-sm text-warning" title="{{ __('Remove from wishlist') }}">★</button>
+                            <x-button type="submit" class="btn-ghost btn-sm text-warning" :title="__('Remove from wishlist')">★</x-button>
                         </form>
                     @else
                         <form action="{{ route('wishlist.events.add', $event) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="btn btn-ghost btn-sm" title="{{ __('Add to wishlist') }}">☆</button>
+                            <x-button type="submit" class="btn-ghost btn-sm" :title="__('Add to wishlist')">☆</x-button>
                         </form>
                     @endif
                 </div>
@@ -48,19 +48,19 @@
         </div>
 
         <div class="card-actions mt-2 items-center justify-between">
-            <a href="{{ route('events.show', $event) }}" class="btn btn-primary btn-sm">
+            <x-button :link="route('events.show', $event)" class="btn-primary btn-sm">
                 {{ __('View event & propose activity') }}
-            </a>
-            <button
+            </x-button>
+            <x-button
                 type="button"
                 x-data="{ copied: false }"
                 x-on:click="navigator.clipboard.writeText('{{ route('events.show', $event) }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                class="btn btn-ghost btn-sm"
-                title="{{ __('Copy link') }}"
+                class="btn-ghost btn-sm"
+                :title="__('Copy link')"
             >
                 <span x-show="!copied">{{ __('Share') }}</span>
                 <span x-show="copied" x-cloak>{{ __('Copied!') }}</span>
-            </button>
+            </x-button>
         </div>
     </div>
 </article>
