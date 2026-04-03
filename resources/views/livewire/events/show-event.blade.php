@@ -111,7 +111,7 @@
                     <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.event_plan') }}</h3>
                     <div class="flex flex-wrap items-center justify-end gap-2">
                         @auth
-                            <x-button id="ui-event-show-propose" :link="route('events.propose', $event)" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                            <x-button id="ui-event-show-propose" :link="route('activities.create', ['proposal_event_id' => $event->id])" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
                                 {{ __('ui.events.propose_activity') }}
                             </x-button>
                             @if ($canManageEvent)
