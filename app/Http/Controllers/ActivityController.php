@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Support\ActivityTypes;
 use App\Traits\AuthorizesOwnership;
 
 class ActivityController extends Controller
@@ -10,7 +11,7 @@ class ActivityController extends Controller
     use AuthorizesOwnership;
 
     /** @var list<string> */
-    public const ACTIVITY_TYPES = ['rpg', 'board', 'card', 'larp', 'lecture', 'workshop', 'competition', 'show'];
+    public const ACTIVITY_TYPES = ActivityTypes::VALUES;
 
     /**
      * Display a listing of the resource.

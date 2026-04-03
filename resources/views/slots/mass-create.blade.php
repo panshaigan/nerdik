@@ -11,7 +11,7 @@
     $defaultRoomName = old('new_room_name', $slotVenueRoomDefaults['room_name'] ?? '');
     $defaultEventId = ($editMode && $slot) ? $slot->event_id : null;
     $countDefault = $countDefault ?? 5;
-    $activityTypes = \App\Http\Controllers\ActivityController::ACTIVITY_TYPES;
+    $activityTypes = \App\Support\ActivityTypes::VALUES;
     $oldActivityTypes = old('activity_types', $editMode && $slot ? $slot->activity_types : []);
     if (! is_array($oldActivityTypes)) {
         $oldActivityTypes = [];

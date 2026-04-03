@@ -1,6 +1,6 @@
 @php
-    use App\Http\Controllers\ActivityController;
-    $activityTypes = ActivityController::ACTIVITY_TYPES;
+    use App\Support\ActivityTypes;
+    $activityTypes = ActivityTypes::VALUES;
 @endphp
 
 @push('head')
