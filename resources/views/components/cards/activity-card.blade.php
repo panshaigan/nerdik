@@ -7,7 +7,7 @@
     <div class="card-body p-5">
         <div class="flex items-start justify-between gap-2">
             <h3 class="card-title text-xl leading-tight">
-                <a href="{{ route('activities.show', $activity) }}" class="hover:underline">{{ $activity->name }}</a>
+                <a href="{{ route('activities.show', $activity) }}" class="link link-primary">{{ $activity->name }}</a>
             </h3>
             @auth
                 <div class="shrink-0">
@@ -15,12 +15,12 @@
                         <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-ghost btn-sm text-warning" title="{{ __('Remove from wishlist') }}">★</button>
+                            <x-button type="submit" class="btn-ghost btn-sm text-warning" :title="__('Remove from wishlist')">★</x-button>
                         </form>
                     @else
                         <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="btn btn-ghost btn-sm" title="{{ __('Add to wishlist') }}">☆</button>
+                            <x-button type="submit" class="btn-ghost btn-sm" :title="__('Add to wishlist')">☆</x-button>
                         </form>
                     @endif
                 </div>

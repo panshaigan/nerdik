@@ -9,13 +9,19 @@
         <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
             <form method="GET" class="card border border-base-300 bg-base-100 p-4 shadow-sm">
                 <div class="flex flex-wrap items-end gap-4">
-                    <div>
-                        <label for="q" class="block text-sm font-medium opacity-80">{{ __('Search') }}</label>
-                        <input type="text" id="q" name="q" value="{{ request('q') }}" placeholder="{{ __('Organization name or description…') }}" class="input input-bordered mt-1 w-80">
-                    </div>
-                    <button type="submit" class="btn btn-primary">{{ __('Search') }}</button>
+                    <x-input
+                        id="q"
+                        name="q"
+                        type="text"
+                        value="{{ request('q') }}"
+                        :label="__('Search')"
+                        :placeholder="__('Organization name or description…')"
+                        class="w-full max-w-md"
+                        :omit-error="true"
+                    />
+                    <x-button type="submit" class="btn-primary">{{ __('Search') }}</x-button>
                     @if (request()->has('q'))
-                        <a href="{{ route('browse.organizations') }}" class="btn btn-ghost">{{ __('Clear') }}</a>
+                        <x-button :link="route('browse.organizations')" class="btn-ghost">{{ __('Clear') }}</x-button>
                     @endif
                 </div>
             </form>

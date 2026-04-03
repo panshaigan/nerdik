@@ -44,9 +44,9 @@
                                         @if ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
                                             <form action="{{ route('events.copy', $event) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-ghost btn-sm me-3">
+                                                <x-button type="submit" class="btn-ghost btn-sm me-3">
                                                     {{ __('Copy') }}
-                                                </button>
+                                                </x-button>
                                             </form>
                                         @endif
 
