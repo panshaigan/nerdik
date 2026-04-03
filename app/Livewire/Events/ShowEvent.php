@@ -116,6 +116,28 @@ class ShowEvent extends Component
         return $out;
     }
 
+    /**
+     * When a slot has an activity with a duration, ensure ends_at matches start + duration.
+     */
+    protected function syncSlotEndsFromActivityDuration(Event $event): void
+    {
+        foreach ($event->slots as $slot) {
+            $activity = $slot->activity;
+            if ($activity === null || ! $slot->starts_at) {
+                continue;
+            }
+            $minutes = (int) ($activity->duration_minutes ?? 0);
+            if ($minutes <= 0) {
+                continue;
+            }
+            $expected = $slot->starts_at->copy()->addMinutes($minutes);
+            if ($slot->ends_at === null || ! $slot->ends_at->equalTo($expected)) {
+                $slot->ends_at = $expected;
+                $slot->save();
+            }
+        }
+    }
+
     public function render()
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
@@ -132,6 +154,8 @@ class ShowEvent extends Component
                 'tags.translations',
             ])->orderBy('starts_at'),
         ]);
+
+        $this->syncSlotEndsFromActivityDuration($event);
 
         $slotListActivityTagCategories = ['game', 'world', 'convention', 'engine', 'block'];
         $slotHourGroups = $this->slotHourGroupsForEvent($event);

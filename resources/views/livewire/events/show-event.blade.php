@@ -144,67 +144,79 @@
                             @if ($group['slots']->isNotEmpty())
                             <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 @foreach ($group['slots'] as $slot)
-                                    <li class="rounded-lg border border-base-300 bg-base-100/50 p-4">
-                                        <div class="flex items-start justify-between gap-2">
+                                    @php
+                                        $activity = $slot->activity;
+                                        $participantsCount = $activity && filled($activity->max_participants)
+                                            ? $activity->max_participants
+                                            : (! $activity && filled($slot->max_capacity) ? $slot->max_capacity : null);
+                                        if ($activity) {
+                                            $mergedActivitySlotTags = $activity->tags
+                                                ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
+                                                ->concat($slot->tags->filter(fn ($t) => $t->category === 'block'))
+                                                ->unique('id')
+                                                ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                        }
+                                    @endphp
+                                    <li @class(['group relative rounded-lg border border-base-300 bg-base-100/50 p-4', 'transition hover:border-base-content/20' => $activity])>
+                                        @if ($activity)
+                                            <a
+                                                href="{{ route('activities.show', $activity) }}"
+                                                wire:navigate
+                                                class="absolute inset-0 z-[1] block cursor-pointer rounded-lg ring-inset ring-primary/0 transition group-hover:ring-2 group-hover:ring-primary/15"
+                                                aria-label="{{ $activity->name }}"
+                                            >
+                                            </a>
+                                        @endif
+                                        <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
                                             <div class="min-w-0 flex-1 space-y-1.5">
-                                                @if ($slot->activity)
-                                                    <div class="mb-1 text-sm">
-                                                        <a href="{{ route('activities.show', $slot->activity) }}" class="link link-primary">
-                                                            {{ $slot->activity->name }}
-                                                        </a>
-                                                    </div>
+                                                @if ($activity)
+                                                    <h4 class="text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
                                                 @endif
-                                                <div class="space-y-0.5">
-                                                    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
-                                                        <span class="font-medium text-base-content">{{ $slot->name }}</span>
-                                                        @if ($slot->starts_at || $slot->ends_at)
-                                                            <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-base-content/70">
-                                                                <span class="inline-flex items-center gap-1.5 tabular-nums">
-                                                                    <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                                    </svg>
-                                                                    <span>
-                                                                        @if ($slot->starts_at && $slot->ends_at)
-                                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                                        @elseif ($slot->starts_at)
-                                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}
-                                                                        @else
-                                                                            {{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                                        @endif
-                                                                    </span>
-                                                                    @if (filled($slot->max_capacity))
-                                                                        <span class="inline-flex items-center gap-0.5 text-base-content/60" title="{{ $slot->max_capacity }}" aria-label="{{ $slot->max_capacity }}">
-                                                                            <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                                                            </svg>
-                                                                            <span class="tabular-nums">{{ $slot->max_capacity }}</span>
-                                                                        </span>
-                                                                    @endif
-                                                                </span>
+                                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+                                                    <span @class(['font-medium text-base-content' => ! $activity, 'font-medium text-base-content/80' => $activity])>{{ $slot->name }}</span>
+                                                    @if ($slot->starts_at || $slot->ends_at)
+                                                        <span class="inline-flex items-center gap-1.5 tabular-nums text-base-content/70">
+                                                            <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                            </svg>
+                                                            <span>
+                                                                @if ($slot->starts_at && $slot->ends_at)
+                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                @elseif ($slot->starts_at)
+                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}
+                                                                @else
+                                                                    {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                @endif
                                                             </span>
-                                                        @elseif (filled($slot->max_capacity))
-                                                            <span class="inline-flex items-center gap-1 text-sm text-base-content/70 tabular-nums" title="{{ $slot->max_capacity }}" aria-label="{{ $slot->max_capacity }}">
-                                                                <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                                                </svg>
-                                                                <span>{{ $slot->max_capacity }}</span>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                    @if ($slot->place)
-                                                        <p class="text-sm text-base-content/70">
-                                                            {{ $slot->place->venueRoomLabel() }}
-                                                        </p>
+                                                        </span>
+                                                    @endif
+                                                    @if ($participantsCount !== null)
+                                                        <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">
+                                                            <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                            </svg>
+                                                            <span>{{ $participantsCount }}</span>
+                                                        </span>
                                                     @endif
                                                 </div>
-                                                @if ($slot->activity)
-                                                    @php
-                                                        $listTags = $slot->activity->tags
-                                                            ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                            ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
-                                                    @endphp
-                                                    @if ($listTags->isNotEmpty())
-                                                        @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'mt-1'])
+                                                @if ($slot->place)
+                                                    <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
+                                                @endif
+                                                @if ($activity)
+                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->age_limit) || filled($activity->type))
+                                                        <div class="mt-1 flex flex-wrap gap-1">
+                                                            @if (filled($activity->age_limit))
+                                                                <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->age_limit }}+</span>
+                                                            @endif
+                                                            @if (filled($activity->type))
+                                                                <span class="badge badge-outline badge-info capitalize">{{ $activity->type }}</span>
+                                                            @endif
+                                                            @foreach ($mergedActivitySlotTags as $tag)
+                                                                <span class="badge badge-primary badge-outline whitespace-normal text-left">
+                                                                    {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
                                                     @endif
                                                 @else
                                                     @php
@@ -233,7 +245,7 @@
                                             </div>
                                             @auth
                                                 @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                                    <div class="flex shrink-0 gap-0.5">
+                                                    <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto">
                                                         <button
                                                             type="button"
                                                             class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
