@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('events/{event}/propose', [ActivityProposalController::class, 'create'])->name('events.propose');
     Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
-    Route::resource('events', EventController::class)->except(['show']);
+    Route::resource('events', EventController::class)->except(['show', 'store', 'update']);
 
     Route::resource('slots', SlotController::class)
         ->except(['show']);

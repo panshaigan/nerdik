@@ -1,77 +1,15 @@
-@csrf
+@push('head')
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+@endpush
 
-@php
-    $selectedPlaceIds = collect(old('place_ids', isset($event) && $event->exists ? $event->places->pluck('id')->all() : []))
-        ->map(fn ($id) => (int) $id)
-        ->values()
-        ->all();
-
-    $placesUnified = collect($places ?? [])
-        ->map(function ($place) {
-            $loc = $place->locationLabel();
-
-            return [
-                'id' => (int) $place->id,
-                'label' => $loc !== '' ? "{$place->name} ({$loc})" : $place->name,
-                'lat' => $place->latitude !== null ? (float) $place->latitude : null,
-                'lng' => $place->longitude !== null ? (float) $place->longitude : null,
-            ];
-        })
-        ->values()
-        ->all();
-
-    $initialNewPlaces = [];
-    $oldNewPlaces = old('new_places');
-    if (is_array($oldNewPlaces)) {
-        foreach ($oldNewPlaces as $row) {
-            if (! is_array($row)) {
-                continue;
-            }
-            $lat = $row['latitude'] ?? null;
-            $lng = $row['longitude'] ?? null;
-            if ($lat === null || $lat === '' || $lng === null || $lng === '') {
-                continue;
-            }
-            $initialNewPlaces[] = [
-                'lat' => (float) $lat,
-                'lng' => (float) $lng,
-                'name' => (string) ($row['name'] ?? ''),
-                'address' => (string) ($row['address'] ?? ''),
-                'city' => (string) ($row['city'] ?? ''),
-                'country' => (string) ($row['country'] ?? ''),
-                'city_id' => isset($row['city_id']) && $row['city_id'] !== '' ? (int) $row['city_id'] : null,
-                'country_id' => isset($row['country_id']) && $row['country_id'] !== '' ? (int) $row['country_id'] : null,
-            ];
-        }
-    }
-
-    $eventPlacesConfig = [
-        'places' => $placesUnified,
-        'initialSelectedIds' => $selectedPlaceIds,
-        'initialNewPlaces' => $initialNewPlaces,
-        'searchUrl' => route('geocode.search'),
-        'reverseUrl' => route('geocode.reverse'),
-        'strings' => [
-            'yourPlaces' => __('Your places'),
-            'mapSearch' => __('Map search'),
-            'noResults' => __('No results'),
-            'newVenuesHeading' => __('New venues (created when you save)'),
-            'newVenueNumber' => __('Venue'),
-            'removeVenue' => __('Remove'),
-            'addedThisForm' => __('Added on this form'),
-        ],
-    ];
-    $enforceFutureDates = ! ($event->exists ?? false);
-@endphp
-
+<form wire:submit.prevent="save" class="space-y-4" data-event-form>
 <div id="ui-event-form-fields" class="ui-form ui-form-event space-y-4" data-ui="event-form-fields">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="relative sm:col-span-2">
             <x-input
+                wire:model.live.debounce.300ms="name"
                 label="{{ __('Name') }}"
-                name="name"
                 type="text"
-                value="{{ old('name', $event->name ?? '') }}"
                 error-field="name"
                 required
                 autocomplete="off"
@@ -83,18 +21,16 @@
             <div id="event-name-suggestions-popup"
                  class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                  data-event-name-popup
+                 wire:ignore
                  role="listbox"></div>
         </div>
 
         <div class="relative sm:col-span-1">
-            <input type="hidden" name="organization_id"
-                   value="{{ old('organization_id', $event->organization_id ?? '') }}"
-                   data-event-org-id />
+            <input type="hidden" wire:model="organization_id" data-event-org-id />
             <x-input
+                wire:model.live.debounce.300ms="organization_name"
                 label="{{ __('Organization (optional)') }}"
-                name="organization_name"
                 type="text"
-                value="{{ old('organization_name', optional($event->organization)->name ?? '') }}"
                 error-field="organization_name"
                 autocomplete="off"
                 data-event-org-input
@@ -105,6 +41,7 @@
             <div id="event-org-suggestions-popup"
                  class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                  data-event-org-popup
+                 wire:ignore
                  role="listbox"></div>
             <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
             <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
@@ -112,21 +49,20 @@
     </div>
 
     <div>
-        <p class="fieldset-legend mb-0.5 font-medium">{{ __('Description (optional)') }}</p>
-        <input id="desc" type="hidden" name="desc" value="{{ old('desc', $event->desc ?? '') }}">
-        <div class="mt-1 overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
-            <div data-event-desc-editor class="min-h-[11rem]"></div>
-        </div>
+        <x-editor
+            wire:model="desc"
+            :label="__('Description (optional)')"
+            :gpl-license="true"
+        />
         <x-field-error :messages="$errors->get('desc')" class="mt-2" />
     </div>
 
     <div class="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
         <div class="lg:col-span-3 lg:max-w-[14rem]">
             <x-input
+                wire:model="starts_at"
                 label="{{ __('Starts at') }}"
-                name="starts_at"
                 type="datetime-local"
-                value="{{ old('starts_at', $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '') }}"
                 error-field="starts_at"
                 required
                 data-event-start-at
@@ -137,10 +73,9 @@
 
         <div class="lg:col-span-3 lg:max-w-[14rem]">
             <x-input
+                wire:model="ends_at"
                 label="{{ __('Ends at') }}"
-                name="ends_at"
                 type="datetime-local"
-                value="{{ old('ends_at', $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '') }}"
                 error-field="ends_at"
                 required
                 data-event-ends-at
@@ -151,11 +86,9 @@
         <div class="rounded-lg border border-base-300 bg-base-100 p-3 lg:col-span-6">
             <x-checkbox
                 id="is_public"
-                name="is_public"
-                value="1"
+                wire:model="is_public"
                 :label="__('Public event')"
                 :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
-                :checked="(bool) old('is_public', $event->is_public ?? true)"
             />
         </div>
     </div>
@@ -166,7 +99,7 @@
             {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
         </p>
 
-        <div id="ui-event-places-section" data-event-places-unified class="ui-event-places space-y-3" data-ui="event-places-section">
+        <div id="ui-event-places-section" data-event-places-unified class="ui-event-places space-y-3" data-ui="event-places-section" wire:ignore>
             <script type="application/json" data-ep-config>@json($eventPlacesConfig)</script>
             <div class="relative z-[1000]">
                 <x-input
@@ -199,7 +132,7 @@
 
             <div
                 data-ep-new-venues-wrap
-                class="{{ count($initialNewPlaces) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3"
+                class="{{ count($eventPlacesConfig['initialNewPlaces'] ?? []) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3"
             >
                 <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
                 <div data-ep-new-venues class="space-y-3"></div>
@@ -215,22 +148,33 @@
         <x-field-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
-    @if (isset($tags))
-        <div class="mt-4 border-t border-base-300 pt-4">
+    <div class="mt-4 border-t border-base-300 pt-4">
             <p class="fieldset-legend font-medium text-base-content">{{ __('Tags') }}</p>
             <p class="mb-3 text-xs text-base-content/70">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>
+            <div wire:ignore>
             @include('tags.partials.selector', [
                 'tags' => $tags,
-                'selectedIds' => old('tag_ids', $event->exists ? $event->tags->pluck('id')->toArray() : []),
+                'selectedIds' => $tag_ids,
             ])
+            </div>
             <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
             <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
             <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
             <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
-        </div>
-    @endif
+    </div>
 </div>
 
+        <div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">
+            <x-button id="ui-event-cancel" :link="route('events.index')" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+
+            <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
+                <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+            </x-button>
+        </div>
+</form>
+
+@push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const eventForm = document.querySelector('form[data-event-form]');
@@ -238,7 +182,7 @@
             eventForm.addEventListener('keydown', (e) => {
                 if (e.key !== 'Enter') return;
                 const t = e.target;
-                if (t.closest('.ql-editor') || t.closest('.ql-toolbar')) return;
+                if (t.closest('.tox-tinymce') || t.closest('.tox-toolbar')) return;
                 if (t.tagName === 'TEXTAREA') return;
                 if (t.tagName === 'BUTTON') return;
                 if (t.tagName === 'INPUT' && (t.type === 'checkbox' || t.type === 'radio' || t.type === 'submit' || t.type === 'button')) return;
@@ -256,8 +200,6 @@
         const popup = document.querySelector('[data-event-name-popup]');
         const startsAtEl = document.querySelector('[data-event-start-at]');
         const endsAtEl = document.querySelector('[data-event-ends-at]');
-        const descInput = document.getElementById('desc');
-        const descEditorEl = document.querySelector('[data-event-desc-editor]');
 
         if (input && popup) {
             const suggestions = @json($nameSuggestions ?? []);
@@ -290,6 +232,7 @@
 
             function choose(value) {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
                 closePopup();
             }
 
@@ -379,6 +322,7 @@
                 const t = orgInput.value.trim();
                 if (selectedOrg && t.toLowerCase() !== selectedOrg.name.toLowerCase()) {
                     orgIdInput.value = '';
+                    orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
                     selectedOrg = null;
                 }
             }
@@ -409,7 +353,9 @@
 
             function chooseOrg(item) {
                 orgInput.value = item.name;
+                orgInput.dispatchEvent(new Event('input', { bubbles: true }));
                 orgIdInput.value = String(item.id);
+                orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
                 selectedOrg = { id: item.id, name: item.name };
                 closeOrgPopup();
             }
@@ -503,6 +449,7 @@
 
             if (startsAtEl.value && endsAtEl.value && endsAtEl.value < startsAtEl.value) {
                 endsAtEl.value = startsAtEl.value;
+                endsAtEl.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
             startsAtEl.setCustomValidity('');
@@ -534,36 +481,6 @@
             }
         }
 
-        if (descInput && descEditorEl && window.Quill) {
-            const quill = new window.Quill(descEditorEl, {
-                theme: 'snow',
-                placeholder: '{{ __('Write event description...') }}',
-                modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ list: 'ordered' }, { list: 'bullet' }, 'blockquote', 'code-block'],
-                        ['link'],
-                        ['clean'],
-                    ],
-                },
-            });
-
-            const initialHtml = (descInput.value || '').trim();
-            if (initialHtml) {
-                quill.clipboard.dangerouslyPasteHTML(initialHtml);
-            }
-
-            quill.on('text-change', () => {
-                const html = quill.root.innerHTML.trim();
-                descInput.value = html === '<p><br></p>' ? '' : html;
-            });
-        }
-
     });
 </script>
-
-<div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">
-    <x-button id="ui-event-cancel" :link="route('events.index')" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
-
-    <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit">{{ $submitLabel ?? __('Save') }}</x-button>
-</div>
+@endpush
