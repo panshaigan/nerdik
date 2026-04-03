@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Livewire\Dashboard;
 
 use App\Models\Activity;
 use App\Models\ActivityParticipant;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
-class DashboardController extends Controller
+class Dashboard extends Component
 {
-    public function __invoke()
+    public function render()
     {
         $user = Auth::user();
 
@@ -42,6 +43,13 @@ class DashboardController extends Controller
         $wishlistEvents = $user->wishlistEvents()->with(['organization'])->orderBy('name')->limit(10)->get();
         $wishlistActivities = $user->wishlistActivities()->with('host')->orderBy('name')->limit(10)->get();
 
-        return view('dashboard', compact('myEvents', 'myActivities', 'participations', 'myProposals', 'wishlistEvents', 'wishlistActivities'));
+        return view('livewire.dashboard.dashboard', [
+            'myEvents' => $myEvents,
+            'myActivities' => $myActivities,
+            'participations' => $participations,
+            'myProposals' => $myProposals,
+            'wishlistEvents' => $wishlistEvents,
+            'wishlistActivities' => $wishlistActivities,
+        ]);
     }
 }

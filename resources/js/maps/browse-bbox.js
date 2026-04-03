@@ -1,5 +1,44 @@
 import L from './leaflet-setup.js';
 
+/**
+ * Push bbox hidden field values into the wrapping Livewire component (browse events).
+ */
+function syncLivewireBrowseBbox(root) {
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+        return;
+    }
+
+    const host = root.closest('[wire\\:id]');
+    if (!host) {
+        return;
+    }
+
+    const id = host.getAttribute('wire:id');
+    if (!id) {
+        return;
+    }
+
+    const wire = window.Livewire.find(id);
+    if (!wire || typeof wire.set !== 'function') {
+        return;
+    }
+
+    const minLatEl = document.getElementById('bbox_min_lat');
+    const maxLatEl = document.getElementById('bbox_max_lat');
+    const minLngEl = document.getElementById('bbox_min_lng');
+    const maxLngEl = document.getElementById('bbox_max_lng');
+    if (!minLatEl || !maxLatEl || !minLngEl || !maxLngEl) {
+        return;
+    }
+
+    const toNull = (v) => (v === '' || v === undefined || v === null ? null : v);
+
+    wire.set('min_lat', toNull(minLatEl.value));
+    wire.set('max_lat', toNull(maxLatEl.value));
+    wire.set('min_lng', toNull(minLngEl.value));
+    wire.set('max_lng', toNull(maxLngEl.value));
+}
+
 export async function initBrowseBboxMap() {
     const root = document.querySelector('[data-browse-bbox-map]');
     if (!root) {
@@ -95,10 +134,18 @@ export async function initBrowseBboxMap() {
         const north = b.getNorth();
         const west = b.getWest();
         const east = b.getEast();
-        minLatEl.value = south.toFixed(5);
-        maxLatEl.value = north.toFixed(5);
-        minLngEl.value = west.toFixed(5);
-        maxLngEl.value = east.toFixed(5);
+        const mMinLat = document.getElementById('bbox_min_lat');
+        const mMaxLat = document.getElementById('bbox_max_lat');
+        const mMinLng = document.getElementById('bbox_min_lng');
+        const mMaxLng = document.getElementById('bbox_max_lng');
+        if (!mMinLat || !mMaxLat || !mMinLng || !mMaxLng) {
+            return;
+        }
+        mMinLat.value = south.toFixed(5);
+        mMaxLat.value = north.toFixed(5);
+        mMinLng.value = west.toFixed(5);
+        mMaxLng.value = east.toFixed(5);
+        syncLivewireBrowseBbox(root);
     }
 
     map.on(L.Draw.Event.CREATED, (e) => {
@@ -113,9 +160,22 @@ export async function initBrowseBboxMap() {
     });
 
     map.on(L.Draw.Event.DELETED, () => {
-        minLatEl.value = '';
-        maxLatEl.value = '';
-        minLngEl.value = '';
-        maxLngEl.value = '';
+        const mMinLat = document.getElementById('bbox_min_lat');
+        const mMaxLat = document.getElementById('bbox_max_lat');
+        const mMinLng = document.getElementById('bbox_min_lng');
+        const mMaxLng = document.getElementById('bbox_max_lng');
+        if (mMinLat) {
+            mMinLat.value = '';
+        }
+        if (mMaxLat) {
+            mMaxLat.value = '';
+        }
+        if (mMinLng) {
+            mMinLng.value = '';
+        }
+        if (mMaxLng) {
+            mMaxLng.value = '';
+        }
+        syncLivewireBrowseBbox(root);
     });
 }
