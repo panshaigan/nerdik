@@ -12,7 +12,7 @@ window.initSlotMassForm = initSlotMassForm;
 
 initEventShowSlotForms();
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootSlotMassForms() {
     document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
         if (form.closest('#slot-edit-modal-body')) {
             return;
@@ -23,4 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
             initSlotMassForm(form);
         }
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootSlotMassForms);
+} else {
+    bootSlotMassForms();
+}
+
+document.addEventListener('livewire:navigated', bootSlotMassForms);

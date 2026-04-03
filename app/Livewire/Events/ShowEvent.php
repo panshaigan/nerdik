@@ -110,19 +110,16 @@ class ShowEvent extends Component
             $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
             $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
 
-            $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
-            if ($venues->isEmpty()) {
-                $venues = $event->places->values();
-            }
-            $slotMassVenues = $venues;
-            $venueIds = $venues->pluck('id');
+            $slotMassVenues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+            $venueIds = $slotMassVenues->pluck('id');
             if ($venueIds->isNotEmpty()) {
                 $children = Place::query()
                     ->whereIn('parent_id', $venueIds)
+                    ->where('type', 'room')
                     ->orderBy('name')
                     ->get()
                     ->groupBy('parent_id');
-                foreach ($venues as $v) {
+                foreach ($slotMassVenues as $v) {
                     $slotMassRoomsByVenueId[$v->id] = ($children[$v->id] ?? collect())
                         ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
                         ->values()

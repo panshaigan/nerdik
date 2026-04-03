@@ -54,13 +54,17 @@
         @json($tagSelectorConfig)
     </script>
     <div class="relative z-[1000]">
-        <input
-            type="search"
-            data-ts-input
-            class="input input-bordered w-full rounded-md border-base-300 bg-base-100"
-            placeholder="{{ __('Type to search tags (or create a new one)') }}"
-            autocomplete="off"
-        />
+        {{-- Same structure as Mary <x-input>: label.input wraps the native input so DaisyUI border + focus ring match other fields. --}}
+        <label class="input w-full">
+            <input
+                type="text"
+                inputmode="search"
+                enterkeyhint="search"
+                data-ts-input
+                placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                autocomplete="off"
+            />
+        </label>
         <div
             data-ts-results
             class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"

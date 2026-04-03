@@ -63,7 +63,12 @@ class ManageEventForm extends Component
             $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
             $this->tag_ids = $event->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
-            $this->place_ids = $event->places->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+            $this->place_ids = $event->places
+                ->filter(fn (Place $p) => $p->type === 'venue')
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
             $this->new_places = [];
         }
     }
@@ -149,7 +154,7 @@ class ManageEventForm extends Component
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
             'place_ids' => ['nullable', 'array'],
-            'place_ids.*' => ['integer', 'exists:places,id'],
+            'place_ids.*' => ['integer', Rule::exists('places', 'id')->where(fn ($q) => $q->where('type', 'venue'))],
             'new_places' => ['nullable', 'array'],
             'new_places.*.name' => ['nullable', 'string', 'max:255'],
             'new_places.*.address' => ['nullable', 'string', 'max:500'],
@@ -177,6 +182,12 @@ class ManageEventForm extends Component
     protected function syncEventPlaces(Event $event, array $placeIds, array $newPlacesInput, LocationResolver $locationResolver): void
     {
         $placeIds = array_values(array_unique(array_map('intval', $placeIds)));
+        $placeIds = Place::query()
+            ->whereIn('id', $placeIds)
+            ->venues()
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
         foreach ($newPlacesInput as $row) {
             if (! is_array($row)) {
@@ -297,7 +308,7 @@ class ManageEventForm extends Component
     public function render()
     {
         $places = Place::with(['city.translations', 'country.translations'])
-            ->withoutRooms()
+            ->venues()
             ->orderBy('name')
             ->get();
 

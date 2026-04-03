@@ -176,7 +176,14 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+(() => {
+    /** Livewire wire:navigate does not fire DOMContentLoaded again; init must run on navigated + when DOM is already ready. */
+    let manageEventFormScriptsAbort;
+    function initManageEventFormScripts() {
+        manageEventFormScriptsAbort?.abort();
+        manageEventFormScriptsAbort = new AbortController();
+        const signal = manageEventFormScriptsAbort.signal;
+
         const eventForm = document.querySelector('form[data-event-form]');
         if (eventForm) {
             eventForm.addEventListener('keydown', (e) => {
@@ -193,7 +200,7 @@
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
                 }
-            });
+            }, { signal });
         }
 
         const input = document.querySelector('[data-event-name-input]');
@@ -274,8 +281,8 @@
                 render(items);
             }
 
-            input.addEventListener('input', updateFromInput);
-            input.addEventListener('focus', updateFromInput);
+            input.addEventListener('input', updateFromInput, { signal });
+            input.addEventListener('focus', updateFromInput, { signal });
             input.addEventListener('keydown', (e) => {
                 if (popup.classList.contains('hidden') || shown.length === 0) return;
 
@@ -295,13 +302,13 @@
                 } else if (e.key === 'Escape') {
                     closePopup();
                 }
-            });
+            }, { signal });
 
             document.addEventListener('click', (e) => {
                 if (!popup.contains(e.target) && e.target !== input) {
                     closePopup();
                 }
-            });
+            }, { signal });
         }
 
         const orgInput = document.querySelector('[data-event-org-input]');
@@ -401,8 +408,8 @@
                 renderOrg(items);
             }
 
-            orgInput.addEventListener('input', updateOrgFromInput);
-            orgInput.addEventListener('focus', updateOrgFromInput);
+            orgInput.addEventListener('input', updateOrgFromInput, { signal });
+            orgInput.addEventListener('focus', updateOrgFromInput, { signal });
             orgInput.addEventListener('keydown', (e) => {
                 if (orgPopup.classList.contains('hidden') || orgShown.length === 0) return;
 
@@ -422,13 +429,13 @@
                 } else if (e.key === 'Escape') {
                     closeOrgPopup();
                 }
-            });
+            }, { signal });
 
             document.addEventListener('click', (e) => {
                 if (!orgPopup.contains(e.target) && e.target !== orgInput) {
                     closeOrgPopup();
                 }
-            });
+            }, { signal });
         }
 
         function nowForDateTimeLocal() {
@@ -464,10 +471,10 @@
 
         if (startsAtEl && endsAtEl) {
             syncDateGuards();
-            startsAtEl.addEventListener('change', syncDateGuards);
-            startsAtEl.addEventListener('input', syncDateGuards);
-            endsAtEl.addEventListener('change', syncDateGuards);
-            endsAtEl.addEventListener('input', syncDateGuards);
+            startsAtEl.addEventListener('change', syncDateGuards, { signal });
+            startsAtEl.addEventListener('input', syncDateGuards, { signal });
+            endsAtEl.addEventListener('change', syncDateGuards, { signal });
+            endsAtEl.addEventListener('input', syncDateGuards, { signal });
 
             const form = startsAtEl.closest('form');
             if (form) {
@@ -477,10 +484,21 @@
                         e.preventDefault();
                         form.reportValidity();
                     }
-                });
+                }, { signal });
             }
         }
 
+    }
+
+    document.addEventListener('livewire:navigating', () => {
+        manageEventFormScriptsAbort?.abort();
     });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initManageEventFormScripts, { once: true });
+    } else {
+        initManageEventFormScripts();
+    }
+    document.addEventListener('livewire:navigated', initManageEventFormScripts);
+})();
 </script>
 @endpush
