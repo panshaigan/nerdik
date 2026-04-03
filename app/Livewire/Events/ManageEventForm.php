@@ -127,13 +127,15 @@ class ManageEventForm extends Component
             $event->tags()->sync($tagIds);
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
             session()->flash('status', __('Event updated.'));
-        } else {
-            $validated['created_by'] = Auth::id();
-            $event = Event::create($validated);
-            $event->tags()->sync($tagIds);
-            $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
-            session()->flash('status', __('Event created.'));
+
+            return redirect()->route('events.show', $event);
         }
+
+        $validated['created_by'] = Auth::id();
+        $event = Event::create($validated);
+        $event->tags()->sync($tagIds);
+        $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+        session()->flash('status', __('Event created.'));
 
         return redirect()->route('events.index');
     }
@@ -374,6 +376,9 @@ class ManageEventForm extends Component
             'eventPlacesConfig' => $eventPlacesConfig,
             'enforceFutureDates' => $this->editingEventId === null,
             'submitLabel' => $this->editingEventId !== null ? __('Update') : __('Create'),
+            'cancelUrl' => $this->editingEventId !== null
+                ? route('events.show', Event::query()->findOrFail($this->editingEventId))
+                : route('events.index'),
         ]);
     }
 }
