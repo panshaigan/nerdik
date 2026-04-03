@@ -27,13 +27,15 @@
                 $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
             @endphp
 
-            <div class="overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow">
+            <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
                 <div class="relative isolate" data-event-show-map-root>
                     <script type="application/json" data-event-show-map-config>@json($eventPlacesMapConfig)</script>
                     <div
+                        id="ui-event-show-map"
                         data-event-show-map
                         class="relative z-0 w-full bg-base-200/30"
                         style="min-height: 260px; height: min(420px, 50vh);"
+                        data-ui="event-show-map"
                     ></div>
                     <div class="absolute inset-x-0 bottom-0 z-50 bg-black/55 px-4 py-3 text-white backdrop-blur-[1px]">
                         <div class="flex items-start justify-between gap-3">
@@ -78,7 +80,7 @@
                                 {{ __('ui.events.edit') }}
                             </x-button>
                         @endif
-                        <x-button :link="route('events.propose', $event)" class="btn-primary btn-sm">
+                        <x-button id="ui-event-show-propose" :link="route('events.propose', $event)" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose">
                             {{ __('ui.events.propose_activity') }}
                         </x-button>
                     @endauth
@@ -86,13 +88,13 @@
                 </div>
             </div>
 
-            <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
+            <div id="ui-event-show-slots" class="ui-event-show-slots rounded-lg border border-base-300 bg-base-100 p-6 shadow" data-ui="event-show-slots">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
                     <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.slots') }}</h3>
                     @auth
                         @if ($event->created_by === auth()->id())
                             <div class="flex flex-wrap gap-2">
-                                <x-button type="button" class="btn-outline btn-sm" onclick="document.getElementById('event-slots-create-modal')?.showModal()">
+                                <x-button id="ui-event-show-create-slots" type="button" class="btn-outline btn-sm ui-action ui-action-create-slots" onclick="document.getElementById('event-slots-create-modal')?.showModal()" data-ui="event-show-create-slots">
                                     {{ __('ui.slots.create_slots') }}
                                 </x-button>
                             </div>
@@ -242,7 +244,7 @@
             @endauth
 
             @if ($isOwner && $pendingProposals->isNotEmpty())
-                <div class="rounded-lg border border-warning/40 bg-base-100 p-6 shadow">
+                <div id="ui-event-show-pending-proposals" class="ui-event-show-pending-proposals rounded-lg border border-warning/40 bg-base-100 p-6 shadow" data-ui="event-show-pending-proposals">
                     <h3 class="mb-1 text-lg font-medium text-base-content">{{ __('ui.events.pending_proposals') }}</h3>
                     <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.pending_proposals_help') }}</p>
                     <ul class="divide-y divide-base-300">

@@ -64,7 +64,7 @@
     $enforceFutureDates = ! ($event->exists ?? false);
 @endphp
 
-<div class="space-y-4">
+<div id="ui-event-form-fields" class="ui-form ui-form-event space-y-4" data-ui="event-form-fields">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="relative sm:col-span-2">
             <x-input
@@ -166,7 +166,7 @@
             {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
         </p>
 
-        <div data-event-places-unified class="space-y-3">
+        <div id="ui-event-places-section" data-event-places-unified class="ui-event-places space-y-3" data-ui="event-places-section">
             <script type="application/json" data-ep-config>@json($eventPlacesConfig)</script>
             <div class="relative z-[1000]">
                 <x-input
@@ -174,19 +174,25 @@
                     data-ep-search
                     autocomplete="off"
                     :placeholder="__('Search places or address… (double-click map to add)')"
-                    class="w-full"
+                    class="ui-field ui-field-event-place-search w-full"
                     :omit-error="true"
+                    id="ui-event-place-search"
+                    data-ui="event-place-search"
                 />
                 <div
+                    id="ui-event-place-search-results"
                     data-ep-results
                     class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                    data-ui="event-place-search-results"
                 ></div>
             </div>
 
             <div
+                id="ui-event-places-map"
                 data-ep-map
                 class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30"
                 style="min-height: 280px; height: min(420px, 50vh);"
+                data-ui="event-places-map"
             ></div>
 
             <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
@@ -556,8 +562,8 @@
     });
 </script>
 
-<div class="mt-6 flex justify-end gap-3">
-    <x-button :link="route('events.index')" class="btn-outline">{{ __('Cancel') }}</x-button>
+<div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">
+    <x-button id="ui-event-cancel" :link="route('events.index')" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
 
-    <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('Save') }}</x-button>
+    <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit">{{ $submitLabel ?? __('Save') }}</x-button>
 </div>

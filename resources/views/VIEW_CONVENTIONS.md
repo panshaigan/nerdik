@@ -1,4 +1,4 @@
-# View layer (OFS): Livewire + Mary + DaisyUI
+# View layer: Livewire + Mary + DaisyUI
 
 ## Stack
 
@@ -18,6 +18,16 @@ Mary is aligned with Daisy; prefer Mary for **forms** so labels, errors, and inp
 5. **Actions**: `btn-primary`, `btn-outline`, `btn-ghost`, `link link-primary`; destructive: `text-error` or `btn-error`.
 6. **Flash / status**: prefer `alert alert-success` or `text-success`, not `text-green-600`.
 7. **Modals**: Livewire flows → `<x-modal>`; static Blade + JS → Daisy `<dialog class="modal">`. Do not mix without reason.
+8. **JS selectors**: add semantic hooks to important interactive elements using:
+   - `id="ui-<domain>-<element>"`
+   - `class="ui-<domain>-<role>"` (can be combined with utility classes)
+   - `data-ui="<domain>-<element>"`
+   Keep `data-*` hooks stable; avoid binding JS to visual utility classes.
+   For each major form, always mark:
+   - root section (`...-section`)
+   - form tag (`...-form`)
+   - primary submit (`...-submit`)
+   - key interactive fields (`...-search`, `...-email`, `...-password`, etc.)
 
 ## Documented non-semantic tweaks
 

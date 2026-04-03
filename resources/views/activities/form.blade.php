@@ -5,7 +5,7 @@
     $currentType = old('type', $activity->type ?? '');
 @endphp
 
-<div class="space-y-4">
+<div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
     <div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div class="relative sm:col-span-2">
@@ -73,7 +73,7 @@
         </div>
     @endif
 
-    <div class="mt-4 border-t border-base-300 pt-4">
+    <div id="ui-activity-proposal-section" class="ui-proposal-section mt-4 border-t border-base-300 pt-4" data-ui="activity-proposal-section">
         <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex h-full items-center">
                 
@@ -227,6 +227,8 @@
                     name="proposal_event_id"
                     :label="__('ui.activities.proposal_event')"
                     error-field="proposal_event_id"
+                    class="ui-field ui-field-proposal-event"
+                    data-ui="proposal-event-select"
                 >
                     <option value="">{{ __('ui.activities.proposal_event_none') }}</option>
                     @foreach ($futureEvents ?? [] as $ev)
@@ -246,12 +248,13 @@
             <div>
                 <x-input
                     id="proposal_preferred_start_time"
-                    class="w-full"
+                    class="ui-field ui-field-proposal-preferred-time w-full"
                     :label="__('ui.activities.proposal_preferred_start_time')"
                     name="proposal_preferred_start_time"
                     type="datetime-local"
                     value="{{ old('proposal_preferred_start_time') }}"
                     error-field="proposal_preferred_start_time"
+                    data-ui="proposal-preferred-time-input"
                 />
             </div>
         </div>
@@ -472,12 +475,12 @@
     });
 </script>
 
-<div class="mt-6 flex justify-end gap-3">
-    <x-button type="button" class="btn-outline" data-activity-clear-numeric>
+<div id="ui-activity-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="activity-form-actions">
+    <x-button id="ui-activity-clear-numeric" type="button" class="btn-outline ui-action ui-action-clear-numeric" data-activity-clear-numeric data-ui="activity-clear-numeric">
         {{ __('ui.activities.clear_numeric_fields') }}
     </x-button>
 
-    <x-button :link="route('activities.index')" class="btn-outline">{{ __('ui.common.cancel') }}</x-button>
+    <x-button id="ui-activity-cancel" :link="route('activities.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
-    <x-button class="btn-primary" type="submit">{{ $submitLabel ?? __('ui.common.save') }}</x-button>
+    <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit">{{ $submitLabel ?? __('ui.common.save') }}</x-button>
 </div>
