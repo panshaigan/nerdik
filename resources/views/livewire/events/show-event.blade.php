@@ -6,7 +6,10 @@
 
             @php
                 $eventPlaces = $event->places
-                    ->filter(fn ($place) => $place && $place->latitude !== null && $place->longitude !== null)
+                    ->filter(fn ($place) => $place
+                        && $place->type !== 'room'
+                        && $place->latitude !== null
+                        && $place->longitude !== null)
                     ->unique('id')
                     ->values();
                 $eventPlacesMapConfig = [

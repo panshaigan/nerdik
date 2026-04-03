@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -42,6 +43,17 @@ class Place extends Model
     public function children()
     {
         return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Room-level places are tied to a parent venue; maps should show venues (or other types), not duplicate room pins.
+     *
+     * @param  Builder<Place>  $query
+     * @return Builder<Place>
+     */
+    public function scopeWithoutRooms($query)
+    {
+        return $query->where('type', '!=', 'room');
     }
 
     public function events()

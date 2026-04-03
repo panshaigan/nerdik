@@ -297,6 +297,7 @@ class ManageEventForm extends Component
     public function render()
     {
         $places = Place::with(['city.translations', 'country.translations'])
+            ->withoutRooms()
             ->orderBy('name')
             ->get();
 
