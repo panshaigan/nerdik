@@ -47,10 +47,6 @@ new class extends Component
                        class="{{ $navLink(request()->routeIs('activities.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Activities') }}
                     </a>
-                    <a href="{{ route('organizations.index') }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('organizations.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
-                        {{ __('Organizations') }}
-                    </a>
                 </div>
             </div>
 
@@ -105,6 +101,7 @@ new class extends Component
                             </a>
                         </li>
                         <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
+                        <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('Organizations') }}</a></li>
                         <li><a href="#">{{ __('Dummy menu item') }}</a></li>
                         <li><a href="#">{{ __('Another quick action') }}</a></li>
                         <li>
@@ -138,10 +135,6 @@ new class extends Component
             <a href="{{ route('activities.index') }}" wire:navigate
                class="{{ $navLink(request()->routeIs('activities.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Activities') }}
-            </a>
-            <a href="{{ route('organizations.index') }}" wire:navigate
-               class="{{ $navLink(request()->routeIs('organizations.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
-                {{ __('Organizations') }}
             </a>
         </div>
 
@@ -180,6 +173,10 @@ new class extends Component
                 <a href="{{ route('profile') }}" wire:navigate
                    class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Profile') }}
+                </a>
+                <a href="{{ route('organizations.index') }}" wire:navigate
+                   class="{{ $navLink(request()->routeIs('organizations.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
+                    {{ __('Organizations') }}
                 </a>
                 <button type="button" wire:click="logout" class="w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-base-content/80">
                     {{ __('Log Out') }}

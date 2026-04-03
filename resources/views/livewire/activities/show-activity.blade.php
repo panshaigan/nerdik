@@ -36,6 +36,11 @@
                         </div>
                     @endif
                 </dl>
+                @if (filled(rich_text_excerpt($activity->desc)))
+                    <div class="rich-text-content mt-6 border-t border-base-300 pt-4 text-sm text-base-content/90">
+                        {!! rich_text($activity->desc) !!}
+                    </div>
+                @endif
                 @if ($activity->tags->isNotEmpty())
                     <div class="mt-4">
                         <p class="mb-2 text-sm font-medium opacity-70">{{ __('Tags') }}</p>

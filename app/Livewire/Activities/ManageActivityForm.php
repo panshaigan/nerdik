@@ -9,6 +9,7 @@ use App\Models\Tag;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Services\TagSelectionService;
 use App\Support\ActivityTypes;
+use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
@@ -236,15 +237,7 @@ class ManageActivityForm extends Component
 
     protected function normalizeDesc(?string $html): ?string
     {
-        if ($html === null) {
-            return null;
-        }
-        $t = trim($html);
-        if ($t === '' || $t === '<p><br></p>' || $t === '<p></p>' || $t === '<br>') {
-            return null;
-        }
-
-        return $html;
+        return RichText::sanitize($html);
     }
 
     /**

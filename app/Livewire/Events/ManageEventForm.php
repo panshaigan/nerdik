@@ -8,6 +8,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
+use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -166,15 +167,7 @@ class ManageEventForm extends Component
 
     protected function normalizeDesc(?string $html): ?string
     {
-        if ($html === null) {
-            return null;
-        }
-        $t = trim($html);
-        if ($t === '' || $t === '<p><br></p>' || $t === '<p></p>' || $t === '<br>') {
-            return null;
-        }
-
-        return $html;
+        return RichText::sanitize($html);
     }
 
     /**

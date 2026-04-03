@@ -32,11 +32,10 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
 
 /*
 | Public entity lists (Livewire browse UI). Named *.index so redirects and links stay stable.
-| Authenticated CRUD uses the same route names without a second list page.
+| Organizations are listed only for the signed-in owner (see authenticated `organizations.index`).
 */
 Route::view('events', 'browse.events')->name('events.index');
 Route::view('activities', 'browse.activities')->name('activities.index');
-Route::view('organizations', 'browse.organizations')->name('organizations.index');
 
 Route::redirect('browse/events', '/events', 301);
 Route::redirect('browse/activities', '/activities', 301);
@@ -59,6 +58,8 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 Route::middleware(['auth'])->group(function () {
+    Route::view('organizations', 'organizations.index')->name('organizations.index');
+
     Route::resource('organizations', OrganizationController::class)
         ->except(['show', 'index']);
 

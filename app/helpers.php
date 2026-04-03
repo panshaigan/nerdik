@@ -1,6 +1,8 @@
 <?php
 
+use App\Support\RichText;
 use Carbon\Carbon;
+use Illuminate\Support\HtmlString;
 
 if (! function_exists('parse_datetime_to_utc')) {
     /**
@@ -118,5 +120,35 @@ if (! function_exists('format_date_range_compact')) {
         }
 
         return $s->format('M j, Y').' → '.$e->format('M j, Y');
+    }
+}
+
+if (! function_exists('rich_text_sanitize')) {
+    /**
+     * Sanitize rich HTML (e.g. from TinyMCE) before saving to the database.
+     */
+    function rich_text_sanitize(?string $html): ?string
+    {
+        return RichText::sanitize($html);
+    }
+}
+
+if (! function_exists('rich_text')) {
+    /**
+     * Purified HTML safe for {!! rich_text($model->desc) !!} in Blade.
+     */
+    function rich_text(?string $stored): HtmlString
+    {
+        return RichText::html($stored);
+    }
+}
+
+if (! function_exists('rich_text_excerpt')) {
+    /**
+     * Plain excerpt for cards and previews (no HTML).
+     */
+    function rich_text_excerpt(?string $stored, int $limit = 120): string
+    {
+        return RichText::excerpt($stored, $limit);
     }
 }

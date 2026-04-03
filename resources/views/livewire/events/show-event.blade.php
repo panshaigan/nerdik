@@ -60,8 +60,10 @@
                         @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
                     </div>
                 @endif
-                @if ($event->desc)
-                    <p class="mt-4 text-sm text-base-content/80">{{ $event->desc }}</p>
+                @if (filled(rich_text_excerpt($event->desc)))
+                    <div class="rich-text-content mt-4 text-sm text-base-content/80">
+                        {!! rich_text($event->desc) !!}
+                    </div>
                 @endif
                 @php
                     $canManageEvent = auth()->check() && ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false));
