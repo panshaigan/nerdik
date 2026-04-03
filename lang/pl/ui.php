@@ -35,6 +35,12 @@ return [
         'tags' => 'Tagi',
         'tags_help' => 'Wybierz tagi (system gry, wydawca, triggery itp.).',
         'activity_options' => 'Opcje aktywnosci',
+        'propose_to_event' => 'Zaproponuj na wydarzeniu (opcjonalnie)',
+        'propose_to_event_help' => 'Jeśli wybierzesz nadchodzące wydarzenie, zapis utworzy tę aktywność i wyśle organizatorowi wydarzenia propozycję (status: oczekująca). Możesz podać preferowany termin; organizator przypisze slot.',
+        'proposal_event' => 'Wydarzenie',
+        'proposal_event_none' => '— Bez propozycji —',
+        'proposal_no_future_events' => 'Brak nadchodzących wydarzeń.',
+        'proposal_preferred_start_time' => 'Preferowana data i godzina (opcjonalnie)',
     ],
     'events' => [
         'host' => 'Organizator',
@@ -142,5 +148,7 @@ return [
         'proposal_not_pending' => 'Propozycja nie jest juz oczekujaca.',
         'forbidden_accept' => 'Tylko wlasciciel wydarzenia moze akceptowac propozycje.',
         'forbidden_reject' => 'Tylko wlasciciel wydarzenia moze odrzucac propozycje.',
+        'activity_saved_with_proposal' => 'Aktywnosc utworzona. Wyslano propozycje dla wydarzenia: :event.',
+        'activity_updated_with_proposal' => 'Aktywnosc zaktualizowana. Wyslano propozycje dla wydarzenia: :event.',
     ],
 ];

@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\ActivityProposal;
+use App\Models\Event;
 use App\Models\Tag;
+use App\Notifications\ProposalSubmittedNotification;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -39,11 +43,13 @@ class ActivityController extends Controller
     {
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $nameSuggestions = $this->nameSuggestionsForCurrentUser();
+        $futureEvents = $this->futureEventsForProposal();
 
         return view('activities.create', [
             'activity' => new Activity,
             'tags' => $tags,
             'nameSuggestions' => $nameSuggestions,
+            'futureEvents' => $futureEvents,
         ]);
     }
 
@@ -59,6 +65,7 @@ class ActivityController extends Controller
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
+            ...$this->proposalFieldValidationRules(),
         ]);
 
         $tagIds = $this->tagSelectionService->resolveFinalTagIds(
@@ -69,8 +76,12 @@ class ActivityController extends Controller
         $activity = Activity::create($validated);
         $activity->tags()->sync($tagIds);
 
+        $proposalCreated = $this->createProposalForActivityIfRequested($request, $activity);
+
         return redirect()->route('activities.index')
-            ->with('status', __('Activity created.'));
+            ->with('status', $proposalCreated
+                ? __('ui.status.activity_saved_with_proposal', ['event' => $proposalCreated->event->name])
+                : __('Activity created.'));
     }
 
     /**
@@ -99,11 +110,13 @@ class ActivityController extends Controller
         $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
         $activity->load('tags');
         $nameSuggestions = $this->nameSuggestionsForCurrentUser($activity->id);
+        $futureEvents = $this->futureEventsForProposal();
 
         return view('activities.edit', [
             'activity' => $activity,
             'tags' => $tags,
             'nameSuggestions' => $nameSuggestions,
+            'futureEvents' => $futureEvents,
         ]);
     }
 
@@ -121,6 +134,7 @@ class ActivityController extends Controller
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
+            ...$this->proposalFieldValidationRules(),
         ]);
 
         $tagIds = $this->tagSelectionService->resolveFinalTagIds(
@@ -131,8 +145,12 @@ class ActivityController extends Controller
         $activity->update($validated);
         $activity->tags()->sync($tagIds);
 
+        $proposalCreated = $this->createProposalForActivityIfRequested($request, $activity);
+
         return redirect()->route('activities.index')
-            ->with('status', __('Activity updated.'));
+            ->with('status', $proposalCreated
+                ? __('ui.status.activity_updated_with_proposal', ['event' => $proposalCreated->event->name])
+                : __('Activity updated.'));
     }
 
     /**
@@ -195,6 +213,77 @@ class ActivityController extends Controller
         $validated['host_user_id'] = auth()->id();
 
         return $validated;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    protected function futureEventsForProposal()
+    {
+        return Event::query()
+            ->where(function ($q) {
+                $q->where('ends_at', '>', now())
+                    ->orWhere(function ($q2) {
+                        $q2->whereNull('ends_at')
+                            ->whereNotNull('starts_at')
+                            ->where('starts_at', '>', now());
+                    });
+            })
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function proposalFieldValidationRules(): array
+    {
+        return [
+            'proposal_event_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('events', 'id')->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->where('ends_at', '>', now())
+                            ->orWhere(function ($q2) {
+                                $q2->whereNull('ends_at')
+                                    ->whereNotNull('starts_at')
+                                    ->where('starts_at', '>', now());
+                            });
+                    });
+                }),
+            ],
+            'proposal_preferred_start_time' => ['nullable', 'date'],
+        ];
+    }
+
+    /**
+     * Create a pending activity proposal when an upcoming event is selected (same behaviour as proposing from the event).
+     */
+    protected function createProposalForActivityIfRequested(Request $request, Activity $activity): ?ActivityProposal
+    {
+        if (! $request->filled('proposal_event_id')) {
+            return null;
+        }
+
+        $event = Event::findOrFail((int) $request->input('proposal_event_id'));
+
+        $preferred = $request->input('proposal_preferred_start_time');
+
+        $proposal = ActivityProposal::create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => auth()->id(),
+            'preferred_start_time' => $preferred !== null && $preferred !== '' ? $preferred : null,
+            'status' => 'pending',
+        ]);
+        $proposal->load(['activity', 'event', 'creator']);
+
+        if ($event->created_by !== auth()->id()) {
+            $event->creator?->notify(new ProposalSubmittedNotification($proposal));
+        }
+
+        return $proposal;
     }
 
     /**
