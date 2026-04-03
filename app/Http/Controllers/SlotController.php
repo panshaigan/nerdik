@@ -24,18 +24,6 @@ class SlotController extends Controller
     ) {}
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $slots = Slot::with(['event', 'place.parent'])
-            ->orderBy('starts_at')
-            ->get();
-
-        return view('slots.index', compact('slots'));
-    }
-
-    /**
      * Show the form for creating a new resource.
      */
     public function create(Request $request)
