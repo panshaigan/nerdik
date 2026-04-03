@@ -35,9 +35,6 @@ class SlotFormService
 
         foreach ($events as $event) {
             $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
-            if ($venues->isEmpty()) {
-                $venues = $event->places->values();
-            }
 
             $eventVenuesByEventId[$event->id] = $venues
                 ->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'type' => $p->type])
@@ -51,6 +48,7 @@ class SlotFormService
 
             $children = Place::query()
                 ->whereIn('parent_id', $venueIds)
+                ->where('type', 'room')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('parent_id');
@@ -77,12 +75,8 @@ class SlotFormService
     public function venuesForEventMassForm(Event $event): Collection
     {
         $event->loadMissing(['places' => fn ($q) => $q->orderBy('name')]);
-        $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
-        if ($venues->isEmpty()) {
-            $venues = $event->places->values();
-        }
 
-        return $venues;
+        return $event->places->filter(fn ($p) => $p->type === 'venue')->values();
     }
 
     /**
@@ -98,6 +92,7 @@ class SlotFormService
 
         $children = Place::query()
             ->whereIn('parent_id', $venueIds)
+            ->where('type', 'room')
             ->orderBy('name')
             ->get()
             ->groupBy('parent_id');

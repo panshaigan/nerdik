@@ -269,7 +269,13 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+(() => {
+    let manageActivityFormScriptsAbort;
+    function initManageActivityFormScripts() {
+        manageActivityFormScriptsAbort?.abort();
+        manageActivityFormScriptsAbort = new AbortController();
+        const signal = manageActivityFormScriptsAbort.signal;
+
         const activityForm = document.querySelector('form[data-activity-form]');
         if (activityForm) {
             activityForm.addEventListener('keydown', (e) => {
@@ -284,7 +290,7 @@
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
                 }
-            });
+            }, { signal });
         }
 
         const nameInput = document.querySelector('[data-activity-name-input]');
@@ -362,8 +368,8 @@
                 render(items);
             }
 
-            nameInput.addEventListener('input', updateFromInput);
-            nameInput.addEventListener('focus', updateFromInput);
+            nameInput.addEventListener('input', updateFromInput, { signal });
+            nameInput.addEventListener('focus', updateFromInput, { signal });
             nameInput.addEventListener('keydown', (e) => {
                 if (namePopup.classList.contains('hidden') || shown.length === 0) return;
 
@@ -383,13 +389,13 @@
                 } else if (e.key === 'Escape') {
                     closeNamePopup();
                 }
-            });
+            }, { signal });
 
             document.addEventListener('click', (e) => {
                 if (!namePopup.contains(e.target) && e.target !== nameInput) {
                     closeNamePopup();
                 }
-            });
+            }, { signal });
         }
 
         function parseNum(el) {
@@ -432,14 +438,25 @@
         const maxEl = form?.querySelector('input[data-activity-participants="max"]');
         if (minEl && maxEl) {
             ['input', 'change'].forEach((ev) => {
-                minEl.addEventListener(ev, syncActivityMinMax);
-                maxEl.addEventListener(ev, syncActivityMinMax);
+                minEl.addEventListener(ev, syncActivityMinMax, { signal });
+                maxEl.addEventListener(ev, syncActivityMinMax, { signal });
             });
             syncActivityMinMax();
             form?.addEventListener('submit', () => {
                 syncActivityMinMax();
-            });
+            }, { signal });
         }
+    }
+
+    document.addEventListener('livewire:navigating', () => {
+        manageActivityFormScriptsAbort?.abort();
     });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initManageActivityFormScripts, { once: true });
+    } else {
+        initManageActivityFormScripts();
+    }
+    document.addEventListener('livewire:navigated', initManageActivityFormScripts);
+})();
 </script>
 @endpush

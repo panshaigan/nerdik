@@ -7,7 +7,7 @@
             @php
                 $eventPlaces = $event->places
                     ->filter(fn ($place) => $place
-                        && $place->type !== 'room'
+                        && $place->type === 'venue'
                         && $place->latitude !== null
                         && $place->longitude !== null)
                     ->unique('id')

@@ -56,6 +56,17 @@ class Place extends Model
         return $query->where('type', '!=', 'room');
     }
 
+    /**
+     * Physical venues (event maps and event–place links use this type only).
+     *
+     * @param  Builder<Place>  $query
+     * @return Builder<Place>
+     */
+    public function scopeVenues($query)
+    {
+        return $query->where('type', 'venue');
+    }
+
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_place')->withTimestamps();
