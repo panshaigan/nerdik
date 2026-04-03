@@ -186,21 +186,18 @@
                                                             <path d="M17.414 2.586a2 2 0 010 2.828l-9.5 9.5a1 1 0 01-.454.263l-4 1a1 1 0 01-1.212-1.212l1-4a1 1 0 01.263-.454l9.5-9.5a2 2 0 012.828 0zM6.207 11.379l-.5 2 2-.5 8.293-8.293-1.5-1.5-8.293 8.293z"/>
                                                         </svg>
                                                     </x-button>
-                                                    <form action="{{ route('slots.destroy', $slot) }}" method="POST" class="inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <x-button
-                                                            type="submit"
-                                                            class="btn-ghost btn-xs btn-square text-error"
-                                                            title="{{ __('Delete') }}"
-                                                            aria-label="{{ __('Delete') }}"
-                                                            onclick="return confirm('{{ __('Are you sure?') }}')"
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fill-rule="evenodd" d="M8.5 2A1.5 1.5 0 007 3.5V4H4.5a.5.5 0 000 1h.538l.853 10.236A2 2 0 007.884 17h4.232a2 2 0 001.993-1.764L14.962 5h.538a.5.5 0 000-1H13v-.5A1.5 1.5 0 0011.5 2h-3zM12 4v-.5a.5.5 0 00-.5-.5h-3a.5.5 0 00-.5.5V4h4zm-4.5 3a.5.5 0 011 0v7a.5.5 0 11-1 0V7zm4 0a.5.5 0 10-1 0v7a.5.5 0 101 0V7z" clip-rule="evenodd"/>
-                                                            </svg>
-                                                        </x-button>
-                                                    </form>
+                                                    <x-button
+                                                        type="button"
+                                                        class="btn-ghost btn-xs btn-square text-error"
+                                                        title="{{ __('Delete') }}"
+                                                        aria-label="{{ __('Delete') }}"
+                                                        wire:click="deleteSlot({{ $slot->id }})"
+                                                        wire:confirm="{{ __('Are you sure?') }}"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M8.5 2A1.5 1.5 0 007 3.5V4H4.5a.5.5 0 000 1h.538l.853 10.236A2 2 0 007.884 17h4.232a2 2 0 001.993-1.764L14.962 5h.538a.5.5 0 000-1H13v-.5A1.5 1.5 0 0011.5 2h-3zM12 4v-.5a.5.5 0 00-.5-.5h-3a.5.5 0 00-.5.5V4h4zm-4.5 3a.5.5 0 011 0v7a.5.5 0 11-1 0V7zm4 0a.5.5 0 10-1 0v7a.5.5 0 101 0V7z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </x-button>
                                                 </div>
                                             @endif
                                         @endauth
@@ -227,6 +224,7 @@
                                 'slotMassVenues' => $slotMassVenues,
                                 'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
                                 'embeddedInModal' => true,
+                                'massFormAction' => route('events.slots.mass', $event),
                             ])
                         </div>
                         <form method="dialog" class="modal-backdrop">

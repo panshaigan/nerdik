@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SlotController extends Controller
 {
@@ -123,6 +124,16 @@ class SlotController extends Controller
     public function update(Request $request, Slot $slot)
     {
         $this->authorizeCreatedBy($slot);
+
+        if ($request->expectsJson()) {
+            try {
+                $this->slotFormService->performSlotUpdate($request, $slot);
+            } catch (ValidationException $e) {
+                return response()->json(['errors' => $e->errors()], 422);
+            }
+
+            return response()->json(['ok' => true]);
+        }
 
         return $this->slotFormService->updateSlot($request, $slot);
     }

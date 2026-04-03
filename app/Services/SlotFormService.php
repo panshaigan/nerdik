@@ -204,9 +204,12 @@ class SlotFormService
         return $venueId;
     }
 
-    public function massCreate(Request $request): RedirectResponse
+    /**
+     * @return array<string, mixed>
+     */
+    protected function massCreateValidationRules(): array
     {
-        $validated = $request->validate([
+        return [
             'event_id' => ['required', 'exists:events,id'],
             'base_name' => ['required', 'string', 'max:255'],
             'count' => ['required', 'integer', 'min:1', 'max:100'],
@@ -223,17 +226,53 @@ class SlotFormService
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
-        ]);
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function slotUpdateValidationRules(): array
+    {
+        return [
+            'event_id' => ['required', 'exists:events,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date'],
+            'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
+            'new_room_name' => ['nullable', 'string', 'max:255'],
+            'requires_approval' => ['nullable', 'boolean'],
+            'max_capacity' => ['nullable', 'integer', 'min:1'],
+            'activity_types' => ['nullable', 'array'],
+            'activity_types.*' => [Rule::in(ActivityTypes::VALUES)],
+            'tag_ids' => ['nullable', 'array'],
+            'tag_ids.*' => ['integer', 'exists:tags,id'],
+            'new_tags' => ['nullable', 'array'],
+            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
+            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
+        ];
+    }
+
+    /**
+     * Persist mass-created slots. Throws {@see ValidationException} on validation / business-rule failure.
+     */
+    public function performMassCreate(Request $request): void
+    {
+        $validated = $request->validate($this->massCreateValidationRules());
 
         if (! empty($validated['ends_at']) && empty($validated['starts_at'])) {
-            return back()->withErrors(['ends_at' => __('ui.slots.end_requires_start')])->withInput();
+            throw ValidationException::withMessages([
+                'ends_at' => [__('ui.slots.end_requires_start')],
+            ]);
         }
 
         if (! empty($validated['starts_at']) && ! empty($validated['ends_at'])) {
             $startUtc = parse_datetime_to_utc($validated['starts_at']);
             $endUtc = parse_datetime_to_utc($validated['ends_at']);
             if ($startUtc && $endUtc && $endUtc->lt($startUtc)) {
-                return back()->withErrors(['ends_at' => __('ui.slots.ends_after_start')])->withInput();
+                throw ValidationException::withMessages([
+                    'ends_at' => [__('ui.slots.ends_after_start')],
+                ]);
             }
         }
 
@@ -249,12 +288,8 @@ class SlotFormService
 
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
-        try {
-            $this->ensureVenueWhenEventHasPlaces($request, $event);
-            $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
-        }
+        $this->ensureVenueWhenEventHasPlaces($request, $event);
+        $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
 
         $requiresApproval = $request->boolean('requires_approval');
         $startsAtUtc = ! empty($validated['starts_at'])
@@ -286,36 +321,17 @@ class SlotFormService
                 $slot->tags()->sync($tagIds);
             }
         }
-
-        return $this->redirectAfterSlotStore($request, (int) $validated['event_id']);
     }
 
-    public function updateSlot(Request $request, Slot $slot): RedirectResponse
+    /**
+     * Update a slot in place. Throws {@see ValidationException} on failure.
+     */
+    public function performSlotUpdate(Request $request, Slot $slot): void
     {
-        try {
-            $validated = $request->validate([
-                'event_id' => ['required', 'exists:events,id'],
-                'name' => ['required', 'string', 'max:255'],
-                'starts_at' => ['nullable', 'date'],
-                'ends_at' => ['nullable', 'date'],
-                'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
-                'new_room_name' => ['nullable', 'string', 'max:255'],
-                'requires_approval' => ['nullable', 'boolean'],
-                'max_capacity' => ['nullable', 'integer', 'min:1'],
-                'activity_types' => ['nullable', 'array'],
-                'activity_types.*' => [Rule::in(ActivityTypes::VALUES)],
-                'tag_ids' => ['nullable', 'array'],
-                'tag_ids.*' => ['integer', 'exists:tags,id'],
-                'new_tags' => ['nullable', 'array'],
-                'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-                'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
-            ]);
-        } catch (ValidationException $e) {
-            return $this->redirectSlotUpdateValidationFailed($request, $slot, $e->errors());
-        }
+        $validated = $request->validate($this->slotUpdateValidationRules());
 
         if (! empty($validated['ends_at']) && empty($validated['starts_at'])) {
-            return $this->redirectSlotUpdateValidationFailed($request, $slot, [
+            throw ValidationException::withMessages([
                 'ends_at' => [__('ui.slots.end_requires_start')],
             ]);
         }
@@ -324,7 +340,7 @@ class SlotFormService
             $startUtc = parse_datetime_to_utc($validated['starts_at']);
             $endUtc = parse_datetime_to_utc($validated['ends_at']);
             if ($startUtc && $endUtc && $endUtc->lt($startUtc)) {
-                return $this->redirectSlotUpdateValidationFailed($request, $slot, [
+                throw ValidationException::withMessages([
                     'ends_at' => [__('ui.slots.ends_after_start')],
                 ]);
             }
@@ -342,12 +358,8 @@ class SlotFormService
 
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
-        try {
-            $this->ensureVenueWhenEventHasPlaces($request, $event);
-            $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
-        } catch (ValidationException $e) {
-            return $this->redirectSlotUpdateValidationFailed($request, $slot, $e->errors());
-        }
+        $this->ensureVenueWhenEventHasPlaces($request, $event);
+        $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
 
         $data = Arr::except($validated, ['activity_types', 'venue_place_id', 'new_room_name']);
         $data['requires_approval'] = $request->boolean('requires_approval');
@@ -370,6 +382,26 @@ class SlotFormService
             $slot->setActivityTypes([]);
         }
         $slot->tags()->sync($tagIds);
+    }
+
+    public function massCreate(Request $request): RedirectResponse
+    {
+        try {
+            $this->performMassCreate($request);
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        }
+
+        return $this->redirectAfterSlotStore($request, (int) $request->input('event_id'));
+    }
+
+    public function updateSlot(Request $request, Slot $slot): RedirectResponse
+    {
+        try {
+            $this->performSlotUpdate($request, $slot);
+        } catch (ValidationException $e) {
+            return $this->redirectSlotUpdateValidationFailed($request, $slot, $e->errors());
+        }
 
         return $this->redirectAfterSlotUpdate($request, $slot);
     }

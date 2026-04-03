@@ -37,16 +37,24 @@
         FILTER_VALIDATE_BOOLEAN
     );
     $approvalFieldId = $editMode ? 'requires_approval_modal_edit' : 'requires_approval_modal_create';
+    $massFormAction = $massFormAction ?? null;
+    $formAction = $massFormAction
+        ?? ($editMode ? route('slots.update', $slot) : route('slots.store'));
 @endphp
 
 <form
     method="POST"
-    action="{{ $editMode ? route('slots.update', $slot) : route('slots.store') }}"
+    action="{{ $formAction }}"
     class="space-y-0"
     data-slot-mass-form
     @if ($editMode) data-slot-edit-form @endif
+    @if ($massFormAction) data-event-show-async-mass @endif
+    @if ($embeddedInModal && $editMode) data-slot-async-submit @endif
 >
     @csrf
+    @if (! empty($massFormAction) || ($embeddedInModal && $editMode))
+        <div data-slot-form-errors role="alert" class="alert alert-error mb-3 hidden text-sm"></div>
+    @endif
     <input type="hidden" name="requires_approval" value="0">
     @if ($editMode)
         @method('PUT')
