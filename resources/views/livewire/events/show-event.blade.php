@@ -21,8 +21,6 @@
                 ];
                 $eventPlaceNames = $eventPlaces->pluck('name')->filter()->implode(', ');
                 $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
-                $canManageEvent = auth()->check()
-                    && ($event->created_by === auth()->id() || (auth()->user()->is_admin ?? false));
             @endphp
 
             <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
@@ -59,70 +57,80 @@
                         </div>
                     </div>
                 </div>
-                @auth
-                    @if ($canManageEvent)
-                        <div class="flex justify-end gap-1 border-b border-base-300 bg-base-100 px-3 py-2">
-                            <a
-                                href="{{ route('events.edit', $event) }}"
-                                wire:navigate
-                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                title="{{ __('Edit') }}"
-                                aria-label="{{ __('Edit') }}: {{ $event->name }}"
-                                data-ui="event-show-edit-open"
-                            >
-                                <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                </svg>
-                            </a>
-                            <button
-                                type="button"
-                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                wire:click="deleteEvent"
-                                wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
-                                title="{{ __('Delete') }}"
-                                aria-label="{{ __('Delete') }}: {{ $event->name }}"
-                                data-ui="event-show-delete"
-                            >
-                                <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                </svg>
-                            </button>
+                @if ($event->tags->isNotEmpty() || (auth()->check() && $canManageEvent))
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 bg-base-100 px-3 py-2">
+                        <div class="min-w-0 flex-1">
+                            @if ($event->tags->isNotEmpty())
+                                @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
+                            @endif
                         </div>
-                    @endif
-                @endauth
-                <div class="p-6">
-                @if ($event->tags->isNotEmpty())
-                    <div>
-                        @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
+                        @auth
+                            @if ($canManageEvent)
+                                <div class="flex shrink-0 justify-end gap-1">
+                                    <a
+                                        href="{{ route('events.edit', $event) }}"
+                                        wire:navigate
+                                        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                        title="{{ __('Edit') }}"
+                                        aria-label="{{ __('Edit') }}: {{ $event->name }}"
+                                        data-ui="event-show-edit-open"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                        </svg>
+                                    </a>
+                                    <button
+                                        type="button"
+                                        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                        wire:click="deleteEvent"
+                                        wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
+                                        title="{{ __('Delete') }}"
+                                        aria-label="{{ __('Delete') }}: {{ $event->name }}"
+                                        data-ui="event-show-delete"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244-2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endif
+                        @endauth
                     </div>
                 @endif
+                <div class="p-6">
                 @if (filled(rich_text_excerpt($event->desc)))
-                    <div class="rich-text-content mt-4 text-sm text-base-content/80">
+                    <div class="rich-text-content text-sm text-base-content/80">
                         {!! rich_text($event->desc) !!}
                     </div>
                 @endif
-                <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
-                    @auth
-                        <x-button id="ui-event-show-propose" :link="route('events.propose', $event)" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose">
-                            {{ __('ui.events.propose_activity') }}
-                        </x-button>
-                    @endauth
-                </div>
                 </div>
             </div>
 
             <div id="ui-event-show-slots" class="ui-event-show-slots rounded-lg border border-base-300 bg-base-100 p-6 shadow" data-ui="event-show-slots">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-                    <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.slots') }}</h3>
-                    @auth
-                        @if ($event->created_by === auth()->id())
-                            <div class="flex flex-wrap gap-2">
-                                <x-button id="ui-event-show-create-slots" type="button" class="btn-outline btn-sm ui-action ui-action-create-slots" onclick="document.getElementById('event-slots-create-modal')?.showModal()" data-ui="event-show-create-slots">
-                                    {{ __('ui.slots.create_slots') }}
-                                </x-button>
-                            </div>
-                        @endif
-                    @endauth
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.event_plan') }}</h3>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        @auth
+                            <x-button id="ui-event-show-propose" :link="route('events.propose', $event)" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                                {{ __('ui.events.propose_activity') }}
+                            </x-button>
+                            @if ($canManageEvent)
+                                <button
+                                    id="ui-event-show-create-slots"
+                                    type="button"
+                                    class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary ui-action ui-action-create-slots"
+                                    onclick="document.getElementById('event-slots-create-modal')?.showModal()"
+                                    title="{{ __('ui.slots.create_slots') }}"
+                                    aria-label="{{ __('ui.slots.create_slots') }}"
+                                    data-ui="event-show-create-slots"
+                                >
+                                    <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </button>
+                            @endif
+                        @endauth
+                    </div>
                 </div>
                 @php
                     $tagCategoryOrder = array_flip($slotListActivityTagCategories);
@@ -133,107 +141,142 @@
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
                                 {{ $group['label'] }}
                             </p>
-                            <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            @if ($group['slots']->isNotEmpty())
+                            <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 @foreach ($group['slots'] as $slot)
-                                    <li class="flex flex-col gap-3 rounded-lg border border-base-300 bg-base-100/50 p-4 sm:flex-row sm:items-start sm:justify-between">
-                                        <div class="min-w-0 flex-1 space-y-1.5">
-                                            @if ($slot->activity)
-                                                <div class="mb-1 text-sm">
-                                                    <a href="{{ route('activities.show', $slot->activity) }}" class="link link-primary">
-                                                        {{ $slot->activity->name }}
-                                                    </a>
-                                                </div>
-                                            @endif
-                                            <div class="space-y-0.5">
-                                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
-                                                    <span class="font-medium text-base-content">{{ $slot->name }}</span>
-                                                    @if ($slot->starts_at || $slot->ends_at)
-                                                        <span class="text-sm text-base-content/70">
-                                                            <span class="whitespace-pre"> · </span>
-                                                            <span class="tabular-nums">
-                                                                @if ($slot->starts_at && $slot->ends_at)
-                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                                @elseif ($slot->starts_at)
-                                                                    {{ format_in_user_tz($slot->starts_at, 'H:i') }}
-                                                                @else
-                                                                    {{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                                @endif
-                                                            </span>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                @if ($slot->place)
-                                                    <p class="text-sm text-base-content/70">
-                                                        {{ $slot->place->venueRoomLabel() }}
-                                                    </p>
-                                                @endif
-                                            </div>
-                                            @if ($slot->activity)
-                                                @php
-                                                    $listTags = $slot->activity->tags
-                                                        ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                        ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
-                                                @endphp
-                                                @if ($listTags->isNotEmpty())
-                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'mt-1'])
-                                                @endif
-                                            @else
-                                                @php
-                                                    $slotActivityTypes = collect($slot->activity_types)
-                                                        ->filter(fn ($t) => is_string($t) && trim($t) !== '')
-                                                        ->map(fn ($t) => trim($t))
-                                                        ->unique()
-                                                        ->values();
-                                                @endphp
-                                                @if ($slotActivityTypes->isNotEmpty())
-                                                    <div class="my-2 flex flex-wrap gap-1">
-                                                        @foreach ($slotActivityTypes as $type)
-                                                            <span class="badge badge-outline badge-info capitalize">{{ $type }}</span>
-                                                        @endforeach
+                                    <li class="rounded-lg border border-base-300 bg-base-100/50 p-4">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="min-w-0 flex-1 space-y-1.5">
+                                                @if ($slot->activity)
+                                                    <div class="mb-1 text-sm">
+                                                        <a href="{{ route('activities.show', $slot->activity) }}" class="link link-primary">
+                                                            {{ $slot->activity->name }}
+                                                        </a>
                                                     </div>
                                                 @endif
-                                                @php
-                                                    $listTags = $slot->tags
-                                                        ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                        ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
-                                                @endphp
-                                                @if ($listTags->isNotEmpty())
-                                                    @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'my-2'])
-                                                @endif
-                                            @endif
-                                        </div>
-                                        @auth
-                                            @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                                <div class="flex shrink-0 items-center gap-1 self-start sm:self-center">
-                                                    <x-button
-                                                        type="button"
-                                                        class="btn-ghost btn-xs btn-square"
-                                                        title="{{ __('ui.events.edit_slot') }}"
-                                                        aria-label="{{ __('ui.events.edit_slot') }}"
-                                                        onclick="window.openSlotEditModal?.({{ $slot->id }})"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path d="M17.414 2.586a2 2 0 010 2.828l-9.5 9.5a1 1 0 01-.454.263l-4 1a1 1 0 01-1.212-1.212l1-4a1 1 0 01.263-.454l9.5-9.5a2 2 0 012.828 0zM6.207 11.379l-.5 2 2-.5 8.293-8.293-1.5-1.5-8.293 8.293z"/>
-                                                        </svg>
-                                                    </x-button>
-                                                    <x-button
-                                                        type="button"
-                                                        class="btn-ghost btn-xs btn-square text-error"
-                                                        title="{{ __('Delete') }}"
-                                                        aria-label="{{ __('Delete') }}"
-                                                        wire:click="deleteSlot({{ $slot->id }})"
-                                                        wire:confirm="{{ __('Are you sure?') }}"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd" d="M8.5 2A1.5 1.5 0 007 3.5V4H4.5a.5.5 0 000 1h.538l.853 10.236A2 2 0 007.884 17h4.232a2 2 0 001.993-1.764L14.962 5h.538a.5.5 0 000-1H13v-.5A1.5 1.5 0 0011.5 2h-3zM12 4v-.5a.5.5 0 00-.5-.5h-3a.5.5 0 00-.5.5V4h4zm-4.5 3a.5.5 0 011 0v7a.5.5 0 11-1 0V7zm4 0a.5.5 0 10-1 0v7a.5.5 0 101 0V7z" clip-rule="evenodd"/>
-                                                        </svg>
-                                                    </x-button>
+                                                <div class="space-y-0.5">
+                                                    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
+                                                        <span class="font-medium text-base-content">{{ $slot->name }}</span>
+                                                        @if ($slot->starts_at || $slot->ends_at)
+                                                            <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-base-content/70">
+                                                                <span class="inline-flex items-center gap-1.5 tabular-nums">
+                                                                    <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                                    </svg>
+                                                                    <span>
+                                                                        @if ($slot->starts_at && $slot->ends_at)
+                                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                        @elseif ($slot->starts_at)
+                                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}
+                                                                        @else
+                                                                            {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                        @endif
+                                                                    </span>
+                                                                    @if (filled($slot->max_capacity))
+                                                                        <span class="inline-flex items-center gap-0.5 text-base-content/60" title="{{ $slot->max_capacity }}" aria-label="{{ $slot->max_capacity }}">
+                                                                            <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                                            </svg>
+                                                                            <span class="tabular-nums">{{ $slot->max_capacity }}</span>
+                                                                        </span>
+                                                                    @endif
+                                                                </span>
+                                                            </span>
+                                                        @elseif (filled($slot->max_capacity))
+                                                            <span class="inline-flex items-center gap-1 text-sm text-base-content/70 tabular-nums" title="{{ $slot->max_capacity }}" aria-label="{{ $slot->max_capacity }}">
+                                                                <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                                </svg>
+                                                                <span>{{ $slot->max_capacity }}</span>
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    @if ($slot->place)
+                                                        <p class="text-sm text-base-content/70">
+                                                            {{ $slot->place->venueRoomLabel() }}
+                                                        </p>
+                                                    @endif
                                                 </div>
-                                            @endif
-                                        @endauth
+                                                @if ($slot->activity)
+                                                    @php
+                                                        $listTags = $slot->activity->tags
+                                                            ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
+                                                            ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                                    @endphp
+                                                    @if ($listTags->isNotEmpty())
+                                                        @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'mt-1'])
+                                                    @endif
+                                                @else
+                                                    @php
+                                                        $slotActivityTypes = collect($slot->activity_types)
+                                                            ->filter(fn ($t) => is_string($t) && trim($t) !== '')
+                                                            ->map(fn ($t) => trim($t))
+                                                            ->unique()
+                                                            ->values();
+                                                    @endphp
+                                                    @if ($slotActivityTypes->isNotEmpty())
+                                                        <div class="my-2 flex flex-wrap gap-1">
+                                                            @foreach ($slotActivityTypes as $type)
+                                                                <span class="badge badge-outline badge-info capitalize">{{ $type }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                    @php
+                                                        $listTags = $slot->tags
+                                                            ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
+                                                            ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                                    @endphp
+                                                    @if ($listTags->isNotEmpty())
+                                                        @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'my-2'])
+                                                    @endif
+                                                @endif
+                                            </div>
+                                            @auth
+                                                @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                                    <div class="flex shrink-0 gap-0.5">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                            title="{{ __('ui.events.edit_slot') }}"
+                                                            aria-label="{{ __('ui.events.edit_slot') }}"
+                                                            onclick="window.openSlotEditModal?.({{ $slot->id }})"
+                                                        >
+                                                            <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                                            title="{{ __('Delete') }}"
+                                                            aria-label="{{ __('Delete') }}"
+                                                            wire:click="deleteSlot({{ $slot->id }})"
+                                                            wire:confirm="{{ __('Are you sure?') }}"
+                                                        >
+                                                            <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244-2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            @endauth
+                                        </div>
                                     </li>
                                 @endforeach
                             </ul>
+                            @elseif (! empty($group['boundary']))
+                            <ul class="grid grid-cols-1 gap-3">
+                                <li class="rounded-lg border border-base-300 bg-base-100/50 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                        @if ($group['boundary'] === 'event_start')
+                                            {{ __('ui.events.event_boundary_starts') }}
+                                        @else
+                                            {{ __('ui.events.event_boundary_ends') }}
+                                        @endif
+                                    </p>
+                                </li>
+                            </ul>
+                            @endif
                         </li>
                     @empty
                         <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
@@ -242,7 +285,7 @@
             </div>
 
             @auth
-                @if ($event->created_by === auth()->id())
+                @if ($canManageEvent)
                     <dialog id="event-slots-create-modal" class="modal">
                         <div class="modal-box max-w-3xl">
                             @include('slots.mass-create', [

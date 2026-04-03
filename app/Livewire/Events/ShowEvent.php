@@ -54,7 +54,7 @@ class ShowEvent extends Component
     }
 
     /**
-     * @return list<array{label: string, slots: Collection<int, Slot>}>
+     * @return list<array{label: string, slots: Collection<int, Slot>, boundary?: string}>
      */
     protected function slotHourGroupsForEvent(Event $event): array
     {
@@ -77,6 +77,39 @@ class ShowEvent extends Component
                     ? __('ui.events.slots_group_no_time')
                     : format_in_user_tz($groupSlots->first()->starts_at, 'D, M j · H:00'),
                 'slots' => $groupSlots,
+            ];
+        }
+
+        $firstTimedSlot = $sorted->first(fn (Slot $s) => $s->starts_at !== null);
+        $prependEventStart = false;
+        if ($event->starts_at) {
+            if ($firstTimedSlot === null) {
+                $prependEventStart = true;
+            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
+                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
+                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
+                $prependEventStart = $eventHour !== $firstHour;
+            }
+        }
+
+        if ($prependEventStart) {
+            array_unshift($out, [
+                'label' => format_in_user_tz($event->starts_at, 'D, M j · H:00'),
+                'slots' => collect(),
+                'boundary' => 'event_start',
+            ]);
+        }
+
+        $lastSlot = $sorted->last();
+        $lastSlotEnd = $lastSlot?->ends_at ?? $lastSlot?->starts_at;
+        $appendEventEnd = $event->ends_at !== null
+            && ($lastSlotEnd === null || ! $event->ends_at->equalTo($lastSlotEnd));
+
+        if ($appendEventEnd) {
+            $out[] = [
+                'label' => format_in_user_tz($event->ends_at, 'D, M j · H:00'),
+                'slots' => collect(),
+                'boundary' => 'event_end',
             ];
         }
 
@@ -108,13 +141,15 @@ class ShowEvent extends Component
             ->orderBy('created_at')
             ->get();
         $isOwner = auth()->check() && $event->created_by === auth()->id();
+        $canManageEvent = auth()->check()
+            && ((int) $event->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
 
         $slotFormTags = null;
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
         $slotMassRoomsByVenueId = [];
         $slotBaseNameSuggestions = [];
-        if ($isOwner) {
+        if ($canManageEvent) {
             $slotFormTags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
             $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
             $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
@@ -141,6 +176,7 @@ class ShowEvent extends Component
             'event' => $event,
             'pendingProposals' => $pendingProposals,
             'isOwner' => $isOwner,
+            'canManageEvent' => $canManageEvent,
             'slotFormTags' => $slotFormTags,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
