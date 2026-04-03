@@ -39,8 +39,8 @@
             <p class="text-sm opacity-70">{{ __('Host') }}: {{ $event->hostDisplayName() }}</p>
         @endif
         <p class="text-sm opacity-70">{{ format_in_user_tz($event->starts_at) }} – {{ format_in_user_tz($event->ends_at) }}</p>
-        @if ($event->desc)
-            <p class="text-sm opacity-80">{{ \Illuminate\Support\Str::limit($event->desc, 120) }}</p>
+        @if (filled(rich_text_excerpt($event->desc)))
+            <p class="text-sm opacity-80">{{ rich_text_excerpt($event->desc, 120) }}</p>
         @endif
 
         <div class="mt-2">

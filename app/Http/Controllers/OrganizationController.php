@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
 
@@ -15,9 +16,7 @@ class OrganizationController extends Controller
      */
     public function create()
     {
-        return view('organizations.create', [
-            'organization' => new Organization,
-        ]);
+        return redirect()->route('organizations.index', ['create' => '1']);
     }
 
     /**
@@ -29,6 +28,8 @@ class OrganizationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
         ]);
+
+        $validated['desc'] = RichText::sanitize($validated['desc'] ?? null);
 
         Organization::create($validated);
 
@@ -51,7 +52,7 @@ class OrganizationController extends Controller
     {
         $this->authorizeCreatedBy($organization);
 
-        return view('organizations.edit', compact('organization'));
+        return redirect()->route('organizations.index', ['edit' => $organization->slug]);
     }
 
     /**
@@ -65,6 +66,8 @@ class OrganizationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
         ]);
+
+        $validated['desc'] = RichText::sanitize($validated['desc'] ?? null);
 
         $organization->update($validated);
 
