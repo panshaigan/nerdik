@@ -111,7 +111,15 @@
                     <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.event_plan') }}</h3>
                     <div class="flex flex-wrap items-center justify-end gap-2">
                         @auth
-                            <x-button id="ui-event-show-propose" :link="route('activities.create', ['proposal_event_id' => $event->id])" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                            @php
+                                $proposeActivityUrl = ! empty($proposalSlotIds)
+                                    ? route('activities.create').'?'.http_build_query([
+                                        'proposal_event_id' => $event->id,
+                                        'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                                    ])
+                                    : route('activities.create', ['proposal_event_id' => $event->id]);
+                            @endphp
+                            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
                                 {{ __('ui.events.propose_activity') }}
                             </x-button>
                             @if ($canManageEvent)
@@ -157,7 +165,17 @@
                                                 ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
                                         }
                                     @endphp
-                                    <li @class(['group relative rounded-lg border border-base-300 bg-base-100/50 p-4', 'transition hover:border-base-content/20' => $activity])>
+                                    <li
+                                        @class([
+                                            'group relative rounded-lg border border-base-300 bg-base-100/50 p-4',
+                                            'transition hover:border-base-content/20' => $activity,
+                                            'cursor-pointer' => auth()->check() && ! $activity,
+                                            'ring-2 ring-primary/50 bg-primary/5' => auth()->check() && ! $activity && in_array($slot->id, $proposalSlotIds, true),
+                                        ])
+                                        @if (auth()->check() && ! $activity)
+                                            wire:click="toggleProposalSlot({{ $slot->id }})"
+                                        @endif
+                                    >
                                         @if ($activity)
                                             <a
                                                 href="{{ route('activities.show', $activity) }}"
@@ -245,7 +263,7 @@
                                             </div>
                                             @auth
                                                 @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
-                                                    <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto">
+                                                    <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
                                                         <button
                                                             type="button"
                                                             class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"

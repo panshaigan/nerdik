@@ -217,7 +217,7 @@
                 <div>
                     <x-form-select
                         id="proposal_event_id"
-                        wire:model="proposal_event_id"
+                        wire:model.live="proposal_event_id"
                         :label="__('ui.activities.proposal_event')"
                         error-field="proposal_event_id"
                         class="ui-field ui-field-proposal-event"
@@ -250,6 +250,38 @@
                     />
                 </div>
             </div>
+
+            @if ($proposal_event_id && $proposalEventSlots->isNotEmpty())
+                <div class="mt-4 space-y-2 border-t border-base-300/50 pt-4">
+                    <p class="fieldset-legend font-medium">{{ __('ui.proposals.preferred_slots_optional') }}</p>
+                    <p class="mb-2 text-sm text-base-content/60">{{ __('ui.proposals.preferred_slots_help') }}</p>
+                    <div class="max-h-64 space-y-2 overflow-y-auto pr-1">
+                        @foreach ($proposalEventSlots as $slot)
+                            @php
+                                $slotLabel = $slot->name;
+                                if ($slot->starts_at) {
+                                    $slotLabel .= ' · '.format_in_user_tz($slot->starts_at, 'H:i');
+                                }
+                                if ($slot->activity_id) {
+                                    $slotLabel .= ' ('.__('ui.proposals.taken').')';
+                                }
+                            @endphp
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300/80 bg-base-200/30 px-3 py-2">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm mt-0.5"
+                                    wire:model="proposal_slot_ids"
+                                    value="{{ $slot->id }}"
+                                    @disabled((bool) $slot->activity_id)
+                                >
+                                <span class="text-sm">{{ $slotLabel }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <x-field-error :messages="$errors->get('proposal_slot_ids')" class="mt-2" />
+                    <x-field-error :messages="$errors->get('proposal_slot_ids.*')" class="mt-2" />
+                </div>
+            @endif
         </div>
 
         <div id="ui-activity-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="activity-form-actions">
