@@ -35,6 +35,22 @@ export function initTagSelector(root) {
     let pendingNew = Array.isArray(cfg.initialNewTags) ? [...cfg.initialNewTags] : [];
     let activeIndex = -1;
 
+    function emitTagsChange() {
+        const tagIds = Array.from(selected)
+            .sort((a, b) => a - b)
+            .map((id) => Number(id));
+        const newTags = pendingNew.map((t) => ({
+            label: t.label,
+            category: t.category,
+        }));
+        root.dispatchEvent(
+            new CustomEvent('tags-changed', {
+                bubbles: true,
+                detail: { tagIds, newTags },
+            })
+        );
+    }
+
     function updateHiddenInputs() {
         hiddenIds.innerHTML = '';
         Array.from(selected)
@@ -99,6 +115,7 @@ export function initTagSelector(root) {
         });
 
         newTagsWrap.classList.toggle('hidden', pendingNew.length === 0);
+        emitTagsChange();
     }
 
     function removeTag(id) {
@@ -150,6 +167,7 @@ export function initTagSelector(root) {
                 chips.appendChild(chip);
             });
         updateHiddenInputs();
+        emitTagsChange();
     }
 
     function closeResults() {
