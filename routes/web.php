@@ -60,8 +60,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
     Route::resource('events', EventController::class)->except(['show', 'store', 'update']);
 
+    Route::view('slots', 'slots.index')->name('slots.index');
     Route::resource('slots', SlotController::class)
-        ->except(['show']);
+        ->except(['show', 'index']);
 
     Route::resource('places', PlaceController::class)
         ->except(['show']);
