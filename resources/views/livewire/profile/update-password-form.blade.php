@@ -38,7 +38,7 @@ new class extends Component
     }
 }; ?>
 
-<section>
+<section id="ui-profile-password-section" class="ui-profile-section ui-profile-password" data-ui="profile-password-section">
     <header>
         <h2 class="text-lg font-medium text-base-content">
             {{ __('Update Password') }}
@@ -49,13 +49,15 @@ new class extends Component
         </p>
     </header>
 
-    <form wire:submit="updatePassword" class="mt-6 space-y-4">
+    <form id="ui-profile-password-form" wire:submit="updatePassword" class="ui-form ui-form-profile-password mt-6 space-y-4" data-ui="profile-password-form">
         <x-password
             wire:model="current_password"
             label="{{ __('Current Password') }}"
             name="current_password"
             error-field="current_password"
             autocomplete="current-password"
+            class="ui-field ui-field-current-password"
+            data-ui="profile-current-password"
         />
 
         <x-password
@@ -64,6 +66,8 @@ new class extends Component
             name="password"
             error-field="password"
             autocomplete="new-password"
+            class="ui-field ui-field-new-password"
+            data-ui="profile-new-password"
         />
 
         <x-password
@@ -72,10 +76,12 @@ new class extends Component
             name="password_confirmation"
             error-field="password_confirmation"
             autocomplete="new-password"
+            class="ui-field ui-field-password-confirmation"
+            data-ui="profile-password-confirmation"
         />
 
         <div class="flex items-center gap-4">
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+            <x-button id="ui-profile-password-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-password-submit">{{ __('Save') }}</x-button>
 
             <x-action-message class="me-3" on="password-updated">
                 {{ __('Saved.') }}

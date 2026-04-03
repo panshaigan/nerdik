@@ -76,7 +76,7 @@ new class extends Component
     }
 }; ?>
 
-<section>
+<section id="ui-profile-information-section" class="ui-profile-section ui-profile-information" data-ui="profile-information-section">
     <header>
         <h2 class="text-lg font-medium text-base-content">
             {{ __('Profile Information') }}
@@ -87,7 +87,7 @@ new class extends Component
         </p>
     </header>
 
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-4">
+    <form id="ui-profile-information-form" wire:submit="updateProfileInformation" class="ui-form ui-form-profile-information mt-6 space-y-4" data-ui="profile-information-form">
         <x-input
             wire:model="nickname"
             label="{{ __('Nickname') }}"
@@ -97,6 +97,8 @@ new class extends Component
             required
             autofocus
             autocomplete="nickname"
+            class="ui-field ui-field-nickname"
+            data-ui="profile-nickname"
         />
 
         <x-input
@@ -106,6 +108,8 @@ new class extends Component
             name="name"
             error-field="name"
             autocomplete="name"
+            class="ui-field ui-field-name"
+            data-ui="profile-name"
         />
 
         <x-input
@@ -116,12 +120,14 @@ new class extends Component
             placeholder="username"
             error-field="discord_handle"
             autocomplete="off"
+            class="ui-field ui-field-discord"
+            data-ui="profile-discord"
         />
 
         <div>
             <fieldset class="fieldset py-0">
                 <legend class="fieldset-legend mb-0.5">{{ __('Timezone (for displaying dates)') }}</legend>
-                <select wire:model="timezone" id="timezone" name="timezone" class="select select-bordered w-full">
+                <select wire:model="timezone" id="timezone" name="timezone" class="select select-bordered w-full ui-field ui-field-timezone" data-ui="profile-timezone">
                     <option value="">{{ __('Use server default (UTC)') }}</option>
                     @if ($timezone && ! in_array($timezone, ['UTC', 'Europe/Warsaw', 'Europe/London', 'Europe/Berlin', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney'], true))
                         <option value="{{ $timezone }}" selected>{{ $timezone }}</option>
@@ -151,6 +157,8 @@ new class extends Component
                 error-field="email"
                 required
                 autocomplete="username"
+                class="ui-field ui-field-email"
+                data-ui="profile-email"
             />
 
             @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
@@ -173,7 +181,7 @@ new class extends Component
         </div>
 
         <div class="flex items-center gap-4">
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+            <x-button id="ui-profile-information-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-information-submit">{{ __('Save') }}</x-button>
 
             <x-action-message class="me-3" on="profile-updated">
                 {{ __('Saved.') }}

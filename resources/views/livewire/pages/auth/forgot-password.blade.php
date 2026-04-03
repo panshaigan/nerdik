@@ -33,14 +33,14 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div>
+<div id="ui-auth-forgot-root" class="ui-auth ui-auth-forgot" data-ui="auth-forgot-root">
     <div class="mb-4 text-sm text-base-content/80">
         {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
     </div>
 
     <x-flash-status class="mb-4" :status="session('status')" />
 
-    <form wire:submit="sendPasswordResetLink" class="space-y-4">
+    <form id="ui-auth-forgot-form" wire:submit="sendPasswordResetLink" class="ui-form ui-form-auth-forgot space-y-4" data-ui="auth-forgot-form">
         <x-input
             wire:model="email"
             label="{{ __('Email') }}"
@@ -49,10 +49,12 @@ new #[Layout('layouts.guest')] class extends Component
             error-field="email"
             required
             autofocus
+            class="ui-field ui-field-email"
+            data-ui="auth-forgot-email"
         />
 
         <div class="flex justify-end">
-            <x-button class="btn-primary" type="submit">{{ __('Email Password Reset Link') }}</x-button>
+            <x-button id="ui-auth-forgot-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-forgot-submit">{{ __('Email Password Reset Link') }}</x-button>
         </div>
     </form>
 </div>

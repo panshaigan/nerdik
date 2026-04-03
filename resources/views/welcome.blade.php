@@ -63,7 +63,7 @@
                     <article class="rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
                         <h2 class="text-lg font-semibold">{{ __('Theme-aware interface') }}</h2>
                         <p class="mt-2 text-sm opacity-80">
-                            {{ __('Semantic OFS tokens ensure light and dark themes stay coherent without manual color tweaking.') }}
+                            {{ __('Semantic design tokens ensure light and dark themes stay coherent without manual color tweaking.') }}
                         </p>
                     </article>
                 </section>

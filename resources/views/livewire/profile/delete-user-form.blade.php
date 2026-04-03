@@ -25,7 +25,7 @@ new class extends Component
     }
 }; ?>
 
-<section class="space-y-6">
+<section id="ui-profile-delete-section" class="ui-profile-section ui-profile-delete space-y-6" data-ui="profile-delete-section">
     <header>
         <h2 class="text-lg font-medium text-base-content">
             {{ __('Delete Account') }}
@@ -36,25 +36,25 @@ new class extends Component
         </p>
     </header>
 
-    <x-button type="button" class="btn-error" wire:click="$set('confirmingUserDeletion', true)">
+    <x-button id="ui-profile-delete-open" type="button" class="btn-error ui-action ui-action-delete" wire:click="$set('confirmingUserDeletion', true)" data-ui="profile-delete-open">
         {{ __('Delete Account') }}
     </x-button>
 
-    <x-modal wire:model="confirmingUserDeletion" :title="__('Are you sure you want to delete your account?')" :subtitle="__('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.')">
-        <form wire:submit="deleteUser" class="space-y-4">
+    <x-modal wire:model="confirmingUserDeletion" :title="__('Are you sure you want to delete your account?')" :subtitle="__('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.')" id="ui-profile-delete-modal" class="ui-modal ui-modal-delete" data-ui="profile-delete-modal">
+        <form id="ui-profile-delete-form" wire:submit="deleteUser" class="ui-form ui-form-profile-delete space-y-4" data-ui="profile-delete-form">
             <x-password
                 wire:model="password"
                 label="{{ __('Password') }}"
                 name="password"
                 error-field="password"
-                placeholder="{{ __('Password') }}"
+                placeholder="{{ __('Password') }}" class="ui-field ui-field-password" data-ui="profile-delete-password"
             />
 
             <div class="modal-action">
-                <x-button type="button" class="btn-ghost" wire:click="$set('confirmingUserDeletion', false)">
+                <x-button id="ui-profile-delete-cancel" type="button" class="btn-ghost ui-action ui-action-cancel" wire:click="$set('confirmingUserDeletion', false)" data-ui="profile-delete-cancel">
                     {{ __('Cancel') }}
                 </x-button>
-                <x-button type="submit" class="btn-error">
+                <x-button id="ui-profile-delete-submit" type="submit" class="btn-error ui-action ui-action-submit-delete" data-ui="profile-delete-submit">
                     {{ __('Delete Account') }}
                 </x-button>
             </div>
