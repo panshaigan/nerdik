@@ -165,7 +165,7 @@
 </div>
 
         <div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">
-            <x-button id="ui-event-cancel" :link="route('events.index')" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+            <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
 
             <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
                 <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
@@ -273,7 +273,8 @@
             function updateFromInput() {
                 const q = input.value.trim().toLowerCase();
                 if (q.length < 1) {
-                    closePopup();
+                    const items = suggestions.slice(0, 8);
+                    render(items);
                     return;
                 }
 

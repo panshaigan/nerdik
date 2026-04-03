@@ -360,7 +360,8 @@
             function updateFromInput() {
                 const q = nameInput.value.trim().toLowerCase();
                 if (q.length < 1) {
-                    closeNamePopup();
+                    const items = suggestions.slice(0, 8);
+                    render(items);
                     return;
                 }
 

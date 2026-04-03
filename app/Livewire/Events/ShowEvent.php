@@ -31,6 +31,15 @@ class ShowEvent extends Component
         $this->slotListVersion++;
     }
 
+    public function deleteEvent(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $this->authorizeCreatedBy($event);
+        $event->delete();
+        session()->flash('status', __('Event deleted.'));
+        $this->redirect(route('events.index'), navigate: true);
+    }
+
     public function deleteSlot(int $slotId): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
