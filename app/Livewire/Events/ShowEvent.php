@@ -6,16 +6,42 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ShowEvent extends Component
 {
+    use AuthorizesOwnership;
+
     public int $eventId;
+
+    /** Bumped when slots change via async JS so the component re-renders. */
+    public int $slotListVersion = 0;
 
     public function mount(Event $event): void
     {
         $this->eventId = $event->id;
+    }
+
+    #[On('slot-mutations-refresh')]
+    public function refreshAfterSlotMutation(): void
+    {
+        $this->slotListVersion++;
+    }
+
+    public function deleteSlot(int $slotId): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $slot = Slot::query()->whereKey($slotId)->firstOrFail();
+
+        if ((int) $slot->event_id !== (int) $event->id) {
+            abort(404);
+        }
+
+        $this->authorizeCreatedBy($slot);
+        $slot->delete();
     }
 
     /**

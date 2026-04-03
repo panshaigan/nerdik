@@ -1,37 +1,17 @@
-import { initTagSelector } from './tags-selector';
-import { initSlotMassForm } from './slot-mass-form';
-
 /**
- * Run after AJAX-injected slot edit form HTML is inserted into the DOM.
- *
- * @param {ParentNode} root
+ * Intercept mass slot creation on the event page (POST JSON, dispatch slot-mutations-refresh).
  */
-export function initSlotEditForm(root) {
-    if (!root) {
-        return;
-    }
-
-    const form = root.matches?.('form[data-slot-edit-form]')
-        ? root
-        : root.querySelector('form[data-slot-edit-form]') || root.closest('form[data-slot-edit-form]');
-    if (!form) {
-        return;
-    }
-
-    root.querySelectorAll('[data-tag-selector]').forEach((el) => {
-        if (el.dataset.tsInitialized) {
-            return;
-        }
-        initTagSelector(el);
-    });
-
-    if (form.hasAttribute('data-slot-mass-form')) {
-        initSlotMassForm(form);
-    }
-
-    if (form.hasAttribute('data-slot-async-submit') && !form.dataset.slotAsyncSubmitBound) {
-        form.dataset.slotAsyncSubmitBound = '1';
-        form.addEventListener('submit', async (e) => {
+export function initEventShowSlotForms() {
+    document.addEventListener(
+        'submit',
+        async (e) => {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement)) {
+                return;
+            }
+            if (!form.hasAttribute('data-event-show-async-mass')) {
+                return;
+            }
             e.preventDefault();
 
             const box = form.querySelector('[data-slot-form-errors]');
@@ -75,7 +55,7 @@ export function initSlotEditForm(root) {
                     return;
                 }
 
-                document.getElementById('slot-edit-modal')?.close();
+                form.closest('dialog')?.close();
                 window.Livewire?.dispatch('slot-mutations-refresh');
             } catch {
                 if (box) {
@@ -83,6 +63,7 @@ export function initSlotEditForm(root) {
                     box.classList.remove('hidden');
                 }
             }
-        });
-    }
+        },
+        true
+    );
 }

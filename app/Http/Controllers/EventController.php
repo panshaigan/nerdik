@@ -3,11 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class EventController extends Controller
 {
     use AuthorizesOwnership;
+
+    public function __construct(
+        private readonly SlotFormService $slotFormService
+    ) {}
+
+    /**
+     * Mass-create slots from the event page (JSON / no full-page redirect).
+     */
+    public function massStoreSlots(Request $request, Event $event)
+    {
+        $this->authorizeCreatedBy($event);
+
+        $request->merge([
+            'event_id' => $event->id,
+            'mass' => '1',
+            'redirect_to_event_slug' => $event->slug,
+        ]);
+
+        try {
+            $this->slotFormService->performMassCreate($request);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => __('The given data was invalid.'), 'errors' => $e->errors()], 422);
+        }
+
+        return response()->json(['ok' => true, 'message' => __('Slots created.')]);
+    }
 
     /**
      * Display a listing of the resource.

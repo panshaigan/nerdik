@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         return view('activity-proposals.create', compact('event'));
     })->name('events.propose');
     Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
+    Route::post('events/{event}/slots/mass', [EventController::class, 'massStoreSlots'])->name('events.slots.mass');
     Route::resource('events', EventController::class)->except(['show', 'store', 'update']);
 
     Route::view('slots', 'slots.index')->name('slots.index');
