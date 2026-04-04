@@ -42,6 +42,10 @@
             </div>
         </div>
 
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-activities'])
+        </div>
+
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($activities as $activity)
                 <x-cards.activity-card :activity="$activity" :wishlist-activity-ids="$wishlistActivityIds ?? []" />

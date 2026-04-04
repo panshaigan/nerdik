@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Browse;
 
+use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
 use App\Models\Place;
@@ -12,6 +13,7 @@ use Livewire\WithPagination;
 
 class BrowseActivities extends Component
 {
+    use WithBrowseListingSort;
     use WithBrowseTagFilter;
     use WithPagination;
 
@@ -73,8 +75,7 @@ class BrowseActivities extends Component
     public function render()
     {
         $query = Activity::with(['creator', 'tags.translations', 'slot.event'])
-            ->whereHas('slot', fn ($q) => $q->whereHas('event', fn ($e) => $e->where('is_public', true)))
-            ->orderBy('updated_at', 'desc');
+            ->whereHas('slot', fn ($q) => $q->whereHas('event', fn ($e) => $e->where('is_public', true)));
 
         if (filled($this->from_date)) {
             $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '>=', $this->from_date));
@@ -92,6 +93,8 @@ class BrowseActivities extends Component
             $term = '%'.$this->q.'%';
             $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('desc', 'like', $term));
         }
+
+        $this->applyBrowseActivitySort($query);
 
         $activities = $query->paginate(12);
 

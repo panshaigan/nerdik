@@ -48,6 +48,10 @@
             </details>
         </div>
 
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
+        </div>
+
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($events as $event)
                 <x-cards.event-card :event="$event" :wishlist-event-ids="$wishlistEventIds ?? []" />
