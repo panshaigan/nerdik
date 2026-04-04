@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Models\ActivityWaitlistEntry;
 use App\Services\EventActivitySignupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -132,6 +133,55 @@ class ParticipationController extends Controller
         $activity->waitlist()->where('position', '>', $pos)->decrement('position');
 
         return redirect()->back()->with('status', __('You left the waitlist.'));
+    }
+
+    public function approveWaitlistEntry(Activity $activity, ActivityWaitlistEntry $entry, EventActivitySignupService $signupService)
+    {
+        $user = Auth::user();
+
+        if ((int) $activity->created_by !== (int) $user->id) {
+            abort(403, __('ui.activities.only_host_can_approve_waitlist'));
+        }
+
+        if (! $activity->requires_approval) {
+            return redirect()->back()->with('status', __('ui.activities.approval_not_required_for_activity'));
+        }
+
+        abort_unless((int) $entry->activity_id === (int) $activity->id, 404);
+
+        $targetUser = $entry->user;
+        if ($targetUser === null) {
+            return redirect()->back()->with('status', __('ui.activities.waitlist_entry_invalid'));
+        }
+
+        if ($activity->participants()->where('user_id', $targetUser->id)->exists()) {
+            return redirect()->back()->with('status', __('ui.activities.user_already_participant'));
+        }
+
+        $count = $activity->participants()->count();
+        $max = $activity->max_participants;
+        if ($max !== null && $count >= $max) {
+            return redirect()->back()->with('status', __('Activity is full.'));
+        }
+
+        try {
+            $signupService->assertCanSignup($activity, $targetUser, hostApprovingParticipant: true);
+        } catch (ValidationException $e) {
+            return redirect()->back()->with('status', $this->firstValidationMessage($e));
+        }
+
+        DB::transaction(function () use ($activity, $entry, $targetUser) {
+            $pos = $entry->position;
+            $entry->delete();
+            $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+            $activity->participants()->create([
+                'user_id' => $targetUser->id,
+            ]);
+        });
+
+        NotifyWaitlistPromotedJob::dispatch($targetUser, $activity->fresh());
+
+        return redirect()->back()->with('status', __('ui.activities.waitlist_entry_approved'));
     }
 
     public function markAbsent(Request $request, ActivityUser $participant)

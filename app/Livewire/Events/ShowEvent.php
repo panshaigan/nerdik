@@ -236,6 +236,7 @@ class ShowEvent extends Component
             'tags.translations',
             'organization',
             'places',
+            'enrollmentWindows',
             'slots' => fn ($q) => $q->with([
                 'place.parent',
                 'activity.tags.translations',
@@ -245,6 +246,13 @@ class ShowEvent extends Component
         ]);
 
         $this->syncSlotEndsFromActivityDuration($event);
+
+        $now = now();
+        $activeEnrollmentWindow = $event->enrollmentWindows->first(function ($w) use ($now) {
+            return $w->starts_at !== null
+                && $w->ends_at !== null
+                && $now->between($w->starts_at, $w->ends_at);
+        });
 
         $slotListActivityTagCategories = ['game', 'world', 'convention', 'engine', 'block'];
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
@@ -287,6 +295,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
+            'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'pendingProposals' => $pendingProposals,
             'isOwner' => $isOwner,
             'canManageEvent' => $canManageEvent,

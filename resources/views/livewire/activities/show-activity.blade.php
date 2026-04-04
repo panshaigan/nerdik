@@ -228,10 +228,13 @@
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8" data-ui="activity-show-participants">
-                <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-                    <h2 class="text-lg font-semibold text-base-content">{{ __('ui.activities.show_participants') }}</h2>
+        <div
+            class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8"
+            data-ui="activity-show-participation"
+        >
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-base-300 pb-4">
+                <h2 class="text-lg font-semibold text-base-content">{{ __('ui.activities.show_participation_section') }}</h2>
+                <div class="flex flex-wrap items-center justify-end gap-3">
                     <p class="shrink-0 text-lg font-medium tabular-nums text-base-content/90">
                         {{ $activity->participants->count() }}
                         @if ($activity->max_participants !== null)
@@ -240,77 +243,98 @@
                             <span class="text-base-content/50">/</span>∞
                         @endif
                     </p>
+                    @auth
+                        @if ($isParticipant || $onWaitlist || $canJoin)
+                            <div class="flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
+                                @if ($isParticipant)
+                                    <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
+                                        @csrf
+                                        <x-button type="submit" class="btn-error">{{ __('Leave activity') }}</x-button>
+                                    </form>
+                                @elseif ($onWaitlist)
+                                    <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
+                                        @csrf
+                                        <x-button type="submit" class="btn-neutral">{{ __('Leave waitlist') }}</x-button>
+                                    </form>
+                                @elseif ($canJoin)
+                                    @if ($activity->requires_approval || $isFull)
+                                        <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
+                                            @csrf
+                                            <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
+                                            @csrf
+                                            <x-button type="submit" class="btn-primary">{{ __('ui.activities.join') }}</x-button>
+                                        </form>
+                                    @endif
+                                @endif
+                            </div>
+                        @endif
+                    @endauth
                 </div>
-                @auth
-                    @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
-                        <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
-                    @endif
-                    @if ($isParticipant || $onWaitlist || $canJoin)
-                        <div class="mb-4 flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
-                            @if ($isParticipant)
-                                <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    <x-button type="submit" class="btn-error">{{ __('Leave activity') }}</x-button>
-                                </form>
-                            @elseif ($onWaitlist)
-                                <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    <x-button type="submit" class="btn-neutral">{{ __('Leave waitlist') }}</x-button>
-                                </form>
-                            @elseif ($canJoin)
-                                @if ($activity->requires_approval || $isFull)
-                                    <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        <x-button type="submit" class="btn-primary">{{ __('ui.activities.join') }}</x-button>
-                                    </form>
-                                @endif
-                            @endif
-                        </div>
-                    @endif
-                @endauth
-                <ul class="divide-y divide-base-300">
-                    @forelse ($activity->participants as $p)
-                        <li class="flex items-center justify-between gap-3 py-3 first:pt-0">
-                            <span class="min-w-0 text-sm">
-                                {{ $p->user->nickname ?? $p->user->email }}
-                                @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
-                                    <span class="ml-1 text-base-content/60">({{ __('Host') }})</span>
-                                @endif
-                                @if ($p->is_absent)
-                                    <span class="ml-1 text-error">({{ __('Absent') }})</span>
-                                @endif
-                            </span>
-                            @if ($isHost && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
-                                <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline shrink-0">
-                                    @csrf
-                                    <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
-                                </form>
-                            @endif
-                        </li>
-                    @empty
-                        <li class="py-2 text-sm text-base-content/60">{{ __('No participants yet.') }}</li>
-                    @endforelse
-                </ul>
             </div>
-
-            @if ($activity->waitlist->isNotEmpty())
-                <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8" data-ui="activity-show-waitlist">
-                    <h2 class="mb-4 text-lg font-semibold text-base-content">{{ __('ui.activities.show_waitlist') }}</h2>
+            @auth
+                @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
+                    <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
+                @endif
+            @endauth
+            <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
+                <div class="min-w-0 md:pr-6" data-ui="activity-show-participants">
+                    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
                     <ul class="divide-y divide-base-300">
-                        @foreach ($activity->waitlist as $entry)
-                            <li class="py-3 text-sm first:pt-0">
-                                <span class="tabular-nums text-base-content/60">#{{ $entry->position }}</span>
-                                {{ $entry->user->nickname ?? $entry->user->email }}
+                        @forelse ($activity->participants as $p)
+                            <li class="flex items-center justify-between gap-3 py-3 first:pt-0">
+                                <span class="min-w-0 text-sm">
+                                    {{ $p->user->nickname ?? $p->user->email }}
+                                    @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
+                                        <span class="ml-1 text-base-content/60">({{ __('Host') }})</span>
+                                    @endif
+                                    @if ($p->is_absent)
+                                        <span class="ml-1 text-error">({{ __('Absent') }})</span>
+                                    @endif
+                                </span>
+                                @if ($isHost && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
+                                    <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline shrink-0">
+                                        @csrf
+                                        <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
+                                    </form>
+                                @endif
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="py-2 text-sm text-base-content/60">{{ __('No participants yet.') }}</li>
+                        @endforelse
                     </ul>
                 </div>
-            @endif
+                <div class="min-w-0 border-t border-base-300 pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-6" data-ui="activity-show-waitlist">
+                    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_waitlist') }}</h3>
+                    @if ($activity->waitlist->isEmpty())
+                        <p class="text-sm text-base-content/60">{{ __('ui.activities.waitlist_empty_hint') }}</p>
+                    @else
+                        <ul class="divide-y divide-base-300">
+                            @foreach ($activity->waitlist as $entry)
+                                <li class="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0">
+                                    <span class="min-w-0 text-sm">
+                                        <span class="tabular-nums text-base-content/60">#{{ $entry->position }}</span>
+                                        {{ $entry->user->nickname ?? $entry->user->email }}
+                                    </span>
+                                    @if ($isHost && $activity->requires_approval)
+                                        <form
+                                            action="{{ route('activities.waitlist.approve', [$activity, $entry]) }}"
+                                            method="POST"
+                                            class="inline shrink-0"
+                                            data-ui="activity-show-waitlist-approve"
+                                        >
+                                            @csrf
+                                            <x-button type="submit" class="btn-primary btn-sm">{{ __('ui.activities.approve_from_waitlist') }}</x-button>
+                                        </form>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
