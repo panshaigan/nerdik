@@ -21,6 +21,8 @@ return [
         'clear_numeric_fields' => 'Clear optional numbers',
         'clear_field' => 'Clear',
         'activity_no_longer_fits_assigned_slot' => 'These settings no longer fit the assigned slot (activity type, duration, or room capacity).',
+        'join_requires_waitlist' => 'This activity requires host approval — join the waitlist instead.',
+        'waitlist_only_when_approval_or_full' => 'Use Join when spots are open and approval is not required.',
         'description' => 'Description (optional)',
         'description_placeholder' => 'Write activity description…',
         'max_participants_gte_min' => 'Maximum participants cannot be less than minimum.',
@@ -61,6 +63,8 @@ return [
         'duration_minutes_part' => ':n min',
         'show_cancellation_deadline' => 'Cancellation deadline',
         'show_back' => 'Back to activities',
+        'join' => 'Join',
+        'join_waitlist' => 'Join waitlist',
         'host_title' => [
             'rpg' => 'Game Master',
         ],

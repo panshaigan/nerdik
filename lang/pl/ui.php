@@ -21,6 +21,8 @@ return [
         'clear_numeric_fields' => 'Wyczysc pola liczbowe',
         'clear_field' => 'Wyczysc',
         'activity_no_longer_fits_assigned_slot' => 'Te ustawienia nie mieszcza sie juz w przypisanym slocie (typ, czas trwania lub pojemnosc sali).',
+        'join_requires_waitlist' => 'Ta aktywnosc wymaga akceptacji prowadzacego — dolacz do listy rezerwowej.',
+        'waitlist_only_when_approval_or_full' => 'Gdy sa wolne miejsca i aktywnosc nie wymaga akceptacji, uzyj przycisku Dolacz.',
         'description' => 'Opis (opcjonalnie)',
         'description_placeholder' => 'Opisz aktywnosc…',
         'max_participants_gte_min' => 'Maksimum uczestnikow nie moze byc mniejsze niz minimum.',
@@ -61,6 +63,8 @@ return [
         'duration_minutes_part' => ':n min',
         'show_cancellation_deadline' => 'Termin rezygnacji',
         'show_back' => 'Wroc do aktywnosci',
+        'join' => 'Dolacz',
+        'join_waitlist' => 'Dolacz do listy rezerwowej',
         'host_title' => [
             'rpg' => 'Mistrz gry',
         ],

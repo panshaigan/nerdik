@@ -258,19 +258,15 @@
                                     <x-button type="submit" class="btn-neutral">{{ __('Leave waitlist') }}</x-button>
                                 </form>
                             @elseif ($canJoin)
-                                @if (! $isFull)
-                                    <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        <x-button type="submit" class="btn-primary">{{ __('Join activity') }}</x-button>
-                                    </form>
+                                @if ($activity->requires_approval || $isFull)
                                     <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
                                         @csrf
-                                        <x-button type="submit" class="btn-outline">{{ __('Join waitlist') }}</x-button>
+                                        <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
                                     </form>
                                 @else
-                                    <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
+                                    <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
                                         @csrf
-                                        <x-button type="submit" class="btn-warning">{{ __('Join waitlist') }}</x-button>
+                                        <x-button type="submit" class="btn-primary">{{ __('ui.activities.join') }}</x-button>
                                     </form>
                                 @endif
                             @endif
