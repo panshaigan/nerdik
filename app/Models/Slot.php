@@ -84,12 +84,15 @@ class Slot extends Model
             $loaded = $this->getRelationValue('activityTypes');
 
             return $loaded
-                ? $loaded->pluck('activity_type')->map($this->normalizeActivityTypeString(...))->values()->all()
+                ? $loaded->pluck('activity_type')->map(fn ($v) => $this->canonicalActivityTypeValue($v))->values()->all()
                 : [];
         }
 
+        // Use hydrated models so `activity_type` goes through casts (avoids raw DB vs enum mismatch).
         return $this->activityTypes()
+            ->get()
             ->pluck('activity_type')
+            ->map(fn ($v) => $this->canonicalActivityTypeValue($v))
             ->values()
             ->all();
     }
@@ -116,9 +119,18 @@ class Slot extends Model
         ActivityTypeSlot::query()->insert($rows);
     }
 
-    private function normalizeActivityTypeString(ActivityType|string $value): string
+    /**
+     * Canonical string for {@see ActivityType} (trim, case-fold, map via backed enum when possible).
+     */
+    private function canonicalActivityTypeValue(ActivityType|string $value): string
     {
-        return $value instanceof ActivityType ? $value->value : $value;
+        if ($value instanceof ActivityType) {
+            return $value->value;
+        }
+
+        $s = mb_strtolower(trim((string) $value));
+
+        return ActivityType::tryFrom($s)?->value ?? $s;
     }
 
     /**
@@ -127,7 +139,7 @@ class Slot extends Model
      */
     public function acceptsActivityType(ActivityType|string $type): bool
     {
-        $value = $type instanceof ActivityType ? $type->value : (string) $type;
+        $value = $this->canonicalActivityTypeValue($type);
         $allowed = $this->activity_types;
         if ($allowed === []) {
             return true;
