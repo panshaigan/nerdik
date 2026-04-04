@@ -13,6 +13,13 @@ return [
         'language_en' => 'English',
         'language_pl' => 'Polish',
     ],
+    'browse' => [
+        'tags_filter_label' => 'Tags',
+        'tags_search_placeholder' => 'Type to search tags…',
+        'tags_match_any' => 'Match any',
+        'tags_match_all' => 'Match all',
+        'tags_remove' => 'Remove tag',
+    ],
     'activities' => [
         'name' => 'Name',
         'type' => 'Type',
