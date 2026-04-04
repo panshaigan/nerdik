@@ -6,6 +6,7 @@ use App\Enums\ActivityStatus;
 use App\Enums\ActivityType;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -72,6 +73,22 @@ class Activity extends Model
     public function slot()
     {
         return $this->hasOne(Slot::class);
+    }
+
+    /**
+     * Activities placed on a slot that belongs to an event (excludes proposal-only links until a slot exists).
+     *
+     * @param  bool  $slotMustNotHaveEnded  When true, only slots whose end (or start if no end) is still in the future.
+     */
+    public function scopeAttachedToPublicEvent(Builder $query, bool $slotMustNotHaveEnded = false): void
+    {
+        $query->whereHas('slot', function (Builder $q) use ($slotMustNotHaveEnded) {
+            $q->whereNotNull('event_id')
+                ->whereHas('event', fn (Builder $e) => $e->where('is_public', true));
+            if ($slotMustNotHaveEnded) {
+                $q->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
+            }
+        });
     }
 
     /**

@@ -1,6 +1,7 @@
 @props([
     'event',
     'wishlistEventIds' => [],
+    'showListingKind' => false,
 ])
 
 @php
@@ -27,6 +28,11 @@
 
 <article class="ui-card ui-card-event card border border-base-300 bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
     <div class="card-body p-5" data-ui="event-card-body">
+        @if ($showListingKind)
+            <p class="mb-2">
+                <span class="badge badge-secondary badge-sm">{{ __('ui.browse.listing_kind_event') }}</span>
+            </p>
+        @endif
         <div class="flex items-start justify-between gap-2">
             <h3 class="card-title text-xl leading-tight">
                 <a href="{{ route('events.show', $event) }}" wire:navigate class="link link-primary ui-link ui-link-title" data-ui="event-card-title-link">{{ $event->name }}</a>

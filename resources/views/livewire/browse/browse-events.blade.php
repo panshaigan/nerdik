@@ -57,12 +57,24 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            @forelse ($events as $event)
-                <x-cards.event-card :event="$event" :wishlist-event-ids="$wishlistEventIds ?? []" />
+            @forelse ($browseListings as $row)
+                @if ($row['kind'] === 'event')
+                    <x-cards.event-card
+                        :event="$row['event']"
+                        :wishlist-event-ids="$wishlistEventIds ?? []"
+                        :show-listing-kind="true"
+                    />
+                @else
+                    <x-cards.activity-card
+                        :activity="$row['activity']"
+                        :wishlist-activity-ids="$wishlistActivityIds ?? []"
+                        :show-listing-kind="true"
+                    />
+                @endif
             @empty
                 <div class="col-span-full">
                     <div class="rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
-                        {{ __('No public events found.') }}
+                        {{ __('ui.browse.no_events_or_activities') }}
                         @auth
                             <div class="mt-3">
                                 <a href="{{ route('events.create') }}" class="link link-primary">{{ __('Create one') }}</a>
@@ -73,8 +85,8 @@
             @endforelse
         </div>
 
-        @if ($events->hasPages())
-            <div class="mt-6 rounded-xl border border-base-300 bg-base-100 p-4">{{ $events->links() }}</div>
+        @if ($browseListings->hasPages())
+            <div class="mt-6 rounded-xl border border-base-300 bg-base-100 p-4">{{ $browseListings->links() }}</div>
         @endif
     </div>
 </div>
