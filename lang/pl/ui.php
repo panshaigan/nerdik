@@ -84,6 +84,8 @@ return [
         'mass_create_slots' => 'Utworz wiele slotow',
         'free' => 'wolny',
         'edit_slot' => 'Edytuj slot',
+        'detach_activity_from_slot' => 'Odłącz aktywność od tego slotu',
+        'detach_activity_from_slot_confirm' => 'Odłączyć tę aktywność od slotu? Wróci do listy oczekujących propozycji.',
         'no_slots_yet' => 'Brak slotow.',
         'slots_group_no_time' => 'Bez godziny startu',
         'pending_proposals' => 'Oczekujace propozycje',
@@ -199,5 +201,6 @@ return [
         'slot_duration_mismatch' => 'Ten slot jest za krotki na czas trwania tej aktywnosci. Wybierz inny slot.',
         'slot_activity_type_or_duration_mismatch' => 'Ten slot nie pasuje do typu ani czasu trwania tej aktywnosci. Wybierz inny slot.',
         'no_fitting_slot_for_proposal' => 'Brak wolnego slotu pasujacego do tej aktywnosci (typ i czas trwania). Dodaj lub zmien slot i sprobuj ponownie.',
+        'activity_detached_from_slot' => 'Aktywnosc zostala odłączona od slotu i ponownie oczekuje na decyzje.',
     ],
 ];

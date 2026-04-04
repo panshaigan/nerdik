@@ -84,6 +84,8 @@ return [
         'mass_create_slots' => 'Mass create slots',
         'free' => 'free',
         'edit_slot' => 'Edit slot',
+        'detach_activity_from_slot' => 'Remove activity from this slot',
+        'detach_activity_from_slot_confirm' => 'Remove this activity from the slot? It will return to pending proposals.',
         'no_slots_yet' => 'No slots yet.',
         'slots_group_no_time' => 'No start time',
         'pending_proposals' => 'Pending proposals',
@@ -199,5 +201,6 @@ return [
         'slot_duration_mismatch' => 'That slot is too short for this activity’s duration. Choose another slot.',
         'slot_activity_type_or_duration_mismatch' => 'That slot does not fit this activity’s type or duration. Choose another slot.',
         'no_fitting_slot_for_proposal' => 'No free slot fits this activity (type and duration). Add or adjust a slot, then try again.',
+        'activity_detached_from_slot' => 'The activity was removed from the slot and is pending again.',
     ],
 ];
