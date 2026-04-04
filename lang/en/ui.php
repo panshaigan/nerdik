@@ -29,6 +29,8 @@ return [
         'sort_descending' => 'Descending',
         'tags_match_any' => 'Match any',
         'tags_match_all' => 'Match all',
+        'include_past_events' => 'Include past events',
+        'include_past_events_hint' => 'When off, only events that have not ended yet are shown (uses end date, or start date if no end is set).',
         'tags_remove' => 'Remove tag',
     ],
     'activities' => [

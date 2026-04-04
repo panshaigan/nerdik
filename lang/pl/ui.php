@@ -29,6 +29,8 @@ return [
         'sort_descending' => 'Malejaco',
         'tags_match_any' => 'Dowolny z wybranych',
         'tags_match_all' => 'Wszystkie wybrane',
+        'include_past_events' => 'Uwzglednij zakonczone wydarzenia',
+        'include_past_events_hint' => 'Gdy wylaczone, widoczne sa tylko wydarzenia, ktore jeszcze sie nie skonczyly (data konca lub startu, jesli brak konca).',
         'tags_remove' => 'Usun tag',
     ],
     'activities' => [
