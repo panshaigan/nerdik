@@ -100,12 +100,65 @@
                         @endauth
                     </div>
                 @endif
-                <div class="p-6">
-                @if (filled(rich_text_excerpt($event->desc)))
-                    <div class="rich-text-content text-sm text-base-content/80">
-                        {!! rich_text($event->desc) !!}
-                    </div>
-                @endif
+                @php
+                    $hasEventDescription = filled(rich_text_excerpt($event->desc));
+                    $hasEnrollmentWindows = $event->enrollmentWindows->isNotEmpty();
+                @endphp
+                <div class="space-y-6 p-6">
+                    @if ($hasEventDescription)
+                        <div class="rich-text-content text-sm text-base-content/80">
+                            {!! rich_text($event->desc) !!}
+                        </div>
+                    @endif
+
+                    @if ($hasEnrollmentWindows)
+                        <div @class(['border-t border-base-300 pt-6' => $hasEventDescription])>
+                            <h3 class="text-base font-semibold text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</h3>
+                            @if ($activeEnrollmentWindow)
+                                <div
+                                    role="status"
+                                    class="mt-3 flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success"
+                                    data-ui="event-show-enrollment-open"
+                                >
+                                    <span class="inline-block h-2 w-2 shrink-0 rounded-full bg-success" aria-hidden="true"></span>
+                                    <span>{{ __('ui.events.enrollment_open_now') }}</span>
+                                </div>
+                            @endif
+                            <ul class="mt-3 space-y-3 text-sm text-base-content/90">
+                                @foreach ($event->enrollmentWindows as $window)
+                                    @php
+                                        $isThisWindowActive = $activeEnrollmentWindow && $activeEnrollmentWindow->is($window);
+                                        $maxLabel = $window->maxActivitiesEffective();
+                                    @endphp
+                                    <li
+                                        @class([
+                                            'rounded-lg border px-3 py-2',
+                                            'border-success/50 bg-success/5' => $isThisWindowActive,
+                                            'border-base-300 bg-base-200/40' => ! $isThisWindowActive,
+                                        ])
+                                        data-ui="event-show-enrollment-window"
+                                    >
+                                        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                                            <span class="font-medium tabular-nums text-base-content">
+                                                {{ format_in_user_tz($window->starts_at, 'D, M j · H:i') }}
+                                                <span class="text-base-content/50">–</span>
+                                                {{ format_in_user_tz($window->ends_at, 'D, M j · H:i') }}
+                                            </span>
+                                            @if ($isThisWindowActive)
+                                                <span class="badge badge-success badge-sm shrink-0">{{ __('ui.events.enrollment_window_active_badge') }}</span>
+                                            @endif
+                                        </div>
+                                        @if ($maxLabel !== null)
+                                            <p class="mt-1 text-xs text-base-content/70">
+                                                {{ __('ui.events.enrollment_window_max_activities') }}:
+                                                <span class="tabular-nums font-medium text-base-content/90">{{ $maxLabel }}</span>
+                                            </p>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             </div>
 

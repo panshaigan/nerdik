@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class EventActivitySignupService
@@ -84,17 +85,12 @@ class EventActivitySignupService
     }
 
     /**
-     * Whether the user already participates in another activity on the same event whose schedule overlaps this activity.
+     * Other activities this user already participates in whose scheduled time overlaps {@see $activity} (any event).
+     *
+     * @return Collection<int, Activity>
      */
-    public function hasOverlappingParticipationOnEvent(Activity $activity, User $user): bool
+    public function overlappingParticipatingActivities(Activity $activity, User $user): Collection
     {
-        $slot = $activity->slot;
-        if ($slot === null || $slot->event_id === null) {
-            return false;
-        }
-
-        $eventId = (int) $slot->event_id;
-
         $otherIds = ActivityUser::query()
             ->where('user_id', $user->id)
             ->where('activity_id', '!=', $activity->id)
@@ -102,28 +98,42 @@ class EventActivitySignupService
             ->all();
 
         if ($otherIds === []) {
-            return false;
+            return collect();
         }
 
         $others = Activity::query()
             ->whereIn('id', $otherIds)
-            ->whereHas('slot', fn ($q) => $q->where('event_id', $eventId))
-            ->with('slot')
+            ->with(['slot.event'])
             ->get();
 
-        foreach ($others as $other) {
-            if ($this->schedulesOverlap($activity, $other)) {
-                return true;
-            }
-        }
+        return $others
+            ->filter(fn (Activity $other) => $this->schedulesOverlap($activity, $other))
+            ->values();
+    }
 
-        return false;
+    /**
+     * Human-readable labels for overlapping activities (name, with event when available).
+     *
+     * @param  Collection<int, Activity>  $activities
+     */
+    public function formatOverlappingActivityLabels(Collection $activities): string
+    {
+        return $activities
+            ->map(function (Activity $a) {
+                $name = $a->name;
+                $eventName = $a->slot?->event?->name;
+
+                return $eventName
+                    ? $name.' ('.$eventName.')'
+                    : $name;
+            })
+            ->implode(', ');
     }
 
     /**
      * @throws ValidationException
      */
-    public function assertCanSignup(Activity $activity, User $user): void
+    public function assertCanSignup(Activity $activity, User $user, bool $hostApprovingParticipant = false): void
     {
         $activity->loadMissing('slot.event.enrollmentWindows');
 
@@ -141,7 +151,7 @@ class EventActivitySignupService
 
         $periods = $event->enrollmentWindows;
         if ($periods->isEmpty()) {
-            $this->assertNoScheduleOverlap($activity, $user);
+            $this->assertNoScheduleOverlap($activity, $user, $hostApprovingParticipant);
 
             return;
         }
@@ -163,19 +173,28 @@ class EventActivitySignupService
             }
         }
 
-        $this->assertNoScheduleOverlap($activity, $user);
+        $this->assertNoScheduleOverlap($activity, $user, $hostApprovingParticipant);
     }
 
     /**
      * @throws ValidationException
      */
-    protected function assertNoScheduleOverlap(Activity $activity, User $user): void
+    protected function assertNoScheduleOverlap(Activity $activity, User $user, bool $hostApprovingParticipant = false): void
     {
-        if ($this->hasOverlappingParticipationOnEvent($activity, $user)) {
-            throw ValidationException::withMessages([
-                '_' => [__('ui.events.enrollment_schedule_overlap')],
-            ]);
+        $overlapping = $this->overlappingParticipatingActivities($activity, $user);
+        if ($overlapping->isEmpty()) {
+            return;
         }
+
+        $list = $this->formatOverlappingActivityLabels($overlapping);
+
+        $message = $hostApprovingParticipant
+            ? __('ui.events.enrollment_schedule_overlap_host', ['list' => $list])
+            : __('ui.events.enrollment_schedule_overlap', ['list' => $list]);
+
+        throw ValidationException::withMessages([
+            '_' => [$message],
+        ]);
     }
 
     /**

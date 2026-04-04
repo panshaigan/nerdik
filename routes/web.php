@@ -93,6 +93,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('activities/{activity}/leave', [ParticipationController::class, 'leave'])->name('activities.leave');
     Route::post('activities/{activity}/join-waitlist', [ParticipationController::class, 'joinWaitlist'])->name('activities.join-waitlist');
     Route::post('activities/{activity}/leave-waitlist', [ParticipationController::class, 'leaveWaitlist'])->name('activities.leave-waitlist');
+    Route::post('activities/{activity}/waitlist/{entry}/approve', [ParticipationController::class, 'approveWaitlistEntry'])
+        ->name('activities.waitlist.approve');
     Route::post('activity-participants/{participant}/mark-absent', [ParticipationController::class, 'markAbsent'])->name('activity-participants.mark-absent');
 
     Route::post('events/{event}/wishlist', [WishlistController::class, 'addEvent'])->name('wishlist.events.add');
