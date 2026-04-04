@@ -3,12 +3,14 @@
 namespace App\Livewire\Events;
 
 use App\Enums\ActivityProposalStatus;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -89,6 +91,55 @@ class ShowEvent extends Component
             $this->proposalSlotIds,
             fn ($id) => (int) $id !== (int) $slotId
         ));
+    }
+
+    public function detachActivityFromSlot(int $slotId): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $canManageEvent = auth()->check()
+            && ((int) $event->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
+        if (! $canManageEvent) {
+            abort(403);
+        }
+
+        $slot = Slot::query()
+            ->whereKey($slotId)
+            ->where('event_id', $event->id)
+            ->firstOrFail();
+
+        if ($slot->activity_id === null) {
+            return;
+        }
+
+        DB::transaction(function () use ($slot, $event) {
+            $activityId = $slot->activity_id;
+
+            $proposal = ActivityProposal::query()
+                ->where('event_id', $event->id)
+                ->where('activity_id', $activityId)
+                ->where('accepted_slot_id', $slot->id)
+                ->first();
+
+            if ($proposal === null) {
+                $proposal = ActivityProposal::query()
+                    ->where('event_id', $event->id)
+                    ->where('activity_id', $activityId)
+                    ->where('status', ActivityProposalStatus::Accepted)
+                    ->first();
+            }
+
+            $slot->update(['activity_id' => null]);
+
+            if ($proposal !== null) {
+                $proposal->update([
+                    'status' => ActivityProposalStatus::Pending,
+                    'accepted_slot_id' => null,
+                ]);
+            }
+        });
+
+        $this->refreshAfterSlotMutation();
+        session()->flash('status', __('ui.status.activity_detached_from_slot'));
     }
 
     /**
