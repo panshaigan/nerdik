@@ -21,15 +21,14 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
-        $myActivities = Activity::with('host')
-            ->where('host_user_id', $user->id)
+        $myActivities = Activity::with('creator')
+            ->where('created_by', $user->id)
             ->orderBy('updated_at', 'desc')
             ->limit(10)
             ->get();
 
         $participations = ActivityParticipant::with('activity')
             ->where('user_id', $user->id)
-            ->where('is_host', false)
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -41,7 +40,7 @@ class Dashboard extends Component
             ->get();
 
         $wishlistEvents = $user->wishlistEvents()->with(['organization'])->orderBy('name')->limit(10)->get();
-        $wishlistActivities = $user->wishlistActivities()->with('host')->orderBy('name')->limit(10)->get();
+        $wishlistActivities = $user->wishlistActivities()->with('creator')->orderBy('name')->limit(10)->get();
 
         return view('livewire.dashboard.dashboard', [
             'myEvents' => $myEvents,

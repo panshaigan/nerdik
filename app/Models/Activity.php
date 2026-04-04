@@ -24,7 +24,6 @@ class Activity extends Model
         'max_participants',
         'age_limit',
         'price',
-        'host_user_id',
         'passive_host',
         'created_by',
         'updated_by',
@@ -47,11 +46,6 @@ class Activity extends Model
         'languages' => 'array',
         'extra' => 'array',
     ];
-
-    public function host()
-    {
-        return $this->belongsTo(User::class, 'host_user_id');
-    }
 
     public function proposals()
     {

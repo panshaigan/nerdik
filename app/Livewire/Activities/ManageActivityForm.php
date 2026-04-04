@@ -155,7 +155,6 @@ class ManageActivityForm extends Component
         $validated['is_restricted'] = (bool) ($validated['is_restricted'] ?? false);
         $validated['open_for_observers'] = (bool) ($validated['open_for_observers'] ?? false);
         $validated['passive_host'] = (bool) ($validated['passive_host'] ?? false);
-        $validated['host_user_id'] = auth()->id();
 
         $payload = Arr::except(
             $validated,

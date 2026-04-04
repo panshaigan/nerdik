@@ -28,8 +28,8 @@
         </div>
 
         <p class="text-sm opacity-70">{{ ucfirst($activity->type) }}</p>
-        @if ($activity->host)
-            <p class="text-sm opacity-70">{{ __('Host') }}: {{ $activity->host->nickname ?? $activity->host->email }}</p>
+        @if ($activity->creator)
+            <p class="text-sm opacity-70">{{ __('Host') }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</p>
         @endif
         @if ($activity->slot && $activity->slot->event)
             <p class="text-sm opacity-70">{{ $activity->slot->event->name }}</p>
