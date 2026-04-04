@@ -74,7 +74,7 @@ class Place extends Model
 
     public function slots()
     {
-        return $this->belongsToMany(Slot::class, 'slot_place')->withTimestamps();
+        return $this->belongsToMany(Slot::class, 'place_slot')->withTimestamps();
     }
 
     public function country()

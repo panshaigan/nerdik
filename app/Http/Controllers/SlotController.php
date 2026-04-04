@@ -42,7 +42,7 @@ class SlotController extends Controller
             $slotMassRoomsByVenueId = $this->slotFormService->roomOptionsByVenueId($slotMassVenues);
         }
 
-        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get();
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
         $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
         $massPlaceData = $this->slotFormService->massFormPlaceDataForAllEvents();
@@ -82,7 +82,7 @@ class SlotController extends Controller
 
         $events = Event::orderBy('starts_at', 'desc')->get();
 
-        $tags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get();
 
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
         $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());

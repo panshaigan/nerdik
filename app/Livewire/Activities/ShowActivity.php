@@ -25,7 +25,7 @@ class ShowActivity extends Component
             'tags.translations',
             'participants.user',
             'waitlist.user',
-            'slot.event.signupPeriods',
+            'slot.event.enrollmentWindows',
             'slot.place.parent',
         ]);
 

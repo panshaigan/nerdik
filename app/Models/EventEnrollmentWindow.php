@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EventSignupPeriod extends Model
+class EventEnrollmentWindow extends Model
 {
     protected $fillable = [
         'event_id',

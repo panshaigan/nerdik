@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SlotPlace extends Model
+class PlaceSlot extends Model
 {
-    protected $table = 'slot_place';
+    protected $table = 'place_slot';
 
     protected $fillable = [
         'slot_id',

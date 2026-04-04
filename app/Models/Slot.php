@@ -38,7 +38,7 @@ class Slot extends Model
      */
     public function places()
     {
-        return $this->belongsToMany(Place::class, 'slot_place')->withTimestamps();
+        return $this->belongsToMany(Place::class, 'place_slot')->withTimestamps();
     }
 
     /**
@@ -48,7 +48,7 @@ class Slot extends Model
     {
         return $this->hasOneThrough(
             Place::class,
-            SlotPlace::class,
+            PlaceSlot::class,
             'slot_id',
             'id',
             'id',
@@ -68,7 +68,7 @@ class Slot extends Model
 
     public function activityTypes()
     {
-        return $this->hasMany(SlotActivityType::class, 'slot_id');
+        return $this->hasMany(ActivityTypeSlot::class, 'slot_id');
     }
 
     /**
@@ -112,7 +112,7 @@ class Slot extends Model
             'activity_type' => $t,
         ], $types);
 
-        SlotActivityType::query()->insert($rows);
+        ActivityTypeSlot::query()->insert($rows);
     }
 
     /**

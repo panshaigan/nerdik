@@ -54,7 +54,7 @@ class Activity extends Model
 
     public function participants()
     {
-        return $this->hasMany(ActivityParticipant::class);
+        return $this->hasMany(ActivityUser::class);
     }
 
     public function waitlist()
