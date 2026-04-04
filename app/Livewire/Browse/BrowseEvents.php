@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Browse;
 
+use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Event;
 use App\Models\Tag;
@@ -11,6 +12,7 @@ use Livewire\WithPagination;
 
 class BrowseEvents extends Component
 {
+    use WithBrowseListingSort;
     use WithBrowseTagFilter;
     use WithPagination;
 
@@ -93,8 +95,7 @@ class BrowseEvents extends Component
             'places.country.translations',
             'places.city.translations',
         ])
-            ->where('is_public', true)
-            ->orderBy('starts_at', 'desc');
+            ->where('is_public', true);
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
@@ -121,6 +122,8 @@ class BrowseEvents extends Component
                     ->whereBetween('longitude', [$minLng, $maxLng]);
             });
         }
+
+        $this->applyBrowseEventSort($query);
 
         $events = $query->paginate(12);
 
