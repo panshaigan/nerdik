@@ -57,6 +57,9 @@ return [
         'show_duration' => 'Czas trwania',
         'show_signoff' => 'Termin wypisu',
         'show_back' => 'Wroc do aktywnosci',
+        'host_title' => [
+            'rpg' => 'Mistrz gry',
+        ],
     ],
     'events' => [
         'host' => 'Organizator',

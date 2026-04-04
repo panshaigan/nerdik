@@ -57,6 +57,9 @@ return [
         'show_duration' => 'Duration',
         'show_signoff' => 'Signoff deadline',
         'show_back' => 'Back to activities',
+        'host_title' => [
+            'rpg' => 'Game Master',
+        ],
     ],
     'events' => [
         'host' => 'Host',
