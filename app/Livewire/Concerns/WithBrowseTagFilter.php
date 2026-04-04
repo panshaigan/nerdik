@@ -29,6 +29,32 @@ trait WithBrowseTagFilter
         $this->resetPage();
     }
 
+    /**
+     * Called from {@see resources/js/tags-selector.js} for browse (data-browse-tag-selector).
+     * Uses a dedicated method so tag filter updates reliably with URL-bound {@see $tag_ids}.
+     *
+     * @param  list<int|string>  $tag_ids
+     * @param  list<array{label: string, category: string}>  $new_tags
+     */
+    public function syncBrowseTagsFromSelector(array $tag_ids, array $new_tags = []): void
+    {
+        $this->tag_ids = array_values(array_unique(array_filter(
+            array_map(static fn ($id) => (int) $id, $tag_ids),
+            static fn (int $id) => $id > 0
+        )));
+
+        $this->new_tags = collect($new_tags)
+            ->filter(static fn ($row) => is_array($row) && isset($row['label'], $row['category']))
+            ->map(static fn (array $row) => [
+                'label' => trim((string) $row['label']),
+                'category' => trim((string) $row['category']),
+            ])
+            ->values()
+            ->all();
+
+        $this->resetPage();
+    }
+
     public function updatedTagsMatchAll(): void
     {
         $this->resetPage();

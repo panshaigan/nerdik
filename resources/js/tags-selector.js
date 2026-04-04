@@ -48,6 +48,11 @@ function syncLivewireTagState(root, tagIds, newTagsPayload) {
         return;
     }
 
+    if (root.hasAttribute('data-browse-tag-selector') && typeof wire.call === 'function') {
+        wire.call('syncBrowseTagsFromSelector', tagIds, newTagsPayload);
+        return;
+    }
+
     wire.set('tag_ids', tagIds);
     wire.set('new_tags', newTagsPayload);
 }
@@ -82,6 +87,41 @@ export function initTagSelector(root) {
     let pendingNew = Array.isArray(cfg.initialNewTags) ? [...cfg.initialNewTags] : [];
     let activeIndex = -1;
 
+    const browseTextSearch = cfg.browseTextSearch;
+
+    /** Browse only: set Livewire name/description query (`q`). Shown as a chip in Blade; input is only for typing. */
+    function setBrowseTextQuery(raw) {
+        if (!browseTextSearch?.enabled) {
+            return;
+        }
+        const prop = browseTextSearch.property || 'q';
+        if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+            return;
+        }
+        const host = root.closest('[wire\\:id]');
+        const id = host?.getAttribute('wire:id');
+        const wire = id ? window.Livewire.find(id) : null;
+        if (!wire || typeof wire.set !== 'function') {
+            return;
+        }
+        const get =
+            typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null;
+        const val = String(raw ?? '').trim();
+        if (get && get(prop) === val) {
+            return;
+        }
+        wire.set(prop, val);
+    }
+
+    /** Clear typing field only (does not change committed text search `q`). */
+    function clearTagSearchInput() {
+        input.value = '';
+    }
+
+    if (browseTextSearch?.enabled) {
+        input.value = '';
+    }
+
     function emitTagsChange() {
         const tagIds = Array.from(selected)
             .sort((a, b) => a - b)
@@ -91,13 +131,15 @@ export function initTagSelector(root) {
             category: t.category,
         }));
 
-        if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.find === 'function') {
-            const host = root.closest('[wire\\:id]');
-            const id = host?.getAttribute('wire:id');
-            const wire = id ? window.Livewire.find(id) : null;
-            const get = wire && (typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null);
-            if (get && sameTagIds(tagIds, get('tag_ids')) && sameNewTagsPayload(newTagsPayload, get('new_tags'))) {
-                return;
+        if (!root.hasAttribute('data-browse-tag-selector')) {
+            if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.find === 'function') {
+                const host = root.closest('[wire\\:id]');
+                const id = host?.getAttribute('wire:id');
+                const wire = id ? window.Livewire.find(id) : null;
+                const get = wire && (typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null);
+                if (get && sameTagIds(tagIds, get('tag_ids')) && sameNewTagsPayload(newTagsPayload, get('new_tags'))) {
+                    return;
+                }
             }
         }
 
@@ -323,7 +365,7 @@ export function initTagSelector(root) {
                 b.textContent = `${local}${en}`;
                 b.addEventListener('click', () => {
                     addWithAttached(t.id);
-                    input.value = '';
+                    clearTagSearchInput();
                     closeResults();
                 });
                 frag.appendChild(b);
@@ -338,7 +380,7 @@ export function initTagSelector(root) {
             make.textContent = `+ ${cfg.strings?.createTag || 'Create tag'}: "${q.trim()}"`;
             make.addEventListener('click', () => {
                 addNewTagLabel(q.trim());
-                input.value = '';
+                clearTagSearchInput();
                 closeResults();
             });
             frag.appendChild(make);
@@ -348,7 +390,9 @@ export function initTagSelector(root) {
         results.classList.remove('hidden');
     }
 
-    input.addEventListener('input', () => buildResults(input.value));
+    input.addEventListener('input', () => {
+        buildResults(input.value);
+    });
     input.addEventListener('focus', () => buildResults(input.value));
     input.addEventListener('keydown', (e) => {
         const items = resultButtons();
@@ -373,6 +417,7 @@ export function initTagSelector(root) {
             const q = input.value.trim();
             if (!q) {
                 closeResults();
+                setBrowseTextQuery('');
                 return;
             }
             if (dropdownOpen && activeIndex >= 0) {
@@ -382,16 +427,18 @@ export function initTagSelector(root) {
             const exact = exactTagForQuery(q);
             if (exact) {
                 addWithAttached(exact.id);
-                input.value = '';
+                clearTagSearchInput();
                 closeResults();
                 return;
             }
             if (!allowCreate) {
                 closeResults();
+                setBrowseTextQuery(q);
+                clearTagSearchInput();
                 return;
             }
             addNewTagLabel(q);
-            input.value = '';
+            clearTagSearchInput();
             closeResults();
             return;
         }

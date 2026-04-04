@@ -27,7 +27,27 @@ class BrowseActivities extends Component
     #[Url]
     public ?int $place_id = null;
 
-    public function applySearch(): void
+    public function updatedQ(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearTextSearch(): void
+    {
+        $this->q = '';
+    }
+
+    public function updatedFromDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedToDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPlaceId(): void
     {
         $this->resetPage();
     }
@@ -70,7 +90,7 @@ class BrowseActivities extends Component
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
-            $query->where('name', 'like', $term);
+            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('desc', 'like', $term));
         }
 
         $activities = $query->paginate(12);
