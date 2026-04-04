@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -369,14 +370,22 @@ class SlotFormService
             $data['ends_at'] = null;
         }
 
-        $slot->update($data);
-        $slot->places()->sync($resolvedPlaceId !== null ? [$resolvedPlaceId] : []);
-        if (! empty($activityTypes)) {
-            $slot->setActivityTypes($activityTypes);
-        } else {
-            $slot->setActivityTypes([]);
-        }
-        $slot->tags()->sync($tagIds);
+        DB::transaction(function () use ($slot, $data, $resolvedPlaceId, $activityTypes, $tagIds): void {
+            $slot->update($data);
+            $slot->places()->sync($resolvedPlaceId !== null ? [$resolvedPlaceId] : []);
+            if (! empty($activityTypes)) {
+                $slot->setActivityTypes($activityTypes);
+            } else {
+                $slot->setActivityTypes([]);
+            }
+            $slot->tags()->sync($tagIds);
+            $slot->load(['activity', 'activityTypes']);
+            if ($slot->activity !== null && ! $slot->fitsProposalActivity($slot->activity)) {
+                throw ValidationException::withMessages([
+                    'max_capacity' => [__('ui.slots.slot_update_breaks_assigned_activity')],
+                ]);
+            }
+        });
     }
 
     public function massCreate(Request $request): RedirectResponse
