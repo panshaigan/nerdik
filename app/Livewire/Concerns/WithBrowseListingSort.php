@@ -13,9 +13,25 @@ trait WithBrowseListingSort
     #[Url]
     public string $sort = 'date';
 
-    /** `asc` | `desc` */
+    /** `asc` | `desc` — default ascending with {@see $sort} defaulting to date */
     #[Url]
-    public string $sort_dir = 'desc';
+    public string $sort_dir = 'asc';
+
+    public function toggleSort(string $field): void
+    {
+        if (! in_array($field, ['name', 'date'], true)) {
+            return;
+        }
+
+        if ($this->browseSortKey() === $field) {
+            $this->sort_dir = $this->browseSortDirection() === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sort = $field;
+            $this->sort_dir = 'asc';
+        }
+
+        $this->resetPage();
+    }
 
     public function updatedSort(): void
     {
@@ -28,7 +44,7 @@ trait WithBrowseListingSort
     public function updatedSortDir(): void
     {
         if (! in_array(strtolower($this->sort_dir), ['asc', 'desc'], true)) {
-            $this->sort_dir = 'desc';
+            $this->sort_dir = 'asc';
         } else {
             $this->sort_dir = strtolower($this->sort_dir);
         }

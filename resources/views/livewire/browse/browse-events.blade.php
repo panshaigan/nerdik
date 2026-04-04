@@ -17,15 +17,23 @@
                     </div>
                 @endauth
 
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-4">
-                    <div class="min-w-0 w-full flex-1 basis-0 lg:min-w-[min(100%,18rem)]">
-                        @include('livewire.browse.partials.tag-filter', ['includePastEventsToggle' => true])
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+                        @include('livewire.browse.partials.tag-filter-toggles', ['includePastEventsToggle' => true])
+                        @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
+                        @if ($this->hasActiveFilters())
+                            <x-button
+                                id="ui-browse-events-clear"
+                                type="button"
+                                wire:click="clearFilters"
+                                class="btn-ghost ui-action ui-action-clear shrink-0"
+                                data-ui="browse-events-clear"
+                            >{{ __('Clear') }}</x-button>
+                        @endif
                     </div>
-                    @if ($this->hasActiveFilters())
-                        <div class="flex w-full shrink-0 flex-wrap items-center gap-3 lg:w-auto lg:justify-end">
-                            <x-button id="ui-browse-events-clear" type="button" wire:click="clearFilters" class="btn-ghost ui-action ui-action-clear shrink-0" data-ui="browse-events-clear">{{ __('Clear') }}</x-button>
-                        </div>
-                    @endif
+                    <div class="min-w-0 w-full">
+                        @include('livewire.browse.partials.tag-filter')
+                    </div>
                 </div>
             </div>
 
@@ -46,10 +54,6 @@
                     ></div>
                 </div>
             </details>
-        </div>
-
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
