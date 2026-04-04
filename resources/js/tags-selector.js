@@ -6,6 +6,20 @@ function displayLabel(tag, locale) {
     return tag.labels?.[locale] || tag.labels?.en || tag.slug || `#${tag.id}`;
 }
 
+function normTagIds(arr) {
+    return [...new Set((arr || []).map((x) => Number(x)).filter((n) => n > 0))].sort((a, b) => a - b);
+}
+
+function sameTagIds(a, b) {
+    const na = normTagIds(a);
+    const nb = normTagIds(b);
+    return na.length === nb.length && na.every((v, i) => v === nb[i]);
+}
+
+function sameNewTagsPayload(a, b) {
+    return JSON.stringify(a || []) === JSON.stringify(b || []);
+}
+
 /**
  * Sync tag state into the nearest Livewire component that wraps this selector.
  * Window-level Alpine listeners using $wire can attach to the wrong component when multiple Livewire roots exist (e.g. nav + form).
@@ -58,6 +72,7 @@ export function initTagSelector(root) {
     }
 
     const locale = cfg.locale || 'en';
+    const allowCreate = cfg.allowCreate !== false;
     const allTags = Array.isArray(cfg.tags) ? cfg.tags : [];
     const categories = Array.isArray(cfg.categories) ? cfg.categories : [];
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
@@ -75,6 +90,17 @@ export function initTagSelector(root) {
             label: t.label,
             category: t.category,
         }));
+
+        if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.find === 'function') {
+            const host = root.closest('[wire\\:id]');
+            const id = host?.getAttribute('wire:id');
+            const wire = id ? window.Livewire.find(id) : null;
+            const get = wire && (typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null);
+            if (get && sameTagIds(tagIds, get('tag_ids')) && sameNewTagsPayload(newTagsPayload, get('new_tags'))) {
+                return;
+            }
+        }
+
         syncLivewireTagState(root, tagIds, newTagsPayload);
         root.dispatchEvent(
             new CustomEvent('tags-changed', {
@@ -304,7 +330,7 @@ export function initTagSelector(root) {
             });
         });
 
-        if (qn && !exact) {
+        if (allowCreate && qn && !exact) {
             const make = document.createElement('button');
             make.type = 'button';
             make.dataset.tsItem = '1';
@@ -357,6 +383,10 @@ export function initTagSelector(root) {
             if (exact) {
                 addWithAttached(exact.id);
                 input.value = '';
+                closeResults();
+                return;
+            }
+            if (!allowCreate) {
                 closeResults();
                 return;
             }

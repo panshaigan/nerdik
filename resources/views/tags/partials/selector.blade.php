@@ -33,12 +33,15 @@
         'categories' => $categories,
         'initialSelectedIds' => $selected,
         'initialNewTags' => $initialNewTags,
+        'allowCreate' => $allowCreate,
         'strings' => [
             'createTag' => __('Create tag'),
             'auto' => __('auto'),
         ],
     ];
     $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
+    $allowCreate = ($allowCreate ?? true) !== false;
+    $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
 @endphp
 
 @if (empty($tagsForJs))
@@ -61,7 +64,7 @@
                 inputmode="search"
                 enterkeyhint="search"
                 data-ts-input
-                placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
             />
         </label>

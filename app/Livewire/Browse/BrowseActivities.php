@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Browse;
 
+use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
 use App\Models\Place;
 use App\Models\Tag;
@@ -11,6 +12,7 @@ use Livewire\WithPagination;
 
 class BrowseActivities extends Component
 {
+    use WithBrowseTagFilter;
     use WithPagination;
 
     #[Url]
@@ -25,9 +27,6 @@ class BrowseActivities extends Component
     #[Url]
     public ?int $place_id = null;
 
-    #[Url]
-    public ?int $tag_id = null;
-
     public function applySearch(): void
     {
         $this->resetPage();
@@ -36,7 +35,8 @@ class BrowseActivities extends Component
     public function clearFilters()
     {
         $this->resetPage();
-        $this->reset(['q', 'from_date', 'to_date', 'place_id', 'tag_id']);
+        $this->reset(['q', 'from_date', 'to_date', 'place_id']);
+        $this->resetTagFilter();
 
         return $this->redirectRoute('activities.index');
     }
@@ -47,7 +47,7 @@ class BrowseActivities extends Component
             || filled($this->from_date)
             || filled($this->to_date)
             || $this->place_id !== null
-            || $this->tag_id !== null;
+            || $this->hasTagFilterActive();
     }
 
     public function render()
@@ -65,9 +65,9 @@ class BrowseActivities extends Component
         if ($this->place_id !== null) {
             $query->whereHas('slot.places', fn ($q) => $q->where('places.id', $this->place_id));
         }
-        if ($this->tag_id !== null) {
-            $query->whereHas('tags', fn ($q) => $q->where('tags.id', $this->tag_id));
-        }
+
+        $this->applyBrowseTagFilter($query, 'tags');
+
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
             $query->where('name', 'like', $term);
@@ -76,7 +76,6 @@ class BrowseActivities extends Component
         $activities = $query->paginate(12);
 
         $places = Place::orderBy('name')->get();
-        $tags = Tag::with('translations')->orderBy('category')->get();
 
         $wishlistActivityIds = auth()->check()
             ? auth()->user()->wishlistActivities()->pluck('activities.id')->toArray()
@@ -85,8 +84,8 @@ class BrowseActivities extends Component
         return view('livewire.browse.browse-activities', [
             'activities' => $activities,
             'places' => $places,
-            'tags' => $tags,
             'wishlistActivityIds' => $wishlistActivityIds,
+            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
         ]);
     }
 }

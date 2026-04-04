@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Browse;
 
+use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Event;
 use App\Models\Tag;
 use Livewire\Attributes\Url;
@@ -10,13 +11,11 @@ use Livewire\WithPagination;
 
 class BrowseEvents extends Component
 {
+    use WithBrowseTagFilter;
     use WithPagination;
 
     #[Url]
     public string $q = '';
-
-    #[Url]
-    public ?int $tag_id = null;
 
     #[Url]
     public ?string $min_lat = null;
@@ -38,7 +37,8 @@ class BrowseEvents extends Component
     public function clearFilters()
     {
         $this->resetPage();
-        $this->reset(['q', 'tag_id', 'min_lat', 'max_lat', 'min_lng', 'max_lng']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng']);
+        $this->resetTagFilter();
 
         return $this->redirectRoute('events.index');
     }
@@ -46,7 +46,7 @@ class BrowseEvents extends Component
     public function hasActiveFilters(): bool
     {
         return $this->q !== ''
-            || $this->tag_id !== null
+            || $this->hasTagFilterActive()
             || filled($this->min_lat)
             || filled($this->max_lat)
             || filled($this->min_lng)
@@ -61,7 +61,13 @@ class BrowseEvents extends Component
 
     public function render()
     {
-        $query = Event::with(['organization', 'creator', 'tags.translations'])
+        $query = Event::with([
+            'organization',
+            'creator',
+            'tags.translations',
+            'places.country.translations',
+            'places.city.translations',
+        ])
             ->where('is_public', true)
             ->orderBy('starts_at', 'desc');
 
@@ -69,9 +75,8 @@ class BrowseEvents extends Component
             $term = '%'.$this->q.'%';
             $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('desc', 'like', $term));
         }
-        if ($this->tag_id !== null) {
-            $query->whereHas('tags', fn ($q) => $q->where('tags.id', $this->tag_id));
-        }
+
+        $this->applyBrowseTagFilter($query, 'tags');
 
         if ($this->hasBBox()) {
             $minLat = (float) $this->min_lat;
@@ -94,16 +99,14 @@ class BrowseEvents extends Component
 
         $events = $query->paginate(12);
 
-        $tags = Tag::with('translations')->orderBy('category')->get();
-
         $wishlistEventIds = auth()->check()
             ? auth()->user()->wishlistEvents()->pluck('events.id')->toArray()
             : [];
 
         return view('livewire.browse.browse-events', [
             'events' => $events,
-            'tags' => $tags,
             'wishlistEventIds' => $wishlistEventIds,
+            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
         ]);
     }
 }

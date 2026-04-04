@@ -7,38 +7,48 @@
             data-ui="browse-events-form"
         >
             <div class="card border border-base-300 bg-base-100 p-4 shadow-sm" data-ui="browse-events-filters-card">
-                <div class="flex flex-wrap items-end gap-4">
-                    <x-input
-                        id="q"
-                        wire:model.defer="q"
-                        type="text"
-                        :label="__('Search')"
-                        :placeholder="__('Name or description…')"
-                        class="ui-field ui-field-search w-full max-w-xs"
-                        :omit-error="true"
-                        data-ui="browse-events-search-input"
-                    />
-                    @if ($tags->isNotEmpty())
-                        <x-form-select id="tag_id" wire:model.defer="tag_id" :label="__('Tag')" class="ui-field ui-field-tag" data-ui="browse-events-tag-select">
-                            <option value="">{{ __('Any') }}</option>
-                            @foreach ($tags as $tag)
-                                <option value="{{ $tag->id }}">
-                                    {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? $tag->slug }}
-                                </option>
-                            @endforeach
-                        </x-form-select>
-                    @endif
-                    <input type="hidden" id="bbox_min_lat" value="{{ $min_lat ?? '' }}">
-                    <input type="hidden" id="bbox_max_lat" value="{{ $max_lat ?? '' }}">
-                    <input type="hidden" id="bbox_min_lng" value="{{ $min_lng ?? '' }}">
-                    <input type="hidden" id="bbox_max_lng" value="{{ $max_lng ?? '' }}">
-                    <x-button id="ui-browse-events-submit" type="submit" class="btn-primary ui-action ui-action-search" data-ui="browse-events-search-submit" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="applySearch">{{ __('Search') }}</span>
-                        <span wire:loading wire:target="applySearch">{{ __('Searching…') }}</span>
-                    </x-button>
-                    @if ($this->hasActiveFilters())
-                        <x-button id="ui-browse-events-clear" type="button" wire:click="clearFilters" class="btn-ghost ui-action ui-action-clear" data-ui="browse-events-clear">{{ __('Clear') }}</x-button>
-                    @endif
+                @auth
+                    <div class="mb-4 flex justify-end">
+                        <a
+                            href="{{ route('events.create') }}"
+                            wire:navigate
+                            class="btn btn-circle btn-primary shadow-md"
+                            title="{{ __('Create event') }}"
+                            aria-label="{{ __('Create event') }}"
+                            data-ui="browse-events-create"
+                        >
+                            <span class="text-xl font-light leading-none" aria-hidden="true">+</span>
+                        </a>
+                    </div>
+                @endauth
+
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+                    <div class="min-w-0 flex-1 lg:max-w-xl">
+                        @include('livewire.browse.partials.tag-filter')
+                    </div>
+                    <div class="flex w-full min-w-0 flex-wrap items-end gap-3 lg:ms-auto lg:w-auto lg:max-w-2xl lg:shrink-0 lg:justify-end">
+                        <x-input
+                            id="q"
+                            wire:model.defer="q"
+                            type="text"
+                            :label="null"
+                            :placeholder="__('Name or description…')"
+                            class="ui-field ui-field-search min-w-[12rem] flex-1 sm:max-w-xs"
+                            :omit-error="true"
+                            data-ui="browse-events-search-input"
+                        />
+                        <input type="hidden" id="bbox_min_lat" value="{{ $min_lat ?? '' }}">
+                        <input type="hidden" id="bbox_max_lat" value="{{ $max_lat ?? '' }}">
+                        <input type="hidden" id="bbox_min_lng" value="{{ $min_lng ?? '' }}">
+                        <input type="hidden" id="bbox_max_lng" value="{{ $max_lng ?? '' }}">
+                        <x-button id="ui-browse-events-submit" type="submit" class="btn-primary ui-action ui-action-search shrink-0" data-ui="browse-events-search-submit" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="applySearch">{{ __('Search') }}</span>
+                            <span wire:loading wire:target="applySearch">{{ __('Searching…') }}</span>
+                        </x-button>
+                        @if ($this->hasActiveFilters())
+                            <x-button id="ui-browse-events-clear" type="button" wire:click="clearFilters" class="btn-ghost ui-action ui-action-clear shrink-0" data-ui="browse-events-clear">{{ __('Clear') }}</x-button>
+                        @endif
+                    </div>
                 </div>
             </div>
 
@@ -56,12 +66,6 @@
                 </div>
             </details>
         </form>
-
-        @auth
-            <div class="mb-1 flex justify-end">
-                <x-button id="ui-browse-events-create" :link="route('events.create')" class="btn-primary ui-action ui-action-create" data-ui="browse-events-create">{{ __('Create event') }}</x-button>
-            </div>
-        @endauth
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($events as $event)
