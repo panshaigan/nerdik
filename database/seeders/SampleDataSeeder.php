@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ActivityProposalStatus;
+use App\Enums\ActivityStatus;
+use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -167,11 +170,11 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-dnd-one-shot'],
             [
                 'name' => 'D&D 5e one-shot: Lost Mine',
-                'type' => 'rpg',
+                'type' => ActivityType::Rpg,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $alice->id,
-                'status' => 'planned',
+                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 240,
             ]
         );
@@ -180,11 +183,11 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-forbidden-lands'],
             [
                 'name' => 'Forbidden Lands – introductory session',
-                'type' => 'rpg',
+                'type' => ActivityType::Rpg,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $bob->id,
-                'status' => 'planned',
+                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 180,
             ]
         );
@@ -193,11 +196,11 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-talisman'],
             [
                 'name' => 'Talisman – board game open table',
-                'type' => 'board',
+                'type' => ActivityType::Board,
                 'min_participants' => 2,
                 'max_participants' => 6,
                 'created_by' => $charlie->id,
-                'status' => 'planned',
+                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 180,
             ]
         );
@@ -206,11 +209,11 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-call-of-cthulhu'],
             [
                 'name' => 'Call of Cthulhu one-shot',
-                'type' => 'rpg',
+                'type' => ActivityType::Rpg,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $diana->id,
-                'status' => 'planned',
+                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 240,
             ]
         );
@@ -231,12 +234,12 @@ class SampleDataSeeder extends Seeder
 
         // Pending proposal: Diana proposes her activity to the convention (event2)
         $freeSlotConvention = $event2->slots()->whereNull('activity_id')->first();
-        if ($freeSlotConvention && ! ActivityProposal::where('activity_id', $activity4->id)->where('event_id', $event2->id)->where('status', 'pending')->exists()) {
+        if ($freeSlotConvention && ! ActivityProposal::where('activity_id', $activity4->id)->where('event_id', $event2->id)->where('status', ActivityProposalStatus::Pending)->exists()) {
             $proposal = ActivityProposal::create([
                 'activity_id' => $activity4->id,
                 'event_id' => $event2->id,
                 'created_by' => $diana->id,
-                'status' => 'pending',
+                'status' => ActivityProposalStatus::Pending,
             ]);
             $proposal->proposedSlots()->sync([$freeSlotConvention->id]);
         }

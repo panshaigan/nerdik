@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityStatus;
+use App\Enums\ActivityType;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +41,8 @@ class Activity extends Model
     ];
 
     protected $casts = [
+        'type' => ActivityType::class,
+        'status' => ActivityStatus::class,
         'price' => 'decimal:2',
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',

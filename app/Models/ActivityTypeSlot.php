@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityType;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityTypeSlot extends Model
@@ -11,6 +12,10 @@ class ActivityTypeSlot extends Model
     protected $fillable = [
         'slot_id',
         'activity_type',
+    ];
+
+    protected $casts = [
+        'activity_type' => ActivityType::class,
     ];
 
     public $timestamps = true;

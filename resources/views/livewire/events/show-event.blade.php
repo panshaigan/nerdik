@@ -227,7 +227,7 @@
                                                                 <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
                                                             @endif
                                                             @if (filled($activity->type))
-                                                                <span class="badge badge-outline badge-info capitalize">{{ $activity->type }}</span>
+                                                                <span class="badge badge-outline badge-info capitalize">{{ $activity->type->value }}</span>
                                                             @endif
                                                             @foreach ($mergedActivitySlotTags as $tag)
                                                                 <span class="badge badge-primary badge-outline whitespace-normal text-left">

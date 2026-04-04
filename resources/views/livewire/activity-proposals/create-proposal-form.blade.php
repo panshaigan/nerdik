@@ -17,7 +17,7 @@
                         <option value="">{{ __('ui.proposals.choose_activity') }}</option>
                         @foreach ($myActivities as $activity)
                             <option value="{{ $activity->id }}">
-                                {{ $activity->name }} ({{ ucfirst($activity->type) }})
+                                {{ $activity->name }} ({{ ucfirst($activity->type->value) }})
                             </option>
                         @endforeach
                     </x-form-select>

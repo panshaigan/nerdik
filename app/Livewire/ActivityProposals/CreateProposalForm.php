@@ -2,6 +2,7 @@
 
 namespace App\Livewire\ActivityProposals;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -47,7 +48,7 @@ class CreateProposalForm extends Component
             'event_id' => $event->id,
             'created_by' => Auth::id(),
             'preferred_start_time' => $validated['preferred_start_time'] ?? null,
-            'status' => 'pending',
+            'status' => ActivityProposalStatus::Pending,
         ]);
         $proposal->load(['activity', 'event', 'creator']);
 
@@ -70,7 +71,7 @@ class CreateProposalForm extends Component
 
             if ($autoSlot) {
                 $proposal->update([
-                    'status' => 'accepted',
+                    'status' => ActivityProposalStatus::Accepted,
                     'accepted_slot_id' => $autoSlot->id,
                 ]);
                 $autoSlot->update(['activity_id' => $activity->id]);

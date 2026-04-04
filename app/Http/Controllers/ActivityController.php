@@ -3,15 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
-use App\Support\ActivityTypes;
 use App\Traits\AuthorizesOwnership;
 
 class ActivityController extends Controller
 {
     use AuthorizesOwnership;
-
-    /** @var list<string> */
-    public const ACTIVITY_TYPES = ActivityTypes::VALUES;
 
     /**
      * Show the form for creating a new resource.

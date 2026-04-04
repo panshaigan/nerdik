@@ -7,8 +7,8 @@
     $langList = collect($activity->languages ?? [])
         ->filter(fn ($l) => is_string($l) && trim($l) !== '')
         ->values();
-    $hostRoleLabel = \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activity->type)
-        ? __('ui.activities.host_title.'.$activity->type)
+    $hostRoleLabel = \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activity->type->value)
+        ? __('ui.activities.host_title.'.$activity->type->value)
         : __('Host');
     $hasOpenRunBlurb = $slot && ! $event;
     $showEventCard = $event || $hasOpenRunBlurb;
@@ -75,7 +75,7 @@
                     <div class="flex items-start gap-3 sm:gap-4" dir="ltr">
                         <div class="min-w-0 flex-1 space-y-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                {{ ucfirst($activity->type) }}
+                                {{ ucfirst($activity->type->value) }}
                             </p>
                             <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
                                 {{ $activity->name }}

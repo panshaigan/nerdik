@@ -1,6 +1,6 @@
 @php
-    use App\Support\ActivityTypes;
-    $activityTypes = ActivityTypes::VALUES;
+    use App\Enums\ActivityType;
+    $activityTypes = ActivityType::values();
 @endphp
 
 @push('head')

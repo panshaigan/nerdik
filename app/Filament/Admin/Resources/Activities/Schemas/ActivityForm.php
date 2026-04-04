@@ -2,6 +2,9 @@
 
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
+use App\Enums\ActivityStatus;
+use App\Enums\ActivityType;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -18,7 +21,8 @@ class ActivityForm
                 Textarea::make('desc')
                     ->rows(4)
                     ->columnSpanFull(),
-                TextInput::make('type')
+                Select::make('type')
+                    ->options(collect(ActivityType::cases())->mapWithKeys(fn (ActivityType $t) => [$t->value => $t->value]))
                     ->required(),
                 TextInput::make('min_participants')
                     ->numeric()
@@ -43,9 +47,10 @@ class ActivityForm
                 TextInput::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->default(null),
-                TextInput::make('status')
+                Select::make('status')
+                    ->options(collect(ActivityStatus::cases())->mapWithKeys(fn (ActivityStatus $s) => [$s->value => $s->value]))
                     ->required()
-                    ->default('planned'),
+                    ->default(ActivityStatus::Planned->value),
                 TextInput::make('logo_path')
                     ->default(null),
                 Textarea::make('languages')

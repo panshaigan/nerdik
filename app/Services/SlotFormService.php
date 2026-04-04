@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
-use App\Support\ActivityTypes;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -215,7 +215,7 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => [Rule::in(ActivityTypes::VALUES)],
+            'activity_types.*' => [Rule::in(ActivityType::values())],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
             'new_tags' => ['nullable', 'array'],
@@ -239,7 +239,7 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => [Rule::in(ActivityTypes::VALUES)],
+            'activity_types.*' => [Rule::in(ActivityType::values())],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
             'new_tags' => ['nullable', 'array'],
@@ -273,7 +273,7 @@ class SlotFormService
 
         $activityTypes = array_values(array_unique(array_filter(
             $validated['activity_types'] ?? [],
-            fn ($t) => in_array($t, ActivityTypes::VALUES, true)
+            fn ($t) => in_array($t, ActivityType::values(), true)
         )));
 
         $tagIds = $this->tagSelectionService->resolveFinalTagIds(
@@ -343,7 +343,7 @@ class SlotFormService
 
         $activityTypes = array_values(array_unique(array_filter(
             $validated['activity_types'] ?? [],
-            fn ($t) => in_array($t, ActivityTypes::VALUES, true)
+            fn ($t) => in_array($t, ActivityType::values(), true)
         )));
 
         $tagIds = $this->tagSelectionService->resolveFinalTagIds(

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Activities;
 
+use App\Enums\ActivityProposalStatus;
+use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -10,7 +12,6 @@ use App\Models\Tag;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Services\TagSelectionService;
-use App\Support\ActivityTypes;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Database\Eloquent\Collection;
@@ -67,7 +68,7 @@ class ManageActivityForm extends Component
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->desc = (string) ($activity->desc ?? '');
-            $this->type = (string) $activity->type;
+            $this->type = $activity->type->value;
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
             $this->minimum_age = $activity->minimum_age;
@@ -205,7 +206,7 @@ class ManageActivityForm extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'desc' => ['nullable', 'string'],
-            'type' => ['required', 'string', Rule::in(ActivityTypes::VALUES)],
+            'type' => ['required', 'string', Rule::in(ActivityType::values())],
             'min_participants' => [
                 'nullable',
                 'integer',
@@ -323,7 +324,7 @@ class ManageActivityForm extends Component
             'event_id' => $event->id,
             'created_by' => auth()->id(),
             'preferred_start_time' => $preferred !== null && $preferred !== '' ? $preferred : null,
-            'status' => 'pending',
+            'status' => ActivityProposalStatus::Pending,
         ]);
         $proposal->load(['activity', 'event', 'creator']);
 
@@ -344,7 +345,7 @@ class ManageActivityForm extends Component
             $autoSlot = $slots->firstWhere('requires_approval', false);
             if ($autoSlot) {
                 $proposal->update([
-                    'status' => 'accepted',
+                    'status' => ActivityProposalStatus::Accepted,
                     'accepted_slot_id' => $autoSlot->id,
                 ]);
                 $autoSlot->update(['activity_id' => $activity->id]);

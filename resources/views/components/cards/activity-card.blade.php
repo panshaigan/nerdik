@@ -27,7 +27,7 @@
             @endauth
         </div>
 
-        <p class="text-sm opacity-70">{{ ucfirst($activity->type) }}</p>
+        <p class="text-sm opacity-70">{{ ucfirst($activity->type->value) }}</p>
         @if ($activity->creator)
             <p class="text-sm opacity-70">{{ __('Host') }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</p>
         @endif

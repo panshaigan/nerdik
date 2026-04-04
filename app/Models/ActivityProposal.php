@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityProposalStatus;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -21,6 +22,7 @@ class ActivityProposal extends Model
     ];
 
     protected $casts = [
+        'status' => ActivityProposalStatus::class,
         'preferred_start_time' => 'datetime',
     ];
 

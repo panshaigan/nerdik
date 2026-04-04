@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\ActivityProposal;
 use App\Models\Slot;
 use App\Notifications\ProposalAcceptedNotification;
@@ -20,7 +21,7 @@ class ActivityProposalController extends Controller
         if ($event->created_by !== Auth::id()) {
             abort(403, __('ui.status.forbidden_accept'));
         }
-        if ($proposal->status !== 'pending') {
+        if ($proposal->status !== ActivityProposalStatus::Pending) {
             return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }
 
@@ -34,7 +35,7 @@ class ActivityProposalController extends Controller
             ->firstOrFail();
 
         $proposal->update([
-            'status' => 'accepted',
+            'status' => ActivityProposalStatus::Accepted,
             'accepted_slot_id' => $slot->id,
         ]);
         $slot->update(['activity_id' => $proposal->activity_id]);
@@ -54,11 +55,11 @@ class ActivityProposalController extends Controller
         if ($event->created_by !== Auth::id()) {
             abort(403, __('ui.status.forbidden_reject'));
         }
-        if ($proposal->status !== 'pending') {
+        if ($proposal->status !== ActivityProposalStatus::Pending) {
             return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }
 
-        $proposal->update(['status' => 'rejected']);
+        $proposal->update(['status' => ActivityProposalStatus::Rejected]);
 
         $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityType;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -83,7 +84,7 @@ class Slot extends Model
             $loaded = $this->getRelationValue('activityTypes');
 
             return $loaded
-                ? $loaded->pluck('activity_type')->values()->all()
+                ? $loaded->pluck('activity_type')->map($this->normalizeActivityTypeString(...))->values()->all()
                 : [];
         }
 
@@ -113,6 +114,11 @@ class Slot extends Model
         ], $types);
 
         ActivityTypeSlot::query()->insert($rows);
+    }
+
+    private function normalizeActivityTypeString(ActivityType|string $value): string
+    {
+        return $value instanceof ActivityType ? $value->value : $value;
     }
 
     /**

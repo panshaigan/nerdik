@@ -94,7 +94,7 @@
                                 <a href="{{ route('activities.show', $activity) }}" class="link link-primary">
                                     {{ $activity->name }}
                                 </a>
-                                <span class="text-sm opacity-70"> · {{ ucfirst($activity->type) }}</span>
+                                <span class="text-sm opacity-70"> · {{ ucfirst($activity->type->value) }}</span>
                             </li>
                         @endforeach
                     </ul>
@@ -135,7 +135,7 @@
                                 <span class="font-medium">{{ $proposal->activity->name }}</span>
                                 <span class="text-sm opacity-70">
                                     → {{ $proposal->event->name }}
-                                    ({{ ucfirst($proposal->status) }})
+                                    ({{ ucfirst($proposal->status->value) }})
                                 </span>
                             </li>
                         @endforeach
