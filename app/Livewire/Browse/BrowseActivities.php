@@ -60,7 +60,7 @@ class BrowseActivities extends Component
         $this->reset(['q', 'from_date', 'to_date', 'place_id']);
         $this->resetTagFilter();
 
-        return $this->redirectRoute('activities.index');
+        return $this->redirectRoute('search.index');
     }
 
     public function hasActiveFilters(): bool

@@ -208,7 +208,7 @@ class ManageActivityForm extends Component
             return redirect()->route('activities.show', $activity);
         }
 
-        return redirect()->route('activities.index');
+        return redirect()->route('search.index');
     }
 
     /**

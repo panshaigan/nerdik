@@ -289,7 +289,7 @@
                 {{ __('ui.activities.clear_numeric_fields') }}
             </x-button>
 
-            <x-button id="ui-activity-cancel" :link="route('activities.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
+            <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled">
                 <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('Update') : __('Create') }}</span>

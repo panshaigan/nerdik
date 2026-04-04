@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'nav' => [
+        'search' => 'Search',
+    ],
     'common' => [
         'cancel' => 'Cancel',
         'create' => 'Create',
@@ -14,7 +17,7 @@ return [
         'language_pl' => 'Polish',
     ],
     'browse' => [
-        'events_page_title' => 'Events & activities',
+        'search_page_title' => 'Search',
         'tags_filter_label' => 'Tags',
         'tags_search_placeholder' => 'Type to search tags…',
         'tags_and_text_placeholder' => 'Type to add tags; press Enter to search by name or description…',
@@ -151,7 +154,7 @@ return [
         'no_free_slots' => 'No free slots',
         'no_compatible_slots' => 'No free slots match this activity type, duration, and room capacity.',
         'reject' => 'Reject',
-        'back_to_events' => 'Back to events',
+        'back_to_search' => 'Back to search',
         'enrollment_windows_heading' => 'Activity enrollment windows',
         'enrollment_windows_help' => 'Participants can join or join the waitlist for activities at this event only during these windows. A window may open before the event starts, but it must close by the event end. Leave the list empty (clear all rows) for no time restriction. Add several non-overlapping windows if needed. “Max activities” caps how many activities someone may sign up for during that window (empty or 0 = unlimited).',
         'enrollment_window_starts' => 'Enrollment opens',

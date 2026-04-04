@@ -39,13 +39,9 @@ new class extends Component
                        class="{{ $navLink(request()->routeIs('dashboard')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('Dashboard') }}
                     </a>
-                    <a href="{{ route('events.index') }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('events.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
-                        {{ __('Events') }}
-                    </a>
-                    <a href="{{ route('activities.index') }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('activities.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
-                        {{ __('Activities') }}
+                    <a href="{{ route('search.index') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('search.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
+                        {{ __('ui.nav.search') }}
                     </a>
                 </div>
             </div>
@@ -128,13 +124,9 @@ new class extends Component
                class="{{ $navLink(request()->routeIs('dashboard')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                 {{ __('Dashboard') }}
             </a>
-            <a href="{{ route('events.index') }}" wire:navigate
-               class="{{ $navLink(request()->routeIs('events.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
-                {{ __('Events') }}
-            </a>
-            <a href="{{ route('activities.index') }}" wire:navigate
-               class="{{ $navLink(request()->routeIs('activities.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
-                {{ __('Activities') }}
+            <a href="{{ route('search.index') }}" wire:navigate
+               class="{{ $navLink(request()->routeIs('search.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
+                {{ __('ui.nav.search') }}
             </a>
         </div>
 

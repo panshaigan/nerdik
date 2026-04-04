@@ -31,14 +31,15 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
 })->name('locale.switch');
 
 /*
-| Public entity lists (Livewire browse UI). Named *.index so redirects and links stay stable.
+| Public unified browse (events + activities). Legacy /events and /activities redirect to /search.
 | Organizations are listed only for the signed-in owner (see authenticated `organizations.index`).
 */
-Route::view('events', 'browse.events')->name('events.index');
-Route::view('activities', 'browse.activities')->name('activities.index');
+Route::view('search', 'browse.events')->name('search.index');
 
-Route::redirect('browse/events', '/events', 301);
-Route::redirect('browse/activities', '/activities', 301);
+Route::redirect('events', '/search', 301);
+Route::redirect('activities', '/search', 301);
+Route::redirect('browse/events', '/search', 301);
+Route::redirect('browse/activities', '/search', 301);
 Route::redirect('browse/organizations', '/organizations', 301);
 
 Route::get('geocode/reverse', [GeocodeController::class, 'reverse'])

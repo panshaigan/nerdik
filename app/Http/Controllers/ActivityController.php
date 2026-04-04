@@ -38,7 +38,7 @@ class ActivityController extends Controller
 
         $activity->delete();
 
-        return redirect()->route('activities.index')
+        return redirect()->route('search.index')
             ->with('status', __('Activity deleted.'));
     }
 }

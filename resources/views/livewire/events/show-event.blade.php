@@ -527,7 +527,7 @@
             @include('slots.partials.edit-modal-shell')
 
             <div class="flex gap-3">
-                <x-button :link="route('events.index')" class="btn-ghost btn-sm">{{ __('ui.events.back_to_events') }}</x-button>
+                <x-button :link="route('search.index')" class="btn-ghost btn-sm">{{ __('ui.events.back_to_search') }}</x-button>
             </div>
         </div>
     </div>
