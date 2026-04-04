@@ -58,6 +58,7 @@ class Place extends Model
 
     /**
      * Physical venues (event maps and event–place links use this type only).
+     * Use {@see Country} and {@see City} for country/city data — not place types.
      *
      * @param  Builder<Place>  $query
      * @return Builder<Place>

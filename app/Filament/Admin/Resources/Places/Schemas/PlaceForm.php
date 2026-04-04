@@ -38,9 +38,7 @@ class PlaceForm
                     ->default(null),
                 Select::make('type')
                     ->options([
-                        'country' => 'Country',
-                        'state' => 'State',
-                        'city' => 'City',
+                        'state' => 'State / region',
                         'venue' => 'Venue',
                         'room' => 'Room',
                     ])

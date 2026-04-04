@@ -43,7 +43,7 @@
 
     <div>
         <x-form-select id="type" name="type" :label="__('Type')" error-field="type" required>
-            @foreach (['country','state','city','venue','room'] as $type)
+            @foreach (['state','venue','room'] as $type)
                 <option value="{{ $type }}"
                     @selected(old('type', $place->type ?? '') === $type)>
                     {{ ucfirst($type) }}

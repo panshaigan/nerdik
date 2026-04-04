@@ -54,7 +54,6 @@ return [
         'show_slot' => 'Assigned slot',
         'show_open_run' => 'Not tied to an event yet — join from here or find it on a schedule later.',
         'show_no_description' => 'No description yet.',
-        'show_languages' => 'Languages',
         'show_price' => 'Price',
         'show_duration' => 'Duration',
         'show_cancellation_deadline' => 'Cancellation deadline',

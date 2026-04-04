@@ -33,7 +33,6 @@ class Activity extends Model
         'cancellation_deadline_in_hours',
         'status',
         'logo_path',
-        'languages',
         'duration_in_minutes',
         'allows_observers',
         'slug',
@@ -47,7 +46,6 @@ class Activity extends Model
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',
         'is_host_passive' => 'boolean',
-        'languages' => 'array',
         'extra' => 'array',
     ];
 

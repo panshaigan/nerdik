@@ -4,9 +4,6 @@
         : null;
     $slot = $activity->slot;
     $event = $slot?->event;
-    $langList = collect($activity->languages ?? [])
-        ->filter(fn ($l) => is_string($l) && trim($l) !== '')
-        ->values();
     $hostRoleLabel = \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activity->type->value)
         ? __('ui.activities.host_title.'.$activity->type->value)
         : __('Host');
@@ -15,8 +12,7 @@
     $hasMetaStats = $activity->min_participants !== null
         || (bool) $activity->duration_in_minutes
         || $activity->cancellation_deadline_in_hours !== null
-        || $activity->price !== null
-        || $langList->isNotEmpty();
+        || $activity->price !== null;
     $hasDetailRow = $showEventCard || $hasMetaStats;
     $metaItems = [];
     if ($activity->min_participants !== null) {
@@ -41,12 +37,6 @@
         $metaItems[] = [
             'label' => __('ui.activities.show_price'),
             'value' => number_format((float) $activity->price, 2),
-        ];
-    }
-    if ($langList->isNotEmpty()) {
-        $metaItems[] = [
-            'label' => __('ui.activities.show_languages'),
-            'value' => $langList->join(', '),
         ];
     }
     $metaRows = count($metaItems) > 0
