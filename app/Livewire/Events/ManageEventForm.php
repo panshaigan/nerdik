@@ -6,10 +6,12 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
+use App\Services\EventActivitySignupService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -48,11 +50,18 @@ class ManageEventForm extends Component
      */
     public array $new_places = [];
 
+    /**
+     * Activity signup windows for this event (local datetime-local strings + optional cap).
+     *
+     * @var list<array{starts_at: string, ends_at: string, max_activities: int|string|null}>
+     */
+    public array $signup_periods = [];
+
     public function mount(?Event $event = null): void
     {
         if ($event?->exists) {
             $this->authorizeCreatedBy($event);
-            $event->load(['tags', 'places', 'organization']);
+            $event->load(['tags', 'places', 'organization', 'signupPeriods']);
             $this->editingEventId = $event->id;
             $this->name = (string) $event->name;
             $this->desc = (string) ($event->desc ?? '');
@@ -70,6 +79,53 @@ class ManageEventForm extends Component
                 ->values()
                 ->all();
             $this->new_places = [];
+            $this->signup_periods = $event->signupPeriods
+                ->map(fn ($p) => [
+                    'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
+                    'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
+                    'max_activities' => $p->max_activities,
+                ])
+                ->values()
+                ->all();
+        }
+
+        if ($this->signup_periods === []) {
+            $this->signup_periods = [$this->defaultSignupPeriodRow()];
+        }
+    }
+
+    /**
+     * @return array{starts_at: string, ends_at: string, max_activities: int|string|null}
+     */
+    protected function defaultSignupPeriodRow(): array
+    {
+        $starts = format_in_user_tz(Carbon::now(), 'Y-m-d\TH:i');
+        $ends = $this->ends_at !== '' && $this->ends_at !== null
+            ? $this->ends_at
+            : '';
+
+        return [
+            'starts_at' => $starts,
+            'ends_at' => $ends,
+            'max_activities' => null,
+        ];
+    }
+
+    public function addSignupPeriod(): void
+    {
+        $this->signup_periods[] = [
+            'starts_at' => '',
+            'ends_at' => '',
+            'max_activities' => null,
+        ];
+    }
+
+    public function removeSignupPeriod(int $index): void
+    {
+        unset($this->signup_periods[$index]);
+        $this->signup_periods = array_values($this->signup_periods);
+        if ($this->signup_periods === []) {
+            $this->signup_periods = [$this->defaultSignupPeriodRow()];
         }
     }
 
@@ -91,10 +147,17 @@ class ManageEventForm extends Component
             }
         }
 
+        foreach ($this->signup_periods as $i => $row) {
+            $m = $row['max_activities'] ?? null;
+            if ($m === '' || $m === null) {
+                $this->signup_periods[$i]['max_activities'] = null;
+            }
+        }
+
         return $attributes;
     }
 
-    public function save(TagSelectionService $tagSelectionService, LocationResolver $locationResolver)
+    public function save(TagSelectionService $tagSelectionService, LocationResolver $locationResolver, EventActivitySignupService $signupService)
     {
         $validated = $this->validate($this->rules());
 
@@ -126,6 +189,8 @@ class ManageEventForm extends Component
             $event->update($validated);
             $event->tags()->sync($tagIds);
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+            $event->refresh();
+            $this->syncSignupPeriods($event, $signupService);
             session()->flash('status', __('Event updated.'));
 
             return redirect()->route('events.show', $event);
@@ -135,9 +200,29 @@ class ManageEventForm extends Component
         $event = Event::create($validated);
         $event->tags()->sync($tagIds);
         $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+        $event->refresh();
+        $this->syncSignupPeriods($event, $signupService);
         session()->flash('status', __('Event created.'));
 
         return redirect()->route('events.index');
+    }
+
+    protected function syncSignupPeriods(Event $event, EventActivitySignupService $signupService): void
+    {
+        $normalized = $signupService->validateAndNormalizePeriodRowsForEvent(
+            $event,
+            $this->signup_periods,
+            Carbon::now('UTC')
+        );
+
+        $event->signupPeriods()->delete();
+        foreach ($normalized as $row) {
+            $event->signupPeriods()->create([
+                'starts_at' => $row['starts_at']->toDateTimeString(),
+                'ends_at' => $row['ends_at']->toDateTimeString(),
+                'max_activities' => $row['max_activities'],
+            ]);
+        }
     }
 
     /**
@@ -379,6 +464,7 @@ class ManageEventForm extends Component
             'cancelUrl' => $this->editingEventId !== null
                 ? route('events.show', Event::query()->findOrFail($this->editingEventId))
                 : route('events.index'),
+            'eventSignupPeriodMax' => $this->ends_at !== '' ? $this->ends_at : null,
         ]);
     }
 }

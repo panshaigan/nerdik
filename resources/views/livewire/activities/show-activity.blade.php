@@ -257,6 +257,9 @@
                     </p>
                 </div>
                 @auth
+                    @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
+                        <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
+                    @endif
                     @if ($isParticipant || $onWaitlist || $canJoin)
                         <div class="mb-4 flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
                             @if ($isParticipant)

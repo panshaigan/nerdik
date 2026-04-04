@@ -6,13 +6,15 @@ use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
 use App\Models\ActivityParticipant;
 use App\Models\ActivityWaitlistEntry;
+use App\Services\EventActivitySignupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ParticipationController extends Controller
 {
-    public function join(Activity $activity)
+    public function join(Activity $activity, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
 
@@ -31,12 +33,25 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', __('Activity is full. You can join the waitlist.'));
         }
 
+        try {
+            $signupService->assertCanSignup($activity, $user);
+        } catch (ValidationException $e) {
+            return redirect()->back()->with('status', $this->firstValidationMessage($e));
+        }
+
         $activity->participants()->create([
             'user_id' => $user->id,
             'is_host' => false,
         ]);
 
         return redirect()->back()->with('status', __('You joined the activity.'));
+    }
+
+    protected function firstValidationMessage(ValidationException $e): string
+    {
+        $messages = $e->errors();
+
+        return (string) (collect($messages)->flatten()->first() ?? __('Validation failed.'));
     }
 
     public function leave(Activity $activity)
@@ -69,7 +84,7 @@ class ParticipationController extends Controller
         return redirect()->back()->with('status', __('You left the activity.'));
     }
 
-    public function joinWaitlist(Activity $activity)
+    public function joinWaitlist(Activity $activity, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
 
@@ -79,6 +94,12 @@ class ParticipationController extends Controller
 
         if ($activity->waitlist()->where('user_id', $user->id)->exists()) {
             return redirect()->back()->with('status', __('You are already on the waitlist.'));
+        }
+
+        try {
+            $signupService->assertCanSignup($activity, $user);
+        } catch (ValidationException $e) {
+            return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
         $nextPosition = $activity->waitlist()->max('position') + 1;

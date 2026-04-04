@@ -3,6 +3,8 @@
 namespace App\Livewire\Activities;
 
 use App\Models\Activity;
+use App\Services\EventActivitySignupService;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class ShowActivity extends Component
@@ -24,13 +26,25 @@ class ShowActivity extends Component
             'tags.translations',
             'participants.user',
             'waitlist.user',
-            'slot.event',
+            'slot.event.signupPeriods',
             'slot.place.parent',
         ]);
 
         $isParticipant = auth()->check() && $activity->participants()->where('user_id', auth()->id())->exists();
         $onWaitlist = auth()->check() && $activity->waitlist()->where('user_id', auth()->id())->exists();
-        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist;
+
+        $signupGateOk = true;
+        $signupBlockedMessage = null;
+        if (auth()->check() && ! $isParticipant && ! $onWaitlist && $activity->slot?->event_id) {
+            try {
+                app(EventActivitySignupService::class)->assertCanSignup($activity, auth()->user());
+            } catch (ValidationException $e) {
+                $signupGateOk = false;
+                $signupBlockedMessage = collect($e->errors())->flatten()->first();
+            }
+        }
+
+        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk;
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
         $isHost = auth()->check() && $activity->host_user_id === auth()->id();
         $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
@@ -46,6 +60,7 @@ class ShowActivity extends Component
             'isHost' => $isHost,
             'inWishlist' => $inWishlist,
             'canManageActivity' => $canManageActivity,
+            'signupBlockedMessage' => $signupBlockedMessage,
         ]);
     }
 }
