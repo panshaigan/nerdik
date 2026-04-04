@@ -198,7 +198,7 @@ class ShowEvent extends Component
         $slotListActivityTagCategories = ['game', 'world', 'convention', 'engine', 'block'];
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
-            ->with(['activity', 'creator', 'proposedSlots'])
+            ->with(['activity.tags.translations', 'creator', 'proposedSlots'])
             ->where('status', ActivityProposalStatus::Pending)
             ->orderBy('created_at')
             ->get();

@@ -56,6 +56,8 @@ return [
         'show_no_description' => 'Brak opisu.',
         'show_price' => 'Cena',
         'show_duration' => 'Czas trwania',
+        'duration_hours_part' => ':n godz.',
+        'duration_minutes_part' => ':n min',
         'show_cancellation_deadline' => 'Termin rezygnacji',
         'show_back' => 'Wroc do aktywnosci',
         'host_title' => [
@@ -91,6 +93,7 @@ return [
         'choose_slot' => 'Wybierz slot',
         'accept' => 'Akceptuj',
         'no_free_slots' => 'Brak wolnych slotow',
+        'no_compatible_slots' => 'Brak wolnych slotow pasujacych do typu i czasu trwania tej aktywnosci.',
         'reject' => 'Odrzuc',
         'back_to_events' => 'Wroc do wydarzen',
         'enrollment_windows_heading' => 'Okna zapisow na aktywnosci',
@@ -191,5 +194,7 @@ return [
         'forbidden_reject' => 'Tylko wlasciciel wydarzenia moze odrzucac propozycje.',
         'activity_saved_with_proposal' => 'Aktywnosc utworzona. Wyslano propozycje dla wydarzenia: :event.',
         'activity_updated_with_proposal' => 'Aktywnosc zaktualizowana. Wyslano propozycje dla wydarzenia: :event.',
+        'slot_activity_type_mismatch' => 'Ten slot nie pasuje do typu tej aktywnosci. Wybierz inny slot.',
+        'slot_duration_mismatch' => 'Ten slot jest za krotki na czas trwania tej aktywnosci. Wybierz inny slot.',
     ],
 ];

@@ -56,6 +56,8 @@ return [
         'show_no_description' => 'No description yet.',
         'show_price' => 'Price',
         'show_duration' => 'Duration',
+        'duration_hours_part' => ':n h',
+        'duration_minutes_part' => ':n min',
         'show_cancellation_deadline' => 'Cancellation deadline',
         'show_back' => 'Back to activities',
         'host_title' => [
@@ -91,6 +93,7 @@ return [
         'choose_slot' => 'Choose slot',
         'accept' => 'Accept',
         'no_free_slots' => 'No free slots',
+        'no_compatible_slots' => 'No free slots match this activity type and duration.',
         'reject' => 'Reject',
         'back_to_events' => 'Back to events',
         'enrollment_windows_heading' => 'Activity enrollment windows',
@@ -191,5 +194,7 @@ return [
         'forbidden_reject' => 'Only the event owner can reject proposals.',
         'activity_saved_with_proposal' => 'Activity created. A proposal was submitted for :event.',
         'activity_updated_with_proposal' => 'Activity updated. A proposal was submitted for :event.',
+        'slot_activity_type_mismatch' => 'That slot does not allow this activity type. Choose another slot.',
+        'slot_duration_mismatch' => 'That slot is too short for this activity’s duration. Choose another slot.',
     ],
 ];
