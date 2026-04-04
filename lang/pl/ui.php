@@ -50,6 +50,8 @@ return [
         'participants_count' => 'Uczestnicy',
         'participants_filled_max' => ':filled / :max',
         'participants_filled_no_cap' => ':filled (bez limitu)',
+        'only_events' => 'Tylko wydarzenia',
+        'only_activities' => 'Tylko aktywnosci',
     ],
     'activities' => [
         'name' => 'Nazwa',

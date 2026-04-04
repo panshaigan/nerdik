@@ -20,6 +20,7 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                         @include('livewire.browse.partials.tag-filter-toggles', ['includePastEventsToggle' => true])
+                        @include('livewire.browse.partials.listing-type-filter')
                         @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
                         @if ($this->hasActiveFilters())
                             <x-button
