@@ -27,6 +27,19 @@
     max-width: none !important;
 }
 
+/* Browse bbox toolbar (custom draw control, not leaflet-draw). */
+.browse-bbox-toolbar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.125rem;
+    min-height: 2.125rem;
+}
+.browse-bbox-toolbar a.browse-bbox-draw-armed {
+    background-color: color-mix(in oklab, var(--color-primary, #6366f1) 18%, transparent);
+    color: var(--color-primary, #6366f1);
+}
+
 /* Quill theming for Daisy light/dark compatibility. */
 .ql-toolbar.ql-snow,
 .ql-container.ql-snow,

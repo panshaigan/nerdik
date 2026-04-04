@@ -20,7 +20,7 @@ return [
         'text_search_chip_label' => 'Szukanie tekstowe',
         'text_search_chip_hint' => 'Pasuje do nazwy i opisu wydarzenia lub aktywnosci',
         'text_search_remove' => 'Usun szukanie po tekscie',
-        'map_bbox_hint' => 'Narysuj prostokat na mapie. Wyniki aktualizuja sie automatycznie.',
+        'map_bbox_hint' => 'Kliknij przycisk prostokata na mapie, potem przeciagnij, aby wybrac obszar. Wyniki aktualizuja sie automatycznie.',
         'sort_by' => 'Sortuj wedlug',
         'sort_name' => 'Nazwa',
         'sort_date' => 'Data',

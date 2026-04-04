@@ -20,7 +20,7 @@ return [
         'text_search_chip_label' => 'Text search',
         'text_search_chip_hint' => 'Matches event or activity name and description',
         'text_search_remove' => 'Remove text search',
-        'map_bbox_hint' => 'Draw a rectangle on the map. Results update automatically.',
+        'map_bbox_hint' => 'Click the rectangle button on the map, then click and drag to set the area. Results update automatically.',
         'sort_by' => 'Sort by',
         'sort_name' => 'Name',
         'sort_date' => 'Date',
