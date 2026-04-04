@@ -33,9 +33,6 @@ class ActivityForm
                     ->numeric()
                     ->default(null)
                     ->prefix('$'),
-                TextInput::make('host_user_id')
-                    ->numeric()
-                    ->default(null),
                 Toggle::make('passive_host')
                     ->default(false),
                 TextInput::make('created_by')

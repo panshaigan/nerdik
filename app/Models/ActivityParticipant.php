@@ -9,12 +9,10 @@ class ActivityParticipant extends Model
     protected $fillable = [
         'activity_id',
         'user_id',
-        'is_host',
         'is_absent',
     ];
 
     protected $casts = [
-        'is_host' => 'boolean',
         'is_absent' => 'boolean',
     ];
 

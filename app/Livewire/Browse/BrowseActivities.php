@@ -52,7 +52,7 @@ class BrowseActivities extends Component
 
     public function render()
     {
-        $query = Activity::with(['host', 'tags.translations', 'slot.event'])
+        $query = Activity::with(['creator', 'tags.translations', 'slot.event'])
             ->whereHas('slot', fn ($q) => $q->whereHas('event', fn ($e) => $e->where('is_public', true)))
             ->orderBy('updated_at', 'desc');
 

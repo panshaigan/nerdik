@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
 use App\Models\ActivityParticipant;
-use App\Models\ActivityWaitlistEntry;
 use App\Services\EventActivitySignupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +40,6 @@ class ParticipationController extends Controller
 
         $activity->participants()->create([
             'user_id' => $user->id,
-            'is_host' => false,
         ]);
 
         return redirect()->back()->with('status', __('You joined the activity.'));
@@ -72,7 +70,6 @@ class ParticipationController extends Controller
                 $first->delete();
                 $activity->participants()->create([
                     'user_id' => $promotedUser->id,
-                    'is_host' => false,
                 ]);
                 $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index) {
                     $entry->update(['position' => $index + 1]);
@@ -132,7 +129,7 @@ class ParticipationController extends Controller
         $activity = $participant->activity;
         $user = Auth::user();
 
-        if ($activity->host_user_id !== $user->id) {
+        if ((int) $activity->created_by !== (int) $user->id) {
             abort(403, __('Only the activity host can mark participants absent.'));
         }
 

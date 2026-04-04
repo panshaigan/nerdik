@@ -97,13 +97,8 @@
                                 </div>
                             @endif
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                                @if (! $activity->passive_host && $activity->host)
-                                    <span>{{ $hostRoleLabel }}: {{ $activity->host->nickname ?? $activity->host->email }}</span>
-                                @endif
-                                @if ($activity->creator && (int) ($activity->host_user_id ?? 0) !== (int) $activity->creator->id)
-                                    <span class="text-base-content/60">
-                                        {{ __('Created by') }} {{ $activity->creator->nickname ?? $activity->creator->email }}
-                                    </span>
+                                @if (! $activity->passive_host && $activity->creator)
+                                    <span>{{ $hostRoleLabel }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</span>
                                 @endif
                             </div>
                         </div>
@@ -297,14 +292,14 @@
                         <li class="flex items-center justify-between gap-3 py-3 first:pt-0">
                             <span class="min-w-0 text-sm">
                                 {{ $p->user->nickname ?? $p->user->email }}
-                                @if ($p->is_host)
+                                @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
                                     <span class="ml-1 text-base-content/60">({{ __('Host') }})</span>
                                 @endif
                                 @if ($p->is_absent)
                                     <span class="ml-1 text-error">({{ __('Absent') }})</span>
                                 @endif
                             </span>
-                            @if ($isHost && ! $p->is_host && ! $p->is_absent)
+                            @if ($isHost && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
                                 <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline shrink-0">
                                     @csrf
                                     <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>

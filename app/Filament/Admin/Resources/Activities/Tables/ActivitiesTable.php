@@ -34,9 +34,6 @@ class ActivitiesTable
                 TextColumn::make('price')
                     ->money()
                     ->sortable(),
-                TextColumn::make('host_user_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),

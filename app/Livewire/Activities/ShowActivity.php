@@ -21,7 +21,6 @@ class ShowActivity extends Component
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
         $activity->load([
-            'host',
             'creator',
             'tags.translations',
             'participants.user',
@@ -46,7 +45,7 @@ class ShowActivity extends Component
 
         $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk;
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
-        $isHost = auth()->check() && $activity->host_user_id === auth()->id();
+        $isHost = auth()->check() && (int) $activity->created_by === (int) auth()->id();
         $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
         $canManageActivity = auth()->check()
             && ((int) $activity->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
