@@ -54,7 +54,6 @@ return [
         'show_slot' => 'Przypisany slot',
         'show_open_run' => 'Jeszcze bez przypisanego wydarzenia — dolacz tutaj lub znajdz w harmonogramie pozniej.',
         'show_no_description' => 'Brak opisu.',
-        'show_languages' => 'Jezyki',
         'show_price' => 'Cena',
         'show_duration' => 'Czas trwania',
         'show_cancellation_deadline' => 'Termin rezygnacji',

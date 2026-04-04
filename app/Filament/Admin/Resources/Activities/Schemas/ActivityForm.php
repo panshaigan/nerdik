@@ -53,9 +53,6 @@ class ActivityForm
                     ->default(ActivityStatus::Planned->value),
                 TextInput::make('logo_path')
                     ->default(null),
-                Textarea::make('languages')
-                    ->default(null)
-                    ->columnSpanFull(),
                 TextInput::make('duration_in_minutes')
                     ->numeric()
                     ->default(null),

@@ -2,46 +2,60 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
+use App\Models\Country;
 use App\Models\Place;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PlaceSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Sample physical venues only. Country/city names come from {@see Country} and {@see City}, not from place rows.
      */
     public function run(): void
     {
-        // Basic countries and one city/country for Poland; extend as needed.
-        $poland = Place::firstOrCreate(
-            ['slug' => 'poland'],
-            [
-                'name' => 'Poland',
-                'type' => 'country',
-                'is_online' => false,
-            ]
-        );
+        $country = Country::query()->where('iso_alpha2', 'PL')->first();
+        if (! $country) {
+            return;
+        }
 
-        // Example Polish cities; you can extend this list.
-        $cities = [
-            'warszawa' => 'Warszawa',
-            'krakow' => 'Kraków',
-            'wroclaw' => 'Wrocław',
-            'poznan' => 'Poznań',
-            'gdansk' => 'Gdańsk',
-        ];
+        $warsaw = $this->cityByEnglishName($country->id, 'Warsaw');
+        $wroclaw = $this->cityByEnglishName($country->id, 'Wrocław');
 
-        foreach ($cities as $slug => $name) {
+        if ($warsaw) {
             Place::firstOrCreate(
-                ['slug' => $slug],
+                ['slug' => 'sample-venue-warsaw'],
                 [
-                    'name' => $name,
-                    'type' => 'city',
-                    'parent_id' => $poland->id,
+                    'name' => 'Sample RPG space (Warsaw)',
+                    'type' => 'venue',
+                    'country_id' => $country->id,
+                    'city_id' => $warsaw->id,
                     'is_online' => false,
                 ]
             );
         }
+
+        if ($wroclaw) {
+            Place::firstOrCreate(
+                ['slug' => 'sample-venue-wroclaw'],
+                [
+                    'name' => 'Sample board game café (Wrocław)',
+                    'type' => 'venue',
+                    'country_id' => $country->id,
+                    'city_id' => $wroclaw->id,
+                    'is_online' => false,
+                ]
+            );
+        }
+    }
+
+    private function cityByEnglishName(int $countryId, string $englishName): ?City
+    {
+        return City::query()
+            ->where('country_id', $countryId)
+            ->whereHas('translations', function ($q) use ($englishName) {
+                $q->where('locale', 'en')->where('name', $englishName);
+            })
+            ->first();
     }
 }

@@ -120,9 +120,11 @@ class SampleDataSeeder extends Seeder
             ]
         );
 
-        $wroclaw = Place::where('slug', 'wroclaw')->first();
-        $warszawa = Place::where('slug', 'warszawa')->first();
-        $placeId = $wroclaw?->id ?? $warszawa?->id;
+        $venueForSlots = Place::query()
+            ->where('slug', 'sample-venue-wroclaw')
+            ->first()
+            ?? Place::query()->where('slug', 'sample-venue-warsaw')->first();
+        $placeId = $venueForSlots?->id;
 
         $organizerForEvent = fn (Event $e) => $e->created_by;
 
