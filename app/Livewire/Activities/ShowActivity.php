@@ -34,6 +34,8 @@ class ShowActivity extends Component
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
         $isHost = auth()->check() && $activity->host_user_id === auth()->id();
         $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
+        $canManageActivity = auth()->check()
+            && ((int) $activity->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
@@ -43,6 +45,7 @@ class ShowActivity extends Component
             'isFull' => $isFull,
             'isHost' => $isHost,
             'inWishlist' => $inWishlist,
+            'canManageActivity' => $canManageActivity,
         ]);
     }
 }

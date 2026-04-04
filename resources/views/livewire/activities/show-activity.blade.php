@@ -10,11 +10,48 @@
     $hostRoleLabel = \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activity->type)
         ? __('ui.activities.host_title.'.$activity->type)
         : __('Host');
-    $hasDetailGrid = $activity->min_participants !== null
+    $hasOpenRunBlurb = $slot && ! $event;
+    $showEventCard = $event || $hasOpenRunBlurb;
+    $hasMetaStats = $activity->min_participants !== null
         || (bool) $activity->duration_minutes
         || $activity->signoff_deadline_hours !== null
         || $activity->price !== null
         || $langList->isNotEmpty();
+    $hasDetailRow = $showEventCard || $hasMetaStats;
+    $metaItems = [];
+    if ($activity->min_participants !== null) {
+        $metaItems[] = [
+            'label' => __('ui.activities.min_participants'),
+            'value' => (string) $activity->min_participants,
+        ];
+    }
+    if ($activity->duration_minutes) {
+        $metaItems[] = [
+            'label' => __('ui.activities.show_duration'),
+            'value' => $activity->duration_minutes.' min',
+        ];
+    }
+    if ($activity->signoff_deadline_hours !== null) {
+        $metaItems[] = [
+            'label' => __('ui.activities.show_signoff'),
+            'value' => $activity->signoff_deadline_hours.' h',
+        ];
+    }
+    if ($activity->price !== null) {
+        $metaItems[] = [
+            'label' => __('ui.activities.show_price'),
+            'value' => number_format((float) $activity->price, 2),
+        ];
+    }
+    if ($langList->isNotEmpty()) {
+        $metaItems[] = [
+            'label' => __('ui.activities.show_languages'),
+            'value' => $langList->join(', '),
+        ];
+    }
+    $metaRows = count($metaItems) > 0
+        ? array_chunk($metaItems, (int) ceil(count($metaItems) / 2))
+        : [];
 @endphp
 
 <div class="py-10 sm:py-12">
@@ -34,98 +71,166 @@
                         <img src="{{ $logoUrl }}" alt="" class="h-full w-full object-cover" />
                     </div>
                 @endif
-                <div class="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between sm:p-8">
-                    <div class="min-w-0 flex-1 space-y-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            {{ ucfirst($activity->type) }}
-                        </p>
-                        <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
-                            {{ $activity->name }}
-                        </h1>
-                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                            @if (! $activity->passive_host && $activity->host)
-                                <span>{{ $hostRoleLabel }}: {{ $activity->host->nickname ?? $activity->host->email }}</span>
+                <div class="relative z-10 flex flex-col gap-4 p-6 sm:p-8">
+                    <div class="flex items-start gap-3 sm:gap-4" dir="ltr">
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                {{ ucfirst($activity->type) }}
+                            </p>
+                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
+                                {{ $activity->name }}
+                            </h1>
+                            @if ($activity->tags->isNotEmpty() || filled($activity->age_limit) || $activity->is_restricted || $activity->open_for_observers)
+                                <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                                    @if ($activity->tags->isNotEmpty())
+                                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
+                                    @endif
+                                    @if ($activity->is_restricted)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.restricted') }}</span>
+                                    @endif
+                                    @if ($activity->open_for_observers)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.open_for_observers') }}</span>
+                                    @endif
+                                    @if (filled($activity->age_limit))
+                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->age_limit }}+</span>
+                                    @endif
+                                </div>
                             @endif
-                            @if ($activity->creator && (int) ($activity->host_user_id ?? 0) !== (int) $activity->creator->id)
-                                <span class="text-base-content/60">
-                                    {{ __('Created by') }} {{ $activity->creator->nickname ?? $activity->creator->email }}
-                                </span>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
+                                @if (! $activity->passive_host && $activity->host)
+                                    <span>{{ $hostRoleLabel }}: {{ $activity->host->nickname ?? $activity->host->email }}</span>
+                                @endif
+                                @if ($activity->creator && (int) ($activity->host_user_id ?? 0) !== (int) $activity->creator->id)
+                                    <span class="text-base-content/60">
+                                        {{ __('Created by') }} {{ $activity->creator->nickname ?? $activity->creator->email }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
+                        @auth
+                            <div class="flex shrink-0 items-center gap-1 pt-0.5 sm:pt-1" data-ui="activity-show-hero-actions">
+                                @if ($canManageActivity)
+                                    <a
+                                        href="{{ route('activities.edit', $activity) }}"
+                                        wire:navigate
+                                        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                        title="{{ __('Edit') }}"
+                                        aria-label="{{ __('Edit') }}: {{ $activity->name }}"
+                                        data-ui="activity-show-edit"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                        </svg>
+                                    </a>
+                                    <form
+                                        action="{{ route('activities.destroy', $activity) }}"
+                                        method="POST"
+                                        class="inline"
+                                        onsubmit="return confirm({{ json_encode(__('Are you sure you want to delete this activity?')) }})"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            type="submit"
+                                            class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                            title="{{ __('Delete') }}"
+                                            aria-label="{{ __('Delete') }}: {{ $activity->name }}"
+                                            data-ui="activity-show-delete"
+                                        >
+                                            <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @endif
+                                @if ($inWishlist)
+                                    <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-wishlist-remove" :title="__('Remove from wishlist')" data-ui="activity-show-wishlist-remove">★</x-button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
+                                        @csrf
+                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-wishlist-add" :title="__('Add to wishlist')" data-ui="activity-show-wishlist-add">☆</x-button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endauth
                     </div>
-                    @auth
-                        <div class="shrink-0 self-end sm:pt-0.5">
-                            @if ($inWishlist)
-                                <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-button type="submit" class="btn-ghost btn-sm text-lg text-warning ui-action ui-action-wishlist-remove" :title="__('Remove from wishlist')" data-ui="activity-show-wishlist-remove">★</x-button>
-                                </form>
-                            @else
-                                <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    <x-button type="submit" class="btn-ghost btn-sm text-lg ui-action ui-action-wishlist-add" :title="__('Add to wishlist')" data-ui="activity-show-wishlist-add">☆</x-button>
-                                </form>
-                            @endif
-                        </div>
-                    @endauth
                 </div>
             </div>
 
-            @if ($activity->tags->isNotEmpty() || filled($activity->age_limit) || $activity->is_restricted || $activity->open_for_observers)
-                <div class="flex flex-wrap items-center gap-1 border-t border-base-300 bg-base-100/80 px-4 py-2 sm:px-6">
-                    @if ($activity->tags->isNotEmpty())
-                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
-                    @endif
-                    @if ($activity->is_restricted)
-                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.restricted') }}</span>
-                    @endif
-                    @if ($activity->open_for_observers)
-                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.open_for_observers') }}</span>
-                    @endif
-                    @if (filled($activity->age_limit))
-                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->age_limit }}+</span>
-                    @endif
-                </div>
-            @endif
+            <div class="space-y-6 border-t border-base-300 p-6 pt-7 sm:p-8 sm:pt-8">
+                @if ($hasDetailRow)
+                    <div
+                        @class([
+                            'activity-show-detail-layout',
+                            'activity-show-detail-layout--split' => $showEventCard && $hasMetaStats,
+                        ])
+                        data-ui="activity-show-detail-row"
+                    >
+                        @if ($showEventCard)
+                            <div @class(['activity-show-detail-event-cell', 'w-full' => ! $hasMetaStats])>
+                                <div
+                                    class="max-w-full rounded-lg border border-base-300 bg-base-200/30 p-4 sm:max-w-sm"
+                                    data-ui="activity-show-event-card"
+                                >
+                                    @if ($event)
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_at_event') }}</p>
+                                        <a href="{{ route('events.show', $event) }}" wire:navigate class="link link-primary mt-1 inline-block text-lg font-medium break-words">
+                                            {{ $event->name }}
+                                        </a>
+                                        @if ($slot && ($slot->starts_at || $slot->ends_at || $slot->place))
+                                            <div class="mt-5 space-y-1.5 border-t border-base-300/80 pt-5">
+                                                @if ($slot->starts_at || $slot->ends_at)
+                                                    <p class="text-sm tabular-nums text-base-content/80">
+                                                        @if ($slot->starts_at && $slot->ends_at)
+                                                            {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
+                                                            <span class="text-base-content/50">–</span>
+                                                            {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                        @elseif ($slot->starts_at)
+                                                            {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
+                                                        @elseif ($slot->ends_at)
+                                                            {{ format_in_user_tz($slot->ends_at, 'D, M j · H:i') }}
+                                                        @endif
+                                                    </p>
+                                                @endif
+                                                @if ($slot->place)
+                                                    <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @else
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_schedule') }}</p>
+                                        <p class="mt-1 text-sm font-medium leading-snug text-base-content/90">
+                                            {{ __('ui.activities.show_open_run') }}
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
 
-            <div class="space-y-6 p-6 sm:p-8">
-                @if ($hasDetailGrid)
-                    <dl class="grid grid-cols-2 gap-x-4 gap-y-5 text-sm sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                        @if ($activity->min_participants !== null)
-                            <div class="min-w-0">
-                                <dt class="text-xs text-base-content/60">{{ __('ui.activities.min_participants') }}</dt>
-                                <dd class="mt-0.5 font-medium tabular-nums">{{ $activity->min_participants }}</dd>
+                        @if ($hasMetaStats)
+                            <div class="activity-show-detail-meta-cell w-full">
+                                <div class="flex flex-col gap-4" data-ui="activity-show-meta-stats">
+                                    @foreach ($metaRows as $row)
+                                        <div class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+                                            @foreach ($row as $item)
+                                                <div class="min-w-0 text-sm">
+                                                    <p class="block text-xs leading-tight text-base-content/60">{{ $item['label'] }}</p>
+                                                    <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $item['value'] }}</p>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
-                        @if ($activity->duration_minutes)
-                            <div class="min-w-0">
-                                <dt class="text-xs text-base-content/60">{{ __('ui.activities.show_duration') }}</dt>
-                                <dd class="mt-0.5 font-medium tabular-nums">{{ $activity->duration_minutes }} min</dd>
-                            </div>
-                        @endif
-                        @if ($activity->signoff_deadline_hours !== null)
-                            <div class="min-w-0">
-                                <dt class="text-xs text-base-content/60">{{ __('ui.activities.show_signoff') }}</dt>
-                                <dd class="mt-0.5 font-medium tabular-nums">{{ $activity->signoff_deadline_hours }} h</dd>
-                            </div>
-                        @endif
-                        @if ($activity->price !== null)
-                            <div class="min-w-0">
-                                <dt class="text-xs text-base-content/60">{{ __('ui.activities.show_price') }}</dt>
-                                <dd class="mt-0.5 font-medium tabular-nums">{{ number_format((float) $activity->price, 2) }}</dd>
-                            </div>
-                        @endif
-                        @if ($langList->isNotEmpty())
-                            <div class="min-w-0 sm:col-span-2 lg:col-span-2 xl:col-span-2">
-                                <dt class="text-xs text-base-content/60">{{ __('ui.activities.show_languages') }}</dt>
-                                <dd class="mt-0.5 font-medium">{{ $langList->join(', ') }}</dd>
-                            </div>
-                        @endif
-                    </dl>
+                    </div>
                 @endif
 
-                <div @class(['border-t border-base-300 pt-6' => $hasDetailGrid])>
+                <div @class(['border-t border-base-300 pt-6' => $hasDetailRow])>
                     <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_about') }}</p>
                     @if (filled(rich_text_excerpt($activity->desc)))
                         <div class="rich-text-content max-w-3xl text-sm leading-relaxed text-base-content/90">
@@ -138,40 +243,7 @@
             </div>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-2">
-            {{-- Schedule / event --}}
-            <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8" data-ui="activity-show-schedule">
-                <h2 class="mb-4 text-lg font-semibold text-base-content">{{ __('ui.activities.show_schedule') }}</h2>
-                @if ($event)
-                    <div class="flex flex-col gap-4 rounded-lg border border-base-300 bg-base-200/30 p-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div class="min-w-0 space-y-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_at_event') }}</p>
-                            <a href="{{ route('events.show', $event) }}" wire:navigate class="link link-primary text-lg font-medium">
-                                {{ $event->name }}
-                            </a>
-                            @if ($slot->starts_at || $slot->ends_at)
-                                <p class="text-sm text-base-content/70 tabular-nums">
-                                    @if ($slot->starts_at && $slot->ends_at)
-                                        {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
-                                        <span class="text-base-content/50">–</span>
-                                        {{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                    @elseif ($slot->starts_at)
-                                        {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
-                                    @elseif ($slot->ends_at)
-                                        {{ format_in_user_tz($slot->ends_at, 'D, M j · H:i') }}
-                                    @endif
-                                </p>
-                            @endif
-                            @if ($slot->place)
-                                <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
-                            @endif
-                        </div>
-                    </div>
-                @else
-                    <p class="text-sm text-base-content/70">{{ __('ui.activities.show_open_run') }}</p>
-                @endif
-            </div>
-
+        <div class="space-y-6">
             <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8" data-ui="activity-show-participants">
                 <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                     <h2 class="text-lg font-semibold text-base-content">{{ __('ui.activities.show_participants') }}</h2>
@@ -243,7 +315,7 @@
             </div>
 
             @if ($activity->waitlist->isNotEmpty())
-                <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8 lg:col-span-2" data-ui="activity-show-waitlist">
+                <div class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8" data-ui="activity-show-waitlist">
                     <h2 class="mb-4 text-lg font-semibold text-base-content">{{ __('ui.activities.show_waitlist') }}</h2>
                     <ul class="divide-y divide-base-300">
                         @foreach ($activity->waitlist as $entry)
