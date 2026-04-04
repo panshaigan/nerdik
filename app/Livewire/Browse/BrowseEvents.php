@@ -91,8 +91,31 @@ class BrowseEvents extends Component
 
     public function hasBBox(): bool
     {
-        return filled($this->min_lat) && filled($this->max_lat)
-            && filled($this->min_lng) && filled($this->max_lng);
+        if (! filled($this->min_lat) || ! filled($this->max_lat)
+            || ! filled($this->min_lng) || ! filled($this->max_lng)) {
+            return false;
+        }
+
+        foreach ([$this->min_lat, $this->max_lat, $this->min_lng, $this->max_lng] as $v) {
+            if (! is_numeric($v)) {
+                return false;
+            }
+        }
+
+        $minLat = (float) $this->min_lat;
+        $maxLat = (float) $this->max_lat;
+        $minLng = (float) $this->min_lng;
+        $maxLng = (float) $this->max_lng;
+
+        if (! is_finite($minLat) || ! is_finite($maxLat) || ! is_finite($minLng) || ! is_finite($maxLng)) {
+            return false;
+        }
+
+        if ($minLat < -90.0 || $maxLat > 90.0 || $minLng < -180.0 || $maxLng > 180.0) {
+            return false;
+        }
+
+        return true;
     }
 
     public function render()
