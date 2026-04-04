@@ -19,7 +19,7 @@
 
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-4">
                     <div class="min-w-0 w-full flex-1 basis-0 lg:min-w-[min(100%,18rem)]">
-                        @include('livewire.browse.partials.tag-filter')
+                        @include('livewire.browse.partials.tag-filter', ['includePastEventsToggle' => true])
                     </div>
                     @if ($this->hasActiveFilters())
                         <div class="flex w-full shrink-0 flex-wrap items-center gap-3 lg:w-auto lg:justify-end">

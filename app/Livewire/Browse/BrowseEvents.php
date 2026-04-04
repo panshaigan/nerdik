@@ -31,6 +31,10 @@ class BrowseEvents extends Component
     #[Url]
     public ?string $max_lng = null;
 
+    /** When false (default), only events that have not ended yet (see COALESCE(ends_at, starts_at)). */
+    #[Url]
+    public bool $include_past_events = false;
+
     public function updatedQ(): void
     {
         $this->resetPage();
@@ -61,10 +65,15 @@ class BrowseEvents extends Component
         $this->resetPage();
     }
 
+    public function updatedIncludePastEvents(): void
+    {
+        $this->resetPage();
+    }
+
     public function clearFilters()
     {
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('events.index');
@@ -96,6 +105,10 @@ class BrowseEvents extends Component
             'places.city.translations',
         ])
             ->where('is_public', true);
+
+        if (! $this->include_past_events) {
+            $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
+        }
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
