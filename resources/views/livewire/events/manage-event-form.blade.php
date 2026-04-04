@@ -148,6 +148,70 @@
         <x-field-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
+    <div class="mt-4 border-t border-base-300 pt-4" data-ui="event-signup-periods-section">
+        <p class="fieldset-legend font-medium text-base-content">{{ __('ui.events.signup_periods_heading') }}</p>
+        <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.signup_periods_help') }}</p>
+
+        <div class="space-y-3">
+            @foreach ($signup_periods as $index => $row)
+                <div wire:key="signup-period-{{ $index }}" class="rounded-lg border border-base-300 bg-base-100/80 p-3 sm:p-4">
+                    <div class="flex min-w-0 flex-nowrap items-end gap-2 overflow-x-auto pb-0.5 sm:gap-3">
+                        <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
+                            <x-input
+                                wire:model="signup_periods.{{ $index }}.starts_at"
+                                type="datetime-local"
+                                :label="__('ui.events.signup_period_starts')"
+                                class="w-full min-w-0"
+                            />
+                            <x-field-error :messages="$errors->get('signup_periods.'.$index)" class="mt-2" />
+                        </div>
+                        <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
+                            <x-input
+                                wire:model="signup_periods.{{ $index }}.ends_at"
+                                type="datetime-local"
+                                :label="__('ui.events.signup_period_ends')"
+                                class="w-full min-w-0"
+                                :max="$eventSignupPeriodMax ?? null"
+                            />
+                        </div>
+                        <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
+                            <x-input
+                                wire:model.live="signup_periods.{{ $index }}.max_activities"
+                                type="number"
+                                min="0"
+                                step="1"
+                                :label="__('ui.events.signup_period_max_activities')"
+                                class="w-full"
+                            />
+                            <x-field-error :messages="$errors->get('signup_periods.'.$index.'.max_activities')" class="mt-2" />
+                        </div>
+                        <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                wire:click="removeSignupPeriod({{ $index }})"
+                                wire:loading.attr="disabled"
+                                title="{{ __('Remove') }}"
+                                aria-label="{{ __('Remove') }}"
+                                data-ui="event-signup-period-remove"
+                            >
+                                <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244-2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <x-button type="button" class="btn-outline btn-sm mt-2" wire:click="addSignupPeriod" wire:loading.attr="disabled">
+            {{ __('ui.events.signup_period_add') }}
+        </x-button>
+
+        <x-field-error :messages="$errors->get('signup_periods')" class="mt-2" />
+    </div>
+
     <div class="mt-4 border-t border-base-300 pt-4">
             <p class="fieldset-legend font-medium text-base-content">{{ __('Tags') }}</p>
             <p class="mb-3 text-xs text-base-content/70">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>

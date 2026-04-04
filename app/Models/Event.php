@@ -65,6 +65,11 @@ class Event extends Model
         return $this->belongsToMany(Place::class, 'event_place')->withTimestamps();
     }
 
+    public function signupPeriods()
+    {
+        return $this->hasMany(EventSignupPeriod::class)->orderBy('starts_at');
+    }
+
     /**
      * Human-friendly owner/host label:
      * - if an organization is attached, show organization name
