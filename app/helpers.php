@@ -123,6 +123,30 @@ if (! function_exists('format_date_range_compact')) {
     }
 }
 
+if (! function_exists('format_activity_duration_compact')) {
+    /**
+     * Human-readable duration from total minutes (e.g. "1 h 30 min", "45 min").
+     */
+    function format_activity_duration_compact(?int $totalMinutes): ?string
+    {
+        if ($totalMinutes === null || $totalMinutes < 1) {
+            return null;
+        }
+
+        $h = intdiv($totalMinutes, 60);
+        $m = $totalMinutes % 60;
+        $parts = [];
+        if ($h > 0) {
+            $parts[] = __('ui.activities.duration_hours_part', ['n' => $h]);
+        }
+        if ($m > 0) {
+            $parts[] = __('ui.activities.duration_minutes_part', ['n' => $m]);
+        }
+
+        return $parts === [] ? null : implode(' ', $parts);
+    }
+}
+
 if (! function_exists('rich_text_sanitize')) {
     /**
      * Sanitize rich HTML (e.g. from TinyMCE) before saving to the database.

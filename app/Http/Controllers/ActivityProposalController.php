@@ -29,10 +29,24 @@ class ActivityProposalController extends Controller
             'slot_id' => ['required', 'exists:slots,id'],
         ]);
 
+        $proposal->loadMissing('activity');
+
         $slot = Slot::where('id', $validated['slot_id'])
             ->where('event_id', $event->id)
             ->whereNull('activity_id')
             ->firstOrFail();
+
+        if (! $slot->acceptsActivity($proposal->activity)) {
+            return redirect()->back()->withErrors([
+                'slot_id' => __('ui.status.slot_activity_type_mismatch'),
+            ]);
+        }
+
+        if (! $slot->fitsActivityDuration($proposal->activity)) {
+            return redirect()->back()->withErrors([
+                'slot_id' => __('ui.status.slot_duration_mismatch'),
+            ]);
+        }
 
         $proposal->update([
             'status' => ActivityProposalStatus::Accepted,

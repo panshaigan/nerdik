@@ -122,6 +122,73 @@ class Slot extends Model
     }
 
     /**
+     * Whether this slot allows an activity of the given type.
+     * If the slot has no activity-type rows, any type is allowed.
+     */
+    public function acceptsActivityType(ActivityType|string $type): bool
+    {
+        $value = $type instanceof ActivityType ? $type->value : (string) $type;
+        $allowed = $this->activity_types;
+        if ($allowed === []) {
+            return true;
+        }
+
+        return in_array($value, $allowed, true);
+    }
+
+    public function acceptsActivity(Activity $activity): bool
+    {
+        return $this->acceptsActivityType($activity->type);
+    }
+
+    /**
+     * Whether the slot’s start→end window is at least as long as the activity’s duration.
+     * If the activity has no positive duration, this does not restrict selection.
+     * If the slot has no start/end time, duration is not used to filter — any activity fits.
+     */
+    public function fitsActivityDuration(Activity $activity): bool
+    {
+        $minutes = (int) ($activity->duration_in_minutes ?? 0);
+        if ($minutes <= 0) {
+            return true;
+        }
+
+        if ($this->starts_at === null || $this->ends_at === null) {
+            return true;
+        }
+
+        if ($this->ends_at->lte($this->starts_at)) {
+            return false;
+        }
+
+        return $this->starts_at->diffInMinutes($this->ends_at) >= $minutes;
+    }
+
+    /**
+     * Activity type and duration both match this empty slot for proposal acceptance.
+     */
+    public function fitsProposalActivity(Activity $activity): bool
+    {
+        return $this->acceptsActivity($activity) && $this->fitsActivityDuration($activity);
+    }
+
+    /**
+     * Single-line label for organizer “accept proposal” slot dropdowns.
+     */
+    public function proposalAcceptOptionLabel(): string
+    {
+        $this->loadMissing('place.parent');
+
+        $start = $this->starts_at ? format_in_user_tz($this->starts_at, 'H:i') : '—';
+        $end = $this->ends_at ? format_in_user_tz($this->ends_at, 'H:i') : '—';
+        $venueRoom = $this->place?->venueRoomLabel() ?? '—';
+        $name = (string) $this->name;
+        $cap = $this->max_capacity !== null ? (string) $this->max_capacity : '—';
+
+        return "{$start} - {$end} {$venueRoom}: {$name} {$cap}";
+    }
+
+    /**
      * Base names for mass slot creation (strip trailing " #42" suffix from slot titles).
      *
      * @return list<string>
