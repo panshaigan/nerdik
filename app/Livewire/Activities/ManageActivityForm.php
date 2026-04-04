@@ -191,6 +191,10 @@ class ManageActivityForm extends Component
             return redirect()->route('events.show', $proposalCreated->event);
         }
 
+        if ($this->editingActivityId !== null) {
+            return redirect()->route('activities.show', $activity);
+        }
+
         return redirect()->route('activities.index');
     }
 
