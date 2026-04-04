@@ -163,7 +163,7 @@ class ShowEvent extends Component
             if ($activity === null || ! $slot->starts_at) {
                 continue;
             }
-            $minutes = (int) ($activity->duration_minutes ?? 0);
+            $minutes = (int) ($activity->duration_in_minutes ?? 0);
             if ($minutes <= 0) {
                 continue;
             }

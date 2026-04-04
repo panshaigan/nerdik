@@ -172,7 +172,7 @@ class SampleDataSeeder extends Seeder
                 'max_participants' => 5,
                 'created_by' => $alice->id,
                 'status' => 'planned',
-                'duration_minutes' => 240,
+                'duration_in_minutes' => 240,
             ]
         );
 
@@ -185,7 +185,7 @@ class SampleDataSeeder extends Seeder
                 'max_participants' => 5,
                 'created_by' => $bob->id,
                 'status' => 'planned',
-                'duration_minutes' => 180,
+                'duration_in_minutes' => 180,
             ]
         );
 
@@ -198,7 +198,7 @@ class SampleDataSeeder extends Seeder
                 'max_participants' => 6,
                 'created_by' => $charlie->id,
                 'status' => 'planned',
-                'duration_minutes' => 180,
+                'duration_in_minutes' => 180,
             ]
         );
 
@@ -211,7 +211,7 @@ class SampleDataSeeder extends Seeder
                 'max_participants' => 5,
                 'created_by' => $diana->id,
                 'status' => 'planned',
-                'duration_minutes' => 240,
+                'duration_in_minutes' => 240,
             ]
         );
 

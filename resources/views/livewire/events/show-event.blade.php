@@ -221,10 +221,10 @@
                                                     <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
                                                 @endif
                                                 @if ($activity)
-                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->age_limit) || filled($activity->type))
+                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->minimum_age) || filled($activity->type))
                                                         <div class="mt-1 flex flex-wrap gap-1">
-                                                            @if (filled($activity->age_limit))
-                                                                <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->age_limit }}+</span>
+                                                            @if (filled($activity->minimum_age))
+                                                                <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
                                                             @endif
                                                             @if (filled($activity->type))
                                                                 <span class="badge badge-outline badge-info capitalize">{{ $activity->type }}</span>

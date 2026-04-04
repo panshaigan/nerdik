@@ -26,21 +26,21 @@ class ActivityForm
                 TextInput::make('max_participants')
                     ->numeric()
                     ->default(null),
-                TextInput::make('age_limit')
+                TextInput::make('minimum_age')
                     ->numeric()
                     ->default(null),
                 TextInput::make('price')
                     ->numeric()
                     ->default(null)
                     ->prefix('$'),
-                Toggle::make('passive_host')
+                Toggle::make('is_host_passive')
                     ->default(false),
                 TextInput::make('created_by')
                     ->numeric()
                     ->default(null),
-                Toggle::make('is_restricted')
+                Toggle::make('requires_approval')
                     ->required(),
-                TextInput::make('signoff_deadline_hours')
+                TextInput::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->default(null),
                 TextInput::make('status')
@@ -51,10 +51,10 @@ class ActivityForm
                 Textarea::make('languages')
                     ->default(null)
                     ->columnSpanFull(),
-                TextInput::make('duration_minutes')
+                TextInput::make('duration_in_minutes')
                     ->numeric()
                     ->default(null),
-                Toggle::make('open_for_observers')
+                Toggle::make('allows_observers')
                     ->required(),
                 Textarea::make('extra')
                     ->default(null)
