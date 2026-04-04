@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-base-content">
-            {{ __('Events') }}
+            {{ __('ui.browse.events_page_title') }}
         </h2>
     </x-slot>
 

@@ -1,13 +1,32 @@
 @props([
     'activity',
     'wishlistActivityIds' => [],
+    'showListingKind' => false,
 ])
+
+@php
+    $typeLabel = __('ui.browse.activity_type.'.$activity->type->value);
+    if ($typeLabel === 'ui.browse.activity_type.'.$activity->type->value) {
+        $typeLabel = ucfirst($activity->type->value);
+    }
+    $durationLabel = format_activity_duration_compact($activity->duration_in_minutes);
+    $filled = isset($activity->participants_count)
+        ? (int) $activity->participants_count
+        : (int) $activity->participants()->where('is_absent', false)->count();
+    $max = $activity->max_participants;
+@endphp
 
 <article class="ui-card ui-card-activity card border border-base-300 bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
     <div class="card-body p-5" data-ui="activity-card-body">
+        @if ($showListingKind)
+            <p class="mb-2">
+                <span class="badge badge-secondary badge-sm">{{ __('ui.browse.listing_kind_activity') }}</span>
+            </p>
+        @endif
+
         <div class="flex items-start justify-between gap-2">
             <h3 class="card-title text-xl leading-tight">
-                <a href="{{ route('activities.show', $activity) }}" class="link link-primary ui-link ui-link-title" data-ui="activity-card-title-link">{{ $activity->name }}</a>
+                <a href="{{ route('activities.show', $activity) }}" wire:navigate class="link link-primary ui-link ui-link-title" data-ui="activity-card-title-link">{{ $activity->name }}</a>
             </h3>
             @auth
                 <div class="shrink-0">
@@ -27,13 +46,31 @@
             @endauth
         </div>
 
-        <p class="text-sm opacity-70">{{ ucfirst($activity->type->value) }}</p>
+        <p class="text-sm opacity-80">{{ __('ui.activities.type') }}: {{ $typeLabel }}</p>
+
         @if ($activity->creator)
             <p class="text-sm opacity-70">{{ __('Host') }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</p>
         @endif
+
         @if ($activity->slot && $activity->slot->event)
-            <p class="text-sm opacity-70">{{ $activity->slot->event->name }}</p>
+            <p class="text-sm opacity-70">
+                {{ __('ui.browse.attached_event') }}:
+                <a href="{{ route('events.show', $activity->slot->event) }}" wire:navigate class="link link-hover">{{ $activity->slot->event->name }}</a>
+            </p>
         @endif
+
+        @if ($durationLabel)
+            <p class="text-sm opacity-70">{{ __('ui.browse.duration_label') }}: {{ $durationLabel }}</p>
+        @endif
+
+        <p class="text-sm tabular-nums opacity-80">
+            {{ __('ui.browse.participants_count') }}:
+            @if ($max !== null)
+                {{ __('ui.browse.participants_filled_max', ['filled' => $filled, 'max' => $max]) }}
+            @else
+                {{ __('ui.browse.participants_filled_no_cap', ['filled' => $filled]) }}
+            @endif
+        </p>
 
         <div class="mt-2">
             @include('tags.partials.inline', ['tags' => $activity->tags])

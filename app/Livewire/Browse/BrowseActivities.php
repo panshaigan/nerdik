@@ -75,7 +75,7 @@ class BrowseActivities extends Component
     public function render()
     {
         $query = Activity::with(['creator', 'tags.translations', 'slot.event'])
-            ->whereHas('slot', fn ($q) => $q->whereHas('event', fn ($e) => $e->where('is_public', true)));
+            ->attachedToPublicEvent();
 
         if (filled($this->from_date)) {
             $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '>=', $this->from_date));
