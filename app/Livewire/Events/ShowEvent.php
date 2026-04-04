@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Events;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -198,7 +199,7 @@ class ShowEvent extends Component
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
             ->with(['activity', 'creator', 'proposedSlots'])
-            ->where('status', 'pending')
+            ->where('status', ActivityProposalStatus::Pending)
             ->orderBy('created_at')
             ->get();
         $isOwner = auth()->check() && $event->created_by === auth()->id();
