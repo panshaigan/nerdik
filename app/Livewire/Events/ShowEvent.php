@@ -73,7 +73,7 @@ class ShowEvent extends Component
         $this->authorizeCreatedBy($event);
         $event->delete();
         session()->flash('status', __('Event deleted.'));
-        $this->redirect(route('events.index'), navigate: true);
+        $this->redirect(route('search.index'), navigate: true);
     }
 
     public function deleteSlot(int $slotId): void

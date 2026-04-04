@@ -77,8 +77,8 @@
                             </li>
                         @endforeach
                     </ul>
-                    <a href="{{ route('events.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
-                        {{ __('All events') }} →
+                    <a href="{{ route('search.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        {{ __('ui.nav.search') }} →
                     </a>
                 @endif
             </div>
@@ -98,8 +98,8 @@
                             </li>
                         @endforeach
                     </ul>
-                    <a href="{{ route('activities.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
-                        {{ __('All activities') }} →
+                    <a href="{{ route('search.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        {{ __('ui.nav.search') }} →
                     </a>
                 @endif
             </div>
@@ -118,8 +118,8 @@
                             </li>
                         @endforeach
                     </ul>
-                    <a href="{{ route('activities.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
-                        {{ __('Browse activities') }} →
+                    <a href="{{ route('search.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">
+                        {{ __('ui.nav.search') }} →
                     </a>
                 @endif
             </div>
@@ -150,7 +150,7 @@
                 <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('Wishlist – events') }}</h3>
                 @if ($wishlistEvents->isEmpty())
                     <p class="text-sm opacity-70">{{ __('No events in wishlist.') }}</p>
-                    <a href="{{ route('events.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('Browse events') }} →</a>
+                    <a href="{{ route('search.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('ui.nav.search') }} →</a>
                 @else
                     <ul class="divide-y divide-base-300">
                         @foreach ($wishlistEvents as $event)
@@ -164,7 +164,7 @@
                             </li>
                         @endforeach
                     </ul>
-                    <a href="{{ route('events.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">{{ __('Browse events') }} →</a>
+                    <a href="{{ route('search.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">{{ __('ui.nav.search') }} →</a>
                 @endif
             </div>
 
@@ -172,7 +172,7 @@
                 <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('Wishlist – activities') }}</h3>
                 @if ($wishlistActivities->isEmpty())
                     <p class="text-sm opacity-70">{{ __('No activities in wishlist.') }}</p>
-                    <a href="{{ route('activities.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('Browse activities') }} →</a>
+                    <a href="{{ route('search.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('ui.nav.search') }} →</a>
                 @else
                     <ul class="divide-y divide-base-300">
                         @foreach ($wishlistActivities as $activity)
@@ -186,7 +186,7 @@
                             </li>
                         @endforeach
                     </ul>
-                    <a href="{{ route('activities.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">{{ __('Browse activities') }} →</a>
+                    <a href="{{ route('search.index') }}" class="link link-hover mt-2 inline-block text-sm opacity-80">{{ __('ui.nav.search') }} →</a>
                 @endif
             </div>
         </div>

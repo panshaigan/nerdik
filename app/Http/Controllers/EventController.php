@@ -65,7 +65,7 @@ class EventController extends Controller
 
         $event->delete();
 
-        return redirect()->route('events.index')
+        return redirect()->route('search.index')
             ->with('status', __('Event deleted.'));
     }
 

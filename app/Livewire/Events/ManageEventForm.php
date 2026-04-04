@@ -204,7 +204,7 @@ class ManageEventForm extends Component
         $this->syncEnrollmentWindows($event, $signupService);
         session()->flash('status', __('Event created.'));
 
-        return redirect()->route('events.index');
+        return redirect()->route('search.index');
     }
 
     protected function syncEnrollmentWindows(Event $event, EventActivitySignupService $signupService): void
@@ -463,7 +463,7 @@ class ManageEventForm extends Component
             'submitLabel' => $this->editingEventId !== null ? __('Update') : __('Create'),
             'cancelUrl' => $this->editingEventId !== null
                 ? route('events.show', Event::query()->findOrFail($this->editingEventId))
-                : route('events.index'),
+                : route('search.index'),
             'eventSignupPeriodMax' => $this->ends_at !== '' ? $this->ends_at : null,
         ]);
     }

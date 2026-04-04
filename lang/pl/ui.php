@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'nav' => [
+        'search' => 'Szukaj',
+    ],
     'common' => [
         'cancel' => 'Anuluj',
         'create' => 'Utworz',
@@ -14,7 +17,7 @@ return [
         'language_pl' => 'Polski',
     ],
     'browse' => [
-        'events_page_title' => 'Wydarzenia i aktywnosci',
+        'search_page_title' => 'Szukaj',
         'tags_filter_label' => 'Tagi',
         'tags_search_placeholder' => 'Szukaj tagów…',
         'tags_and_text_placeholder' => 'Wpisz, by dodac tagi; Enter szuka po nazwie lub opisie…',
@@ -151,7 +154,7 @@ return [
         'no_free_slots' => 'Brak wolnych slotow',
         'no_compatible_slots' => 'Brak wolnych slotow pasujacych do typu, czasu trwania i pojemnosci tej aktywnosci.',
         'reject' => 'Odrzuc',
-        'back_to_events' => 'Wroc do wydarzen',
+        'back_to_search' => 'Wroc do wyszukiwania',
         'enrollment_windows_heading' => 'Okna zapisow na aktywnosci',
         'enrollment_windows_help' => 'Uczestnicy moga dolaczac do aktywnosci lub do listy oczekujacych tylko w tych oknach. Okno moze zaczac sie przed startem wydarzenia, ale musi sie zamknac najpozniej przy koncu wydarzenia. Pusta lista (bez wierszy) oznacza brak ograniczenia czasowego. Mozesz dodac kilka nie nakladajacych sie okien. „Maks. aktywnosci” limituje liczbe zapisow w danym oknie (puste lub 0 = bez limitu).',
         'enrollment_window_starts' => 'Start zapisow',
