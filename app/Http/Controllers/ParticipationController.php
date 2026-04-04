@@ -25,6 +25,10 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', __('You are on the waitlist. Leave it first if you want to join directly.'));
         }
 
+        if ($activity->requires_approval) {
+            return redirect()->back()->with('status', __('ui.activities.join_requires_waitlist'));
+        }
+
         $count = $activity->participants()->count();
         $max = $activity->max_participants;
 
@@ -91,6 +95,12 @@ class ParticipationController extends Controller
 
         if ($activity->waitlist()->where('user_id', $user->id)->exists()) {
             return redirect()->back()->with('status', __('You are already on the waitlist.'));
+        }
+
+        $isFull = $activity->max_participants !== null
+            && $activity->participants()->count() >= $activity->max_participants;
+        if (! $activity->requires_approval && ! $isFull) {
+            return redirect()->back()->with('status', __('ui.activities.waitlist_only_when_approval_or_full'));
         }
 
         try {
