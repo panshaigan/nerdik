@@ -27,6 +27,11 @@
             'attached_ids' => collect($tag->tagAttachments ?? [])->pluck('attached_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
         ];
     })->values()->all();
+    $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
+    $browseTagSelector = ($browseTagSelector ?? false) === true;
+    $allowCreate = ($allowCreate ?? true) !== false;
+    $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
+    $browseTextSearch = ($browseTextSearch ?? false) === true;
     $tagSelectorConfig = [
         'locale' => $locale,
         'tags' => $tagsForJs,
@@ -39,9 +44,12 @@
             'auto' => __('auto'),
         ],
     ];
-    $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
-    $allowCreate = ($allowCreate ?? true) !== false;
-    $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
+    if ($browseTextSearch) {
+        $tagSelectorConfig['browseTextSearch'] = [
+            'enabled' => true,
+            'property' => 'q',
+        ];
+    }
 @endphp
 
 @if (empty($tagsForJs))
@@ -52,18 +60,20 @@
     data-tag-selector
     class="space-y-3"
     @if ($skipLivewireSync) data-ts-skip-livewire-sync="1" @endif
+    @if ($browseTagSelector) data-browse-tag-selector @endif
 >
     <script type="application/json" data-ts-config>
         @json($tagSelectorConfig)
     </script>
     <div class="relative z-[1000]">
         {{-- Same structure as Mary <x-input>: label.input wraps the native input so DaisyUI border + focus ring match other fields. --}}
-        <label class="input w-full">
+        <label class="input input-bordered flex w-full min-w-0 items-center gap-2">
             <input
                 type="text"
                 inputmode="search"
                 enterkeyhint="search"
                 data-ts-input
+                class="min-w-0 grow basis-0"
                 placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
             />

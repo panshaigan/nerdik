@@ -16,6 +16,11 @@ return [
     'browse' => [
         'tags_filter_label' => 'Tags',
         'tags_search_placeholder' => 'Type to search tags…',
+        'tags_and_text_placeholder' => 'Type to add tags; press Enter to search by name or description…',
+        'text_search_chip_label' => 'Text search',
+        'text_search_chip_hint' => 'Matches event or activity name and description',
+        'text_search_remove' => 'Remove text search',
+        'map_bbox_hint' => 'Draw a rectangle on the map. Results update automatically.',
         'tags_match_any' => 'Match any',
         'tags_match_all' => 'Match all',
         'tags_remove' => 'Remove tag',

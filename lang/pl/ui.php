@@ -16,6 +16,11 @@ return [
     'browse' => [
         'tags_filter_label' => 'Tagi',
         'tags_search_placeholder' => 'Szukaj tagów…',
+        'tags_and_text_placeholder' => 'Wpisz, by dodac tagi; Enter szuka po nazwie lub opisie…',
+        'text_search_chip_label' => 'Szukanie tekstowe',
+        'text_search_chip_hint' => 'Pasuje do nazwy i opisu wydarzenia lub aktywnosci',
+        'text_search_remove' => 'Usun szukanie po tekscie',
+        'map_bbox_hint' => 'Narysuj prostokat na mapie. Wyniki aktualizuja sie automatycznie.',
         'tags_match_any' => 'Dowolny z wybranych',
         'tags_match_all' => 'Wszystkie wybrane',
         'tags_remove' => 'Usun tag',

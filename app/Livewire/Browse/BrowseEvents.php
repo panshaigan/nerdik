@@ -29,7 +29,32 @@ class BrowseEvents extends Component
     #[Url]
     public ?string $max_lng = null;
 
-    public function applySearch(): void
+    public function updatedQ(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearTextSearch(): void
+    {
+        $this->q = '';
+    }
+
+    public function updatedMinLat(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMaxLat(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMinLng(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMaxLng(): void
     {
         $this->resetPage();
     }
