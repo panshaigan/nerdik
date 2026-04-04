@@ -2,21 +2,6 @@
     <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
         <div class="ui-filter-form ui-filter-form-events space-y-4" data-ui="browse-events-form">
             <div class="card border border-base-300 bg-base-100 p-4 shadow-sm" data-ui="browse-events-filters-card">
-                @auth
-                    <div class="mb-4 flex justify-end">
-                        <a
-                            href="{{ route('events.create') }}"
-                            wire:navigate
-                            class="btn btn-circle btn-primary shadow-md"
-                            title="{{ __('Create event') }}"
-                            aria-label="{{ __('Create event') }}"
-                            data-ui="browse-events-create"
-                        >
-                            <span class="text-xl font-light leading-none" aria-hidden="true">+</span>
-                        </a>
-                    </div>
-                @endauth
-
                 <div class="flex flex-col gap-3">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                         @include('livewire.browse.partials.tag-filter-toggles', ['includePastEventsToggle' => true])
