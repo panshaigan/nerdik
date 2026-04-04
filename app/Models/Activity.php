@@ -73,4 +73,28 @@ class Activity extends Model
     {
         return $this->hasOne(Slot::class);
     }
+
+    /**
+     * Headcount that must fit in the physical slot ({@see Slot::$max_capacity}).
+     *
+     * `max_participants` is the number of players/attendees (the host does not count).
+     * If the host is not passive, they occupy one additional seat in the room.
+     *
+     * When `max_participants` is null, the activity does not define an upper bound for this check.
+     *
+     * @return int|null Positive integer, or null if capacity cannot be derived from the activity.
+     */
+    public function physicalHeadcountForSlotCapacity(): ?int
+    {
+        if ($this->max_participants === null) {
+            return null;
+        }
+
+        $n = (int) $this->max_participants;
+        if (! $this->is_host_passive) {
+            $n += 1;
+        }
+
+        return $n;
+    }
 }

@@ -59,6 +59,7 @@ class CreateProposalForm extends Component
         if (! empty($validated['slot_ids'])) {
             $slots = Slot::whereIn('id', $validated['slot_ids'])
                 ->where('event_id', $event->id)
+                ->whereNull('activity_id')
                 ->get();
 
             foreach ($slots as $slot) {
@@ -70,13 +71,16 @@ class CreateProposalForm extends Component
             $autoSlot = $slots->firstWhere('requires_approval', false);
 
             if ($autoSlot) {
-                $proposal->update([
-                    'status' => ActivityProposalStatus::Accepted,
-                    'accepted_slot_id' => $autoSlot->id,
-                ]);
-                $autoSlot->update(['activity_id' => $activity->id]);
+                $autoSlot->loadMissing('activityTypes');
+                if ($autoSlot->fitsProposalActivity($activity)) {
+                    $proposal->update([
+                        'status' => ActivityProposalStatus::Accepted,
+                        'accepted_slot_id' => $autoSlot->id,
+                    ]);
+                    $autoSlot->update(['activity_id' => $activity->id]);
 
-                $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+                    $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+                }
             }
         }
 

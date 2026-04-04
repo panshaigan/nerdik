@@ -157,9 +157,9 @@
                                 @foreach ($group['slots'] as $slot)
                                     @php
                                         $activity = $slot->activity;
-                                        $participantsCount = $activity && filled($activity->max_participants)
-                                            ? $activity->max_participants
-                                            : (! $activity && filled($slot->max_capacity) ? $slot->max_capacity : null);
+                                        $participantsCount = $activity
+                                            ? $activity->physicalHeadcountForSlotCapacity()
+                                            : (filled($slot->max_capacity) ? $slot->max_capacity : null);
                                         if ($activity) {
                                             $mergedActivitySlotTags = $activity->tags
                                                 ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))

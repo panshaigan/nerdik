@@ -17,6 +17,7 @@ use App\Traits\AuthorizesOwnership;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class ManageActivityForm extends Component
@@ -170,6 +171,18 @@ class ManageActivityForm extends Component
         if ($this->editingActivityId !== null) {
             $activity = Activity::query()->findOrFail($this->editingActivityId);
             $this->authorizeCreatedBy($activity);
+            $activity->loadMissing('slot.activityTypes');
+            $slot = $activity->slot;
+            if ($slot !== null) {
+                $merged = $activity->replicate();
+                $merged->fill($payload);
+                $slot->loadMissing('activityTypes');
+                if (! $slot->fitsProposalActivity($merged)) {
+                    throw ValidationException::withMessages([
+                        'max_participants' => [__('ui.activities.activity_no_longer_fits_assigned_slot')],
+                    ]);
+                }
+            }
             $activity->update($payload);
             $activity->tags()->sync($tagIds);
             $proposalCreated = $this->createProposalForActivityIfRequested($activity);
@@ -344,13 +357,16 @@ class ManageActivityForm extends Component
             $slots = Slot::whereIn('id', $validIds)->get();
             $autoSlot = $slots->firstWhere('requires_approval', false);
             if ($autoSlot) {
-                $proposal->update([
-                    'status' => ActivityProposalStatus::Accepted,
-                    'accepted_slot_id' => $autoSlot->id,
-                ]);
-                $autoSlot->update(['activity_id' => $activity->id]);
+                $autoSlot->loadMissing('activityTypes');
+                if ($autoSlot->fitsProposalActivity($activity)) {
+                    $proposal->update([
+                        'status' => ActivityProposalStatus::Accepted,
+                        'accepted_slot_id' => $autoSlot->id,
+                    ]);
+                    $autoSlot->update(['activity_id' => $activity->id]);
 
-                $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+                    $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+                }
             }
         }
 

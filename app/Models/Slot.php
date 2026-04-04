@@ -177,11 +177,31 @@ class Slot extends Model
     }
 
     /**
-     * Activity type and duration both match this empty slot for proposal acceptance.
+     * Whether the slot’s {@see self::$max_capacity} can fit the activity’s physical headcount
+     * ({@see Activity::physicalHeadcountForSlotCapacity()}). If either side omits a limit, this does not block.
+     */
+    public function fitsActivityCapacity(Activity $activity): bool
+    {
+        if ($this->max_capacity === null) {
+            return true;
+        }
+
+        $needed = $activity->physicalHeadcountForSlotCapacity();
+        if ($needed === null) {
+            return true;
+        }
+
+        return $needed <= (int) $this->max_capacity;
+    }
+
+    /**
+     * Activity type, duration, and room capacity match this empty slot for proposal acceptance.
      */
     public function fitsProposalActivity(Activity $activity): bool
     {
-        return $this->acceptsActivity($activity) && $this->fitsActivityDuration($activity);
+        return $this->acceptsActivity($activity)
+            && $this->fitsActivityDuration($activity)
+            && $this->fitsActivityCapacity($activity);
     }
 
     /**
