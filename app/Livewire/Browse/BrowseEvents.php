@@ -7,6 +7,7 @@ use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Tag;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
@@ -37,6 +38,30 @@ class BrowseEvents extends Component
     /** When false (default), only events that have not ended yet (see COALESCE(ends_at, starts_at)). */
     #[Url]
     public bool $include_past_events = false;
+
+    /** Mutually exclusive with {@see $only_activities}; both false = search events and activities. */
+    #[Url]
+    public bool $only_events = false;
+
+    /** Mutually exclusive with {@see $only_events}. */
+    #[Url]
+    public bool $only_activities = false;
+
+    public function updatedOnlyEvents(bool $value): void
+    {
+        if ($value) {
+            $this->only_activities = false;
+        }
+        $this->resetPage();
+    }
+
+    public function updatedOnlyActivities(bool $value): void
+    {
+        if ($value) {
+            $this->only_events = false;
+        }
+        $this->resetPage();
+    }
 
     public function updatedQ(): void
     {
@@ -76,7 +101,7 @@ class BrowseEvents extends Component
     public function clearFilters()
     {
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('events.index');
@@ -89,7 +114,9 @@ class BrowseEvents extends Component
             || filled($this->min_lat)
             || filled($this->max_lat)
             || filled($this->min_lng)
-            || filled($this->max_lng);
+            || filled($this->max_lng)
+            || $this->only_events
+            || $this->only_activities;
     }
 
     public function hasBBox(): bool
@@ -200,7 +227,63 @@ class BrowseEvents extends Component
         return [$minLat, $maxLat, $minLng, $maxLng];
     }
 
-    public function render()
+    /**
+     * @return LengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
+     */
+    protected function paginateBrowseListings()
+    {
+        if ($this->only_events && ! $this->only_activities) {
+            return $this->paginateEventsOnly();
+        }
+
+        if ($this->only_activities && ! $this->only_events) {
+            return $this->paginateActivitiesOnly();
+        }
+
+        return $this->paginateEventsAndActivitiesUnion();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
+     */
+    protected function paginateEventsOnly()
+    {
+        $query = $this->baseEventQuery()->with([
+            'organization',
+            'creator',
+            'tags.translations',
+            'places.country.translations',
+            'places.city.translations',
+        ]);
+        $this->applyBrowseEventSort($query);
+        $paginator = $query->paginate(12);
+        $paginator->setCollection(
+            $paginator->getCollection()->map(fn (Event $event) => ['kind' => 'event', 'event' => $event])->values()
+        );
+
+        return $paginator;
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
+     */
+    protected function paginateActivitiesOnly()
+    {
+        $query = $this->baseActivityQuery()->with(['creator', 'tags.translations', 'slot.event'])
+            ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
+        $this->applyBrowseActivitySort($query);
+        $paginator = $query->paginate(12);
+        $paginator->setCollection(
+            $paginator->getCollection()->map(fn (Activity $activity) => ['kind' => 'activity', 'activity' => $activity])->values()
+        );
+
+        return $paginator;
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
+     */
+    protected function paginateEventsAndActivitiesUnion()
     {
         $eventPart = $this->baseEventQuery()->select([
             DB::raw("'event' as listing_kind"),
@@ -275,6 +358,13 @@ class BrowseEvents extends Component
         })->filter()->values();
 
         $paginator->setCollection($ordered);
+
+        return $paginator;
+    }
+
+    public function render()
+    {
+        $paginator = $this->paginateBrowseListings();
 
         $wishlistEventIds = auth()->check()
             ? auth()->user()->wishlistEvents()->pluck('events.id')->toArray()
