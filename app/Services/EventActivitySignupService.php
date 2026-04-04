@@ -8,7 +8,6 @@ use App\Models\Event;
 use App\Models\EventSignupPeriod;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class EventActivitySignupService
@@ -16,7 +15,7 @@ class EventActivitySignupService
     /**
      * Scheduled real-time window: slot start through slot start + activity duration (or slot ends_at if no duration).
      *
-     * @return array{0: \Carbon\Carbon, 1: \Carbon\Carbon}|null
+     * @return array{0: Carbon, 1: Carbon}|null
      */
     public function activityScheduledWindow(Activity $activity): ?array
     {
@@ -27,8 +26,8 @@ class EventActivitySignupService
 
         $start = $slot->starts_at->copy();
 
-        if ($activity->duration_minutes !== null && (int) $activity->duration_minutes > 0) {
-            $end = $start->copy()->addMinutes((int) $activity->duration_minutes);
+        if ($activity->duration_in_minutes !== null && (int) $activity->duration_in_minutes > 0) {
+            $end = $start->copy()->addMinutes((int) $activity->duration_in_minutes);
         } elseif ($slot->ends_at !== null) {
             $end = $slot->ends_at->copy();
         } else {
@@ -183,7 +182,7 @@ class EventActivitySignupService
      * Validate period rows for an event form (non-overlapping, end on/before event end, may start before event).
      *
      * @param  list<array{starts_at: string, ends_at: string, max_activities?: mixed}>  $rows
-     * @return list<array{starts_at: \Carbon\Carbon, ends_at: \Carbon\Carbon, max_activities: int|null}>
+     * @return list<array{starts_at: Carbon, ends_at: Carbon, max_activities: int|null}>
      */
     public function validateAndNormalizePeriodRowsForEvent(Event $event, array $rows, Carbon $nowUtc): array
     {

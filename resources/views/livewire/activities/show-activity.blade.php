@@ -13,8 +13,8 @@
     $hasOpenRunBlurb = $slot && ! $event;
     $showEventCard = $event || $hasOpenRunBlurb;
     $hasMetaStats = $activity->min_participants !== null
-        || (bool) $activity->duration_minutes
-        || $activity->signoff_deadline_hours !== null
+        || (bool) $activity->duration_in_minutes
+        || $activity->cancellation_deadline_in_hours !== null
         || $activity->price !== null
         || $langList->isNotEmpty();
     $hasDetailRow = $showEventCard || $hasMetaStats;
@@ -25,16 +25,16 @@
             'value' => (string) $activity->min_participants,
         ];
     }
-    if ($activity->duration_minutes) {
+    if ($activity->duration_in_minutes) {
         $metaItems[] = [
             'label' => __('ui.activities.show_duration'),
-            'value' => $activity->duration_minutes.' min',
+            'value' => $activity->duration_in_minutes.' min',
         ];
     }
-    if ($activity->signoff_deadline_hours !== null) {
+    if ($activity->cancellation_deadline_in_hours !== null) {
         $metaItems[] = [
-            'label' => __('ui.activities.show_signoff'),
-            'value' => $activity->signoff_deadline_hours.' h',
+            'label' => __('ui.activities.show_cancellation_deadline'),
+            'value' => $activity->cancellation_deadline_in_hours.' h',
         ];
     }
     if ($activity->price !== null) {
@@ -80,24 +80,24 @@
                             <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
                                 {{ $activity->name }}
                             </h1>
-                            @if ($activity->tags->isNotEmpty() || filled($activity->age_limit) || $activity->is_restricted || $activity->open_for_observers)
+                            @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
                                 <div class="flex flex-wrap items-center gap-1 pt-0.5">
                                     @if ($activity->tags->isNotEmpty())
                                         @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
                                     @endif
-                                    @if ($activity->is_restricted)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.restricted') }}</span>
+                                    @if ($activity->requires_approval)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
                                     @endif
-                                    @if ($activity->open_for_observers)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.open_for_observers') }}</span>
+                                    @if ($activity->allows_observers)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
                                     @endif
-                                    @if (filled($activity->age_limit))
-                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->age_limit }}+</span>
+                                    @if (filled($activity->minimum_age))
+                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
                                     @endif
                                 </div>
                             @endif
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                                @if (! $activity->passive_host && $activity->creator)
+                                @if (! $activity->is_host_passive && $activity->creator)
                                     <span>{{ $hostRoleLabel }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</span>
                                 @endif
                             </div>

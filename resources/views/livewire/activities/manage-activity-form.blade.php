@@ -82,21 +82,21 @@
                     <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex h-full items-center">
                         <div class="space-y-4">
                             <x-checkbox
-                                id="passive_host"
-                                wire:model="passive_host"
-                                :label="__('ui.activities.passive_host')"
+                                id="is_host_passive"
+                                wire:model="is_host_passive"
+                                :label="__('ui.activities.is_host_passive')"
                             />
 
                             <x-checkbox
-                                id="is_restricted"
-                                wire:model="is_restricted"
-                                :label="__('ui.activities.restricted')"
+                                id="requires_approval"
+                                wire:model="requires_approval"
+                                :label="__('ui.activities.requires_approval')"
                             />
 
                             <x-checkbox
-                                id="open_for_observers"
-                                wire:model="open_for_observers"
-                                :label="__('ui.activities.open_for_observers')"
+                                id="allows_observers"
+                                wire:model="allows_observers"
+                                :label="__('ui.activities.allows_observers')"
                             />
                         </div>
                     </div>
@@ -142,37 +142,37 @@
                             </x-input>
 
                             <x-input
-                                label="{{ __('ui.activities.age_limit') }}"
-                                wire:model="age_limit"
+                                label="{{ __('ui.activities.minimum_age') }}"
+                                wire:model="minimum_age"
                                 type="number"
                                 min="0"
                                 data-activity-numeric
-                                error-field="age_limit"
+                                error-field="minimum_age"
                             >
                                 <x-slot:append>
                                     <x-button
                                         type="button"
                                         class="btn-outline btn-xs"
-                                        wire:click="$set('age_limit', null)"
+                                        wire:click="$set('minimum_age', null)"
                                         :aria-label="__('ui.activities.clear_field')"
                                     >×</x-button>
                                 </x-slot:append>
                             </x-input>
 
                             <x-input
-                                label="{{ __('ui.activities.duration_minutes') }}"
-                                wire:model="duration_minutes"
+                                label="{{ __('ui.activities.duration_in_minutes') }}"
+                                wire:model="duration_in_minutes"
                                 type="number"
                                 min="0"
                                 step="5"
                                 data-activity-numeric
-                                error-field="duration_minutes"
+                                error-field="duration_in_minutes"
                             >
                                 <x-slot:append>
                                     <x-button
                                         type="button"
                                         class="btn-outline btn-xs"
-                                        wire:click="$set('duration_minutes', null)"
+                                        wire:click="$set('duration_in_minutes', null)"
                                         :aria-label="__('ui.activities.clear_field')"
                                     >×</x-button>
                                 </x-slot:append>
@@ -187,20 +187,20 @@
 
                 <div class="space-y-1">
                     <x-input
-                        :label="__('ui.activities.signoff_deadline_hours')"
-                        :hint="__('ui.activities.signoff_deadline_description')"
-                        wire:model="signoff_deadline_hours"
+                        :label="__('ui.activities.cancellation_deadline_in_hours')"
+                        :hint="__('ui.activities.cancellation_deadline_description')"
+                        wire:model="cancellation_deadline_in_hours"
                         type="number"
                         min="0"
                         data-activity-numeric
                         class="w-full"
-                        error-field="signoff_deadline_hours"
+                        error-field="cancellation_deadline_in_hours"
                     >
                         <x-slot:append>
                             <x-button
                                 type="button"
                                 class="btn-outline btn-xs"
-                                wire:click="$set('signoff_deadline_hours', null)"
+                                wire:click="$set('cancellation_deadline_in_hours', null)"
                                 :aria-label="__('ui.activities.clear_field')"
                             >×</x-button>
                         </x-slot:append>

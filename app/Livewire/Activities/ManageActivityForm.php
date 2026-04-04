@@ -34,17 +34,17 @@ class ManageActivityForm extends Component
 
     public ?int $max_participants = null;
 
-    public ?int $age_limit = null;
+    public ?int $minimum_age = null;
 
-    public ?int $duration_minutes = null;
+    public ?int $duration_in_minutes = null;
 
-    public ?int $signoff_deadline_hours = null;
+    public ?int $cancellation_deadline_in_hours = null;
 
-    public bool $passive_host = false;
+    public bool $is_host_passive = false;
 
-    public bool $is_restricted = false;
+    public bool $requires_approval = false;
 
-    public bool $open_for_observers = false;
+    public bool $allows_observers = false;
 
     public ?int $proposal_event_id = null;
 
@@ -70,12 +70,12 @@ class ManageActivityForm extends Component
             $this->type = (string) $activity->type;
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
-            $this->age_limit = $activity->age_limit;
-            $this->duration_minutes = $activity->duration_minutes;
-            $this->signoff_deadline_hours = $activity->signoff_deadline_hours;
-            $this->passive_host = (bool) $activity->passive_host;
-            $this->is_restricted = (bool) $activity->is_restricted;
-            $this->open_for_observers = (bool) $activity->open_for_observers;
+            $this->minimum_age = $activity->minimum_age;
+            $this->duration_in_minutes = $activity->duration_in_minutes;
+            $this->cancellation_deadline_in_hours = $activity->cancellation_deadline_in_hours;
+            $this->is_host_passive = (bool) $activity->is_host_passive;
+            $this->requires_approval = (bool) $activity->requires_approval;
+            $this->allows_observers = (bool) $activity->allows_observers;
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
         } elseif (request()->filled('proposal_event_id')) {
@@ -108,7 +108,7 @@ class ManageActivityForm extends Component
      */
     protected function prepareForValidation($attributes)
     {
-        foreach (['min_participants', 'max_participants', 'age_limit', 'duration_minutes', 'signoff_deadline_hours'] as $key) {
+        foreach (['min_participants', 'max_participants', 'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours'] as $key) {
             if ($this->{$key} === '') {
                 $this->{$key} = null;
             }
@@ -142,9 +142,9 @@ class ManageActivityForm extends Component
     {
         $this->min_participants = null;
         $this->max_participants = null;
-        $this->age_limit = null;
-        $this->duration_minutes = null;
-        $this->signoff_deadline_hours = null;
+        $this->minimum_age = null;
+        $this->duration_in_minutes = null;
+        $this->cancellation_deadline_in_hours = null;
     }
 
     public function save(TagSelectionService $tagSelectionService)
@@ -152,9 +152,9 @@ class ManageActivityForm extends Component
         $validated = $this->validate($this->rules());
 
         $validated['desc'] = $this->normalizeDesc($validated['desc'] ?? null);
-        $validated['is_restricted'] = (bool) ($validated['is_restricted'] ?? false);
-        $validated['open_for_observers'] = (bool) ($validated['open_for_observers'] ?? false);
-        $validated['passive_host'] = (bool) ($validated['passive_host'] ?? false);
+        $validated['requires_approval'] = (bool) ($validated['requires_approval'] ?? false);
+        $validated['allows_observers'] = (bool) ($validated['allows_observers'] ?? false);
+        $validated['is_host_passive'] = (bool) ($validated['is_host_passive'] ?? false);
 
         $payload = Arr::except(
             $validated,
@@ -234,12 +234,12 @@ class ManageActivityForm extends Component
                     }
                 },
             ],
-            'age_limit' => ['nullable', 'integer', 'min:0'],
-            'duration_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
-            'signoff_deadline_hours' => ['nullable', 'integer', 'min:0'],
-            'is_restricted' => ['nullable', 'boolean'],
-            'open_for_observers' => ['nullable', 'boolean'],
-            'passive_host' => ['nullable', 'boolean'],
+            'minimum_age' => ['nullable', 'integer', 'min:0'],
+            'duration_in_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
+            'cancellation_deadline_in_hours' => ['nullable', 'integer', 'min:0'],
+            'requires_approval' => ['nullable', 'boolean'],
+            'allows_observers' => ['nullable', 'boolean'],
+            'is_host_passive' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
             'new_tags' => ['nullable', 'array'],

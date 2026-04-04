@@ -28,7 +28,7 @@ class ActivitiesTable
                 TextColumn::make('max_participants')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('age_limit')
+                TextColumn::make('minimum_age')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('price')
@@ -37,19 +37,19 @@ class ActivitiesTable
                 TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),
-                IconColumn::make('is_restricted')
+                IconColumn::make('requires_approval')
                     ->boolean(),
-                TextColumn::make('signoff_deadline_hours')
+                TextColumn::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('status')
                     ->searchable(),
                 TextColumn::make('logo_path')
                     ->searchable(),
-                TextColumn::make('duration_minutes')
+                TextColumn::make('duration_in_minutes')
                     ->numeric()
                     ->sortable(),
-                IconColumn::make('open_for_observers')
+                IconColumn::make('allows_observers')
                     ->boolean(),
                 TextColumn::make('slug')
                     ->searchable(),
