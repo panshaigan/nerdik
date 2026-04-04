@@ -91,6 +91,7 @@ return [
         'preferred_slots' => 'Preferowane sloty',
         'preferred_time' => 'Preferowany czas',
         'choose_slot' => 'Wybierz slot',
+        'choose_slot_or_auto' => 'Wybierz slot (opcjonalnie — pusty = automatycznie)',
         'accept' => 'Akceptuj',
         'no_free_slots' => 'Brak wolnych slotow',
         'no_compatible_slots' => 'Brak wolnych slotow pasujacych do typu i czasu trwania tej aktywnosci.',
@@ -196,5 +197,7 @@ return [
         'activity_updated_with_proposal' => 'Aktywnosc zaktualizowana. Wyslano propozycje dla wydarzenia: :event.',
         'slot_activity_type_mismatch' => 'Ten slot nie pasuje do typu tej aktywnosci. Wybierz inny slot.',
         'slot_duration_mismatch' => 'Ten slot jest za krotki na czas trwania tej aktywnosci. Wybierz inny slot.',
+        'slot_activity_type_or_duration_mismatch' => 'Ten slot nie pasuje do typu ani czasu trwania tej aktywnosci. Wybierz inny slot.',
+        'no_fitting_slot_for_proposal' => 'Brak wolnego slotu pasujacego do tej aktywnosci (typ i czas trwania). Dodaj lub zmien slot i sprobuj ponownie.',
     ],
 ];

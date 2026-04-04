@@ -413,8 +413,8 @@
                                     @else
                                         <form action="{{ route('activity-proposals.accept', $proposal) }}" method="POST" class="inline-flex max-w-full flex-wrap items-center gap-1">
                                             @csrf
-                                            <x-form-select name="slot_id" required class="select-sm max-w-md min-w-[12rem] flex-1" :omit-error="true">
-                                                <option value="">{{ __('ui.events.choose_slot') }}</option>
+                                            <x-form-select name="slot_id" class="select-sm max-w-md min-w-[12rem] flex-1" :omit-error="true">
+                                                <option value="">{{ __('ui.events.choose_slot_or_auto') }}</option>
                                                 @foreach ($freeSlots as $s)
                                                     <option value="{{ $s->id }}">{{ $s->proposalAcceptOptionLabel() }}</option>
                                                 @endforeach

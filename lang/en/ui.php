@@ -91,6 +91,7 @@ return [
         'preferred_slots' => 'Preferred slots',
         'preferred_time' => 'Preferred time',
         'choose_slot' => 'Choose slot',
+        'choose_slot_or_auto' => 'Choose slot (optional — auto-assign if empty)',
         'accept' => 'Accept',
         'no_free_slots' => 'No free slots',
         'no_compatible_slots' => 'No free slots match this activity type and duration.',
@@ -196,5 +197,7 @@ return [
         'activity_updated_with_proposal' => 'Activity updated. A proposal was submitted for :event.',
         'slot_activity_type_mismatch' => 'That slot does not allow this activity type. Choose another slot.',
         'slot_duration_mismatch' => 'That slot is too short for this activity’s duration. Choose another slot.',
+        'slot_activity_type_or_duration_mismatch' => 'That slot does not fit this activity’s type or duration. Choose another slot.',
+        'no_fitting_slot_for_proposal' => 'No free slot fits this activity (type and duration). Add or adjust a slot, then try again.',
     ],
 ];
