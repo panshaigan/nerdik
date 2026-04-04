@@ -52,6 +52,6 @@ class ActivityProposal extends Model
     /** Slots the proposer targeted (for accept: pick one of these or any free slot in the instance). */
     public function proposedSlots()
     {
-        return $this->belongsToMany(Slot::class, 'activity_proposal_slots', 'activity_proposal_id', 'slot_id');
+        return $this->belongsToMany(Slot::class, 'activity_proposal_slot', 'activity_proposal_id', 'slot_id');
     }
 }

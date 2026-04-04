@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
-use App\Models\ActivityParticipant;
+use App\Models\ActivityUser;
 use App\Services\EventActivitySignupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -124,7 +124,7 @@ class ParticipationController extends Controller
         return redirect()->back()->with('status', __('You left the waitlist.'));
     }
 
-    public function markAbsent(Request $request, ActivityParticipant $participant)
+    public function markAbsent(Request $request, ActivityUser $participant)
     {
         $activity = $participant->activity;
         $user = Auth::user();

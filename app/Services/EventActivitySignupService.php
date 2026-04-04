@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\Activity;
-use App\Models\ActivityParticipant;
+use App\Models\ActivityUser;
 use App\Models\Event;
-use App\Models\EventSignupPeriod;
+use App\Models\EventEnrollmentWindow;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -44,9 +44,9 @@ class EventActivitySignupService
     /**
      * First matching window in case boundaries touch adjacent periods.
      */
-    public function firstPeriodContaining(Event $event, Carbon $moment): ?EventSignupPeriod
+    public function firstPeriodContaining(Event $event, Carbon $moment): ?EventEnrollmentWindow
     {
-        foreach ($event->signupPeriods->sortBy('starts_at') as $period) {
+        foreach ($event->enrollmentWindows->sortBy('starts_at') as $period) {
             if ($moment->between($period->starts_at, $period->ends_at)) {
                 return $period;
             }
@@ -58,9 +58,9 @@ class EventActivitySignupService
     /**
      * How many activities this user has joined on this event with participant created_at inside the period.
      */
-    public function userSignupCountDuringPeriod(Event $event, User $user, EventSignupPeriod $period): int
+    public function userSignupCountDuringPeriod(Event $event, User $user, EventEnrollmentWindow $period): int
     {
-        return (int) ActivityParticipant::query()
+        return (int) ActivityUser::query()
             ->where('user_id', $user->id)
             ->whereBetween('created_at', [$period->starts_at, $period->ends_at])
             ->whereHas('activity.slot', function ($q) use ($event) {
@@ -95,7 +95,7 @@ class EventActivitySignupService
 
         $eventId = (int) $slot->event_id;
 
-        $otherIds = ActivityParticipant::query()
+        $otherIds = ActivityUser::query()
             ->where('user_id', $user->id)
             ->where('activity_id', '!=', $activity->id)
             ->pluck('activity_id')
@@ -125,7 +125,7 @@ class EventActivitySignupService
      */
     public function assertCanSignup(Activity $activity, User $user): void
     {
-        $activity->loadMissing('slot.event.signupPeriods');
+        $activity->loadMissing('slot.event.enrollmentWindows');
 
         $slot = $activity->slot;
         if ($slot === null || $slot->event_id === null) {
@@ -139,7 +139,7 @@ class EventActivitySignupService
 
         $now = Carbon::now();
 
-        $periods = $event->signupPeriods;
+        $periods = $event->enrollmentWindows;
         if ($periods->isEmpty()) {
             $this->assertNoScheduleOverlap($activity, $user);
 
@@ -149,7 +149,7 @@ class EventActivitySignupService
         $active = $this->firstPeriodContaining($event, $now);
         if ($active === null) {
             throw ValidationException::withMessages([
-                '_' => [__('ui.events.signup_outside_period')],
+                '_' => [__('ui.events.enrollment_outside_window')],
             ]);
         }
 
@@ -158,7 +158,7 @@ class EventActivitySignupService
             $count = $this->userSignupCountDuringPeriod($event, $user, $active);
             if ($count >= $max) {
                 throw ValidationException::withMessages([
-                    '_' => [__('ui.events.signup_period_limit_reached', ['max' => $max])],
+                    '_' => [__('ui.events.enrollment_window_limit_reached', ['max' => $max])],
                 ]);
             }
         }
@@ -173,7 +173,7 @@ class EventActivitySignupService
     {
         if ($this->hasOverlappingParticipationOnEvent($activity, $user)) {
             throw ValidationException::withMessages([
-                '_' => [__('ui.events.signup_schedule_overlap')],
+                '_' => [__('ui.events.enrollment_schedule_overlap')],
             ]);
         }
     }
@@ -190,7 +190,7 @@ class EventActivitySignupService
         $eventEnds = $event->ends_at;
         if ($eventStarts === null || $eventEnds === null) {
             throw ValidationException::withMessages([
-                'signup_periods' => [__('ui.events.signup_periods_need_event_dates')],
+                'enrollment_windows' => [__('ui.events.enrollment_windows_need_event_dates')],
             ]);
         }
 
@@ -203,7 +203,7 @@ class EventActivitySignupService
             }
             if ($s === '' || $e === '') {
                 throw ValidationException::withMessages([
-                    "signup_periods.{$i}" => [__('ui.events.signup_period_incomplete')],
+                    "enrollment_windows.{$i}" => [__('ui.events.enrollment_window_incomplete')],
                 ]);
             }
 
@@ -211,26 +211,26 @@ class EventActivitySignupService
             $end = parse_datetime_to_utc($e);
             if ($start === null || $end === null) {
                 throw ValidationException::withMessages([
-                    "signup_periods.{$i}" => [__('ui.events.signup_period_invalid_datetime')],
+                    "enrollment_windows.{$i}" => [__('ui.events.enrollment_window_invalid_datetime')],
                 ]);
             }
 
             if ($end->lte($start)) {
                 throw ValidationException::withMessages([
-                    "signup_periods.{$i}" => [__('ui.events.signup_period_end_after_start')],
+                    "enrollment_windows.{$i}" => [__('ui.events.enrollment_window_end_after_start')],
                 ]);
             }
 
             // Signup may open before the event starts; it must end by the event end (inclusive).
             if ($end->gt($eventEnds)) {
                 throw ValidationException::withMessages([
-                    "signup_periods.{$i}" => [__('ui.events.signup_period_end_before_event_end')],
+                    "enrollment_windows.{$i}" => [__('ui.events.enrollment_window_end_before_event_end')],
                 ]);
             }
 
             if ($end->lt($nowUtc)) {
                 throw ValidationException::withMessages([
-                    "signup_periods.{$i}" => [__('ui.events.signup_period_end_not_past')],
+                    "enrollment_windows.{$i}" => [__('ui.events.enrollment_window_end_not_past')],
                 ]);
             }
 
@@ -240,7 +240,7 @@ class EventActivitySignupService
                 $max = (int) $maxRaw;
                 if ($max < 0) {
                     throw ValidationException::withMessages([
-                        "signup_periods.{$i}.max_activities" => [__('ui.events.signup_period_max_invalid')],
+                        "enrollment_windows.{$i}.max_activities" => [__('ui.events.enrollment_window_max_invalid')],
                     ]);
                 }
                 if ($max === 0) {
@@ -266,7 +266,7 @@ class EventActivitySignupService
             $b = $normalized[$i + 1];
             if ($a['ends_at']->gt($b['starts_at'])) {
                 throw ValidationException::withMessages([
-                    'signup_periods' => [__('ui.events.signup_periods_must_not_overlap')],
+                    'enrollment_windows' => [__('ui.events.enrollment_windows_must_not_overlap')],
                 ]);
             }
         }

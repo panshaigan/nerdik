@@ -65,9 +65,9 @@ class Event extends Model
         return $this->belongsToMany(Place::class, 'event_place')->withTimestamps();
     }
 
-    public function signupPeriods()
+    public function enrollmentWindows()
     {
-        return $this->hasMany(EventSignupPeriod::class)->orderBy('starts_at');
+        return $this->hasMany(EventEnrollmentWindow::class)->orderBy('starts_at');
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Activity;
-use App\Models\ActivityParticipant;
 use App\Models\ActivityProposal;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -27,7 +27,7 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
-        $participations = ActivityParticipant::with('activity')
+        $participations = ActivityUser::with('activity')
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->limit(10)

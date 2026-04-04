@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SlotActivityType extends Model
+class ActivityTypeSlot extends Model
 {
-    protected $table = 'slot_activity_type';
+    protected $table = 'activity_type_slot';
 
     protected $fillable = [
         'slot_id',

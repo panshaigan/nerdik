@@ -211,7 +211,7 @@ class ShowEvent extends Component
         $slotMassRoomsByVenueId = [];
         $slotBaseNameSuggestions = [];
         if ($canManageEvent) {
-            $slotFormTags = Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get();
+            $slotFormTags = Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get();
             $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
             $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
 

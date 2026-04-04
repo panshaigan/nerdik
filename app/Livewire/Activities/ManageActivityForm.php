@@ -395,7 +395,7 @@ class ManageActivityForm extends Component
         }
 
         return view('livewire.activities.manage-activity-form', [
-            'tags' => Tag::with(['translations', 'aliases', 'attachedTags'])->orderBy('category')->orderBy('slug')->get(),
+            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
             'futureEvents' => $this->futureEventsForProposal(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSlots' => $proposalEventSlots,

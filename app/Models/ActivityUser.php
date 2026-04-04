@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ActivityParticipant extends Model
+class ActivityUser extends Model
 {
+    protected $table = 'activity_user';
+
     protected $fillable = [
         'activity_id',
         'user_id',

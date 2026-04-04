@@ -40,14 +40,15 @@ class Tag extends Model
         return $this->hasMany(TagAlias::class);
     }
 
-    public function attachedTags()
+    public function tagAttachments()
     {
-        return $this->hasMany(AttachedTag::class, 'tag_id');
+        return $this->hasMany(TagAttachment::class, 'tag_id');
     }
 
-    public function attachedTo()
+    /** TagAttachment rows where this tag is the linked tag (`attached_tag_id`, inverse side). */
+    public function inverseTagAttachments()
     {
-        return $this->hasMany(AttachedTag::class, 'attached_tag_id');
+        return $this->hasMany(TagAttachment::class, 'attached_tag_id');
     }
 
     public function slots()
