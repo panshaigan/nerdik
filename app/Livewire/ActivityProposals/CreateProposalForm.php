@@ -6,9 +6,7 @@ use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
-use App\Models\Slot;
-use App\Notifications\ProposalAcceptedNotification;
-use App\Notifications\ProposalSubmittedNotification;
+use App\Services\ActivityProposalFlowService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -52,37 +50,14 @@ class CreateProposalForm extends Component
         ]);
         $proposal->load(['activity', 'event', 'creator']);
 
-        if ($event->created_by !== Auth::id()) {
-            $event->creator?->notify(new ProposalSubmittedNotification($proposal));
-        }
-
-        if (! empty($validated['slot_ids'])) {
-            $slots = Slot::whereIn('id', $validated['slot_ids'])
-                ->where('event_id', $event->id)
-                ->whereNull('activity_id')
-                ->get();
-
-            foreach ($slots as $slot) {
-                $proposal->slots()->create([
-                    'slot_id' => $slot->id,
-                ]);
-            }
-
-            $autoSlot = $slots->firstWhere('requires_approval', false);
-
-            if ($autoSlot) {
-                $autoSlot->loadMissing('activityTypes');
-                if ($autoSlot->fitsProposalActivity($activity)) {
-                    $proposal->update([
-                        'status' => ActivityProposalStatus::Accepted,
-                        'accepted_slot_id' => $autoSlot->id,
-                    ]);
-                    $autoSlot->update(['activity_id' => $activity->id]);
-
-                    $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
-                }
-            }
-        }
+        $flow = app(ActivityProposalFlowService::class);
+        $flow->notifyHostOfNewProposal($proposal);
+        $flow->attachProposedSlotsAndTryAutoAccept(
+            $proposal,
+            $event,
+            $activity,
+            $validated['slot_ids'] ?? []
+        );
 
         session()->flash('status', __('ui.status.proposal_submitted'));
 

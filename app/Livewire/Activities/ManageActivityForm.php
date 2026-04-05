@@ -7,10 +7,8 @@ use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
-use App\Models\Slot;
 use App\Models\Tag;
-use App\Notifications\ProposalAcceptedNotification;
-use App\Notifications\ProposalSubmittedNotification;
+use App\Services\ActivityProposalFlowService;
 use App\Services\TagSelectionService;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
@@ -341,34 +339,9 @@ class ManageActivityForm extends Component
         ]);
         $proposal->load(['activity', 'event', 'creator']);
 
-        if ($event->created_by !== auth()->id()) {
-            $event->creator?->notify(new ProposalSubmittedNotification($proposal));
-        }
-
-        if (! empty($this->proposal_slot_ids)) {
-            $validIds = Slot::query()
-                ->where('event_id', $event->id)
-                ->whereNull('activity_id')
-                ->whereIn('id', $this->proposal_slot_ids)
-                ->pluck('id')
-                ->all();
-            $proposal->proposedSlots()->sync($validIds);
-
-            $slots = Slot::whereIn('id', $validIds)->get();
-            $autoSlot = $slots->firstWhere('requires_approval', false);
-            if ($autoSlot) {
-                $autoSlot->loadMissing('activityTypes');
-                if ($autoSlot->fitsProposalActivity($activity)) {
-                    $proposal->update([
-                        'status' => ActivityProposalStatus::Accepted,
-                        'accepted_slot_id' => $autoSlot->id,
-                    ]);
-                    $autoSlot->update(['activity_id' => $activity->id]);
-
-                    $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
-                }
-            }
-        }
+        $flow = app(ActivityProposalFlowService::class);
+        $flow->notifyHostOfNewProposal($proposal);
+        $flow->attachProposedSlotsAndTryAutoAccept($proposal, $event, $activity, $this->proposal_slot_ids);
 
         return $proposal;
     }
@@ -412,7 +385,7 @@ class ManageActivityForm extends Component
         }
 
         return view('livewire.activities.manage-activity-form', [
-            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
+            'tags' => Tag::orderedForSelector()->get(),
             'futureEvents' => $this->futureEventsForProposal(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSlots' => $proposalEventSlots,

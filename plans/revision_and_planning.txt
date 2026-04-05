@@ -3,16 +3,14 @@
         - type of activity (RPG, wargaming, board games, card games, larp, discussion, competition, workshop, lecture, show)
         - extra = { "is_beginner_friendly": true, "needs_lore_knowledge": false, "needs_mechanics_knowledge": true, "scenario_type": "custom",  "duration" : "one-shot"})
     - one more look for the tag system
-    - ensure the property of the objects and restricted Actions
-    - ensure the consolidity of the frontend
     - go around the code and search for duplicates. DRY
-    - Ownership + meta columns: implement a single trait (HasMetaColumns) and a global observer so you don’t have to remember it in each place.
     - refactor
 
 2. Content
     - seeding database with basic data
     - seeding with sample data
     - check the admin panel
+    - my tags/places/slots cruds
 
 3. Technicals
     - performance
@@ -28,6 +26,11 @@
 5. i18n/l10n
 
 6. UI/UX
+- Morph comment markers around @if / @foreach etc. are what help Livewire’s DOM morphing in tricky cases. Turning them off can make some conditional updates a bit less smooth. If anything odd shows up only after a Livewire update on that page, the long-term fix is to split show-event into smaller Blade partials/components so the template stays smaller with morph markers re-enabled.
+    0 Practical takeaway for later
+    Do: break the event screen into clear Blade partials or child components (info / slots / proposals), optionally behind tabs.
+    Consider: lazy proposals (and maybe slots) if those blocks are heavy.
+    Don’t assume: tabs alone shrink the runtime DOM unless you also defer rendering or split what gets sent.
 - disable tinymce focus border
 - graphically enhance the screens
 
@@ -35,3 +38,7 @@
     - restrict the user roles (like organizer should be approved)
     - activity languages
     - feedback system
+
+
+
+    

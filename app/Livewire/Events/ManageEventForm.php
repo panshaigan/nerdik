@@ -455,7 +455,7 @@ class ManageEventForm extends Component
         $exceptId = $this->editingEventId;
 
         return view('livewire.events.manage-event-form', [
-            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
+            'tags' => Tag::orderedForSelector()->get(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
             'eventPlacesConfig' => $eventPlacesConfig,

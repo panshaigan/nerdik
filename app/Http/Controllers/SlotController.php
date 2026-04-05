@@ -29,7 +29,7 @@ class SlotController extends Controller
 
         $events = Event::orderBy('starts_at', 'desc')->get();
 
-        $tags = Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get();
+        $tags = Tag::orderedForSelector()->get();
 
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
         $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
