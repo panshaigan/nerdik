@@ -8,9 +8,11 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
+use App\Services\ActivityProposalDecisionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -25,6 +27,13 @@ class ShowEvent extends Component
 
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];
+
+    /**
+     * Pending proposal accept: slot id per proposal (empty string = auto-assign). Keys are proposal ids.
+     *
+     * @var array<int|string, int|string>
+     */
+    public array $proposalAcceptSlotId = [];
 
     public function mount(Event $event): void
     {
@@ -136,6 +145,64 @@ class ShowEvent extends Component
 
         $this->refreshAfterSlotMutation();
         session()->flash('status', __('ui.status.activity_detached_from_slot'));
+    }
+
+    public function acceptPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        abort_unless(auth()->user()?->canModifyEntity($event), 403);
+
+        $proposal = ActivityProposal::query()
+            ->whereKey($proposalId)
+            ->where('event_id', $this->eventId)
+            ->firstOrFail();
+
+        if ($proposal->status !== ActivityProposalStatus::Pending) {
+            session()->flash('status', __('ui.status.proposal_not_pending'));
+
+            return;
+        }
+
+        $rawSlotId = $this->proposalAcceptSlotId[$proposalId]
+            ?? $this->proposalAcceptSlotId[(string) $proposalId]
+            ?? '';
+
+        try {
+            $decisions->accept($proposal, $rawSlotId);
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $messages) {
+                foreach ($messages as $message) {
+                    $this->addError('proposalAcceptSlot.'.$proposalId, $message);
+                }
+            }
+
+            return;
+        }
+
+        unset($this->proposalAcceptSlotId[$proposalId], $this->proposalAcceptSlotId[(string) $proposalId]);
+        $this->slotListVersion++;
+        session()->flash('status', __('ui.status.proposal_accepted'));
+    }
+
+    public function rejectPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        abort_unless(auth()->user()?->canModifyEntity($event), 403);
+
+        $proposal = ActivityProposal::query()
+            ->whereKey($proposalId)
+            ->where('event_id', $this->eventId)
+            ->firstOrFail();
+
+        if ($proposal->status !== ActivityProposalStatus::Pending) {
+            session()->flash('status', __('ui.status.proposal_not_pending'));
+
+            return;
+        }
+
+        $decisions->reject($proposal);
+        $this->slotListVersion++;
+        session()->flash('status', __('ui.status.proposal_rejected'));
     }
 
     /**
