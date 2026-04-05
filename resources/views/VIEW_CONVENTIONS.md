@@ -33,7 +33,7 @@ Mary is aligned with Daisy; prefer Mary for **forms** so labels, errors, and inp
 
 Some integrations need one-off utilities; keep them local and comment if non-obvious:
 
-- Quill / rich text: `min-h-[11rem]` on the editor mount div.
+- Rich text (TinyMCE / Mary `<x-editor>`): editor height is configured on the component; use `min-h-*` on wrappers only when needed for layout.
 - Leaflet: `z-[1000]` / `min-h-[280px]` on map containers.
 - Mass slot modal: `z-[9999]` so it stacks above Leaflet.
 - **ui-avatars.com** query params use fixed hex colors for generated avatars (third-party API, not theme tokens).
