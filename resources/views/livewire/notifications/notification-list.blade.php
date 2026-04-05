@@ -22,9 +22,9 @@
                         $isUnread = $notification->read_at === null;
                     @endphp
                     <li class="p-4 {{ $isUnread ? 'bg-primary/10' : '' }}">
-                        <button
+                        <x-button
                             type="button"
-                            class="w-full text-left"
+                            class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-0 font-normal normal-case text-start shadow-none hover:bg-base-200/50"
                             wire:click="markReadAndGo('{{ $notification->id }}')"
                             wire:loading.attr="disabled"
                             wire:target="markReadAndGo"
@@ -48,7 +48,7 @@
                                 <span class="opacity-90">{{ json_encode($d) }}</span>
                             @endif
                             <p class="mt-1 text-xs opacity-60">{{ $notification->created_at->diffForHumans() }}</p>
-                        </button>
+                        </x-button>
                     </li>
                 @empty
                     <li class="p-6 text-center opacity-70">{{ __('No notifications yet.') }}</li>

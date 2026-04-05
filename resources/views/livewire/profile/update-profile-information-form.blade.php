@@ -166,9 +166,9 @@ new class extends Component
                     <p class="text-sm text-base-content/80">
                         {{ __('Your email address is unverified.') }}
 
-                        <button type="button" wire:click.prevent="sendVerification" class="link link-primary text-sm">
+                        <x-button type="button" wire:click.prevent="sendVerification" class="btn-link link link-primary h-auto min-h-0 p-0 text-sm font-normal">
                             {{ __('Click here to re-send the verification email.') }}
-                        </button>
+                        </x-button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')

@@ -19,15 +19,15 @@
             >
                 <span class="sr-only">{{ __('ui.browse.text_search_chip_label') }}:</span>
                 <span class="min-w-0 truncate">{{ $q }}</span>
-                <button
+                <x-button
                     type="button"
                     wire:click="clearTextSearch"
                     wire:loading.attr="disabled"
-                    class="btn btn-ghost btn-xs btn-square min-h-0 h-5 w-5 shrink-0 p-0 opacity-70 hover:opacity-100"
-                    aria-label="{{ __('ui.browse.text_search_remove') }}"
+                    class="btn-ghost btn-xs btn-square min-h-0 h-5 w-5 shrink-0 p-0 opacity-70 hover:opacity-100"
+                    :aria-label="__('ui.browse.text_search_remove')"
                 >
                     ×
-                </button>
+                </x-button>
             </span>
         </div>
     @endif

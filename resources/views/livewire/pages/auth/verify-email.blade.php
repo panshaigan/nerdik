@@ -51,8 +51,8 @@ new #[Layout('layouts.guest')] class extends Component
             {{ __('Resend Verification Email') }}
         </x-button>
 
-        <button id="ui-auth-verify-logout" wire:click="logout" type="button" class="link link-primary text-sm ui-action ui-action-logout" data-ui="auth-verify-logout">
+        <x-button id="ui-auth-verify-logout" wire:click="logout" type="button" class="btn-link link link-primary h-auto min-h-0 p-0 text-sm font-normal ui-action ui-action-logout" data-ui="auth-verify-logout">
             {{ __('Log Out') }}
-        </button>
+        </x-button>
     </div>
 </div>
