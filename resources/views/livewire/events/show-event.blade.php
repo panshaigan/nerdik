@@ -484,39 +484,47 @@
                                     @elseif ($freeSlots->isEmpty())
                                         <span class="text-sm text-base-content/50">{{ __('ui.events.no_compatible_slots') }}</span>
                                     @else
-                                        <form action="{{ route('activity-proposals.accept', $proposal) }}" method="POST" class="inline-flex max-w-full flex-wrap items-center gap-1">
-                                            @csrf
-                                            <x-form-select name="slot_id" class="select-sm max-w-md min-w-[12rem] flex-1" :omit-error="true">
-                                                <option value="">{{ __('ui.events.choose_slot_or_auto') }}</option>
-                                                @foreach ($freeSlots as $s)
-                                                    <option value="{{ $s->id }}">{{ $s->proposalAcceptOptionLabel() }}</option>
-                                                @endforeach
-                                            </x-form-select>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-success btn-square btn-sm shrink-0"
-                                                title="{{ __('ui.events.accept') }}"
-                                                aria-label="{{ __('ui.events.accept') }}"
+                                        @php
+                                            $acceptSlotSelectOptions = $freeSlots->map(fn ($s) => [
+                                                'id' => $s->id,
+                                                'name' => $s->proposalAcceptOptionLabel(),
+                                            ])->values()->all();
+                                        @endphp
+                                        <div class="inline-flex max-w-full flex-wrap items-center gap-1" wire:key="proposal-accept-{{ $proposal->id }}">
+                                            <x-select
+                                                wire:model.live="proposalAcceptSlotId.{{ $proposal->id }}"
+                                                :options="$acceptSlotSelectOptions"
+                                                :placeholder="__('ui.events.choose_slot_or_auto')"
+                                                placeholder-value=""
+                                                class="select-sm max-w-md min-w-[12rem] flex-1"
+                                                :error-field="'proposalAcceptSlot.'.$proposal->id"
+                                            />
+                                            <x-button
+                                                type="button"
+                                                class="btn-success btn-square btn-sm shrink-0"
+                                                :title="__('ui.events.accept')"
+                                                wire:click="acceptPendingProposal({{ $proposal->id }})"
+                                                wire:loading.attr="disabled"
                                             >
+                                                <span class="sr-only">{{ __('ui.events.accept') }}</span>
                                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                                 </svg>
-                                            </button>
-                                        </form>
+                                            </x-button>
+                                        </div>
                                     @endif
-                                    <form action="{{ route('activity-proposals.reject', $proposal) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button
-                                            type="submit"
-                                            class="btn btn-error btn-square btn-sm shrink-0"
-                                            title="{{ __('ui.events.reject') }}"
-                                            aria-label="{{ __('ui.events.reject') }}"
-                                        >
-                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    <x-button
+                                        type="button"
+                                        class="btn-error btn-square btn-sm shrink-0"
+                                        :title="__('ui.events.reject')"
+                                        wire:click="rejectPendingProposal({{ $proposal->id }})"
+                                        wire:loading.attr="disabled"
+                                    >
+                                        <span class="sr-only">{{ __('ui.events.reject') }}</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                        </svg>
+                                    </x-button>
                                 </div>
                             </li>
                         @endforeach
