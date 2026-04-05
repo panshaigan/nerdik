@@ -59,6 +59,8 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 Route::middleware(['auth'])->group(function () {
+    Route::redirect('slots', '/dashboard', 301);
+
     Route::view('organizations', 'organizations.index')->name('organizations.index');
 
     Route::resource('organizations', OrganizationController::class)
@@ -71,9 +73,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('events/{event}/slots/mass', [EventController::class, 'massStoreSlots'])->name('events.slots.mass');
     Route::resource('events', EventController::class)->except(['show', 'store', 'update', 'index']);
 
-    Route::view('slots', 'slots.index')->name('slots.index');
-    Route::resource('slots', SlotController::class)
-        ->except(['show', 'index']);
+    // Slot edit/update only (modal fetch + form POST). Create/list/destroy are via event UI or Filament admin.
+    Route::get('slots/{slot}/edit', [SlotController::class, 'edit'])->name('slots.edit');
+    Route::put('slots/{slot}', [SlotController::class, 'update'])->name('slots.update');
 
     Route::resource('places', PlaceController::class)
         ->except(['show']);

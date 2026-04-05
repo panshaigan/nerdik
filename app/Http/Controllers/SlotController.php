@@ -19,66 +19,7 @@ class SlotController extends Controller
     ) {}
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
-        $lockedEvent = null;
-        if ($request->filled('event')) {
-            $lockedEvent = Event::where('slug', $request->string('event'))->firstOrFail();
-        }
-
-        $events = Event::orderBy('starts_at', 'desc')->get();
-
-        $slot = new Slot;
-        if ($lockedEvent) {
-            $slot->event_id = $lockedEvent->id;
-        }
-
-        $slotMassVenues = collect();
-        $slotMassRoomsByVenueId = [];
-        if ($lockedEvent) {
-            $slotMassVenues = $this->slotFormService->venuesForEventMassForm($lockedEvent);
-            $slotMassRoomsByVenueId = $this->slotFormService->roomOptionsByVenueId($slotMassVenues);
-        }
-
-        $tags = Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get();
-        $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
-        $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
-        $massPlaceData = $this->slotFormService->massFormPlaceDataForAllEvents();
-
-        return view('slots.create', [
-            'slot' => $slot,
-            'events' => $events,
-            'lockedEvent' => $lockedEvent,
-            'tags' => $tags,
-            'slotNameSuggestions' => $slotNameSuggestions,
-            'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
-            'slotMassVenues' => $slotMassVenues,
-            'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
-        ] + $massPlaceData);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        if (! $request->boolean('mass')) {
-            return redirect()->route('slots.create');
-        }
-
-        $request->validate([
-            'event_id' => ['required', 'exists:events,id'],
-        ]);
-        $event = Event::query()->findOrFail((int) $request->input('event_id'));
-        $this->authorizeCreatedBy($event);
-
-        return $this->slotFormService->massCreate($request);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * Slot edit form fragment for the event-page modal (fetched via XHR).
      */
     public function edit(Request $request, Slot $slot)
     {
@@ -97,10 +38,9 @@ class SlotController extends Controller
 
         $slotVenueRoomDefaults = $this->slotFormService->slotVenueRoomDefaultsFromPlace($slot);
 
-        $lockedEvent = $request->boolean('modal') ? $slot->event : null;
-
-        $slotMassVenues = $lockedEvent ? $this->slotFormService->venuesForEventMassForm($slot->event) : collect();
-        $slotMassRoomsByVenueId = $lockedEvent ? $this->slotFormService->roomOptionsByVenueId($slotMassVenues) : [];
+        $lockedEvent = $slot->event;
+        $slotMassVenues = $this->slotFormService->venuesForEventMassForm($slot->event);
+        $slotMassRoomsByVenueId = $this->slotFormService->roomOptionsByVenueId($slotMassVenues);
 
         $payload = array_merge(
             compact(
@@ -117,11 +57,7 @@ class SlotController extends Controller
             $massPlaceData
         );
 
-        if ($request->boolean('modal')) {
-            return view('slots.edit-modal', $payload);
-        }
-
-        return view('slots.edit', $payload);
+        return view('slots.edit-modal', $payload);
     }
 
     /**
@@ -142,18 +78,5 @@ class SlotController extends Controller
         }
 
         return $this->slotFormService->updateSlot($request, $slot);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Slot $slot)
-    {
-        $this->authorizeCreatedBy($slot);
-
-        $slot->delete();
-
-        return redirect()->route('slots.index')
-            ->with('status', __('Slot deleted.'));
     }
 }
