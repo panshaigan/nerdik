@@ -7,20 +7,19 @@
 
             <form wire:submit.prevent="save" class="space-y-4">
                 <div>
-                    <x-form-select
+                    <x-select
                         id="activity_id"
                         wire:model="activity_id"
                         :label="__('ui.proposals.your_activity')"
                         error-field="activity_id"
                         required
-                    >
-                        <option value="">{{ __('ui.proposals.choose_activity') }}</option>
-                        @foreach ($myActivities as $activity)
-                            <option value="{{ $activity->id }}">
-                                {{ $activity->name }} ({{ ucfirst($activity->type->value) }})
-                            </option>
-                        @endforeach
-                    </x-form-select>
+                        :options="$myActivities->map(fn ($a) => [
+                            'id' => $a->id,
+                            'name' => $a->name.' ('.ucfirst($a->type->value).')',
+                        ])->values()->all()"
+                        :placeholder="__('ui.proposals.choose_activity')"
+                        placeholder-value=""
+                    />
                     @if ($myActivities->isEmpty())
                         <p class="mt-1 text-sm text-warning">
                             {{ __('ui.proposals.no_activities_yet') }}

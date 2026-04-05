@@ -23,12 +23,17 @@
                             :omit-error="true"
                             data-ui="browse-activities-to-date-input"
                         />
-                        <x-form-select id="place_id" wire:model.live="place_id" :label="__('Place')" class="ui-field ui-field-place" data-ui="browse-activities-place-select">
-                            <option value="">{{ __('Any') }}</option>
-                            @foreach ($places as $place)
-                                <option value="{{ $place->id }}">{{ $place->name }}</option>
-                            @endforeach
-                        </x-form-select>
+                        <x-select
+                            id="place_id"
+                            wire:model.live="place_id"
+                            :label="__('Place')"
+                            :options="$places->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values()->all()"
+                            :placeholder="__('Any')"
+                            placeholder-value=""
+                            class="ui-field ui-field-place"
+                            data-ui="browse-activities-place-select"
+                            :omit-error="true"
+                        />
                         @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-activities'])
                         @if ($this->hasActiveFilters())
                             <x-button

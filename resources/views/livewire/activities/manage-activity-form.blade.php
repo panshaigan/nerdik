@@ -35,20 +35,16 @@
                     </div>
 
                     <div>
-                        <x-form-select
+                        <x-select
                             id="type"
                             wire:model="type"
                             :label="__('ui.activities.type')"
                             error-field="type"
                             required
-                        >
-                            <option value="" disabled @selected($type === '')>{{ __('ui.activities.choose_type') }}</option>
-                            @foreach ($activityTypes as $t)
-                                <option value="{{ $t }}" @selected($type === $t)>
-                                    {{ ucfirst($t) }}
-                                </option>
-                            @endforeach
-                        </x-form-select>
+                            :options="collect($activityTypes)->map(fn ($t) => ['id' => $t, 'name' => ucfirst($t)])->values()->all()"
+                            :placeholder="__('ui.activities.choose_type')"
+                            placeholder-value=""
+                        />
                     </div>
                 </div>
             </div>
@@ -214,25 +210,28 @@
             <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.propose_to_event_help') }}</p>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                @php
+                    $proposalEventSelectOptions = $futureEvents->map(function ($ev) {
+                        $label = $ev->name;
+                        if ($ev->starts_at) {
+                            $label .= ' — '.$ev->starts_at->timezone(config('app.timezone'))->format('Y-m-d H:i');
+                        }
+
+                        return ['id' => $ev->id, 'name' => $label];
+                    })->values()->all();
+                @endphp
                 <div>
-                    <x-form-select
+                    <x-select
                         id="proposal_event_id"
                         wire:model.live="proposal_event_id"
                         :label="__('ui.activities.proposal_event')"
                         error-field="proposal_event_id"
                         class="ui-field ui-field-proposal-event"
                         data-ui="proposal-event-select"
-                    >
-                        <option value="">{{ __('ui.activities.proposal_event_none') }}</option>
-                        @foreach ($futureEvents as $ev)
-                            <option value="{{ $ev->id }}">
-                                {{ $ev->name }}
-                                @if ($ev->starts_at)
-                                    — {{ $ev->starts_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}
-                                @endif
-                            </option>
-                        @endforeach
-                    </x-form-select>
+                        :options="$proposalEventSelectOptions"
+                        :placeholder="__('ui.activities.proposal_event_none')"
+                        placeholder-value=""
+                    />
                     @if ($futureEvents->isEmpty())
                         <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_no_future_events') }}</p>
                     @endif

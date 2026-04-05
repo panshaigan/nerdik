@@ -1,6 +1,11 @@
 {{--
-    DaisyUI <select> with Mary-style fieldset/legend. Use when options need @selected (old() / dynamic data).
-    Mary <x-select> does not render per-option selected state for plain Blade forms.
+    DaisyUI <select> with Mary-style fieldset/legend.
+
+    Prefer Mary <x-select> with :options + wire:model for Livewire.
+
+    Keep this component when:
+    - Classic POST forms need @selected(old(...)) (Mary <x-select> does not mark selected options).
+    - Options need extra attributes (e.g. data-country on <option>) or slots Mary cannot express.
 --}}
 @props([
     'label' => null,
