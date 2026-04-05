@@ -39,7 +39,9 @@
     $approvalFieldId = $editMode ? 'requires_approval_modal_edit' : 'requires_approval_modal_create';
     $massFormAction = $massFormAction ?? null;
     $formAction = $massFormAction
-        ?? ($editMode ? route('slots.update', $slot) : route('slots.store'));
+        ?? ($editMode
+            ? route('slots.update', $slot)
+            : ($lockedEvent ? route('events.slots.mass', $lockedEvent) : '#'));
 @endphp
 
 <form
@@ -351,7 +353,10 @@
                 {{ __('ui.common.cancel') }}
             </x-button>
         @else
-            <x-button :link="route('slots.index')" class="btn-outline">{{ __('ui.common.cancel') }}</x-button>
+            <x-button
+                :link="$lockedEvent ? route('events.show', $lockedEvent) : route('dashboard')"
+                class="btn-outline"
+            >{{ __('ui.common.cancel') }}</x-button>
         @endif
 
         <x-button class="btn-primary" type="submit">{{ $editMode ? __('ui.common.save') : __('ui.slots.create_slots') }}</x-button>

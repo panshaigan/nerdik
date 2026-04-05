@@ -9,7 +9,7 @@
     </dialog>
 
     @php
-        $slotEditUrlTemplate = url('/slots/__SLOT__/edit').'?modal=1';
+        $slotEditUrlTemplate = url('/slots/__SLOT__/edit');
     @endphp
     <script>
         (function () {

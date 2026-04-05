@@ -425,7 +425,7 @@ class SlotFormService
             }
         }
 
-        return redirect()->route('slots.index')
+        return redirect()->route('dashboard')
             ->withInput()
             ->withErrors($errors)
             ->with('open_slot_edit', $slot->id);
@@ -442,7 +442,7 @@ class SlotFormService
             }
         }
 
-        return redirect()->route('slots.index')
+        return redirect()->route('dashboard')
             ->with('status', __('Slot updated.'));
     }
 
@@ -462,7 +462,7 @@ class SlotFormService
             }
         }
 
-        return redirect()->route('slots.index')
+        return redirect()->route('dashboard')
             ->with('status', $message);
     }
 }
