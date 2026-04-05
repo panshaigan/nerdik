@@ -108,7 +108,7 @@ class BrowseActivities extends Component
             'activities' => $activities,
             'places' => $places,
             'wishlistActivityIds' => $wishlistActivityIds,
-            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
+            'tags' => Tag::orderedForSelector()->get(),
         ]);
     }
 }

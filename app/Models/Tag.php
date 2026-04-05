@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -54,5 +55,17 @@ class Tag extends Model
     public function slots()
     {
         return $this->belongsToMany(Slot::class, 'slot_tag');
+    }
+
+    /**
+     * Tags eager-loaded for form selectors and browse filters (single query shape app-wide).
+     *
+     * @return Builder<self>
+     */
+    public function scopeOrderedForSelector(Builder $query): Builder
+    {
+        return $query->with(['translations', 'aliases', 'tagAttachments'])
+            ->orderBy('category')
+            ->orderBy('slug');
     }
 }

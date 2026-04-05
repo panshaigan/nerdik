@@ -378,7 +378,7 @@ class BrowseEvents extends Component
             'browseListings' => $paginator,
             'wishlistEventIds' => $wishlistEventIds,
             'wishlistActivityIds' => $wishlistActivityIds,
-            'tags' => Tag::with(['translations', 'aliases', 'tagAttachments'])->orderBy('category')->orderBy('slug')->get(),
+            'tags' => Tag::orderedForSelector()->get(),
         ]);
     }
 }
