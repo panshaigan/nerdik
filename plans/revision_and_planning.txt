@@ -1,11 +1,37 @@
+1. Quality Assurance:
+    - review tag categories and add special behaviors for the categories
+        - type of activity (RPG, wargaming, board games, card games, larp, discussion, competition, workshop, lecture, show)
+        - extra = { "is_beginner_friendly": true, "needs_lore_knowledge": false, "needs_mechanics_knowledge": true, "scenario_type": "custom",  "duration" : "one-shot"})
+    - one more look for the tag system
+    - ensure the property of the objects and restricted Actions
+    - ensure the consolidity of the frontend
+    - go around the code and search for duplicates. DRY
+    - Ownership + meta columns: implement a single trait (HasMetaColumns) and a global observer so you don’t have to remember it in each place.
+    - refactor
 
-- graphics/ui enhancements
-    - Activities
-        - Add place (advanced)
-        - Add tag (advances)
-- Ensure if all the forms are safe. Check CSRF, XSS and other types of attack.
-- add automatic testing
-- performance
+2. Content
+    - seeding database with basic data
+    - seeding with sample data
+    - check the admin panel
 
-- introduce restricted features? like only admin approved people can add events
-- GOOGLE login (create app + add widget to login page)
+3. Technicals
+    - performance
+    - check vunerability to the common attacks
+    - ensure the db is good for vbig data and multilang
+    - GOOGLE login (create app + add widget to login page)
+    - Facebook login
+    - reestablish db
+    - slugs/ids
+    - wont i need openstreet api or smth?
+    - ensure testing
+
+5. i18n/l10n
+
+6. UI/UX
+- disable tinymce focus border
+- graphically enhance the screens
+
+7. Features
+    - restrict the user roles (like organizer should be approved)
+    - activity languages
+    - feedback system
