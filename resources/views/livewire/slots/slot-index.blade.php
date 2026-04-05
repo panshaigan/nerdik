@@ -32,7 +32,7 @@
                                 <td class="opacity-80">{{ $slot->starts_at ? format_in_user_tz($slot->starts_at) : '—' }}</td>
                                 <td class="opacity-80">{{ $slot->place?->venueRoomLabel() ?? '—' }}</td>
                                 <td class="text-end">
-                                    @if ($slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                    @canModifyEntity($slot)
                                         <button
                                             type="button"
                                             class="btn btn-ghost btn-sm text-primary me-3"
@@ -49,7 +49,7 @@
                                         >
                                             {{ __('Delete') }}
                                         </x-button>
-                                    @endif
+                                    @endcanModifyEntity
                                 </td>
                             </tr>
                         @empty

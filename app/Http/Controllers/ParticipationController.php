@@ -139,9 +139,7 @@ class ParticipationController extends Controller
     {
         $user = Auth::user();
 
-        if ((int) $activity->created_by !== (int) $user->id) {
-            abort(403, __('ui.activities.only_host_can_approve_waitlist'));
-        }
+        abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_approve_waitlist'));
 
         if (! $activity->requires_approval) {
             return redirect()->back()->with('status', __('ui.activities.approval_not_required_for_activity'));
@@ -189,9 +187,7 @@ class ParticipationController extends Controller
         $activity = $participant->activity;
         $user = Auth::user();
 
-        if ((int) $activity->created_by !== (int) $user->id) {
-            abort(403, __('Only the activity host can mark participants absent.'));
-        }
+        abort_unless($user->canModifyEntity($activity), 403, __('Only the activity host can mark participants absent.'));
 
         $participant->update(['is_absent' => true]);
 

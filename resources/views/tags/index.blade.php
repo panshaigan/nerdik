@@ -31,7 +31,7 @@
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'en')?->label ?? '—' }}</td>
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'pl')?->label ?? '—' }}</td>
                                     <td class="text-end">
-                                        @if ($tag->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        @canModifyEntity($tag)
                                             <a href="{{ route('tags.edit', $tag) }}" class="link link-primary me-3">
                                                 {{ __('Edit') }}
                                             </a>
@@ -47,7 +47,7 @@
                                                     {{ __('Delete') }}
                                                 </button>
                                             </form>
-                                        @endif
+                                        @endcanModifyEntity
                                     </td>
                                 </tr>
                             @empty

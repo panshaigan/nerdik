@@ -20,9 +20,7 @@ class ActivityProposalController extends Controller
     public function accept(Request $request, ActivityProposal $proposal)
     {
         $event = $proposal->event;
-        if ($event->created_by !== Auth::id()) {
-            abort(403, __('ui.status.forbidden_accept'));
-        }
+        abort_unless(Auth::user()?->canModifyEntity($event), 403, __('ui.status.forbidden_accept'));
         if ($proposal->status !== ActivityProposalStatus::Pending) {
             return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }
@@ -76,9 +74,7 @@ class ActivityProposalController extends Controller
     public function reject(ActivityProposal $proposal)
     {
         $event = $proposal->event;
-        if ($event->created_by !== Auth::id()) {
-            abort(403, __('ui.status.forbidden_reject'));
-        }
+        abort_unless(Auth::user()?->canModifyEntity($event), 403, __('ui.status.forbidden_reject'));
         if ($proposal->status !== ActivityProposalStatus::Pending) {
             return redirect()->back()->with('status', __('ui.status.proposal_not_pending'));
         }

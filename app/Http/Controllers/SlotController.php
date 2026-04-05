@@ -68,6 +68,12 @@ class SlotController extends Controller
             return redirect()->route('slots.create');
         }
 
+        $request->validate([
+            'event_id' => ['required', 'exists:events,id'],
+        ]);
+        $event = Event::query()->findOrFail((int) $request->input('event_id'));
+        $this->authorizeCreatedBy($event);
+
         return $this->slotFormService->massCreate($request);
     }
 

@@ -29,7 +29,7 @@
                                     <td class="opacity-80">{{ ucfirst($place->type) }}</td>
                                     <td class="opacity-80">{{ $place->parent?->name ?? '—' }}</td>
                                     <td class="text-end">
-                                        @if ($place->created_by === auth()->id() || (auth()->user()->is_admin ?? false))
+                                        @canModifyEntity($place)
                                             <a href="{{ route('places.edit', $place) }}" class="link link-primary me-3">
                                                 {{ __('Edit') }}
                                             </a>
@@ -45,7 +45,7 @@
                                                     {{ __('Delete') }}
                                                 </button>
                                             </form>
-                                        @endif
+                                        @endcanModifyEntity
                                     </td>
                                 </tr>
                             @empty

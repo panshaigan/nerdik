@@ -294,7 +294,7 @@
                                         <span class="ml-1 text-error">({{ __('Absent') }})</span>
                                     @endif
                                 </span>
-                                @if ($isHost && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
+                                @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
                                     <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline shrink-0">
                                         @csrf
                                         <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
@@ -318,7 +318,7 @@
                                         <span class="tabular-nums text-base-content/60">#{{ $entry->position }}</span>
                                         {{ $entry->user->nickname ?? $entry->user->email }}
                                     </span>
-                                    @if ($isHost && $activity->requires_approval)
+                                    @if ($canManageActivity && $activity->requires_approval)
                                         <form
                                             action="{{ route('activities.waitlist.approve', [$activity, $entry]) }}"
                                             method="POST"

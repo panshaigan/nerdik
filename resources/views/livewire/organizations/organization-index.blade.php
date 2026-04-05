@@ -34,6 +34,7 @@
                             </div>
                         @endif
                     </div>
+                    @canModifyEntity($organization)
                     <div class="flex shrink-0 items-center gap-1">
                         <button
                             type="button"
@@ -59,6 +60,7 @@
                             </svg>
                         </button>
                     </div>
+                    @endcanModifyEntity
                 </li>
             @empty
                 <li class="rounded-lg border border-dashed border-base-300 bg-base-100/50 px-4 py-8 text-center text-sm text-base-content/70">
