@@ -33,13 +33,13 @@
                                 <td class="opacity-80">{{ $slot->place?->venueRoomLabel() ?? '—' }}</td>
                                 <td class="text-end">
                                     @canModifyEntity($slot)
-                                        <button
+                                        <x-button
                                             type="button"
-                                            class="btn btn-ghost btn-sm text-primary me-3"
+                                            class="btn-ghost btn-sm text-primary me-3"
                                             onclick="window.openSlotEditModal?.({{ $slot->id }})"
                                         >
                                             {{ __('Edit') }}
-                                        </button>
+                                        </x-button>
 
                                         <x-button
                                             type="button"

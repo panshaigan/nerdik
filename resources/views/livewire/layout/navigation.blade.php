@@ -47,11 +47,13 @@ new class extends Component
             </div>
 
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
-                <button type="button"
-                        onclick="window.toggleTheme()"
-                        class="rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs hover:bg-base-200">
+                <x-button
+                    type="button"
+                    onclick="window.toggleTheme()"
+                    class="btn-sm rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs hover:bg-base-200"
+                >
                     <span>{{ __('Theme') }}</span>
-                </button>
+                </x-button>
                 <div class="inline-flex items-center rounded-md border border-base-300 bg-base-100 p-1 text-xs">
                     <span class="px-2 opacity-70">{{ __('ui.common.language') }}</span>
                     <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
@@ -101,19 +103,19 @@ new class extends Component
                         <li><a href="#">{{ __('Dummy menu item') }}</a></li>
                         <li><a href="#">{{ __('Another quick action') }}</a></li>
                         <li>
-                            <button type="button" wire:click="logout" class="w-full text-start">{{ __('Log Out') }}</button>
+                            <x-button type="button" wire:click="logout" class="btn-ghost h-auto min-h-0 w-full justify-start font-normal">{{ __('Log Out') }}</x-button>
                         </li>
                     </ul>
                 </div>
             </div>
 
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-md p-2 opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none">
+                <x-button type="button" @click="open = ! open" class="btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                </button>
+                </x-button>
             </div>
         </div>
     </div>
@@ -138,11 +140,13 @@ new class extends Component
 
             <div class="mt-3 space-y-1">
                 <div class="px-4 py-2">
-                    <button type="button"
-                            onclick="window.toggleTheme()"
-                            class="mb-3 rounded border border-base-300 px-2 py-1 text-xs">
+                    <x-button
+                        type="button"
+                        onclick="window.toggleTheme()"
+                        class="mb-3 btn-sm rounded border border-base-300 px-2 py-1 text-xs"
+                    >
                         {{ __('Theme') }}
-                    </button>
+                    </x-button>
                     <p class="text-xs uppercase tracking-wide opacity-70">{{ __('ui.common.language') }}</p>
                     <div class="mt-2 flex gap-2">
                         <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
@@ -170,9 +174,9 @@ new class extends Component
                    class="{{ $navLink(request()->routeIs('organizations.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                     {{ __('Organizations') }}
                 </a>
-                <button type="button" wire:click="logout" class="w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-base-content/80">
+                <x-button type="button" wire:click="logout" class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Log Out') }}
-                </button>
+                </x-button>
             </div>
         </div>
     </div>

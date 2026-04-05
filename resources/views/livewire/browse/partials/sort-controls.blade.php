@@ -5,13 +5,13 @@
 <div class="flex flex-wrap items-center gap-x-6 gap-y-2" data-ui="browse-sort-controls">
     <div class="flex items-center gap-1.5">
         <span class="text-sm font-medium text-base-content">{{ __('ui.browse.sort_date') }}</span>
-        <button
+        <x-button
             type="button"
             wire:click="toggleSort('date')"
             wire:key="{{ $prefix }}-sort-date"
-            class="btn btn-ghost btn-xs h-8 min-h-8 w-8 shrink-0 rounded-lg p-0 {{ $sort === 'date' ? 'text-primary' : 'text-base-content/35 hover:text-base-content/70' }}"
-            title="{{ __('ui.browse.sort_toggle_date') }}"
-            aria-label="{{ __('ui.browse.sort_toggle_date') }}"
+            class="btn-ghost btn-xs h-8 min-h-8 w-8 shrink-0 rounded-lg p-0 {{ $sort === 'date' ? 'text-primary' : 'text-base-content/35 hover:text-base-content/70' }}"
+            :title="__('ui.browse.sort_toggle_date')"
+            :aria-label="__('ui.browse.sort_toggle_date')"
             aria-pressed="{{ $sort === 'date' ? 'true' : 'false' }}"
             data-ui="{{ $prefix }}-sort-date"
         >
@@ -33,18 +33,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 10l4-4 4 4M8 14l4 4 4-4" />
                 </svg>
             @endif
-        </button>
+        </x-button>
     </div>
 
     <div class="flex items-center gap-1.5">
         <span class="text-sm font-medium text-base-content">{{ __('ui.browse.sort_name') }}</span>
-        <button
+        <x-button
             type="button"
             wire:click="toggleSort('name')"
             wire:key="{{ $prefix }}-sort-name"
-            class="btn btn-ghost btn-xs h-8 min-h-8 w-8 shrink-0 rounded-lg p-0 {{ $sort === 'name' ? 'text-primary' : 'text-base-content/35 hover:text-base-content/70' }}"
-            title="{{ __('ui.browse.sort_toggle_name') }}"
-            aria-label="{{ __('ui.browse.sort_toggle_name') }}"
+            class="btn-ghost btn-xs h-8 min-h-8 w-8 shrink-0 rounded-lg p-0 {{ $sort === 'name' ? 'text-primary' : 'text-base-content/35 hover:text-base-content/70' }}"
+            :title="__('ui.browse.sort_toggle_name')"
+            :aria-label="__('ui.browse.sort_toggle_name')"
             aria-pressed="{{ $sort === 'name' ? 'true' : 'false' }}"
             data-ui="{{ $prefix }}-sort-name"
         >
@@ -63,6 +63,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 10l4-4 4 4M8 14l4 4 4-4" />
                 </svg>
             @endif
-        </button>
+        </x-button>
     </div>
 </div>

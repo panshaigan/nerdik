@@ -4,7 +4,7 @@
             <div id="slot-edit-modal-body" class="min-h-[4rem]"></div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button type="submit" aria-label="{{ __('ui.common.cancel') }}">{{ __('ui.common.cancel') }}</button>
+            <x-button type="submit" class="btn-ghost" :aria-label="__('ui.common.cancel')">{{ __('ui.common.cancel') }}</x-button>
         </form>
     </dialog>
 
