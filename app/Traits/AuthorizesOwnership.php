@@ -13,15 +13,6 @@ trait AuthorizesOwnership
     protected function authorizeCreatedBy(Model $entity): void
     {
         $user = auth()->user();
-        abort_unless($user, 403);
-
-        if ($user->is_admin === true) {
-            return;
-        }
-
-        $ownerId = $entity->getAttribute('created_by');
-        if ($ownerId === null || (int) $ownerId !== (int) $user->id) {
-            abort(403);
-        }
+        abort_unless($user && $user->canModifyEntity($entity), 403);
     }
 }

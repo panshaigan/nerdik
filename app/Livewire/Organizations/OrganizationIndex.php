@@ -129,10 +129,11 @@ class OrganizationIndex extends Component
 
     public function render()
     {
-        $organizations = Organization::query()
-            ->where('created_by', auth()->id())
-            ->orderBy('name')
-            ->get();
+        $organizationsQuery = Organization::query()->orderBy('name');
+        if (! auth()->user()->is_admin) {
+            $organizationsQuery->where('created_by', auth()->id());
+        }
+        $organizations = $organizationsQuery->get();
 
         return view('livewire.organizations.organization-index', [
             'organizations' => $organizations,

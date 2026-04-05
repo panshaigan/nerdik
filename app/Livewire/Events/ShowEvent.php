@@ -96,11 +96,7 @@ class ShowEvent extends Component
     public function detachActivityFromSlot(int $slotId): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $canManageEvent = auth()->check()
-            && ((int) $event->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
-        if (! $canManageEvent) {
-            abort(403);
-        }
+        $this->authorizeCreatedBy($event);
 
         $slot = Slot::query()
             ->whereKey($slotId)
@@ -261,9 +257,8 @@ class ShowEvent extends Component
             ->where('status', ActivityProposalStatus::Pending)
             ->orderBy('created_at')
             ->get();
-        $isOwner = auth()->check() && $event->created_by === auth()->id();
-        $canManageEvent = auth()->check()
-            && ((int) $event->created_by === (int) auth()->id() || (auth()->user()->is_admin ?? false));
+        $user = auth()->user();
+        $canManageEvent = $user !== null && $user->canModifyEntity($event);
 
         $slotFormTags = null;
         $slotNameSuggestions = [];
@@ -297,7 +292,6 @@ class ShowEvent extends Component
             'event' => $event,
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'pendingProposals' => $pendingProposals,
-            'isOwner' => $isOwner,
             'canManageEvent' => $canManageEvent,
             'slotFormTags' => $slotFormTags,
             'slotNameSuggestions' => $slotNameSuggestions,

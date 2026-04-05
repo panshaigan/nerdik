@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -69,6 +70,20 @@ class User extends Authenticatable
         }
 
         return true;
+    }
+
+    /**
+     * Whether this user may edit or delete the model: admins always; otherwise the row's `created_by` must match.
+     */
+    public function canModifyEntity(Model $entity): bool
+    {
+        if ($this->is_admin === true) {
+            return true;
+        }
+
+        $ownerId = $entity->getAttribute('created_by');
+
+        return $ownerId !== null && (int) $ownerId === (int) $this->id;
     }
 
     public function wishlistEvents()

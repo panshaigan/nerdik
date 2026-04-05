@@ -320,7 +320,7 @@
                                             @auth
                                                 @php
                                                     $showDetachActivity = $canManageEvent && $activity;
-                                                    $showSlotEditDelete = $slot->created_by === auth()->id() || (auth()->user()->is_admin ?? false);
+                                                    $showSlotEditDelete = auth()->user()?->canModifyEntity($slot) ?? false;
                                                 @endphp
                                                 @if ($showDetachActivity || $showSlotEditDelete)
                                                     <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
@@ -413,7 +413,7 @@
                 @endif
             @endauth
 
-            @if ($isOwner && $pendingProposals->isNotEmpty())
+            @if ($canManageEvent && $pendingProposals->isNotEmpty())
                 <div id="ui-event-show-pending-proposals" class="ui-event-show-pending-proposals rounded-lg border border-warning/40 bg-base-100 p-6 shadow" data-ui="event-show-pending-proposals">
                     <h3 class="mb-1 text-lg font-medium text-base-content">{{ __('ui.events.pending_proposals') }}</h3>
                     <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.pending_proposals_help') }}</p>
