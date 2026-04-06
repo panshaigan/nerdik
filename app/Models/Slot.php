@@ -11,6 +11,8 @@ class Slot extends Model
 {
     use HasMetaColumns, SoftDeletes;
 
+    private const NAME_SUGGESTIONS_LIMIT = 40;
+
     protected $fillable = [
         'event_id',
         'created_by',
@@ -251,7 +253,7 @@ class Slot extends Model
             ->where('created_by', $userId)
             ->whereNotNull('name')
             ->orderBy('created_at', 'desc')
-            ->limit(40)
+            ->limit(self::NAME_SUGGESTIONS_LIMIT)
             ->pluck('name')
             ->filter(fn ($name) => is_string($name) && trim($name) !== '')
             ->map(fn ($name) => trim((string) $name))

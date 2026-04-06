@@ -7,7 +7,6 @@ use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TagController extends Controller
 {
@@ -45,7 +44,7 @@ class TagController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category' => ['required', Rule::exists('tag_categories', 'key')],
+            'tag_category_id' => ['required', 'integer', 'exists:tag_categories,id'],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
@@ -67,12 +66,8 @@ class TagController extends Controller
                 ->withErrors(['label_'.$currentLocale => __('At least one label is required.')]);
         }
 
-        $categoryId = TagCategory::query()
-            ->where('key', $validated['category'])
-            ->value('id');
-
         $tag = Tag::create([
-            'tag_category_id' => $categoryId,
+            'tag_category_id' => (int) $validated['tag_category_id'],
         ]);
 
         foreach (['en', 'pl'] as $locale) {
@@ -121,17 +116,13 @@ class TagController extends Controller
         $this->authorizeCreatedBy($tag);
 
         $validated = $request->validate([
-            'category' => ['required', Rule::exists('tag_categories', 'key')],
+            'tag_category_id' => ['required', 'integer', 'exists:tag_categories,id'],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $categoryId = TagCategory::query()
-            ->where('key', $validated['category'])
-            ->value('id');
-
         $tag->update([
-            'tag_category_id' => $categoryId,
+            'tag_category_id' => (int) $validated['tag_category_id'],
         ]);
 
         $labelsByLocale = $this->normalizedLabelsByLocale($validated);
@@ -179,7 +170,7 @@ class TagController extends Controller
     }
 
     /**
-     * @return array<string, string>
+     * @return list<array{id: int, name: string}>
      */
     private function categoryOptions(): array
     {
@@ -189,7 +180,8 @@ class TagController extends Controller
             ->with('translations')
             ->orderBy('key')
             ->get()
-            ->mapWithKeys(fn (TagCategory $category) => [$category->key => $category->name($locale)])
+            ->map(fn (TagCategory $category) => ['id' => (int) $category->id, 'name' => $category->name($locale)])
+            ->values()
             ->all();
     }
 

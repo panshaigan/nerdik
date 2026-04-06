@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private const DEFAULT_CATEGORY_KEYS = ['game', 'publisher', 'world', 'convention', 'engine', 'trigger', 'block', 'misc'];
+
     public function up(): void
     {
         if (! Schema::hasTable('tag_categories')) {
@@ -28,11 +30,10 @@ return new class extends Migration
             });
         }
 
-        $defaultKeys = ['game', 'publisher', 'world', 'convention', 'engine', 'trigger', 'block', 'misc'];
         $existingKeys = Schema::hasColumn('tags', 'category')
             ? DB::table('tags')->select('category')->distinct()->pluck('category')->filter()->map(fn ($k) => mb_strtolower(trim((string) $k)))->all()
             : [];
-        $allKeys = array_values(array_unique(array_merge($defaultKeys, $existingKeys)));
+        $allKeys = array_values(array_unique(array_merge(self::DEFAULT_CATEGORY_KEYS, $existingKeys)));
 
         foreach ($allKeys as $key) {
             $id = DB::table('tag_categories')->where('key', $key)->value('id');

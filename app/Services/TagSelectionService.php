@@ -3,22 +3,10 @@
 namespace App\Services;
 
 use App\Models\Tag;
-use App\Models\TagCategory;
 use Illuminate\Support\Facades\DB;
 
 class TagSelectionService
 {
-    public const CATEGORY_OPTIONS = [
-        'game',
-        'publisher',
-        'world',
-        'convention',
-        'engine',
-        'trigger',
-        'block',
-        'misc',
-    ];
-
     /**
      * @param  array<int|string, mixed>  $tagIds
      * @param  array<int|string, mixed>  $newTags
@@ -34,12 +22,12 @@ class TagSelectionService
                 continue;
             }
             $label = trim((string) ($row['label'] ?? ''));
-            $category = trim((string) ($row['category'] ?? ''));
-            if ($label === '' || $category === '') {
+            $categoryId = (int) ($row['category_id'] ?? 0);
+            if ($label === '' || $categoryId <= 0) {
                 continue;
             }
 
-            $createdOrMatchedIds[] = $this->findOrCreateTagByLabel($label, $category);
+            $createdOrMatchedIds[] = $this->findOrCreateTagByLabel($label, $categoryId);
         }
 
         $all = array_values(array_unique(array_merge($baseIds, $createdOrMatchedIds)));
@@ -47,11 +35,10 @@ class TagSelectionService
         return $this->expandTagIdsViaRelations($all);
     }
 
-    public function findOrCreateTagByLabel(string $label, string $category): int
+    public function findOrCreateTagByLabel(string $label, int $categoryId): int
     {
         $lower = mb_strtolower(trim($label));
         $locale = app()->getLocale();
-        $categoryKey = mb_strtolower(trim($category));
 
         $existing = Tag::query()
             ->whereHas('translations', function ($q) use ($lower) {
@@ -66,8 +53,7 @@ class TagSelectionService
             return $existing->id;
         }
 
-        return DB::transaction(function () use ($label, $categoryKey, $locale) {
-            $categoryId = $this->resolveCategoryId($categoryKey);
+        return DB::transaction(function () use ($label, $categoryId, $locale) {
             $tag = Tag::create([
                 'tag_category_id' => $categoryId,
             ]);
@@ -85,22 +71,6 @@ class TagSelectionService
 
             return $tag->id;
         });
-    }
-
-    private function resolveCategoryId(string $key): int
-    {
-        $normalized = mb_strtolower(trim($key));
-
-        $category = TagCategory::query()->firstOrCreate([
-            'key' => $normalized,
-        ]);
-
-        $category->translations()->firstOrCreate(
-            ['locale' => 'en'],
-            ['label' => ucfirst($normalized)]
-        );
-
-        return (int) $category->id;
     }
 
     /**

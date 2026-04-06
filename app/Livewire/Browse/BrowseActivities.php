@@ -17,6 +17,8 @@ class BrowseActivities extends Component
     use WithBrowseTagFilter;
     use WithPagination;
 
+    private const PER_PAGE = 12;
+
     #[Url]
     public string $q = '';
 
@@ -96,7 +98,7 @@ class BrowseActivities extends Component
 
         $this->applyBrowseActivitySort($query);
 
-        $activities = $query->paginate(12);
+        $activities = $query->paginate(self::PER_PAGE);
 
         $places = Place::orderBy('name')->get();
 
