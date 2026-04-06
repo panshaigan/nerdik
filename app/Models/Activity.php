@@ -67,7 +67,7 @@ class Activity extends Model
 
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'taggable', 'taggables')->withTimestamps();
+        return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
     public function slot()

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PlaceSlot extends Model
 {
     protected $table = 'place_slot';
+    public $timestamps = false;
 
     protected $fillable = [
         'slot_id',

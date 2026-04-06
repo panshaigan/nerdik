@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ActivityProposalSlot extends Model
 {
     protected $table = 'activity_proposal_slot';
+    public $timestamps = false;
 
     protected $fillable = [
         'activity_proposal_id',

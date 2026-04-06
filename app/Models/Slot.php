@@ -41,7 +41,7 @@ class Slot extends Model
      */
     public function places()
     {
-        return $this->belongsToMany(Place::class, 'place_slot')->withTimestamps();
+        return $this->belongsToMany(Place::class, 'place_slot');
     }
 
     /**

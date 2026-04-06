@@ -51,7 +51,7 @@ class Tag extends Model
 
     public function activities()
     {
-        return $this->morphedByMany(Activity::class, 'taggable', 'taggables')->withTimestamps();
+        return $this->morphedByMany(Activity::class, 'taggable', 'taggables');
     }
 
     /**

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagCategory extends Model
 {
+    public $timestamps = false;
+
     public const KEY_GAME = 'game';
 
     public const KEY_PUBLISHER = 'publisher';

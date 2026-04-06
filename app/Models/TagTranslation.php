@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 
 class TagTranslation extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'tag_id',
         'locale',
