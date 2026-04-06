@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Activity;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
@@ -24,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Let published Livewire pagination views override package defaults (theme-aware styles).
         View::prependNamespace('livewire', resource_path('views/vendor/livewire'));
+
+        // Keep polymorphic type strings compact and stable across apps/packages.
+        Relation::morphMap([
+            'activity' => Activity::class,
+        ]);
 
         Blade::if('canModifyEntity', function (mixed $entity): bool {
             if (! $entity instanceof Model) {
