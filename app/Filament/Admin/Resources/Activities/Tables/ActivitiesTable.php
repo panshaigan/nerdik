@@ -42,8 +42,6 @@ class ActivitiesTable
                 TextColumn::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->searchable(),
                 TextColumn::make('logo_path')
                     ->searchable(),
                 TextColumn::make('duration_in_minutes')
