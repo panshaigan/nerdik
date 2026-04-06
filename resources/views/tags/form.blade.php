@@ -2,11 +2,11 @@
 
 <div class="space-y-4">
     <div>
-        <x-form-select id="category" name="category" :label="__('Category')" error-field="category" required>
-            @foreach (($categoryOptions ?? []) as $cat => $label)
-                <option value="{{ $cat }}"
-                    @selected(old('category', $tag->category ?? '') === $cat)>
-                    {{ $label }}
+        <x-form-select id="tag_category_id" name="tag_category_id" :label="__('Category')" error-field="tag_category_id" required>
+            @foreach (($categoryOptions ?? []) as $opt)
+                <option value="{{ $opt['id'] }}"
+                    @selected((string) old('tag_category_id', $tag->tag_category_id ?? '') === (string) $opt['id'])>
+                    {{ $opt['name'] }}
                 </option>
             @endforeach
         </x-form-select>

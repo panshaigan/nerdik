@@ -70,7 +70,7 @@
                 <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
+                <x-field-error :messages="$errors->get('new_tags.*.category_id')" class="mt-2" />
             </div>
 
             <div id="ui-activity-proposal-section" class="ui-proposal-section mt-4 border-t border-base-300 pt-4" data-ui="activity-proposal-section">

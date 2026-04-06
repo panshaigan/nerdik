@@ -16,6 +16,12 @@ use Illuminate\Validation\ValidationException;
 
 class SlotFormService
 {
+    private const MASS_CREATE_COUNT_MIN = 1;
+
+    private const MASS_CREATE_COUNT_MAX = 100;
+
+    private const SLOT_MAX_CAPACITY_MIN = 1;
+
     /**
      * Venues and room lists for the mass-create form when the event is not locked.
      *
@@ -204,13 +210,13 @@ class SlotFormService
         return [
             'event_id' => ['required', 'exists:events,id'],
             'base_name' => ['required', 'string', 'max:255'],
-            'count' => ['required', 'integer', 'min:1', 'max:100'],
+            'count' => ['required', 'integer', 'min:'.self::MASS_CREATE_COUNT_MIN, 'max:'.self::MASS_CREATE_COUNT_MAX],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date'],
             'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
             'new_room_name' => ['nullable', 'string', 'max:255'],
             'requires_approval' => ['nullable', 'boolean'],
-            'max_capacity' => ['nullable', 'integer', 'min:1'],
+            'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => [Rule::in(ActivityType::values())],
         ];
@@ -229,7 +235,7 @@ class SlotFormService
             'venue_place_id' => ['nullable', 'integer', 'exists:places,id'],
             'new_room_name' => ['nullable', 'string', 'max:255'],
             'requires_approval' => ['nullable', 'boolean'],
-            'max_capacity' => ['nullable', 'integer', 'min:1'],
+            'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => [Rule::in(ActivityType::values())],
         ];

@@ -6,6 +6,44 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagCategory extends Model
 {
+    public const KEY_GAME = 'game';
+
+    public const KEY_PUBLISHER = 'publisher';
+
+    public const KEY_WORLD = 'world';
+
+    public const KEY_CONVENTION = 'convention';
+
+    public const KEY_ENGINE = 'engine';
+
+    public const KEY_TRIGGER = 'trigger';
+
+    public const KEY_BLOCK = 'block';
+
+    public const KEY_MISC = 'misc';
+
+    /** @var list<string> */
+    public const DEFAULT_KEYS = [
+        self::KEY_GAME,
+        self::KEY_PUBLISHER,
+        self::KEY_WORLD,
+        self::KEY_CONVENTION,
+        self::KEY_ENGINE,
+        self::KEY_TRIGGER,
+        self::KEY_BLOCK,
+        self::KEY_MISC,
+    ];
+
+    /** Categories highlighted in activity cards/event slots. */
+    /** @var list<string> */
+    public const ACTIVITY_HIGHLIGHT_KEYS = [
+        self::KEY_GAME,
+        self::KEY_WORLD,
+        self::KEY_CONVENTION,
+        self::KEY_ENGINE,
+        self::KEY_BLOCK,
+    ];
+
     protected $fillable = [
         'key',
     ];

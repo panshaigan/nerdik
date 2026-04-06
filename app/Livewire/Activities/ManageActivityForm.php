@@ -22,6 +22,8 @@ class ManageActivityForm extends Component
 {
     use AuthorizesOwnership;
 
+    private const NAME_SUGGESTIONS_LIMIT = 40;
+
     public ?int $editingActivityId = null;
 
     public string $name = '';
@@ -56,7 +58,7 @@ class ManageActivityForm extends Component
     /** @var list<int> */
     public array $tag_ids = [];
 
-    /** @var list<array{label: string, category: string}> */
+    /** @var list<array{label: string, category_id: int|string}> */
     public array $new_tags = [];
 
     public function mount(?Activity $activity = null): void
@@ -256,7 +258,7 @@ class ManageActivityForm extends Component
             'tag_ids.*' => ['integer', 'exists:tags,id'],
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
+            'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
             ...$this->proposalFieldValidationRules(),
         ];
     }
@@ -361,7 +363,7 @@ class ManageActivityForm extends Component
         return $query
             ->whereNotNull('name')
             ->orderBy('created_at', 'desc')
-            ->limit(40)
+            ->limit(self::NAME_SUGGESTIONS_LIMIT)
             ->pluck('name')
             ->filter(fn ($name) => is_string($name) && trim($name) !== '')
             ->map(fn ($name) => trim($name))

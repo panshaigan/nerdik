@@ -80,6 +80,7 @@ export function initTagSelector(root) {
     const allowCreate = cfg.allowCreate !== false;
     const allTags = Array.isArray(cfg.tags) ? cfg.tags : [];
     const categories = Array.isArray(cfg.categories) ? cfg.categories : [];
+    const categoryNameById = new Map(categories.map((c) => [Number(c.id), String(c.name || '')]));
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
     const selected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
     const explicitSelected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
@@ -128,7 +129,7 @@ export function initTagSelector(root) {
             .map((id) => Number(id));
         const newTagsPayload = pendingNew.map((t) => ({
             label: t.label,
-            category: t.category,
+            category_id: Number(t.category_id),
         }));
 
         if (!root.hasAttribute('data-browse-tag-selector')) {
@@ -179,13 +180,13 @@ export function initTagSelector(root) {
             sel.className = 'select select-bordered select-xs';
             categories.forEach((cat) => {
                 const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                opt.selected = t.category === cat;
+                opt.value = String(cat.id);
+                opt.textContent = cat.name;
+                opt.selected = Number(t.category_id) === Number(cat.id);
                 sel.appendChild(opt);
             });
             sel.addEventListener('change', () => {
-                pendingNew[idx].category = sel.value;
+                pendingNew[idx].category_id = Number(sel.value);
                 renderPendingNew();
             });
 
@@ -207,8 +208,8 @@ export function initTagSelector(root) {
 
             const hCategory = document.createElement('input');
             hCategory.type = 'hidden';
-            hCategory.name = `new_tags[${idx}][category]`;
-            hCategory.value = t.category;
+            hCategory.name = `new_tags[${idx}][category_id]`;
+            hCategory.value = String(Number(t.category_id));
 
             row.append(hLabel, hCategory);
 
@@ -256,7 +257,8 @@ export function initTagSelector(root) {
             .forEach((id) => {
                 const t = byId.get(id);
                 const label = t ? displayLabel(t, locale) : `#${id}`;
-                const cat = t?.category ? ` (${t.category})` : '';
+                const catName = t?.category_name || categoryNameById.get(Number(t?.category_id || 0)) || '';
+                const cat = catName ? ` (${catName})` : '';
                 const isAuto = autoSelected.has(id) && !explicitSelected.has(id);
                 const autoBadge = isAuto
                     ? ` <span class="rounded bg-base-300 px-1 py-0.5 text-[10px] uppercase">${cfg.strings?.auto || 'auto'}</span>`
@@ -290,7 +292,7 @@ export function initTagSelector(root) {
         const l = label.trim();
         if (!l) return;
         if (pendingNew.some((t) => norm(t.label) === norm(l))) return;
-        pendingNew.push({ label: l, category: categories[0] || 'game' });
+        pendingNew.push({ label: l, category_id: Number(categories[0]?.id || 0) });
         renderPendingNew();
     }
 
@@ -336,7 +338,7 @@ export function initTagSelector(root) {
 
         const grouped = new Map();
         found.forEach((tag) => {
-            const cat = tag.category || 'other';
+            const cat = tag.category_name || categoryNameById.get(Number(tag.category_id || 0)) || 'other';
             if (!grouped.has(cat)) grouped.set(cat, []);
             grouped.get(cat).push(tag);
         });

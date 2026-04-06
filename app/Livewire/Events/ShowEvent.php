@@ -7,6 +7,7 @@ use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\TagCategory;
 use App\Services\ActivityProposalDecisionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
@@ -315,7 +316,7 @@ class ShowEvent extends Component
                 && $now->between($w->starts_at, $w->ends_at);
         });
 
-        $slotListActivityTagCategories = ['game', 'world', 'convention', 'engine', 'block'];
+        $slotListActivityTagCategories = TagCategory::ACTIVITY_HIGHLIGHT_KEYS;
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
             ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'creator', 'proposedSlots'])

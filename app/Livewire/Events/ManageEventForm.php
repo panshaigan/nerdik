@@ -18,6 +18,8 @@ class ManageEventForm extends Component
 {
     use AuthorizesOwnership;
 
+    private const NAME_SUGGESTIONS_LIMIT = 40;
+
     public ?int $editingEventId = null;
 
     public string $name = '';
@@ -348,7 +350,7 @@ class ManageEventForm extends Component
         return $query
             ->whereNotNull('name')
             ->orderBy('starts_at', 'desc')
-            ->limit(40)
+            ->limit(self::NAME_SUGGESTIONS_LIMIT)
             ->pluck('name')
             ->filter(fn ($name) => is_string($name) && trim($name) !== '')
             ->map(fn ($name) => trim($name))

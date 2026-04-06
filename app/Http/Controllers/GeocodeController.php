@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Http;
 
 class GeocodeController extends Controller
 {
+    private const CACHE_TTL_SECONDS = 86400;
+
+    private const HTTP_TIMEOUT_SECONDS = 8;
+
+    private const SEARCH_RESULTS_LIMIT = 6;
+
     public function __construct(
         private readonly LocationResolver $locationResolver
     ) {}
@@ -32,8 +38,8 @@ class GeocodeController extends Controller
 
         $cacheKey = sprintf('geocode:reverse:%.5f:%.5f', $lat, $lng);
 
-        $raw = Cache::remember($cacheKey, 86400, function () use ($lat, $lng) {
-            $response = Http::timeout(8)
+        $raw = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($lat, $lng) {
+            $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
                     'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
                     'Accept-Language' => app()->getLocale(),
@@ -104,8 +110,8 @@ class GeocodeController extends Controller
         $q = trim($validated['q']);
         $cacheKey = 'geocode:search:'.md5(mb_strtolower($q));
 
-        $rows = Cache::remember($cacheKey, 86400, function () use ($q) {
-            $response = Http::timeout(8)
+        $rows = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($q) {
+            $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
                     'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
                     'Accept-Language' => app()->getLocale(),
@@ -113,7 +119,7 @@ class GeocodeController extends Controller
                 ->get('https://nominatim.openstreetmap.org/search', [
                     'q' => $q,
                     'format' => 'json',
-                    'limit' => 6,
+                    'limit' => self::SEARCH_RESULTS_LIMIT,
                     'addressdetails' => 1,
                 ]);
 

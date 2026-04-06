@@ -20,6 +20,8 @@ class BrowseEvents extends Component
     use WithBrowseTagFilter;
     use WithPagination;
 
+    private const PER_PAGE = 12;
+
     #[Url]
     public string $q = '';
 
@@ -255,7 +257,7 @@ class BrowseEvents extends Component
             'places.city.translations',
         ]);
         $this->applyBrowseEventSort($query);
-        $paginator = $query->paginate(12);
+        $paginator = $query->paginate(self::PER_PAGE);
         $paginator->setCollection(
             $paginator->getCollection()->map(fn (Event $event) => ['kind' => 'event', 'event' => $event])->values()
         );
@@ -271,7 +273,7 @@ class BrowseEvents extends Component
         $query = $this->baseActivityQuery()->with(['creator', 'tags.translations', 'slot.event'])
             ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
         $this->applyBrowseActivitySort($query);
-        $paginator = $query->paginate(12);
+        $paginator = $query->paginate(self::PER_PAGE);
         $paginator->setCollection(
             $paginator->getCollection()->map(fn (Activity $activity) => ['kind' => 'activity', 'activity' => $activity])->values()
         );
@@ -309,7 +311,7 @@ class BrowseEvents extends Component
         }
         $outer->orderBy('listing_kind')->orderBy('listing_id');
 
-        $paginator = $outer->paginate(12);
+        $paginator = $outer->paginate(self::PER_PAGE);
 
         $eventIds = [];
         $activityIds = [];

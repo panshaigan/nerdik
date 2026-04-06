@@ -20,7 +20,7 @@ trait WithBrowseTagFilter
     /**
      * Kept in sync by {@see resources/js/tags-selector.js} for the shared tag selector (browse uses allowCreate=false).
      *
-     * @var list<array{label: string, category: string}>
+     * @var list<array{label: string, category_id: int|string}>
      */
     public array $new_tags = [];
 
@@ -34,7 +34,7 @@ trait WithBrowseTagFilter
      * Uses a dedicated method so tag filter updates reliably with URL-bound {@see $tag_ids}.
      *
      * @param  list<int|string>  $tag_ids
-     * @param  list<array{label: string, category: string}>  $new_tags
+     * @param  list<array{label: string, category_id: int|string}>  $new_tags
      */
     public function syncBrowseTagsFromSelector(array $tag_ids, array $new_tags = []): void
     {
@@ -44,10 +44,10 @@ trait WithBrowseTagFilter
         )));
 
         $this->new_tags = collect($new_tags)
-            ->filter(static fn ($row) => is_array($row) && isset($row['label'], $row['category']))
+            ->filter(static fn ($row) => is_array($row) && isset($row['label'], $row['category_id']))
             ->map(static fn (array $row) => [
                 'label' => trim((string) $row['label']),
-                'category' => trim((string) $row['category']),
+                'category_id' => (int) $row['category_id'],
             ])
             ->values()
             ->all();

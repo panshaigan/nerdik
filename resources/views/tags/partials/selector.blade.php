@@ -1,5 +1,5 @@
 @php
-    use App\Services\TagSelectionService;
+    use App\Models\TagCategory;
 
     $locale = app()->getLocale();
     $selected = collect(old('tag_ids', $selectedIds ?? []))
@@ -9,25 +9,33 @@
         ->all();
     $oldNewTags = old('new_tags', []);
     $initialNewTags = collect(is_array($oldNewTags) ? $oldNewTags : [])
-        ->filter(fn ($row) => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && trim((string) ($row['category'] ?? '')) !== '')
+        ->filter(fn ($row) => is_array($row) && trim((string) ($row['label'] ?? '')) !== '' && (int) ($row['category_id'] ?? 0) > 0)
         ->map(fn ($row) => [
             'label' => trim((string) $row['label']),
-            'category' => trim((string) $row['category']),
+            'category_id' => (int) $row['category_id'],
         ])
         ->values()
         ->all();
-    $categories = collect($tags ?? [])
-        ->map(fn ($tag) => (string) ($tag->category ?? ''))
-        ->filter(fn ($c) => $c !== '')
-        ->unique()
+    $categories = TagCategory::query()
+        ->with('translations')
+        ->orderBy('key')
+        ->get()
+        ->map(fn (TagCategory $cat) => [
+            'id' => (int) $cat->id,
+            'name' => (string) $cat->name($locale),
+        ])
         ->values()
         ->all();
-    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale) {
+    $categoryNamesById = collect($categories)->mapWithKeys(fn ($c) => [(int) $c['id'] => (string) $c['name']])->all();
+    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale, $categoryNamesById) {
         $localeTranslation = collect($tag->translations ?? [])->firstWhere('locale', $locale);
         $fallbackTranslation = $localeTranslation ?: collect($tag->translations ?? [])->firstWhere('locale', 'en');
+        $categoryId = (int) ($tag->tag_category_id ?? 0);
+        $categoryName = (string) (($tag->tagCategory?->name($locale) ?? '') ?: ($categoryNamesById[$categoryId] ?? ''));
         return [
             'id' => (int) $tag->id,
-            'category' => (string) $tag->category,
+            'category_id' => $categoryId,
+            'category_name' => $categoryName,
             'slug' => (string) ($fallbackTranslation?->slug ?? ''),
             'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
             'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
