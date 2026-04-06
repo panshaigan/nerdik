@@ -13,23 +13,12 @@ class Tag extends Model
 
     protected $fillable = [
         'category',
-        'parent_id',
         'slug',
         'description',
         'logo_path',
         'created_by',
         'updated_by',
     ];
-
-    public function parent()
-    {
-        return $this->belongsTo(self::class, 'parent_id');
-    }
-
-    public function children()
-    {
-        return $this->hasMany(self::class, 'parent_id');
-    }
 
     public function translations()
     {

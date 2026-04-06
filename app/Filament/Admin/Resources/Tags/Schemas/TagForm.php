@@ -17,9 +17,6 @@ class TagForm
                     ->default(null),
                 TextInput::make('category')
                     ->required(),
-                TextInput::make('parent_id')
-                    ->numeric()
-                    ->default(null),
                 TextInput::make('slug')
                     ->required(),
                 Textarea::make('description')
