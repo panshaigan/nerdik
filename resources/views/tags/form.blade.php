@@ -3,10 +3,10 @@
 <div class="space-y-4">
     <div>
         <x-form-select id="category" name="category" :label="__('Category')" error-field="category" required>
-            @foreach (['game','publisher','world','convention','engine','trigger','block','misc'] as $cat)
+            @foreach (($categoryOptions ?? []) as $cat => $label)
                 <option value="{{ $cat }}"
                     @selected(old('category', $tag->category ?? '') === $cat)>
-                    {{ ucfirst($cat) }}
+                    {{ $label }}
                 </option>
             @endforeach
         </x-form-select>

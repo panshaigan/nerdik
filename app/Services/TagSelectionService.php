@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Tag;
+use App\Models\TagCategory;
 use Illuminate\Support\Facades\DB;
 
 class TagSelectionService
@@ -50,6 +51,7 @@ class TagSelectionService
     {
         $lower = mb_strtolower(trim($label));
         $locale = app()->getLocale();
+        $categoryKey = mb_strtolower(trim($category));
 
         $existing = Tag::query()
             ->whereHas('translations', function ($q) use ($lower) {
@@ -64,9 +66,10 @@ class TagSelectionService
             return $existing->id;
         }
 
-        return DB::transaction(function () use ($label, $category, $locale) {
+        return DB::transaction(function () use ($label, $categoryKey, $locale) {
+            $categoryId = $this->resolveCategoryId($categoryKey);
             $tag = Tag::create([
-                'category' => mb_strtolower(trim($category)),
+                'tag_category_id' => $categoryId,
             ]);
 
             $tag->translations()->create([
@@ -82,6 +85,22 @@ class TagSelectionService
 
             return $tag->id;
         });
+    }
+
+    private function resolveCategoryId(string $key): int
+    {
+        $normalized = mb_strtolower(trim($key));
+
+        $category = TagCategory::query()->firstOrCreate([
+            'key' => $normalized,
+        ]);
+
+        $category->translations()->firstOrCreate(
+            ['locale' => 'en'],
+            ['label' => ucfirst($normalized)]
+        );
+
+        return (int) $category->id;
     }
 
     /**
