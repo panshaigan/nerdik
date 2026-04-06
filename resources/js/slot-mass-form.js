@@ -297,6 +297,9 @@ export function initSlotMassForm(form) {
  */
 function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
     /** @type {{ id: number, name: string }[]} */
+    const MAX_RESULTS = 8;
+    const POPUP_MARGIN_PX = 8;
+    const POPUP_OFFSET_Y_PX = 4;
     let shown = [];
     let active = -1;
 
@@ -339,15 +342,14 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
         }
         const r = roomInput.getBoundingClientRect();
         const vw = window.innerWidth;
-        const margin = 8;
         let left = r.left;
         let width = r.width;
-        if (left + width > vw - margin) {
-            left = Math.max(margin, vw - margin - width);
+        if (left + width > vw - POPUP_MARGIN_PX) {
+            left = Math.max(POPUP_MARGIN_PX, vw - POPUP_MARGIN_PX - width);
         }
-        left = Math.max(margin, left);
+        left = Math.max(POPUP_MARGIN_PX, left);
         roomPopup.style.left = `${left}px`;
-        roomPopup.style.top = `${r.bottom + 4}px`;
+        roomPopup.style.top = `${r.bottom + POPUP_OFFSET_Y_PX}px`;
         roomPopup.style.width = `${width}px`;
     }
 
@@ -385,7 +387,7 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
     }
 
     function render(items) {
-        shown = items.slice(0, 8);
+        shown = items.slice(0, MAX_RESULTS);
         roomPopup.innerHTML = '';
         active = -1;
 
@@ -417,7 +419,7 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
         const rooms = getRooms();
         let items;
         if (q.length < 1) {
-            items = rooms.slice(0, 8);
+            items = rooms.slice(0, MAX_RESULTS);
         } else {
             items = rooms.filter(
                 (r) => r.name.toLowerCase().includes(q) && r.name.toLowerCase() !== q
@@ -476,6 +478,7 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
  * @param {HTMLFormElement} massForm
  */
 function wireNameSuggestions(nameInput, namePopup, suggestionsJson, massForm) {
+    const MAX_SUGGESTIONS = 8;
     let suggestions = [];
     try {
         suggestions = JSON.parse(suggestionsJson || '[]');
@@ -515,7 +518,7 @@ function wireNameSuggestions(nameInput, namePopup, suggestionsJson, massForm) {
     }
 
     function render(items) {
-        shown = items.slice(0, 8);
+        shown = items.slice(0, MAX_SUGGESTIONS);
         namePopup.innerHTML = '';
         active = -1;
 

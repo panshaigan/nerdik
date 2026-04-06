@@ -2,11 +2,13 @@ import axios from 'axios';
 import L from './leaflet-setup.js';
 
 function iconPlace(selected) {
+    const BASE_ICON_SIZE = 18;
+    const BASE_ICON_RADIUS = BASE_ICON_SIZE / 2;
     return L.divIcon({
         className: 'ep-marker',
-        html: `<div style="width:18px;height:18px;border-radius:50%;background:${selected ? '#16a34a' : '#64748b'};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>`,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
+        html: `<div style="width:${BASE_ICON_SIZE}px;height:${BASE_ICON_SIZE}px;border-radius:50%;background:${selected ? '#16a34a' : '#64748b'};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>`,
+        iconSize: [BASE_ICON_SIZE, BASE_ICON_SIZE],
+        iconAnchor: [BASE_ICON_RADIUS, BASE_ICON_RADIUS],
     });
 }
 
@@ -134,7 +136,11 @@ export function initEventPlacesUnified(root) {
         syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
     }
 
-    const map = L.map(mapEl, { scrollWheelZoom: true }).setView([52.1, 19.4], 5);
+    const INITIAL_CENTER = [52.1, 19.4];
+    const INITIAL_ZOOM = 5;
+    const FIT_BOUNDS_PADDING_RATIO = 0.18;
+    const MIN_FOCUS_ZOOM = 14;
+    const map = L.map(mapEl, { scrollWheelZoom: true }).setView(INITIAL_CENTER, INITIAL_ZOOM);
     map.doubleClickZoom.disable();
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap',
@@ -194,7 +200,7 @@ export function initEventPlacesUnified(root) {
 
         if (withCoords.length > 0) {
             const group = L.featureGroup(Object.values(markersById));
-            map.fitBounds(group.getBounds().pad(0.18));
+            map.fitBounds(group.getBounds().pad(FIT_BOUNDS_PADDING_RATIO));
         }
     }
 
@@ -523,7 +529,9 @@ export function initEventPlacesUnified(root) {
             return;
         }
 
-        const localSaved = places.filter((p) => p.label.toLowerCase().includes(qLower)).slice(0, 10);
+        const LOCAL_SAVED_LIMIT = 10;
+        const LOCAL_DRAFT_LIMIT = 8;
+        const localSaved = places.filter((p) => p.label.toLowerCase().includes(qLower)).slice(0, LOCAL_SAVED_LIMIT);
         const localDraft = newVenues
             .filter((v) => {
                 const n = v.name.trim();
@@ -534,7 +542,7 @@ export function initEventPlacesUnified(root) {
 
                 return hay.includes(qLower);
             })
-            .slice(0, 8)
+            .slice(0, LOCAL_DRAFT_LIMIT)
             .map((v) => ({
                 draftId: v.id,
                 label: v.city.trim() ? `${v.name.trim()} (${v.city.trim()})` : v.name.trim(),
@@ -575,7 +583,7 @@ export function initEventPlacesUnified(root) {
                     }
                     refreshPlaceMarkerIcon(p.id);
                     if (p.lat != null && p.lng != null) {
-                        map.setView([p.lat, p.lng], Math.max(map.getZoom(), 14));
+                        map.setView([p.lat, p.lng], Math.max(map.getZoom(), MIN_FOCUS_ZOOM));
                     }
                     resultsEl.classList.add('hidden');
                     searchInput.value = '';
@@ -594,7 +602,7 @@ export function initEventPlacesUnified(root) {
                 b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = d.label;
                 b.addEventListener('click', () => {
-                    map.setView([d.lat, d.lng], Math.max(map.getZoom(), 14));
+                    map.setView([d.lat, d.lng], Math.max(map.getZoom(), MIN_FOCUS_ZOOM));
                     resultsEl.classList.add('hidden');
                     searchInput.value = '';
                     focusVenueNameInput(d.draftId);

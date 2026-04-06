@@ -60,6 +60,9 @@ function syncLivewireTagState(root, tagIds, newTagsPayload) {
 export function initTagSelector(root) {
     if (root.dataset.tsInitialized) return;
 
+    const MAX_SUGGESTIONS = 8;
+    const MAX_RESULTS = 18;
+
     const cfgEl = root.querySelector('script[type="application/json"][data-ts-config]');
     const input = root.querySelector('[data-ts-input]');
     const results = root.querySelector('[data-ts-results]');
@@ -317,7 +320,7 @@ export function initTagSelector(root) {
 
         let found;
         if (!qn) {
-            found = allTags.slice(0, 18);
+            found = allTags.slice(0, MAX_RESULTS);
         } else {
             found = allTags
                 .map((tag) => {
@@ -328,7 +331,7 @@ export function initTagSelector(root) {
                     return matched ? tag : null;
                 })
                 .filter(Boolean)
-                .slice(0, 18);
+                .slice(0, MAX_RESULTS);
         }
 
         if (!found.length) {

@@ -314,8 +314,11 @@ function startBrowseBboxMap(root) {
             !Number.isNaN(swLng) &&
             !Number.isNaN(neLng);
 
-        const center = hasBbox ? [(swLat + neLat) / 2, (swLng + neLng) / 2] : [52.0, 19.0];
-        const zoom = hasBbox ? 6 : 5;
+        const DEFAULT_CENTER = [52.0, 19.0];
+        const BBOX_ZOOM = 6;
+        const DEFAULT_ZOOM = 5;
+        const center = hasBbox ? [(swLat + neLat) / 2, (swLng + neLng) / 2] : DEFAULT_CENTER;
+        const zoom = hasBbox ? BBOX_ZOOM : DEFAULT_ZOOM;
 
         const map = L.map(root, { scrollWheelZoom: true }).setView(center, zoom);
 
