@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityProposalStatus;
-use App\Enums\ActivityStatus;
 use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -176,7 +175,6 @@ class SampleDataSeeder extends Seeder
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $alice->id,
-                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 240,
             ]
         );
@@ -189,7 +187,6 @@ class SampleDataSeeder extends Seeder
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $bob->id,
-                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 180,
             ]
         );
@@ -202,7 +199,6 @@ class SampleDataSeeder extends Seeder
                 'min_participants' => 2,
                 'max_participants' => 6,
                 'created_by' => $charlie->id,
-                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 180,
             ]
         );
@@ -215,7 +211,6 @@ class SampleDataSeeder extends Seeder
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $diana->id,
-                'status' => ActivityStatus::Planned,
                 'duration_in_minutes' => 240,
             ]
         );

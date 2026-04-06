@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ActivityStatus;
 use App\Enums\ActivityType;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
@@ -32,7 +31,6 @@ class Activity extends Model
         'updated_by',
         'requires_approval',
         'cancellation_deadline_in_hours',
-        'status',
         'logo_path',
         'duration_in_minutes',
         'allows_observers',
@@ -41,7 +39,6 @@ class Activity extends Model
 
     protected $casts = [
         'type' => ActivityType::class,
-        'status' => ActivityStatus::class,
         'price' => 'decimal:2',
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',

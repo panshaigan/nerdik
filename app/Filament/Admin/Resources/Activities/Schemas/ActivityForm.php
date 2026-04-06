@@ -2,7 +2,6 @@
 
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
-use App\Enums\ActivityStatus;
 use App\Enums\ActivityType;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -47,10 +46,6 @@ class ActivityForm
                 TextInput::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->default(null),
-                Select::make('status')
-                    ->options(collect(ActivityStatus::cases())->mapWithKeys(fn (ActivityStatus $s) => [$s->value => $s->value]))
-                    ->required()
-                    ->default(ActivityStatus::Planned->value),
                 TextInput::make('logo_path')
                     ->default(null),
                 TextInput::make('duration_in_minutes')
