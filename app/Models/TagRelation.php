@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TagAttachment extends Model
+class TagRelation extends Model
 {
     protected $fillable = [
         'tag_id',
@@ -16,7 +16,7 @@ class TagAttachment extends Model
         return $this->belongsTo(Tag::class, 'tag_id');
     }
 
-    public function linkedTag()
+    public function relatedTag()
     {
         return $this->belongsTo(Tag::class, 'attached_tag_id');
     }
