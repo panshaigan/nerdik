@@ -71,7 +71,7 @@ class EventController extends Controller
 
     /**
      * Create a new event by copying an existing one:
-     * - copies basic fields + tags
+     * - copies basic fields
      * - copies slots, but clears activity_id (empty slots)
      */
     public function copy(Event $event)
@@ -82,7 +82,7 @@ class EventController extends Controller
 
         $this->authorizeCreatedBy($event);
 
-        $event->loadMissing(['tags', 'slots']);
+        $event->loadMissing(['slots']);
 
         $newEvent = $event->replicate();
         $newEvent->name = $event->name.' (copy)';
@@ -90,8 +90,6 @@ class EventController extends Controller
         $newEvent->created_by = null; // let HasMetaColumns fill current user
         $newEvent->updated_by = null;
         $newEvent->save();
-
-        $newEvent->tags()->sync($event->tags->pluck('id')->all());
 
         foreach ($event->slots()->with('place')->get() as $slot) {
             $newSlot = $newEvent->slots()->create([

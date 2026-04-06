@@ -16,10 +16,6 @@ use Illuminate\Validation\ValidationException;
 
 class SlotFormService
 {
-    public function __construct(
-        private readonly TagSelectionService $tagSelectionService
-    ) {}
-
     /**
      * Venues and room lists for the mass-create form when the event is not locked.
      *
@@ -217,11 +213,6 @@ class SlotFormService
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => [Rule::in(ActivityType::values())],
-            'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => ['integer', 'exists:tags,id'],
-            'new_tags' => ['nullable', 'array'],
-            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ];
     }
 
@@ -241,11 +232,6 @@ class SlotFormService
             'max_capacity' => ['nullable', 'integer', 'min:1'],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => [Rule::in(ActivityType::values())],
-            'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => ['integer', 'exists:tags,id'],
-            'new_tags' => ['nullable', 'array'],
-            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ];
     }
 
@@ -276,11 +262,6 @@ class SlotFormService
             $validated['activity_types'] ?? [],
             fn ($t) => in_array($t, ActivityType::values(), true)
         )));
-
-        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
-            (array) $request->input('tag_ids', []),
-            (array) $request->input('new_tags', [])
-        );
 
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
@@ -313,9 +294,6 @@ class SlotFormService
                 $slot->setActivityTypes($activityTypes);
             }
 
-            if (! empty($tagIds)) {
-                $slot->tags()->sync($tagIds);
-            }
         }
     }
 
@@ -347,11 +325,6 @@ class SlotFormService
             fn ($t) => in_array($t, ActivityType::values(), true)
         )));
 
-        $tagIds = $this->tagSelectionService->resolveFinalTagIds(
-            (array) $request->input('tag_ids', []),
-            (array) $request->input('new_tags', [])
-        );
-
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
         $this->ensureVenueWhenEventHasPlaces($request, $event);
@@ -370,7 +343,7 @@ class SlotFormService
             $data['ends_at'] = null;
         }
 
-        DB::transaction(function () use ($slot, $data, $resolvedPlaceId, $activityTypes, $tagIds): void {
+        DB::transaction(function () use ($slot, $data, $resolvedPlaceId, $activityTypes): void {
             $slot->update($data);
             $slot->places()->sync($resolvedPlaceId !== null ? [$resolvedPlaceId] : []);
             if (! empty($activityTypes)) {
@@ -378,7 +351,6 @@ class SlotFormService
             } else {
                 $slot->setActivityTypes([]);
             }
-            $slot->tags()->sync($tagIds);
             $slot->load(['activity', 'activityTypes']);
             if ($slot->activity !== null && ! $slot->fitsProposalActivity($slot->activity)) {
                 throw ValidationException::withMessages([

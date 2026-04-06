@@ -7,7 +7,6 @@ use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
-use App\Models\Tag;
 use App\Services\ActivityProposalDecisionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
@@ -296,7 +295,6 @@ class ShowEvent extends Component
 
         $event->load([
             'creator',
-            'tags.translations',
             'organization',
             'places',
             'enrollmentWindows',
@@ -304,7 +302,6 @@ class ShowEvent extends Component
                 'place.parent',
                 'activity.tags.translations',
                 'activityTypes',
-                'tags.translations',
             ])->orderBy('starts_at'),
         ]);
 
@@ -327,13 +324,11 @@ class ShowEvent extends Component
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
 
-        $slotFormTags = null;
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
         $slotMassRoomsByVenueId = [];
         $slotBaseNameSuggestions = [];
         if ($canManageEvent) {
-            $slotFormTags = Tag::orderedForSelector()->get();
             $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
             $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
 
@@ -360,7 +355,6 @@ class ShowEvent extends Component
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
-            'slotFormTags' => $slotFormTags,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,

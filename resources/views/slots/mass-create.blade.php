@@ -323,22 +323,6 @@
             @endif
         </div>
 
-        @isset($tags)
-            <div class="border-t border-base-300 pt-4">
-                <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
-                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
-                @include('tags.partials.selector', [
-                    'tags' => $tags,
-                    'selectedIds' => old('tag_ids', ($editMode && $slot && $slot->exists) ? $slot->tags->pluck('id')->toArray() : []),
-                    'skipLivewireSync' => true,
-                ])
-                <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
-            </div>
-        @endisset
-
         <script type="application/json" data-slot-mass-config>@json($slotMassConfig)</script>
         <script type="application/json" data-slot-mass-event-venues>@json($eventVenuesByEventId)</script>
         <script type="application/json" data-slot-mass-rooms>@json($roomsByEventAndVenue)</script>

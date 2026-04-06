@@ -210,20 +210,6 @@
         <x-field-error :messages="$errors->get('enrollment_windows')" class="mt-2" />
     </div>
 
-    <div class="mt-4 border-t border-base-300 pt-4">
-            <p class="fieldset-legend font-medium text-base-content">{{ __('Tags') }}</p>
-            <p class="mb-3 text-xs text-base-content/70">{{ __('Select tags that describe this event (games, themes, etc.).') }}</p>
-            <div wire:ignore>
-            @include('tags.partials.selector', [
-                'tags' => $tags,
-                'selectedIds' => $tag_ids,
-            ])
-            </div>
-            <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
-            <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
-            <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-            <x-field-error :messages="$errors->get('new_tags.*.category')" class="mt-2" />
-    </div>
 </div>
 
         <div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">

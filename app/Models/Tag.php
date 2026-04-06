@@ -40,11 +40,6 @@ class Tag extends Model
         return $this->hasMany(TagRelation::class, 'related_tag_id');
     }
 
-    public function slots()
-    {
-        return $this->belongsToMany(Slot::class, 'slot_tag');
-    }
-
     /**
      * Tags eager-loaded for form selectors and browse filters (single query shape app-wide).
      *

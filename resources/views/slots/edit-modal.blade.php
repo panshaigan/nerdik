@@ -4,7 +4,6 @@
     'embeddedInModal' => true,
     'lockedEvent' => $lockedEvent,
     'events' => $events,
-    'tags' => $tags,
     'slotNameSuggestions' => $slotNameSuggestions ?? [],
     'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
     'slotMassVenues' => $slotMassVenues,
