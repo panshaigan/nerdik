@@ -57,7 +57,7 @@ class Event extends Model
 
     public function places()
     {
-        return $this->belongsToMany(Place::class, 'event_place')->withTimestamps();
+        return $this->belongsToMany(Place::class, 'event_place');
     }
 
     public function enrollmentWindows()

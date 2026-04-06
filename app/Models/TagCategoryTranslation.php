@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagCategoryTranslation extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'tag_category_id',
         'locale',

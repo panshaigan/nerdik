@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Country extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'iso_alpha2',
     ];

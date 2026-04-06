@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagAlias extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'tag_id',
         'locale',

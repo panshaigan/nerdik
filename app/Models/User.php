@@ -88,11 +88,11 @@ class User extends Authenticatable
 
     public function wishlistEvents()
     {
-        return $this->belongsToMany(Event::class, 'user_event_wishes')->withTimestamps();
+        return $this->belongsToMany(Event::class, 'user_event_wishes');
     }
 
     public function wishlistActivities()
     {
-        return $this->belongsToMany(Activity::class, 'user_activity_wishes')->withTimestamps();
+        return $this->belongsToMany(Activity::class, 'user_activity_wishes');
     }
 }

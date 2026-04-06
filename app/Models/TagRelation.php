@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TagRelation extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'tag_id',
         'related_tag_id',

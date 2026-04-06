@@ -18,7 +18,7 @@ class ActivityTypeSlot extends Model
         'activity_type' => ActivityType::class,
     ];
 
-    public $timestamps = true;
+    public $timestamps = false;
 
     public function slot()
     {

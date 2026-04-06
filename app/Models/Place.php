@@ -70,12 +70,12 @@ class Place extends Model
 
     public function events()
     {
-        return $this->belongsToMany(Event::class, 'event_place')->withTimestamps();
+        return $this->belongsToMany(Event::class, 'event_place');
     }
 
     public function slots()
     {
-        return $this->belongsToMany(Slot::class, 'place_slot')->withTimestamps();
+        return $this->belongsToMany(Slot::class, 'place_slot');
     }
 
     public function country()
