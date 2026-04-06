@@ -64,7 +64,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'nerdik-club'],
             [
                 'name' => 'Nerdik Club',
-                'desc' => 'Local RPG & board game club.',
+                'description' => 'Local RPG & board game club.',
                 'created_by' => $alice->id,
             ]
         );
@@ -73,7 +73,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'wroclaw-gamers'],
             [
                 'name' => 'Wrocław Gamers',
-                'desc' => 'Community for tabletop gamers in Wrocław.',
+                'description' => 'Community for tabletop gamers in Wrocław.',
                 'created_by' => $bob->id,
             ]
         );
@@ -84,7 +84,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'monthly-rpg-night-'.($now->format('Y-m'))],
             [
                 'name' => 'Monthly RPG Night',
-                'desc' => 'Regular evening of one-shots and short campaigns.',
+                'description' => 'Regular evening of one-shots and short campaigns.',
                 'organization_id' => $org->id,
                 'is_public' => true,
                 'created_by' => $alice->id,
@@ -97,7 +97,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'convention-2026-main'],
             [
                 'name' => 'Convention 2026',
-                'desc' => 'Annual convention with multiple tracks.',
+                'description' => 'Annual convention with multiple tracks.',
                 'organization_id' => null,
                 'is_public' => true,
                 'created_by' => $alice->id,
@@ -110,7 +110,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'board-game-evening-'.($now->format('Y-m-d'))],
             [
                 'name' => 'Board Game Evening',
-                'desc' => 'Casual board game night at the club.',
+                'description' => 'Casual board game night at the club.',
                 'organization_id' => $org2->id,
                 'is_public' => true,
                 'created_by' => $bob->id,

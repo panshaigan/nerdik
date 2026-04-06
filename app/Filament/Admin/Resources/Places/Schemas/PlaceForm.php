@@ -45,7 +45,7 @@ class PlaceForm
                     ->required(),
                 TextInput::make('links')
                     ->default(null),
-                Textarea::make('desc')
+                Textarea::make('description')
                     ->default(null)
                     ->columnSpanFull(),
                 Toggle::make('is_online')

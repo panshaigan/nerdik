@@ -17,7 +17,7 @@ class OrganizationForm
                     ->default(null),
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('desc')
+                Textarea::make('description')
                     ->default(null)
                     ->columnSpanFull(),
                 TextInput::make('logo_path')

@@ -75,7 +75,7 @@
     </div>
 
     <div>
-        <x-textarea label="{{ __('Description (optional)') }}" name="desc" error-field="desc" rows="3">{{ old('desc', $place->desc ?? '') }}</x-textarea>
+        <x-textarea label="{{ __('Description (optional)') }}" name="description" error-field="description" rows="3">{{ old('description', $place->description ?? '') }}</x-textarea>
     </div>
 
     <x-checkbox

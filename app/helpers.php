@@ -305,7 +305,7 @@ if (! function_exists('rich_text_sanitize')) {
 
 if (! function_exists('rich_text')) {
     /**
-     * Purified HTML safe for {!! rich_text($model->desc) !!} in Blade.
+     * Purified HTML safe for {!! rich_text($model->description) !!} in Blade.
      */
     function rich_text(?string $stored): HtmlString
     {

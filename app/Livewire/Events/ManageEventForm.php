@@ -24,7 +24,7 @@ class ManageEventForm extends Component
 
     public string $name = '';
 
-    public string $desc = '';
+    public string $description = '';
 
     public ?int $organization_id = null;
 
@@ -58,7 +58,7 @@ class ManageEventForm extends Component
             $event->load(['places', 'organization', 'enrollmentWindows']);
             $this->editingEventId = $event->id;
             $this->name = (string) $event->name;
-            $this->desc = (string) ($event->desc ?? '');
+            $this->description = (string) ($event->description ?? '');
             $this->organization_id = $event->organization_id;
             $this->organization_name = (string) (optional($event->organization)->name ?? '');
             $this->is_public = (bool) $event->is_public;
@@ -153,7 +153,7 @@ class ManageEventForm extends Component
     {
         $validated = $this->validate($this->rules());
 
-        $validated['desc'] = $this->normalizeDesc($validated['desc'] ?? null);
+        $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
         $validated['is_public'] = (bool) ($validated['is_public'] ?? true);
 
         $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
@@ -220,7 +220,7 @@ class ManageEventForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
             'organization_name' => ['nullable', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],

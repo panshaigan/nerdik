@@ -17,7 +17,7 @@ class EventForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('desc')
+                Textarea::make('description')
                     ->default(null)
                     ->columnSpanFull(),
                 Select::make('organization_id')

@@ -163,7 +163,7 @@ class BrowseEvents extends Component
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
-            $query->where(fn (Builder $q) => $q->where('events.name', 'like', $term)->orWhere('events.desc', 'like', $term));
+            $query->where(fn (Builder $q) => $q->where('events.name', 'like', $term)->orWhere('events.description', 'like', $term));
         }
 
         $this->applyBrowseTagFilter($query, 'slots.activity.tags');
@@ -192,7 +192,7 @@ class BrowseEvents extends Component
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
-            $query->where(fn (Builder $q) => $q->where('activities.name', 'like', $term)->orWhere('activities.desc', 'like', $term));
+            $query->where(fn (Builder $q) => $q->where('activities.name', 'like', $term)->orWhere('activities.description', 'like', $term));
         }
 
         $this->applyBrowseTagFilter($query, 'tags');

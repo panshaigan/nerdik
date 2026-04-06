@@ -1,51 +1,35 @@
-Tag refactor:
-    - one more look for the tag system
-        - structure:
-            - drop parent_id?
-            - slugs?
-            - tags and languages
-            - when you choose tag alias, the right one is getting assigned. if you choose wfrp tag, actually Warhammer Fantasy Roleplay would be added
-            - is "tag_attachment" a good name?
-        - should we isolate it as a module? if yes
-            - extract categories to a table
-            - create joint table for activity_types/tags
-            - do we need to drop specific joint tables and introduce a general one for all entities?
-    - add new enum property "thematical_block" (?is the name good) to slot
-    - strip slots of tags
-    - strip events of tags. they will be searched by slots thematical_block
-    - add 
-    - new tag category list:
+Content
+    - ensure the db is good for big data and multilang
+    - seeding database with basic data
+        - new tag category list:
         activity specific:
             game
             mechanic
             format
             other
+            topic
         universal
             setting
             convention
             trigger (?content warning)
-
-Is deletion flag handled well?
-should we go ddd?
-Strings refactor
-
-i18n/l10n
-
-Content
-    - ensure the db is good for big data and multilang
-    - seeding database with basic data
     - seeding with sample data
-    - my tags/places cruds
+
+DDDize Scheduling/Proposals/Tagging
 
 UI/UX
+- my tags/places cruds
 - Morph comment markers around @if / @foreach etc. are what help Livewire’s DOM morphing in tricky cases. Turning them off can make some conditional updates a bit less smooth. If anything odd shows up only after a Livewire update on that page, the long-term fix is to split show-event into smaller Blade partials/components so the template stays smaller with morph markers re-enabled.
     0 Practical takeaway for later
     Do: break the event screen into clear Blade partials or child components (info / slots / proposals), optionally behind tabs.
     Consider: lazy proposals (and maybe slots) if those blocks are heavy.
     Don’t assume: tabs alone shrink the runtime DOM unless you also defer rendering or split what gets sent.
+- handle tag relations
 - disable tinymce focus border
 - graphically enhance the screens
 - check the admin panel
+- slots
+    - extract number from name?
+- i18n: scan for not translated strings
 
 Technicals
     - performance
@@ -53,9 +37,11 @@ Technicals
     - GOOGLE login (create app + add widget to login page)
     - Facebook login
     - reestablish db
-    - slugs/ids
     - wont i need openstreet api or smth?
     - ensure testing
+    - deletion policy
+    - cleaning scripts
+    - countries and city translations do we need them?
 
 Features
     - restrict the user roles (like organizer should be approved)
@@ -71,7 +57,7 @@ format — Round-robin, one-shot, campaign, panel, open table, tournament bracke
 
 
 
-ORGANIZCJA powinna być przypinywalna też do graczy
+ORGANIZCJA powinna być przypinywalna też do graczy. powinno być można dodać url
 BHS: rozmowa o triggerach; green/yellow/red, linie i zasłony, karta x
 czy pozycje na liście powinny być oznaczone? (zapisy online, zapisy fizyczne itp)
 materiały w języku angielskim
@@ -80,3 +66,34 @@ rpg: gotowe postaci, roleplay
 
 zapisy: niektóre sloty mogą być poza limitem zapisów w okienku
 losowanie uczestników, jeśli jest więcej
+
+rename mass create to create
+
+kategorie tagó: temat?
+jak azja, śmierć itp
+
+
+bloki:
+azjatycki
+rpg
+larp
+wargame
+boardgame
+
+
+Key package design choices to decide early
+    Do you want package to enforce your schema, or allow customization?
+    DB compatibility target (MySQL/Postgres only?)
+    How much UI you ship vs backend-only core
+    API surface stability (events, contracts, extension hooks)
+
+    should we allow users to delete their own tags
+
+
+activity_user
+    - add created_by and updated_by (+ ensure in code that is being filled).
+        if the entry comes from an user enrolling to an activity, 'created_by' should be him. if the activity host is accepting an user from waitlist, 'created_by" should be the host. if an user automatically jumps to the list from the waitlist, it should be null.
+    - add deleted_at and deleted_by
+
+
+refactor signup to enroll in the code
