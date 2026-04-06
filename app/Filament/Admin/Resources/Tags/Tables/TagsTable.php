@@ -22,9 +22,6 @@ class TagsTable
                     ->sortable(),
                 TextColumn::make('category')
                     ->searchable(),
-                TextColumn::make('parent_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('slug')
                     ->searchable(),
                 TextColumn::make('logo_path')

@@ -1,31 +1,43 @@
-1. Quality Assurance:
-    - review tag categories and add special behaviors for the categories
-        - type of activity (RPG, wargaming, board games, card games, larp, discussion, competition, workshop, lecture, show)
-        - extra = { "is_beginner_friendly": true, "needs_lore_knowledge": false, "needs_mechanics_knowledge": true, "scenario_type": "custom",  "duration" : "one-shot"})
+Tag refactor:
     - one more look for the tag system
-    - go around the code and search for duplicates. DRY
-    - refactor
+        - structure:
+            - drop parent_id?
+            - slugs?
+            - tags and languages
+            - when you choose tag alias, the right one is getting assigned. if you choose wfrp tag, actually Warhammer Fantasy Roleplay would be added
+            - is "tag_attachment" a good name?
+        - should we isolate it as a module? if yes
+            - extract categories to a table
+            - create joint table for activity_types/tags
+            - do we need to drop specific joint tables and introduce a general one for all entities?
+    - add new enum property "thematical_block" (?is the name good) to slot
+    - strip slots of tags
+    - strip events of tags. they will be searched by slots thematical_block
+    - add 
+    - new tag category list:
+        activity specific:
+            game
+            mechanic
+            format
+            other
+        universal
+            setting
+            convention
+            trigger (?content warning)
 
-2. Content
+Is deletion flag handled well?
+should we go ddd?
+Strings refactor
+
+i18n/l10n
+
+Content
+    - ensure the db is good for big data and multilang
     - seeding database with basic data
     - seeding with sample data
-    - check the admin panel
-    - my tags/places/slots cruds
+    - my tags/places cruds
 
-3. Technicals
-    - performance
-    - check vunerability to the common attacks
-    - ensure the db is good for vbig data and multilang
-    - GOOGLE login (create app + add widget to login page)
-    - Facebook login
-    - reestablish db
-    - slugs/ids
-    - wont i need openstreet api or smth?
-    - ensure testing
-
-5. i18n/l10n
-
-6. UI/UX
+UI/UX
 - Morph comment markers around @if / @foreach etc. are what help Livewire’s DOM morphing in tricky cases. Turning them off can make some conditional updates a bit less smooth. If anything odd shows up only after a Livewire update on that page, the long-term fix is to split show-event into smaller Blade partials/components so the template stays smaller with morph markers re-enabled.
     0 Practical takeaway for later
     Do: break the event screen into clear Blade partials or child components (info / slots / proposals), optionally behind tabs.
@@ -33,12 +45,38 @@
     Don’t assume: tabs alone shrink the runtime DOM unless you also defer rendering or split what gets sent.
 - disable tinymce focus border
 - graphically enhance the screens
+- check the admin panel
 
-7. Features
+Technicals
+    - performance
+    - check vunerability to the common attacks
+    - GOOGLE login (create app + add widget to login page)
+    - Facebook login
+    - reestablish db
+    - slugs/ids
+    - wont i need openstreet api or smth?
+    - ensure testing
+
+Features
     - restrict the user roles (like organizer should be approved)
     - activity languages
     - feedback system
 
 
 
-    
+format — Round-robin, one-shot, campaign, panel, open table, tournament bracket... every activity type has a shape.
+-this is tags: extra = { "is_beginner_friendly": true, "needs_lore_knowledge": false, "needs_mechanics_knowledge": true, "scenario_type": "custom",  "duration" : "one-shot"})
+
+
+
+
+
+ORGANIZCJA powinna być przypinywalna też do graczy
+BHS: rozmowa o triggerach; green/yellow/red, linie i zasłony, karta x
+czy pozycje na liście powinny być oznaczone? (zapisy online, zapisy fizyczne itp)
+materiały w języku angielskim
+
+rpg: gotowe postaci, roleplay
+
+zapisy: niektóre sloty mogą być poza limitem zapisów w okienku
+losowanie uczestników, jeśli jest więcej
