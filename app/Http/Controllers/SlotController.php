@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Slot;
-use App\Models\Tag;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
@@ -25,11 +24,9 @@ class SlotController extends Controller
     {
         $this->authorizeCreatedBy($slot);
 
-        $slot->load(['tags', 'event.places', 'place.parent', 'activityTypes']);
+        $slot->load(['event.places', 'place.parent', 'activityTypes']);
 
         $events = Event::orderBy('starts_at', 'desc')->get();
-
-        $tags = Tag::orderedForSelector()->get();
 
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
         $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
@@ -46,7 +43,6 @@ class SlotController extends Controller
             compact(
                 'slot',
                 'events',
-                'tags',
                 'slotNameSuggestions',
                 'slotBaseNameSuggestions',
                 'slotMassVenues',

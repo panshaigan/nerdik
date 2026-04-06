@@ -86,8 +86,5 @@
             <p class="line-clamp-3 text-sm opacity-80">{{ rich_text_excerpt($event->desc, 160) }}</p>
         @endif
 
-        <div class="mt-2">
-            @include('tags.partials.inline', ['tags' => $event->tags])
-        </div>
     </div>
 </article>

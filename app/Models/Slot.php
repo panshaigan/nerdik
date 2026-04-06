@@ -62,11 +62,6 @@ class Slot extends Model
         return $this->belongsTo(Activity::class);
     }
 
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class, 'slot_tag');
-    }
-
     public function activityTypes()
     {
         return $this->hasMany(ActivityTypeSlot::class, 'slot_id');

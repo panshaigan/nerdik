@@ -5,10 +5,8 @@ namespace App\Livewire\Events;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
-use App\Models\Tag;
 use App\Services\EventActivitySignupService;
 use App\Services\LocationResolver;
-use App\Services\TagSelectionService;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -37,12 +35,6 @@ class ManageEventForm extends Component
     public string $ends_at = '';
 
     /** @var list<int> */
-    public array $tag_ids = [];
-
-    /** @var list<array{label: string, category: string}> */
-    public array $new_tags = [];
-
-    /** @var list<int> */
     public array $place_ids = [];
 
     /**
@@ -61,7 +53,7 @@ class ManageEventForm extends Component
     {
         if ($event?->exists) {
             $this->authorizeCreatedBy($event);
-            $event->load(['tags', 'places', 'organization', 'enrollmentWindows']);
+            $event->load(['places', 'organization', 'enrollmentWindows']);
             $this->editingEventId = $event->id;
             $this->name = (string) $event->name;
             $this->desc = (string) ($event->desc ?? '');
@@ -70,8 +62,6 @@ class ManageEventForm extends Component
             $this->is_public = (bool) $event->is_public;
             $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
             $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
-            $this->tag_ids = $event->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-            $this->new_tags = [];
             $this->place_ids = $event->places
                 ->filter(fn (Place $p) => $p->type === 'venue')
                 ->pluck('id')
@@ -157,7 +147,7 @@ class ManageEventForm extends Component
         return $attributes;
     }
 
-    public function save(TagSelectionService $tagSelectionService, LocationResolver $locationResolver, EventActivitySignupService $signupService)
+    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService)
     {
         $validated = $this->validate($this->rules());
 
@@ -174,12 +164,8 @@ class ManageEventForm extends Component
         );
         unset($validated['organization_name']);
 
-        $tagIds = $tagSelectionService->resolveFinalTagIds(
-            $this->tag_ids,
-            $this->new_tags
-        );
         $placeIds = $this->place_ids;
-        unset($validated['tag_ids'], $validated['place_ids'], $validated['new_places'], $validated['new_tags']);
+        unset($validated['place_ids'], $validated['new_places']);
 
         unset($validated['slug']);
 
@@ -187,7 +173,6 @@ class ManageEventForm extends Component
             $event = Event::query()->findOrFail($this->editingEventId);
             $this->authorizeCreatedBy($event);
             $event->update($validated);
-            $event->tags()->sync($tagIds);
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
             $event->refresh();
             $this->syncEnrollmentWindows($event, $signupService);
@@ -198,7 +183,6 @@ class ManageEventForm extends Component
 
         $validated['created_by'] = Auth::id();
         $event = Event::create($validated);
-        $event->tags()->sync($tagIds);
         $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
         $event->refresh();
         $this->syncEnrollmentWindows($event, $signupService);
@@ -238,8 +222,6 @@ class ManageEventForm extends Component
             'is_public' => ['nullable', 'boolean'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
-            'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => ['integer', 'exists:tags,id'],
             'place_ids' => ['nullable', 'array'],
             'place_ids.*' => ['integer', Rule::exists('places', 'id')->where(fn ($q) => $q->where('type', 'venue'))],
             'new_places' => ['nullable', 'array'],
@@ -251,9 +233,6 @@ class ManageEventForm extends Component
             'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'new_tags' => ['nullable', 'array'],
-            'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-            'new_tags.*.category' => ['nullable', Rule::in(TagSelectionService::CATEGORY_OPTIONS)],
         ];
     }
 
@@ -455,7 +434,6 @@ class ManageEventForm extends Component
         $exceptId = $this->editingEventId;
 
         return view('livewire.events.manage-event-form', [
-            'tags' => Tag::orderedForSelector()->get(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
             'eventPlacesConfig' => $eventPlacesConfig,

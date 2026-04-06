@@ -246,20 +246,15 @@ class SampleDataSeeder extends Seeder
             $proposal->proposedSlots()->sync([$freeSlotConvention->id]);
         }
 
-        // Sample tags on events & activities (TagSeeder must run first)
+        // Sample tags on activities (TagSeeder must run first)
         $t = fn (string $enLabel) => Tag::query()
             ->whereHas('translations', fn ($q) => $q->where('locale', 'en')->where('label', $enLabel))
             ->first();
         if ($t('Dungeons & Dragons 5e')) {
-            $event1->tags()->syncWithoutDetaching([$t('Dungeons & Dragons 5e')->id]);
             $activity1->tags()->syncWithoutDetaching([$t('Dungeons & Dragons 5e')->id]);
         }
         if ($t('Forbidden Lands')) {
-            $event1->tags()->syncWithoutDetaching([$t('Forbidden Lands')->id]);
             $activity2->tags()->syncWithoutDetaching([$t('Forbidden Lands')->id]);
-        }
-        if ($t('Horror')) {
-            $event2->tags()->syncWithoutDetaching([$t('Horror')->id]);
         }
         if ($t('Call of Cthulhu')) {
             $activity4->tags()->syncWithoutDetaching([$t('Call of Cthulhu')->id]);

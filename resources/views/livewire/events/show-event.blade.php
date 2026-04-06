@@ -60,41 +60,32 @@
                         </div>
                     </div>
                 </div>
-                @if ($event->tags->isNotEmpty() || (auth()->check() && $canManageEvent))
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 bg-base-100 px-3 py-2">
-                        <div class="min-w-0 flex-1">
-                            @if ($event->tags->isNotEmpty())
-                                @include('tags.partials.inline', ['tags' => $event->tags, 'class' => ''])
-                            @endif
+                @auth
+                    @if ($canManageEvent)
+                        <div class="flex flex-wrap items-center justify-end gap-1 border-b border-base-300 bg-base-100 px-3 py-2">
+                            <x-button
+                                :link="route('events.edit', $event)"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                :title="__('Edit')"
+                                :aria-label="__('Edit').': '.$event->name"
+                                data-ui="event-show-edit-open"
+                            >
+                                <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
+                            </x-button>
+                            <x-button
+                                type="button"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                wire:click="deleteEvent"
+                                wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
+                                :title="__('Delete')"
+                                :aria-label="__('Delete').': '.$event->name"
+                                data-ui="event-show-delete"
+                            >
+                                <x-ui.icons.trash class="h-5 w-5 shrink-0" />
+                            </x-button>
                         </div>
-                        @auth
-                            @if ($canManageEvent)
-                                <div class="flex shrink-0 justify-end gap-1">
-                                    <x-button
-                                        :link="route('events.edit', $event)"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                        :title="__('Edit')"
-                                        :aria-label="__('Edit').': '.$event->name"
-                                        data-ui="event-show-edit-open"
-                                    >
-                                        <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                                    </x-button>
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        wire:click="deleteEvent"
-                                        wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
-                                        :title="__('Delete')"
-                                        :aria-label="__('Delete').': '.$event->name"
-                                        data-ui="event-show-delete"
-                                    >
-                                        <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                    </x-button>
-                                </div>
-                            @endif
-                        @endauth
-                    </div>
-                @endif
+                    @endif
+                @endauth
                 @php
                     $hasEventDescription = filled(rich_text_excerpt($event->desc));
                     $hasEnrollmentWindows = $event->enrollmentWindows->isNotEmpty();
@@ -211,8 +202,6 @@
                                         if ($activity) {
                                             $mergedActivitySlotTags = $activity->tags
                                                 ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                ->concat($slot->tags->filter(fn ($t) => $t->category === 'block'))
-                                                ->unique('id')
                                                 ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
                                         }
                                     @endphp
@@ -302,14 +291,6 @@
                                                             @endforeach
                                                         </div>
                                                     @endif
-                                                    @php
-                                                        $listTags = $slot->tags
-                                                            ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                            ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
-                                                    @endphp
-                                                    @if ($listTags->isNotEmpty())
-                                                        @include('tags.partials.inline', ['tags' => $listTags, 'class' => 'my-2'])
-                                                    @endif
                                                 @endif
                                             </div>
                                             @auth
@@ -388,7 +369,6 @@
                             @include('slots.mass-create', [
                                 'lockedEvent' => $event,
                                 'events' => collect([$event]),
-                                'tags' => $slotFormTags,
                                 'slotNameSuggestions' => $slotNameSuggestions,
                                 'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
                                 'slotMassVenues' => $slotMassVenues,

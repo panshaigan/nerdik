@@ -55,11 +55,6 @@ class Event extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class, 'event_tag');
-    }
-
     public function places()
     {
         return $this->belongsToMany(Place::class, 'event_place')->withTimestamps();

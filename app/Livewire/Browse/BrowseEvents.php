@@ -164,7 +164,7 @@ class BrowseEvents extends Component
             $query->where(fn (Builder $q) => $q->where('events.name', 'like', $term)->orWhere('events.desc', 'like', $term));
         }
 
-        $this->applyBrowseTagFilter($query, 'tags');
+        $this->applyBrowseTagFilter($query, 'slots.activity.tags');
 
         if ($this->hasBBox()) {
             [$minLat, $maxLat, $minLng, $maxLng] = $this->normalizedBBox();
@@ -251,7 +251,6 @@ class BrowseEvents extends Component
         $query = $this->baseEventQuery()->with([
             'organization',
             'creator',
-            'tags.translations',
             'places.country.translations',
             'places.city.translations',
         ]);
@@ -328,7 +327,6 @@ class BrowseEvents extends Component
                 ->with([
                     'organization',
                     'creator',
-                    'tags.translations',
                     'places.country.translations',
                     'places.city.translations',
                 ])
