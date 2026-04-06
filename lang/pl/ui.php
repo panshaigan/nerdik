@@ -263,4 +263,16 @@ return [
         'no_fitting_slot_for_proposal' => 'Brak wolnego slotu pasujacego do tej aktywnosci (typ i czas trwania). Dodaj lub zmien slot i sprobuj ponownie.',
         'activity_detached_from_slot' => 'Aktywnosc zostala odłączona od slotu i ponownie oczekuje na decyzje.',
     ],
+    'interests' => [
+        'added_event' => 'Wydarzenie dodane do zainteresowan.',
+        'removed_event' => 'Wydarzenie usuniete z zainteresowan.',
+        'added_activity' => 'Aktywnosc dodana do zainteresowan.',
+        'removed_activity' => 'Aktywnosc usunieta z zainteresowan.',
+        'section_events' => 'Zainteresowania – wydarzenia',
+        'section_activities' => 'Zainteresowania – aktywnosci',
+        'empty_events' => 'Brak wydarzen na liscie zainteresowan.',
+        'empty_activities' => 'Brak aktywnosci na liscie zainteresowan.',
+        'add_to_interests' => 'Dodaj do zainteresowan',
+        'remove_from_interests' => 'Usun z zainteresowan',
+    ],
 ];

@@ -147,16 +147,16 @@
             </div>
 
             <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
-                <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('Wishlist – events') }}</h3>
-                @if ($wishlistEvents->isEmpty())
-                    <p class="text-sm opacity-70">{{ __('No events in wishlist.') }}</p>
+                <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('ui.interests.section_events') }}</h3>
+                @if ($interestedEvents->isEmpty())
+                    <p class="text-sm opacity-70">{{ __('ui.interests.empty_events') }}</p>
                     <a href="{{ route('search.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('ui.nav.search') }} →</a>
                 @else
                     <ul class="divide-y divide-base-300">
-                        @foreach ($wishlistEvents as $event)
+                        @foreach ($interestedEvents as $event)
                             <li class="py-2 flex items-center justify-between">
                                 <a href="{{ route('events.show', $event) }}" class="link link-primary">{{ $event->name }}</a>
-                                <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
+                                <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <x-button type="submit" class="btn-ghost btn-xs">{{ __('Remove') }}</x-button>
@@ -169,16 +169,16 @@
             </div>
 
             <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
-                <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('Wishlist – activities') }}</h3>
-                @if ($wishlistActivities->isEmpty())
-                    <p class="text-sm opacity-70">{{ __('No activities in wishlist.') }}</p>
+                <h3 class="mb-3 text-lg font-medium text-base-content">{{ __('ui.interests.section_activities') }}</h3>
+                @if ($interestedActivities->isEmpty())
+                    <p class="text-sm opacity-70">{{ __('ui.interests.empty_activities') }}</p>
                     <a href="{{ route('search.index') }}" class="link link-primary mt-2 inline-block text-sm">{{ __('ui.nav.search') }} →</a>
                 @else
                     <ul class="divide-y divide-base-300">
-                        @foreach ($wishlistActivities as $activity)
+                        @foreach ($interestedActivities as $activity)
                             <li class="py-2 flex items-center justify-between">
                                 <a href="{{ route('activities.show', $activity) }}" class="link link-primary">{{ $activity->name }}</a>
-                                <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
+                                <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <x-button type="submit" class="btn-ghost btn-xs">{{ __('Remove') }}</x-button>

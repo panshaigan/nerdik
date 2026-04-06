@@ -13,7 +13,6 @@ class Tag extends Model
 
     protected $fillable = [
         'tag_category_id',
-        'description',
         'logo_path',
         'created_by',
         'updated_by',

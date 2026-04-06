@@ -47,7 +47,7 @@ class ManageEventForm extends Component
     /**
      * Enrollment windows for this event (local datetime-local strings + optional cap).
      *
-     * @var list<array{starts_at: string, ends_at: string, max_activities: int|string|null}>
+     * @var list<array{starts_at: string, ends_at: string, max_activities_per_user: int|string|null}>
      */
     public array $enrollment_windows = [];
 
@@ -75,7 +75,7 @@ class ManageEventForm extends Component
                 ->map(fn ($p) => [
                     'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
                     'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
-                    'max_activities' => $p->max_activities,
+                    'max_activities_per_user' => $p->max_activities_per_user,
                 ])
                 ->values()
                 ->all();
@@ -87,7 +87,7 @@ class ManageEventForm extends Component
     }
 
     /**
-     * @return array{starts_at: string, ends_at: string, max_activities: int|string|null}
+     * @return array{starts_at: string, ends_at: string, max_activities_per_user: int|string|null}
      */
     protected function defaultEnrollmentWindowRow(): array
     {
@@ -99,7 +99,7 @@ class ManageEventForm extends Component
         return [
             'starts_at' => $starts,
             'ends_at' => $ends,
-            'max_activities' => null,
+            'max_activities_per_user' => null,
         ];
     }
 
@@ -108,7 +108,7 @@ class ManageEventForm extends Component
         $this->enrollment_windows[] = [
             'starts_at' => '',
             'ends_at' => '',
-            'max_activities' => null,
+            'max_activities_per_user' => null,
         ];
     }
 
@@ -140,9 +140,9 @@ class ManageEventForm extends Component
         }
 
         foreach ($this->enrollment_windows as $i => $row) {
-            $m = $row['max_activities'] ?? null;
+            $m = $row['max_activities_per_user'] ?? null;
             if ($m === '' || $m === null) {
-                $this->enrollment_windows[$i]['max_activities'] = null;
+                $this->enrollment_windows[$i]['max_activities_per_user'] = null;
             }
         }
 
@@ -206,7 +206,7 @@ class ManageEventForm extends Component
             $event->enrollmentWindows()->create([
                 'starts_at' => $row['starts_at']->toDateTimeString(),
                 'ends_at' => $row['ends_at']->toDateTimeString(),
-                'max_activities' => $row['max_activities'],
+                'max_activities_per_user' => $row['max_activities_per_user'],
             ]);
         }
     }

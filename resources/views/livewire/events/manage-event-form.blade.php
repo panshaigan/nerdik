@@ -176,14 +176,14 @@
                         </div>
                         <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
                             <x-input
-                                wire:model.live="enrollment_windows.{{ $index }}.max_activities"
+                                wire:model.live="enrollment_windows.{{ $index }}.max_activities_per_user"
                                 type="number"
                                 min="0"
                                 step="1"
                                 :label="__('ui.events.enrollment_window_max_activities')"
                                 class="w-full"
                             />
-                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities')" class="mt-2" />
+                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities_per_user')" class="mt-2" />
                         </div>
                         <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
                             <x-button

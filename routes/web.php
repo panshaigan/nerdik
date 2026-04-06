@@ -9,7 +9,7 @@ use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\InterestController;
 use App\Models\Activity;
 use App\Models\Event;
 use Illuminate\Http\Request;
@@ -100,10 +100,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('activities.waitlist.approve');
     Route::post('activity-participants/{participant}/mark-absent', [ParticipationController::class, 'markAbsent'])->name('activity-participants.mark-absent');
 
-    Route::post('events/{event}/wishlist', [WishlistController::class, 'addEvent'])->name('wishlist.events.add');
-    Route::delete('events/{event}/wishlist', [WishlistController::class, 'removeEvent'])->name('wishlist.events.remove');
-    Route::post('activities/{activity}/wishlist', [WishlistController::class, 'addActivity'])->name('wishlist.activities.add');
-    Route::delete('activities/{activity}/wishlist', [WishlistController::class, 'removeActivity'])->name('wishlist.activities.remove');
+    Route::post('events/{event}/interests', [InterestController::class, 'addEvent'])->name('interests.events.add');
+    Route::delete('events/{event}/interests', [InterestController::class, 'removeEvent'])->name('interests.events.remove');
+    Route::post('activities/{activity}/interests', [InterestController::class, 'addActivity'])->name('interests.activities.add');
+    Route::delete('activities/{activity}/interests', [InterestController::class, 'removeActivity'])->name('interests.activities.remove');
 
     Route::view('notifications', 'notifications.index')->name('notifications.index');
 });

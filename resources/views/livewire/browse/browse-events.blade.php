@@ -47,13 +47,13 @@
                 @if ($row['kind'] === 'event')
                     <x-cards.event-card
                         :event="$row['event']"
-                        :wishlist-event-ids="$wishlistEventIds ?? []"
+                        :interested-event-ids="$interestedEventIds ?? []"
                         :show-listing-kind="true"
                     />
                 @else
                     <x-cards.activity-card
                         :activity="$row['activity']"
-                        :wishlist-activity-ids="$wishlistActivityIds ?? []"
+                        :interested-activity-ids="$interestedActivityIds ?? []"
                         :show-listing-kind="true"
                     />
                 @endif

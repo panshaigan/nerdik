@@ -1,6 +1,6 @@
 @props([
     'event',
-    'wishlistEventIds' => [],
+    'interestedEventIds' => [],
     'showListingKind' => false,
 ])
 
@@ -39,16 +39,16 @@
             </h3>
             <div class="flex shrink-0 items-center gap-0.5">
                 @auth
-                    @if (in_array($event->id, $wishlistEventIds))
-                        <form action="{{ route('wishlist.events.remove', $event) }}" method="POST" class="inline">
+                    @if (in_array($event->id, $interestedEventIds))
+                        <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <x-button type="submit" class="btn-ghost btn-sm text-warning ui-action ui-action-wishlist-remove" :title="__('Remove from wishlist')" data-ui="event-card-wishlist-remove">★</x-button>
+                            <x-button type="submit" class="btn-ghost btn-sm text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="event-card-interest-remove">★</x-button>
                         </form>
                     @else
-                        <form action="{{ route('wishlist.events.add', $event) }}" method="POST" class="inline">
+                        <form action="{{ route('interests.events.add', $event) }}" method="POST" class="inline">
                             @csrf
-                            <x-button type="submit" class="btn-ghost btn-sm ui-action ui-action-wishlist-add" :title="__('Add to wishlist')" data-ui="event-card-wishlist-add">☆</x-button>
+                            <x-button type="submit" class="btn-ghost btn-sm ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="event-card-interest-add">☆</x-button>
                         </form>
                     @endif
                 @endauth

@@ -45,7 +45,7 @@ class ShowActivity extends Component
 
         $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk;
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
-        $inWishlist = auth()->check() && auth()->user()->wishlistActivities()->where('activities.id', $activity->id)->exists();
+        $hasInterest = auth()->check() && auth()->user()->interestedActivities()->where('activities.id', $activity->id)->exists();
         $canManageActivity = auth()->user()?->canModifyEntity($activity) ?? false;
 
         return view('livewire.activities.show-activity', [
@@ -54,7 +54,7 @@ class ShowActivity extends Component
             'onWaitlist' => $onWaitlist,
             'canJoin' => $canJoin,
             'isFull' => $isFull,
-            'inWishlist' => $inWishlist,
+            'hasInterest' => $hasInterest,
             'canManageActivity' => $canManageActivity,
             'signupBlockedMessage' => $signupBlockedMessage,
         ]);
