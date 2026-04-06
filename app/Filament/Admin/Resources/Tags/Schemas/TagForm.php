@@ -15,7 +15,8 @@ class TagForm
                 TextInput::make('created_by')
                     ->numeric()
                     ->default(null),
-                TextInput::make('category')
+                TextInput::make('tag_category_id')
+                    ->numeric()
                     ->required(),
                 Textarea::make('description')
                     ->default(null)

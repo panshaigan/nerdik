@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tag;
+use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TagController extends Controller
 {
@@ -17,7 +19,8 @@ class TagController extends Controller
     public function index()
     {
         $tags = Tag::with('translations')
-            ->orderBy('category')
+            ->with('tagCategory.translations')
+            ->orderBy('tag_category_id')
             ->get();
 
         return view('tags.index', compact('tags'));
@@ -32,6 +35,7 @@ class TagController extends Controller
             'tag' => new Tag,
             'labelEn' => '',
             'labelPl' => '',
+            'categoryOptions' => $this->categoryOptions(),
         ]);
     }
 
@@ -41,7 +45,7 @@ class TagController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category' => ['required', 'string', 'max:50'],
+            'category' => ['required', Rule::exists('tag_categories', 'key')],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
@@ -63,8 +67,12 @@ class TagController extends Controller
                 ->withErrors(['label_'.$currentLocale => __('At least one label is required.')]);
         }
 
+        $categoryId = TagCategory::query()
+            ->where('key', $validated['category'])
+            ->value('id');
+
         $tag = Tag::create([
-            'category' => $validated['category'],
+            'tag_category_id' => $categoryId,
         ]);
 
         foreach (['en', 'pl'] as $locale) {
@@ -100,7 +108,9 @@ class TagController extends Controller
         $labelEn = $tag->translations->firstWhere('locale', 'en')?->label ?? '';
         $labelPl = $tag->translations->firstWhere('locale', 'pl')?->label ?? '';
 
-        return view('tags.edit', compact('tag', 'labelEn', 'labelPl'));
+        $categoryOptions = $this->categoryOptions();
+
+        return view('tags.edit', compact('tag', 'labelEn', 'labelPl', 'categoryOptions'));
     }
 
     /**
@@ -111,13 +121,17 @@ class TagController extends Controller
         $this->authorizeCreatedBy($tag);
 
         $validated = $request->validate([
-            'category' => ['required', 'string', 'max:50'],
+            'category' => ['required', Rule::exists('tag_categories', 'key')],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $categoryId = TagCategory::query()
+            ->where('key', $validated['category'])
+            ->value('id');
+
         $tag->update([
-            'category' => $validated['category'],
+            'tag_category_id' => $categoryId,
         ]);
 
         $labelsByLocale = $this->normalizedLabelsByLocale($validated);
@@ -162,6 +176,21 @@ class TagController extends Controller
             'en' => trim((string) ($validated['label_en'] ?? '')),
             'pl' => trim((string) ($validated['label_pl'] ?? '')),
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function categoryOptions(): array
+    {
+        $locale = app()->getLocale();
+
+        return TagCategory::query()
+            ->with('translations')
+            ->orderBy('key')
+            ->get()
+            ->mapWithKeys(fn (TagCategory $category) => [$category->key => $category->name($locale)])
+            ->all();
     }
 
     /**

@@ -20,7 +20,7 @@ class TagsTable
                 TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('category')
+                TextColumn::make('tagCategory.key')
                     ->searchable(),
                 TextColumn::make('logo_path')
                     ->searchable(),

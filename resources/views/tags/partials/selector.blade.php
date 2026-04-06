@@ -16,7 +16,12 @@
         ])
         ->values()
         ->all();
-    $categories = TagSelectionService::CATEGORY_OPTIONS;
+    $categories = collect($tags ?? [])
+        ->map(fn ($tag) => (string) ($tag->category ?? ''))
+        ->filter(fn ($c) => $c !== '')
+        ->unique()
+        ->values()
+        ->all();
     $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale) {
         $localeTranslation = collect($tag->translations ?? [])->firstWhere('locale', $locale);
         $fallbackTranslation = $localeTranslation ?: collect($tag->translations ?? [])->firstWhere('locale', 'en');

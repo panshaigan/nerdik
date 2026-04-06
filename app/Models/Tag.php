@@ -12,16 +12,25 @@ class Tag extends Model
     use HasMetaColumns, SoftDeletes;
 
     protected $fillable = [
-        'category',
+        'tag_category_id',
         'description',
         'logo_path',
         'created_by',
         'updated_by',
     ];
 
+    protected $appends = [
+        'category',
+    ];
+
     public function translations()
     {
         return $this->hasMany(TagTranslation::class);
+    }
+
+    public function tagCategory()
+    {
+        return $this->belongsTo(TagCategory::class, 'tag_category_id');
     }
 
     public function aliases()
@@ -52,8 +61,17 @@ class Tag extends Model
      */
     public function scopeOrderedForSelector(Builder $query): Builder
     {
-        return $query->with(['translations', 'aliases', 'tagRelations'])
-            ->orderBy('category')
+        return $query->with(['translations', 'aliases', 'tagRelations', 'tagCategory.translations'])
+            ->orderBy('tag_category_id')
             ->orderBy('id');
+    }
+
+    public function getCategoryAttribute(): ?string
+    {
+        if ($this->relationLoaded('tagCategory')) {
+            return $this->tagCategory?->key;
+        }
+
+        return $this->tagCategory()->value('key');
     }
 }

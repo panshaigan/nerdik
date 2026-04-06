@@ -26,7 +26,7 @@
                         <tbody>
                             @forelse ($tags as $tag)
                                 <tr>
-                                    <td class="opacity-80">{{ $tag->category }}</td>
+                                    <td class="opacity-80">{{ $tag->tagCategory?->name(app()->getLocale()) ?? $tag->category }}</td>
                                     <td class="font-medium opacity-90">{{ $tag->translations->firstWhere('locale', app()->getLocale())?->slug ?? '—' }}</td>
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'en')?->label ?? '—' }}</td>
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'pl')?->label ?? '—' }}</td>

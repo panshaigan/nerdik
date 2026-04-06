@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Tag;
+use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use Illuminate\Database\Seeder;
 
@@ -55,6 +56,10 @@ class TagSeeder extends Seeder
         ];
 
         foreach ($tags as $data) {
+            $category = TagCategory::query()->firstOrCreate(['key' => (string) $data['category']]);
+            $category->translations()->firstOrCreate(['locale' => 'en'], ['label' => ucfirst((string) $data['category'])]);
+            $category->translations()->firstOrCreate(['locale' => 'pl'], ['label' => ucfirst((string) $data['category'])]);
+
             $tag = Tag::query()
                 ->whereHas('translations', function ($q) use ($data) {
                     $q->where('locale', 'en')->where('label', $data['en']);
@@ -63,8 +68,10 @@ class TagSeeder extends Seeder
 
             if (! $tag) {
                 $tag = Tag::create([
-                    'category' => $data['category'],
+                    'tag_category_id' => $category->id,
                 ]);
+            } elseif ((int) $tag->tag_category_id !== (int) $category->id) {
+                $tag->update(['tag_category_id' => $category->id]);
             }
 
             foreach (['en', 'pl'] as $locale) {
