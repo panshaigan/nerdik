@@ -86,13 +86,13 @@ class User extends Authenticatable
         return $ownerId !== null && (int) $ownerId === (int) $this->id;
     }
 
-    public function wishlistEvents()
+    public function interestedEvents()
     {
-        return $this->belongsToMany(Event::class, 'user_event_wishes');
+        return $this->belongsToMany(Event::class, 'user_event_interests');
     }
 
-    public function wishlistActivities()
+    public function interestedActivities()
     {
-        return $this->belongsToMany(Activity::class, 'user_activity_wishes');
+        return $this->belongsToMany(Activity::class, 'user_activity_interests');
     }
 }

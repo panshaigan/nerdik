@@ -366,18 +366,18 @@ class BrowseEvents extends Component
     {
         $paginator = $this->paginateBrowseListings();
 
-        $wishlistEventIds = auth()->check()
-            ? auth()->user()->wishlistEvents()->pluck('events.id')->toArray()
+        $interestedEventIds = auth()->check()
+            ? auth()->user()->interestedEvents()->pluck('events.id')->toArray()
             : [];
 
-        $wishlistActivityIds = auth()->check()
-            ? auth()->user()->wishlistActivities()->pluck('activities.id')->toArray()
+        $interestedActivityIds = auth()->check()
+            ? auth()->user()->interestedActivities()->pluck('activities.id')->toArray()
             : [];
 
         return view('livewire.browse.browse-events', [
             'browseListings' => $paginator,
-            'wishlistEventIds' => $wishlistEventIds,
-            'wishlistActivityIds' => $wishlistActivityIds,
+            'interestedEventIds' => $interestedEventIds,
+            'interestedActivityIds' => $interestedActivityIds,
             'tags' => Tag::orderedForSelector()->get(),
         ]);
     }

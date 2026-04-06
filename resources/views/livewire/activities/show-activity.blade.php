@@ -123,16 +123,16 @@
                                         </x-button>
                                     </form>
                                 @endif
-                                @if ($inWishlist)
-                                    <form action="{{ route('wishlist.activities.remove', $activity) }}" method="POST" class="inline">
+                                @if ($hasInterest)
+                                    <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-wishlist-remove" :title="__('Remove from wishlist')" data-ui="activity-show-wishlist-remove">★</x-button>
+                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="activity-show-interest-remove">★</x-button>
                                     </form>
                                 @else
-                                    <form action="{{ route('wishlist.activities.add', $activity) }}" method="POST" class="inline">
+                                    <form action="{{ route('interests.activities.add', $activity) }}" method="POST" class="inline">
                                         @csrf
-                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-wishlist-add" :title="__('Add to wishlist')" data-ui="activity-show-wishlist-add">☆</x-button>
+                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="activity-show-interest-add">☆</x-button>
                                     </form>
                                 @endif
                             </div>

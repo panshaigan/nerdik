@@ -163,7 +163,7 @@ class EventActivitySignupService
             ]);
         }
 
-        $max = $active->maxActivitiesEffective();
+        $max = $active->maxActivitiesPerUserEffective();
         if ($max !== null) {
             $count = $this->userSignupCountDuringPeriod($event, $user, $active);
             if ($count >= $max) {
@@ -200,8 +200,8 @@ class EventActivitySignupService
     /**
      * Validate period rows for an event form (non-overlapping, end on/before event end, may start before event).
      *
-     * @param  list<array{starts_at: string, ends_at: string, max_activities?: mixed}>  $rows
-     * @return list<array{starts_at: Carbon, ends_at: Carbon, max_activities: int|null}>
+     * @param  list<array{starts_at: string, ends_at: string, max_activities_per_user?: mixed}>  $rows
+     * @return list<array{starts_at: Carbon, ends_at: Carbon, max_activities_per_user: int|null}>
      */
     public function validateAndNormalizePeriodRowsForEvent(Event $event, array $rows, Carbon $nowUtc): array
     {
@@ -253,13 +253,13 @@ class EventActivitySignupService
                 ]);
             }
 
-            $maxRaw = $row['max_activities'] ?? null;
+            $maxRaw = $row['max_activities_per_user'] ?? null;
             $max = null;
             if ($maxRaw !== null && $maxRaw !== '') {
                 $max = (int) $maxRaw;
                 if ($max < 0) {
                     throw ValidationException::withMessages([
-                        "enrollment_windows.{$i}.max_activities" => [__('ui.events.enrollment_window_max_invalid')],
+                        "enrollment_windows.{$i}.max_activities_per_user" => [__('ui.events.enrollment_window_max_invalid')],
                     ]);
                 }
                 if ($max === 0) {
@@ -270,7 +270,7 @@ class EventActivitySignupService
             $normalized[] = [
                 'starts_at' => $start,
                 'ends_at' => $end,
-                'max_activities' => $max,
+                'max_activities_per_user' => $max,
             ];
         }
 

@@ -37,7 +37,6 @@ class Activity extends Model
         'duration_in_minutes',
         'allows_observers',
         'slug',
-        'extra',
     ];
 
     protected $casts = [
@@ -47,7 +46,6 @@ class Activity extends Model
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',
         'is_host_passive' => 'boolean',
-        'extra' => 'array',
     ];
 
     public function proposals()

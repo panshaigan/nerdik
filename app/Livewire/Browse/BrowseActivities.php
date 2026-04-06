@@ -102,14 +102,14 @@ class BrowseActivities extends Component
 
         $places = Place::orderBy('name')->get();
 
-        $wishlistActivityIds = auth()->check()
-            ? auth()->user()->wishlistActivities()->pluck('activities.id')->toArray()
+        $interestedActivityIds = auth()->check()
+            ? auth()->user()->interestedActivities()->pluck('activities.id')->toArray()
             : [];
 
         return view('livewire.browse.browse-activities', [
             'activities' => $activities,
             'places' => $places,
-            'wishlistActivityIds' => $wishlistActivityIds,
+            'interestedActivityIds' => $interestedActivityIds,
             'tags' => Tag::orderedForSelector()->get(),
         ]);
     }

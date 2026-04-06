@@ -58,9 +58,6 @@ class ActivityForm
                     ->default(null),
                 Toggle::make('allows_observers')
                     ->required(),
-                Textarea::make('extra')
-                    ->default(null)
-                    ->columnSpanFull(),
                 TextInput::make('deleted_by')
                     ->numeric()
                     ->default(null),

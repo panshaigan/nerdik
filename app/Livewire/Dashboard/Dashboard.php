@@ -39,16 +39,16 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
-        $wishlistEvents = $user->wishlistEvents()->with(['organization'])->orderBy('name')->limit(10)->get();
-        $wishlistActivities = $user->wishlistActivities()->with('creator')->orderBy('name')->limit(10)->get();
+        $interestedEvents = $user->interestedEvents()->with(['organization'])->orderBy('name')->limit(10)->get();
+        $interestedActivities = $user->interestedActivities()->with('creator')->orderBy('name')->limit(10)->get();
 
         return view('livewire.dashboard.dashboard', [
             'myEvents' => $myEvents,
             'myActivities' => $myActivities,
             'participations' => $participations,
             'myProposals' => $myProposals,
-            'wishlistEvents' => $wishlistEvents,
-            'wishlistActivities' => $wishlistActivities,
+            'interestedEvents' => $interestedEvents,
+            'interestedActivities' => $interestedActivities,
         ]);
     }
 }

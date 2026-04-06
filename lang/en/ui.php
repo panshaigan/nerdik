@@ -263,4 +263,16 @@ return [
         'no_fitting_slot_for_proposal' => 'No free slot fits this activity (type and duration). Add or adjust a slot, then try again.',
         'activity_detached_from_slot' => 'The activity was removed from the slot and is pending again.',
     ],
+    'interests' => [
+        'added_event' => 'Event added to your interests.',
+        'removed_event' => 'Event removed from your interests.',
+        'added_activity' => 'Activity added to your interests.',
+        'removed_activity' => 'Activity removed from your interests.',
+        'section_events' => 'Interests – events',
+        'section_activities' => 'Interests – activities',
+        'empty_events' => 'No events in your interests list.',
+        'empty_activities' => 'No activities in your interests list.',
+        'add_to_interests' => 'Add to interests',
+        'remove_from_interests' => 'Remove from interests',
+    ],
 ];

@@ -114,7 +114,7 @@
                                 @foreach ($event->enrollmentWindows as $window)
                                     @php
                                         $isThisWindowActive = $activeEnrollmentWindow && $activeEnrollmentWindow->is($window);
-                                        $maxLabel = $window->maxActivitiesEffective();
+                                        $maxLabel = $window->maxActivitiesPerUserEffective();
                                     @endphp
                                     <li
                                         @class([
