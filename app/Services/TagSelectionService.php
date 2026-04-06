@@ -44,7 +44,7 @@ class TagSelectionService
 
         $all = array_values(array_unique(array_merge($baseIds, $createdOrMatchedIds)));
 
-        return $this->expandTagIdsViaAttachments($all);
+        return $this->expandTagIdsViaRelations($all);
     }
 
     public function findOrCreateTagByLabel(string $label, string $category): int
@@ -95,12 +95,12 @@ class TagSelectionService
     }
 
     /**
-     * Include tag IDs reachable via `tag_relations` (tag_id → attached_tag_id).
+     * Include tag IDs reachable via `tag_relations` (tag_id → related_tag_id).
      *
      * @param  list<int>  $tagIds
      * @return list<int>
      */
-    public function expandTagIdsViaAttachments(array $tagIds): array
+    public function expandTagIdsViaRelations(array $tagIds): array
     {
         $all = array_values(array_unique($tagIds));
         $queue = $all;
@@ -111,7 +111,7 @@ class TagSelectionService
 
             $linkedIds = DB::table('tag_relations')
                 ->whereIn('tag_id', $chunk)
-                ->pluck('attached_tag_id')
+                ->pluck('related_tag_id')
                 ->map(fn ($id) => (int) $id)
                 ->all();
 
