@@ -87,13 +87,13 @@
                     @endif
                 @endauth
                 @php
-                    $hasEventDescription = filled(rich_text_excerpt($event->desc));
+                    $hasEventDescription = filled(rich_text_excerpt($event->description));
                     $hasEnrollmentWindows = $event->enrollmentWindows->isNotEmpty();
                 @endphp
                 <div class="space-y-6 p-6">
                     @if ($hasEventDescription)
                         <div class="rich-text-content text-sm text-base-content/80">
-                            {!! rich_text($event->desc) !!}
+                            {!! rich_text($event->description) !!}
                         </div>
                     @endif
 

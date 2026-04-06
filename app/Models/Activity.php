@@ -20,7 +20,7 @@ class Activity extends Model
 
     protected $fillable = [
         'name',
-        'desc',
+        'description',
         'type',
         'min_participants',
         'max_participants',

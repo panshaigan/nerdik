@@ -28,7 +28,7 @@ class ManageActivityForm extends Component
 
     public string $name = '';
 
-    public string $desc = '';
+    public string $description = '';
 
     public string $type = '';
 
@@ -68,7 +68,7 @@ class ManageActivityForm extends Component
             $activity->load('tags');
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
-            $this->desc = (string) ($activity->desc ?? '');
+            $this->description = (string) ($activity->description ?? '');
             $this->type = $activity->type->value;
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
@@ -153,7 +153,7 @@ class ManageActivityForm extends Component
     {
         $validated = $this->validate($this->rules());
 
-        $validated['desc'] = $this->normalizeDesc($validated['desc'] ?? null);
+        $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
         $validated['requires_approval'] = (bool) ($validated['requires_approval'] ?? false);
         $validated['allows_observers'] = (bool) ($validated['allows_observers'] ?? false);
         $validated['is_host_passive'] = (bool) ($validated['is_host_passive'] ?? false);
@@ -218,7 +218,7 @@ class ManageActivityForm extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
             'type' => ['required', 'string', Rule::in(ActivityType::values())],
             'min_participants' => [
                 'nullable',

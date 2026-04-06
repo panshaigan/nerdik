@@ -50,11 +50,11 @@
 
     <div>
         <x-editor
-            wire:model="desc"
+            wire:model="description"
             :label="__('Description (optional)')"
             :gpl-license="true"
         />
-        <x-field-error :messages="$errors->get('desc')" class="mt-2" />
+        <x-field-error :messages="$errors->get('description')" class="mt-2" />
     </div>
 
     <div class="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">

@@ -28,9 +28,9 @@
                 >
                     <div class="min-w-0 flex-1">
                         <p class="font-medium text-base-content">{{ $organization->name }}</p>
-                        @if (filled(rich_text_excerpt($organization->desc)))
+                        @if (filled(rich_text_excerpt($organization->description)))
                             <div class="rich-text-content mt-2 text-sm text-base-content/80">
-                                {!! rich_text($organization->desc) !!}
+                                {!! rich_text($organization->description) !!}
                             </div>
                         @endif
                     </div>
@@ -87,12 +87,12 @@
 
                     <div>
                         <x-editor
-                            wire:model.live="desc"
+                            wire:model.live="description"
                             :label="__('Description (optional)')"
                             :gpl-license="true"
                             :config="['height' => 260, 'z_index' => 100020]"
                         />
-                        <x-field-error :messages="$errors->get('desc')" class="mt-2" />
+                        <x-field-error :messages="$errors->get('description')" class="mt-2" />
                     </div>
 
                     <div class="modal-action">

@@ -25,7 +25,7 @@ class Place extends Model
         'parent_id',
         'type',
         'links',
-        'desc',
+        'description',
         'is_online',
         'latitude',
         'longitude',

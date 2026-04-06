@@ -82,9 +82,9 @@
             <p class="text-sm opacity-70">{{ $locationSummary }}</p>
         @endif
 
-        @if (filled(rich_text_excerpt($event->desc)))
-            <p class="line-clamp-3 text-sm opacity-80">{{ rich_text_excerpt($event->desc, 160) }}</p>
-        @endif
+        @if (filled(rich_text_excerpt($event->description)))
+    <p class="line-clamp-3 text-sm opacity-80">{{ rich_text_excerpt($event->description, 160) }}</p>
+    @endif
 
     </div>
 </article>

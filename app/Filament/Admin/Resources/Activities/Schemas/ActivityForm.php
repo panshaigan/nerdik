@@ -17,7 +17,7 @@ class ActivityForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('desc')
+                Textarea::make('description')
                     ->rows(4)
                     ->columnSpanFull(),
                 Select::make('type')

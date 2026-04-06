@@ -26,10 +26,10 @@ class OrganizationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
         ]);
 
-        $validated['desc'] = RichText::sanitize($validated['desc'] ?? null);
+        $validated['description'] = RichText::sanitize($validated['description'] ?? null);
 
         Organization::create($validated);
 
@@ -64,10 +64,10 @@ class OrganizationController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
         ]);
 
-        $validated['desc'] = RichText::sanitize($validated['desc'] ?? null);
+        $validated['description'] = RichText::sanitize($validated['description'] ?? null);
 
         $organization->update($validated);
 

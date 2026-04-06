@@ -212,9 +212,9 @@
 
                 <div @class(['border-t border-base-300 pt-6' => $hasDetailRow])>
                     <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_about') }}</p>
-                    @if (filled(rich_text_excerpt($activity->desc)))
+                    @if (filled(rich_text_excerpt($activity->description)))
                         <div class="rich-text-content max-w-3xl text-sm leading-relaxed text-base-content/90">
-                            {!! rich_text($activity->desc) !!}
+                            {!! rich_text($activity->description) !!}
                         </div>
                     @else
                         <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>

@@ -51,11 +51,11 @@
 
             <div>
                 <x-editor
-                    wire:model="desc"
+                    wire:model="description"
                     :label="__('ui.activities.description')"
                     :gpl-license="true"
                 />
-                <x-field-error :messages="$errors->get('desc')" class="mt-2" />
+                <x-field-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
             <div class="mt-4 border-t border-base-300 pt-4">

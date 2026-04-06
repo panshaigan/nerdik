@@ -93,7 +93,7 @@ class BrowseActivities extends Component
 
         if ($this->q !== '') {
             $term = '%'.$this->q.'%';
-            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('desc', 'like', $term));
+            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('description', 'like', $term));
         }
 
         $this->applyBrowseActivitySort($query);

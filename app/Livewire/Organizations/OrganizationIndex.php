@@ -20,7 +20,7 @@ class OrganizationIndex extends Component
 
     public string $name = '';
 
-    public string $desc = '';
+    public string $description = '';
 
     public function mount(): void
     {
@@ -55,7 +55,7 @@ class OrganizationIndex extends Component
         $this->modalMode = 'edit';
         $this->editingOrganizationId = $organization->id;
         $this->name = $organization->name;
-        $this->desc = (string) ($organization->desc ?? '');
+        $this->description = (string) ($organization->description ?? '');
         $this->resetErrorBag();
         $this->modalOpen = true;
         $this->scheduleTinyMceModalRefresh();
@@ -71,12 +71,12 @@ class OrganizationIndex extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'desc' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
         ]);
 
         $payload = [
             'name' => $this->name,
-            'desc' => RichText::sanitize($this->desc),
+            'description' => RichText::sanitize($this->description),
         ];
 
         if ($this->modalMode === 'create') {
@@ -123,7 +123,7 @@ class OrganizationIndex extends Component
         $this->modalMode = 'create';
         $this->editingOrganizationId = null;
         $this->name = '';
-        $this->desc = '';
+        $this->description = '';
         $this->resetErrorBag();
     }
 
