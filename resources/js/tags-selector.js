@@ -242,7 +242,7 @@ export function initTagSelector(root) {
                 autoSelected.delete(cur);
             }
             const t = byId.get(cur);
-            (t?.attached_ids || []).forEach((aid) => {
+            (t?.related_ids || []).forEach((aid) => {
                 if (!selected.has(Number(aid))) stack.push({ id: Number(aid), isAuto: true });
             });
         }

@@ -35,10 +35,10 @@ class Tag extends Model
         return $this->hasMany(TagRelation::class, 'tag_id');
     }
 
-    /** TagRelation rows where this tag is the linked tag (`attached_tag_id`, inverse side). */
+    /** TagRelation rows where this tag is the linked tag (`related_tag_id`, inverse side). */
     public function inverseTagRelations()
     {
-        return $this->hasMany(TagRelation::class, 'attached_tag_id');
+        return $this->hasMany(TagRelation::class, 'related_tag_id');
     }
 
     public function slots()

@@ -8,7 +8,7 @@ class TagRelation extends Model
 {
     protected $fillable = [
         'tag_id',
-        'attached_tag_id',
+        'related_tag_id',
     ];
 
     public function tag()
@@ -18,6 +18,6 @@ class TagRelation extends Model
 
     public function relatedTag()
     {
-        return $this->belongsTo(Tag::class, 'attached_tag_id');
+        return $this->belongsTo(Tag::class, 'related_tag_id');
     }
 }
