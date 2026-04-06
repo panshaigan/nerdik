@@ -17,11 +17,13 @@
         ->values()
         ->all();
     $categories = TagSelectionService::CATEGORY_OPTIONS;
-    $tagsForJs = collect($tags ?? [])->map(function ($tag) {
+    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale) {
+        $localeTranslation = collect($tag->translations ?? [])->firstWhere('locale', $locale);
+        $fallbackTranslation = $localeTranslation ?: collect($tag->translations ?? [])->firstWhere('locale', 'en');
         return [
             'id' => (int) $tag->id,
             'category' => (string) $tag->category,
-            'slug' => (string) $tag->slug,
+            'slug' => (string) ($fallbackTranslation?->slug ?? ''),
             'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
             'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
             'related_ids' => collect($tag->tagRelations ?? [])->pluck('related_tag_id')->map(fn ($id) => (int) $id)->values()->all(),

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-base-content">
-            {{ __('Edit tag') }}: {{ $tag->slug }}
+            {{ __('Edit tag') }}: {{ $tag->translations->firstWhere('locale', app()->getLocale())?->slug ?? ($tag->translations->firstWhere('locale', app()->getLocale())?->label ?? '#'.$tag->id) }}
         </h2>
     </x-slot>
 

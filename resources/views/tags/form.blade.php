@@ -14,17 +14,6 @@
 
     <div>
         <x-input
-            label="{{ __('Slug') }}"
-            name="slug"
-            type="text"
-            value="{{ old('slug', $tag->slug ?? '') }}"
-            error-field="slug"
-            required
-        />
-    </div>
-
-    <div>
-        <x-input
             label="{{ __('Label (EN)') }}"
             name="label_en"
             type="text"
