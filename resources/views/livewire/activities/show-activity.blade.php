@@ -36,7 +36,7 @@
     if ($activity->price !== null) {
         $metaItems[] = [
             'label' => __('ui.activities.show_price'),
-            'value' => number_format((float) $activity->price, 2),
+            'value' => format_number($activity->price, 2),
         ];
     }
     $metaRows = count($metaItems) > 0

@@ -214,7 +214,7 @@
                     $proposalEventSelectOptions = $futureEvents->map(function ($ev) {
                         $label = $ev->name;
                         if ($ev->starts_at) {
-                            $label .= ' — '.$ev->starts_at->timezone(config('app.timezone'))->format('Y-m-d H:i');
+                            $label .= ' — '.format_in_user_tz($ev->starts_at, 'Y-m-d H:i');
                         }
 
                         return ['id' => $ev->id, 'name' => $label];

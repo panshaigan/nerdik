@@ -39,7 +39,151 @@ if (! function_exists('format_in_user_tz')) {
             ? auth()->user()->timezone
             : config('app.timezone');
 
-        return $carbon->setTimezone($tz)->format($format);
+        $carbon = $carbon->setTimezone($tz)->locale(app()->getLocale());
+
+        // Support translated month/day names when format uses textual tokens.
+        // Falls back to PHP date formatting for numeric-only formats.
+        return strpbrk($format, 'DFlM') !== false
+            ? $carbon->translatedFormat($format)
+            : $carbon->format($format);
+    }
+}
+
+if (! function_exists('format_datetime_in_user_tz')) {
+    /**
+     * Locale-aware datetime formatting via Carbon isoFormat tokens.
+     *
+     * @param  Carbon|DateTimeInterface|string|null  $date
+     */
+    function format_datetime_in_user_tz($date, string $isoFormat = 'lll'): string
+    {
+        if ($date === null) {
+            return '';
+        }
+
+        $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
+        $tz = auth()->check() && auth()->user()->timezone
+            ? auth()->user()->timezone
+            : config('app.timezone');
+
+        return $carbon->setTimezone($tz)->locale(app()->getLocale())->isoFormat($isoFormat);
+    }
+}
+
+if (! function_exists('format_date_in_user_tz')) {
+    /**
+     * Locale-aware date-only formatting (keeps locale-specific day/month order).
+     *
+     * @param  Carbon|DateTimeInterface|string|null  $date
+     */
+    function format_date_in_user_tz($date, ?int $dateType = null): string
+    {
+        if ($date === null) {
+            return '';
+        }
+
+        $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
+        $tz = auth()->check() && auth()->user()->timezone
+            ? auth()->user()->timezone
+            : config('app.timezone');
+
+        $carbon = $carbon->setTimezone($tz)->locale(app()->getLocale());
+        if (! class_exists(\IntlDateFormatter::class)) {
+            return $carbon->isoFormat('ll');
+        }
+
+        $resolvedDateType = $dateType ?? \IntlDateFormatter::MEDIUM;
+        $formatter = new \IntlDateFormatter(
+            app()->getLocale(),
+            $resolvedDateType,
+            \IntlDateFormatter::NONE,
+            $tz
+        );
+
+        $formatted = $formatter->format($carbon);
+
+        return $formatted === false ? $carbon->isoFormat('ll') : $formatted;
+    }
+}
+
+if (! function_exists('date_range_template')) {
+    /**
+     * Return a locale-specific date range template with fallback to English/default.
+     */
+    function date_range_template(string $style, string $variant): string
+    {
+        $locale = app()->getLocale();
+        $fallbackLocale = (string) config('date_formats.fallback_locale', config('app.fallback_locale', 'en'));
+
+        $custom = config("date_formats.ranges.{$style}.{$locale}.{$variant}");
+        if (is_string($custom) && $custom !== '') {
+            return $custom;
+        }
+
+        $fallback = config("date_formats.ranges.{$style}.{$fallbackLocale}.{$variant}");
+        if (is_string($fallback) && $fallback !== '') {
+            return $fallback;
+        }
+
+        $defaults = [
+            'same_day' => ':start_month_short :start_day, :year',
+            'same_month' => ':start_month_short :start_day-:end_day, :year',
+            'same_year' => ':start_month_short :start_day - :end_month_short :end_day, :year',
+            'different_year' => ':start_month_short :start_day, :start_year - :end_month_short :end_day, :end_year',
+        ];
+
+        return $defaults[$variant] ?? ':start_month_short :start_day, :start_year - :end_month_short :end_day, :end_year';
+    }
+}
+
+if (! function_exists('format_date_range_localized')) {
+    /**
+     * Reusable locale-aware date range formatter with configurable templates.
+     *
+     * @param  Carbon|DateTimeInterface|string|null  $start
+     * @param  Carbon|DateTimeInterface|string|null  $end
+     */
+    function format_date_range_localized($start, $end, string $style = 'compact'): string
+    {
+        if ($start === null || $end === null) {
+            return '';
+        }
+
+        $tz = auth()->check() && auth()->user()->timezone
+            ? auth()->user()->timezone
+            : config('app.timezone');
+        $locale = app()->getLocale();
+
+        $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz)->locale($locale);
+        $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz)->locale($locale);
+
+        $variant = 'different_year';
+        if ($s->isSameDay($e)) {
+            $variant = 'same_day';
+        } elseif ($s->isSameYear($e) && $s->isSameMonth($e)) {
+            $variant = 'same_month';
+        } elseif ($s->isSameYear($e)) {
+            $variant = 'same_year';
+        }
+
+        $template = date_range_template($style, $variant);
+
+        $startMonthLongGenitive = ltrim((string) preg_replace('/^\d+\s+/u', '', $s->isoFormat('D MMMM')));
+        $endMonthLongGenitive = ltrim((string) preg_replace('/^\d+\s+/u', '', $e->isoFormat('D MMMM')));
+
+        return strtr($template, [
+            ':start_day' => $s->translatedFormat('j'),
+            ':end_day' => $e->translatedFormat('j'),
+            ':year' => $s->translatedFormat('Y'),
+            ':start_year' => $s->translatedFormat('Y'),
+            ':end_year' => $e->translatedFormat('Y'),
+            ':start_month_short' => $s->translatedFormat('M'),
+            ':end_month_short' => $e->translatedFormat('M'),
+            ':start_month_long' => $s->translatedFormat('F'),
+            ':end_month_long' => $e->translatedFormat('F'),
+            ':start_month_long_genitive' => $startMonthLongGenitive,
+            ':end_month_long_genitive' => $endMonthLongGenitive,
+        ]);
     }
 }
 
@@ -64,22 +208,23 @@ if (! function_exists('format_datetime_range_compact')) {
             ? auth()->user()->timezone
             : config('app.timezone');
 
-        $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz);
-        $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz);
+        $locale = app()->getLocale();
+        $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz)->locale($locale);
+        $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz)->locale($locale);
 
         if ($s->isSameDay($e)) {
-            return $s->format('M j, Y').' · '.$s->format('H:i').' - '.$e->format('H:i');
+            return $s->translatedFormat('j M Y').' · '.$s->format('H:i').' - '.$e->format('H:i');
         }
 
         if ($s->isSameYear($e) && $s->isSameMonth($e)) {
-            return $s->format('M j H:i').' → '.$e->format('j H:i').', '.$s->format('Y');
+            return $s->translatedFormat('j M').' '.$s->format('H:i').' → '.$e->translatedFormat('j').' '.$e->format('H:i').', '.$s->translatedFormat('Y');
         }
 
         if ($s->isSameYear($e)) {
-            return $s->format('M j H:i').' → '.$e->format('M j H:i').', '.$s->format('Y');
+            return $s->translatedFormat('j M').' '.$s->format('H:i').' → '.$e->translatedFormat('j M').' '.$e->format('H:i').', '.$s->translatedFormat('Y');
         }
 
-        return $s->format('M j, Y H:i').' → '.$e->format('M j, Y H:i');
+        return $s->translatedFormat('j M Y').' '.$s->format('H:i').' → '.$e->translatedFormat('j M Y').' '.$e->format('H:i');
     }
 }
 
@@ -96,30 +241,7 @@ if (! function_exists('format_date_range_compact')) {
      */
     function format_date_range_compact($start, $end): string
     {
-        if ($start === null || $end === null) {
-            return '';
-        }
-
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
-
-        $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz);
-        $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz);
-
-        if ($s->isSameDay($e)) {
-            return $s->format('M j, Y');
-        }
-
-        if ($s->isSameYear($e) && $s->isSameMonth($e)) {
-            return $s->format('M j').'–'.$e->format('j').', '.$s->format('Y');
-        }
-
-        if ($s->isSameYear($e)) {
-            return $s->format('M j').' → '.$e->format('M j').', '.$s->format('Y');
-        }
-
-        return $s->format('M j, Y').' → '.$e->format('M j, Y');
+        return format_date_range_localized($start, $end, 'compact');
     }
 }
 
@@ -144,6 +266,30 @@ if (! function_exists('format_activity_duration_compact')) {
         }
 
         return $parts === [] ? null : implode(' ', $parts);
+    }
+}
+
+if (! function_exists('format_number')) {
+    /**
+     * Locale-aware number formatting using PHP's intl extension.
+     * Falls back to a simple string cast if intl is not available.
+     */
+    function format_number(int|float|string|null $value, int $decimals = 0): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if (! class_exists(\NumberFormatter::class)) {
+            return (string) $value;
+        }
+
+        $formatter = new \NumberFormatter(app()->getLocale(), \NumberFormatter::DECIMAL);
+        $formatter->setAttribute(\NumberFormatter::FRACTION_DIGITS, max(0, $decimals));
+
+        $formatted = $formatter->format((float) $value);
+
+        return $formatted === false ? (string) $value : $formatted;
     }
 }
 

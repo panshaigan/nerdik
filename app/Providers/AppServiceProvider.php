@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Activity;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
@@ -31,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'activity' => Activity::class,
         ]);
+
+        // Ensure Carbon uses the current app locale for translated month/day names.
+        Carbon::setLocale(app()->getLocale());
 
         Blade::if('canModifyEntity', function (mixed $entity): bool {
             if (! $entity instanceof Model) {
