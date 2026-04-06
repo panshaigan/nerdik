@@ -40,6 +40,11 @@ class Tag extends Model
         return $this->hasMany(TagRelation::class, 'related_tag_id');
     }
 
+    public function activities()
+    {
+        return $this->morphedByMany(Activity::class, 'taggable', 'taggables')->withTimestamps();
+    }
+
     /**
      * Tags eager-loaded for form selectors and browse filters (single query shape app-wide).
      *
