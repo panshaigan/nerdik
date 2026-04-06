@@ -227,7 +227,7 @@ class ShowEvent extends Component
             $out[] = [
                 'label' => $key === '__no_time__'
                     ? __('ui.events.slots_group_no_time')
-                    : format_in_user_tz($groupSlots->first()->starts_at, 'D, M j · H:00'),
+                    : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:00'),
                 'slots' => $groupSlots,
             ];
         }
@@ -246,7 +246,7 @@ class ShowEvent extends Component
 
         if ($prependEventStart) {
             array_unshift($out, [
-                'label' => format_in_user_tz($event->starts_at, 'D, M j · H:00'),
+                'label' => format_datetime_in_user_tz($event->starts_at, 'ddd, D MMM · HH:00'),
                 'slots' => collect(),
                 'boundary' => 'event_start',
             ]);
@@ -259,7 +259,7 @@ class ShowEvent extends Component
 
         if ($appendEventEnd) {
             $out[] = [
-                'label' => format_in_user_tz($event->ends_at, 'D, M j · H:00'),
+                'label' => format_datetime_in_user_tz($event->ends_at, 'ddd, D MMM · HH:00'),
                 'slots' => collect(),
                 'boundary' => 'event_end',
             ];

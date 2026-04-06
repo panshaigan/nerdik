@@ -126,9 +126,9 @@
                                     >
                                         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                                             <span class="font-medium tabular-nums text-base-content">
-                                                {{ format_in_user_tz($window->starts_at, 'D, M j · H:i') }}
+                                                {{ format_datetime_in_user_tz($window->starts_at, 'ddd, D MMM · HH:mm') }}
                                                 <span class="text-base-content/50">–</span>
-                                                {{ format_in_user_tz($window->ends_at, 'D, M j · H:i') }}
+                                                {{ format_datetime_in_user_tz($window->ends_at, 'ddd, D MMM · HH:mm') }}
                                             </span>
                                             @if ($isThisWindowActive)
                                                 <span class="badge badge-success badge-sm shrink-0">{{ __('ui.events.enrollment_window_active_badge') }}</span>
