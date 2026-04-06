@@ -17,7 +17,7 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Category') }}</th>
-                                <th>{{ __('Slug') }}</th>
+                                <th>{{ __('Slug (current locale)') }}</th>
                                 <th>{{ __('EN') }}</th>
                                 <th>{{ __('PL') }}</th>
                                 <th class="w-0"></th>
@@ -27,7 +27,7 @@
                             @forelse ($tags as $tag)
                                 <tr>
                                     <td class="opacity-80">{{ $tag->category }}</td>
-                                    <td class="font-medium opacity-90">{{ $tag->slug }}</td>
+                                    <td class="font-medium opacity-90">{{ $tag->translations->firstWhere('locale', app()->getLocale())?->slug ?? '—' }}</td>
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'en')?->label ?? '—' }}</td>
                                     <td class="opacity-80">{{ $tag->translations->firstWhere('locale', 'pl')?->label ?? '—' }}</td>
                                     <td class="text-end">

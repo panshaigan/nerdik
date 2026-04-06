@@ -18,7 +18,6 @@ class TagController extends Controller
     {
         $tags = Tag::with('translations')
             ->orderBy('category')
-            ->orderBy('slug')
             ->get();
 
         return view('tags.index', compact('tags'));
@@ -43,22 +42,37 @@ class TagController extends Controller
     {
         $validated = $request->validate([
             'category' => ['required', 'string', 'max:50'],
-            'slug' => ['required', 'string', 'max:255', 'unique:tags,slug'],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $labelsByLocale = $this->normalizedLabelsByLocale($validated);
+
+        // Ensure a translation (and thus locale slug) exists in current app locale.
+        $currentLocale = app()->getLocale();
+        if (($labelsByLocale[$currentLocale] ?? '') === '') {
+            $fallback = collect($labelsByLocale)->first(fn ($label) => $label !== '');
+            if ($fallback !== null) {
+                $labelsByLocale[$currentLocale] = $fallback;
+            }
+        }
+
+        if (! collect($labelsByLocale)->contains(fn ($label) => $label !== '')) {
+            return back()
+                ->withInput()
+                ->withErrors(['label_'.$currentLocale => __('At least one label is required.')]);
+        }
+
         $tag = Tag::create([
             'category' => $validated['category'],
-            'slug' => $validated['slug'],
         ]);
 
-        foreach (['en' => 'label_en', 'pl' => 'label_pl'] as $locale => $field) {
-            if (! empty($validated[$field])) {
+        foreach (['en', 'pl'] as $locale) {
+            if (($labelsByLocale[$locale] ?? '') !== '') {
                 TagTranslation::create([
                     'tag_id' => $tag->id,
                     'locale' => $locale,
-                    'label' => $validated[$field],
+                    'label' => $labelsByLocale[$locale],
                 ]);
             }
         }
@@ -82,6 +96,7 @@ class TagController extends Controller
     {
         $this->authorizeCreatedBy($tag);
 
+        $tag->loadMissing('translations');
         $labelEn = $tag->translations->firstWhere('locale', 'en')?->label ?? '';
         $labelPl = $tag->translations->firstWhere('locale', 'pl')?->label ?? '';
 
@@ -97,18 +112,31 @@ class TagController extends Controller
 
         $validated = $request->validate([
             'category' => ['required', 'string', 'max:50'],
-            'slug' => ['required', 'string', 'max:255', 'unique:tags,slug,'.$tag->id],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
         ]);
 
         $tag->update([
             'category' => $validated['category'],
-            'slug' => $validated['slug'],
         ]);
 
-        foreach (['en' => 'label_en', 'pl' => 'label_pl'] as $locale => $field) {
-            $value = $validated[$field] ?? null;
+        $labelsByLocale = $this->normalizedLabelsByLocale($validated);
+        $currentLocale = app()->getLocale();
+        if (($labelsByLocale[$currentLocale] ?? '') === '') {
+            $fallback = collect($labelsByLocale)->first(fn ($label) => $label !== '');
+            if ($fallback !== null) {
+                $labelsByLocale[$currentLocale] = $fallback;
+            }
+        }
+
+        if (! collect($labelsByLocale)->contains(fn ($label) => $label !== '')) {
+            return back()
+                ->withInput()
+                ->withErrors(['label_'.$currentLocale => __('At least one label is required.')]);
+        }
+
+        foreach (['en', 'pl'] as $locale) {
+            $value = $labelsByLocale[$locale] ?? null;
 
             $translation = $tag->translations()->firstOrNew(['locale' => $locale]);
 
@@ -122,6 +150,18 @@ class TagController extends Controller
 
         return redirect()->route('tags.index')
             ->with('status', __('Tag updated.'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{en: string, pl: string}
+     */
+    private function normalizedLabelsByLocale(array $validated): array
+    {
+        return [
+            'en' => trim((string) ($validated['label_en'] ?? '')),
+            'pl' => trim((string) ($validated['label_pl'] ?? '')),
+        ];
     }
 
     /**

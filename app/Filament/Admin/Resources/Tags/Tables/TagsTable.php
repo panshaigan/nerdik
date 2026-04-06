@@ -22,8 +22,6 @@ class TagsTable
                     ->sortable(),
                 TextColumn::make('category')
                     ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
                 TextColumn::make('logo_path')
                     ->searchable(),
                 TextColumn::make('created_at')

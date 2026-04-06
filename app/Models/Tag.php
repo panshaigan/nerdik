@@ -13,7 +13,6 @@ class Tag extends Model
 
     protected $fillable = [
         'category',
-        'slug',
         'description',
         'logo_path',
         'created_by',
@@ -55,6 +54,6 @@ class Tag extends Model
     {
         return $query->with(['translations', 'aliases', 'tagRelations'])
             ->orderBy('category')
-            ->orderBy('slug');
+            ->orderBy('id');
     }
 }

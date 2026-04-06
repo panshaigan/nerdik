@@ -247,23 +247,25 @@ class SampleDataSeeder extends Seeder
         }
 
         // Sample tags on events & activities (TagSeeder must run first)
-        $t = fn (string $slug) => Tag::where('slug', $slug)->first();
-        if ($t('dungeons-and-dragons-5e')) {
-            $event1->tags()->syncWithoutDetaching([$t('dungeons-and-dragons-5e')->id]);
-            $activity1->tags()->syncWithoutDetaching([$t('dungeons-and-dragons-5e')->id]);
+        $t = fn (string $enLabel) => Tag::query()
+            ->whereHas('translations', fn ($q) => $q->where('locale', 'en')->where('label', $enLabel))
+            ->first();
+        if ($t('Dungeons & Dragons 5e')) {
+            $event1->tags()->syncWithoutDetaching([$t('Dungeons & Dragons 5e')->id]);
+            $activity1->tags()->syncWithoutDetaching([$t('Dungeons & Dragons 5e')->id]);
         }
-        if ($t('forbidden-lands')) {
-            $event1->tags()->syncWithoutDetaching([$t('forbidden-lands')->id]);
-            $activity2->tags()->syncWithoutDetaching([$t('forbidden-lands')->id]);
+        if ($t('Forbidden Lands')) {
+            $event1->tags()->syncWithoutDetaching([$t('Forbidden Lands')->id]);
+            $activity2->tags()->syncWithoutDetaching([$t('Forbidden Lands')->id]);
         }
-        if ($t('horror')) {
-            $event2->tags()->syncWithoutDetaching([$t('horror')->id]);
+        if ($t('Horror')) {
+            $event2->tags()->syncWithoutDetaching([$t('Horror')->id]);
         }
-        if ($t('call-of-cthulhu')) {
-            $activity4->tags()->syncWithoutDetaching([$t('call-of-cthulhu')->id]);
+        if ($t('Call of Cthulhu')) {
+            $activity4->tags()->syncWithoutDetaching([$t('Call of Cthulhu')->id]);
         }
-        if ($t('violence')) {
-            $activity1->tags()->syncWithoutDetaching([$t('violence')->id]);
+        if ($t('Violence')) {
+            $activity1->tags()->syncWithoutDetaching([$t('Violence')->id]);
         }
     }
 }

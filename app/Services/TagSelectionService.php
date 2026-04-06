@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class TagSelectionService
 {
@@ -66,17 +65,8 @@ class TagSelectionService
         }
 
         return DB::transaction(function () use ($label, $category, $locale) {
-            $base = Str::slug($label);
-            $slug = $base !== '' ? $base : 'tag';
-            $i = 1;
-            while (Tag::where('slug', $slug)->exists()) {
-                $i++;
-                $slug = $base !== '' ? "{$base}-{$i}" : "tag-{$i}";
-            }
-
             $tag = Tag::create([
                 'category' => mb_strtolower(trim($category)),
-                'slug' => $slug,
             ]);
 
             $tag->translations()->create([
