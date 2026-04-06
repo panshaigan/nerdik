@@ -95,7 +95,7 @@ class TagSelectionService
     }
 
     /**
-     * Include tag IDs reachable via `tag_attachments` (tag_id → attached_tag_id).
+     * Include tag IDs reachable via `tag_relations` (tag_id → attached_tag_id).
      *
      * @param  list<int>  $tagIds
      * @return list<int>
@@ -109,7 +109,7 @@ class TagSelectionService
             $chunk = $queue;
             $queue = [];
 
-            $linkedIds = DB::table('tag_attachments')
+            $linkedIds = DB::table('tag_relations')
                 ->whereIn('tag_id', $chunk)
                 ->pluck('attached_tag_id')
                 ->map(fn ($id) => (int) $id)

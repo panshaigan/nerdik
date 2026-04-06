@@ -24,7 +24,7 @@
             'slug' => (string) $tag->slug,
             'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
             'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
-            'attached_ids' => collect($tag->tagAttachments ?? [])->pluck('attached_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
+            'attached_ids' => collect($tag->tagRelations ?? [])->pluck('attached_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
         ];
     })->values()->all();
     $skipLivewireSync = (bool) ($skipLivewireSync ?? false);

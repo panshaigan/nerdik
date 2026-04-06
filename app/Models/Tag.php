@@ -30,15 +30,15 @@ class Tag extends Model
         return $this->hasMany(TagAlias::class);
     }
 
-    public function tagAttachments()
+    public function tagRelations()
     {
-        return $this->hasMany(TagAttachment::class, 'tag_id');
+        return $this->hasMany(TagRelation::class, 'tag_id');
     }
 
-    /** TagAttachment rows where this tag is the linked tag (`attached_tag_id`, inverse side). */
-    public function inverseTagAttachments()
+    /** TagRelation rows where this tag is the linked tag (`attached_tag_id`, inverse side). */
+    public function inverseTagRelations()
     {
-        return $this->hasMany(TagAttachment::class, 'attached_tag_id');
+        return $this->hasMany(TagRelation::class, 'attached_tag_id');
     }
 
     public function slots()
@@ -53,7 +53,7 @@ class Tag extends Model
      */
     public function scopeOrderedForSelector(Builder $query): Builder
     {
-        return $query->with(['translations', 'aliases', 'tagAttachments'])
+        return $query->with(['translations', 'aliases', 'tagRelations'])
             ->orderBy('category')
             ->orderBy('slug');
     }
