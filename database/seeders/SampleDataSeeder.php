@@ -23,6 +23,10 @@ class SampleDataSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            PlaceSeeder::class,
+        ]);
+
         $alice = User::firstOrCreate(
             ['email' => 'alice@nerdik.test'],
             [

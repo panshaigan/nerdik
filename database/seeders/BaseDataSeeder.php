@@ -12,7 +12,7 @@ class BaseDataSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PlaceSeeder::class,
+            CountrySeeder::class,
             TagSeeder::class,
         ]);
     }
