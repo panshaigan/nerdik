@@ -96,12 +96,6 @@ class LocationResolver
         return DB::transaction(function () use ($countryId, $trim, $locale) {
             $city = City::create(['country_id' => $countryId]);
             $city->translations()->create(['locale' => $locale, 'name' => $trim]);
-            if ($locale !== 'en') {
-                $city->translations()->firstOrCreate(
-                    ['locale' => 'en'],
-                    ['name' => $trim]
-                );
-            }
 
             return $city->id;
         });
