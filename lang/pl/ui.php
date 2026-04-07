@@ -40,10 +40,12 @@ return [
         'no_events_or_activities' => 'Brak pasujacych wydarzen lub aktywnosci.',
         'activity_type' => [
             'rpg' => 'RPG',
+            'wargame' => 'Gry bitewne',
             'board' => 'Gry planszowe',
             'card' => 'Gry karciane',
             'larp' => 'LARP',
-            'lecture' => 'Wyklad',
+            'discussion' => 'Dyskusja',
+            'lecture' => 'Wykład',
             'workshop' => 'Warsztat',
             'competition' => 'Konkurs',
             'show' => 'Pokaz',

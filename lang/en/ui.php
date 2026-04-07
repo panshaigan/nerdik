@@ -40,9 +40,11 @@ return [
         'no_events_or_activities' => 'No matching events or activities found.',
         'activity_type' => [
             'rpg' => 'RPG',
-            'board' => 'Board games',
-            'card' => 'Card games',
+            'wargame' => 'Wargame',
+            'board' => 'Board game',
+            'card' => 'Card game',
             'larp' => 'LARP',
+            'discussion' => 'Discussion',
             'lecture' => 'Lecture',
             'workshop' => 'Workshop',
             'competition' => 'Competition',
