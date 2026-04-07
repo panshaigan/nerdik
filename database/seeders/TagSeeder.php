@@ -11,22 +11,26 @@ use App\Models\TagRelation;
 use App\Models\TagTranslation;
 use Illuminate\Database\Seeder;
 
+use Illuminate\Support\Str;
+
 use function ucfirst;
 
 class TagSeeder extends Seeder
 {
     const ACTIVITY_TYPE = 'activity_type';
 
-    const ACTIVITY_TYPE_RPG = 'rpg';
-    const ACTIVITY_TYPE_WARGAME = 'wargame';
-    const ACTIVITY_TYPE_BOARD = 'board';
-    const ACTIVITY_TYPE_CARD = 'card';
-    const ACTIVITY_TYPE_LARP = 'larp';
-    const ACTIVITY_TYPE_DISCUSSION = 'discussion';
-    const ACTIVITY_TYPE_LECTURE = 'lecture';
-    const ACTIVITY_TYPE_WORKSHOP = 'workshop';
-    const ACTIVITY_TYPE_COMPETITION = 'competition';
-    const ACTIVITY_TYPE_SHOW = 'show';
+    const ACTIVITY_TYPE_RPG = 1;
+    const ACTIVITY_TYPE_WARGAME = 2;
+    const ACTIVITY_TYPE_BOARD = 3;
+    const ACTIVITY_TYPE_CARD = 4;
+    const ACTIVITY_TYPE_LARP = 5;
+    const ACTIVITY_TYPE_DISCUSSION = 6;
+    const ACTIVITY_TYPE_LECTURE = 7;
+    const ACTIVITY_TYPE_WORKSHOP = 8;
+    const ACTIVITY_TYPE_COMPETITION = 9;
+    const ACTIVITY_TYPE_SHOW = 10;
+
+    public $tagIds = [];
 
     /**
      * Run the database seeds.
@@ -34,6 +38,7 @@ class TagSeeder extends Seeder
     public function run(): void
     {
         $this->seedTagCategories();
+
         $this->seedTopics();
         $this->seedTriggers();
         $this->seedGenre();
@@ -49,21 +54,33 @@ class TagSeeder extends Seeder
         $tags = [
             [
                 'category' => TagCategory::KEY_OTHER,
-                'en' => 'Experienced Players',
+                'en' => 'For Experienced Players',
                 'pl' => 'Dla doświadczonych graczy',
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Lore Knowledge Needed',
-                'pl' => 'Wymagany Lore',
+                'pl' => 'Wymagana znajomosć świata gry',
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Custom Scenario',
+                'pl' => 'Scenariusz autorski',
+                'aliases' => [
+                    'en' => 'Custom Module',
+                    'pl' => 'Autorska przygoda',
+                ],
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
-                'en' => 'Official Module',
+                'en' => 'Official Scenario',
+                'pl' => 'Oficjalny scenariusz',
+                'aliases' => [
+                    'en' => 'Official Module',
+                    'pl' => 'Oficjalna przygoda',
+                ],
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_RPG],
             ],
         ];
 
@@ -75,115 +92,105 @@ class TagSeeder extends Seeder
         $tags = [
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'd20 System',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
                 'en' => '5E',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Pathfinder',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Year Zero Engine',
+                'aliases' => ['en' => 'YZE'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Mörk Borg (system)',
+                'en' => 'Cortex Prime',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_MECHANIC,
+                'en' => 'Genesys',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_MECHANIC,
+                'en' => 'Mörk Borg TPL',
+                'aliases' => ['en' => 'Mork Borg TPL'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Powered by the Apocalypse',
-                'aliases' => [
-                    ['en' => 'PbtA']
-                ],
+                'aliases' => ['en' => 'PbtA'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Forged in the Dark',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
 
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Savage Worlds',
+                'aliases' => ['en' => 'SW'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'GURPS',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Basic Role-Playing',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Gumshoe',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => '2d20 System',
+                'en' => 'Carved from Brindlewood',
+                'aliases' => ['en' => 'CfB'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_MECHANIC,
+                'en' => '2d20',
+                'aliases' => ['en' => 'Modiphius'],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Cypher System',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'OSR',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Blades in the Dark',
-            ],
-
-            // Wargames mechanics
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Alternating Activation',
+                'en' => 'd100',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'd6 Pool',
+                'en' => 'Dice pool',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'IGOUGO',
-            ],
-
-            // Board & Card Games mechanics
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Deck Building',
+                'en' => 'Step dice',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Worker Placement',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Area Control',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Tile Placement',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Trick Taking',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Dice Rolling',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Legacy',
-            ],
-            [
-                'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Cooperative',
+                'en' => 'd20',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
         ];
 
@@ -196,27 +203,28 @@ class TagSeeder extends Seeder
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'One shot',
+                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Campaign',
                 'pl' => 'Kampania',
+                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Open Table',
+                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
-                'en' => 'Round-robin',
+                'en' => 'Sandbox',
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
-                'en' => 'Tournament Bracket',
-            ],
-            [
-                'category' => TagCategory::KEY_FORMAT,
-                'en' => 'Panel',
+                'en' => 'Sesja nagrywana',
+                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME],
             ],
         ];
 
@@ -241,12 +249,13 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
-                'en' => 'Warhammer 40,000',
+                'en' => 'Warhammer 40k',
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Cthulhu Mythos',
                 'pl' => 'Mitologia Cthulhu',
+                'aliases' => ['en' => 'Lovecraftian Mythos'],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
@@ -356,103 +365,132 @@ class TagSeeder extends Seeder
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Fantasy',
-                'pl' => 'Fantasy',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Science Fiction',
-                'pl' => 'Science Fiction',
+                'aliases' => ['en' => 'SF'],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Horror',
-                'pl' => 'Horror',
-            ],
-        ];
-
-        $ids = $this->executeSeedingTags($commonGenres);
-
-        $fantasyId = $ids[0];
-        $sfId = $ids[1];
-        $horrorId = $ids[2];
-
-        $tags = [
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Heroic fantasy',
-                'relations' => [$fantasyId],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'High Fantasy',
-                'relations' => [$fantasyId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Sword & Sorcery',
-                'relations' => [$fantasyId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Dark Fantasy',
-                'relations' => [$fantasyId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Grimdark',
-                'relations' => [$fantasyId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Urban Fantasy',
-                'relations' => [$fantasyId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Cyberpunk',
-                'relations' => [$sfId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Space Opera',
-                'relations' => [$sfId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Post-Apocalyptic',
-                'relations' => [$sfId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Cosmic Horror',
-                'relations' => [$horrorId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Survival Horror',
-                'relations' => [$horrorId],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Weird West',
+                'en' => 'Alternate History',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Historical',
                 'pl' => 'Historyczne',
             ],
+        ];
+
+        $this->executeSeedingTags($commonGenres);
+
+        $tags = [
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Alternate History',
-                'pl' => 'Historia alternatywna',
+                'en' => 'Heroic fantasy',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'High Fantasy',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Low Fantasy',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Sword & Sorcery',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Dark Fantasy',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Urban Fantasy',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Weird Fiction',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Superhero',
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Science Fantasy',
+                'aliases' => ['en' => 'Grimdark'],
+                'relations' => [$this->tagIds['Fantasy']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Hard Science Fiction',
+                'aliases' => ['en' => 'Hard SF'],
+                'relations' => [$this->tagIds['Science Fiction']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Cyberpunk',
+                'relations' => [$this->tagIds['Science Fiction']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Space Opera',
+                'relations' => [$this->tagIds['Science Fiction']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Cosmic Horror',
+                'relations' => [$this->tagIds['Horror']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Psychological Horror',
+                'relations' => [$this->tagIds['Horror']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Supernatural Horror',
+                'aliases' => ['en' => 'Paranormal Horror'],
+                'relations' => [$this->tagIds['Horror']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Survival Horror',
+                'relations' => [$this->tagIds['Horror']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Weird West',
+                'relations' => [$this->tagIds['Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Steampunk',
+                'relations' => [$this->tagIds['Science Fiction']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Dieselpunk',
+                'relations' => [$this->tagIds['Science Fiction']],
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Tech Noir',
+                'relations' => [$this->tagIds['Science Fiction']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
@@ -460,12 +498,11 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Superhero',
-                'pl' => 'Superbohaterskie',
+                'en' => 'Western',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Western',
+                'en' => 'Wild West',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
@@ -493,6 +530,11 @@ class TagSeeder extends Seeder
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Mystery',
             ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Post-Apocalyptic',
+                'relations' => [$this->tagIds['Science Fiction']],
+            ],
         ];
 
         $this->executeSeedingTags($tags);
@@ -513,8 +555,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Demons & Monsters',
-                'pl' => 'Demony i potwory',
+                'en' => 'Demons/Monsters',
+                'pl' => 'Demony/potwory',
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
@@ -533,13 +575,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Spiders & Insects',
-                'pl' => 'Pająki i robactwo',
-            ],
-            [
-                'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Acrophobia',
-                'pl' => 'Wysokość',
+                'en' => 'Spiders/Insects',
+                'pl' => 'Pająki/robactwo',
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
@@ -568,8 +605,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Manipulation & Gaslighting',
-                'pl' => 'Manipulacja i gaslighting',
+                'en' => 'Manipulation/Gaslighting',
+                'pl' => 'Manipulacja/gaslighting',
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
@@ -583,8 +620,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Homophobia & Transphobia',
-                'pl' => 'Homofobia i transfobia',
+                'en' => 'Homophobia/Transphobia',
+                'pl' => 'Homofobia/transfobia',
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
@@ -618,7 +655,7 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TRIGGER,
-                'en' => 'Pregnancy & Childbirth',
+                'en' => 'Pregnancy/Childbirth',
                 'pl' => 'Ciąża i poród',
             ],
             [
@@ -654,8 +691,7 @@ class TagSeeder extends Seeder
             'pl' => 'Azja',
         ]];
 
-        $ids = $this->executeSeedingTags($relatedTags);
-        $asiaId = $ids[0];
+        $this->executeSeedingTags($relatedTags);
 
         $tags = [
             [
@@ -700,9 +736,14 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_TOPIC,
+                'en' => 'Asia',
+                'pl' => 'Azja',
+            ],
+            [
+                'category' => TagCategory::KEY_TOPIC,
                 'en' => 'Anime & Manga',
                 'pl' => 'Anime i Manga',
-                'relations' => [$asiaId],
+                'relations' => [$this->tagIds['Asia']],
             ],
             [
                 'category' => TagCategory::KEY_TOPIC,
@@ -771,20 +812,14 @@ class TagSeeder extends Seeder
             [
                 'category' => 'game',
                 'en' => 'Dungeons & Dragons 5E',
-                'aliases' => [
-                    ['en' => 'D&D']
-                ],
+                'aliases' => ['en' => 'D&D'],
             ],
             [
                 'category' => 'game',
                 'en' => 'Warhammer Fantasy Roleplay 4E',
-                'aliases' => [
-                    ['en', 'WFRP4']
-                ],
+                'aliases' => ['en' => 'WFRP4'],
                 'relations' => [],
-                'contexts' => [
-                    ['context_type' => self::ACTIVITY_TYPE, 'context_id' => self::ACTIVITY_TYPE_RPG],
-                ],
+                'contexts' => [self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => 'game',
@@ -830,7 +865,7 @@ class TagSeeder extends Seeder
                     TagAlias::firstOrCreate([
                         'tag_id' => $tag->id,
                         'locale' => $locale,
-                        'aliases' => $alias,
+                        'alias' => $alias,
                     ]);
                 }
             }
@@ -866,9 +901,13 @@ class TagSeeder extends Seeder
                     ],
                     [
                         'label' => $data[$locale],
+                        'slug' => Str::slug($data[$locale]),
                     ]
                 );
             }
+
+            $this->tagIds[$data['en']] = $tag->id;
+
             $ids[] = $tag->id;
         }
 
