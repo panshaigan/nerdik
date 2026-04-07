@@ -59,8 +59,49 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
+                'pl' => 'Materiały w języku angielskim',
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Safety Toolkit: green/yellow/red',
+                'pl' => 'BHS: green/yellow/red',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Safety Toolkit: X Card',
+                'pl' => 'BHS: Karta X',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Safety Toolkit: Lines and Veils',
+                'pl' => 'BHS: linie i zasłony',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Safety Toolkit: Brief/debrief',
+                'pl' => 'BHS: omówienie przed i po',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
                 'en' => 'Lore Knowledge Needed',
                 'pl' => 'Wymagana znajomosć świata gry',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Emphasis on Roleplay',
+                'pl' => 'Nacisk na odgrywanie ról',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+            ],
+            [
+                'category' => TagCategory::KEY_OTHER,
+                'en' => 'Pre-Made Characters',
+                'pl' => 'Gotowe postaci',
+                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
