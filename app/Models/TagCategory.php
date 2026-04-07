@@ -10,40 +10,45 @@ class TagCategory extends Model
 
     public const KEY_GAME = 'game';
 
-    public const KEY_PUBLISHER = 'publisher';
+    public const KEY_GENRE = 'genre';
 
-    public const KEY_WORLD = 'world';
+    public const KEY_SETTING = 'setting';
 
-    public const KEY_CONVENTION = 'convention';
+    public const KEY_MECHANIC = 'mechanic';
 
-    public const KEY_ENGINE = 'engine';
+    public const KEY_FORMAT = 'format';
+
+    public const KEY_OTHER = 'other';
 
     public const KEY_TRIGGER = 'trigger';
 
-    public const KEY_BLOCK = 'block';
+    public const KEY_TOPIC = 'topic';
 
-    public const KEY_MISC = 'misc';
+
 
     /** @var list<string> */
     public const DEFAULT_KEYS = [
         self::KEY_GAME,
-        self::KEY_PUBLISHER,
-        self::KEY_WORLD,
-        self::KEY_CONVENTION,
-        self::KEY_ENGINE,
+        self::KEY_GENRE,
+        self::KEY_SETTING,
+        self::KEY_MECHANIC,
+        self::KEY_FORMAT,
+        self::KEY_OTHER,
         self::KEY_TRIGGER,
-        self::KEY_BLOCK,
-        self::KEY_MISC,
+        self::KEY_TOPIC,
     ];
 
-    /** Categories highlighted in activity cards/event slots. */
+    /** Categories highlighted in activity cards. */
     /** @var list<string> */
     public const ACTIVITY_HIGHLIGHT_KEYS = [
         self::KEY_GAME,
-        self::KEY_WORLD,
-        self::KEY_CONVENTION,
-        self::KEY_ENGINE,
-        self::KEY_BLOCK,
+        self::KEY_GENRE,
+        self::KEY_SETTING,
+        self::KEY_MECHANIC,
+        self::KEY_FORMAT,
+        self::KEY_OTHER,
+        self::KEY_TRIGGER,
+        self::KEY_TOPIC,
     ];
 
     protected $fillable = [

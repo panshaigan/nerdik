@@ -8,9 +8,11 @@ namespace App\Enums;
 enum ActivityType: string
 {
     case Rpg = 'rpg';
+    case Wargame = 'wargame';
     case Board = 'board';
     case Card = 'card';
     case Larp = 'larp';
+    case Discussion = 'discussion';
     case Lecture = 'lecture';
     case Workshop = 'workshop';
     case Competition = 'competition';

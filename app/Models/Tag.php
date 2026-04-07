@@ -53,6 +53,56 @@ class Tag extends Model
         return $this->morphedByMany(Activity::class, 'taggable', 'taggables');
     }
 
+    public function contexts()
+    {
+        return $this->hasMany(TagContext::class);
+    }
+
+    public function contextActivities()
+    {
+        return $this->morphedByMany(Activity::class, 'context', 'tag_contexts');
+    }
+
+    public function contextEvents()
+    {
+        return $this->morphedByMany(Event::class, 'context', 'tag_contexts');
+    }
+
+    public function contextOrganizations()
+    {
+        return $this->morphedByMany(Organization::class, 'context', 'tag_contexts');
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<\App\Enums\ActivityType>
+     */
+    public function getActivityTypeContextsAttribute()
+    {
+        return $this->contexts()
+            ->where('context_type', 'activity_type')
+            ->get()
+            ->map(fn (TagContext $c) => $c->activityType())
+            ->filter();
+    }
+
+    /**
+     * @param array<\App\Enums\ActivityType|string> $types
+     */
+    public function syncActivityTypeContexts(array $types): void
+    {
+        $this->contexts()->where('context_type', 'activity_type')->delete();
+
+        foreach ($types as $type) {
+            $value = $type instanceof \App\Enums\ActivityType ? $type->value : $type;
+            if (\App\Enums\ActivityType::tryFrom($value)) {
+                $this->contexts()->create([
+                    'context_type' => 'activity_type',
+                    'context_id' => $value,
+                ]);
+            }
+        }
+    }
+
     /**
      * Tags eager-loaded for form selectors and browse filters (single query shape app-wide).
      *

@@ -30,7 +30,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Keep polymorphic type strings compact and stable across apps/packages.
         Relation::morphMap([
-            'activity' => Activity::class,
+            'activity' => \App\Models\Activity::class,
+            'event' => \App\Models\Event::class,
+            'organization' => \App\Models\Organization::class,
+            'place' => \App\Models\Place::class,
+            'user' => \App\Models\User::class,
+            'activity_type' => \App\Enums\ActivityType::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.
