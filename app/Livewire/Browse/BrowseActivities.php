@@ -76,17 +76,41 @@ class BrowseActivities extends Component
 
     public function render()
     {
-        $query = Activity::with(['creator', 'tags.translations', 'slot.event'])
+        $query = Activity::with(['creator', 'tags.translations', 'slot.event', 'place'])
             ->attachedToPublicEvent();
 
         if (filled($this->from_date)) {
-            $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '>=', $this->from_date));
+            $query->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+                        ->whereDate('starts_at', '>=', $this->from_date);
+                })->orWhere(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                        ->whereHas('slot', fn ($slotQ) => $slotQ->whereDate('starts_at', '>=', $this->from_date));
+                });
+            });
         }
         if (filled($this->to_date)) {
-            $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '<=', $this->to_date));
+            $query->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+                        ->whereDate('starts_at', '<=', $this->to_date);
+                })->orWhere(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                        ->whereHas('slot', fn ($slotQ) => $slotQ->whereDate('starts_at', '<=', $this->to_date));
+                });
+            });
         }
         if ($this->place_id !== null) {
-            $query->whereHas('slot.place', fn ($q) => $q->where('places.id', $this->place_id));
+            $query->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+                        ->where('activities.place_id', $this->place_id);
+                })->orWhere(function ($sq) {
+                    $sq->where('hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                        ->whereHas('slot.place', fn ($slotQ) => $slotQ->where('places.id', $this->place_id));
+                });
+            });
         }
 
         $this->applyBrowseTagFilter($query, 'tags');

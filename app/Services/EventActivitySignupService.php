@@ -20,6 +20,19 @@ class EventActivitySignupService
      */
     public function activityScheduledWindow(Activity $activity): ?array
     {
+        if ($activity->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            if ($activity->starts_at === null) {
+                return null;
+            }
+            $start = $activity->starts_at->copy();
+            $end = $activity->ends_at?->copy() ?? $start->copy();
+            if ($end->lt($start)) {
+                $end = $start->copy();
+            }
+
+            return [$start, $end];
+        }
+
         $slot = $activity->slot;
         if ($slot === null || $slot->starts_at === null) {
             return null;

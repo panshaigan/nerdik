@@ -7,7 +7,9 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\Event;
+use App\Models\Place;
 use App\Models\Tag;
+use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalFlowService;
 use App\Services\TagSelectionService;
 use App\Support\RichText;
@@ -49,6 +51,9 @@ class ManageActivityForm extends Component
     public bool $allows_observers = false;
 
     public ?int $proposal_event_id = null;
+    public string $hosting_mode = Activity::HOSTING_MODE_DRAFT;
+    public ?string $self_hosted_starts_at = null;
+    public ?int $self_hosted_place_id = null;
 
     public ?string $proposal_preferred_start_time = null;
 
@@ -78,6 +83,9 @@ class ManageActivityForm extends Component
             $this->is_host_passive = (bool) $activity->is_host_passive;
             $this->requires_approval = (bool) $activity->requires_approval;
             $this->allows_observers = (bool) $activity->allows_observers;
+            $this->hosting_mode = (string) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
+            $this->self_hosted_place_id = $activity->place_id;
+            $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
         } elseif (request()->filled('proposal_event_id')) {
@@ -125,6 +133,17 @@ class ManageActivityForm extends Component
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
         }
+        if ($this->hosting_mode !== Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+            $this->proposal_event_id = null;
+            $this->proposal_preferred_start_time = null;
+            $this->proposal_slot_ids = [];
+        }
+        if ($this->self_hosted_starts_at === '') {
+            $this->self_hosted_starts_at = null;
+        }
+        if ($this->self_hosted_place_id === 0 || $this->self_hosted_place_id === '') {
+            $this->self_hosted_place_id = null;
+        }
 
         $this->proposal_slot_ids = array_values(array_unique(array_filter(
             array_map('intval', $this->proposal_slot_ids),
@@ -149,7 +168,7 @@ class ManageActivityForm extends Component
         $this->cancellation_deadline_in_hours = null;
     }
 
-    public function save(TagSelectionService $tagSelectionService)
+    public function save(TagSelectionService $tagSelectionService, ActivityHostingModeService $hostingModes)
     {
         $validated = $this->validate($this->rules());
 
@@ -184,6 +203,7 @@ class ManageActivityForm extends Component
                 }
             }
             $activity->update($payload);
+            $this->applyHostingModeFromForm($activity, $hostingModes);
             $activity->tags()->sync($tagIds);
             $proposalCreated = $this->createProposalForActivityIfRequested($activity);
             $message = $proposalCreated
@@ -191,6 +211,7 @@ class ManageActivityForm extends Component
                 : __('Activity updated.');
         } else {
             $activity = Activity::create($payload);
+            $this->applyHostingModeFromForm($activity, $hostingModes);
             $activity->tags()->sync($tagIds);
             $proposalCreated = $this->createProposalForActivityIfRequested($activity);
             $message = $proposalCreated
@@ -259,6 +280,9 @@ class ManageActivityForm extends Component
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
+            'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],
+            'self_hosted_starts_at' => ['nullable', 'date'],
+            'self_hosted_place_id' => ['nullable', 'integer', 'exists:places,id'],
             ...$this->proposalFieldValidationRules(),
         ];
     }
@@ -341,6 +365,8 @@ class ManageActivityForm extends Component
         ]);
         $proposal->load(['activity', 'event', 'creator']);
 
+        app(ActivityHostingModeService::class)->markProposedToEvent($activity);
+
         $flow = app(ActivityProposalFlowService::class);
         $flow->notifyHostOfNewProposal($proposal);
         $flow->attachProposedSlotsAndTryAutoAccept($proposal, $event, $activity, $this->proposal_slot_ids);
@@ -372,6 +398,36 @@ class ManageActivityForm extends Component
             ->all();
     }
 
+    protected function applyHostingModeFromForm(Activity $activity, ActivityHostingModeService $hostingModes): void
+    {
+        if ($activity->hosting_mode === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT) {
+            return;
+        }
+
+        if ($this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            if ($this->self_hosted_place_id === null || $this->self_hosted_starts_at === null) {
+                throw ValidationException::withMessages([
+                    'hosting_mode' => [__('ui.activities.self_hosted_requires_place_and_start')],
+                ]);
+            }
+            $hostingModes->setSelfHosted($activity, (int) $this->self_hosted_place_id, (string) $this->self_hosted_starts_at);
+
+            return;
+        }
+
+        if ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+            if ($activity->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+                $hostingModes->moveSelfHostedToProposed($activity);
+            } else {
+                $hostingModes->markProposedToEvent($activity);
+            }
+
+            return;
+        }
+
+        $hostingModes->setDraft($activity);
+    }
+
     public function render()
     {
         $exceptId = $this->editingActivityId;
@@ -389,6 +445,7 @@ class ManageActivityForm extends Component
         return view('livewire.activities.manage-activity-form', [
             'tags' => Tag::orderedForSelector()->get(),
             'futureEvents' => $this->futureEventsForProposal(),
+            'hostPlaces' => Place::query()->where('type', 'venue')->orderBy('name')->get(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => ActivityType::query()->orderBy('id')->get(),

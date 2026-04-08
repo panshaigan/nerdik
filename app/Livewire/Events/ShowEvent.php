@@ -11,7 +11,6 @@ use App\Models\TagCategory;
 use App\Services\ActivityProposalDecisionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -102,7 +101,7 @@ class ShowEvent extends Component
         ));
     }
 
-    public function detachActivityFromSlot(int $slotId): void
+    public function detachActivityFromSlot(int $slotId, ActivityProposalDecisionService $decisions): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
@@ -116,32 +115,7 @@ class ShowEvent extends Component
             return;
         }
 
-        DB::transaction(function () use ($slot, $event) {
-            $activityId = $slot->activity_id;
-
-            $proposal = ActivityProposal::query()
-                ->where('event_id', $event->id)
-                ->where('activity_id', $activityId)
-                ->where('accepted_slot_id', $slot->id)
-                ->first();
-
-            if ($proposal === null) {
-                $proposal = ActivityProposal::query()
-                    ->where('event_id', $event->id)
-                    ->where('activity_id', $activityId)
-                    ->where('status', ActivityProposalStatus::Accepted)
-                    ->first();
-            }
-
-            $slot->update(['activity_id' => null]);
-
-            if ($proposal !== null) {
-                $proposal->update([
-                    'status' => ActivityProposalStatus::Pending,
-                    'accepted_slot_id' => null,
-                ]);
-            }
-        });
+        $decisions->detachActivityFromSlot($event, $slot);
 
         $this->refreshAfterSlotMutation();
         session()->flash('status', __('ui.status.activity_detached_from_slot'));
