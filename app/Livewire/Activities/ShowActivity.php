@@ -22,6 +22,7 @@ class ShowActivity extends Component
 
         $activity->load([
             'creator',
+            'activityType',
             'tags.translations',
             'participants.user',
             'waitlist.user',

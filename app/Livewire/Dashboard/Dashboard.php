@@ -21,7 +21,7 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
-        $myActivities = Activity::with('creator')
+        $myActivities = Activity::with(['creator', 'activityType'])
             ->where('created_by', $user->id)
             ->orderBy('updated_at', 'desc')
             ->limit(10)

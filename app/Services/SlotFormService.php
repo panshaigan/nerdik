@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\ActivityType;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -218,7 +218,7 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => [Rule::in(ActivityType::values())],
+            'activity_types.*' => ['integer', 'exists:activity_types,id'],
         ];
     }
 
@@ -237,7 +237,7 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => [Rule::in(ActivityType::values())],
+            'activity_types.*' => ['integer', 'exists:activity_types,id'],
         ];
     }
 
@@ -264,10 +264,13 @@ class SlotFormService
             }
         }
 
-        $activityTypes = array_values(array_unique(array_filter(
-            $validated['activity_types'] ?? [],
-            fn ($t) => in_array($t, ActivityType::values(), true)
-        )));
+        $requestedTypeIds = array_values(array_unique(array_map('intval', $validated['activity_types'] ?? [])));
+        $activityTypes = ActivityType::query()
+            ->whereIn('id', $requestedTypeIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 
@@ -326,10 +329,13 @@ class SlotFormService
             }
         }
 
-        $activityTypes = array_values(array_unique(array_filter(
-            $validated['activity_types'] ?? [],
-            fn ($t) => in_array($t, ActivityType::values(), true)
-        )));
+        $requestedTypeIds = array_values(array_unique(array_map('intval', $validated['activity_types'] ?? [])));
+        $activityTypes = ActivityType::query()
+            ->whereIn('id', $requestedTypeIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
         $event = Event::query()->findOrFail((int) $validated['event_id']);
 

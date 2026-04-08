@@ -94,7 +94,11 @@
                                 <a href="{{ route('activities.show', $activity) }}" class="link link-primary">
                                     {{ $activity->name }}
                                 </a>
-                                <span class="text-sm opacity-70"> · {{ ucfirst($activity->type->value) }}</span>
+                                @php
+                                    $activityTypeSlug = $activity->activityType?->slug;
+                                    $activityTypeLabel = $activityTypeSlug ? __('ui.activities.types.'.$activityTypeSlug) : __('ui.common.none');
+                                @endphp
+                                <span class="text-sm opacity-70"> · {{ $activityTypeLabel }}</span>
                             </li>
                         @endforeach
                     </ul>

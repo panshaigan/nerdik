@@ -1,4 +1,4 @@
-/*M!999999\- enable the sandbox mode */
+/*M!999999\- enable the sandbox mode */ 
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS `activities`;
 CREATE TABLE `activities` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `type` enum('rpg','wargame','board','card','larp','discussion','lecture','workshop','competition','show') NOT NULL,
+  `activity_type_id` bigint(20) unsigned DEFAULT NULL,
   `min_participants` tinyint(3) unsigned DEFAULT NULL,
   `max_participants` tinyint(3) unsigned DEFAULT NULL,
   `minimum_age` tinyint(3) unsigned DEFAULT NULL,
@@ -35,6 +35,8 @@ CREATE TABLE `activities` (
   KEY `activities_created_by_foreign` (`created_by`),
   KEY `activities_updated_by_foreign` (`updated_by`),
   KEY `activities_deleted_by_foreign` (`deleted_by`),
+  KEY `activities_activity_type_id_index` (`activity_type_id`),
+  CONSTRAINT `activities_activity_type_id_foreign` FOREIGN KEY (`activity_type_id`) REFERENCES `activity_types` (`id`),
   CONSTRAINT `activities_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activities_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activities_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
@@ -91,11 +93,22 @@ DROP TABLE IF EXISTS `activity_type_slot`;
 CREATE TABLE `activity_type_slot` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `slot_id` bigint(20) unsigned NOT NULL,
-  `activity_type` enum('rpg','wargame','board','card','larp','discussion','lecture','workshop','competition','show') NOT NULL,
+  `activity_type_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `slot_activity_type_slot_id_activity_type_unique` (`slot_id`,`activity_type`),
-  KEY `slot_activity_type_activity_type_index` (`activity_type`),
+  UNIQUE KEY `slot_id_activity_type_id` (`slot_id`,`activity_type_id`),
+  KEY `activity_type_slot_activity_type_id_foreign` (`activity_type_id`),
+  CONSTRAINT `activity_type_slot_activity_type_id_foreign` FOREIGN KEY (`activity_type_id`) REFERENCES `activity_types` (`id`) ON DELETE CASCADE,
   CONSTRAINT `slot_activity_type_slot_id_foreign` FOREIGN KEY (`slot_id`) REFERENCES `slots` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `activity_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `activity_types` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `activity_types_slug_unique` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `activity_user`;
@@ -654,4 +667,4 @@ CREATE TABLE `users` (
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-/*M!999999\- enable the sandbox mode */
+/*M!999999\- enable the sandbox mode */ 

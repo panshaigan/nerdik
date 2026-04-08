@@ -2,10 +2,12 @@
     $logoUrl = $activity->logo_path
         ? \Illuminate\Support\Facades\Storage::disk('public')->url($activity->logo_path)
         : null;
+    $activityTypeSlug = $activity->activityType?->slug;
+    $activityTypeLabel = $activityTypeSlug ? __('ui.activities.types.'.$activityTypeSlug) : __('ui.common.none');
     $slot = $activity->slot;
     $event = $slot?->event;
-    $hostRoleLabel = \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activity->type->value)
-        ? __('ui.activities.host_title.'.$activity->type->value)
+    $hostRoleLabel = $activityTypeSlug && \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activityTypeSlug)
+        ? __('ui.activities.host_title.'.$activityTypeSlug)
         : __('Host');
     $hasOpenRunBlurb = $slot && ! $event;
     $showEventCard = $event || $hasOpenRunBlurb;
@@ -65,7 +67,7 @@
                     <div class="flex items-start gap-3 sm:gap-4" dir="ltr">
                         <div class="min-w-0 flex-1 space-y-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                {{ ucfirst($activity->type->value) }}
+                                {{ $activityTypeLabel }}
                             </p>
                             <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
                                 {{ $activity->name }}

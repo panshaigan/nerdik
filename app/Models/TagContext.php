@@ -26,12 +26,12 @@ class TagContext extends Model
         return $this->morphTo();
     }
 
-    public function activityType(): ?\App\Enums\ActivityType
+    public function activityType(): ?ActivityType
     {
-        if ($this->context_type === 'activity_type') {
-            return \App\Enums\ActivityType::tryFrom($this->context_id);
+        if ($this->context_type !== 'activity_type') {
+            return null;
         }
 
-        return null;
+        return ActivityType::query()->find($this->context_id);
     }
 }

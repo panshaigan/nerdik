@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ActivityType;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -73,7 +72,7 @@ class Slot extends Model
      * Expose slot activity types as `$slot->activity_types` even though they are stored
      * in a join table.
      *
-     * @return list<string>
+     * @return list<int>
      */
     public function getActivityTypesAttribute(): array
     {
@@ -81,15 +80,14 @@ class Slot extends Model
             $loaded = $this->getRelationValue('activityTypes');
 
             return $loaded
-                ? $loaded->pluck('activity_type')->map(fn ($v) => $this->canonicalActivityTypeValue($v))->values()->all()
+                ? $loaded->pluck('activity_type_id')->map(fn ($v) => (int) $v)->values()->all()
                 : [];
         }
 
-        // Use hydrated models so `activity_type` goes through casts (avoids raw DB vs enum mismatch).
         return $this->activityTypes()
             ->get()
-            ->pluck('activity_type')
-            ->map(fn ($v) => $this->canonicalActivityTypeValue($v))
+            ->pluck('activity_type_id')
+            ->map(fn ($v) => (int) $v)
             ->values()
             ->all();
     }
@@ -97,11 +95,11 @@ class Slot extends Model
     /**
      * Replace all activity types for this slot.
      *
-     * @param  list<string>  $types
+     * @param  list<int>  $types
      */
     public function setActivityTypes(array $types): void
     {
-        $types = array_values(array_unique(array_filter($types, fn ($t) => is_string($t) && $t !== '')));
+        $types = array_values(array_unique(array_filter(array_map('intval', $types), fn ($t) => $t > 0)));
         $this->activityTypes()->delete();
 
         if ($types === []) {
@@ -110,44 +108,33 @@ class Slot extends Model
 
         $rows = array_map(fn ($t) => [
             'slot_id' => $this->id,
-            'activity_type' => $t,
+            'activity_type_id' => $t,
         ], $types);
 
         ActivityTypeSlot::query()->insert($rows);
     }
 
     /**
-     * Canonical string for {@see ActivityType} (trim, case-fold, map via backed enum when possible).
-     */
-    private function canonicalActivityTypeValue(ActivityType|string $value): string
-    {
-        if ($value instanceof ActivityType) {
-            return $value->value;
-        }
-
-        $s = mb_strtolower(trim((string) $value));
-
-        return ActivityType::tryFrom($s)?->value ?? $s;
-    }
-
-    /**
      * Whether this slot allows an activity of the given type.
      * If the slot has no activity-type rows, any type is allowed.
      */
-    public function acceptsActivityType(ActivityType|string $type): bool
+    public function acceptsActivityType(int $activityTypeId): bool
     {
-        $value = $this->canonicalActivityTypeValue($type);
         $allowed = $this->activity_types;
         if ($allowed === []) {
             return true;
         }
 
-        return in_array($value, $allowed, true);
+        return in_array($activityTypeId, $allowed, true);
     }
 
     public function acceptsActivity(Activity $activity): bool
     {
-        return $this->acceptsActivityType($activity->type);
+        if ($activity->activity_type_id === null) {
+            return false;
+        }
+
+        return $this->acceptsActivityType((int) $activity->activity_type_id);
     }
 
     /**

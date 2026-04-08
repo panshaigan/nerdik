@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\ActivityProposalStatus;
-use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
@@ -85,6 +85,9 @@ class SampleDataSeeder extends Seeder
         );
 
         $now = now();
+        $typeIds = ActivityType::query()
+            ->whereIn('slug', ['rpg', 'board'])
+            ->pluck('id', 'slug');
 
         $event1 = Event::firstOrCreate(
             ['slug' => 'monthly-rpg-night-'.($now->format('Y-m'))],
@@ -177,7 +180,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-dnd-one-shot'],
             [
                 'name' => 'D&D 5e one-shot: Lost Mine',
-                'type' => ActivityType::Rpg,
+                'activity_type_id' => $typeIds['rpg'] ?? null,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $alice->id,
@@ -189,7 +192,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-forbidden-lands'],
             [
                 'name' => 'Forbidden Lands – introductory session',
-                'type' => ActivityType::Rpg,
+                'activity_type_id' => $typeIds['rpg'] ?? null,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $bob->id,
@@ -201,7 +204,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-talisman'],
             [
                 'name' => 'Talisman – board game open table',
-                'type' => ActivityType::Board,
+                'activity_type_id' => $typeIds['board'] ?? null,
                 'min_participants' => 2,
                 'max_participants' => 6,
                 'created_by' => $charlie->id,
@@ -213,7 +216,7 @@ class SampleDataSeeder extends Seeder
             ['slug' => 'sample-call-of-cthulhu'],
             [
                 'name' => 'Call of Cthulhu one-shot',
-                'type' => ActivityType::Rpg,
+                'activity_type_id' => $typeIds['rpg'] ?? null,
                 'min_participants' => 2,
                 'max_participants' => 5,
                 'created_by' => $diana->id,

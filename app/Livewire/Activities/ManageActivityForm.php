@@ -3,9 +3,9 @@
 namespace App\Livewire\Activities;
 
 use App\Enums\ActivityProposalStatus;
-use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Tag;
 use App\Services\ActivityProposalFlowService;
@@ -30,7 +30,7 @@ class ManageActivityForm extends Component
 
     public string $description = '';
 
-    public string $type = '';
+    public ?int $activity_type_id = null;
 
     public ?int $min_participants = null;
 
@@ -69,7 +69,7 @@ class ManageActivityForm extends Component
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
-            $this->type = $activity->type->value;
+            $this->activity_type_id = $activity->activity_type_id;
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
             $this->minimum_age = $activity->minimum_age;
@@ -219,7 +219,7 @@ class ManageActivityForm extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'type' => ['required', 'string', Rule::in(ActivityType::values())],
+            'activity_type_id' => ['required', 'integer', 'exists:activity_types,id'],
             'min_participants' => [
                 'nullable',
                 'integer',
@@ -391,6 +391,7 @@ class ManageActivityForm extends Component
             'futureEvents' => $this->futureEventsForProposal(),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSlots' => $proposalEventSlots,
+            'activityTypes' => ActivityType::query()->orderBy('id')->get(),
         ]);
     }
 }

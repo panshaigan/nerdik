@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
             'organization' => \App\Models\Organization::class,
             'place' => \App\Models\Place::class,
             'user' => \App\Models\User::class,
-            'activity_type' => \App\Enums\ActivityType::class,
+            'activity_type' => \App\Models\ActivityType::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.

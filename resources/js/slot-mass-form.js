@@ -82,27 +82,30 @@ export function initSlotMassForm(form) {
         const chips = activityRoot.querySelector('[data-slot-activity-chips]');
         const hiddenWrap = activityRoot.querySelector('[data-slot-activity-hidden]');
         const initial = Array.isArray(config.initialActivityTypes)
-            ? config.initialActivityTypes.filter((x) => typeof x === 'string')
+            ? config.initialActivityTypes.map((x) => Number.parseInt(String(x), 10)).filter((x) => Number.isInteger(x) && x > 0)
             : [];
+        const activityTypeLabels = config.activityTypeLabels && typeof config.activityTypeLabels === 'object'
+            ? config.activityTypeLabels
+            : {};
 
         const selected = new Set(initial);
 
         function renderChips() {
             chips.innerHTML = '';
             hiddenWrap.innerHTML = '';
-            [...selected].sort().forEach((type) => {
+            [...selected].sort((a, b) => a - b).forEach((typeId) => {
                 const chip = document.createElement('span');
                 chip.className = 'badge badge-outline gap-1';
                 const label = document.createElement('span');
-                label.className = 'text-sm capitalize';
-                label.textContent = type;
+                label.className = 'text-sm';
+                label.textContent = activityTypeLabels[String(typeId)] || `#${typeId}`;
                 const rm = document.createElement('button');
                 rm.type = 'button';
                 rm.className = 'btn btn-ghost btn-xs px-0';
                 rm.setAttribute('aria-label', 'remove');
                 rm.textContent = '×';
                 rm.addEventListener('click', () => {
-                    selected.delete(type);
+                    selected.delete(typeId);
                     renderChips();
                 });
                 chip.appendChild(label);
@@ -112,14 +115,14 @@ export function initSlotMassForm(form) {
                 const inp = document.createElement('input');
                 inp.type = 'hidden';
                 inp.name = 'activity_types[]';
-                inp.value = type;
+                inp.value = String(typeId);
                 hiddenWrap.appendChild(inp);
             });
         }
 
         addSelect?.addEventListener('change', () => {
-            const v = addSelect.value;
-            if (!v) {
+            const v = Number.parseInt(addSelect.value, 10);
+            if (!Number.isInteger(v) || v <= 0) {
                 return;
             }
             selected.add(v);

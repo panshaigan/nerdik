@@ -74,7 +74,7 @@ class Tag extends Model
     }
 
     /**
-     * @return \Illuminate\Support\Collection<\App\Enums\ActivityType>
+     * @return \Illuminate\Support\Collection<int, ActivityType>
      */
     public function getActivityTypeContextsAttribute()
     {
@@ -86,18 +86,21 @@ class Tag extends Model
     }
 
     /**
-     * @param array<\App\Enums\ActivityType|string> $types
+     * @param  array<int|string>  $types
      */
     public function syncActivityTypeContexts(array $types): void
     {
         $this->contexts()->where('context_type', 'activity_type')->delete();
 
         foreach ($types as $type) {
-            $value = $type instanceof \App\Enums\ActivityType ? $type->value : $type;
-            if (\App\Enums\ActivityType::tryFrom($value)) {
+            $id = is_numeric($type) ? (int) $type : null;
+            if (is_string($type) && ! is_numeric($type)) {
+                $id = ActivityType::query()->where('slug', $type)->value('id');
+            }
+            if ($id !== null && ActivityType::query()->whereKey($id)->exists()) {
                 $this->contexts()->create([
                     'context_type' => 'activity_type',
-                    'context_id' => $value,
+                    'context_id' => $id,
                 ]);
             }
         }
