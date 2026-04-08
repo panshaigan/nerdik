@@ -1,4 +1,4 @@
-/*M!999999\- enable the sandbox mode */ 
+/*M!999999\- enable the sandbox mode */
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -63,7 +63,7 @@ CREATE TABLE `activity_proposals` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `activity_id` bigint(20) unsigned NOT NULL,
   `event_id` bigint(20) unsigned NOT NULL,
-  `accepted_slot_id` bigint(20) unsigned DEFAULT NULL,
+  `accepted_slot_id` bigint(20) unsigned DEFAULT NULL COMMENT 'we need it to find the right proposal after decoupling slot from activity',
   `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
   `preferred_start_time` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -387,20 +387,6 @@ CREATE TABLE `password_reset_tokens` (
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `place_slot`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `place_slot` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `slot_id` bigint(20) unsigned NOT NULL,
-  `place_id` bigint(20) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slot_place_slot_id_unique` (`slot_id`),
-  KEY `slot_place_place_id_foreign` (`place_id`),
-  CONSTRAINT `slot_place_place_id_foreign` FOREIGN KEY (`place_id`) REFERENCES `places` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `slot_place_slot_id_foreign` FOREIGN KEY (`slot_id`) REFERENCES `slots` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `places`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -464,6 +450,7 @@ CREATE TABLE `slots` (
   `name` varchar(255) NOT NULL,
   `event_id` bigint(20) unsigned NOT NULL,
   `activity_id` bigint(20) unsigned DEFAULT NULL,
+  `place_id` bigint(20) unsigned DEFAULT NULL,
   `requires_approval` tinyint(1) NOT NULL DEFAULT 0,
   `max_capacity` tinyint(3) unsigned DEFAULT NULL,
   `starts_at` datetime DEFAULT NULL,
@@ -480,10 +467,12 @@ CREATE TABLE `slots` (
   KEY `slots_updated_by_foreign` (`updated_by`),
   KEY `slots_deleted_by_foreign` (`deleted_by`),
   KEY `slots_event_id_foreign` (`event_id`),
+  KEY `slots_place_id_foreign` (`place_id`),
   CONSTRAINT `slots_activity_id_foreign` FOREIGN KEY (`activity_id`) REFERENCES `activities` (`id`) ON DELETE SET NULL,
   CONSTRAINT `slots_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `slots_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `slots_event_id_foreign` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `slots_place_id_foreign` FOREIGN KEY (`place_id`) REFERENCES `places` (`id`) ON DELETE SET NULL,
   CONSTRAINT `slots_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -667,4 +656,4 @@ CREATE TABLE `users` (
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-/*M!999999\- enable the sandbox mode */ 
+/*M!999999\- enable the sandbox mode */
