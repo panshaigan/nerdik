@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Place;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -141,6 +142,32 @@ class PlaceController extends Controller
 
         return redirect()->route('places.index')
             ->with('status', __('Place updated.'));
+    }
+
+    /**
+     * Rooms under a venue (for activity self-host picker, lazy-loaded).
+     *
+     * Uses numeric venue id (not slug): {@see Place::getRouteKeyName()} is "slug", so implicit
+     * {place} binding would resolve /places/12/rooms to slug "12", not id 12.
+     */
+    public function roomsForVenue(int $venueId): JsonResponse
+    {
+        $place = Place::query()->find($venueId);
+
+        if ($place === null || $place->type !== 'venue') {
+            return response()->json([
+                'rooms' => [],
+                'message' => __('ui.activities.self_hosted_venue_rooms_not_found'),
+            ]);
+        }
+
+        $rooms = Place::query()
+            ->where('parent_id', $place->id)
+            ->where('type', 'room')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json(['rooms' => $rooms]);
     }
 
     /**

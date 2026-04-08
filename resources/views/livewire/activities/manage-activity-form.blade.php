@@ -226,15 +226,64 @@
                             type="datetime-local"
                             error-field="self_hosted_starts_at"
                         />
-                        <x-select
-                            id="self_hosted_place_id"
-                            wire:model="self_hosted_place_id"
-                            :label="__('ui.activities.self_hosted_place')"
-                            error-field="self_hosted_place_id"
-                            :options="$hostPlaces->map(fn ($place) => ['id' => $place->id, 'name' => $place->name])->values()->all()"
-                            :placeholder="__('ui.common.none')"
-                            placeholder-value=""
-                        />
+                    </div>
+
+                    <div data-selfhost-map-wrap>
+                        <p class="fieldset-legend font-medium text-base-content">{{ __('ui.activities.self_hosted_place') }}</p>
+                        <p class="mb-3 text-sm text-base-content/80">{{ __('ui.activities.self_hosted_place_help') }}</p>
+                        <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3" wire:ignore>
+                            <script type="application/json" data-ep-config>@json($selfHostedPlacesConfig)</script>
+                            <div class="relative z-[1000]">
+                                <x-input
+                                    type="search"
+                                    data-ep-search
+                                    autocomplete="off"
+                                    :placeholder="__('Search places or address… (double-click map to add)')"
+                                    class="w-full"
+                                    :omit-error="true"
+                                />
+                                <div data-ep-results class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"></div>
+                            </div>
+                            <div data-ep-map class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30" style="min-height: 280px; height: min(420px, 50vh);"></div>
+                            <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
+                            <div data-ep-new-venues-wrap class="{{ count($selfHostedPlacesConfig['initialNewPlaces'] ?? []) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
+                                <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
+                                <div data-ep-new-venues class="space-y-3"></div>
+                            </div>
+                            <div data-ep-place-ids></div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start"
+                        data-selfhost-room-root
+                        data-selfhost-rooms-url-template="{{ $roomsFetchUrlTemplate }}"
+                    >
+                        <div>
+                            <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
+                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.self_hosted_room_help') }}</p>
+                            <div class="relative overflow-visible">
+                                <x-input
+                                    id="self_hosted_room_name"
+                                    wire:model="self_hosted_room_name"
+                                    :label="''"
+                                    error-field="self_hosted_room_name"
+                                    autocomplete="off"
+                                    :placeholder="__('ui.slots.room_placeholder')"
+                                    data-selfhost-room-input
+                                    aria-autocomplete="list"
+                                    aria-expanded="false"
+                                    aria-controls="selfhost-room-suggestions-popup"
+                                />
+                                <div
+                                    id="selfhost-room-suggestions-popup"
+                                    class="fixed z-[9999] hidden max-h-[min(14rem,50vh)] overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                                    data-selfhost-room-popup
+                                    role="listbox"
+                                ></div>
+                            </div>
+                            <x-field-error :messages="$errors->get('self_hosted_venue_place_id')" class="mt-2" />
+                        </div>
                     </div>
                 @endif
             </div>
@@ -305,7 +354,7 @@
 
             <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
-            <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled">
+            <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save">
                 <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('Update') : __('Create') }}</span>
                 <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
             </x-button>
@@ -493,7 +542,365 @@
                 syncActivityMinMax();
             }, { signal });
         }
+
+        activityFormBindSelfHostedRoomIfPresent();
     }
+
+    /** Room autocomplete + ep:change use document delegation so Livewire morphs do not leave dead listeners. */
+    const activityFormRoomStateByRoot = new WeakMap();
+
+    function activityFormRoomGetState(roomRoot) {
+        if (!activityFormRoomStateByRoot.has(roomRoot)) {
+            activityFormRoomStateByRoot.set(roomRoot, { cache: new Map(), lastVenueKey: null, rooms: [], popupActive: -1 });
+        }
+
+        return activityFormRoomStateByRoot.get(roomRoot);
+    }
+
+    function activityFormRoomGetEls(form) {
+        const roomRoot = form?.querySelector('[data-selfhost-room-root]');
+        if (!roomRoot) {
+            return null;
+        }
+        const mapWrap = form.querySelector('[data-selfhost-map-wrap]');
+        const roomInput = roomRoot.querySelector('[data-selfhost-room-input]');
+        const roomPopup = roomRoot.querySelector('[data-selfhost-room-popup]');
+        const template = roomRoot.getAttribute('data-selfhost-rooms-url-template') || '';
+        if (!mapWrap || !roomInput || !roomPopup) {
+            return null;
+        }
+
+        return { roomRoot, mapWrap, roomInput, roomPopup, template };
+    }
+
+    function activityFormRoomGetSelectedVenueId(mapWrap) {
+        const selected = mapWrap.querySelector('[data-ep-place-ids] input[name="place_ids[]"]');
+
+        return selected && selected.value ? String(selected.value) : '';
+    }
+
+    function activityFormRoomHasNewVenueDraft(mapWrap) {
+        return !!mapWrap.querySelector('[data-ep-new-venues] [data-ep-nv-id]');
+    }
+
+    function activityFormRoomLoadForVenue(state, template, venueId) {
+        if (!venueId || !template) {
+            state.rooms = [];
+
+            return Promise.resolve();
+        }
+        if (state.cache.has(venueId)) {
+            state.rooms = state.cache.get(venueId);
+
+            return Promise.resolve();
+        }
+        const url = template.replace('__PLACE__', encodeURIComponent(venueId));
+
+        return fetch(url, {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                const list = data && Array.isArray(data.rooms) ? data.rooms : [];
+                const listNorm = list
+                    .map((x) => ({ id: x.id, name: String(x.name ?? '') }))
+                    .filter((x) => x.name !== '');
+                state.cache.set(venueId, listNorm);
+                state.rooms = listNorm;
+            })
+            .catch(() => {
+                state.rooms = [];
+            });
+    }
+
+    function activityFormRoomClose(roomPopup, roomInput) {
+        roomPopup.classList.add('hidden');
+        roomPopup.innerHTML = '';
+        roomInput.setAttribute('aria-expanded', 'false');
+    }
+
+    function activityFormRoomRender(els, state, shownItems) {
+        const { roomInput, roomPopup } = els;
+        roomPopup.innerHTML = '';
+        if (shownItems.length === 0) {
+            activityFormRoomClose(roomPopup, roomInput);
+
+            return;
+        }
+        if (state.popupActive < 0 || state.popupActive >= shownItems.length) {
+            state.popupActive = -1;
+        }
+        const r = roomInput.getBoundingClientRect();
+        roomPopup.style.left = `${r.left}px`;
+        roomPopup.style.top = `${r.bottom + 4}px`;
+        roomPopup.style.width = `${r.width}px`;
+        const frag = document.createDocumentFragment();
+        shownItems.forEach((it, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className =
+                'block w-full px-3 py-2 text-left text-sm hover:bg-base-200'
+                + (idx === state.popupActive ? ' bg-base-200' : '');
+            btn.textContent = it.name;
+            btn.dataset.suggestionIdx = String(idx);
+            btn.setAttribute('role', 'option');
+            btn.setAttribute('aria-selected', 'false');
+            btn.addEventListener('mousedown', (e) => e.preventDefault());
+            btn.addEventListener('click', () => {
+                roomInput.value = it.name;
+                roomInput.dispatchEvent(new Event('input', { bubbles: true }));
+                roomInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                activityFormRoomClose(roomPopup, roomInput);
+            });
+            frag.appendChild(btn);
+        });
+        roomPopup.appendChild(frag);
+        roomPopup.classList.remove('hidden');
+        roomInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function activityFormRoomUpdatePopup(els, state) {
+        const { roomInput, roomPopup } = els;
+        state.popupActive = -1;
+        const q = roomInput.value.trim().toLowerCase();
+        const items =
+            q.length < 1
+                ? state.rooms
+                : state.rooms.filter((r) => r.name.toLowerCase().includes(q) && r.name.toLowerCase() !== q);
+        activityFormRoomRender(els, state, items.slice(0, 8));
+    }
+
+    function activityFormRoomSyncFromMap(els, detail) {
+        const { roomRoot, mapWrap, roomInput, roomPopup, template } = els;
+        const state = activityFormRoomGetState(roomRoot);
+        const venueId = activityFormRoomGetSelectedVenueId(mapWrap);
+        const newDraft =
+            (detail && Array.isArray(detail.newVenues) && detail.newVenues.length > 0)
+            || (detail === undefined && activityFormRoomHasNewVenueDraft(mapWrap));
+        const key = newDraft ? 'new' : venueId;
+        const firstRun = roomRoot.dataset.activityRoomVenueInit !== '1';
+
+        if (firstRun) {
+            roomRoot.dataset.activityRoomVenueInit = '1';
+            state.lastVenueKey = key;
+            if (newDraft || !venueId) {
+                state.rooms = [];
+                activityFormRoomClose(roomPopup, roomInput);
+            } else {
+                activityFormRoomLoadForVenue(state, template, venueId).then(() => activityFormRoomClose(roomPopup, roomInput));
+            }
+
+            return;
+        }
+
+        if (key !== state.lastVenueKey) {
+            state.lastVenueKey = key;
+            if (newDraft || !venueId) {
+                state.rooms = [];
+                if (roomInput.value !== '') {
+                    roomInput.value = '';
+                    roomInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                }
+                activityFormRoomClose(roomPopup, roomInput);
+
+                return;
+            }
+            if (roomInput.value !== '') {
+                roomInput.value = '';
+                roomInput.dispatchEvent(new Event('blur', { bubbles: true }));
+            }
+            activityFormRoomLoadForVenue(state, template, venueId).then(() => activityFormRoomClose(roomPopup, roomInput));
+        } else {
+            activityFormRoomClose(roomPopup, roomInput);
+        }
+    }
+
+    let activityFormRoomDelegationBound = false;
+
+    function activityFormBindSelfHostedRoomIfPresent() {
+        if (activityFormRoomDelegationBound) {
+            activityFormRoomMaybeInitialSync();
+
+            return;
+        }
+        activityFormRoomDelegationBound = true;
+
+        document.addEventListener(
+            'ep:change',
+            (e) => {
+                const unified = e.target.closest?.('[data-event-places-unified]');
+                if (!unified) {
+                    return;
+                }
+                const form = unified.closest('form[data-activity-form]');
+                if (!form) {
+                    return;
+                }
+                const els = activityFormRoomGetEls(form);
+                if (!els) {
+                    return;
+                }
+                activityFormRoomSyncFromMap(els, e.detail);
+            },
+            false,
+        );
+
+        document.addEventListener(
+            'focusin',
+            (e) => {
+                const roomInput = e.target.closest?.('[data-selfhost-room-input]');
+                if (!roomInput) {
+                    return;
+                }
+                const form = roomInput.closest('form[data-activity-form]');
+                if (!form) {
+                    return;
+                }
+                const els = activityFormRoomGetEls(form);
+                if (!els) {
+                    return;
+                }
+                const { mapWrap, template, roomPopup } = els;
+                const state = activityFormRoomGetState(els.roomRoot);
+                const venueId = activityFormRoomGetSelectedVenueId(mapWrap);
+                if (!venueId || activityFormRoomHasNewVenueDraft(mapWrap)) {
+                    activityFormRoomClose(els.roomPopup, roomInput);
+
+                    return;
+                }
+                activityFormRoomLoadForVenue(state, template, venueId).then(() => activityFormRoomUpdatePopup(els, state));
+            },
+            true,
+        );
+
+        document.addEventListener('input', (e) => {
+            const roomInput = e.target.closest?.('[data-selfhost-room-input]');
+            if (!roomInput) {
+                return;
+            }
+            const form = roomInput.closest('form[data-activity-form]');
+            const els = form ? activityFormRoomGetEls(form) : null;
+            if (!els) {
+                return;
+            }
+            const state = activityFormRoomGetState(els.roomRoot);
+            activityFormRoomUpdatePopup(els, state);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            const roomInput = e.target.closest?.('[data-selfhost-room-input]');
+            if (!roomInput) {
+                return;
+            }
+            const form = roomInput.closest('form[data-activity-form]');
+            const els = form ? activityFormRoomGetEls(form) : null;
+            if (!els || els.roomPopup.classList.contains('hidden')) {
+                return;
+            }
+            const options = els.roomPopup.querySelectorAll('[role="option"]');
+            if (options.length === 0) {
+                return;
+            }
+            const st = activityFormRoomGetState(els.roomRoot);
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                st.popupActive = st.popupActive < 0 ? 0 : Math.min(st.popupActive + 1, options.length - 1);
+                options.forEach((opt, i) => opt.classList.toggle('bg-base-200', i === st.popupActive));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                st.popupActive = st.popupActive < 0 ? options.length - 1 : Math.max(st.popupActive - 1, 0);
+                options.forEach((opt, i) => opt.classList.toggle('bg-base-200', i === st.popupActive));
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const pick = st.popupActive >= 0 ? st.popupActive : 0;
+                options[pick]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            } else if (e.key === 'Escape') {
+                activityFormRoomClose(els.roomPopup, roomInput);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest?.('[data-selfhost-room-input]') || e.target.closest?.('[data-selfhost-room-popup]')) {
+                return;
+            }
+            document.querySelectorAll('[data-selfhost-room-popup]').forEach((p) => {
+                const root = p.closest('[data-selfhost-room-root]');
+                const inp = root?.querySelector('[data-selfhost-room-input]');
+                if (inp) {
+                    activityFormRoomClose(p, inp);
+                }
+            });
+        });
+
+        activityFormRoomMaybeInitialSync();
+    }
+
+    function activityFormRoomMaybeInitialSync() {
+        const form = document.querySelector('form[data-activity-form]');
+        const els = form ? activityFormRoomGetEls(form) : null;
+        if (!els) {
+            return;
+        }
+        activityFormRoomSyncFromMap(els, undefined);
+    }
+
+    let activityFormValidationScrollHooked = false;
+    let activityFormSubmitAt = 0;
+    let activityFormSubmitClearTimer = null;
+
+    function activityFormRegisterValidationScrollHook() {
+        if (activityFormValidationScrollHooked) {
+            return;
+        }
+        if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
+            return;
+        }
+        activityFormValidationScrollHooked = true;
+        document.addEventListener(
+            'submit',
+            (e) => {
+                if (e.target?.matches?.('form[data-activity-form]')) {
+                    activityFormSubmitAt = Date.now();
+                    clearTimeout(activityFormSubmitClearTimer);
+                    activityFormSubmitClearTimer = setTimeout(() => {
+                        activityFormSubmitAt = 0;
+                    }, 5000);
+                }
+            },
+            true,
+        );
+        window.Livewire.hook('morphed', () => {
+            if (!activityFormSubmitAt) {
+                return;
+            }
+            requestAnimationFrame(() => {
+                if (!activityFormSubmitAt) {
+                    return;
+                }
+                const form = document.querySelector('form[data-activity-form]');
+                if (!form) {
+                    return;
+                }
+                const err =
+                    form.querySelector('ul.text-error')
+                    || form.querySelector('fieldset .text-error')
+                    || form.querySelector('.label.text-error')
+                    || form.querySelector('[class*="input-error"]')
+                    || form.querySelector('.text-error');
+                if (err) {
+                    err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    clearTimeout(activityFormSubmitClearTimer);
+                    activityFormSubmitAt = 0;
+                }
+            });
+        });
+    }
+
+    document.addEventListener('livewire:init', activityFormRegisterValidationScrollHook);
+    document.addEventListener('DOMContentLoaded', activityFormRegisterValidationScrollHook);
+    window.addEventListener('load', activityFormRegisterValidationScrollHook);
+    activityFormRegisterValidationScrollHook();
 
     document.addEventListener('livewire:navigating', () => {
         manageActivityFormScriptsAbort?.abort();

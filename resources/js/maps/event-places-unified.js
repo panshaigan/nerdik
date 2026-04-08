@@ -70,6 +70,27 @@ function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload) {
 }
 
 /**
+ * Debounced Livewire sync to avoid re-renders on every map interaction (e.g. activity form).
+ *
+ * @param {HTMLElement} root
+ * @param {number} debounceMs
+ * @param {number[]} placeIds
+ * @param {object[]} newPlacesPayload
+ */
+function scheduleLivewireEventPlacesSync(root, debounceMs, placeIds, newPlacesPayload) {
+    if (!debounceMs || debounceMs <= 0) {
+        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
+
+        return;
+    }
+
+    clearTimeout(root._epLwSyncTimer);
+    root._epLwSyncTimer = setTimeout(() => {
+        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
+    }, debounceMs);
+}
+
+/**
  * @param {HTMLElement} root
  */
 export function initEventPlacesUnified(root) {
@@ -85,6 +106,15 @@ export function initEventPlacesUnified(root) {
         cfg = {};
     }
     const places = Array.isArray(cfg.places) ? cfg.places : [];
+    const singleSelect = cfg.singleSelect === true || cfg.singleSelect === 1 || cfg.singleSelect === '1';
+    const maxNewVenuesParsed = Number.parseInt(String(cfg.maxNewVenues ?? ''), 10);
+    const maxNewVenues = Number.isFinite(maxNewVenuesParsed) && maxNewVenuesParsed > 0 ? maxNewVenuesParsed : null;
+    const disallowMixSelectedAndNew =
+        cfg.disallowMixSelectedAndNew === true
+        || cfg.disallowMixSelectedAndNew === 1
+        || cfg.disallowMixSelectedAndNew === '1';
+    const debounceLivewireMs = Number.parseInt(String(cfg.debounceLivewireMs ?? ''), 10);
+    const effectiveDebounceLivewireMs = Number.isFinite(debounceLivewireMs) && debounceLivewireMs > 0 ? debounceLivewireMs : 0;
     const selectedIds = new Set((cfg.initialSelectedIds || []).map(Number));
     const initialList = Array.isArray(cfg.initialNewPlaces) ? cfg.initialNewPlaces : [];
     /** @type {{ id: string, lat: number, lng: number, name: string, address: string, city: string, country: string, cityId: string, countryId: string }[]} */
@@ -101,6 +131,24 @@ export function initEventPlacesUnified(root) {
             cityId: r.city_id != null && r.city_id !== '' ? String(r.city_id) : '',
             countryId: r.country_id != null && r.country_id !== '' ? String(r.country_id) : '',
         }));
+
+    // Normalize any incoming state to obey configured constraints.
+    if (singleSelect && selectedIds.size > 1) {
+        const only = Array.from(selectedIds).slice(-1);
+        selectedIds.clear();
+        if (only[0] !== undefined) {
+            selectedIds.add(Number(only[0]));
+        }
+    }
+    if (maxNewVenues === 1 && newVenues.length > 1) {
+        newVenues = newVenues.slice(-1);
+    } else if (maxNewVenues !== null && newVenues.length > maxNewVenues) {
+        newVenues = newVenues.slice(-maxNewVenues);
+    }
+    if (disallowMixSelectedAndNew && selectedIds.size > 0 && newVenues.length > 0) {
+        // Prefer existing selected place over draft new place when both are present.
+        newVenues = [];
+    }
 
     const mapEl = root.querySelector('[data-ep-map]');
     const searchInput = root.querySelector('[data-ep-search]');
@@ -120,6 +168,26 @@ export function initEventPlacesUnified(root) {
     }
 
     function emitEventPlacesChange() {
+        if (singleSelect && selectedIds.size > 1) {
+            const only = Array.from(selectedIds).slice(-1);
+            selectedIds.clear();
+            if (only[0] !== undefined) {
+                selectedIds.add(Number(only[0]));
+            }
+        }
+        if (maxNewVenues === 1 && newVenues.length > 1) {
+            newVenues = newVenues.slice(-1);
+        } else if (maxNewVenues !== null && newVenues.length > maxNewVenues) {
+            newVenues = newVenues.slice(-maxNewVenues);
+        }
+        // Cannot mix an existing selection with a new-venue draft. Prefer keeping the draft and
+        // clearing the selection (otherwise we would drop the draft and leave the old chip visible).
+        if (disallowMixSelectedAndNew && selectedIds.size > 0 && newVenues.length > 0) {
+            selectedIds.clear();
+            Object.keys(markersById).forEach((markerId) => refreshPlaceMarkerIcon(Number(markerId)));
+            syncPlaceHiddensAndChips(true);
+        }
+
         const placeIds = Array.from(selectedIds)
             .map((id) => Number(id))
             .sort((a, b) => a - b);
@@ -133,7 +201,14 @@ export function initEventPlacesUnified(root) {
             latitude: v.lat,
             longitude: v.lng,
         }));
-        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
+        scheduleLivewireEventPlacesSync(root, effectiveDebounceLivewireMs, placeIds, newPlacesPayload);
+        root.dispatchEvent(new CustomEvent('ep:change', {
+            bubbles: true,
+            detail: {
+                selectedIds: [...placeIds],
+                newVenues: newVenues.map((v) => ({ ...v })),
+            },
+        }));
     }
 
     const INITIAL_CENTER = [52.1, 19.4];
@@ -186,9 +261,25 @@ export function initEventPlacesUnified(root) {
                 if (selectedIds.has(id)) {
                     selectedIds.delete(id);
                 } else {
+                    if (singleSelect) {
+                        selectedIds.clear();
+                    }
+                    if (disallowMixSelectedAndNew && newVenues.length > 0) {
+                        newVenues.forEach((v) => {
+                            const marker = newMarkers.get(v.id);
+                            if (marker) {
+                                newVenuesLayer.removeLayer(marker);
+                                newMarkers.delete(v.id);
+                            }
+                        });
+                        newVenues = [];
+                    }
                     selectedIds.add(id);
                 }
-                refreshPlaceMarkerIcon(id);
+                Object.keys(markersById).forEach((markerId) => refreshPlaceMarkerIcon(Number(markerId)));
+                if (disallowMixSelectedAndNew) {
+                    rebuildNewVenueRows();
+                }
                 syncPlaceHiddensAndChips();
             });
             m.on('dblclick', (e) => {
@@ -204,7 +295,7 @@ export function initEventPlacesUnified(root) {
         }
     }
 
-    function syncPlaceHiddensAndChips() {
+    function syncPlaceHiddensAndChips(skipEmit = false) {
         hiddensEl.innerHTML = '';
         selectedIds.forEach((id) => {
             const inp = document.createElement('input');
@@ -216,7 +307,8 @@ export function initEventPlacesUnified(root) {
 
         chipsEl.innerHTML = '';
         selectedIds.forEach((id) => {
-            const p = places.find((x) => x.id === id);
+            const numericId = Number(id);
+            const p = places.find((x) => Number(x.id) === numericId);
             const label = p ? p.label : `#${id}`;
             const chip = document.createElement('span');
             chip.className =
@@ -229,7 +321,9 @@ export function initEventPlacesUnified(root) {
             });
             chipsEl.appendChild(chip);
         });
-        emitEventPlacesChange();
+        if (!skipEmit) {
+            emitEventPlacesChange();
+        }
     }
 
     async function reverseFillVenue(venueId, lat, lng) {
@@ -327,6 +421,23 @@ export function initEventPlacesUnified(root) {
         { lat, lng, name = '', address = '', city = '', country = '', cityId = '', countryId = '' },
         { skipReverse = false } = {},
     ) {
+        if (disallowMixSelectedAndNew && selectedIds.size > 0) {
+            // Switching to "new place" mode: unselect existing places first.
+            selectedIds.clear();
+            Object.keys(markersById).forEach((markerId) => refreshPlaceMarkerIcon(Number(markerId)));
+            syncPlaceHiddensAndChips();
+        }
+        if (maxNewVenues === 1 && newVenues.length > 0) {
+            newVenues.forEach((v) => {
+                const marker = newMarkers.get(v.id);
+                if (marker) {
+                    newVenuesLayer.removeLayer(marker);
+                    newMarkers.delete(v.id);
+                }
+            });
+            newVenues = [];
+        }
+
         const id = randomId();
         const venue = { id, lat, lng, name, address, city, country, cityId: String(cityId), countryId: String(countryId) };
         newVenues.push(venue);
@@ -576,12 +687,28 @@ export function initEventPlacesUnified(root) {
                 b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = p.label;
                 b.addEventListener('click', () => {
+                    if (singleSelect) {
+                        selectedIds.clear();
+                    }
+                    if (disallowMixSelectedAndNew && newVenues.length > 0) {
+                        newVenues.forEach((v) => {
+                            const marker = newMarkers.get(v.id);
+                            if (marker) {
+                                newVenuesLayer.removeLayer(marker);
+                                newMarkers.delete(v.id);
+                            }
+                        });
+                        newVenues = [];
+                    }
                     if (selectedIds.has(p.id)) {
                         selectedIds.delete(p.id);
                     } else {
                         selectedIds.add(p.id);
                     }
-                    refreshPlaceMarkerIcon(p.id);
+                    Object.keys(markersById).forEach((markerId) => refreshPlaceMarkerIcon(Number(markerId)));
+                    if (disallowMixSelectedAndNew) {
+                        rebuildNewVenueRows();
+                    }
                     if (p.lat != null && p.lng != null) {
                         map.setView([p.lat, p.lng], Math.max(map.getZoom(), MIN_FOCUS_ZOOM));
                     }
