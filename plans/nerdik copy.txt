@@ -4,15 +4,8 @@ Features:
         - Google [MVP]
         - FB [FUTURE]
         - Apple [FUTURE]
-	- Event creation/slot management
-        - for the reoccuring ones should be some easy way to duplicate the slots from the owned existing events, or maybe it should even do this by default [FUTURE]
-		- notifications: "event soon!", "event soon - empty slots", "event soon - no slots planned" [FUTURE]
 	- Activity proposal/approval
-		 	- if the chosen existing one is already assigned to some other event, its being duplicated (treated as a template) [MVP]
-			- if user is not going to attach it to any existing event, he might activate it as stand-alone activity. he just need to add place and time [FUTURE]
-			- should be possible to add links for external resources. [MVP]
-		- notifications: "proposal waiting for acceptance", "proposal accepted/rejected" [MVP]
-
+        - should be possible to add links for external resources. [MVP]
 	- Participation
 		- (host - owner of an activity) after the activity starts, marking the absent participants. meaning people who joined the activity in the system but didnt appear irl [MVP]
 		- (owner) eventually manage participants between the list and the waiting list (especially on restricted activities) [FUTURE]
