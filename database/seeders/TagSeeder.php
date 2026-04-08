@@ -59,7 +59,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
-                'pl' => 'Materiały w języku angielskim',
+                'en' => 'Foreign language stuff',
+                'pl' => 'Materiały w języku obcym',
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
