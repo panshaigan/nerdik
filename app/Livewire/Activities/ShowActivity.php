@@ -28,6 +28,7 @@ class ShowActivity extends Component
             'waitlist.user',
             'slot.event.enrollmentWindows',
             'slot.place.parent',
+            'place.parent',
         ]);
 
         $isParticipant = auth()->check() && $activity->participants()->where('user_id', auth()->id())->exists();

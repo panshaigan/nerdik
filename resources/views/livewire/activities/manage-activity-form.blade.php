@@ -198,8 +198,49 @@
                     </x-input>
                 </div>
             </div>
+
+            <div class="mt-4 border-t border-base-300 pt-4 space-y-3">
+                <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.activities.hosting_mode_label') }}</p>
+                @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                    <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
+                @else
+                    <x-select
+                        id="hosting_mode"
+                        wire:model.live="hosting_mode"
+                        :label="__('ui.activities.hosting_mode_label')"
+                        error-field="hosting_mode"
+                        :options="[
+                            ['id' => \App\Models\Activity::HOSTING_MODE_DRAFT, 'name' => __('ui.activities.hosting_modes.draft')],
+                            ['id' => \App\Models\Activity::HOSTING_MODE_SELF_HOSTED, 'name' => __('ui.activities.hosting_modes.self_hosted')],
+                            ['id' => \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT, 'name' => __('ui.activities.hosting_modes.proposed_to_event')],
+                        ]"
+                    />
+                @endif
+
+                @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED)
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <x-input
+                            id="self_hosted_starts_at"
+                            :label="__('ui.activities.self_hosted_starts_at')"
+                            wire:model="self_hosted_starts_at"
+                            type="datetime-local"
+                            error-field="self_hosted_starts_at"
+                        />
+                        <x-select
+                            id="self_hosted_place_id"
+                            wire:model="self_hosted_place_id"
+                            :label="__('ui.activities.self_hosted_place')"
+                            error-field="self_hosted_place_id"
+                            :options="$hostPlaces->map(fn ($place) => ['id' => $place->id, 'name' => $place->name])->values()->all()"
+                            :placeholder="__('ui.common.none')"
+                            placeholder-value=""
+                        />
+                    </div>
+                @endif
+            </div>
         </div>
 
+        @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT)
         <div class="mt-4 border-t border-base-300 pt-4">
             <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.activities.propose_to_event') }}</p>
             <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.propose_to_event_help') }}</p>
@@ -255,6 +296,7 @@
                 </div>
             @endif
         </div>
+        @endif
 
         <div id="ui-activity-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="activity-form-actions">
             <x-button id="ui-activity-clear-numeric" type="button" class="btn-outline ui-action ui-action-clear-numeric" wire:click="clearNumericFields" data-ui="activity-clear-numeric">

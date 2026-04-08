@@ -85,7 +85,7 @@ trait WithBrowseListingSort
             $query->orderBy('activities.name', $dir);
         } else {
             $query->orderByRaw(
-                '(select slots.starts_at from slots where slots.activity_id = activities.id limit 1) '.$dir
+                'COALESCE((select slots.starts_at from slots where slots.activity_id = activities.id limit 1), activities.starts_at) '.$dir
             );
         }
         $query->orderBy('activities.id', $dir);

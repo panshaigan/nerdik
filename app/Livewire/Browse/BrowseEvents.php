@@ -199,11 +199,24 @@ class BrowseEvents extends Component
 
         if ($this->hasBBox()) {
             [$minLat, $maxLat, $minLng, $maxLng] = $this->normalizedBBox();
-            $query->whereHas('slot.place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng) {
-                $q->whereNotNull('latitude')
-                    ->whereNotNull('longitude')
-                    ->whereBetween('latitude', [$minLat, $maxLat])
-                    ->whereBetween('longitude', [$minLng, $maxLng]);
+            $query->where(function (Builder $outer) use ($minLat, $maxLat, $minLng, $maxLng): void {
+                $outer->where(function (Builder $selfHosted) use ($minLat, $maxLat, $minLng, $maxLng): void {
+                    $selfHosted->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+                        ->whereHas('place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng): void {
+                            $q->whereNotNull('latitude')
+                                ->whereNotNull('longitude')
+                                ->whereBetween('latitude', [$minLat, $maxLat])
+                                ->whereBetween('longitude', [$minLng, $maxLng]);
+                        });
+                })->orWhere(function (Builder $scheduled) use ($minLat, $maxLat, $minLng, $maxLng): void {
+                    $scheduled->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                        ->whereHas('slot.place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng): void {
+                            $q->whereNotNull('latitude')
+                                ->whereNotNull('longitude')
+                                ->whereBetween('latitude', [$minLat, $maxLat])
+                                ->whereBetween('longitude', [$minLng, $maxLng]);
+                        });
+                });
             });
         }
 
@@ -270,7 +283,7 @@ class BrowseEvents extends Component
      */
     protected function paginateActivitiesOnly()
     {
-        $query = $this->baseActivityQuery()->with(['creator', 'tags.translations', 'slot.event'])
+        $query = $this->baseActivityQuery()->with(['creator', 'tags.translations', 'slot.event', 'place'])
             ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
         $this->applyBrowseActivitySort($query);
         $paginator = $query->paginate(self::PER_PAGE);
@@ -297,7 +310,7 @@ class BrowseEvents extends Component
             DB::raw("'activity' as listing_kind"),
             'activities.id as listing_id',
             'activities.name as sort_name',
-            DB::raw('(SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1) as sort_at'),
+            DB::raw("COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1), COALESCE(activities.ends_at, activities.starts_at)) as sort_at"),
         ]);
 
         $union = $eventPart->toBase()->unionAll($activityPart->toBase());
@@ -339,7 +352,7 @@ class BrowseEvents extends Component
         $activities = $activityIds === []
             ? collect()
             : Activity::query()
-                ->with(['creator', 'tags.translations', 'slot.event'])
+                ->with(['creator', 'tags.translations', 'slot.event', 'place'])
                 ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)])
                 ->whereIn('id', $activityIds)
                 ->get()

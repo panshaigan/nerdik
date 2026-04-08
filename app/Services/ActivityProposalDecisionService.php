@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class ActivityProposalDecisionService
 {
+    public function __construct(
+        private readonly ActivityHostingModeService $hostingModes
+    ) {}
+
     /**
      * Accept a proposal: assign to chosen slot or auto-pick a fitting free slot.
      * Caller must ensure the proposal is still pending (otherwise redirect with status).
@@ -60,6 +64,7 @@ class ActivityProposalDecisionService
             'accepted_slot_id' => $slot->id,
         ]);
         $slot->update(['activity_id' => $proposal->activity_id]);
+        $this->hostingModes->markScheduledOnEvent($proposal->activity);
 
         $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
     }
@@ -67,9 +72,18 @@ class ActivityProposalDecisionService
     /** Caller must ensure the proposal is still pending. */
     public function reject(ActivityProposal $proposal): void
     {
-        $proposal->update(['status' => ActivityProposalStatus::Rejected]);
+        $proposal->update([
+            'status' => ActivityProposalStatus::Rejected,
+            'accepted_slot_id' => null,
+        ]);
+        $this->hostingModes->markRejectedProposal($proposal->activity);
 
         $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
+    }
+
+    public function detachActivityFromSlot(Event $event, Slot $slot): bool
+    {
+        return $this->hostingModes->detachAcceptedSlot($event, $slot);
     }
 
     /**

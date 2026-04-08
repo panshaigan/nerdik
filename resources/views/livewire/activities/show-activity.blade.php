@@ -6,11 +6,13 @@
     $activityTypeLabel = $activityTypeSlug ? __('ui.activities.types.'.$activityTypeSlug) : __('ui.common.none');
     $slot = $activity->slot;
     $event = $slot?->event;
+    $selfHosted = $activity->hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED;
+    $selfHostedPlace = $activity->place;
     $hostRoleLabel = $activityTypeSlug && \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activityTypeSlug)
         ? __('ui.activities.host_title.'.$activityTypeSlug)
         : __('Host');
     $hasOpenRunBlurb = $slot && ! $event;
-    $showEventCard = $event || $hasOpenRunBlurb;
+    $showEventCard = $event || $hasOpenRunBlurb || $selfHosted;
     $hasMetaStats = $activity->min_participants !== null
         || (bool) $activity->duration_in_minutes
         || $activity->cancellation_deadline_in_hours !== null
@@ -180,6 +182,26 @@
                                                 @endif
                                                 @if ($slot->place)
                                                     <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @elseif ($selfHosted)
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_schedule') }}</p>
+                                        @if ($activity->starts_at || $activity->ends_at || $selfHostedPlace)
+                                            <div class="mt-2 space-y-1.5">
+                                                @if ($activity->starts_at || $activity->ends_at)
+                                                    <p class="text-sm tabular-nums text-base-content/80">
+                                                        @if ($activity->starts_at && $activity->ends_at)
+                                                            {{ format_in_user_tz($activity->starts_at, 'D, M j · H:i') }}
+                                                            <span class="text-base-content/50">–</span>
+                                                            {{ format_in_user_tz($activity->ends_at, 'H:i') }}
+                                                        @elseif ($activity->starts_at)
+                                                            {{ format_in_user_tz($activity->starts_at, 'D, M j · H:i') }}
+                                                        @endif
+                                                    </p>
+                                                @endif
+                                                @if ($selfHostedPlace)
+                                                    <p class="text-sm text-base-content/70">{{ $selfHostedPlace->venueRoomLabel() }}</p>
                                                 @endif
                                             </div>
                                         @endif

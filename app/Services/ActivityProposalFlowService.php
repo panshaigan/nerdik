@@ -7,11 +7,15 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Slot;
-use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 
 class ActivityProposalFlowService
 {
+    public function __construct(
+        private readonly ActivityProposalDecisionService $decisions,
+        private readonly ActivityHostingModeService $hostingModes
+    ) {}
+
     public function notifyHostOfNewProposal(ActivityProposal $proposal): void
     {
         $proposal->loadMissing('event');
@@ -40,6 +44,7 @@ class ActivityProposalFlowService
         array $requestedSlotIds
     ): void {
         if ($requestedSlotIds === []) {
+            $this->hostingModes->markProposedToEvent($activity);
             return;
         }
 
@@ -51,6 +56,7 @@ class ActivityProposalFlowService
             ->all();
 
         $proposal->proposedSlots()->sync($validIds);
+        $this->hostingModes->markProposedToEvent($activity);
 
         $slots = Slot::whereIn('id', $validIds)->get();
         $autoSlot = $slots->firstWhere('requires_approval', false);
@@ -63,12 +69,6 @@ class ActivityProposalFlowService
             return;
         }
 
-        $proposal->update([
-            'status' => ActivityProposalStatus::Accepted,
-            'accepted_slot_id' => $autoSlot->id,
-        ]);
-        $autoSlot->update(['activity_id' => $activity->id]);
-
-        $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+        $this->decisions->accept($proposal, $autoSlot->id);
     }
 }
