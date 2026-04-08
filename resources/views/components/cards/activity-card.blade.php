@@ -5,9 +5,10 @@
 ])
 
 @php
-    $typeLabel = __('ui.browse.activity_type.'.$activity->type->value);
-    if ($typeLabel === 'ui.browse.activity_type.'.$activity->type->value) {
-        $typeLabel = ucfirst($activity->type->value);
+    $typeSlug = $activity->activityType?->slug;
+    $typeLabel = $typeSlug ? __('ui.activities.types.'.$typeSlug) : __('ui.common.none');
+    if ($typeSlug !== null && $typeLabel === 'ui.activities.types.'.$typeSlug) {
+        $typeLabel = ucfirst($typeSlug);
     }
     $durationLabel = format_activity_duration_compact($activity->duration_in_minutes);
     $filled = isset($activity->participants_count)

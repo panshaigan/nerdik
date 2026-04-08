@@ -303,7 +303,9 @@ class ShowEvent extends Component
                 'place.parent',
                 'activity.tags.translations',
                 'activity.tags.tagCategory',
+                'activity.activityType',
                 'activityTypes',
+                'activityTypes.activityType',
             ])->orderBy('starts_at'),
         ]);
 
@@ -319,7 +321,7 @@ class ShowEvent extends Component
         $slotListActivityTagCategories = TagCategory::ACTIVITY_HIGHLIGHT_KEYS;
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
-            ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'creator', 'proposedSlots'])
+            ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
             ->where('status', ActivityProposalStatus::Pending)
             ->orderBy('created_at')
             ->get();

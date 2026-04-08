@@ -9,6 +9,7 @@ use App\Models\TagCategoryTranslation;
 use App\Models\TagContext;
 use App\Models\TagRelation;
 use App\Models\TagTranslation;
+use App\Models\ActivityType;
 use Illuminate\Database\Seeder;
 
 use Illuminate\Support\Str;
@@ -19,24 +20,32 @@ class TagSeeder extends Seeder
 {
     const ACTIVITY_TYPE = 'activity_type';
 
-    const ACTIVITY_TYPE_RPG = 1;
-    const ACTIVITY_TYPE_WARGAME = 2;
-    const ACTIVITY_TYPE_BOARD = 3;
-    const ACTIVITY_TYPE_CARD = 4;
-    const ACTIVITY_TYPE_LARP = 5;
-    const ACTIVITY_TYPE_DISCUSSION = 6;
-    const ACTIVITY_TYPE_LECTURE = 7;
-    const ACTIVITY_TYPE_WORKSHOP = 8;
-    const ACTIVITY_TYPE_COMPETITION = 9;
-    const ACTIVITY_TYPE_SHOW = 10;
+    const ACTIVITY_TYPE_RPG = 'rpg';
+    const ACTIVITY_TYPE_WARGAME = 'wargame';
+    const ACTIVITY_TYPE_BOARD = 'board';
+    const ACTIVITY_TYPE_CARD = 'card';
+    const ACTIVITY_TYPE_LARP = 'larp';
+    const ACTIVITY_TYPE_DISCUSSION = 'discussion';
+    const ACTIVITY_TYPE_LECTURE = 'lecture';
+    const ACTIVITY_TYPE_WORKSHOP = 'workshop';
+    const ACTIVITY_TYPE_COMPETITION = 'competition';
+    const ACTIVITY_TYPE_SHOW = 'show';
 
     public $tagIds = [];
+
+    /** @var array<string, int> */
+    private array $activityTypeIdsBySlug = [];
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        $this->activityTypeIdsBySlug = ActivityType::query()
+            ->pluck('id', 'slug')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         $this->seedTagCategories();
 
         $this->seedTopics();
@@ -923,10 +932,16 @@ class TagSeeder extends Seeder
 
             if (isset($data['contexts'])) {
                 foreach ($data['contexts'] as $context) {
+                    $contextId = is_string($context)
+                        ? ($this->activityTypeIdsBySlug[$context] ?? null)
+                        : null;
+                    if ($contextId === null) {
+                        continue;
+                    }
                     TagContext::firstOrCreate([
                         'tag_id' => $tag->id,
                         'context_type' => self::ACTIVITY_TYPE,
-                        'context_id' => $context,
+                        'context_id' => $contextId,
                     ]);
                 }
             }

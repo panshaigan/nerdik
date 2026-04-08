@@ -261,13 +261,13 @@
                                                     <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
                                                 @endif
                                                 @if ($activity)
-                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->minimum_age) || filled($activity->type))
+                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->minimum_age) || filled($activity->activity_type_id))
                                                         <div class="mt-1 flex flex-wrap gap-1">
                                                             @if (filled($activity->minimum_age))
                                                                 <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
                                                             @endif
-                                                            @if (filled($activity->type))
-                                                                <span class="badge badge-outline badge-info capitalize">{{ $activity->type->value }}</span>
+                                                            @if ($activity->activityType?->slug)
+                                                                <span class="badge badge-outline badge-info">{{ __('ui.activities.types.'.$activity->activityType->slug) }}</span>
                                                             @endif
                                                             @foreach ($mergedActivitySlotTags as $tag)
                                                                 <span class="badge badge-primary badge-outline whitespace-normal text-left">
@@ -278,16 +278,16 @@
                                                     @endif
                                                 @else
                                                     @php
-                                                        $slotActivityTypes = collect($slot->activity_types)
-                                                            ->filter(fn ($t) => is_string($t) && trim($t) !== '')
-                                                            ->map(fn ($t) => trim($t))
+                                                        $slotActivityTypes = collect($slot->activityTypes)
+                                                            ->map(fn ($row) => $row->activityType?->slug ? __('ui.activities.types.'.$row->activityType->slug) : null)
+                                                            ->filter()
                                                             ->unique()
                                                             ->values();
                                                     @endphp
                                                     @if ($slotActivityTypes->isNotEmpty())
                                                         <div class="my-2 flex flex-wrap gap-1">
                                                             @foreach ($slotActivityTypes as $type)
-                                                                <span class="badge badge-outline badge-info capitalize">{{ $type }}</span>
+                                                                <span class="badge badge-outline badge-info">{{ $type }}</span>
                                                             @endforeach
                                                         </div>
                                                     @endif
@@ -398,7 +398,7 @@
                             <li class="py-3 flex flex-wrap items-center justify-between gap-2">
                                 <div class="space-y-1.5 min-w-0 flex-1">
                                     <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                        <span class="badge badge-outline badge-info capitalize shrink-0">{{ $pa->type->value }}</span>
+                                        <span class="badge badge-outline badge-info shrink-0">{{ $pa->activityType?->slug ? __('ui.activities.types.'.$pa->activityType->slug) : __('ui.common.none') }}</span>
                                         <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 font-medium break-words">
                                             {{ $pa->name }}
                                         </a>

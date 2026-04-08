@@ -15,7 +15,7 @@
                         required
                         :options="$myActivities->map(fn ($a) => [
                             'id' => $a->id,
-                            'name' => $a->name.' ('.ucfirst($a->type->value).')',
+                            'name' => $a->name.' ('.($a->activityType?->slug ? __('ui.activities.types.'.$a->activityType->slug) : __('ui.common.none')).')',
                         ])->values()->all()"
                         :placeholder="__('ui.proposals.choose_activity')"
                         placeholder-value=""

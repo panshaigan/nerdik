@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ActivityType;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +20,7 @@ class Activity extends Model
     protected $fillable = [
         'name',
         'description',
-        'type',
+        'activity_type_id',
         'min_participants',
         'max_participants',
         'minimum_age',
@@ -38,7 +37,6 @@ class Activity extends Model
     ];
 
     protected $casts = [
-        'type' => ActivityType::class,
         'price' => 'decimal:2',
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',
@@ -68,6 +66,11 @@ class Activity extends Model
     public function slot()
     {
         return $this->hasOne(Slot::class);
+    }
+
+    public function activityType()
+    {
+        return $this->belongsTo(ActivityType::class);
     }
 
     /**

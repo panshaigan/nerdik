@@ -1,8 +1,3 @@
-@php
-    use App\Enums\ActivityType;
-    $activityTypes = ActivityType::values();
-@endphp
-
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
@@ -36,12 +31,12 @@
 
                     <div>
                         <x-select
-                            id="type"
-                            wire:model="type"
+                            id="activity_type_id"
+                            wire:model="activity_type_id"
                             :label="__('ui.activities.type')"
-                            error-field="type"
+                            error-field="activity_type_id"
                             required
-                            :options="collect($activityTypes)->map(fn ($t) => ['id' => $t, 'name' => ucfirst($t)])->values()->all()"
+                            :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
                             :placeholder="__('ui.activities.choose_type')"
                             placeholder-value=""
                         />

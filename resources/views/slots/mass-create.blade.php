@@ -11,11 +11,12 @@
     $defaultRoomName = old('new_room_name', $slotVenueRoomDefaults['room_name'] ?? '');
     $defaultEventId = ($editMode && $slot) ? $slot->event_id : null;
     $countDefault = $countDefault ?? 5;
-    $activityTypes = \App\Enums\ActivityType::values();
-    $oldActivityTypes = old('activity_types', $editMode && $slot ? $slot->activity_types : []);
-    if (! is_array($oldActivityTypes)) {
-        $oldActivityTypes = [];
+    $activityTypes = \App\Models\ActivityType::query()->orderBy('id')->get(['id', 'slug']);
+    $oldActivityTypeIds = old('activity_types', $editMode && $slot ? $slot->activity_types : []);
+    if (! is_array($oldActivityTypeIds)) {
+        $oldActivityTypeIds = [];
     }
+    $oldActivityTypeIds = array_values(array_filter(array_map('intval', $oldActivityTypeIds), fn ($id) => $id > 0));
     $slotBaseNameSuggestions = $slotBaseNameSuggestions ?? [];
     $slotNameSuggestions = $slotNameSuggestions ?? [];
     $slotMassRoomsByVenueId = $slotMassRoomsByVenueId ?? [];
@@ -26,7 +27,8 @@
     $slotMassConfig = [
         'oldVenuePlaceId' => $defaultVenuePlaceId !== null && $defaultVenuePlaceId !== '' ? (int) $defaultVenuePlaceId : null,
         'isEdit' => $editMode,
-        'initialActivityTypes' => $oldActivityTypes,
+        'initialActivityTypes' => $oldActivityTypeIds,
+        'activityTypeLabels' => $activityTypes->mapWithKeys(fn ($type) => [$type->id => __('ui.activities.types.'.$type->slug)])->all(),
         'strings' => [
             'none' => __('ui.common.none'),
         ],
@@ -232,7 +234,7 @@
                     <select data-slot-activity-add class="select select-bordered w-full">
                         <option value="">{{ __('ui.slots.add_activity_type') }}</option>
                         @foreach ($activityTypes as $type)
-                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                            <option value="{{ $type->id }}">{{ __('ui.activities.types.'.$type->slug) }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Enums\ActivityType;
 use App\Models\Activity;
 use App\Models\Slot;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +41,7 @@ class ActivitySlotCapacityTest extends TestCase
     public function test_slot_fits_capacity_when_room_unlimited(): void
     {
         $activity = new Activity([
-            'type' => ActivityType::Rpg,
+            'activity_type_id' => 1,
             'max_participants' => 99,
             'is_host_passive' => false,
         ]);

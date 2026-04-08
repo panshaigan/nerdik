@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
-use App\Enums\ActivityType;
+use App\Models\ActivityType;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,8 +20,8 @@ class ActivityForm
                 Textarea::make('description')
                     ->rows(4)
                     ->columnSpanFull(),
-                Select::make('type')
-                    ->options(collect(ActivityType::cases())->mapWithKeys(fn (ActivityType $t) => [$t->value => $t->value]))
+                Select::make('activity_type_id')
+                    ->options(ActivityType::query()->orderBy('id')->pluck('slug', 'id'))
                     ->required(),
                 TextInput::make('min_participants')
                     ->numeric()

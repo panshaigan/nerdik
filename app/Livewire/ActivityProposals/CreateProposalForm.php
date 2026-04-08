@@ -68,7 +68,7 @@ class CreateProposalForm extends Component
     {
         $this->event->loadMissing('slots');
 
-        $myActivities = Activity::where('created_by', Auth::id())->orderBy('name')->get();
+        $myActivities = Activity::with('activityType')->where('created_by', Auth::id())->orderBy('name')->get();
 
         return view('livewire.activity-proposals.create-proposal-form', [
             'myActivities' => $myActivities,

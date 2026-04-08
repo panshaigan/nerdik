@@ -2,16 +2,15 @@
 
 namespace Tests\Unit;
 
-use App\Enums\ActivityType;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ActivityTypeTest extends TestCase
 {
     #[Test]
-    public function values_contains_expected_canonical_types(): void
+    public function canonical_activity_type_translation_keys_exist(): void
     {
-        $values = ActivityType::values();
+        $values = array_keys((array) __('ui.activities.types'));
 
         $this->assertGreaterThan(0, count($values));
         $this->assertSame(count($values), count(array_unique($values)));

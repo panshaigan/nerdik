@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ActivityType;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityTypeSlot extends Model
@@ -11,11 +10,7 @@ class ActivityTypeSlot extends Model
 
     protected $fillable = [
         'slot_id',
-        'activity_type',
-    ];
-
-    protected $casts = [
-        'activity_type' => ActivityType::class,
+        'activity_type_id',
     ];
 
     public $timestamps = false;
@@ -23,5 +18,10 @@ class ActivityTypeSlot extends Model
     public function slot()
     {
         return $this->belongsTo(Slot::class);
+    }
+
+    public function activityType()
+    {
+        return $this->belongsTo(ActivityType::class);
     }
 }
