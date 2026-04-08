@@ -86,7 +86,7 @@ class BrowseActivities extends Component
             $query->whereHas('slot', fn ($q) => $q->whereDate('starts_at', '<=', $this->to_date));
         }
         if ($this->place_id !== null) {
-            $query->whereHas('slot.places', fn ($q) => $q->where('places.id', $this->place_id));
+            $query->whereHas('slot.place', fn ($q) => $q->where('places.id', $this->place_id));
         }
 
         $this->applyBrowseTagFilter($query, 'tags');

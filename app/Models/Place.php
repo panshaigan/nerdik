@@ -75,7 +75,7 @@ class Place extends Model
 
     public function slots()
     {
-        return $this->belongsToMany(Slot::class, 'place_slot');
+        return $this->hasMany(Slot::class);
     }
 
     public function country()

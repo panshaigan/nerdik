@@ -292,12 +292,9 @@ class SlotFormService
                 'starts_at' => $startsAtUtc,
                 'ends_at' => $endsAtUtc,
                 'requires_approval' => $requiresApproval,
+                'place_id' => $resolvedPlaceId,
                 'max_capacity' => $validated['max_capacity'] ?? null,
             ]);
-
-            if ($resolvedPlaceId !== null) {
-                $slot->places()->attach($resolvedPlaceId);
-            }
 
             if (! empty($activityTypes)) {
                 $slot->setActivityTypes($activityTypes);
@@ -356,8 +353,8 @@ class SlotFormService
         }
 
         DB::transaction(function () use ($slot, $data, $resolvedPlaceId, $activityTypes): void {
+            $data['place_id'] = $resolvedPlaceId;
             $slot->update($data);
-            $slot->places()->sync($resolvedPlaceId !== null ? [$resolvedPlaceId] : []);
             if (! empty($activityTypes)) {
                 $slot->setActivityTypes($activityTypes);
             } else {
