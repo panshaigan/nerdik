@@ -23,6 +23,8 @@ class SampleDataSeeder extends Seeder
      */
     public function run(): void
     {
+
+
         $this->call([
             PlaceSeeder::class,
         ]);
