@@ -11,6 +11,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalFlowService;
+use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
@@ -51,9 +52,22 @@ class ManageActivityForm extends Component
     public bool $allows_observers = false;
 
     public ?int $proposal_event_id = null;
+
     public string $hosting_mode = Activity::HOSTING_MODE_DRAFT;
+
     public ?string $self_hosted_starts_at = null;
+
+    public ?int $self_hosted_venue_place_id = null;
+
+    public ?string $self_hosted_room_name = null;
+
     public ?int $self_hosted_place_id = null;
+
+    /** @var list<int> */
+    public array $place_ids = [];
+
+    /** @var list<array<string, mixed>> */
+    public array $new_places = [];
 
     public ?string $proposal_preferred_start_time = null;
 
@@ -66,11 +80,17 @@ class ManageActivityForm extends Component
     /** @var list<array{label: string, category_id: int|string}> */
     public array $new_tags = [];
 
+    /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
+    private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
+
+    /** @see updatedNewPlaces() */
+    private ?string $cachedSelfHostedNewPlacesFingerprint = null;
+
     public function mount(?Activity $activity = null): void
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load('tags');
+            $activity->load(['tags', 'place.parent']);
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
@@ -85,6 +105,17 @@ class ManageActivityForm extends Component
             $this->allows_observers = (bool) $activity->allows_observers;
             $this->hosting_mode = (string) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
             $this->self_hosted_place_id = $activity->place_id;
+            $selfHostedPlace = $activity->place;
+            if ($selfHostedPlace?->type === 'room') {
+                $this->self_hosted_venue_place_id = $selfHostedPlace->parent_id;
+                $this->self_hosted_room_name = $selfHostedPlace->name;
+            } elseif ($selfHostedPlace?->type === 'venue') {
+                $this->self_hosted_venue_place_id = $selfHostedPlace->id;
+                $this->self_hosted_room_name = null;
+            }
+            if ($this->self_hosted_venue_place_id !== null) {
+                $this->place_ids = [$this->self_hosted_venue_place_id];
+            }
             $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
@@ -103,6 +134,8 @@ class ManageActivityForm extends Component
                 $this->proposal_slot_ids = array_values(array_filter(array_map('intval', explode(',', $raw))));
             }
         }
+
+        $this->resetSelfHostedRoomTrackingFingerprints();
     }
 
     public function updatedProposalEventId(mixed $value): void
@@ -110,6 +143,69 @@ class ManageActivityForm extends Component
         if ($value === '' || $value === null || (int) $value === 0) {
             $this->proposal_slot_ids = [];
         }
+    }
+
+    public function updatedHostingMode(): void
+    {
+        $this->resetSelfHostedRoomTrackingFingerprints();
+    }
+
+    public function updatedPlaceIds(): void
+    {
+        if ($this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
+            $this->resetSelfHostedRoomTrackingFingerprints();
+
+            return;
+        }
+
+        $fp = $this->computeSelfHostedPlaceIdsFingerprint();
+        if ($fp === $this->cachedSelfHostedPlaceIdsFingerprint) {
+            return;
+        }
+
+        $this->cachedSelfHostedPlaceIdsFingerprint = $fp;
+        $this->self_hosted_room_name = null;
+    }
+
+    public function updatedNewPlaces(): void
+    {
+        if ($this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
+            $this->resetSelfHostedRoomTrackingFingerprints();
+
+            return;
+        }
+
+        $fp = $this->computeSelfHostedNewPlacesFingerprint();
+        if ($fp === $this->cachedSelfHostedNewPlacesFingerprint) {
+            return;
+        }
+
+        $this->cachedSelfHostedNewPlacesFingerprint = $fp;
+        $this->self_hosted_room_name = null;
+    }
+
+    private function resetSelfHostedRoomTrackingFingerprints(): void
+    {
+        $this->cachedSelfHostedPlaceIdsFingerprint = $this->computeSelfHostedPlaceIdsFingerprint();
+        $this->cachedSelfHostedNewPlacesFingerprint = $this->computeSelfHostedNewPlacesFingerprint();
+    }
+
+    private function computeSelfHostedPlaceIdsFingerprint(): string
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $this->place_ids),
+            fn (int $id) => $id > 0
+        )));
+        sort($ids);
+
+        return implode(',', $ids);
+    }
+
+    private function computeSelfHostedNewPlacesFingerprint(): string
+    {
+        $raw = json_encode($this->new_places) ?: '[]';
+
+        return md5($raw);
     }
 
     /**
@@ -144,6 +240,27 @@ class ManageActivityForm extends Component
         if ($this->self_hosted_place_id === 0 || $this->self_hosted_place_id === '') {
             $this->self_hosted_place_id = null;
         }
+        if ($this->self_hosted_venue_place_id === 0 || $this->self_hosted_venue_place_id === '') {
+            $this->self_hosted_venue_place_id = null;
+        }
+        if ($this->self_hosted_room_name !== null) {
+            $this->self_hosted_room_name = trim($this->self_hosted_room_name);
+            if ($this->self_hosted_room_name === '') {
+                $this->self_hosted_room_name = null;
+            }
+        }
+        $this->place_ids = array_values(array_unique(array_filter(array_map('intval', $this->place_ids), fn (int $id) => $id > 0)));
+        if (count($this->place_ids) > 1) {
+            $this->place_ids = [(int) $this->place_ids[0]];
+        }
+        if ($this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED && $this->new_places !== []) {
+            // When a new venue is being created from the map, ignore stale existing venue selection.
+            $this->self_hosted_venue_place_id = null;
+            $this->place_ids = [];
+        }
+        if ($this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED && $this->self_hosted_venue_place_id === null && $this->place_ids !== []) {
+            $this->self_hosted_venue_place_id = $this->place_ids[0];
+        }
 
         $this->proposal_slot_ids = array_values(array_unique(array_filter(
             array_map('intval', $this->proposal_slot_ids),
@@ -168,8 +285,11 @@ class ManageActivityForm extends Component
         $this->cancellation_deadline_in_hours = null;
     }
 
-    public function save(TagSelectionService $tagSelectionService, ActivityHostingModeService $hostingModes)
-    {
+    public function save(
+        TagSelectionService $tagSelectionService,
+        ActivityHostingModeService $hostingModes,
+        LocationResolver $locationResolver
+    ) {
         $validated = $this->validate($this->rules());
 
         $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
@@ -203,6 +323,7 @@ class ManageActivityForm extends Component
                 }
             }
             $activity->update($payload);
+            $this->resolveSelfHostedPlaceSelection($activity, $locationResolver);
             $this->applyHostingModeFromForm($activity, $hostingModes);
             $activity->tags()->sync($tagIds);
             $proposalCreated = $this->createProposalForActivityIfRequested($activity);
@@ -211,6 +332,7 @@ class ManageActivityForm extends Component
                 : __('Activity updated.');
         } else {
             $activity = Activity::create($payload);
+            $this->resolveSelfHostedPlaceSelection($activity, $locationResolver);
             $this->applyHostingModeFromForm($activity, $hostingModes);
             $activity->tags()->sync($tagIds);
             $proposalCreated = $this->createProposalForActivityIfRequested($activity);
@@ -282,7 +404,20 @@ class ManageActivityForm extends Component
             'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
             'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],
             'self_hosted_starts_at' => ['nullable', 'date'],
+            'self_hosted_venue_place_id' => ['nullable', 'integer', Rule::exists('places', 'id')->where(fn ($q) => $q->where('type', 'venue'))],
+            'self_hosted_room_name' => ['nullable', 'string', 'max:255'],
             'self_hosted_place_id' => ['nullable', 'integer', 'exists:places,id'],
+            'place_ids' => ['nullable', 'array'],
+            'place_ids.*' => ['integer', Rule::exists('places', 'id')->where(fn ($q) => $q->where('type', 'venue'))],
+            'new_places' => ['nullable', 'array'],
+            'new_places.*.name' => ['nullable', 'string', 'max:255'],
+            'new_places.*.address' => ['nullable', 'string', 'max:500'],
+            'new_places.*.city' => ['nullable', 'string', 'max:255'],
+            'new_places.*.country' => ['nullable', 'string', 'max:255'],
+            'new_places.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
+            'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
             ...$this->proposalFieldValidationRules(),
         ];
     }
@@ -428,6 +563,78 @@ class ManageActivityForm extends Component
         $hostingModes->setDraft($activity);
     }
 
+    protected function resolveSelfHostedPlaceSelection(Activity $activity, LocationResolver $locationResolver): void
+    {
+        if ($this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
+            return;
+        }
+
+        if ($this->self_hosted_venue_place_id === null && $this->new_places !== []) {
+            // New-place flow takes precedence over any previous existing venue.
+            $this->self_hosted_place_id = null;
+            foreach ($this->new_places as $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+                $name = trim((string) ($row['name'] ?? ''));
+                $lat = $row['latitude'] ?? null;
+                $lng = $row['longitude'] ?? null;
+                if ($name === '' || $lat === null || $lat === '' || $lng === null || $lng === '') {
+                    continue;
+                }
+
+                $resolved = $locationResolver->resolvePlaceRow($row);
+                $newVenue = Place::create([
+                    'name' => $name,
+                    'address' => trim((string) ($row['address'] ?? '')) ?: null,
+                    'type' => 'venue',
+                    'city_id' => $resolved['city_id'],
+                    'country_id' => $resolved['country_id'],
+                    'latitude' => (float) $lat,
+                    'longitude' => (float) $lng,
+                    'is_online' => false,
+                ]);
+                $this->self_hosted_venue_place_id = $newVenue->id;
+                break;
+            }
+        }
+
+        if ($this->self_hosted_venue_place_id === null) {
+            return;
+        }
+
+        $venue = Place::query()
+            ->whereKey($this->self_hosted_venue_place_id)
+            ->where('type', 'venue')
+            ->first();
+        if ($venue === null) {
+            return;
+        }
+
+        if ($this->self_hosted_room_name !== null) {
+            $room = Place::query()
+                ->where('type', 'room')
+                ->where('parent_id', $venue->id)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($this->self_hosted_room_name)])
+                ->first();
+            if ($room === null) {
+                $room = Place::create([
+                    'name' => $this->self_hosted_room_name,
+                    'type' => 'room',
+                    'parent_id' => $venue->id,
+                    'city_id' => $venue->city_id,
+                    'country_id' => $venue->country_id,
+                    'is_online' => false,
+                ]);
+            }
+            $this->self_hosted_place_id = $room->id;
+
+            return;
+        }
+
+        $this->self_hosted_place_id = $venue->id;
+    }
+
     public function render()
     {
         $exceptId = $this->editingActivityId;
@@ -442,10 +649,52 @@ class ManageActivityForm extends Component
                 ->get() ?? collect();
         }
 
+        $venues = Place::query()
+            ->where('type', 'venue')
+            ->orderBy('name')
+            ->get();
+        $placesUnified = $venues
+            ->map(function (Place $place) {
+                $loc = $place->locationLabel();
+
+                return [
+                    'id' => (int) $place->id,
+                    'label' => $loc !== '' ? "{$place->name} ({$loc})" : $place->name,
+                    'lat' => $place->latitude !== null ? (float) $place->latitude : null,
+                    'lng' => $place->longitude !== null ? (float) $place->longitude : null,
+                ];
+            })
+            ->values()
+            ->all();
+        $selfHostedPlacesConfig = [
+            'places' => $placesUnified,
+            'initialSelectedIds' => $this->self_hosted_venue_place_id
+                ? [(int) $this->self_hosted_venue_place_id]
+                : ($this->place_ids !== [] ? [(int) $this->place_ids[0]] : []),
+            'initialNewPlaces' => $this->new_places,
+            'searchUrl' => route('geocode.search'),
+            'reverseUrl' => route('geocode.reverse'),
+            'singleSelect' => true,
+            'maxNewVenues' => 1,
+            'disallowMixSelectedAndNew' => true,
+            'debounceLivewireMs' => 450,
+            'strings' => [
+                'yourPlaces' => __('Your places'),
+                'mapSearch' => __('Map search'),
+                'noResults' => __('No results'),
+                'newVenuesHeading' => __('New venues (created when you save)'),
+                'newVenueNumber' => __('Venue'),
+                'removeVenue' => __('Remove'),
+                'addedThisForm' => __('Added on this form'),
+            ],
+        ];
+        $roomsFetchUrlTemplate = url('/places/__PLACE__/rooms');
+
         return view('livewire.activities.manage-activity-form', [
             'tags' => Tag::orderedForSelector()->get(),
             'futureEvents' => $this->futureEventsForProposal(),
-            'hostPlaces' => Place::query()->where('type', 'venue')->orderBy('name')->get(),
+            'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
+            'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => ActivityType::query()->orderBy('id')->get(),

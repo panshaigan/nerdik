@@ -4,12 +4,12 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GeocodeController;
+use App\Http\Controllers\InterestController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\InterestController;
 use App\Models\Activity;
 use App\Models\Event;
 use Illuminate\Http\Request;
@@ -76,6 +76,10 @@ Route::middleware(['auth'])->group(function () {
     // Slot edit/update only (modal fetch + form POST). Create/list/destroy are via event UI or Filament admin.
     Route::get('slots/{slot}/edit', [SlotController::class, 'edit'])->name('slots.edit');
     Route::put('slots/{slot}', [SlotController::class, 'update'])->name('slots.update');
+
+    Route::get('places/{venueId}/rooms', [PlaceController::class, 'roomsForVenue'])
+        ->whereNumber('venueId')
+        ->name('places.rooms');
 
     Route::resource('places', PlaceController::class)
         ->except(['show']);
