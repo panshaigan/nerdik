@@ -20,6 +20,7 @@ class Slot extends Model
         'ends_at',
         'requires_approval',
         'activity_id',
+        'place_id',
         'max_capacity',
         'updated_by',
     ];
@@ -35,27 +36,9 @@ class Slot extends Model
         return $this->belongsTo(Event::class);
     }
 
-    /**
-     * Places linked to this slot (typically one row — venue or room).
-     */
-    public function places()
-    {
-        return $this->belongsToMany(Place::class, 'place_slot');
-    }
-
-    /**
-     * The primary place for this slot (same row as {@see self::places()}).
-     */
     public function place()
     {
-        return $this->hasOneThrough(
-            Place::class,
-            PlaceSlot::class,
-            'slot_id',
-            'id',
-            'id',
-            'place_id'
-        );
+        return $this->belongsTo(Place::class);
     }
 
     public function activity()

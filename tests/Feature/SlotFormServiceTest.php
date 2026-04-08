@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Event;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\User;
 use App\Services\SlotFormService;
 use App\Services\TagSelectionService;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -74,5 +76,81 @@ class SlotFormServiceTest extends TestCase
         $this->assertArrayHasKey($venue->id, $roomsByVenue);
         $this->assertCount(1, $roomsByVenue[$venue->id]);
         $this->assertSame('Side Room', $roomsByVenue[$venue->id][0]['name']);
+    }
+
+    #[Test]
+    public function perform_mass_create_persists_place_id_on_slots(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $event = Event::create([
+            'name' => 'Place ID Event',
+            'slug' => 'place-id-event',
+            'created_by' => $user->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'is_public' => true,
+        ]);
+
+        $venue = Place::create([
+            'name' => 'Venue X',
+            'type' => 'venue',
+            'is_online' => false,
+        ]);
+        $event->places()->attach($venue->id);
+
+        $request = Request::create('/slots/mass', 'POST', [
+            'event_id' => $event->id,
+            'base_name' => 'Room',
+            'count' => 2,
+            'venue_place_id' => $venue->id,
+            'requires_approval' => 1,
+        ]);
+
+        $this->makeService()->performMassCreate($request);
+
+        $this->assertSame(2, Slot::query()->where('event_id', $event->id)->count());
+        $this->assertSame(2, Slot::query()->where('event_id', $event->id)->where('place_id', $venue->id)->count());
+    }
+
+    #[Test]
+    public function perform_slot_update_changes_place_id_without_pivot_sync(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $event = Event::create([
+            'name' => 'Update Place Event',
+            'slug' => 'update-place-event',
+            'created_by' => $user->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'is_public' => true,
+        ]);
+
+        $venueA = Place::create(['name' => 'Venue A', 'type' => 'venue', 'is_online' => false]);
+        $venueB = Place::create(['name' => 'Venue B', 'type' => 'venue', 'is_online' => false]);
+        $event->places()->attach([$venueA->id, $venueB->id]);
+
+        $slot = Slot::create([
+            'event_id' => $event->id,
+            'name' => 'Slot 1',
+            'created_by' => $user->id,
+            'place_id' => $venueA->id,
+            'requires_approval' => false,
+        ]);
+
+        $request = Request::create('/slots/'.$slot->id, 'PUT', [
+            'event_id' => $event->id,
+            'name' => 'Slot 1 updated',
+            'venue_place_id' => $venueB->id,
+            'requires_approval' => 0,
+        ]);
+
+        $this->makeService()->performSlotUpdate($request, $slot);
+
+        $slot->refresh();
+        $this->assertSame($venueB->id, (int) $slot->place_id);
     }
 }

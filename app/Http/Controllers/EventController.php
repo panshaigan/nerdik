@@ -99,10 +99,8 @@ class EventController extends Controller
                 'requires_approval' => $slot->requires_approval,
                 'max_capacity' => $slot->max_capacity,
                 'activity_id' => null, // important: new event has empty slots
+                'place_id' => $slot->place?->id,
             ]);
-            if ($slot->place) {
-                $newSlot->places()->sync([$slot->place->id]);
-            }
         }
 
         return redirect()->route('events.show', $newEvent)

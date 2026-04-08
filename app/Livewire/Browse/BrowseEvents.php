@@ -199,7 +199,7 @@ class BrowseEvents extends Component
 
         if ($this->hasBBox()) {
             [$minLat, $maxLat, $minLng, $maxLng] = $this->normalizedBBox();
-            $query->whereHas('slot.places', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng) {
+            $query->whereHas('slot.place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng) {
                 $q->whereNotNull('latitude')
                     ->whereNotNull('longitude')
                     ->whereBetween('latitude', [$minLat, $maxLat])

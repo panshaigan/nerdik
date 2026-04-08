@@ -147,11 +147,9 @@ class SampleDataSeeder extends Seeder
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
                     'requires_approval' => false,
+                    'place_id' => $placeId,
                     'max_capacity' => 6,
                 ]);
-                if ($placeId) {
-                    $s1->places()->attach($placeId);
-                }
                 $s2 = Slot::create([
                     'event_id' => $event->id,
                     'created_by' => $createdBy,
@@ -159,11 +157,9 @@ class SampleDataSeeder extends Seeder
                     'starts_at' => $start->copy()->setTime(18, 0),
                     'ends_at' => $start->copy()->setTime(22, 0),
                     'requires_approval' => true,
+                    'place_id' => $placeId,
                     'max_capacity' => 6,
                 ]);
-                if ($placeId) {
-                    $s2->places()->attach($placeId);
-                }
                 Slot::create([
                     'event_id' => $event->id,
                     'created_by' => $createdBy,
