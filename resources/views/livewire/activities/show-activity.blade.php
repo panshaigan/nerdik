@@ -357,11 +357,29 @@
                                         <span class="ml-1 text-error">({{ __('Absent') }})</span>
                                     @endif
                                 </span>
-                                @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0) && ! $p->is_absent)
-                                    <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline shrink-0">
-                                        @csrf
-                                        <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
-                                    </form>
+                                @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
+                                    <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                                        @if ($p->is_absent)
+                                            <form action="{{ route('activity-participants.unmark-absent', $p) }}" method="POST" class="inline">
+                                                @csrf
+                                                <x-button type="submit" class="btn-ghost btn-xs text-success">{{ __('ui.activities.unmark_absent') }}</x-button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
+                                                @csrf
+                                                <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
+                                            </form>
+                                        @endif
+                                        <form
+                                            action="{{ route('activity-participants.move-to-waitlist', $p) }}"
+                                            method="POST"
+                                            class="inline"
+                                            onsubmit='return window.confirm({!! json_encode(__('ui.activities.move_to_waitlist_confirm'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!})'
+                                        >
+                                            @csrf
+                                            <x-button type="submit" class="btn-ghost btn-xs">{{ __('ui.activities.move_to_waitlist') }}</x-button>
+                                        </form>
+                                    </div>
                                 @endif
                             </li>
                         @empty
