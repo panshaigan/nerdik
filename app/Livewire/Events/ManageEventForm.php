@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Services\EventActivitySignupService;
+use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
@@ -51,39 +52,73 @@ class ManageEventForm extends Component
      */
     public array $enrollment_windows = [];
 
+    /** When set, creating the event will clone empty slots from this source (owner-only; re-checked on save). */
+    public ?int $duplicateSlotsFromEventId = null;
+
     public function mount(?Event $event = null): void
     {
         if ($event?->exists) {
             $this->authorizeCreatedBy($event);
-            $event->load(['places', 'organization', 'enrollmentWindows']);
-            $this->editingEventId = $event->id;
-            $this->name = (string) $event->name;
-            $this->description = (string) ($event->description ?? '');
-            $this->organization_id = $event->organization_id;
-            $this->organization_name = (string) (optional($event->organization)->name ?? '');
-            $this->is_public = (bool) $event->is_public;
-            $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
-            $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
-            $this->place_ids = $event->places
-                ->filter(fn (Place $p) => $p->type === 'venue')
-                ->pluck('id')
-                ->map(fn ($id) => (int) $id)
-                ->values()
-                ->all();
-            $this->new_places = [];
-            $this->enrollment_windows = $event->enrollmentWindows
-                ->map(fn ($p) => [
-                    'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
-                    'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
-                    'max_activities_per_user' => $p->max_activities_per_user,
-                ])
-                ->values()
-                ->all();
+            $this->hydrateFormFromEvent($event, forEdit: true);
+        } elseif (($dupSlug = $this->duplicateEventQuerySlug()) !== null) {
+            $source = Event::query()->where('slug', $dupSlug)->first();
+            if ($source !== null) {
+                $this->authorizeCreatedBy($source);
+                $this->hydrateFormFromEvent($source, forEdit: false, forDuplicate: true);
+                $this->duplicateSlotsFromEventId = $source->id;
+            }
         }
 
         if ($this->enrollment_windows === []) {
             $this->enrollment_windows = [$this->defaultEnrollmentWindowRow()];
         }
+    }
+
+    private function duplicateEventQuerySlug(): ?string
+    {
+        $raw = request()->query('duplicate');
+        if (! is_string($raw)) {
+            return null;
+        }
+        $trim = trim($raw);
+
+        return $trim === '' ? null : $trim;
+    }
+
+    private function hydrateFormFromEvent(Event $event, bool $forEdit, bool $forDuplicate = false): void
+    {
+        $event->load(['places', 'organization', 'enrollmentWindows']);
+        if ($forEdit) {
+            $this->editingEventId = $event->id;
+        }
+        $name = (string) $event->name;
+        if ($forDuplicate) {
+            $suffix = __('ui.events.duplicate_name_suffix');
+            $maxBase = max(0, 255 - mb_strlen($suffix));
+            $name = mb_substr($name, 0, $maxBase).$suffix;
+        }
+        $this->name = $name;
+        $this->description = (string) ($event->description ?? '');
+        $this->organization_id = $event->organization_id;
+        $this->organization_name = (string) (optional($event->organization)->name ?? '');
+        $this->is_public = (bool) $event->is_public;
+        $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
+        $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
+        $this->place_ids = $event->places
+            ->filter(fn (Place $p) => $p->type === 'venue')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+        $this->new_places = [];
+        $this->enrollment_windows = $event->enrollmentWindows
+            ->map(fn ($p) => [
+                'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
+                'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
+                'max_activities_per_user' => $p->max_activities_per_user,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -149,7 +184,7 @@ class ManageEventForm extends Component
         return $attributes;
     }
 
-    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService)
+    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService, EventEmptySlotCloneService $slotCloneService)
     {
         $validated = $this->validate($this->rules());
 
@@ -184,10 +219,22 @@ class ManageEventForm extends Component
         }
 
         $validated['created_by'] = Auth::id();
+        $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
+
         $event = Event::create($validated);
         $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
         $event->refresh();
         $this->syncEnrollmentWindows($event, $signupService);
+
+        if ($duplicateSlotsFrom !== null) {
+            $source = Event::query()->find($duplicateSlotsFrom);
+            if ($source !== null && Auth::user()?->canModifyEntity($source)) {
+                $slotCloneService->cloneEmptySlots($source, $event);
+            }
+        }
+
+        $this->duplicateSlotsFromEventId = null;
+
         session()->flash('status', __('Event created.'));
 
         return redirect()->route('search.index');

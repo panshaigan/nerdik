@@ -3,7 +3,6 @@ Content
 
 Features
     - powinna być możliwość do oznaczania ile miejsc na daną sesje jest dostępna w danym oknie
-    - duplicating activities/events
 
     - restrict the user roles (like organizer should be approved)?
     - choose the type of user: organizer, gm, player
