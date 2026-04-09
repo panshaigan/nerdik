@@ -168,6 +168,15 @@
                                         </x-button>
                                     @endif
                                 @endif
+                                <x-button
+                                    :link="route('activities.create', ['duplicate' => $activity->slug])"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    :title="__('ui.activities.duplicate_action')"
+                                    :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
+                                    data-ui="activity-show-duplicate"
+                                >
+                                    <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
+                                </x-button>
                                 @if ($hasInterest)
                                     <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
                                         @csrf

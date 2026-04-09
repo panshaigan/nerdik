@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Services\EventEmptySlotCloneService;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
@@ -91,17 +92,7 @@ class EventController extends Controller
         $newEvent->updated_by = null;
         $newEvent->save();
 
-        foreach ($event->slots()->with('place')->get() as $slot) {
-            $newSlot = $newEvent->slots()->create([
-                'name' => $slot->name,
-                'starts_at' => $slot->starts_at,
-                'ends_at' => $slot->ends_at,
-                'requires_approval' => $slot->requires_approval,
-                'max_capacity' => $slot->max_capacity,
-                'activity_id' => null, // important: new event has empty slots
-                'place_id' => $slot->place?->id,
-            ]);
-        }
+        app(EventEmptySlotCloneService::class)->cloneEmptySlots($event, $newEvent);
 
         return redirect()->route('events.show', $newEvent)
             ->with('status', __('Event copied.'));

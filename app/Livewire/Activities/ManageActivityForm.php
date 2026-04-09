@@ -119,6 +119,11 @@ class ManageActivityForm extends Component
             $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
+        } elseif (($dupSlug = $this->duplicateQuerySlug()) !== null) {
+            $source = Activity::query()->with('tags')->where('slug', $dupSlug)->first();
+            if ($source !== null) {
+                $this->applyDuplicatePrefillFromActivity($source);
+            }
         } elseif (request()->filled('proposal_event_id')) {
             $id = (int) request()->query('proposal_event_id');
             if ($id > 0) {
@@ -126,7 +131,7 @@ class ManageActivityForm extends Component
             }
         }
 
-        if (request()->has('proposal_slot_ids')) {
+        if ($this->duplicateQuerySlug() === null && request()->has('proposal_slot_ids')) {
             $raw = request()->query('proposal_slot_ids');
             if (is_array($raw)) {
                 $this->proposal_slot_ids = array_values(array_filter(array_map('intval', $raw)));
@@ -136,6 +141,51 @@ class ManageActivityForm extends Component
         }
 
         $this->resetSelfHostedRoomTrackingFingerprints();
+    }
+
+    private function duplicateQuerySlug(): ?string
+    {
+        $raw = request()->query('duplicate');
+        if (! is_string($raw)) {
+            return null;
+        }
+        $trim = trim($raw);
+
+        return $trim === '' ? null : $trim;
+    }
+
+    /**
+     * Copy content/options fields only; hosting and proposal fields stay at create defaults.
+     */
+    private function applyDuplicatePrefillFromActivity(Activity $source): void
+    {
+        $suffix = __('ui.activities.duplicate_name_suffix');
+        $base = (string) $source->name;
+        $maxBase = max(0, 255 - mb_strlen($suffix));
+        $this->name = mb_substr($base, 0, $maxBase).$suffix;
+        $this->description = (string) ($source->description ?? '');
+        $this->activity_type_id = $source->activity_type_id;
+        $this->min_participants = $source->min_participants;
+        $this->max_participants = $source->max_participants;
+        $this->minimum_age = $source->minimum_age;
+        $this->duration_in_minutes = $source->duration_in_minutes;
+        $this->cancellation_deadline_in_hours = $source->cancellation_deadline_in_hours;
+        $this->is_host_passive = (bool) $source->is_host_passive;
+        $this->requires_approval = (bool) $source->requires_approval;
+        $this->allows_observers = (bool) $source->allows_observers;
+        $this->tag_ids = $source->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $this->new_tags = [];
+
+        $this->hosting_mode = Activity::HOSTING_MODE_DRAFT;
+        $this->proposal_event_id = null;
+        $this->proposal_preferred_start_time = null;
+        $this->proposal_slot_ids = [];
+        $this->self_hosted_starts_at = null;
+        $this->self_hosted_venue_place_id = null;
+        $this->self_hosted_room_name = null;
+        $this->self_hosted_place_id = null;
+        $this->place_ids = [];
+        $this->new_places = [];
     }
 
     public function updatedProposalEventId(mixed $value): void
