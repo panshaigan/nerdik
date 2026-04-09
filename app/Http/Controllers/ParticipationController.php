@@ -18,6 +18,10 @@ class ParticipationController extends Controller
     {
         $user = Auth::user();
 
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
+
         if ($activity->participants()->where('user_id', $user->id)->exists()) {
             return redirect()->back()->with('status', __('You are already participating.'));
         }
@@ -61,6 +65,10 @@ class ParticipationController extends Controller
     {
         $user = Auth::user();
 
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
+
         $participant = $activity->participants()->where('user_id', $user->id)->first();
         if (! $participant) {
             return redirect()->back()->with('status', __('You are not participating.'));
@@ -89,6 +97,10 @@ class ParticipationController extends Controller
     public function joinWaitlist(Activity $activity, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
+
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
 
         if ($activity->participants()->where('user_id', $user->id)->exists()) {
             return redirect()->back()->with('status', __('You are already participating.'));
@@ -123,6 +135,10 @@ class ParticipationController extends Controller
     {
         $user = Auth::user();
 
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
+
         $entry = $activity->waitlist()->where('user_id', $user->id)->first();
         if (! $entry) {
             return redirect()->back()->with('status', __('You are not on the waitlist.'));
@@ -138,6 +154,10 @@ class ParticipationController extends Controller
     public function approveWaitlistEntry(Activity $activity, ActivityWaitlistEntry $entry, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
+
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
 
         abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_approve_waitlist'));
 
@@ -192,5 +212,17 @@ class ParticipationController extends Controller
         $participant->update(['is_absent' => true]);
 
         return redirect()->back()->with('status', __('Participant marked absent.'));
+    }
+
+    protected function signupStateBlockMessage(Activity $activity): ?string
+    {
+        if ($activity->isCancelled()) {
+            return __('ui.activities.signup_blocked_cancelled');
+        }
+        if (! $activity->isJoinableMode()) {
+            return __('ui.activities.signup_blocked_not_joinable_mode');
+        }
+
+        return null;
     }
 }

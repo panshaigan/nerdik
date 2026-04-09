@@ -150,6 +150,18 @@ class EventActivitySignupService
     {
         $activity->loadMissing('slot.event.enrollmentWindows');
 
+        if ($activity->isCancelled()) {
+            throw ValidationException::withMessages([
+                '_' => [__('ui.activities.signup_blocked_cancelled')],
+            ]);
+        }
+
+        if (! $activity->isJoinableMode()) {
+            throw ValidationException::withMessages([
+                '_' => [__('ui.activities.signup_blocked_not_joinable_mode')],
+            ]);
+        }
+
         $slot = $activity->slot;
         if ($slot === null || $slot->event_id === null) {
             return;

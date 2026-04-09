@@ -3,6 +3,7 @@
 namespace App\Livewire\Activities;
 
 use App\Models\Activity;
+use App\Services\ActivityHostingModeService;
 use App\Services\EventActivitySignupService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -11,9 +12,43 @@ class ShowActivity extends Component
 {
     public int $activityId;
 
+    public ?string $cancelReason = null;
+
     public function mount(Activity $activity): void
     {
         $this->activityId = $activity->id;
+    }
+
+    public function cancel(ActivityHostingModeService $hostingModes): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        abort_unless(auth()->user()?->canModifyEntity($activity), 403);
+
+        $reason = $this->cancelReason !== null ? trim($this->cancelReason) : null;
+        if ($reason === '') {
+            $reason = null;
+        }
+        if ($reason !== null && mb_strlen($reason) > 1000) {
+            $this->addError('cancelReason', __('validation.max.string', [
+                'attribute' => 'cancel_reason',
+                'max' => 1000,
+            ]));
+
+            return;
+        }
+
+        $hostingModes->cancel($activity, auth()->user(), $reason);
+        $this->cancelReason = null;
+        session()->flash('status', __('ui.activities.cancelled_status'));
+    }
+
+    public function reopen(ActivityHostingModeService $hostingModes): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        abort_unless(auth()->user()?->canModifyEntity($activity), 403);
+
+        $hostingModes->reopen($activity);
+        session()->flash('status', __('ui.activities.reopened_status'));
     }
 
     public function render()
@@ -22,6 +57,7 @@ class ShowActivity extends Component
 
         $activity->load([
             'creator',
+            'canceller',
             'activityType',
             'tags.translations',
             'participants.user',
@@ -45,7 +81,14 @@ class ShowActivity extends Component
             }
         }
 
-        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk;
+        $stateBlockedMessage = null;
+        if ($activity->isCancelled()) {
+            $stateBlockedMessage = __('ui.activities.signup_blocked_cancelled');
+        } elseif (! $activity->isJoinableMode()) {
+            $stateBlockedMessage = __('ui.activities.signup_blocked_not_joinable_mode');
+        }
+
+        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk && $stateBlockedMessage === null;
         $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
         $hasInterest = auth()->check() && auth()->user()->interestedActivities()->where('activities.id', $activity->id)->exists();
         $canManageActivity = auth()->user()?->canModifyEntity($activity) ?? false;
@@ -59,6 +102,7 @@ class ShowActivity extends Component
             'hasInterest' => $hasInterest,
             'canManageActivity' => $canManageActivity,
             'signupBlockedMessage' => $signupBlockedMessage,
+            'stateBlockedMessage' => $stateBlockedMessage,
         ]);
     }
 }

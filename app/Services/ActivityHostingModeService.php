@@ -8,6 +8,8 @@ use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -102,6 +104,24 @@ class ActivityHostingModeService
         ]);
     }
 
+    public function cancel(Activity $activity, User $actor, ?string $reason = null): void
+    {
+        $activity->update([
+            'cancelled_at' => now(),
+            'cancelled_by' => $actor->id,
+            'cancel_reason' => $reason !== null ? trim($reason) : null,
+        ]);
+    }
+
+    public function reopen(Activity $activity): void
+    {
+        $activity->update([
+            'cancelled_at' => null,
+            'cancelled_by' => null,
+            'cancel_reason' => null,
+        ]);
+    }
+
     public function detachAcceptedSlot(Event $event, Slot $slot): bool
     {
         if ($slot->activity_id === null) {
@@ -152,7 +172,7 @@ class ActivityHostingModeService
         }
     }
 
-    private function deriveEndsAt(Activity $activity, \Carbon\Carbon $start): ?\Carbon\Carbon
+    private function deriveEndsAt(Activity $activity, Carbon $start): ?Carbon
     {
         $minutes = (int) ($activity->duration_in_minutes ?? 0);
         if ($minutes <= 0) {

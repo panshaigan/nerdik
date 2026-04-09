@@ -1,10 +1,36 @@
 Content
     - seeding with sample data
 
+Features
+    - ODWOŁANIE SESJI
+    - powinna być możliwość do oznaczania ile miejsc na daną sesje jest dostępna w danym oknie
+    - duplicating activities/events
+    - eventually manage participants between the list and the waiting list (especially on restricted activities)
+
+    - restrict the user roles (like organizer should be approved)?
+    - choose the type of user: organizer, gm, player
+    - ORGANIZCJA powinna być przypinywalna też do graczy.
+
+
+    - activity_user
+        - add created_by and updated_by (+ ensure in code that is being filled).
+            if the entry comes from an user enrolling to an activity, 'created_by' should be him. if the activity host is accepting an user from waitlist, 'created_by" should be the host. if an user automatically jumps to the list from the waitlist, it should be null.
+        - add deleted_at and deleted_by
+
 UI/UX
-- graphically enhance the screens + i18n: check for not translated strings
-- disable tinymce focus border
-- handle tag relations
+- graphically enhance the screens + check for not translated strings
+- enhancements
+    - disable tinymce focus border
+    - Enrollment windwos should be numbered to make a difference between them
+    - add descriptions to enrollments ('for the prepaid people')
+    - maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
+    - event:
+        - fold the plan outside the enrollment windows
+        - add possibility to filter out empty slots
+        - dont drop the event start label
+    - activity:
+        - passive host displayed just for organizer
+- handle tag contex
 - think about slots naming/counters
     - extract number from name?
 - my tags/places cruds
@@ -20,6 +46,11 @@ Notifications
     - review
     - event: "event soon!", "event soon - empty slots", "event soon - no slots planned" [FUTURE]
     - activity: "proposal waiting for acceptance", "proposal accepted/rejected"
+    - participation:
+        - "someone joined your activity" [FUTURE]
+        - "activity is about to be cancelled" [FUTURE]
+        - "activity is soon - are you sure you will participate? if not, sign off" [FUTURE]
+        - "you waited enough to get the place" [MVP]
 
 Technicals
     - performance
@@ -34,18 +65,12 @@ Technicals
     - countries and city translations do we need them?
     - rename mass create to create in the code
     - refactor signup to enroll in the code
-
-DDDize Scheduling/Proposals/Tagging
+    - DDDize Scheduling/Proposals/Tagging
 
 Features
-    - powinna być możliwość do oznaczania ile miejsc na daną sesje jest dostępna w danym oknie
-    - ORGANIZCJA powinna być przypinywalna też do graczy. powinno być można dodać url
-    - restrict the user roles (like organizer should be approved)
     - activity languages
     - feedback system
     - losowanie uczestników, jeśli jest więcej
-    - duplicating activities/events
-
 
 tag extraction:
     Key package design choices to decide early
@@ -53,27 +78,3 @@ tag extraction:
     DB compatibility target (MySQL/Postgres only?)
     How much UI you ship vs backend-only core
     API surface stability (events, contracts, extension hooks)
-
-activity_user
-    - add created_by and updated_by (+ ensure in code that is being filled).
-        if the entry comes from an user enrolling to an activity, 'created_by' should be him. if the activity host is accepting an user from waitlist, 'created_by" should be the host. if an user automatically jumps to the list from the waitlist, it should be null.
-    - add deleted_at and deleted_by
-
-
-
-Enrollments should be numbered to make a difference between them
-add descriptions to enrollments
-maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
-
-event:
-fold the plan outside the windowsize
-add possibility to filter out empty slots
-dont drop the event start label
-
-activity:
-passive host displayed just for organizer
-
-
-REMEMBER ABOUT SLUGS FOR TAGS
-
-ODWOŁANIE SESJI

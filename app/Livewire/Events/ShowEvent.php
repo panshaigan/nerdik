@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\TagCategory;
+use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Collection;
@@ -33,6 +34,9 @@ class ShowEvent extends Component
      * @var array<int|string, int|string>
      */
     public array $proposalAcceptSlotId = [];
+
+    /** @var array<int|string, string> */
+    public array $slotCancelReason = [];
 
     public function mount(Event $event): void
     {
@@ -119,6 +123,68 @@ class ShowEvent extends Component
 
         $this->refreshAfterSlotMutation();
         session()->flash('status', __('ui.status.activity_detached_from_slot'));
+    }
+
+    public function cancelSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $slot = Slot::query()
+            ->with('activity')
+            ->whereKey($slotId)
+            ->where('event_id', $event->id)
+            ->firstOrFail();
+
+        $activity = $slot->activity;
+        if ($activity === null) {
+            return;
+        }
+
+        $user = auth()->user();
+        abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
+
+        $reason = $this->slotCancelReason[$slotId]
+            ?? $this->slotCancelReason[(string) $slotId]
+            ?? null;
+        $reason = is_string($reason) ? trim($reason) : null;
+        if ($reason === '') {
+            $reason = null;
+        }
+
+        if ($reason !== null && mb_strlen($reason) > 1000) {
+            $this->addError('slotCancelReason.'.$slotId, __('validation.max.string', [
+                'attribute' => 'cancel_reason',
+                'max' => 1000,
+            ]));
+
+            return;
+        }
+
+        $hostingModes->cancel($activity, $user, $reason);
+        unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
+        $this->slotListVersion++;
+        session()->flash('status', __('ui.activities.cancelled_status'));
+    }
+
+    public function reopenSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $slot = Slot::query()
+            ->with('activity')
+            ->whereKey($slotId)
+            ->where('event_id', $event->id)
+            ->firstOrFail();
+
+        $activity = $slot->activity;
+        if ($activity === null) {
+            return;
+        }
+
+        $user = auth()->user();
+        abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
+
+        $hostingModes->reopen($activity);
+        $this->slotListVersion++;
+        session()->flash('status', __('ui.activities.reopened_status'));
     }
 
     public function acceptPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
@@ -278,6 +344,7 @@ class ShowEvent extends Component
                 'activity.tags.translations',
                 'activity.tags.tagCategory',
                 'activity.activityType',
+                'activity.canceller',
                 'activityTypes',
                 'activityTypes.activityType',
             ])->orderBy('starts_at'),

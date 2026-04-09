@@ -60,6 +60,11 @@ class ActivityHostingModesTest extends TestCase
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
             'starts_at' => now()->addDay(),
         ]);
+        $selfHostedCancelled = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+            'cancelled_at' => now(),
+        ]);
         $draft = Activity::factory()->create([
             'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
         ]);
@@ -75,6 +80,7 @@ class ActivityHostingModesTest extends TestCase
 
         $this->assertContains($selfHosted->id, $ids);
         $this->assertContains($scheduledPublic->id, $ids);
+        $this->assertNotContains($selfHostedCancelled->id, $ids);
         $this->assertNotContains($draft->id, $ids);
         $this->assertNotContains($scheduledPrivate->id, $ids);
     }

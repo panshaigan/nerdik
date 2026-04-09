@@ -1,0 +1,12 @@
+---
+description: Prefer integer-backed lifecycle and mode fields
+alwaysApply: true
+---
+
+# Integer-First Lifecycle Fields
+
+- Prefer integers (constants or int-backed enums) over free-form strings for statuses and modes.
+- For new stateful columns, define stable numeric constants in code and keep mappings centralized.
+- Avoid comparing magic string literals in queries and conditionals.
+- When migrating existing string states, add a backfill path and keep compatibility during rollout.
+- Ensure UI labels remain translation-driven; numbers are persistence, not presentation.

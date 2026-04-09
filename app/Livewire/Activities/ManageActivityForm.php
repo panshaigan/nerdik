@@ -53,7 +53,7 @@ class ManageActivityForm extends Component
 
     public ?int $proposal_event_id = null;
 
-    public string $hosting_mode = Activity::HOSTING_MODE_DRAFT;
+    public int $hosting_mode = Activity::HOSTING_MODE_DRAFT;
 
     public ?string $self_hosted_starts_at = null;
 
@@ -103,7 +103,7 @@ class ManageActivityForm extends Component
             $this->is_host_passive = (bool) $activity->is_host_passive;
             $this->requires_approval = (bool) $activity->requires_approval;
             $this->allows_observers = (bool) $activity->allows_observers;
-            $this->hosting_mode = (string) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
+            $this->hosting_mode = (int) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
             $this->self_hosted_place_id = $activity->place_id;
             $selfHostedPlace = $activity->place;
             if ($selfHostedPlace?->type === 'room') {
@@ -228,6 +228,11 @@ class ManageActivityForm extends Component
 
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
+        }
+        if ($this->hosting_mode === 0 || $this->hosting_mode === '') {
+            $this->hosting_mode = Activity::HOSTING_MODE_DRAFT;
+        } else {
+            $this->hosting_mode = (int) $this->hosting_mode;
         }
         if ($this->hosting_mode !== Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
             $this->proposal_event_id = null;
