@@ -2,10 +2,8 @@ Content
     - seeding with sample data
 
 Features
-    - ODWOŁANIE SESJI
     - powinna być możliwość do oznaczania ile miejsc na daną sesje jest dostępna w danym oknie
     - duplicating activities/events
-    - eventually manage participants between the list and the waiting list (especially on restricted activities)
 
     - restrict the user roles (like organizer should be approved)?
     - choose the type of user: organizer, gm, player

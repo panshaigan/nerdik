@@ -6,6 +6,7 @@ use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
+use App\Services\ActivityParticipantRosterService;
 use App\Services\EventActivitySignupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -212,6 +213,46 @@ class ParticipationController extends Controller
         $participant->update(['is_absent' => true]);
 
         return redirect()->back()->with('status', __('Participant marked absent.'));
+    }
+
+    public function unmarkAbsent(ActivityUser $participant, ActivityParticipantRosterService $roster)
+    {
+        $activity = $participant->activity;
+        $user = Auth::user();
+
+        abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_unmark_absent'));
+
+        if (! $participant->is_absent) {
+            return redirect()->back()->with('status', __('ui.activities.participant_not_absent'));
+        }
+
+        $roster->clearParticipantAbsent($participant);
+
+        return redirect()->back()->with('status', __('ui.activities.participant_unmarked_absent'));
+    }
+
+    public function moveParticipantToWaitlist(ActivityUser $participant, ActivityParticipantRosterService $roster)
+    {
+        $activity = $participant->activity;
+        $user = Auth::user();
+
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
+
+        abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_move_to_waitlist'));
+
+        if ((int) $participant->user_id === (int) ($activity->created_by ?? 0)) {
+            return redirect()->back()->with('status', __('ui.activities.cannot_move_host_to_waitlist'));
+        }
+
+        if ($activity->waitlist()->where('user_id', $participant->user_id)->exists()) {
+            return redirect()->back()->with('status', __('ui.activities.user_already_on_waitlist'));
+        }
+
+        $roster->moveParticipantToWaitlist($participant);
+
+        return redirect()->back()->with('status', __('ui.activities.participant_moved_to_waitlist'));
     }
 
     protected function signupStateBlockMessage(Activity $activity): ?string

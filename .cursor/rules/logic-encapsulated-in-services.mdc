@@ -1,0 +1,4 @@
+---
+description: Business logic should not be spread across the UI. It should be encapsulated in services.
+alwaysApply: true
+---
