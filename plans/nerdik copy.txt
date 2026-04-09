@@ -8,13 +8,7 @@ Features:
         - should be possible to add links for external resources. [MVP]
 	- Participation
 		- (host - owner of an activity) after the activity starts, marking the absent participants. meaning people who joined the activity in the system but didnt appear irl [MVP]
-		- (owner) eventually manage participants between the list and the waiting list (especially on restricted activities) [FUTURE]
 		- (activity participants): give feedbacks to each other if the activity owner didnt block it [FUTURE]
-		- notifications:
-            - "someone joined your activity" [FUTURE]
-            - "activity is about to be cancelled" [FUTURE]
-            - "activity is soon - are you sure you will participate? if not, sign off" [FUTURE]
-            - "you waited enough to get the place" [MVP]
 	- Social/wishlist
 		- (user) adding tags to his "wishlist". like you can add games/conventions/trigger/anything which you are willing to play/spot. [FUTURE]
 		- (user) adding places to his wishlist. cities, pubs, libraries, etc. [FUTURE]
@@ -25,7 +19,6 @@ Features:
 		- (user) browsing/searching for users added specific tags to wishlist. and places. like you can find a person who wants to play fantasy rpg in wrocław. [FUTURE]
 		- (guest) Browse (list) public events (read-only)
 		- (guest) Browse (list) public activities (accepted ones in public events) (read-only)
-
 	- User Dashboard
 		- new activities/events [FUTURE]
 		- soon starting events [FUTURE]
@@ -35,7 +28,6 @@ Features:
 		- your location stats [FUTURE]
 		- activities/events with chosen tags [FUTURE]
 		- calendar [FUTURE]
-
 	- User Profile
 		- (logged in) external ways to communicate (like whatsapp, phone, fb, insta) [MVP]
 			+ visibility conditions: e.g. the people who participate in the same event for the beginning [MVP]
@@ -90,7 +82,6 @@ FUTURE:
 	- any other fair ideas for monetization?
 	- common journeys to the events
 	- contacting
-	- timed opening of subscriptions
 	- confirming the presence before the meeting
 
 Monetization

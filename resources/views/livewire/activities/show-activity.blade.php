@@ -7,6 +7,7 @@
     $slot = $activity->slot;
     $event = $slot?->event;
     $selfHosted = $activity->hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED;
+    $isCancelled = $activity->isCancelled();
     $selfHostedPlace = $activity->place;
     $hostRoleLabel = $activityTypeSlug && \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activityTypeSlug)
         ? __('ui.activities.host_title.'.$activityTypeSlug)
@@ -52,6 +53,23 @@
     <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
         @if (session('status'))
             <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
+        @endif
+
+        @if ($isCancelled)
+            <div role="alert" class="alert alert-warning text-sm">
+                <div class="space-y-1">
+                    <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
+                    @if ($activity->cancel_reason)
+                        <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
+                    @endif
+                    <p class="opacity-80">
+                        {{ __('ui.activities.cancelled_meta', [
+                            'who' => $activity->canceller?->nickname ?? $activity->canceller?->email ?? __('ui.common.unknown_user'),
+                            'when' => $activity->cancelled_at ? format_datetime_in_user_tz($activity->cancelled_at) : '—',
+                        ]) }}
+                    </p>
+                </div>
+            </div>
         @endif
 
         {{-- Hero --}}
@@ -126,6 +144,29 @@
                                             <x-ui.icons.trash class="h-5 w-5 shrink-0" />
                                         </x-button>
                                     </form>
+                                    @if ($isCancelled)
+                                        <x-button
+                                            type="button"
+                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                            :title="__('ui.activities.reopen_action')"
+                                            :aria-label="__('ui.activities.reopen_action')"
+                                            wire:click="reopen"
+                                            wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                        >
+                                            ↺
+                                        </x-button>
+                                    @else
+                                        <x-button
+                                            type="button"
+                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                            :title="__('ui.activities.cancel_action')"
+                                            :aria-label="__('ui.activities.cancel_action')"
+                                            wire:click="cancel"
+                                            wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                        >
+                                            ×
+                                        </x-button>
+                                    @endif
                                 @endif
                                 @if ($hasInterest)
                                     <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
@@ -263,7 +304,7 @@
                         @endif
                     </p>
                     @auth
-                        @if ($isParticipant || $onWaitlist || $canJoin)
+                        @if (($isParticipant || $onWaitlist || $canJoin) && !filled($stateBlockedMessage ?? null))
                             <div class="flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
                                 @if ($isParticipant)
                                     <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
@@ -294,6 +335,9 @@
                 </div>
             </div>
             @auth
+                @if (filled($stateBlockedMessage ?? null))
+                    <p class="mb-4 text-sm text-error" data-ui="activity-show-state-blocked">{{ $stateBlockedMessage }}</p>
+                @endif
                 @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
                     <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
                 @endif

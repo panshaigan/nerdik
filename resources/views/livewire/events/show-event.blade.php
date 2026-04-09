@@ -229,6 +229,11 @@
                                             <div class="min-w-0 flex-1 space-y-1.5">
                                                 @if ($activity)
                                                     <h4 class="text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
+                                                    @if ($activity->isCancelled())
+                                                        <div class="mt-1">
+                                                            <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>
+                                                        </div>
+                                                    @endif
                                                 @endif
                                                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
                                                     <span @class(['font-medium text-base-content' => ! $activity, 'font-medium text-base-content/80' => $activity])>{{ $slot->name }}</span>
@@ -276,6 +281,9 @@
                                                             @endforeach
                                                         </div>
                                                     @endif
+                                                    @if ($activity->isCancelled() && $activity->cancel_reason)
+                                                        <p class="mt-2 text-xs text-warning">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
+                                                    @endif
                                                 @else
                                                     @php
                                                         $slotActivityTypes = collect($slot->activityTypes)
@@ -300,6 +308,31 @@
                                                 @endphp
                                                 @if ($showDetachActivity || $showSlotEditDelete)
                                                     <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
+                                                        @if ($canManageEvent && $activity)
+                                                            @if ($activity->isCancelled())
+                                                                <x-button
+                                                                    type="button"
+                                                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                                                    :title="__('ui.activities.reopen_action')"
+                                                                    :aria-label="__('ui.activities.reopen_action')"
+                                                                    wire:click="reopenSlotActivity({{ $slot->id }})"
+                                                                    wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                                                >
+                                                                    ↺
+                                                                </x-button>
+                                                            @else
+                                                                <x-button
+                                                                    type="button"
+                                                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                                                    :title="__('ui.activities.cancel_action')"
+                                                                    :aria-label="__('ui.activities.cancel_action')"
+                                                                    wire:click="cancelSlotActivity({{ $slot->id }})"
+                                                                    wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                                                >
+                                                                    ×
+                                                                </x-button>
+                                                            @endif
+                                                        @endif
                                                         @if ($showDetachActivity)
                                                             <x-button
                                                                 type="button"

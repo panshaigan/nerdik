@@ -12,10 +12,13 @@ class Activity extends Model
 {
     use HasAutoSlug, HasMetaColumns, SoftDeletes;
 
-    public const HOSTING_MODE_DRAFT = 'draft';
-    public const HOSTING_MODE_SELF_HOSTED = 'self_hosted';
-    public const HOSTING_MODE_PROPOSED_TO_EVENT = 'proposed_to_event';
-    public const HOSTING_MODE_SCHEDULED_ON_EVENT = 'scheduled_on_event';
+    public const HOSTING_MODE_DRAFT = 1;
+
+    public const HOSTING_MODE_SELF_HOSTED = 2;
+
+    public const HOSTING_MODE_PROPOSED_TO_EVENT = 3;
+
+    public const HOSTING_MODE_SCHEDULED_ON_EVENT = 4;
 
     public function getRouteKeyName(): string
     {
@@ -30,6 +33,9 @@ class Activity extends Model
         'place_id',
         'starts_at',
         'ends_at',
+        'cancelled_at',
+        'cancelled_by',
+        'cancel_reason',
         'min_participants',
         'max_participants',
         'minimum_age',
@@ -47,8 +53,10 @@ class Activity extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'hosting_mode' => 'integer',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',
         'is_host_passive' => 'boolean',
@@ -89,9 +97,12 @@ class Activity extends Model
         return $this->belongsTo(Place::class);
     }
 
-    /**
-     * @return list<string>
-     */
+    public function canceller()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /** @return list<int> */
     public static function hostingModes(): array
     {
         return [
@@ -102,6 +113,19 @@ class Activity extends Model
         ];
     }
 
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null;
+    }
+
+    public function isJoinableMode(): bool
+    {
+        return in_array((int) $this->hosting_mode, [
+            self::HOSTING_MODE_SELF_HOSTED,
+            self::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ], true);
+    }
+
     /**
      * Activities visible in browse:
      * - self-hosted activities
@@ -109,26 +133,27 @@ class Activity extends Model
      */
     public function scopeAttachedToPublicEvent(Builder $query, bool $slotMustNotHaveEnded = false): void
     {
-        $query->where(function (Builder $outer) use ($slotMustNotHaveEnded): void {
-            $outer
-                ->where(function (Builder $selfHosted) use ($slotMustNotHaveEnded): void {
-                    $selfHosted->where('activities.hosting_mode', self::HOSTING_MODE_SELF_HOSTED);
-                    if ($slotMustNotHaveEnded) {
-                        $selfHosted->whereRaw('COALESCE(activities.ends_at, activities.starts_at) >= ?', [now()]);
-                    }
-                })
-                ->orWhere(function (Builder $scheduled) use ($slotMustNotHaveEnded): void {
-                    $scheduled
-                        ->where('activities.hosting_mode', self::HOSTING_MODE_SCHEDULED_ON_EVENT)
-                        ->whereHas('slot', function (Builder $q) use ($slotMustNotHaveEnded): void {
-                            $q->whereNotNull('event_id')
-                                ->whereHas('event', fn (Builder $e) => $e->where('is_public', true));
-                            if ($slotMustNotHaveEnded) {
-                                $q->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
-                            }
-                        });
-                });
-        });
+        $query->whereNull('activities.cancelled_at')
+            ->where(function (Builder $outer) use ($slotMustNotHaveEnded): void {
+                $outer
+                    ->where(function (Builder $selfHosted) use ($slotMustNotHaveEnded): void {
+                        $selfHosted->where('activities.hosting_mode', self::HOSTING_MODE_SELF_HOSTED);
+                        if ($slotMustNotHaveEnded) {
+                            $selfHosted->whereRaw('COALESCE(activities.ends_at, activities.starts_at) >= ?', [now()]);
+                        }
+                    })
+                    ->orWhere(function (Builder $scheduled) use ($slotMustNotHaveEnded): void {
+                        $scheduled
+                            ->where('activities.hosting_mode', self::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                            ->whereHas('slot', function (Builder $q) use ($slotMustNotHaveEnded): void {
+                                $q->whereNotNull('event_id')
+                                    ->whereHas('event', fn (Builder $e) => $e->where('is_public', true));
+                                if ($slotMustNotHaveEnded) {
+                                    $q->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
+                                }
+                            });
+                    });
+            });
     }
 
     /**
