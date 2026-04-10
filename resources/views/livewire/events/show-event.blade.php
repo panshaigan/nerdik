@@ -72,15 +72,17 @@
                             >
                                 <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
                             </x-button>
-                            <x-button
-                                :link="route('events.create', ['duplicate' => $event->slug])"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                :title="__('ui.events.duplicate_action')"
-                                :aria-label="__('ui.events.duplicate_action').': '.$event->name"
-                                data-ui="event-show-duplicate-open"
-                            >
-                                <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
-                            </x-button>
+                            @if (auth()->user()?->canCreateEvents())
+                                <x-button
+                                    :link="route('events.create', ['duplicate' => $event->slug])"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    :title="__('ui.events.duplicate_action')"
+                                    :aria-label="__('ui.events.duplicate_action').': '.$event->name"
+                                    data-ui="event-show-duplicate-open"
+                                >
+                                    <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
+                                </x-button>
+                            @endif
                             <x-button
                                 type="button"
                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"

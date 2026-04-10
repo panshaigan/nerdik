@@ -44,6 +44,8 @@ class EventController extends Controller
      */
     public function create()
     {
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
+
         return view('events.create');
     }
 
@@ -80,6 +82,7 @@ class EventController extends Controller
         if (! auth()->check()) {
             abort(403, __('Unauthorized.'));
         }
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
 
         $this->authorizeCreatedBy($event);
 

@@ -181,6 +181,7 @@ return [
         'copy_event' => 'Skopiuj wydarzenie',
         'duplicate_action' => 'Duplikuj jako nowe wydarzenie',
         'duplicate_name_suffix' => ' (kopia)',
+        'only_event_organizers_can_create' => 'Tylko uzytkownicy oznaczeni jako organizatorzy wydarzen moga tworzyc nowe wydarzenia.',
         'copied' => 'Skopiowano!',
         'copy_link' => 'Kopiuj link',
         'share' => 'Udostepnij',

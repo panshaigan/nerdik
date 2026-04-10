@@ -181,6 +181,7 @@ return [
         'copy_event' => 'Copy event',
         'duplicate_action' => 'Duplicate as new event',
         'duplicate_name_suffix' => ' (copy)',
+        'only_event_organizers_can_create' => 'Only users marked as event organizers can create events.',
         'copied' => 'Copied!',
         'copy_link' => 'Copy link',
         'share' => 'Share',
