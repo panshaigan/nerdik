@@ -1,4 +1,4 @@
-/*M!999999\- enable the sandbox mode */ 
+/*M!999999\- enable the sandbox mode */
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -682,9 +682,4 @@ CREATE TABLE `users` (
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-/*M!999999\- enable the sandbox mode */ 
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (1,'2026_04_08_000003_add_activity_hosting_mode_fields',1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (3,'2026_04_09_170000_add_activity_cancellation_columns',2);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (4,'2026_04_09_170100_convert_activity_hosting_mode_to_integer',2);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (5,'2026_04_10_120000_add_window_caps_to_event_enrollment_windows',3);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (6,'2026_04_10_130000_add_is_event_organizer_to_users_table',4);
+/*M!999999\- enable the sandbox mode */
