@@ -149,6 +149,17 @@
                                                 <span class="tabular-nums font-medium text-base-content/90">{{ $maxLabel }}</span>
                                             </p>
                                         @endif
+                                        @if ($window->maxAllowedParticipantsPerActivityEffective() !== null)
+                                            <p class="mt-1 text-xs text-base-content/70">
+                                                {{ __('ui.events.enrollment_window_max_participants_per_activity') }}:
+                                                <span class="tabular-nums font-medium text-base-content/90">{{ $window->maxAllowedParticipantsPerActivityEffective() }}</span>
+                                            </p>
+                                        @endif
+                                        @if ($window->accumulative_activities)
+                                            <p class="mt-1 text-xs text-base-content/70">
+                                                {{ __('ui.events.enrollment_window_accumulative_hint') }}
+                                            </p>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>
@@ -271,6 +282,14 @@
                                                         </span>
                                                     @endif
                                                 </div>
+                                                @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
+                                                    <p class="text-xs text-base-content/70">
+                                                        {{ __('ui.events.enrollment_window_activity_spots_remaining', [
+                                                            'remaining' => $activeWindowRemainingByActivityId[(int) $activity->id],
+                                                            'max' => $activeEnrollmentWindow?->maxAllowedParticipantsPerActivityEffective(),
+                                                        ]) }}
+                                                    </p>
+                                                @endif
                                                 @if ($slot->place)
                                                     <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
                                                 @endif

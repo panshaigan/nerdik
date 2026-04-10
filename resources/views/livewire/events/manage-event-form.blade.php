@@ -185,6 +185,28 @@
                             />
                             <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities_per_user')" class="mt-2" />
                         </div>
+                        <div class="min-w-[7rem] max-w-[11rem] shrink-0">
+                            <x-input
+                                wire:model.live="enrollment_windows.{{ $index }}.max_allowed_participants_per_activity"
+                                type="number"
+                                min="0"
+                                step="1"
+                                :label="__('ui.events.enrollment_window_max_participants_per_activity')"
+                                class="w-full"
+                            />
+                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_allowed_participants_per_activity')" class="mt-2" />
+                        </div>
+                        <div class="min-w-[8rem] shrink-0 self-center pt-5">
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    class="checkbox checkbox-sm"
+                                    wire:model.live="enrollment_windows.{{ $index }}.accumulative_activities"
+                                />
+                                <span class="text-xs text-base-content/80">{{ __('ui.events.enrollment_window_accumulative') }}</span>
+                            </label>
+                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.accumulative_activities')" class="mt-2" />
+                        </div>
                         <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
                             <x-button
                                 type="button"

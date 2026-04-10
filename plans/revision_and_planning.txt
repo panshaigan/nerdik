@@ -1,11 +1,7 @@
-Content
-    - seeding with sample data
-
 Features
-    - powinna być możliwość do oznaczania ile miejsc na daną sesje jest dostępna w danym oknie
+    - powinna być możliwość do oznaczania ile miejsc na sesje jest dostępna w danym oknie
 
-    - restrict the user roles (like organizer should be approved)?
-    - choose the type of user: organizer, gm, player
+    - restrict the user roles: organizer should be approved by admin
     - ORGANIZCJA powinna być przypinywalna też do graczy.
 
 
@@ -13,6 +9,10 @@ Features
         - add created_by and updated_by (+ ensure in code that is being filled).
             if the entry comes from an user enrolling to an activity, 'created_by' should be him. if the activity host is accepting an user from waitlist, 'created_by" should be the host. if an user automatically jumps to the list from the waitlist, it should be null.
         - add deleted_at and deleted_by
+
+Content
+    - seeding with sample data
+
 
 UI/UX
 - graphically enhance the screens + check for not translated strings
@@ -50,19 +50,19 @@ Notifications
         - "you waited enough to get the place" [MVP]
 
 Technicals
+    - security
     - performance
-    - check vunerability to the common attacks
-    - GOOGLE login (create app + add widget to login page)
-    - Facebook login
-    - reestablish db
-    - wont i need openstreet api or smth?
-    - ensure testing
+    - APIs:
+        - GOOGLE login (create app + add widget to login page)
+        - Facebook login
+        - wont i need openstreet api or smth?
+    - testing
     - deletion policy
     - cleaning scripts
-    - countries and city translations do we need them?
-    - rename mass create to create in the code
-    - refactor signup to enroll in the code
+    - countries and city translations do we need them? + language rule always fallback to english
     - DDDize Scheduling/Proposals/Tagging
+        - rename mass create to create in the code
+        - refactor signup to enroll in the code
 
 Features
     - activity languages

@@ -46,9 +46,15 @@ class ManageEventForm extends Component
     public array $new_places = [];
 
     /**
-     * Enrollment windows for this event (local datetime-local strings + optional cap).
+     * Enrollment windows for this event (local datetime-local strings + optional caps/mode).
      *
-     * @var list<array{starts_at: string, ends_at: string, max_activities_per_user: int|string|null}>
+     * @var list<array{
+     *   starts_at: string,
+     *   ends_at: string,
+     *   max_activities_per_user: int|string|null,
+     *   max_allowed_participants_per_activity: int|string|null,
+     *   accumulative_activities: bool
+     * }>
      */
     public array $enrollment_windows = [];
 
@@ -116,13 +122,21 @@ class ManageEventForm extends Component
                 'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
                 'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
                 'max_activities_per_user' => $p->max_activities_per_user,
+                'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
+                'accumulative_activities' => (bool) $p->accumulative_activities,
             ])
             ->values()
             ->all();
     }
 
     /**
-     * @return array{starts_at: string, ends_at: string, max_activities_per_user: int|string|null}
+     * @return array{
+     *   starts_at: string,
+     *   ends_at: string,
+     *   max_activities_per_user: int|string|null,
+     *   max_allowed_participants_per_activity: int|string|null,
+     *   accumulative_activities: bool
+     * }
      */
     protected function defaultEnrollmentWindowRow(): array
     {
@@ -135,6 +149,8 @@ class ManageEventForm extends Component
             'starts_at' => $starts,
             'ends_at' => $ends,
             'max_activities_per_user' => null,
+            'max_allowed_participants_per_activity' => null,
+            'accumulative_activities' => false,
         ];
     }
 
@@ -144,6 +160,8 @@ class ManageEventForm extends Component
             'starts_at' => '',
             'ends_at' => '',
             'max_activities_per_user' => null,
+            'max_allowed_participants_per_activity' => null,
+            'accumulative_activities' => false,
         ];
     }
 
@@ -179,6 +197,11 @@ class ManageEventForm extends Component
             if ($m === '' || $m === null) {
                 $this->enrollment_windows[$i]['max_activities_per_user'] = null;
             }
+            $perActivity = $row['max_allowed_participants_per_activity'] ?? null;
+            if ($perActivity === '' || $perActivity === null) {
+                $this->enrollment_windows[$i]['max_allowed_participants_per_activity'] = null;
+            }
+            $this->enrollment_windows[$i]['accumulative_activities'] = (bool) ($row['accumulative_activities'] ?? false);
         }
 
         return $attributes;
@@ -254,6 +277,8 @@ class ManageEventForm extends Component
                 'starts_at' => $row['starts_at']->toDateTimeString(),
                 'ends_at' => $row['ends_at']->toDateTimeString(),
                 'max_activities_per_user' => $row['max_activities_per_user'],
+                'max_allowed_participants_per_activity' => $row['max_allowed_participants_per_activity'],
+                'accumulative_activities' => $row['accumulative_activities'],
             ]);
         }
     }

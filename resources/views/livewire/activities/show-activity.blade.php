@@ -347,6 +347,19 @@
                 @if (filled($stateBlockedMessage ?? null))
                     <p class="mb-4 text-sm text-error" data-ui="activity-show-state-blocked">{{ $stateBlockedMessage }}</p>
                 @endif
+                @if (($activeWindowRemainingForActivity ?? null) !== null)
+                    <p class="mb-2 text-sm text-base-content/80" data-ui="activity-show-window-activity-cap">
+                        {{ __('ui.events.enrollment_window_activity_spots_remaining', [
+                            'remaining' => $activeWindowRemainingForActivity,
+                            'max' => $activeWindowPerActivityMax,
+                        ]) }}
+                    </p>
+                @endif
+                @if (($activeWindowUserRemaining ?? null) !== null)
+                    <p class="mb-4 text-sm text-base-content/70" data-ui="activity-show-window-user-cap">
+                        {{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}
+                    </p>
+                @endif
                 @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
                     <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
                 @endif
