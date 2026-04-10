@@ -72,9 +72,30 @@ class ShowActivity extends Component
 
         $signupGateOk = true;
         $signupBlockedMessage = null;
+        $activeWindowPerActivityMax = null;
+        $activeWindowRemainingForActivity = null;
+        $activeWindowUserRemaining = null;
+        $signupService = app(EventActivitySignupService::class);
+        $event = $activity->slot?->event;
+        $activeEnrollmentWindow = $event ? $signupService->firstPeriodContaining($event, now()) : null;
+        if ($activeEnrollmentWindow !== null) {
+            $perActivityMax = $activeEnrollmentWindow->maxAllowedParticipantsPerActivityEffective();
+            if ($perActivityMax !== null) {
+                $activeWindowPerActivityMax = $perActivityMax;
+                $taken = $signupService->activitySignupCountDuringPeriod($activity, $activeEnrollmentWindow);
+                $activeWindowRemainingForActivity = max(0, $perActivityMax - $taken);
+            }
+            if (auth()->check()) {
+                $effectiveLimit = $signupService->effectiveUserSignupLimitForPeriod($event, auth()->user(), $activeEnrollmentWindow);
+                if ($effectiveLimit !== null) {
+                    $used = $signupService->userSignupCountDuringPeriod($event, auth()->user(), $activeEnrollmentWindow);
+                    $activeWindowUserRemaining = max(0, $effectiveLimit - $used);
+                }
+            }
+        }
         if (auth()->check() && ! $isParticipant && ! $onWaitlist && $activity->slot?->event_id) {
             try {
-                app(EventActivitySignupService::class)->assertCanSignup($activity, auth()->user());
+                $signupService->assertCanSignup($activity, auth()->user());
             } catch (ValidationException $e) {
                 $signupGateOk = false;
                 $signupBlockedMessage = collect($e->errors())->flatten()->first();
@@ -103,6 +124,9 @@ class ShowActivity extends Component
             'canManageActivity' => $canManageActivity,
             'signupBlockedMessage' => $signupBlockedMessage,
             'stateBlockedMessage' => $stateBlockedMessage,
+            'activeWindowPerActivityMax' => $activeWindowPerActivityMax,
+            'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,
+            'activeWindowUserRemaining' => $activeWindowUserRemaining,
         ]);
     }
 }

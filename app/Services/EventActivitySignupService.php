@@ -83,6 +83,57 @@ class EventActivitySignupService
             ->count();
     }
 
+    /**
+     * How many participants joined this activity during the period.
+     */
+    public function activitySignupCountDuringPeriod(Activity $activity, EventEnrollmentWindow $period): int
+    {
+        return (int) ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->whereBetween('created_at', [$period->starts_at, $period->ends_at])
+            ->count();
+    }
+
+    /**
+     * Additional quota available from prior accumulative windows.
+     */
+    public function carryOverSignupAllowanceForPeriod(Event $event, User $user, EventEnrollmentWindow $active): int
+    {
+        $allowance = 0;
+
+        foreach ($event->enrollmentWindows->sortBy('starts_at') as $window) {
+            if (! $window->accumulative_activities) {
+                continue;
+            }
+            if ($window->ends_at === null || $active->starts_at === null || ! $window->ends_at->lt($active->starts_at)) {
+                continue;
+            }
+
+            $max = $window->maxActivitiesPerUserEffective();
+            if ($max === null) {
+                continue;
+            }
+
+            $used = $this->userSignupCountDuringPeriod($event, $user, $window);
+            $allowance += max(0, $max - $used);
+        }
+
+        return $allowance;
+    }
+
+    public function effectiveUserSignupLimitForPeriod(Event $event, User $user, EventEnrollmentWindow $active): ?int
+    {
+        $current = $active->maxActivitiesPerUserEffective();
+        if ($current === null) {
+            return null;
+        }
+        if (! $active->accumulative_activities) {
+            return $current;
+        }
+
+        return $current + $this->carryOverSignupAllowanceForPeriod($event, $user, $active);
+    }
+
     public function schedulesOverlap(Activity $a, Activity $b): bool
     {
         $wa = $this->activityScheduledWindow($a);
@@ -188,7 +239,17 @@ class EventActivitySignupService
             ]);
         }
 
-        $max = $active->maxActivitiesPerUserEffective();
+        $activityMax = $active->maxAllowedParticipantsPerActivityEffective();
+        if ($activityMax !== null) {
+            $takenInWindow = $this->activitySignupCountDuringPeriod($activity, $active);
+            if ($takenInWindow >= $activityMax) {
+                throw ValidationException::withMessages([
+                    '_' => [__('ui.events.enrollment_window_activity_capacity_reached', ['max' => $activityMax])],
+                ]);
+            }
+        }
+
+        $max = $this->effectiveUserSignupLimitForPeriod($event, $user, $active);
         if ($max !== null) {
             $count = $this->userSignupCountDuringPeriod($event, $user, $active);
             if ($count >= $max) {
@@ -225,8 +286,20 @@ class EventActivitySignupService
     /**
      * Validate period rows for an event form (non-overlapping, end on/before event end, may start before event).
      *
-     * @param  list<array{starts_at: string, ends_at: string, max_activities_per_user?: mixed}>  $rows
-     * @return list<array{starts_at: Carbon, ends_at: Carbon, max_activities_per_user: int|null}>
+     * @param  list<array{
+     *   starts_at: string,
+     *   ends_at: string,
+     *   max_activities_per_user?: mixed,
+     *   max_allowed_participants_per_activity?: mixed,
+     *   accumulative_activities?: mixed
+     * }>  $rows
+     * @return list<array{
+     *   starts_at: Carbon,
+     *   ends_at: Carbon,
+     *   max_activities_per_user: int|null,
+     *   max_allowed_participants_per_activity: int|null,
+     *   accumulative_activities: bool
+     * }>
      */
     public function validateAndNormalizePeriodRowsForEvent(Event $event, array $rows, Carbon $nowUtc): array
     {
@@ -292,10 +365,28 @@ class EventActivitySignupService
                 }
             }
 
+            $perActivityRaw = $row['max_allowed_participants_per_activity'] ?? null;
+            $perActivity = null;
+            if ($perActivityRaw !== null && $perActivityRaw !== '') {
+                $perActivity = (int) $perActivityRaw;
+                if ($perActivity < 0) {
+                    throw ValidationException::withMessages([
+                        "enrollment_windows.{$i}.max_allowed_participants_per_activity" => [__('ui.events.enrollment_window_activity_max_invalid')],
+                    ]);
+                }
+                if ($perActivity === 0) {
+                    $perActivity = null;
+                }
+            }
+
+            $accumulative = (bool) ($row['accumulative_activities'] ?? false);
+
             $normalized[] = [
                 'starts_at' => $start,
                 'ends_at' => $end,
                 'max_activities_per_user' => $max,
+                'max_allowed_participants_per_activity' => $perActivity,
+                'accumulative_activities' => $accumulative,
             ];
         }
 

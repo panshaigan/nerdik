@@ -4,6 +4,7 @@ namespace App\Livewire\Events;
 
 use App\Enums\ActivityProposalStatus;
 use App\Models\ActivityProposal;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -358,6 +359,31 @@ class ShowEvent extends Component
                 && $w->ends_at !== null
                 && $now->between($w->starts_at, $w->ends_at);
         });
+        $activeWindowRemainingByActivityId = [];
+        if ($activeEnrollmentWindow !== null) {
+            $perActivityMax = $activeEnrollmentWindow->maxAllowedParticipantsPerActivityEffective();
+            if ($perActivityMax !== null) {
+                $activityIds = $event->slots
+                    ->pluck('activity_id')
+                    ->filter(fn ($id) => $id !== null)
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values();
+
+                if ($activityIds->isNotEmpty()) {
+                    $taken = ActivityUser::query()
+                        ->selectRaw('activity_id, COUNT(*) as aggregate')
+                        ->whereIn('activity_id', $activityIds->all())
+                        ->whereBetween('created_at', [$activeEnrollmentWindow->starts_at, $activeEnrollmentWindow->ends_at])
+                        ->groupBy('activity_id')
+                        ->pluck('aggregate', 'activity_id');
+
+                    foreach ($activityIds as $activityId) {
+                        $activeWindowRemainingByActivityId[(int) $activityId] = max(0, $perActivityMax - (int) ($taken[(int) $activityId] ?? 0));
+                    }
+                }
+            }
+        }
 
         $slotListActivityTagCategories = TagCategory::ACTIVITY_HIGHLIGHT_KEYS;
         $slotHourGroups = $this->slotHourGroupsForEvent($event);
@@ -398,6 +424,7 @@ class ShowEvent extends Component
         return view('livewire.events.show-event', [
             'event' => $event,
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
+            'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
             'slotNameSuggestions' => $slotNameSuggestions,

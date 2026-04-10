@@ -7,7 +7,7 @@ Features:
 	- Activity proposal/approval
         - should be possible to add links for external resources. [MVP]
 	- Participation
-		- (host - owner of an activity) after the activity starts, marking the absent participants. meaning people who joined the activity in the system but didnt appear irl [MVP]
+	    - enrollment windows: it should be possible to add a list with allowed users for given period
 		- (activity participants): give feedbacks to each other if the activity owner didnt block it [FUTURE]
 	- Social/wishlist
 		- (user) adding tags to his "wishlist". like you can add games/conventions/trigger/anything which you are willing to play/spot. [FUTURE]
