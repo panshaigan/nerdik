@@ -1,4 +1,4 @@
-/*M!999999\- enable the sandbox mode */
+/*M!999999\- enable the sandbox mode */ 
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -12,6 +12,8 @@ CREATE TABLE `activities` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `activity_type_id` bigint(20) unsigned DEFAULT NULL,
+  `hosting_mode` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `place_id` bigint(20) unsigned DEFAULT NULL,
   `min_participants` tinyint(3) unsigned DEFAULT NULL,
   `max_participants` tinyint(3) unsigned DEFAULT NULL,
   `minimum_age` tinyint(3) unsigned DEFAULT NULL,
@@ -24,6 +26,11 @@ CREATE TABLE `activities` (
   `logo_path` varchar(255) DEFAULT NULL,
   `slug` varchar(255) NOT NULL,
   `description` longtext DEFAULT NULL,
+  `cancel_reason` text DEFAULT NULL,
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
+  `cancelled_by` bigint(20) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
@@ -36,9 +43,15 @@ CREATE TABLE `activities` (
   KEY `activities_updated_by_foreign` (`updated_by`),
   KEY `activities_deleted_by_foreign` (`deleted_by`),
   KEY `activities_activity_type_id_index` (`activity_type_id`),
+  KEY `activities_place_id_foreign` (`place_id`),
+  KEY `activities_cancelled_at_index` (`cancelled_at`),
+  KEY `activities_cancelled_by_index` (`cancelled_by`),
+  KEY `activities_hosting_mode_index` (`hosting_mode`),
   CONSTRAINT `activities_activity_type_id_foreign` FOREIGN KEY (`activity_type_id`) REFERENCES `activity_types` (`id`),
+  CONSTRAINT `activities_cancelled_by_foreign` FOREIGN KEY (`cancelled_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activities_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activities_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `activities_place_id_foreign` FOREIGN KEY (`place_id`) REFERENCES `places` (`id`) ON DELETE SET NULL,
   CONSTRAINT `activities_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -121,11 +134,21 @@ CREATE TABLE `activity_user` (
   `is_absent` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `deleted_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `activity_participants_activity_id_user_id_unique` (`activity_id`,`user_id`),
   KEY `activity_participants_user_id_foreign` (`user_id`),
+  KEY `activity_user_created_by_foreign` (`created_by`),
+  KEY `activity_user_updated_by_foreign` (`updated_by`),
+  KEY `activity_user_deleted_by_foreign` (`deleted_by`),
   CONSTRAINT `activity_participants_activity_id_foreign` FOREIGN KEY (`activity_id`) REFERENCES `activities` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `activity_participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `activity_participants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `activity_user_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `activity_user_deleted_by_foreign` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `activity_user_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `activity_waitlist_entries`;
@@ -221,6 +244,8 @@ CREATE TABLE `event_enrollment_windows` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `event_id` bigint(20) unsigned NOT NULL,
   `max_activities_per_user` tinyint(3) unsigned DEFAULT NULL,
+  `accumulative_activities` tinyint(1) NOT NULL DEFAULT 0,
+  `max_allowed_participants_per_activity` smallint(5) unsigned DEFAULT NULL,
   `starts_at` datetime NOT NULL,
   `ends_at` datetime NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -631,18 +656,19 @@ CREATE TABLE `users` (
   `name` varchar(255) NOT NULL,
   `nickname` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `is_admin` tinyint(1) NOT NULL DEFAULT 0,
-  `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `google_id` varchar(255) DEFAULT NULL,
   `avatar_path` varchar(255) DEFAULT NULL,
   `discord_handle` varchar(255) DEFAULT NULL,
   `current_location` varchar(255) DEFAULT NULL,
   `timezone` varchar(50) DEFAULT NULL,
-  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`languages`)),
+  `is_admin` tinyint(1) NOT NULL DEFAULT 0,
+  `is_event_organizer` tinyint(1) NOT NULL DEFAULT 0,
+  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
   `notify_email_proposal_updates` tinyint(1) NOT NULL DEFAULT 1,
   `notify_email_waitlist_promoted` tinyint(1) NOT NULL DEFAULT 1,
   `remember_token` varchar(100) DEFAULT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -656,4 +682,9 @@ CREATE TABLE `users` (
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-/*M!999999\- enable the sandbox mode */
+/*M!999999\- enable the sandbox mode */ 
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (1,'2026_04_08_000003_add_activity_hosting_mode_fields',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (3,'2026_04_09_170000_add_activity_cancellation_columns',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (4,'2026_04_09_170100_convert_activity_hosting_mode_to_integer',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (5,'2026_04_10_120000_add_window_caps_to_event_enrollment_windows',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (6,'2026_04_10_130000_add_is_event_organizer_to_users_table',4);
