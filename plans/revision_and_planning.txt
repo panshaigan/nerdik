@@ -1,10 +1,4 @@
 Features
-    - powinna być możliwość do oznaczania ile miejsc na sesje jest dostępna w danym oknie
-
-    - restrict the user roles: organizer should be approved by admin
-    - ORGANIZCJA powinna być przypinywalna też do graczy.
-
-
     - activity_user
         - add created_by and updated_by (+ ensure in code that is being filled).
             if the entry comes from an user enrolling to an activity, 'created_by' should be him. if the activity host is accepting an user from waitlist, 'created_by" should be the host. if an user automatically jumps to the list from the waitlist, it should be null.
@@ -13,6 +7,7 @@ Features
 Content
     - seeding with sample data
 
+Review the code
 
 UI/UX
 - graphically enhance the screens + check for not translated strings
@@ -38,6 +33,7 @@ UI/UX
     Don’t assume: tabs alone shrink the runtime DOM unless you also defer rendering or split what gets sent.
 - check the admin panel
 - should we allow users to delete their own tags?
+- ORGANIZCJA powinna być przypinywalna też do graczy.
 
 Notifications
     - review

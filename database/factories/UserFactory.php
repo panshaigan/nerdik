@@ -5,26 +5,24 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 final class UserFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = User::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     public function definition(): array
     {
         return [
@@ -32,6 +30,7 @@ final class UserFactory extends Factory
             'nickname' => fake()->word,
             'email' => fake()->safeEmail,
             'is_admin' => fake()->randomNumber(1),
+            'is_event_organizer' => fake()->boolean(),
             'email_verified_at' => fake()->optional()->datetime(),
             'password' => bcrypt(fake()->password),
             'google_id' => fake()->optional()->word,

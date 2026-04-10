@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'is_event_organizer',
         'google_id',
         'avatar_path',
         'discord_handle',
@@ -60,7 +61,13 @@ class User extends Authenticatable
             'notify_email_proposal_updates' => 'boolean',
             'notify_email_waitlist_promoted' => 'boolean',
             'is_admin' => 'boolean',
+            'is_event_organizer' => 'boolean',
         ];
+    }
+
+    public function canCreateEvents(): bool
+    {
+        return $this->is_event_organizer === true || $this->is_admin === true;
     }
 
     public function canAccessPanel(Panel $panel): bool

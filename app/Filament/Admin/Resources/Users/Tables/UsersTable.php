@@ -24,6 +24,8 @@ class UsersTable
                     ->searchable(),
                 IconColumn::make('is_admin')
                     ->boolean(),
+                IconColumn::make('is_event_organizer')
+                    ->boolean(),
                 TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),

@@ -24,6 +24,8 @@ class UserForm
                     ->required(),
                 Toggle::make('is_admin')
                     ->required(),
+                Toggle::make('is_event_organizer')
+                    ->required(),
                 DateTimePicker::make('email_verified_at'),
                 TextInput::make('password')
                     ->password()

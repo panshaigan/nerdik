@@ -62,9 +62,11 @@
                     <div class="rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
                         {{ __('ui.browse.no_events_or_activities') }}
                         @auth
+                            @if (auth()->user()?->canCreateEvents())
                             <div class="mt-3">
                                 <a href="{{ route('events.create') }}" class="link link-primary">{{ __('Create one') }}</a>
                             </div>
+                            @endif
                         @endauth
                     </div>
                 </div>

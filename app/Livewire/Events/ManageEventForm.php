@@ -241,6 +241,8 @@ class ManageEventForm extends Component
             return redirect()->route('events.show', $event);
         }
 
+        abort_unless(Auth::user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
+
         $validated['created_by'] = Auth::id();
         $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
 
