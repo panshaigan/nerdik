@@ -12,10 +12,15 @@ class ActivityUser extends Model
         'activity_id',
         'user_id',
         'is_absent',
+        'created_by',
+        'updated_by',
+        'deleted_at',
+        'deleted_by',
     ];
 
     protected $casts = [
         'is_absent' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     public function activity()
