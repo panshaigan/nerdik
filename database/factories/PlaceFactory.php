@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Country;
 use App\Models\Place;
 use Illuminate\Database\Eloquent\Factories\Factory;
+
+use Illuminate\Support\Str;
+
+use function fake;
 
 /**
  * @extends Factory<\App\Models\Place>
@@ -26,23 +31,18 @@ final class PlaceFactory extends Factory
     */
     public function definition(): array
     {
+        $name = fake()->name;
+
         return [
-            'name' => fake()->name,
-            'type' => fake()->word,
-            'country_id' => \App\Models\Country::factory(),
-            'city_id' => \App\Models\City::factory(),
-            'parent_id' => \App\Models\Place::factory(),
+            'name' => $name,
+            'type' => fake()->randomElement(['venue']),
+            'country_id' => Country::first(['iso_alpha2' => 'PL']),
             'address' => fake()->optional()->address,
-            'links' => fake()->optional()->word,
-            'is_online' => fake()->randomNumber(1),
-            'latitude' => fake()->optional()->randomFloat(7, 0, 999),
-            'longitude' => fake()->optional()->randomFloat(7, 0, 999),
-            'logo_path' => fake()->optional()->word,
-            'slug' => fake()->slug,
+            'is_online' => 0,
+            'latitude'  => fake()->randomFloat(7, 49.00, 54.85),
+            'longitude' => fake()->randomFloat(7, 14.12, 24.15),
+            'slug' => Str::slug($name),
             'description' => fake()->optional()->text,
-            'created_by' => \App\Models\User::factory(),
-            'updated_by' => \App\Models\User::factory(),
-            'deleted_by' => \App\Models\User::factory(),
         ];
     }
 }

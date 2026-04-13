@@ -30,6 +30,10 @@ final class ActivityUserFactory extends Factory
             'activity_id' => \App\Models\Activity::factory(),
             'user_id' => \App\Models\User::factory(),
             'is_absent' => fake()->randomNumber(1),
+            'deleted_at' => fake()->optional()->datetime(),
+            'created_by' => fake()->optional()->randomNumber(),
+            'updated_by' => fake()->optional()->randomNumber(),
+            'deleted_by' => fake()->optional()->randomNumber(),
         ];
     }
 }

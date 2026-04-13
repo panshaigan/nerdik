@@ -12,6 +12,7 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,48 +24,15 @@ class SampleDataSeeder extends Seeder
      */
     public function run(): void
     {
-
-
         $this->call([
             PlaceSeeder::class,
+            UserSeeder::class,
         ]);
 
-        $alice = User::firstOrCreate(
-            ['email' => 'alice@nerdik.test'],
-            [
-                'name' => 'Alice',
-                'nickname' => 'alice',
-                'password' => Hash::make('password'),
-                'is_admin' => true,
-            ]
-        );
-
-        $bob = User::firstOrCreate(
-            ['email' => 'bob@nerdik.test'],
-            [
-                'name' => 'Bob',
-                'nickname' => 'bob',
-                'password' => Hash::make('password'),
-            ]
-        );
-
-        $charlie = User::firstOrCreate(
-            ['email' => 'charlie@nerdik.test'],
-            [
-                'name' => 'Charlie',
-                'nickname' => 'charlie',
-                'password' => Hash::make('password'),
-            ]
-        );
-
-        $diana = User::firstOrCreate(
-            ['email' => 'diana@nerdik.test'],
-            [
-                'name' => 'Diana',
-                'nickname' => 'diana',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $alice = User::firstOrCreate(['email' => UserSeeder::ALICE]);
+        $bob = User::firstOrCreate(['email' => UserSeeder::BOB]);
+        $charlie = User::firstOrCreate(['email' => UserSeeder::CHARLIE]);
+        $diana = User::firstOrCreate(['email' => UserSeeder::DIANA]);
 
         $org = Organization::firstOrCreate(
             ['slug' => 'nerdik-club'],

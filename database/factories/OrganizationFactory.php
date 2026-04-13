@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<\App\Models\Organization>
@@ -26,14 +28,27 @@ final class OrganizationFactory extends Factory
     */
     public function definition(): array
     {
+        $name = fake()->company();
+
         return [
-            'name' => fake()->name,
-            'logo_path' => fake()->optional()->word,
-            'slug' => fake()->slug,
-            'description' => fake()->optional()->text,
-            'created_by' => \App\Models\User::factory(),
-            'updated_by' => \App\Models\User::factory(),
-            'deleted_by' => \App\Models\User::factory(),
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'description' => fake()->text,
+            'created_by' => User::factory(),
         ];
     }
+
+//    public function configure()
+//    {
+//        return $this->afterCreating(function (Organization $organization) {
+//            // Prefer existing real users, create one only if none exist
+//            $user = User::inRandomOrder()->first();
+//
+//            $organization->update([
+//                'created_by' => $user->id,
+//                'updated_by' => $user->id,
+//                // deleted_by stays null most of the time
+//            ]);
+//        });
+//    }
 }
