@@ -29,4 +29,9 @@ class ActivityParticipantRosterService
     {
         $participant->update(['is_absent' => false]);
     }
+
+    public function markParticipantAbsent(ActivityUser $participant): void
+    {
+        $participant->update(['is_absent' => true]);
+    }
 }

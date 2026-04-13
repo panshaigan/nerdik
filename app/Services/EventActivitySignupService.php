@@ -2,17 +2,78 @@
 
 namespace App\Services;
 
+use App\Jobs\NotifyWaitlistPromotedJob;
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class EventActivitySignupService
 {
+    public function userJoinActivity(Activity $activity, User $user): void
+    {
+        $activity->participants()->create([
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function userLeaveActivity(Activity $activity, ActivityUser $participant): void
+    {
+        DB::transaction(function () use ($participant, $activity) {
+            $participant->delete();
+
+            $first = $activity->waitlist()->orderBy('position')->with('user')->first();
+            if ($first) {
+                $promotedUser = $first->user;
+                $first->delete();
+                $activity->participants()->create([
+                    'user_id' => $promotedUser->id,
+                ]);
+                $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index) {
+                    $entry->update(['position' => $index + 1]);
+                });
+                NotifyWaitlistPromotedJob::dispatch($promotedUser, $activity);
+            }
+        });
+    }
+
+    public function userJoinWaitlist(Activity $activity, User $user): void
+    {
+        $nextPosition = $activity->waitlist()->max('position') + 1;
+        $activity->waitlist()->create([
+            'user_id' => $user->id,
+            'position' => $nextPosition,
+        ]);
+    }
+
+    public function userLeaveWaitlist(Activity $activity, ActivityWaitlistEntry $waitlistEntry): void
+    {
+        $pos = $waitlistEntry->position;
+        $waitlistEntry->delete();
+        $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+    }
+
+    public function hostApproveWaitlistEntry(Activity $activity, ActivityWaitlistEntry $waitlistEntry): void
+    {
+        DB::transaction(function () use ($activity, $waitlistEntry) {
+            $targetUser = $waitlistEntry->user;
+            $pos = $waitlistEntry->position;
+            $waitlistEntry->delete();
+            $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+            $activity->participants()->create([
+                'user_id' => $targetUser->id,
+            ]);
+        });
+
+        NotifyWaitlistPromotedJob::dispatch($waitlistEntry->user, $activity->fresh());
+    }
+
     /**
      * Scheduled real-time window: slot start through slot start + activity duration (or slot ends_at if no duration).
      *
