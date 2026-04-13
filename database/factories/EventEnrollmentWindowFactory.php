@@ -29,6 +29,8 @@ final class EventEnrollmentWindowFactory extends Factory
         return [
             'event_id' => \App\Models\Event::factory(),
             'max_activities_per_user' => fake()->optional()->randomNumber(1),
+            'accumulative_activities' => fake()->randomNumber(1),
+            'max_allowed_participants_per_activity' => fake()->optional()->randomNumber(),
             'starts_at' => fake()->dateTime(),
             'ends_at' => fake()->dateTime(),
             'created_by' => \App\Models\User::factory(),
