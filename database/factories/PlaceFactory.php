@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\City;
 use App\Models\Country;
+use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\Place;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 use Illuminate\Support\Str;
@@ -35,14 +39,46 @@ final class PlaceFactory extends Factory
 
         return [
             'name' => $name,
-            'type' => fake()->randomElement(['venue']),
-            'country_id' => Country::first(['iso_alpha2' => 'PL']),
-            'address' => fake()->optional()->address,
+            'type' => fake()->randomElement(['venue', 'room']),
+            'address' => fake()->optional()->streetAddress(),
             'is_online' => 0,
-            'latitude'  => fake()->randomFloat(7, 49.00, 54.85),
-            'longitude' => fake()->randomFloat(7, 14.12, 24.15),
             'slug' => Str::slug($name),
             'description' => fake()->optional()->text,
+            'created_by' => User::factory(),
+            'city_id' => City::factory(),
         ];
+    }
+
+    public function poland(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'country_id' => Country::where('iso_alpha2', 'PL')->first()->id,
+            'latitude'  => fake()->randomFloat(7, 49.00, 54.85),
+            'longitude' => fake()->randomFloat(7, 14.12, 24.15),
+        ]);
+    }
+
+    public function venue(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'venue',
+        ]);
+    }
+    public function room(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => 'room',
+        ]);
+    }
+
+    public function consistentWithEvent(): static
+    {
+        return $this->afterCreating(function (Place $place) {
+            if ($place->event?->created_by) {
+                $place->update([
+                    'created_by' => $place->event->created_by,
+                ]);
+            }
+        });
     }
 }

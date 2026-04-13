@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EventEnrollmentWindow extends Model
 {
-    use HasMetaColumns;
+    use HasFactory, HasMetaColumns;
 
     protected $fillable = [
         'event_id',
@@ -17,8 +18,6 @@ class EventEnrollmentWindow extends Model
         'max_activities_per_user',
         'max_allowed_participants_per_activity',
         'accumulative_activities',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Slot extends Model
 {
-    use HasMetaColumns, SoftDeletes;
+    use HasFactory, HasMetaColumns, SoftDeletes;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
 

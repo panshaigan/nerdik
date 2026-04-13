@@ -37,18 +37,4 @@ final class OrganizationFactory extends Factory
             'created_by' => User::factory(),
         ];
     }
-
-//    public function configure()
-//    {
-//        return $this->afterCreating(function (Organization $organization) {
-//            // Prefer existing real users, create one only if none exist
-//            $user = User::inRandomOrder()->first();
-//
-//            $organization->update([
-//                'created_by' => $user->id,
-//                'updated_by' => $user->id,
-//                // deleted_by stays null most of the time
-//            ]);
-//        });
-//    }
 }
