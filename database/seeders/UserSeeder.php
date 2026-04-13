@@ -5,12 +5,14 @@ namespace Database\Seeders;
 use App\Models\ActivityType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 use function collect;
 
@@ -52,23 +54,25 @@ class UserSeeder extends Seeder
         // -------------------------------------------------------------------------
         $uf = User::factory();
 
-        $admins = collect()
-            ->concat($uf->admin()->email(self::ALICE)->nickname('alice')->create())
-            ->concat($uf->admin()->create());
+        $admins = [
+            $uf->admin()->email(self::ALICE)->nickname('alice')->create(),
+            $uf->admin()->create(),
+        ];
 
         $organizers = [
             $uf->email(self::BOB)->nickname('bob')->eventOrganizer()->create(),
             ...User::factory(4)->eventOrganizer()->create()
         ];
 
-        $participants = collect()
-            ->concat([
-                $uf->email(self::CHARLIE)->nickname('charlie')->create(),
-                $uf->email(self::DIANA)->nickname('diana')->create(),
-            ])
-            ->concat(User::factory(8)->create());
+        $participants = [
+            $uf->email(self::CHARLIE)->nickname('charlie')->create(),
+            $uf->email(self::DIANA)->nickname('diana')->create(),
+            ...User::factory(8)->create()
+        ];
 
-        $allUsers = $participants->concat($admins)->concat($organizers);
+        $allUsers = [
+            ...$admins, ...$organizers, ...$participants
+        ];
 
         // -------------------------------------------------------------------------
         // Organizations  (created by organizers)
@@ -78,84 +82,34 @@ class UserSeeder extends Seeder
             ->recycle($organizers)
             ->create();
 
-        // -------------------------------------------------------------------------
-        // Places  (state → venue → room hierarchy)
-        // -------------------------------------------------------------------------
+//        $places = Place::factory(20)->recycle($organizers)->create();
+//        return;
 
-        // Top-level venues (states / buildings)
-        $venues = Place::factory(6)
-            ->venue()
-            ->recycle($cities)
-            ->recycle($allUsers)
-            ->create();
-
-        // Rooms inside venues
-        $rooms = collect();
-        foreach ($venues as $venue) {
-            $rooms = $rooms->concat(
-                Place::factory(rand(2, 4))
-                    ->room()
-                    ->for($venue, 'parent')
-                    ->recycle($allUsers)
-                    ->create()
-            );
-        }
-
-        // One online place for remote activities
-        Place::factory(2)
-            ->online()
-            ->recycle($allUsers)
-            ->create();
-
-        $allPlaces = $venues->concat($rooms);
-
-        // -------------------------------------------------------------------------
-        // Activities  (created by organizers, typed, placed)
-        // -------------------------------------------------------------------------
-
-        $activities = Activity::factory(40)
-            ->recycle($activityTypes)
-            ->recycle($allPlaces)
-            ->recycle($organizers)   // created_by
-            ->create();
-
-        // Tag ~60 % of activities (polymorphic taggables)
-        $activities->random((int) ($activities->count() * 0.6))->each(function (Activity $activity) use ($tags) {
-            $activity->tags()->attach(
-                $tags->random(rand(1, 3))->pluck('id')
-            );
-        });
-
-        // -------------------------------------------------------------------------
-        // Events  (owned by organizations, created by organizers)
-        // -------------------------------------------------------------------------
-
-        $events = Event::factory(6)
+        Event::factory(30)
+            ->public()
             ->recycle($organizations)
             ->recycle($organizers)
+            ->withSameCreatorAsOrganization()
+            ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
+            ->has(Slot::factory(6)->consistentWithEventAndPlace())
+            ->hasAttached(
+                Place::factory(1)
+                    ->recycle($organizers)
+                    ->recycle($cities)
+                    ->poland()
+                    ->venue()
+                    ->consistentWithEvent()
+            )
             ->create();
 
-        // Tag ~half the events
-        $events->random(3)->each(function (Event $event) use ($tags) {
-            $event->tags()->attach(
-                $tags->random(rand(1, 4))->pluck('id')
-            );
-        });
+        return;
 
-        // -------------------------------------------------------------------------
-        // Enrollment windows  (1–2 per event)
-        // -------------------------------------------------------------------------
-
-        foreach ($events as $event) {
-            EventEnrollmentWindow::factory(rand(1, 2))
-                ->for($event)
-                ->recycle($organizers)
-                ->create();
-        }
-
-        // -------------------------------------------------------------------------
-        // Slots  (3–8 per event, some linked to activities, some open/typed)
-        // -------------------------------------------------------------------------
+        // Tag ~60 % of activities (polymorphic taggables)
+//        $activities->random((int) ($activities->count() * 0.6))->each(function (Activity $activity) use ($tags) {
+//            $activity->tags()->attach(
+//                $tags->random(rand(1, 3))->pluck('id')
+//            );
+//        });
 
         $slots = collect();
 

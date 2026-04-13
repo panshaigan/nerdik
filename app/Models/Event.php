@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
-    use HasAutoSlug, HasMetaColumns, SoftDeletes;
+    use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
 
     public function getRouteKeyName(): string
     {
@@ -61,6 +62,11 @@ class Event extends Model
     }
 
     public function enrollmentWindows()
+    {
+        return $this->hasMany(EventEnrollmentWindow::class)->orderBy('starts_at');
+    }
+
+    public function eventEnrollmentWindows()
     {
         return $this->hasMany(EventEnrollmentWindow::class)->orderBy('starts_at');
     }
