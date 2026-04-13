@@ -48,9 +48,7 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
-        $activity->participants()->create([
-            'user_id' => $user->id,
-        ]);
+        $signupService->userJoinActivity($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the activity.'));
     }
@@ -62,7 +60,7 @@ class ParticipationController extends Controller
         return (string) (collect($messages)->flatten()->first() ?? __('Validation failed.'));
     }
 
-    public function leave(Activity $activity)
+    public function leave(Activity $activity, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
 
@@ -75,22 +73,7 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', __('You are not participating.'));
         }
 
-        DB::transaction(function () use ($participant, $activity) {
-            $participant->delete();
-
-            $first = $activity->waitlist()->orderBy('position')->with('user')->first();
-            if ($first) {
-                $promotedUser = $first->user;
-                $first->delete();
-                $activity->participants()->create([
-                    'user_id' => $promotedUser->id,
-                ]);
-                $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index) {
-                    $entry->update(['position' => $index + 1]);
-                });
-                NotifyWaitlistPromotedJob::dispatch($promotedUser, $activity);
-            }
-        });
+        $signupService->userLeaveActivity($activity, $participant);
 
         return redirect()->back()->with('status', __('You left the activity.'));
     }
@@ -123,16 +106,12 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
-        $nextPosition = $activity->waitlist()->max('position') + 1;
-        $activity->waitlist()->create([
-            'user_id' => $user->id,
-            'position' => $nextPosition,
-        ]);
+        $signupService->userJoinWaitlist($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the waitlist.'));
     }
 
-    public function leaveWaitlist(Activity $activity)
+    public function leaveWaitlist(Activity $activity, EventActivitySignupService $signupService)
     {
         $user = Auth::user();
 
@@ -145,9 +124,7 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', __('You are not on the waitlist.'));
         }
 
-        $pos = $entry->position;
-        $entry->delete();
-        $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+        $signupService->userLeaveWaitlist($activity, $entry);
 
         return redirect()->back()->with('status', __('You left the waitlist.'));
     }
@@ -189,28 +166,19 @@ class ParticipationController extends Controller
             return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
-        DB::transaction(function () use ($activity, $entry, $targetUser) {
-            $pos = $entry->position;
-            $entry->delete();
-            $activity->waitlist()->where('position', '>', $pos)->decrement('position');
-            $activity->participants()->create([
-                'user_id' => $targetUser->id,
-            ]);
-        });
-
-        NotifyWaitlistPromotedJob::dispatch($targetUser, $activity->fresh());
+        $signupService->hostApproveWaitlistEntry($activity, $entry);
 
         return redirect()->back()->with('status', __('ui.activities.waitlist_entry_approved'));
     }
 
-    public function markAbsent(Request $request, ActivityUser $participant)
+    public function markAbsent(Request $request, ActivityUser $participant, ActivityParticipantRosterService $roster)
     {
         $activity = $participant->activity;
         $user = Auth::user();
 
         abort_unless($user->canModifyEntity($activity), 403, __('Only the activity host can mark participants absent.'));
 
-        $participant->update(['is_absent' => true]);
+        $roster->markParticipantAbsent($participant);
 
         return redirect()->back()->with('status', __('Participant marked absent.'));
     }
