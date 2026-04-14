@@ -91,7 +91,11 @@ class UserSeeder extends Seeder
             ->recycle($organizers)
             ->withSameCreatorAsOrganization()
             ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
-            ->has(Slot::factory(6)->consistentWithEventAndPlace())
+            ->has(
+                Slot::factory(6)
+                    ->consistentWithEventAndPlace()
+//                    ->hasAttached($activityTypes)
+            )
             ->hasAttached(
                 Place::factory(1)
                     ->recycle($organizers)
