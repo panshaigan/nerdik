@@ -65,6 +65,7 @@ new class extends Component
                         {{ __('ui.common.language_pl') }}
                     </a>
                 </div>
+                @auth
                 <a href="{{ route('notifications.index') }}" wire:navigate class="relative rounded-md p-2 opacity-80 hover:bg-base-200 hover:opacity-100">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -108,6 +109,7 @@ new class extends Component
                     </ul>
                 </div>
             </div>
+            @endauth
 
             <div class="-me-2 flex items-center sm:hidden">
                 <x-button type="button" @click="open = ! open" class="btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none">
@@ -133,10 +135,12 @@ new class extends Component
         </div>
 
         <div class="border-t border-base-300 pb-1 pt-4">
+            @auth
             <div class="px-4">
                 <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
                 <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
             </div>
+            @endauth
 
             <div class="mt-3 space-y-1">
                 <div class="px-4 py-2">
@@ -159,6 +163,7 @@ new class extends Component
                         </a>
                     </div>
                 </div>
+                @auth
                 <a href="{{ route('notifications.index') }}" wire:navigate
                    class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Notifications') }}
@@ -177,6 +182,7 @@ new class extends Component
                 <x-button type="button" wire:click="logout" class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Log Out') }}
                 </x-button>
+                @endauth
             </div>
         </div>
     </div>
