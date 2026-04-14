@@ -12,7 +12,7 @@
     $defaultEventId = ($editMode && $slot) ? $slot->event_id : null;
     $countDefault = $countDefault ?? 5;
     $activityTypes = \App\Models\ActivityType::query()->orderBy('id')->get(['id', 'slug']);
-    $oldActivityTypeIds = old('activity_types', $editMode && $slot ? $slot->activity_types : []);
+    $oldActivityTypeIds = old('activity_types_ids', $editMode && $slot ? $slot->activity_types_ids : []);
     if (! is_array($oldActivityTypeIds)) {
         $oldActivityTypeIds = [];
     }

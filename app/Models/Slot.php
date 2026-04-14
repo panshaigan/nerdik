@@ -53,24 +53,24 @@ class Slot extends Model
     }
 
     /**
-     * Expose slot activity types as `$slot->activity_types` even though they are stored
+     * Expose slot activity types as `$slot->activity_types_ids` even though they are stored
      * in a join table.
      *
      * @return list<int>
      */
-    public function getActivityTypesAttribute(): array
+    public function getActivityTypesIdsAttribute(): array
     {
         if ($this->relationLoaded('activityTypes')) {
             $loaded = $this->getRelationValue('activityTypes');
 
             return $loaded
-                ? $loaded->pluck('activity_type_id')->map(fn ($v) => (int) $v)->values()->all()
+                ? $loaded->pluck('id')->map(fn ($v) => (int) $v)->values()->all()
                 : [];
         }
 
         return $this->activityTypes()
             ->get()
-            ->pluck('activity_type_id')
+            ->pluck('id')
             ->map(fn ($v) => (int) $v)
             ->values()
             ->all();
@@ -104,7 +104,7 @@ class Slot extends Model
      */
     public function acceptsActivityType(int $activityTypeId): bool
     {
-        $allowed = $this->activity_types;
+        $allowed = $this->activity_types_ids;
         if ($allowed === []) {
             return true;
         }
