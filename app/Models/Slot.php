@@ -49,7 +49,7 @@ class Slot extends Model
 
     public function activityTypes()
     {
-        return $this->hasMany(ActivityTypeSlot::class, 'slot_id');
+        return $this->belongsToMany(ActivityType::class, 'activity_type_slot');
     }
 
     /**

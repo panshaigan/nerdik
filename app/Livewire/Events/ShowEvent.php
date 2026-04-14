@@ -347,7 +347,6 @@ class ShowEvent extends Component
                 'activity.activityType',
                 'activity.canceller',
                 'activityTypes',
-                'activityTypes.activityType',
             ])->orderBy('starts_at'),
         ]);
 

@@ -17,8 +17,8 @@ class ActivityType extends Model
         return $this->hasMany(Activity::class);
     }
 
-    public function slotTypes()
+    public function slots()
     {
-        return $this->hasMany(ActivityTypeSlot::class);
+        return $this->belongsToMany(Slot::class, 'activity_type_slot');
     }
 }
