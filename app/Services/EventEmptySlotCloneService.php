@@ -20,7 +20,7 @@ class EventEmptySlotCloneService
             // `Slot` exposes allowed types via the `activity_types` accessor (array of ids).
             // The `activityTypes` *property* resolves to that accessor, not the relationship collection.
             $slot->loadMissing('activityTypes');
-            $typeIds = $slot->activity_types;
+            $typeIds = $slot->activity_types_ids;
 
             $new = $target->slots()->create([
                 'name' => $slot->name,

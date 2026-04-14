@@ -54,6 +54,6 @@ class EventEmptySlotCloneServiceTest extends TestCase
         $this->assertSame('Table 1', $cloned->name);
         $this->assertTrue($cloned->requires_approval);
         $this->assertSame(6, (int) $cloned->max_capacity);
-        $this->assertSame([$typeId], $cloned->activity_types);
+        $this->assertSame([$typeId], $cloned->activity_types_ids);
     }
 }

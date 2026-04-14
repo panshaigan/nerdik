@@ -317,7 +317,7 @@
                                                 @else
                                                     @php
                                                         $slotActivityTypes = collect($slot->activityTypes)
-                                                            ->map(fn ($row) => $row->activityType?->slug ? __('ui.activities.types.'.$row->activityType->slug) : null)
+                                                            ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
                                                             ->filter()
                                                             ->unique()
                                                             ->values();
