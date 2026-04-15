@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 final class UserFactory extends Factory
 {
@@ -44,32 +44,32 @@ final class UserFactory extends Factory
             'notify_email_proposal_updates' => fake()->randomNumber(1),
             'notify_email_waitlist_promoted' => fake()->randomNumber(1),
             'remember_token' => Str::random(10),
-            'email_verified_at' => fake()->optional()->datetime(),
+            'email_verified_at' => fake()->optional()->dateTime(),
         ];
     }
 
-    public function admin(): static
+    public function admin(): self
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => 1,
         ]);
     }
 
-    public function eventOrganizer(): static
+    public function eventOrganizer(): self
     {
         return $this->state(fn (array $attributes) => [
             'is_event_organizer' => 1,
         ]);
     }
 
-    public function email(string $email): static
+    public function email(string $email): self
     {
         return $this->state(fn (array $attributes) => [
             'email' => $email,
         ]);
     }
 
-    public function nickname(string $name): static
+    public function nickname(string $name): self
     {
         return $this->state(fn (array $attributes) => [
             'nickname' => $name,
