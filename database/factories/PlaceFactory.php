@@ -66,19 +66,8 @@ final class PlaceFactory extends Factory
     }
     public function room(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'type' => 'room',
         ]);
-    }
-
-    public function consistentWithEvent(): static
-    {
-        return $this->afterCreating(function (Place $place) {
-            if ($place->event?->created_by) {
-                $place->update([
-                    'created_by' => $place->event->created_by,
-                ]);
-            }
-        });
     }
 }
