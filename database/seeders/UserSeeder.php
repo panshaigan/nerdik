@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\City;
 use App\Models\Country;
@@ -12,6 +13,7 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
 
 use function collect;
@@ -55,7 +57,7 @@ class UserSeeder extends Seeder
         $uf = User::factory();
 
         $admins = [
-            $uf->admin()->email(self::ALICE)->nickname('alice')->create(),
+            $uf->admin()->create(['email' => self::ALICE, 'nickname' => 'alice']),
             $uf->admin()->create(),
         ];
 
@@ -94,7 +96,7 @@ class UserSeeder extends Seeder
             ->has(
                 Slot::factory(6)
                     ->consistentWithEventAndPlace()
-//                    ->hasAttached($activityTypes)
+                    ->withActivityTypesAttached($activityTypes)
             )
             ->hasAttached(
                 Place::factory(1)
@@ -105,6 +107,13 @@ class UserSeeder extends Seeder
                     ->consistentWithEvent()
             )
             ->create();
+
+        Activity::factory(100)
+            ->recycle($allUsers)
+            ->selfHosted($allUsers)
+            ->create();
+
+        UserFactory::new()->count(100)->create();
 
         return;
 
