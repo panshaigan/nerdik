@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
+/**
+ * Base Production data seeder.
+ */
 class BaseDataSeeder extends Seeder
 {
     /**

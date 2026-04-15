@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
-    use HasAutoSlug, HasMetaColumns, SoftDeletes;
+    use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
 
     public const HOSTING_MODE_DRAFT = 1;
 
@@ -70,6 +71,11 @@ class Activity extends Model
     public function participants()
     {
         return $this->hasMany(ActivityUser::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'activity_user');
     }
 
     public function waitlist()

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\TagAlias;
 use App\Models\TagCategory;
@@ -9,29 +10,17 @@ use App\Models\TagCategoryTranslation;
 use App\Models\TagContext;
 use App\Models\TagRelation;
 use App\Models\TagTranslation;
-use App\Models\ActivityType;
 use Illuminate\Database\Seeder;
-
 use Illuminate\Support\Str;
 
 use function ucfirst;
 
+/**
+ * Production data tag seeder
+ */
 class TagSeeder extends Seeder
 {
-    const ACTIVITY_TYPE = 'activity_type';
-
-    const ACTIVITY_TYPE_RPG = 'rpg';
-    const ACTIVITY_TYPE_WARGAME = 'wargame';
-    const ACTIVITY_TYPE_BOARD = 'board';
-    const ACTIVITY_TYPE_CARD = 'card';
-    const ACTIVITY_TYPE_LARP = 'larp';
-    const ACTIVITY_TYPE_DISCUSSION = 'discussion';
-    const ACTIVITY_TYPE_LECTURE = 'lecture';
-    const ACTIVITY_TYPE_WORKSHOP = 'workshop';
-    const ACTIVITY_TYPE_COMPETITION = 'competition';
-    const ACTIVITY_TYPE_SHOW = 'show';
-
-    public $tagIds = [];
+    public array $tagIds = [];
 
     /** @var array<string, int> */
     private array $activityTypeIdsBySlug = [];
@@ -43,11 +32,9 @@ class TagSeeder extends Seeder
     {
         $this->activityTypeIdsBySlug = ActivityType::query()
             ->pluck('id', 'slug')
-            ->map(fn ($id) => (int) $id)
             ->all();
 
         $this->seedTagCategories();
-
         $this->seedTopics();
         $this->seedTriggers();
         $this->seedGenre();
@@ -58,7 +45,7 @@ class TagSeeder extends Seeder
         $this->seedGames();
     }
 
-    public function seedOthers()
+    public function seedOthers(): void
     {
         $tags = [
             [
@@ -75,43 +62,43 @@ class TagSeeder extends Seeder
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Safety Toolkit: green/yellow/red',
                 'pl' => 'BHS: green/yellow/red',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Safety Toolkit: X Card',
                 'pl' => 'BHS: Karta X',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Safety Toolkit: Lines and Veils',
                 'pl' => 'BHS: linie i zasłony',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Safety Toolkit: Brief/debrief',
                 'pl' => 'BHS: omówienie przed i po',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Lore Knowledge Needed',
-                'pl' => 'Wymagana znajomosć świata gry',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'pl' => 'Wymagana znajomość świata gry',
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Emphasis on Roleplay',
                 'pl' => 'Nacisk na odgrywanie ról',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
                 'en' => 'Pre-Made Characters',
                 'pl' => 'Gotowe postaci',
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
@@ -121,7 +108,7 @@ class TagSeeder extends Seeder
                     'en' => 'Custom Module',
                     'pl' => 'Autorska przygoda',
                 ],
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_WARGAME, ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
@@ -131,117 +118,117 @@ class TagSeeder extends Seeder
                     'en' => 'Official Module',
                     'pl' => 'Oficjalna przygoda',
                 ],
-                'contexts' => [self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_LARP, ActivityType::SLUG_WARGAME, ActivityType::SLUG_RPG],
             ],
         ];
 
         $this->executeSeedingTags($tags);
     }
 
-    public function seedMechanics()
+    public function seedMechanics(): void
     {
         $tags = [
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => '5E',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Year Zero Engine',
                 'aliases' => ['en' => 'YZE'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Cortex Prime',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Genesys',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Mörk Borg TPL',
                 'aliases' => ['en' => 'Mork Borg TPL'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Powered by the Apocalypse',
                 'aliases' => ['en' => 'PbtA'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Forged in the Dark',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
 
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Savage Worlds',
                 'aliases' => ['en' => 'SW'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'GURPS',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Basic Role-Playing',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Gumshoe',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Carved from Brindlewood',
                 'aliases' => ['en' => 'CfB'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => '2d20',
                 'aliases' => ['en' => 'Modiphius'],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Cypher System',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'OSR',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'd100',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Dice pool',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'Step dice',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
                 'en' => 'd20',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
         ];
 
@@ -254,35 +241,35 @@ class TagSeeder extends Seeder
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'One shot',
-                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
+                'contexts' => [ActivityType::SLUG_RPG, ActivityType::SLUG_WARGAME, ActivityType::SLUG_LARP, ActivityType::SLUG_BOARD, ActivityType::SLUG_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Campaign',
                 'pl' => 'Kampania',
-                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
+                'contexts' => [ActivityType::SLUG_RPG, ActivityType::SLUG_WARGAME, ActivityType::SLUG_LARP, ActivityType::SLUG_BOARD, ActivityType::SLUG_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Open Table',
-                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME, self::ACTIVITY_TYPE_LARP, self::ACTIVITY_TYPE_BOARD, self::ACTIVITY_TYPE_CARD],
+                'contexts' => [ActivityType::SLUG_RPG, ActivityType::SLUG_WARGAME, ActivityType::SLUG_LARP, ActivityType::SLUG_BOARD, ActivityType::SLUG_CARD],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Sandbox',
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
                 'en' => 'Sesja nagrywana',
-                'contexts' => [self::ACTIVITY_TYPE_RPG, self::ACTIVITY_TYPE_WARGAME],
+                'contexts' => [ActivityType::SLUG_RPG, ActivityType::SLUG_WARGAME],
             ],
         ];
 
         $this->executeSeedingTags($tags);
     }
 
-    public function seedSettings()
+    public function seedSettings(): void
     {
         $tags = [
             [
@@ -410,7 +397,7 @@ class TagSeeder extends Seeder
         $this->executeSeedingTags($tags);
     }
 
-    public function seedGenre()
+    public function seedGenre(): void
     {
         $commonGenres = [
             [
@@ -591,7 +578,7 @@ class TagSeeder extends Seeder
         $this->executeSeedingTags($tags);
     }
 
-    public function seedTriggers()
+    public function seedTriggers(): void
     {
         $tags = [
             [
@@ -734,7 +721,7 @@ class TagSeeder extends Seeder
         $this->executeSeedingTags($tags);
     }
 
-    public function seedTopics()
+    public function seedTopics(): void
     {
         $relatedTags = [[
             'category' => TagCategory::KEY_TOPIC,
@@ -870,7 +857,7 @@ class TagSeeder extends Seeder
                 'en' => 'Warhammer Fantasy Roleplay 4E',
                 'aliases' => ['en' => 'WFRP4'],
                 'relations' => [],
-                'contexts' => [self::ACTIVITY_TYPE_RPG],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
@@ -922,7 +909,7 @@ class TagSeeder extends Seeder
             }
 
             if (isset($data['relations'])) {
-                foreach ($data['relations'] as $relation) {;
+                foreach ($data['relations'] as $relation) {
                     TagRelation::firstOrCreate([
                         'tag_id' => $tag->id,
                         'related_tag_id' => $relation,
@@ -940,7 +927,7 @@ class TagSeeder extends Seeder
                     }
                     TagContext::firstOrCreate([
                         'tag_id' => $tag->id,
-                        'context_type' => self::ACTIVITY_TYPE,
+                        'context_type' => 'activity_type',
                         'context_id' => $contextId,
                     ]);
                 }

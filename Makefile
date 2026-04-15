@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
 
-.PHONY: up down restart ps logs shell migrate migrate-fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require
+.PHONY: up down restart ps logs shell migrate migrate-fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require migrate-refresh dump-schema
 
 up:
 	$(SAIL) up -d
@@ -31,8 +31,14 @@ migrate:
 migrate-fresh:
 	$(SAIL) artisan migrate:fresh
 
+migrate-refresh:
+	$(SAIL) artisan migrate:refresh --seed
+
 seed:
 	$(SAIL) artisan db:seed
+
+dump-schema:
+	$(SAIL) artisan schema:dump --prune
 
 queue:
 	$(SAIL) artisan queue:work

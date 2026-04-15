@@ -59,4 +59,13 @@ final class SlotFactory extends Factory
             ]);
         });
     }
+
+    public function withActivityTypesAttached($activityTypes)
+    {
+        return $this->afterCreating(function (Slot $slot) use ($activityTypes) {
+            $slot->activityTypes()->attach(
+                $activityTypes->random(rand(1, min(3, $activityTypes->count())))->pluck('id')
+            );
+        });
+    }
 }
