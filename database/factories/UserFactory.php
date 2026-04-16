@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
  */
 final class UserFactory extends Factory
 {
+    const SAMPLE_PASSWORD = 'password';
+
     /**
     * The name of the factory's corresponding model.
     *
@@ -32,7 +34,7 @@ final class UserFactory extends Factory
             'name' => fake()->name,
             'nickname' => fake()->unique()->userName,
             'email' => fake()->safeEmail,
-            'password' => Hash::make('password'),
+            'password' => Hash::make(self::SAMPLE_PASSWORD),
             'google_id' => null,
             'avatar_path' => null,
             'discord_handle' => null,
@@ -41,10 +43,10 @@ final class UserFactory extends Factory
             'is_admin' => 0,
             'is_event_organizer' => 0,
             'languages' => null,
-            'notify_email_proposal_updates' => fake()->randomNumber(1),
-            'notify_email_waitlist_promoted' => fake()->randomNumber(1),
+            'notify_email_proposal_updates' => fake()->boolean(),
+            'notify_email_waitlist_promoted' => fake()->boolean(),
             'remember_token' => Str::random(10),
-            'email_verified_at' => fake()->optional()->dateTime(),
+            'email_verified_at' => fake()->dateTime(),
         ];
     }
 
@@ -55,25 +57,19 @@ final class UserFactory extends Factory
         ]);
     }
 
-    public function eventOrganizer(): self
+    public function organizer(): self
     {
         return $this->state(fn (array $attributes) => [
             'is_event_organizer' => 1,
         ]);
     }
 
-    public function email(string $email): self
+    public function specific(string $name, string $nickname, string $email): self
     {
         return $this->state(fn (array $attributes) => [
-            'email' => $email,
-        ]);
-    }
-
-    public function nickname(string $name): self
-    {
-        return $this->state(fn (array $attributes) => [
-            'nickname' => $name,
+            'nickname' => $nickname,
             'name' => $name,
+            'email' => $email,
         ]);
     }
 }

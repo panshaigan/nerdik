@@ -39,13 +39,12 @@ final class PlaceFactory extends Factory
 
         return [
             'name' => $name,
-            'type' => fake()->randomElement(['venue', 'room']),
-            'address' => fake()->optional()->streetAddress(),
-            'is_online' => 0,
             'slug' => Str::slug($name),
+            'address' => fake()->optional()->streetAddress(), // street and number
+            'city_id' => null,
             'description' => fake()->optional()->text,
-            'created_by' => User::factory(),
-            'city_id' => City::factory(),
+            'latitude'  => null,
+            'longitude' => null,
         ];
     }
 
