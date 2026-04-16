@@ -96,11 +96,7 @@ class SampleDataSeeder extends Seeder
             ->predefined()
             ->withSameCreatorAsOrganization()
             ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
-            ->has(
-                Slot::factory(fake()->numberBetween($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent']))
-                    ->consistentWithEventAndPlace()
-                    ->withActivityTypesAttached($activityTypes)
-            )
+            ->withSlots(fake()->numberBetween($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent']), $activityTypes)
             ->hasAttached(
                 $venues
             )
