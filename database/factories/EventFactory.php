@@ -6,10 +6,12 @@ namespace Database\Factories;
 
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Slot;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use function fake;
@@ -81,6 +83,26 @@ final class EventFactory extends Factory
                 ]);
             }
         });
+    }
+
+    public function withSlots(int $number, Collection $activityTypes): self
+    {
+        return $this->has(
+            Slot::factory($number)
+                ->consistentWithEventAndPlace()
+                ->sequence(function (Sequence $sequence, $slot, $event) {
+                    static $counters = [];
+
+                    $eventId = $event->id;
+
+                    $counters[$eventId] = ($counters[$eventId] ?? 0) + 1;
+
+                    return [
+                        'name' => 'Stół ' . $counters[$eventId]
+                    ];
+                })
+                ->withActivityTypesAttached($activityTypes)
+        );
     }
 
     public function predefined(): self

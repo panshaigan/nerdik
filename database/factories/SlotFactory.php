@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Collection;
 
 use function fake;
@@ -71,5 +72,12 @@ final class SlotFactory extends Factory
                 $activityTypes->random(random_int(1, min(3, $activityTypes->count())))->pluck('id')
             );
         });
+    }
+
+    public function indexedNames(): self
+    {
+        return $this->sequence(
+            fn (Sequence $sequence) => ['name' => 'Stół '.$sequence->index],
+        );
     }
 }
