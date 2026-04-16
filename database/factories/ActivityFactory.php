@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\Activity;
-use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\Place;
-use App\Models\Slot;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -105,7 +103,6 @@ final class ActivityFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'hosting_mode' => Activity::HOSTING_MODE_PROPOSED_TO_EVENT,
         ]);
-        //        select activity_proposals
         //        select activity_proposal_slot
     }
 
@@ -114,7 +111,6 @@ final class ActivityFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
         ]);
-        //        select activity_proposals
         //        select activity_proposal_slot
         //        select activity_user
         //        select activity_waitlist_entries
