@@ -2,12 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\City;
-use App\Models\Country;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
@@ -17,7 +15,6 @@ use App\Models\Tag;
 use App\Models\User;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 use function ceil;
 use function collect;
@@ -25,76 +22,59 @@ use function min;
 use function now;
 use function rand;
 
+/**
+ * Generate sample/test data
+ */
 class SampleDataSeeder extends Seeder
 {
-    const ALICE = 'alice@nerdik.test';
-    const BOB = 'bob@nerdik.test';
-    const CHARLIE = 'charlie@nerdik.test';
-    const DIANA = 'diana@nerdik.test';
+    public const DATA_SET_MINIMAL = 1;
+    public const DATA_SET_STANDARD = 2;
+    public const DATA_SET_MAXIMAL = 3;
+
+    public const DATA_SETS = [
+        self::DATA_SET_MINIMAL => [
+            'admins' => 1,
+            'organizers' => 2,
+            'normalUsers' => 10,
+        ],
+        self::DATA_SET_STANDARD => [
+            'admins' => 2,
+            'organizers' => 4,
+            'normalUsers' => 20,
+        ],
+        self::DATA_SET_MAXIMAL => [
+            'admins' => 4,
+            'organizers' => 8,
+            'normalUsers' => 40,
+        ],
+    ];
+
+    public int $dataset = self::DATA_SET_STANDARD;
+
     /**
      * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
      * All entities get created_by set. Safe to run multiple times (uses firstOrCreate by slug/email).
      */
-    public function run(): void
+    public function run(int $dataset = self::DATA_SET_STANDARD): void
     {
-        $this->call([
-            PlaceSeeder::class,
-        ]);
+        $this->callWith(UserSeeder::class, ['dataset' => self::DATA_SETS[$dataset]]);
+        $this->callWith(PlaceSeeder::class, ['dataset' => self::DATA_SETS[$dataset]]);
 
-        // -------------------------------------------------------------------------
-        // Already seeded externally: tags (all tag tables), countries, cities,
-        // activity_types — we just load them for FK references below.
-        // -------------------------------------------------------------------------
-
-        $countries     = Country::all();
-        $cities        = City::all();
         $activityTypes = ActivityType::all();
         $tags          = Tag::all();
-
-        // -------------------------------------------------------------------------
-        // Users
-        // -------------------------------------------------------------------------
-        $uf = User::factory();
-
-        $admins = [
-            $uf->admin()->create(['email' => self::ALICE, 'nickname' => 'alice']),
-            $uf->admin()->create(),
-        ];
-
-        $organizers = [
-            $uf->email(self::BOB)->nickname('bob')->eventOrganizer()->create(),
-            ...User::factory(4)->eventOrganizer()->create()
-        ];
-
-        $participants = [
-            $uf->email(self::CHARLIE)->nickname('charlie')->create(),
-            $uf->email(self::DIANA)->nickname('diana')->create(),
-            ...User::factory(8)->create()
-        ];
-
-        $allUsers = [
-            ...$admins, ...$organizers, ...$participants
-        ];
-
-        // -------------------------------------------------------------------------
-        // Organizations  (created by organizers)
-        // -------------------------------------------------------------------------
+        $organizers    = User::where('is_event_organizer', 1)->get();
+        $allUsers      = User::all();
+        $places        = Place::all();
 
         $organizations = Organization::factory(10)
             ->recycle($organizers)
-            ->create();
-
-        $places = Place::factory(2)
-            ->recycle($organizers)
-            ->recycle($cities)
-            ->poland()
-            ->venue()
             ->create();
 
         Event::factory(30)
             ->public()
             ->recycle($organizations)
             ->recycle($organizers)
+            ->recycle($places)
             ->withSameCreatorAsOrganization()
             ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
             ->has(
@@ -111,8 +91,6 @@ class SampleDataSeeder extends Seeder
             ->recycle($allUsers)
             ->selfHosted($allUsers)
             ->create();
-
-        UserFactory::new()->count(100)->create();
 
         return;
 
@@ -231,5 +209,10 @@ class SampleDataSeeder extends Seeder
                 $events->random(rand(1, 3))->pluck('id')->unique()
             );
         });
+    }
+
+    public function getDataSetProperty(string $property): int
+    {
+        return self::DATA_SETS[$this->dataset][$property];
     }
 }
