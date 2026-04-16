@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\EventEnrollmentWindow;
+use App\Models\Event;
 use App\Models\Slot;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Collection;
 
 use function fake;
 
 /**
- * @extends Factory<\App\Models\Slot>
+ * @extends Factory<Slot>
  */
 final class SlotFactory extends Factory
 {
@@ -31,25 +33,27 @@ final class SlotFactory extends Factory
     {
         return [
             'name' => fake()->name,
-            'event_id' => \App\Models\Event::factory(),
+            'event_id' => Event::factory(),
             'activity_id' => null,
             'requires_approval' => fake()->boolean(),
             'max_capacity' => fake()->numberBetween(5, 10),
             'starts_at' => fake()->optional()->dateTime(),
             'ends_at' => fake()->optional()->dateTime(),
-            'created_by' => \App\Models\User::factory(),
+            'created_by' => User::factory(),
         ];
     }
 
-    public function consistentWithEventAndPlace(): static
+    public function consistentWithEventAndPlace(): self
     {
         return $this->afterCreating(function (Slot $slot) {
             $event = $slot->event;
 
-            if (!$event) return;
+            if (!$event) {
+                return;
+            }
 
             $startsAt = fake()->dateTimeBetween($event->starts_at, $event->ends_at)
-                ->setTime(fake()->numberBetween(12, 14), 0, 0);
+                ->setTime(fake()->randomElement([12, 14]), fake()->randomElement([0, 30]));
 
             $slot->update([
                 'starts_at'  => $startsAt,
@@ -60,11 +64,11 @@ final class SlotFactory extends Factory
         });
     }
 
-    public function withActivityTypesAttached($activityTypes)
+    public function withActivityTypesAttached(Collection $activityTypes): self
     {
         return $this->afterCreating(function (Slot $slot) use ($activityTypes) {
             $slot->activityTypes()->attach(
-                $activityTypes->random(rand(1, min(3, $activityTypes->count())))->pluck('id')
+                $activityTypes->random(random_int(1, min(3, $activityTypes->count())))->pluck('id')
             );
         });
     }

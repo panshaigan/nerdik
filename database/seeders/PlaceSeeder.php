@@ -28,13 +28,16 @@ class PlaceSeeder extends Seeder
             ->create();
 
         foreach ($venues as $venue) {
-            Place::factory($dataset['maxRoomsPerVenue'])
+            Place::factory(fake()->numberBetween(0, $dataset['maxRoomsPerVenue']))
                 ->poland()
                 ->room($venue)
                 ->sequence(
                     ['name' => 'Room A'],
                     ['name' => 'Room B'],
                     ['name' => 'Room C'],
+                    ['name' => 'Room D'],
+                    ['name' => 'Room E'],
+                    ['name' => 'Room F'],
                 )
                 ->create();
         }
