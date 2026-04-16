@@ -9,17 +9,12 @@ use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
 use App\Models\Place;
-use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Random\RandomException;
 
-use function ceil;
-use function collect;
 use function fake;
-use function min;
-use function now;
-use function rand;
 
 /**
  * Generate sample/test data
@@ -41,6 +36,10 @@ class SampleDataSeeder extends Seeder
             'events' => 5,
             'minSlotsPerEvent' => 6,
             'maxSlotsPerEvent' => 10,
+            'selfHostedActivities' => 10,
+            'draftActivities' => 10,
+            'scheduledActivities' => 30,
+            'proposedActivities' => 50,
         ],
         self::DATA_SET_STANDARD => [
             'admins' => 2,
@@ -52,6 +51,10 @@ class SampleDataSeeder extends Seeder
             'events' => 10,
             'minSlotsPerEvent' => 6,
             'maxSlotsPerEvent' => 20,
+            'selfHostedActivities' => 20,
+            'draftActivities' => 20,
+            'scheduledActivities' => 60,
+            'proposedActivities' => 100,
         ],
         self::DATA_SET_MAXIMAL => [
             'admins' => 4,
@@ -63,12 +66,17 @@ class SampleDataSeeder extends Seeder
             'events' => 20,
             'minSlotsPerEvent' => 6,
             'maxSlotsPerEvent' => 30,
+            'selfHostedActivities' => 40,
+            'draftActivities' => 40,
+            'scheduledActivities' => 120,
+            'proposedActivities' => 200,
         ],
     ];
 
     /**
      * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
-     * All entities get created_by set. Safe to run multiple times (uses firstOrCreate by slug/email).
+     * All entities get created_by set. Safe to run multiple times (use firstOrCreate by slug/email).
+     * @throws RandomException
      */
     public function run(int $chosenDataset = self::DATA_SET_MINIMAL): void
     {
@@ -81,7 +89,6 @@ class SampleDataSeeder extends Seeder
         $organizers    = User::where('is_event_organizer', 1)->get();
         $allUsers      = User::all();
         $venues        = Place::where('type', Place::TYPE_VENUE)->get();
-        $rooms         = Place::where('type', Place::TYPE_ROOM)->get();
 
         $organizations = Organization::factory($dataset['organizations'])
             ->recycle($allUsers)
@@ -97,137 +104,39 @@ class SampleDataSeeder extends Seeder
             ->withSameCreatorAsOrganization()
             ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
             ->withSlots(fake()->numberBetween($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent']), $activityTypes)
-            ->hasAttached(
-                $venues
-            )
+            ->withVenues($venues)
+            ->withRandomRooms()
             ->create();
 
-        Activity::factory(100)
+        Activity::factory($dataset['selfHostedActivities'])
             ->recycle($allUsers)
+            ->predefined()
             ->selfHosted($allUsers)
             ->create();
 
-        return;
+        Activity::factory($dataset['draftActivities'])
+            ->recycle($allUsers)
+            ->predefined()
+            ->create();
 
-        // Tag ~60 % of activities (polymorphic taggables)
-//        $activities->random((int) ($activities->count() * 0.6))->each(function (Activity $activity) use ($tags) {
-//            $activity->tags()->attach(
-//                $tags->random(rand(1, 3))->pluck('id')
-//            );
-//        });
+        $proposedActivities = Activity::factory($dataset['proposedActivities'])
+            ->recycle($allUsers)
+            ->predefined()
+            ->proposed()
+            ->create();
 
-        $slots = collect();
+        $scheduledActivities = Activity::factory($dataset['scheduledActivities'])
+            ->recycle($allUsers)
+            ->predefined()
+            ->proposed()
+            ->create();
 
-        foreach ($events as $event) {
-            $eventSlots = Slot::factory(rand(3, 8))
-                ->for($event)
-                ->recycle($allPlaces)
-                ->recycle($organizers)
+        foreach ($proposedActivities as $activity) {
+            ActivityProposal::factory()
+                ->recycle($events->random())
+                ->recycle($activity)
+                ->recycle($activity->creator)
                 ->create();
-
-            // Assign ~half the slots to an activity
-            $eventSlots->random((int) ceil($eventSlots->count() / 2))->each(function (Slot $slot) use ($activities) {
-                $slot->update(['activity_id' => $activities->random()->id]);
-            });
-
-            // Attach activity types to the remaining open slots
-            $eventSlots->whereNull('activity_id')->each(function (Slot $slot) use ($activityTypes) {
-                $slot->activityTypes()->attach(
-                    $activityTypes->random(rand(1, 2))->pluck('id')
-                );
-            });
-
-            $slots = $slots->concat($eventSlots);
         }
-
-        // -------------------------------------------------------------------------
-        // Activity proposals  (organizers propose activities for events)
-        // -------------------------------------------------------------------------
-
-        foreach ($events as $event) {
-            $proposalActivities = $activities->random(rand(3, 6));
-            $eventSlots         = $slots->where('event_id', $event->id)->values();
-
-            foreach ($proposalActivities as $activity) {
-                /** @var ActivityProposal $proposal */
-                $proposal = ActivityProposal::factory()
-                    ->for($event)
-                    ->for($activity)
-                    ->for($organizers->random(), 'creator')
-                    ->create();
-
-                // Attach 1–3 candidate slots
-                $candidateSlots = $eventSlots->random(min(rand(1, 3), $eventSlots->count()));
-                $proposal->slots()->attach($candidateSlots->pluck('id'));
-
-                // Accept ~40 % of proposals and wire up the accepted slot
-                if ($proposal->status === 'accepted' && $candidateSlots->isNotEmpty()) {
-                    $accepted = $candidateSlots->first();
-                    $proposal->update(['accepted_slot_id' => $accepted->id]);
-                    $accepted->update(['activity_id' => $activity->id]);
-                }
-            }
-        }
-
-        // -------------------------------------------------------------------------
-        // Activity participants (activity_user)
-        // -------------------------------------------------------------------------
-
-        foreach ($activities as $activity) {
-            $max = $activity->max_participants ?? 20;
-            $count = rand(1, min($max, $allUsers->count(), 15));
-
-            $participants = $allUsers->random($count);
-
-            foreach ($participants as $user) {
-                $activity->participants()->attach($user->id, [
-                    'is_absent'  => (bool) rand(0, 4) === 0, // ~20 % absent
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-
-        // -------------------------------------------------------------------------
-        // Waitlist entries  (for activities that are likely full)
-        // -------------------------------------------------------------------------
-
-        $activities->random(10)->each(function (Activity $activity) use ($allUsers) {
-            // Pick users not already participating
-            $participating = $activity->participants()->pluck('users.id');
-            $eligible      = $allUsers->whereNotIn('id', $participating)->values();
-
-            if ($eligible->count() < 2) {
-                return;
-            }
-
-            $waitlistUsers = $eligible->random(rand(2, min(5, $eligible->count())));
-            $position      = 1;
-
-            foreach ($waitlistUsers as $user) {
-                ActivityWaitlistEntry::factory()
-                    ->for($activity)
-                    ->for($user)
-                    ->create(['position' => $position++]);
-            }
-        });
-
-        // -------------------------------------------------------------------------
-        // User interests  (wishlist for activities and events)
-        // -------------------------------------------------------------------------
-
-        $allUsers->random(20)->each(function (User $user) use ($activities, $events) {
-            $user->activityInterests()->attach(
-                $activities->random(rand(1, 5))->pluck('id')->unique()
-            );
-            $user->eventInterests()->attach(
-                $events->random(rand(1, 3))->pluck('id')->unique()
-            );
-        });
-    }
-
-    public function getDataSetProperty(string $property): int
-    {
-        return self::DATA_SETS[$this->dataset][$property];
     }
 }

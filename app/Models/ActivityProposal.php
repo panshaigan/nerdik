@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Enums\ActivityProposalStatus;
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ActivityProposal extends Model
 {
-    use HasMetaColumns, SoftDeletes;
+    use HasFactory, HasMetaColumns, SoftDeletes;
 
     protected $fillable = [
         'activity_id',
