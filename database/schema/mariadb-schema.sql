@@ -420,7 +420,7 @@ DROP TABLE IF EXISTS `places`;
 CREATE TABLE `places` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `type` enum('state','venue','room') NOT NULL,
+  `type` enum('venue','room') NOT NULL,
   `country_id` bigint(20) unsigned DEFAULT NULL,
   `city_id` bigint(20) unsigned DEFAULT NULL,
   `parent_id` bigint(20) unsigned DEFAULT NULL,
