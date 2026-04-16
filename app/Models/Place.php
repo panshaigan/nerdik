@@ -13,6 +13,9 @@ class Place extends Model
 {
     use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
 
+    public const TYPE_ROOM = 'room';
+    public const TYPE_VENUE = 'venue';
+
     public function getRouteKeyName(): string
     {
         return 'slug';

@@ -35,62 +35,66 @@ class SampleDataSeeder extends Seeder
         self::DATA_SET_MINIMAL => [
             'admins' => 1,
             'organizers' => 2,
-            'normalUsers' => 10,
+            'standardUsers' => 10,
+            'organizations' => 10,
         ],
         self::DATA_SET_STANDARD => [
             'admins' => 2,
             'organizers' => 4,
-            'normalUsers' => 20,
+            'standardUsers' => 20,
+            'organizations' => 20,
         ],
         self::DATA_SET_MAXIMAL => [
             'admins' => 4,
             'organizers' => 8,
-            'normalUsers' => 40,
+            'standardUsers' => 40,
+            'organizations' => 30,
         ],
     ];
-
-    public int $dataset = self::DATA_SET_STANDARD;
 
     /**
      * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
      * All entities get created_by set. Safe to run multiple times (uses firstOrCreate by slug/email).
      */
-    public function run(int $dataset = self::DATA_SET_STANDARD): void
+    public function run(int $chosenDataset = self::DATA_SET_MINIMAL): void
     {
-        $this->callWith(UserSeeder::class, ['dataset' => self::DATA_SETS[$dataset]]);
-        $this->callWith(PlaceSeeder::class, ['dataset' => self::DATA_SETS[$dataset]]);
+        $dataset = self::DATA_SETS[$chosenDataset];
+        $this->callWith(UserSeeder::class, ['dataset' => $dataset]);
+        $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
 
         $activityTypes = ActivityType::all();
         $tags          = Tag::all();
         $organizers    = User::where('is_event_organizer', 1)->get();
         $allUsers      = User::all();
-        $places        = Place::all();
+        $venues        = Place::where('type', Place::TYPE_VENUE)->get();
+        $rooms         = Place::where('type', Place::TYPE_ROOM)->get();
 
-        $organizations = Organization::factory(10)
-            ->recycle($organizers)
-            ->create();
+//        $organizations = Organization::factory()
+//            ->recycle($allUsers)
+//            ->predefinedNames()
+//            ->create();
 
-        Event::factory(30)
-            ->public()
-            ->recycle($organizations)
-            ->recycle($organizers)
-            ->recycle($places)
-            ->withSameCreatorAsOrganization()
-            ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
-            ->has(
-                Slot::factory(6)
-                    ->consistentWithEventAndPlace()
-                    ->withActivityTypesAttached($activityTypes)
-            )
-            ->hasAttached(
-                $places
-            )
-            ->create();
-
-        Activity::factory(100)
-            ->recycle($allUsers)
-            ->selfHosted($allUsers)
-            ->create();
+//        Event::factory(30)
+//            ->public()
+//            ->recycle($organizations)
+//            ->recycle($organizers)
+//            ->recycle($venues)
+//            ->withSameCreatorAsOrganization()
+//            ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
+//            ->has(
+//                Slot::factory(6)
+//                    ->consistentWithEventAndPlace()
+//                    ->withActivityTypesAttached($activityTypes)
+//            )
+//            ->hasAttached(
+//                $venues
+//            )
+//            ->create();
+//
+//        Activity::factory(100)
+//            ->recycle($allUsers)
+//            ->selfHosted($allUsers)
+//            ->create();
 
         return;
 
