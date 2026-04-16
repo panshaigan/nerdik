@@ -37,18 +37,24 @@ class SampleDataSeeder extends Seeder
             'organizers' => 2,
             'standardUsers' => 10,
             'organizations' => 10,
+            'places' => 10,
+            'maxRoomsPerVenue' => 2,
         ],
         self::DATA_SET_STANDARD => [
             'admins' => 2,
             'organizers' => 4,
             'standardUsers' => 20,
             'organizations' => 20,
+            'places' => 20,
+            'maxRoomsPerVenue' => 4,
         ],
         self::DATA_SET_MAXIMAL => [
             'admins' => 4,
             'organizers' => 8,
             'standardUsers' => 40,
             'organizations' => 30,
+            'places' => 30,
+            'maxRoomsPerVenue' => 6,
         ],
     ];
 

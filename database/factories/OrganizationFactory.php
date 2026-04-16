@@ -40,7 +40,7 @@ final class OrganizationFactory extends Factory
         ];
     }
 
-    public function predefinedNames(): static
+    public function predefined(): static
     {
         return $this->state(new Sequence(
             ['name' => 'Otwarte Opcje Fantastyczne',      'acronym' => 'OOF',  'slug' => 'otwarte-opcje-fantastyczne'],
