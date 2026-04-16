@@ -7,13 +7,15 @@ namespace Database\Factories;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Str;
 
 use function fake;
 
 /**
- * @extends Factory<\App\Models\Event>
+ * @extends Factory<Event>
  */
 final class EventFactory extends Factory
 {
@@ -34,9 +36,9 @@ final class EventFactory extends Factory
         $name = fake()->name;
 
         $startsAt = fake()->dateTimeBetween('+1 week', '+6 months')
-            ->setTime(fake()->numberBetween(9, 17), 0, 0);
+            ->setTime(fake()->numberBetween(9, 17), 0);
 
-        $startsAt = \Carbon\Carbon::instance($startsAt);
+        $startsAt = Carbon::instance($startsAt);
 
         $durationDays = fake()->numberBetween(0, 2);
 
@@ -56,21 +58,21 @@ final class EventFactory extends Factory
         ];
     }
 
-    public function public(): static
+    public function public(): self
     {
         return $this->state(fn (array $attributes) => [
             'is_public' => 1,
         ]);
     }
 
-    public function private(): static
+    public function private(): self
     {
         return $this->state(fn (array $attributes) => [
             'is_public' => 0,
         ]);
     }
 
-    public function withSameCreatorAsOrganization(): static
+    public function withSameCreatorAsOrganization(): self
     {
         return $this->afterCreating(function (Event $event) {
             if ($event->organization?->created_by) {
@@ -79,5 +81,31 @@ final class EventFactory extends Factory
                 ]);
             }
         });
+    }
+
+    public function predefined(): self
+    {
+        return $this->state(new Sequence(
+            ['name' => 'Nocne Granie',           'slug' => 'nocne-granie'],
+            ['name' => 'One More Game',         'slug' => 'one-more-game'],
+            ['name' => 'Epicka Sesja',          'slug' => 'epicka-sesja'],
+            ['name' => 'Kryształowe Kości',     'slug' => 'krystalowe-kosci'],
+            ['name' => 'ConQuest',              'slug' => 'conquest'],
+            ['name' => 'Mroczne Lochy',         'slug' => 'mroczne-lochy'],
+            ['name' => 'Roluj i Pal',           'slug' => 'roluj-i-pal'],
+            ['name' => 'Dragon’s Den',          'slug' => 'dragons-den'],
+            ['name' => 'Wielki Zlot RPG',       'slug' => 'wielki-zlot-rpg'],
+            ['name' => 'Shadowrun Poland',      'slug' => 'shadowrun-poland'],
+            ['name' => 'Kampania Wieczorna',    'slug' => 'kampania-wieczorna'],
+            ['name' => 'Gralandia',             'slug' => 'gralandia'],
+            ['name' => 'Orcus Con',             'slug' => 'orcus-con'],
+            ['name' => 'Szczury z Kanałów',     'slug' => 'szczury-z-kanalow'],
+            ['name' => 'Mythic Quest',          'slug' => 'mythic-quest'],
+            ['name' => 'Baldur’s Gate Gathering','slug' => 'baldurs-gate-gathering'],
+            ['name' => 'Piątek z RPG',          'slug' => 'piatek-z-rpg'],
+            ['name' => 'Tower of Games',        'slug' => 'tower-of-games'],
+            ['name' => 'Legendarne Kości',      'slug' => 'legendarne-kosci'],
+            ['name' => 'Niezależny Zlot Fantastyki', 'slug' => 'niezalezny-zlot-fantastyki'],
+        ));
     }
 }

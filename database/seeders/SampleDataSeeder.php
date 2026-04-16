@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
-use App\Models\City;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
@@ -13,11 +12,11 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Seeder;
 
 use function ceil;
 use function collect;
+use function fake;
 use function min;
 use function now;
 use function rand;
@@ -39,6 +38,9 @@ class SampleDataSeeder extends Seeder
             'organizations' => 10,
             'places' => 10,
             'maxRoomsPerVenue' => 2,
+            'events' => 5,
+            'minSlotsPerEvent' => 6,
+            'maxSlotsPerEvent' => 10,
         ],
         self::DATA_SET_STANDARD => [
             'admins' => 2,
@@ -47,6 +49,9 @@ class SampleDataSeeder extends Seeder
             'organizations' => 20,
             'places' => 20,
             'maxRoomsPerVenue' => 4,
+            'events' => 10,
+            'minSlotsPerEvent' => 6,
+            'maxSlotsPerEvent' => 20,
         ],
         self::DATA_SET_MAXIMAL => [
             'admins' => 4,
@@ -55,6 +60,9 @@ class SampleDataSeeder extends Seeder
             'organizations' => 30,
             'places' => 30,
             'maxRoomsPerVenue' => 6,
+            'events' => 20,
+            'minSlotsPerEvent' => 6,
+            'maxSlotsPerEvent' => 30,
         ],
     ];
 
@@ -75,32 +83,33 @@ class SampleDataSeeder extends Seeder
         $venues        = Place::where('type', Place::TYPE_VENUE)->get();
         $rooms         = Place::where('type', Place::TYPE_ROOM)->get();
 
-//        $organizations = Organization::factory()
-//            ->recycle($allUsers)
-//            ->predefinedNames()
-//            ->create();
+        $organizations = Organization::factory($dataset['organizations'])
+            ->recycle($allUsers)
+            ->predefined()
+            ->create();
 
-//        Event::factory(30)
-//            ->public()
-//            ->recycle($organizations)
-//            ->recycle($organizers)
-//            ->recycle($venues)
-//            ->withSameCreatorAsOrganization()
-//            ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
-//            ->has(
-//                Slot::factory(6)
-//                    ->consistentWithEventAndPlace()
-//                    ->withActivityTypesAttached($activityTypes)
-//            )
-//            ->hasAttached(
-//                $venues
-//            )
-//            ->create();
-//
-//        Activity::factory(100)
-//            ->recycle($allUsers)
-//            ->selfHosted($allUsers)
-//            ->create();
+        $events = Event::factory($dataset['events'])
+            ->public()
+            ->recycle($organizations)
+            ->recycle($organizers)
+            ->recycle($venues)
+            ->predefined()
+            ->withSameCreatorAsOrganization()
+            ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
+            ->has(
+                Slot::factory(fake()->numberBetween($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent']))
+                    ->consistentWithEventAndPlace()
+                    ->withActivityTypesAttached($activityTypes)
+            )
+            ->hasAttached(
+                $venues
+            )
+            ->create();
+
+        Activity::factory(100)
+            ->recycle($allUsers)
+            ->selfHosted($allUsers)
+            ->create();
 
         return;
 
