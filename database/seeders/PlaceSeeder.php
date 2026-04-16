@@ -61,6 +61,7 @@ class PlaceSeeder extends Seeder
         foreach ($cities as $names) {
             $cityId = DB::table('cities')->insertGetId([
                 'country_id' => $plId,
+                'slug' => Str::slug($names['pl']),
             ]);
             DB::table('city_translations')->insert([
                 ['city_id' => $cityId, 'locale' => 'pl', 'name' => $names['pl']],

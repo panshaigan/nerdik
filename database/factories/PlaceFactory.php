@@ -6,19 +6,15 @@ namespace Database\Factories;
 
 use App\Models\City;
 use App\Models\Country;
-use App\Models\Event;
-use App\Models\EventEnrollmentWindow;
 use App\Models\Place;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Str;
 
 use function fake;
 
 /**
- * @extends Factory<\App\Models\Place>
+ * @extends Factory<Place>
  */
 final class PlaceFactory extends Factory
 {
@@ -41,7 +37,7 @@ final class PlaceFactory extends Factory
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'address' => fake()->optional()->streetAddress(), // street and number
+            'address' => fake()->optional()->streetAddress(),
             'city_id' => null,
             'description' => fake()->optional()->text,
             'latitude'  => null,
@@ -49,7 +45,7 @@ final class PlaceFactory extends Factory
         ];
     }
 
-    public function poland(): static
+    public function poland(): self
     {
         return $this->state(fn (array $attributes) => [
             'country_id' => Country::where('iso_alpha2', 'PL')->first()->id,
@@ -58,14 +54,14 @@ final class PlaceFactory extends Factory
         ]);
     }
 
-    public function venue(): static
+    public function venue(): self
     {
         return $this->state(fn (array $attributes) => [
             'type' => 'venue',
         ]);
     }
 
-    public function room(Place $venue): static
+    public function room(Place $venue): self
     {
         return $this->afterMaking(function (Place $room) use ($venue) {
             $room->slug = $venue->slug.'-'.Str::slug($room->name);
@@ -79,7 +75,7 @@ final class PlaceFactory extends Factory
         });
     }
 
-    public function predefined(): static
+    public function predefined(): self
     {
         $poland = Country::query()->where('iso_alpha2', 'PL')->first();
         $cities = City::query()
