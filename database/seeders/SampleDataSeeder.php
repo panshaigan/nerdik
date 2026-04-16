@@ -128,15 +128,24 @@ class SampleDataSeeder extends Seeder
         $scheduledActivities = Activity::factory($dataset['scheduledActivities'])
             ->recycle($allUsers)
             ->predefined()
-            ->proposed()
+            ->scheduled()
             ->create();
 
-        foreach ($proposedActivities as $activity) {
+        foreach ($proposedActivities->merge($scheduledActivities) as $activity) {
             ActivityProposal::factory()
                 ->recycle($events->random())
                 ->recycle($activity)
                 ->recycle($activity->creator)
+                ->alignWithActivity($activity)
                 ->create();
         }
+
+//        foreach ($scheduledActivities as $activity) {
+//            ActivityProposal::factory()
+//                ->recycle($events->random())
+//                ->recycle($activity)
+//                ->recycle($activity->creator)
+//                ->create();
+//        }
     }
 }

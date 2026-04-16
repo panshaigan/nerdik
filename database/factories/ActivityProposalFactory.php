@@ -36,4 +36,32 @@ final class ActivityProposalFactory extends Factory
             'created_by' => User::factory(),
         ];
     }
+
+    public function alignWithActivity(Activity $activity): self
+    {
+        if ($activity->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+            return $this;
+        }
+
+        if ($activity->hosting_mode === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT) {
+
+            return $this->afterCreating(function (ActivityProposal $proposal) use ($activity) {
+                foreach ($proposal->event->slots as $slot) {
+                    if ($slot->activityTypes->contains($activity->activityType)) {
+                        $proposal->update([
+                            'accepted_slot_id' => $slot->id,
+                        ]);
+                        $slot->update([
+                            'activity_id' => $proposal->activity->id,
+                        ]);
+                        break;
+                    }
+                }
+            });
+        }
+
+        return $this->state(fn (array $attributes) => [
+            'status' => 'accepted',
+        ]);
+    }
 }
