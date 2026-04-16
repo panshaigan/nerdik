@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
 use Carbon\Carbon;
@@ -15,6 +16,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use function fake;
+use function random_int;
 
 /**
  * @extends Factory<Event>
@@ -94,7 +96,6 @@ final class EventFactory extends Factory
                     static $counters = [];
 
                     $eventId = $event->id;
-
                     $counters[$eventId] = ($counters[$eventId] ?? 0) + 1;
 
                     return [
@@ -103,6 +104,40 @@ final class EventFactory extends Factory
                 })
                 ->withActivityTypesAttached($activityTypes)
         );
+    }
+
+    public function withVenues(Collection $venues): self
+    {
+        return $this->afterCreating(function (Event $event) use ($venues) {
+            $event->places()->attach(
+                $venues->random(random_int(1, 2))
+            );
+        });
+    }
+
+    public function withRandomRooms(): self
+    {
+        return $this->afterCreating(function (Event $event) {
+            /** @var Collection $availableRooms */
+            $availableRooms = Place::whereIn('parent_id', $event->places()->pluck('places.id'))
+                ->get();
+
+            if ($availableRooms->isEmpty()) {
+                return;
+            }
+
+            foreach ($event->slots()->get() as $slot) {
+                if (fake()->boolean(65)) {
+                    $slot->update([
+                        'place_id' => $availableRooms->random()->id
+                    ]);
+                } else {
+                    $slot->update([
+                        'place_id' => $availableRooms->random()->parent_id
+                    ]);
+                }
+            }
+        });
     }
 
     public function predefined(): self

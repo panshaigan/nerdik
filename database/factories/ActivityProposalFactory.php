@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\Event;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\ActivityProposal>
+ * @extends Factory<ActivityProposal>
  */
 final class ActivityProposalFactory extends Factory
 {
@@ -27,14 +30,10 @@ final class ActivityProposalFactory extends Factory
     public function definition(): array
     {
         return [
-            'activity_id' => \App\Models\Activity::factory(),
-            'event_id' => \App\Models\Event::factory(),
-            'accepted_slot_id' => \App\Models\Slot::factory(),
-            'status' => fake()->word,
-            'preferred_start_time' => fake()->optional()->dateTime(),
-            'created_by' => \App\Models\User::factory(),
-            'updated_by' => \App\Models\User::factory(),
-            'deleted_by' => \App\Models\User::factory(),
+            'activity_id' => Activity::factory(),
+            'event_id' => Event::factory(),
+            'status' => 'pending',
+            'created_by' => User::factory(),
         ];
     }
 }
