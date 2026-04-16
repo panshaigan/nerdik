@@ -63,6 +63,7 @@ final class PlaceFactory extends Factory
             'type' => 'venue',
         ]);
     }
+
     public function room(): static
     {
         return $this->state(fn(array $attributes) => [
