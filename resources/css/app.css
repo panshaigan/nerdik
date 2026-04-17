@@ -35,8 +35,8 @@
     min-height: 2.125rem;
 }
 .browse-bbox-toolbar a.browse-bbox-draw-armed {
-    background-color: color-mix(in oklab, var(--color-primary, #6366f1) 18%, transparent);
-    color: var(--color-primary, #6366f1);
+    background-color: color-mix(in oklab, var(--color-primary, #7c3aed) 18%, transparent);
+    color: var(--color-primary, #7c3aed);
 }
 
 /* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) */
