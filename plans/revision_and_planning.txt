@@ -1,11 +1,3 @@
-Review the code
-
-    - make the notifications consistent and all of them should be jobs
-    - make user nickname unique
-
-Content
-    - seeding with sample data
-
 UI/UX
 - graphically enhance the screens + check for not translated strings
 - participation screen must be live
