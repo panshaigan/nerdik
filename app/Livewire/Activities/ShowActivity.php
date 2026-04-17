@@ -4,8 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Models\Activity;
 use App\Services\ActivityHostingModeService;
-use App\Services\EventActivitySignupService;
-use Illuminate\Validation\ValidationException;
+use App\Services\ActivityParticipationViewService;
 use Livewire\Component;
 
 class ShowActivity extends Component
@@ -51,7 +50,7 @@ class ShowActivity extends Component
         session()->flash('status', __('ui.activities.reopened_status'));
     }
 
-    public function render()
+    public function render(ActivityParticipationViewService $participationView)
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
@@ -67,66 +66,21 @@ class ShowActivity extends Component
             'place.parent',
         ]);
 
-        $isParticipant = auth()->check() && $activity->participants()->where('user_id', auth()->id())->exists();
-        $onWaitlist = auth()->check() && $activity->waitlist()->where('user_id', auth()->id())->exists();
-
-        $signupGateOk = true;
-        $signupBlockedMessage = null;
-        $activeWindowPerActivityMax = null;
-        $activeWindowRemainingForActivity = null;
-        $activeWindowUserRemaining = null;
-        $signupService = app(EventActivitySignupService::class);
-        $event = $activity->slot?->event;
-        $activeEnrollmentWindow = $event ? $signupService->firstPeriodContaining($event, now()) : null;
-        if ($activeEnrollmentWindow !== null) {
-            $perActivityMax = $activeEnrollmentWindow->maxAllowedParticipantsPerActivityEffective();
-            if ($perActivityMax !== null) {
-                $activeWindowPerActivityMax = $perActivityMax;
-                $taken = $signupService->activitySignupCountDuringPeriod($activity, $activeEnrollmentWindow);
-                $activeWindowRemainingForActivity = max(0, $perActivityMax - $taken);
-            }
-            if (auth()->check()) {
-                $effectiveLimit = $signupService->effectiveUserSignupLimitForPeriod($event, auth()->user(), $activeEnrollmentWindow);
-                if ($effectiveLimit !== null) {
-                    $used = $signupService->userSignupCountDuringPeriod($event, auth()->user(), $activeEnrollmentWindow);
-                    $activeWindowUserRemaining = max(0, $effectiveLimit - $used);
-                }
-            }
-        }
-        if (auth()->check() && ! $isParticipant && ! $onWaitlist && $activity->slot?->event_id) {
-            try {
-                $signupService->assertCanSignup($activity, auth()->user());
-            } catch (ValidationException $e) {
-                $signupGateOk = false;
-                $signupBlockedMessage = collect($e->errors())->flatten()->first();
-            }
-        }
-
-        $stateBlockedMessage = null;
-        if ($activity->isCancelled()) {
-            $stateBlockedMessage = __('ui.activities.signup_blocked_cancelled');
-        } elseif (! $activity->isJoinableMode()) {
-            $stateBlockedMessage = __('ui.activities.signup_blocked_not_joinable_mode');
-        }
-
-        $canJoin = auth()->check() && ! $isParticipant && ! $onWaitlist && $signupGateOk && $stateBlockedMessage === null;
-        $isFull = $activity->max_participants !== null && $activity->participants()->count() >= $activity->max_participants;
-        $hasInterest = auth()->check() && auth()->user()->interestedActivities()->where('activities.id', $activity->id)->exists();
-        $canManageActivity = auth()->user()?->canModifyEntity($activity) ?? false;
+        $vm = $participationView->forShow($activity, auth()->user());
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
-            'isParticipant' => $isParticipant,
-            'onWaitlist' => $onWaitlist,
-            'canJoin' => $canJoin,
-            'isFull' => $isFull,
-            'hasInterest' => $hasInterest,
-            'canManageActivity' => $canManageActivity,
-            'signupBlockedMessage' => $signupBlockedMessage,
-            'stateBlockedMessage' => $stateBlockedMessage,
-            'activeWindowPerActivityMax' => $activeWindowPerActivityMax,
-            'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,
-            'activeWindowUserRemaining' => $activeWindowUserRemaining,
+            'isParticipant' => $vm->isParticipant,
+            'onWaitlist' => $vm->onWaitlist,
+            'canJoin' => $vm->canJoin,
+            'isFull' => $vm->isFull,
+            'hasInterest' => $vm->hasInterest,
+            'canManageActivity' => $vm->canManageActivity,
+            'signupBlockedMessage' => $vm->signupBlockedMessage,
+            'stateBlockedMessage' => $vm->stateBlockedMessage,
+            'activeWindowPerActivityMax' => $vm->activeWindowPerActivityMax,
+            'activeWindowRemainingForActivity' => $vm->activeWindowRemainingForActivity,
+            'activeWindowUserRemaining' => $vm->activeWindowUserRemaining,
         ]);
     }
 }

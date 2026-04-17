@@ -1,6 +1,5 @@
 Review the code
-    - TagController move logic into services
-    - extract logics form livewire to services
+
     - make the notifications consistent and all of them should be jobs
     - make user nickname unique
 

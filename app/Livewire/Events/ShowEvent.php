@@ -4,15 +4,15 @@ namespace App\Livewire\Events;
 
 use App\Enums\ActivityProposalStatus;
 use App\Models\ActivityProposal;
-use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\TagCategory;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
+use App\Services\EventSlotPresentationService;
+use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -42,6 +42,8 @@ class ShowEvent extends Component
     public function mount(Event $event): void
     {
         $this->eventId = $event->id;
+        $event->load(['slots.activity']);
+        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
     }
 
     public function toggleProposalSlot(int $slotId): void
@@ -71,6 +73,8 @@ class ShowEvent extends Component
         $this->slotListVersion++;
         $event = Event::query()->whereKey($this->eventId)->first();
         if ($event !== null) {
+            $event->loadMissing(['slots.activity']);
+            app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
             $event->loadMissing('slots');
             $freeIds = $event->slots->whereNull('activity_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
             $this->proposalSlotIds = array_values(array_intersect(
@@ -104,6 +108,7 @@ class ShowEvent extends Component
             $this->proposalSlotIds,
             fn ($id) => (int) $id !== (int) $slotId
         ));
+        $this->syncSlotEndsForThisEvent();
     }
 
     public function detachActivityFromSlot(int $slotId, ActivityProposalDecisionService $decisions): void
@@ -163,6 +168,7 @@ class ShowEvent extends Component
         $hostingModes->cancel($activity, $user, $reason);
         unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
         $this->slotListVersion++;
+        $this->syncSlotEndsForThisEvent();
         session()->flash('status', __('ui.activities.cancelled_status'));
     }
 
@@ -185,6 +191,7 @@ class ShowEvent extends Component
 
         $hostingModes->reopen($activity);
         $this->slotListVersion++;
+        $this->syncSlotEndsForThisEvent();
         session()->flash('status', __('ui.activities.reopened_status'));
     }
 
@@ -222,6 +229,7 @@ class ShowEvent extends Component
 
         unset($this->proposalAcceptSlotId[$proposalId], $this->proposalAcceptSlotId[(string) $proposalId]);
         $this->slotListVersion++;
+        $this->syncSlotEndsForThisEvent();
         session()->flash('status', __('ui.status.proposal_accepted'));
     }
 
@@ -246,92 +254,17 @@ class ShowEvent extends Component
         session()->flash('status', __('ui.status.proposal_rejected'));
     }
 
-    /**
-     * @return list<array{label: string, slots: Collection<int, Slot>, boundary?: string}>
-     */
-    protected function slotHourGroupsForEvent(Event $event): array
+    protected function syncSlotEndsForThisEvent(): void
     {
-        $sorted = $event->slots
-            ->sortBy(fn (Slot $s) => $s->starts_at?->getTimestamp() ?? PHP_INT_MAX)
-            ->values();
-
-        $grouped = $sorted->groupBy(function (Slot $slot) {
-            if (! $slot->starts_at) {
-                return '__no_time__';
-            }
-
-            return format_in_user_tz($slot->starts_at, 'Y-m-d H');
-        })->sortKeys();
-
-        $out = [];
-        foreach ($grouped as $key => $groupSlots) {
-            $out[] = [
-                'label' => $key === '__no_time__'
-                    ? __('ui.events.slots_group_no_time')
-                    : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:00'),
-                'slots' => $groupSlots,
-            ];
+        $event = Event::query()->whereKey($this->eventId)->first();
+        if ($event === null) {
+            return;
         }
-
-        $firstTimedSlot = $sorted->first(fn (Slot $s) => $s->starts_at !== null);
-        $prependEventStart = false;
-        if ($event->starts_at) {
-            if ($firstTimedSlot === null) {
-                $prependEventStart = true;
-            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
-                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
-                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
-                $prependEventStart = $eventHour !== $firstHour;
-            }
-        }
-
-        if ($prependEventStart) {
-            array_unshift($out, [
-                'label' => format_datetime_in_user_tz($event->starts_at, 'ddd, D MMM · HH:00'),
-                'slots' => collect(),
-                'boundary' => 'event_start',
-            ]);
-        }
-
-        $lastSlot = $sorted->last();
-        $lastSlotEnd = $lastSlot?->ends_at ?? $lastSlot?->starts_at;
-        $appendEventEnd = $event->ends_at !== null
-            && ($lastSlotEnd === null || ! $event->ends_at->equalTo($lastSlotEnd));
-
-        if ($appendEventEnd) {
-            $out[] = [
-                'label' => format_datetime_in_user_tz($event->ends_at, 'ddd, D MMM · HH:00'),
-                'slots' => collect(),
-                'boundary' => 'event_end',
-            ];
-        }
-
-        return $out;
+        $event->load(['slots.activity']);
+        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
     }
 
-    /**
-     * When a slot has an activity with a duration, ensure ends_at matches start + duration.
-     */
-    protected function syncSlotEndsFromActivityDuration(Event $event): void
-    {
-        foreach ($event->slots as $slot) {
-            $activity = $slot->activity;
-            if ($activity === null || ! $slot->starts_at) {
-                continue;
-            }
-            $minutes = (int) ($activity->duration_in_minutes ?? 0);
-            if ($minutes <= 0) {
-                continue;
-            }
-            $expected = $slot->starts_at->copy()->addMinutes($minutes);
-            if ($slot->ends_at === null || ! $slot->ends_at->equalTo($expected)) {
-                $slot->ends_at = $expected;
-                $slot->save();
-            }
-        }
-    }
-
-    public function render()
+    public function render(EventSlotPresentationService $slotPresentation)
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -350,42 +283,12 @@ class ShowEvent extends Component
             ])->orderBy('starts_at'),
         ]);
 
-        $this->syncSlotEndsFromActivityDuration($event);
-
-        $now = now();
-        $activeEnrollmentWindow = $event->enrollmentWindows->first(function ($w) use ($now) {
-            return $w->starts_at !== null
-                && $w->ends_at !== null
-                && $now->between($w->starts_at, $w->ends_at);
-        });
-        $activeWindowRemainingByActivityId = [];
-        if ($activeEnrollmentWindow !== null) {
-            $perActivityMax = $activeEnrollmentWindow->maxAllowedParticipantsPerActivityEffective();
-            if ($perActivityMax !== null) {
-                $activityIds = $event->slots
-                    ->pluck('activity_id')
-                    ->filter(fn ($id) => $id !== null)
-                    ->map(fn ($id) => (int) $id)
-                    ->unique()
-                    ->values();
-
-                if ($activityIds->isNotEmpty()) {
-                    $taken = ActivityUser::query()
-                        ->selectRaw('activity_id, COUNT(*) as aggregate')
-                        ->whereIn('activity_id', $activityIds->all())
-                        ->whereBetween('created_at', [$activeEnrollmentWindow->starts_at, $activeEnrollmentWindow->ends_at])
-                        ->groupBy('activity_id')
-                        ->pluck('aggregate', 'activity_id');
-
-                    foreach ($activityIds as $activityId) {
-                        $activeWindowRemainingByActivityId[(int) $activityId] = max(0, $perActivityMax - (int) ($taken[(int) $activityId] ?? 0));
-                    }
-                }
-            }
-        }
+        $enrollment = $slotPresentation->enrollmentPresentation($event, now());
+        $activeEnrollmentWindow = $enrollment->activeWindow;
+        $activeWindowRemainingByActivityId = $enrollment->remainingByActivityId;
 
         $slotListActivityTagCategories = TagCategory::ACTIVITY_HIGHLIGHT_KEYS;
-        $slotHourGroups = $this->slotHourGroupsForEvent($event);
+        $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
             ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
             ->where('status', ActivityProposalStatus::Pending)
