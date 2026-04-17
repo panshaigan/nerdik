@@ -17,16 +17,16 @@ use Random\RandomException;
 use function fake;
 
 /**
- * Generate sample/test data
- */
+ * Generate sample/test data\
+ **/
 class SampleDataSeeder extends Seeder
 {
-    public const DATA_SET_MINIMAL = 1;
-    public const DATA_SET_STANDARD = 2;
-    public const DATA_SET_MAXIMAL = 3;
+    public const DATASET_MINIMAL = 1;
+    public const DATASET_STANDARD = 2;
+    public const DATASET_MAXIMAL = 3;
 
-    public const DATA_SETS = [
-        self::DATA_SET_MINIMAL => [
+    public const DATASETS = [
+        self::DATASET_MINIMAL => [
             'admins' => 1,
             'organizers' => 2,
             'standardUsers' => 10,
@@ -41,7 +41,7 @@ class SampleDataSeeder extends Seeder
             'scheduledActivities' => 30,
             'proposedActivities' => 50,
         ],
-        self::DATA_SET_STANDARD => [
+        self::DATASET_STANDARD => [
             'admins' => 2,
             'organizers' => 4,
             'standardUsers' => 20,
@@ -56,7 +56,7 @@ class SampleDataSeeder extends Seeder
             'scheduledActivities' => 60,
             'proposedActivities' => 100,
         ],
-        self::DATA_SET_MAXIMAL => [
+        self::DATASET_MAXIMAL => [
             'admins' => 4,
             'organizers' => 8,
             'standardUsers' => 40,
@@ -78,17 +78,20 @@ class SampleDataSeeder extends Seeder
      * All entities get created_by set. Safe to run multiple times (use firstOrCreate by slug/email).
      * @throws RandomException
      */
-    public function run(int $chosenDataset = self::DATA_SET_MINIMAL): void
+    public function run(int $chosenDataset = self::DATASET_MINIMAL): void
     {
-        $dataset = self::DATA_SETS[$chosenDataset];
+        $dataset = self::DATASETS[$chosenDataset];
         $this->callWith(UserSeeder::class, ['dataset' => $dataset]);
         $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
 
         $activityTypes = ActivityType::all();
-        $tags          = Tag::all();
         $organizers    = User::where('is_event_organizer', 1)->get();
         $allUsers      = User::all();
         $venues        = Place::where('type', Place::TYPE_VENUE)->get();
+        $gameTags      = Tag::query()->games()->with('relatedTags')->get();
+        $formatTags    = Tag::query()->formats()->get();
+        $otherTags     = Tag::query()->others()->get();
+        $triggerTags   = Tag::query()->triggers()->get();
 
         $organizations = Organization::factory($dataset['organizations'])
             ->recycle($allUsers)
@@ -108,7 +111,7 @@ class SampleDataSeeder extends Seeder
             ->withRandomRooms()
             ->create();
 
-        Activity::factory($dataset['selfHostedActivities'])
+        $selfHostedActivities = Activity::factory($dataset['selfHostedActivities'])
             ->recycle($allUsers)
             ->predefined()
             ->selfHosted($allUsers)
@@ -131,21 +134,24 @@ class SampleDataSeeder extends Seeder
             ->scheduled()
             ->create();
 
-        foreach ($proposedActivities->merge($scheduledActivities) as $activity) {
+        foreach ($proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities) as $activity) {
             ActivityProposal::factory()
                 ->recycle($events->random())
                 ->recycle($activity)
                 ->recycle($activity->creator)
                 ->alignWithActivity($activity)
                 ->create();
-        }
 
-//        foreach ($scheduledActivities as $activity) {
-//            ActivityProposal::factory()
-//                ->recycle($events->random())
-//                ->recycle($activity)
-//                ->recycle($activity->creator)
-//                ->create();
-//        }
+            $activity->tags()->attach($otherTags->random(1));
+            $activity->tags()->attach($formatTags->random(1));
+            $activity->tags()->attach($triggerTags->random(fake()->numberBetween(1, 3)));
+
+            $randomGameTag = $gameTags->random(1)->first();
+            $activity->tags()->attach($randomGameTag);
+
+            foreach ($randomGameTag->relatedTags as $relatedTag) {
+                $activity->tags()->attach($relatedTag);
+            }
+        }
     }
 }

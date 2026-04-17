@@ -2,15 +2,24 @@
 
 namespace App\Services;
 
+use App\Models\ActivityType;
 use App\Models\Tag;
+use App\Models\TagContext;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+
+use Throwable;
+
+use function is_numeric;
+use function is_string;
 
 class TagSelectionService
 {
     /**
-     * @param  array<int|string, mixed>  $tagIds
-     * @param  array<int|string, mixed>  $newTags
+     * @param array<int|string, mixed> $tagIds
+     * @param array<int|string, mixed> $newTags
      * @return list<int>
+     * @throws Throwable
      */
     public function resolveFinalTagIds(array $tagIds, array $newTags = []): array
     {
@@ -35,6 +44,9 @@ class TagSelectionService
         return $this->expandTagIdsViaRelations($all);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function findOrCreateTagByLabel(string $label, int $categoryId): int
     {
         $lower = mb_strtolower(trim($label));
@@ -49,11 +61,7 @@ class TagSelectionService
             })
             ->first();
 
-        if ($existing) {
-            return $existing->id;
-        }
-
-        return DB::transaction(function () use ($label, $categoryId, $locale) {
+        return $existing->id ?? DB::transaction(static function () use ($label, $categoryId, $locale) {
             $tag = Tag::create([
                 'tag_category_id' => $categoryId,
             ]);
@@ -105,5 +113,35 @@ class TagSelectionService
         sort($all);
 
         return $all;
+    }
+
+    public function syncActivityTypeContexts(Tag $tag, array $types): void
+    {
+        $tag->contexts()->where('context_type', 'activity_type')->delete();
+
+        foreach ($types as $type) {
+            $id = is_numeric($type) ? (int) $type : null;
+            if (is_string($type) && ! is_numeric($type)) {
+                $id = ActivityType::query()->where('slug', $type)->value('id');
+            }
+            if ($id !== null && ActivityType::query()->whereKey($id)->exists()) {
+                $tag->contexts()->create([
+                    'context_type' => 'activity_type',
+                    'context_id' => $id,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * @return Collection<int, ActivityType>
+     */
+    public function getActivityTypeContextsAttribute($tag): Collection
+    {
+        return $tag->contexts()
+            ->where('context_type', 'activity_type')
+            ->get()
+            ->map(fn (TagContext $c) => $c->activityType())
+            ->filter();
     }
 }
