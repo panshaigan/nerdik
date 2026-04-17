@@ -2,7 +2,12 @@
 
 namespace App\Models;
 
+use Cache;
 use Illuminate\Database\Eloquent\Model;
+
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+use function now;
 
 class TagCategory extends Model
 {
@@ -55,12 +60,12 @@ class TagCategory extends Model
         'key',
     ];
 
-    public function translations()
+    public function translations(): HasMany
     {
         return $this->hasMany(TagCategoryTranslation::class);
     }
 
-    public function tags()
+    public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);
     }
@@ -78,5 +83,14 @@ class TagCategory extends Model
         }
 
         return (string) $this->key;
+    }
+
+    public static function idByKey(string $key): ?int
+    {
+        $map = Cache::remember('tag_categories.key_to_id', now()->addHours(12), static function () {
+            return self::query()->pluck('id', 'key');
+        });
+
+        return $map[$key] ?? null;
     }
 }

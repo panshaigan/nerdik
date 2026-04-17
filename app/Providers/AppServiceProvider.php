@@ -3,9 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Activity;
+use App\Models\ActivityType;
+use App\Models\Event;
+use App\Models\Organization;
+use App\Models\Place;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -17,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        parent::register();
     }
 
     /**
@@ -30,18 +35,18 @@ class AppServiceProvider extends ServiceProvider
 
         // Keep polymorphic type strings compact and stable across apps/packages.
         Relation::morphMap([
-            'activity' => \App\Models\Activity::class,
-            'event' => \App\Models\Event::class,
-            'organization' => \App\Models\Organization::class,
-            'place' => \App\Models\Place::class,
-            'user' => \App\Models\User::class,
-            'activity_type' => \App\Models\ActivityType::class,
+            'activity' => Activity::class,
+            'event' => Event::class,
+            'organization' => Organization::class,
+            'place' => Place::class,
+            'user' => User::class,
+            'activity_type' => ActivityType::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.
         Carbon::setLocale(app()->getLocale());
 
-        Blade::if('canModifyEntity', function (mixed $entity): bool {
+        Blade::if('canModifyEntity', static function (mixed $entity): bool {
             if (! $entity instanceof Model) {
                 return false;
             }

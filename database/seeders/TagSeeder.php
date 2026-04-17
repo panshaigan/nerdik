@@ -217,12 +217,12 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Dice pool',
+                'en' => 'Dice Pool',
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => TagCategory::KEY_MECHANIC,
-                'en' => 'Step dice',
+                'en' => 'Step Dice',
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -389,8 +389,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
-                'en' => 'Lord of the Rings',
-                'pl' => 'Władca Pierścieni',
+                'en' => 'Middle-earth',
+                'pl' => 'Śródziemie',
             ],
         ];
 
@@ -846,30 +846,146 @@ class TagSeeder extends Seeder
     public function seedGames(): void
     {
         $tags = [
-            // Games (RPGs)
             [
                 'category' => 'game',
                 'en' => 'Dungeons & Dragons 5E',
                 'aliases' => ['en' => 'D&D'],
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['5E'], $this->tagIds['Forgotten Realms']],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Warhammer Fantasy Roleplay 4E',
                 'aliases' => ['en' => 'WFRP4'],
-                'relations' => [],
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d100'], $this->tagIds['Warhammer Fantasy']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Forbidden Lands',
                 'pl' => 'Zakazane Ziemie',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Year Zero Engine']],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Call of Cthulhu',
                 'pl' => 'Zew Cthulhu',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
+                'contexts' => [ActivityType::SLUG_RPG],
             ],
-
+            [
+                'category' => 'game',
+                'en' => 'Neuroshima',
+                'relations' => [$this->tagIds['Science Fiction']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Dzikie Pola',
+                'relations' => [$this->tagIds['Historical'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Cyberpunk RED',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Pathfinder 2E',
+                'aliases' => ['en' => 'PF2E'],
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Blades in the Dark',
+                'pl' => 'Ostrza w mroku',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Forged in the Dark']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Vampire: The Masquerade 5E',
+                'pl' => 'Wampir: Maskarada 5E',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Dice Pool'], $this->tagIds['World of Darkness']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'The One Ring',
+                'pl' => 'Władca Pierścieni',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Middle-earth']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Deadlands: Martwe Ziemie',
+                'relations' => [$this->tagIds['Savage Worlds'], $this->tagIds['Weird West']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Earthdawn',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Step Dice']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Mörk Borg',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Mörk Borg TPL']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Alien',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Coriolis',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Year Zero Engine']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Wolsung',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d20'], $this->tagIds['Steampunk']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Conan: Adventures in an Age Undreamed Of',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['2d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Star Wars: Edge of the Empire',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Genesys'], $this->tagIds['Star Wars']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Delta Green',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Monster of the Week',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Powered by the Apocalypse']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => '7th Sea',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Dice Pool']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
         ];
 
         $this->executeSeedingTags($tags);
