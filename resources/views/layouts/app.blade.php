@@ -34,6 +34,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-branding-styles />
     </head>
     <body class="font-sans antialiased bg-base-200 text-base-content">
         <div class="min-h-screen bg-base-200 flex flex-col">
