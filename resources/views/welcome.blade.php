@@ -9,7 +9,19 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
+        <script>
+            (() => {
+                window.applyTheme = () => {
+                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                };
+                window.applyTheme();
+                document.addEventListener('livewire:navigated', window.applyTheme);
+            })();
+        </script>
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-branding-styles />
     </head>
     <body class="min-h-screen bg-base-200 font-sans text-base-content antialiased">
         <div class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">

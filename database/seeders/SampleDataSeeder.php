@@ -134,7 +134,8 @@ class SampleDataSeeder extends Seeder
             ->scheduled()
             ->create();
 
-        foreach ($proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities) as $activity) {
+        $activities = $proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities);
+        foreach ($activities as $activity) {
             ActivityProposal::factory()
                 ->recycle($events->random())
                 ->recycle($activity)
@@ -152,6 +153,11 @@ class SampleDataSeeder extends Seeder
             foreach ($randomGameTag->relatedTags as $relatedTag) {
                 $activity->tags()->attach($relatedTag);
             }
+        }
+
+        foreach ($allUsers as $user) {
+            $user->interestedActivities()->attach($activities->random(fake()->numberBetween(0, 10)));
+            $user->interestedEvents()->attach($events->random(fake()->numberBetween(0, 2)));
         }
     }
 }

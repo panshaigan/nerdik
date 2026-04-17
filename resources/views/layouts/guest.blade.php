@@ -11,8 +11,20 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <script>
+            (() => {
+                window.applyTheme = () => {
+                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                };
+                window.applyTheme();
+                document.addEventListener('livewire:navigated', window.applyTheme);
+            })();
+        </script>
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-branding-styles />
     </head>
     <body class="bg-base-200 font-sans antialiased text-base-content">
         <div class="flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0">
