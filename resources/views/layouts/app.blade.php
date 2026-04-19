@@ -11,24 +11,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <script>
-            (() => {
-                window.applyTheme = () => {
-                    const savedTheme = localStorage.getItem('theme') || 'dark';
-                    document.documentElement.setAttribute('data-theme', savedTheme);
-                };
-
-                window.toggleTheme = () => {
-                    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    localStorage.setItem('theme', next);
-                    window.applyTheme();
-                };
-
-                window.applyTheme();
-                document.addEventListener('livewire:navigated', window.applyTheme);
-            })();
-        </script>
+        <x-theme-script />
 
         @stack('head')
 
@@ -36,7 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-branding-styles />
     </head>
-    <body class="font-sans antialiased bg-base-200 text-base-content">
+    <body class="bg-mermaid font-sans antialiased bg-base-200 text-base-content">
         <div class="min-h-screen bg-base-200 flex flex-col">
             <livewire:layout.navigation />
 

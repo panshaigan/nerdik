@@ -9,16 +9,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
-        <script>
-            (() => {
-                window.applyTheme = () => {
-                    const savedTheme = localStorage.getItem('theme') || 'dark';
-                    document.documentElement.setAttribute('data-theme', savedTheme);
-                };
-                window.applyTheme();
-                document.addEventListener('livewire:navigated', window.applyTheme);
-            })();
-        </script>
+        <x-theme-script />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-branding-styles />
