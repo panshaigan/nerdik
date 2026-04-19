@@ -18,7 +18,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-mermaid font-sans antialiased text-base-content">
+    <body class="bg-sample5 font-sans antialiased text-base-content">
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
