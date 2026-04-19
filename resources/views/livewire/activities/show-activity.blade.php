@@ -83,9 +83,9 @@
                                 data-ui="activity-show-badge-group"
                             />
                         </div>
-                        @if ((! $activity->is_host_passive && $hostUser) || $activity->duration_in_minutes)
+                        @if ((! $activity->is_host_passive && $hostUser) || $activity->duration_in_minutes || $event)
                             <div
-                                class="flex max-w-[min(100%,14rem)] shrink-0 flex-col items-end gap-3 text-end sm:max-w-[16rem]"
+                                class="flex min-w-0 max-w-[min(100%,14rem)] shrink-0 flex-col items-end gap-3 text-end sm:max-w-[16rem]"
                                 data-ui="activity-show-hero-meta"
                             >
                                 @if (! $activity->is_host_passive && $hostUser)
@@ -104,6 +104,19 @@
                                     <div class="text-sm">
                                         <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
                                         <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                    </div>
+                                @endif
+                                @if ($event)
+                                    <div class="text-sm">
+                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.browse.attached_event') }}</p>
+                                        <p class="mt-1 block font-medium text-base-content">
+                                            <a
+                                                href="{{ route('events.show', $event) }}"
+                                                wire:navigate
+                                                class="link link-primary break-words text-end"
+                                                data-ui="activity-show-hero-event-link"
+                                            >{{ $event->name }}</a>
+                                        </p>
                                     </div>
                                 @endif
                             </div>
