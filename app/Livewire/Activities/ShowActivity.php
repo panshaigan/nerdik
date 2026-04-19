@@ -12,6 +12,7 @@ class ShowActivity extends Component
     public int $activityId;
 
     public ?string $cancelReason = null;
+
     public string $tab = 'info';
 
     protected array $queryString = [
@@ -73,8 +74,10 @@ class ShowActivity extends Component
             'participants.user',
             'waitlist.user',
             'slot.event.enrollmentWindows',
-            'slot.place.parent',
-            'place.parent',
+            'slot.place.parent.city',
+            'slot.place.city',
+            'place.parent.city',
+            'place.city',
         ]);
 
         $vm = $participationView->forShow($activity, auth()->user());
