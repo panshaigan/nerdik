@@ -69,139 +69,139 @@
                     </div>
                 @endif
                 <div class="relative z-10 flex flex-col gap-4 p-6 sm:p-8">
-                    <div class="flex items-start gap-3 sm:gap-4" dir="ltr">
-                        <div class="min-w-0 flex-1 space-y-2">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                {{ $activityTypeLabel }}
-                            </p>
-                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
-                                {{ $activity->name }}
-                            </h1>
-                            @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
-                                <div class="flex flex-wrap items-center gap-1 pt-0.5">
-                                    @if ($activity->tags->isNotEmpty())
-                                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
-                                    @endif
-                                    @if ($activity->requires_approval)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
-                                    @endif
-                                    @if ($activity->allows_observers)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
-                                    @endif
-                                    @if (filled($activity->minimum_age))
-                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
-                                    @endif
+                    <div class="min-w-0 space-y-2" dir="ltr">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            {{ $activityTypeLabel }}
+                        </p>
+                        <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
+                            {{ $activity->name }}
+                        </h1>
+                        @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
+                            <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                                @if ($activity->tags->isNotEmpty())
+                                    @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
+                                @endif
+                                @if ($activity->requires_approval)
+                                    <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
+                                @endif
+                                @if ($activity->allows_observers)
+                                    <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
+                                @endif
+                                @if (filled($activity->minimum_age))
+                                    <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
+                                @endif
+                            </div>
+                        @endif
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
+                            @if (! $activity->is_host_passive && $hostUser)
+                                <div class="min-w-0 text-sm">
+                                    <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
+                                    <x-user-badge
+                                        :user="$hostUser"
+                                        size="md"
+                                        name-class="truncate text-base font-semibold text-base-content"
+                                        data-ui="activity-show-host"
+                                    />
                                 </div>
                             @endif
-                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                                @if (! $activity->is_host_passive && $hostUser)
-                                    <div class="min-w-0 text-sm">
-                                        <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
-                                        <x-user-badge
-                                            :user="$hostUser"
-                                            size="md"
-                                            name-class="truncate text-base font-semibold text-base-content"
-                                            data-ui="activity-show-host"
-                                        />
-                                    </div>
-                                @endif
-                                @if ($activity->duration_in_minutes)
-                                    <div class="min-w-0 text-sm">
-                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
-                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
-                                    </div>
-                                @endif
-                            </div>
+                            @if ($activity->duration_in_minutes)
+                                <div class="min-w-0 text-sm">
+                                    <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
+                                    <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                </div>
+                            @endif
                         </div>
-                        @auth
-                            <div class="flex shrink-0 items-center gap-1 pt-0.5 sm:pt-1" data-ui="activity-show-hero-actions">
-                                @if ($canManageActivity)
-                                    <x-button
-                                        :link="route('activities.edit', $activity)"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                        :title="__('Edit')"
-                                        :aria-label="__('Edit').': '.$activity->name"
-                                        data-ui="activity-show-edit"
-                                    >
-                                        <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                                    </x-button>
-                                    <form
-                                        action="{{ route('activities.destroy', $activity) }}"
-                                        method="POST"
-                                        class="inline"
-                                        onsubmit="return confirm({{ json_encode(__('Are you sure you want to delete this activity?')) }})"
-                                    >
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-button
-                                            type="submit"
-                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                            :title="__('Delete')"
-                                            :aria-label="__('Delete').': '.$activity->name"
-                                            data-ui="activity-show-delete"
-                                        >
-                                            <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                        </x-button>
-                                    </form>
-                                    @if ($isCancelled)
-                                        <x-button
-                                            type="button"
-                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
-                                            :title="__('ui.activities.reopen_action')"
-                                            :aria-label="__('ui.activities.reopen_action')"
-                                            wire:click="reopen"
-                                            wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
-                                        >
-                                            ↺
-                                        </x-button>
-                                    @else
-                                        <x-button
-                                            type="button"
-                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
-                                            :title="__('ui.activities.cancel_action')"
-                                            :aria-label="__('ui.activities.cancel_action')"
-                                            wire:click="cancel"
-                                            wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
-                                        >
-                                            ×
-                                        </x-button>
-                                    @endif
-                                @endif
-                                <x-button
-                                    :link="route('activities.create', ['duplicate' => $activity->slug])"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :title="__('ui.activities.duplicate_action')"
-                                    :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
-                                    data-ui="activity-show-duplicate"
-                                >
-                                    <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
-                                </x-button>
-                                @if ($hasInterest)
-                                    <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="activity-show-interest-remove">★</x-button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('interests.activities.add', $activity) }}" method="POST" class="inline">
-                                        @csrf
-                                        <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="activity-show-interest-add">☆</x-button>
-                                    </form>
-                                @endif
-                            </div>
-                        @endauth
                     </div>
                 </div>
             </div>
 
-            <x-tabs
+            <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto border-b border-base-300 px-3 pt-2"
+                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
                 data-ui="activity-show-tabs"
             >
+                <x-slot:toolbar>
+                    @auth
+                        <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
+                            @if ($canManageActivity)
+                                <x-button
+                                    :link="route('activities.edit', $activity)"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    :title="__('Edit')"
+                                    :aria-label="__('Edit').': '.$activity->name"
+                                    data-ui="activity-show-edit"
+                                >
+                                    <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
+                                </x-button>
+                                <form
+                                    action="{{ route('activities.destroy', $activity) }}"
+                                    method="POST"
+                                    class="inline"
+                                    onsubmit="return confirm({{ json_encode(__('Are you sure you want to delete this activity?')) }})"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-button
+                                        type="submit"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                        :title="__('Delete')"
+                                        :aria-label="__('Delete').': '.$activity->name"
+                                        data-ui="activity-show-delete"
+                                    >
+                                        <x-ui.icons.trash class="h-5 w-5 shrink-0" />
+                                    </x-button>
+                                </form>
+                                @if ($isCancelled)
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                        :title="__('ui.activities.reopen_action')"
+                                        :aria-label="__('ui.activities.reopen_action')"
+                                        wire:click="reopen"
+                                        wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                    >
+                                        ↺
+                                    </x-button>
+                                @else
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                        :title="__('ui.activities.cancel_action')"
+                                        :aria-label="__('ui.activities.cancel_action')"
+                                        wire:click="cancel"
+                                        wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                    >
+                                        ×
+                                    </x-button>
+                                @endif
+                            @endif
+                            <x-button
+                                :link="route('activities.create', ['duplicate' => $activity->slug])"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                :title="__('ui.activities.duplicate_action')"
+                                :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
+                                data-ui="activity-show-duplicate"
+                            >
+                                <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
+                            </x-button>
+                            @if ($hasInterest)
+                                <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="activity-show-interest-remove">★</x-button>
+                                </form>
+                            @else
+                                <form action="{{ route('interests.activities.add', $activity) }}" method="POST" class="inline">
+                                    @csrf
+                                    <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="activity-show-interest-add">☆</x-button>
+                                </form>
+                            @endif
+                        </div>
+                    @endauth
+                </x-slot:toolbar>
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-book-open">
                     <div class="flex flex-col" data-ui="activity-show-info">
                         <div class="px-6 pb-6 pt-6 sm:px-8 sm:pt-8">
@@ -395,7 +395,7 @@
                         </div>
                     </div>
                 </x-tab>
-            </x-tabs>
+            </x-ui.tabs-with-toolbar>
         </div>
     </div>
 </div>
