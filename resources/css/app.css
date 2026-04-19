@@ -15,9 +15,22 @@
 @source '../../vendor/filament/**/*.blade.php';
 
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark, cupcake;
+    themes: light --default, dark --prefersdark;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+[data-theme="light"] .bg-mermaid {
+    background: linear-gradient(135deg,
+    oklch(98.5% 0.008 225) 0%,
+    oklch(93.5% 0.02 222) 100%);
+}
+
+[data-theme="dark"] .bg-mermaid {
+    background: linear-gradient(135deg,
+    oklch(16.5% 0.045 235) 0%,
+    oklch(10.5% 0.055 242) 100%);
+}
 /*
  * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
  * (tiles shrink / fail to align → blank gray map).

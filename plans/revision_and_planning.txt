@@ -24,6 +24,7 @@ UI/UX
 - check the admin panel
 - should we allow users to delete their own tags?
 - ORGANIZCJA powinna być przypinywalna też do graczy.
+- search everything on top
 
 Notifications
     - review
@@ -38,6 +39,7 @@ Notifications
 Technicals
     - security
     - performance
+    - posgress?
     - APIs:
         - GOOGLE login (create app + add widget to login page)
         - Facebook login

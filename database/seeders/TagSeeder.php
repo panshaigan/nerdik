@@ -986,6 +986,84 @@ class TagSeeder extends Seeder
                 'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Dice Pool']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
+            [
+                'category' => 'game',
+                'en' => 'Shadowrun 6E',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool'], $this->tagIds['Shadowrun']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Starfinder',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Fate Core',
+                'relations' => [],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Dungeon World',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Powered by the Apocalypse']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Monastyr',
+                'relations' => [$this->tagIds['Fantasy']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Kryształy Czasu',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d100']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Vaesen',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Year Zero Engine']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Dragonbane',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Fallout',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['2d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Kult: Divinity Lost',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Powered by the Apocalypse']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'City of Mist',
+                'relations' => [$this->tagIds['Powered by the Apocalypse']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Fabula Ultima',
+                'relations' => [$this->tagIds['Fantasy']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Pendragon',
+                'relations' => [$this->tagIds['Historical'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
         ];
 
         $this->executeSeedingTags($tags);

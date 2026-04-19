@@ -47,28 +47,19 @@ new class extends Component
             </div>
 
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
-                <x-button
-                    type="button"
-                    onclick="window.toggleTheme()"
-                    class="btn-sm rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs hover:bg-base-200"
-                >
-                    <span>{{ __('Theme') }}</span>
-                </x-button>
-                <div class="inline-flex items-center rounded-md border border-base-300 bg-base-100 p-1 text-xs">
-                    <span class="px-2 opacity-70">{{ __('ui.common.language') }}</span>
-                    <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
-                       class="rounded px-2 py-1 {{ app()->getLocale() === 'en' ? 'bg-primary text-primary-content' : 'opacity-80 hover:bg-base-200' }}">
-                        {{ __('ui.common.language_en') }}
-                    </a>
-                    <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
-                       class="rounded px-2 py-1 {{ app()->getLocale() === 'pl' ? 'bg-primary text-primary-content' : 'opacity-80 hover:bg-base-200' }}">
-                        {{ __('ui.common.language_pl') }}
-                    </a>
-                </div>
+                <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
+                   class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'bg-primary text-primary-content' : '' }}">
+                    {{ __('EN') }}
+                </a>
+                <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
+                   class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'bg-primary text-primary-content' : '' }}">
+                    {{ __('PL') }}
+                </a>
+                <x-theme-toggle class="btn btn-circle btn-ghost"/>
                 @auth
-                <a href="{{ route('notifications.index') }}" wire:navigate class="relative rounded-md p-2 opacity-80 hover:bg-base-200 hover:opacity-100">
+                <a href="{{ route('notifications.index') }}" wire:navigate class="btn btn-circle btn-ghost">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     @if (auth()->user()->unreadNotifications->count() > 0)
                         <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-medium text-error-content">
@@ -144,25 +135,25 @@ new class extends Component
 
             <div class="mt-3 space-y-1">
                 <div class="px-4 py-2">
-                    <x-button
-                        type="button"
-                        onclick="window.toggleTheme()"
-                        class="mb-3 btn-sm rounded border border-base-300 px-2 py-1 text-xs"
-                    >
-                        {{ __('Theme') }}
-                    </x-button>
                     <p class="text-xs uppercase tracking-wide opacity-70">{{ __('ui.common.language') }}</p>
                     <div class="mt-2 flex gap-2">
                         <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
-                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'en' ? 'border-primary bg-primary text-primary-content' : 'border-base-300' }}">
-                            {{ __('ui.common.language_en') }}
+                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'border-primary bg-primary text-primary-content' : '' }}">
+                            {{ __('EN') }}
                         </a>
                         <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
-                           class="rounded border px-2 py-1 text-xs {{ app()->getLocale() === 'pl' ? 'border-primary bg-primary text-primary-content' : 'border-base-300' }}">
-                            {{ __('ui.common.language_pl') }}
+                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'border-primary bg-primary text-primary-content' : '' }}">
+                            {{ __('PL') }}
                         </a>
                     </div>
                 </div>
+                <a href="#"
+                    type="button"
+                    onclick="window.toggleTheme()"
+                    class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80"
+                >
+                    {{ __('Switch Theme') }}
+                </a>
                 @auth
                 <a href="{{ route('notifications.index') }}" wire:navigate
                    class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">

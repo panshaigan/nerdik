@@ -55,7 +55,7 @@ final class EventFactory extends Factory
             'organization_id' => Organization::factory(),
             'is_public' => fake()->boolean(),
             'slug' => Str::slug($name),
-            'description' => fake()->optional()->text,
+            'description' => fake()->optional()->text(2000),
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
             'created_by' => User::factory(),
