@@ -74,25 +74,14 @@
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                                 {{ $activityTypeLabel }}
                             </p>
-                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
+                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl pb-4">
                                 {{ $activity->name }}
                             </h1>
-                            @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
-                                <div class="flex flex-wrap items-center gap-1 pt-0.5">
-                                    @if ($activity->tags->isNotEmpty())
-                                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
-                                    @endif
-                                    @if ($activity->requires_approval)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
-                                    @endif
-                                    @if ($activity->allows_observers)
-                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
-                                    @endif
-                                    @if (filled($activity->minimum_age))
-                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
-                                    @endif
-                                </div>
-                            @endif
+                            <x-ui.activity-badge-group
+                                :items="$badgeItems"
+                                class="pt-0.5"
+                                data-ui="activity-show-badge-group"
+                            />
                         </div>
                         @if ((! $activity->is_host_passive && $hostUser) || $activity->duration_in_minutes)
                             <div
@@ -212,7 +201,7 @@
                 </x-slot:toolbar>
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-book-open">
                     <div class="flex flex-col" data-ui="activity-show-info">
-                        <div class="px-6 pb-6 pt-6 sm:px-8 sm:pt-8">
+                        <div class="px-6 pb-6 pt-6 mb-2 sm:px-8 sm:pt-8">
                             @if (filled(rich_text_excerpt($activity->description)))
                                 <div class="rich-text-content text-sm leading-relaxed text-base-content/90">
                                     {!! rich_text($activity->description) !!}

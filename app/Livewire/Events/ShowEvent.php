@@ -7,7 +7,6 @@ use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
-use App\Models\TagCategory;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
@@ -287,7 +286,6 @@ class ShowEvent extends Component
         $activeEnrollmentWindow = $enrollment->activeWindow;
         $activeWindowRemainingByActivityId = $enrollment->remainingByActivityId;
 
-        $slotListActivityTagCategories = TagCategory::ACTIVITY_HIGHLIGHT_KEYS;
         $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
         $pendingProposals = $event->proposals()
             ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
@@ -334,7 +332,6 @@ class ShowEvent extends Component
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
             'slotHourGroups' => $slotHourGroups,
-            'slotListActivityTagCategories' => $slotListActivityTagCategories,
         ]);
     }
 }

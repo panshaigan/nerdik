@@ -21,7 +21,7 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
-        $myActivities = Activity::with(['creator', 'activityType'])
+        $myActivities = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory'])
             ->where('created_by', $user->id)
             ->orderBy('updated_at', 'desc')
             ->limit(10)
@@ -40,7 +40,7 @@ class Dashboard extends Component
             ->get();
 
         $interestedEvents = $user->interestedEvents()->with(['organization'])->orderBy('name')->limit(10)->get();
-        $interestedActivities = $user->interestedActivities()->with('creator')->orderBy('name')->limit(10)->get();
+        $interestedActivities = $user->interestedActivities()->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory'])->orderBy('name')->limit(10)->get();
 
         return view('livewire.dashboard.dashboard', [
             'myEvents' => $myEvents,

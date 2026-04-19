@@ -283,7 +283,7 @@ class BrowseEvents extends Component
      */
     protected function paginateActivitiesOnly()
     {
-        $query = $this->baseActivityQuery()->with(['creator', 'tags.translations', 'slot.event', 'place'])
+        $query = $this->baseActivityQuery()->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'place'])
             ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
         $this->applyBrowseActivitySort($query);
         $paginator = $query->paginate(self::PER_PAGE);
@@ -310,7 +310,7 @@ class BrowseEvents extends Component
             DB::raw("'activity' as listing_kind"),
             'activities.id as listing_id',
             'activities.name as sort_name',
-            DB::raw("COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1), COALESCE(activities.ends_at, activities.starts_at)) as sort_at"),
+            DB::raw('COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1), COALESCE(activities.ends_at, activities.starts_at)) as sort_at'),
         ]);
 
         $union = $eventPart->toBase()->unionAll($activityPart->toBase());
@@ -352,7 +352,7 @@ class BrowseEvents extends Component
         $activities = $activityIds === []
             ? collect()
             : Activity::query()
-                ->with(['creator', 'tags.translations', 'slot.event', 'place'])
+                ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'place'])
                 ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)])
                 ->whereIn('id', $activityIds)
                 ->get()
