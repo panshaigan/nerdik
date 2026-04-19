@@ -12,7 +12,6 @@
         <x-theme-script />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <x-branding-styles />
     </head>
     <body class="min-h-screen bg-base-200 font-sans text-base-content antialiased">
         <div class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">

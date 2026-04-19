@@ -17,10 +17,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <x-branding-styles />
     </head>
-    <body class="bg-mermaid font-sans antialiased bg-base-200 text-base-content">
-        <div class="min-h-screen bg-base-200 flex flex-col">
+    <body class="bg-mermaid font-sans antialiased text-base-content">
+        <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
             <!-- Page Heading -->

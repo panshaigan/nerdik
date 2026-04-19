@@ -14,23 +14,116 @@
 /* Filament: include vendor Blade so any shared utility classes in panel views are not purged from this bundle if referenced. */
 @source '../../vendor/filament/**/*.blade.php';
 
+/* Disable built-in themes so our custom one takes over */
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark;
+    themes: false;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ─── Shared brand tokens (theme-independent) ─────────────────────── */
+@layer base {
+    :root {
+        --brand-primary:           oklch(66.6% 0.190 305);
+        --brand-primary-content:   oklch(98% 0.01 305);
 
-[data-theme="light"] .bg-mermaid {
-    background: linear-gradient(135deg,
-    oklch(98.5% 0.008 225) 0%,
-    oklch(93.5% 0.02 222) 100%);
+        --brand-secondary:         oklch(66.6% 0.105 205);
+        --brand-secondary-content: oklch(98% 0.01 205);
+
+        --brand-accent:            oklch(66.6% 0.119 166);
+        --brand-accent-content:    oklch(15% 0.03 188);
+
+        --brand-info:              oklch(70% 0.16 220);
+        --brand-info-content:      oklch(98% 0.01 220);
+        --brand-success:           oklch(65% 0.18 150);
+        --brand-success-content:   oklch(98% 0.01 150);
+        --brand-warning:           oklch(75% 0.18 80);
+        --brand-warning-content:   oklch(20% 0.05 80);
+        --brand-error:             oklch(60% 0.22 25);
+        --brand-error-content:     oklch(98% 0.01 25);
+
+        --brand-rounded-btn: 0.5rem;     /* button border radius */
+        --brand-rounded-box: 0.75rem;    /* card/box radius */
+        --brand-rounded-badge: 9999px;   /* pill badges */
+        --brand-animation-btn: 0.15s;    /* press feedback */
+        --brand-border-btn: 1px;         /* outlined button border */
+        --brand-btn-focus-scale: 0.98;   /* subtle press feel */
+    }
 }
 
-[data-theme="dark"] .bg-mermaid {
-    background: linear-gradient(135deg,
-    oklch(16.5% 0.045 235) 0%,
-    oklch(10.5% 0.055 242) 100%);
+/* ─── Light theme ──────────────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+    name: "light";
+    default: true;
+    color-scheme: light;
+
+    --color-primary:           var(--brand-primary);
+    --color-primary-content:   var(--brand-primary-content);
+    --color-secondary:         var(--brand-secondary);
+    --color-secondary-content: var(--brand-secondary-content);
+    --color-accent:            var(--brand-accent);
+    --color-accent-content:    var(--brand-accent-content);
+
+    --color-neutral:           oklch(25% 0.02 250);
+    --color-neutral-content:   oklch(95% 0.01 250);
+    --color-base-100:          oklch(100% 0 0);
+    --color-base-200:          oklch(96% 0.01 250);
+    --color-base-300:          oklch(90% 0.02 250);
+    --color-base-content:      oklch(20% 0.02 250);
+
+    --color-info:              var(--brand-info);
+    --color-info-content:      var(--brand-info-content);
+    --color-success:           var(--brand-success);
+    --color-success-content:   var(--brand-success-content);
+    --color-warning:           var(--brand-warning);
+    --color-warning-content:   var(--brand-warning-content);
+    --color-error:             var(--brand-error);
+    --color-error-content:     var(--brand-error-content);
+
+    --rounded-btn: var(--brand-rounded-btn);
+    --rounded-box: var(--brand-rounded-box);
+    --rounded-badge: var(--brand-rounded-badge);
+    --animation-btn: var(--brand-animation-btn);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-focus-scale);
 }
+
+/* ─── Dark theme — only neutrals change ───────────────────────────── */
+@plugin "daisyui/theme" {
+    name: "dark";
+    prefersdark: true;
+    color-scheme: dark;
+
+    --color-primary:           var(--brand-primary);
+    --color-primary-content:   var(--brand-primary-content);
+    --color-secondary:         var(--brand-secondary);
+    --color-secondary-content: var(--brand-secondary-content);
+    --color-accent:            var(--brand-accent);
+    --color-accent-content:    var(--brand-accent-content);
+
+    /* ↓ Only these differ from light */
+    --color-neutral:           oklch(80% 0.02 250);
+    --color-neutral-content:   oklch(15% 0.01 250);
+    --color-base-100:          oklch(18% 0.02 250);
+    --color-base-200:          oklch(22% 0.02 250);
+    --color-base-300:          oklch(27% 0.02 250);
+    --color-base-content:      oklch(90% 0.01 250);
+
+    --color-info:              var(--brand-info);
+    --color-info-content:      var(--brand-info-content);
+    --color-success:           var(--brand-success);
+    --color-success-content:   var(--brand-success-content);
+    --color-warning:           var(--brand-warning);
+    --color-warning-content:   var(--brand-warning-content);
+    --color-error:             var(--brand-error);
+    --color-error-content:     var(--brand-error-content);
+
+    --rounded-btn: var(--brand-rounded-btn);
+    --rounded-box: var(--brand-rounded-box);
+    --rounded-badge: var(--brand-rounded-badge);
+    --animation-btn: var(--brand-animation-btn);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-focus-scale);
+}
+
 /*
  * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
  * (tiles shrink / fail to align → blank gray map).
