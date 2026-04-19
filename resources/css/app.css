@@ -199,6 +199,11 @@
         var(--brand-base-300-dark);
 }
 
+p {
+    /*line-height: 1.75;*/
+     line-height: 1.8;
+}
+
 /*
  * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
  * (tiles shrink / fail to align → blank gray map).
@@ -252,32 +257,4 @@
 .rich-text-content :where(th, td) {
     border: 1px solid color-mix(in oklab, currentColor 18%, transparent);
     padding: 0.35rem 0.5rem;
-}
-
-/*
- * Activity show page: event card column sizes to content; meta stats fill the rest.
- * Defined here so layout does not rely on Tailwind arbitrary / rebuild timing.
- */
-.activity-show-detail-layout {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: minmax(0, 1fr);
-}
-
-@media (min-width: 768px) {
-    .activity-show-detail-layout--split {
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: start;
-        gap: 1.5rem;
-    }
-}
-
-.activity-show-detail-event-cell {
-    justify-self: start;
-    min-width: 0;
-    max-width: 100%;
-}
-
-.activity-show-detail-meta-cell {
-    min-width: 0;
 }
