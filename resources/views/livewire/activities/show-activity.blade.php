@@ -73,6 +73,15 @@
                         <div class="min-w-0 flex-1 space-y-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                                 {{ $activityTypeLabel }}
+                                @if ($event)
+                                    @
+                                    <a
+                                        href="{{ route('events.show', $event) }}"
+                                        wire:navigate
+                                        class="link link-primary break-words text-end"
+                                        data-ui="activity-show-hero-event-link"
+                                    >{{ $event->name }}</a>
+                                @endif
                             </p>
                             <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl pb-4">
                                 {{ $activity->name }}
@@ -104,19 +113,6 @@
                                     <div class="text-sm">
                                         <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
                                         <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
-                                    </div>
-                                @endif
-                                @if ($event)
-                                    <div class="text-sm">
-                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.browse.attached_event') }}</p>
-                                        <p class="mt-1 block font-medium text-base-content">
-                                            <a
-                                                href="{{ route('events.show', $event) }}"
-                                                wire:navigate
-                                                class="link link-primary break-words text-end"
-                                                data-ui="activity-show-hero-event-link"
-                                            >{{ $event->name }}</a>
-                                        </p>
                                     </div>
                                 @endif
                             </div>
