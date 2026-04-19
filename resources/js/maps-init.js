@@ -48,7 +48,12 @@ function registerLivewireMapsMorphHook() {
     }
     livewireMapsMorphHookRegistered = true;
     window.Livewire.hook('morphed', () => {
-        requestAnimationFrame(() => bootEventPlacesUnified());
+        requestAnimationFrame(() => {
+            bootEventPlacesUnified();
+            import('./maps/event-show-map.js')
+                .then((m) => m.invalidateAllEventShowMaps())
+                .catch(() => {});
+        });
     });
 
     return true;
