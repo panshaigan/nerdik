@@ -13,6 +13,25 @@
         ? __('ui.activities.host_title.'.$activityTypeSlug)
         : __('Host');
     $hasOpenRunBlurb = $slot && ! $event;
+    $hostUser = $activity->creator;
+    $slotPlace = $slot?->place;
+    $schedulePlace = $selfHosted ? $selfHostedPlace : $slotPlace;
+    $scheduleVenue = $schedulePlace?->parent ?? $schedulePlace;
+    $scheduleRoom = $schedulePlace?->parent ? $schedulePlace->name : null;
+    $scheduleStartsAt = $selfHosted ? $activity->starts_at : $slot?->starts_at;
+    $scheduleEndsAt = $selfHosted ? $activity->ends_at : $slot?->ends_at;
+    $scheduleDateSummary = $scheduleStartsAt && $scheduleEndsAt
+        ? format_datetime_range_compact($scheduleStartsAt, $scheduleEndsAt)
+        : ($scheduleStartsAt ? format_in_user_tz($scheduleStartsAt, 'D, M j · H:i') : null);
+    $scheduleMapConfig = [
+        'places' => ($scheduleVenue && $scheduleVenue->latitude !== null && $scheduleVenue->longitude !== null)
+            ? [[
+                'name' => (string) $scheduleVenue->name,
+                'lat' => (float) $scheduleVenue->latitude,
+                'lng' => (float) $scheduleVenue->longitude,
+            ]]
+            : [],
+    ];
 @endphp
 
 <div class="py-10 sm:py-12">
@@ -75,17 +94,22 @@
                                 </div>
                             @endif
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                                @if (! $activity->is_host_passive && $activity->creator)
+                                @if (! $activity->is_host_passive && $hostUser)
                                     <div class="min-w-0 text-sm">
                                         <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
-                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->creator->nickname ?? $activity->creator->email }}</p>
+                                        <x-user-badge
+                                            :user="$hostUser"
+                                            size="md"
+                                            name-class="truncate text-base font-semibold text-base-content"
+                                            data-ui="activity-show-host"
+                                        />
                                     </div>
                                 @endif
                                 @if ($activity->duration_in_minutes)
-                                        <div class="min-w-0 text-sm">
-                                            <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
-                                            <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
-                                        </div>
+                                    <div class="min-w-0 text-sm">
+                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
+                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -178,9 +202,9 @@
                 tabs-class="w-full"
                 data-ui="activity-show-tabs"
             >
-                <x-tab name="info" :label="__('ui.activities.show_about')" class="" data-ui="activity-show-tab-info" icon="o-book-open">
-                    <div class="space-y-6 px-6 sm:px-8" data-ui="activity-show-info">
-                        <div class="">
+                <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-book-open">
+                    <div class="flex flex-col" data-ui="activity-show-info">
+                        <div class="px-6 pb-6 pt-6 sm:px-8 sm:pt-8">
                             @if (filled(rich_text_excerpt($activity->description)))
                                 <div class="rich-text-content text-sm leading-relaxed text-base-content/90">
                                     {!! rich_text($activity->description) !!}
@@ -188,6 +212,40 @@
                             @else
                                 <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>
                             @endif
+                        </div>
+
+                        <div
+                            class="relative isolate w-full overflow-hidden rounded-b-xl"
+                            data-event-show-map-root
+                            wire:ignore
+                        >
+                            <script type="application/json" data-event-show-map-config>@json($scheduleMapConfig)</script>
+                            <div
+                                data-event-show-map
+                                class="relative z-0 w-full bg-base-200/30"
+                                style="min-height: 280px; height: min(420px, 52vh);"
+                                data-ui="activity-show-schedule-map"
+                            ></div>
+                            <div class="absolute inset-x-0 bottom-0 z-20 bg-black/60 px-4 py-3 text-white backdrop-blur-[1px]" data-ui="activity-show-schedule-overlay">
+                                <div class="space-y-1">
+                                    @if ($scheduleVenue)
+                                        <p class="text-sm">
+                                            <span class="font-semibold text-xl">{{ $scheduleVenue->name }}</span>
+                                            @if ($scheduleRoom)
+                                                <span>({{ $scheduleRoom }})</span>
+                                            @endif
+                                            ·
+                                            <span>{{ $scheduleVenue?->address ?: __('ui.common.none') }}</span>,
+                                            @if ($scheduleVenue?->city)
+                                                <span>{{ $scheduleVenue->city->name(app()->getLocale()) }}</span>
+                                            @endif
+                                        </p>
+                                    @endif
+                                    <p class="text-xs text-white/90">
+                                        {{ $scheduleDateSummary ?: __('ui.activities.show_open_run') }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </x-tab>
@@ -262,15 +320,16 @@
                                 <ul class="divide-y divide-base-300">
                                     @forelse ($activity->participants as $p)
                                         <li class="flex items-center justify-between gap-3 py-3 first:pt-0">
-                                            <span class="min-w-0 text-sm">
-                                                {{ $p->user->nickname ?? $p->user->email }}
-                                                @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
-                                                    <span class="ml-1 text-base-content/60">({{ __('Host') }})</span>
-                                                @endif
-                                                @if ($p->is_absent)
-                                                    <span class="ml-1 text-error">({{ __('Absent') }})</span>
-                                                @endif
-                                            </span>
+                                            <x-user-badge
+                                                :user="$p->user"
+                                                size="sm"
+                                                :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('Host') : null)"
+                                                name-class="truncate text-sm font-medium text-base-content"
+                                                class="min-w-0 flex-1"
+                                            />
+                                            @if ($p->is_absent)
+                                                <span class="text-xs font-medium text-error">({{ __('Absent') }})</span>
+                                            @endif
                                             @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
                                                 <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
                                                     @if ($p->is_absent)
@@ -309,10 +368,14 @@
                                     <ul class="divide-y divide-base-300">
                                         @foreach ($activity->waitlist as $entry)
                                             <li class="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0">
-                                                <span class="min-w-0 text-sm">
-                                                    <span class="tabular-nums text-base-content/60">#{{ $entry->position }}</span>
-                                                    {{ $entry->user->nickname ?? $entry->user->email }}
-                                                </span>
+                                                <div class="flex min-w-0 items-center gap-2">
+                                                    <span class="tabular-nums text-xs text-base-content/60">#{{ $entry->position }}</span>
+                                                    <x-user-badge
+                                                        :user="$entry->user"
+                                                        size="sm"
+                                                        name-class="truncate text-sm font-medium text-base-content"
+                                                    />
+                                                </div>
                                                 @if ($canManageActivity && $activity->requires_approval)
                                                     <form
                                                         action="{{ route('activities.waitlist.approve', [$activity, $entry]) }}"

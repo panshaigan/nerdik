@@ -235,6 +235,18 @@ p {
     margin-bottom: 0.5rem;
 }
 
+.rich-text-content :where(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0.9rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.35;
+    font-weight: 600;
+}
+
+.rich-text-content :where(h1) { font-size: 1.25rem; }
+.rich-text-content :where(h2) { font-size: 1.15rem; }
+.rich-text-content :where(h3) { font-size: 1.05rem; }
+.rich-text-content :where(h4, h5, h6) { font-size: 1rem; }
+
 .rich-text-content :where(ul, ol) {
     padding-left: 1.25rem;
 }
