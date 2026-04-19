@@ -204,9 +204,6 @@
                         @endauth
                     </div>
                 </div>
-                @php
-                    $tagCategoryOrder = array_flip($slotListActivityTagCategories);
-                @endphp
                 <ul class="space-y-6">
                     @forelse ($slotHourGroups as $group)
                         <li class="list-none">
@@ -221,10 +218,12 @@
                                         $participantsCount = $activity
                                             ? $activity->physicalHeadcountForSlotCapacity()
                                             : (filled($slot->max_capacity) ? $slot->max_capacity : null);
+                                        $slotBadgeItems = [];
                                         if ($activity) {
-                                            $mergedActivitySlotTags = $activity->tags
-                                                ->filter(fn ($t) => in_array($t->category, $slotListActivityTagCategories, true))
-                                                ->sortBy(fn ($t) => $tagCategoryOrder[$t->category] ?? 100);
+                                            $slotBadgeItems = app(\App\Services\Ui\ActivityBadgeGroupBuilder::class)->build(
+                                                $activity,
+                                                \App\Dto\Ui\ActivityBadgeGroupConfig::eventSlotCard(),
+                                            );
                                         }
                                     @endphp
                                     <li
@@ -296,21 +295,11 @@
                                                     <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
                                                 @endif
                                                 @if ($activity)
-                                                    @if ($mergedActivitySlotTags->isNotEmpty() || filled($activity->minimum_age) || filled($activity->activity_type_id))
-                                                        <div class="mt-1 flex flex-wrap gap-1">
-                                                            @if (filled($activity->minimum_age))
-                                                                <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
-                                                            @endif
-                                                            @if ($activity->activityType?->slug)
-                                                                <span class="badge badge-outline badge-info">{{ __('ui.activities.types.'.$activity->activityType->slug) }}</span>
-                                                            @endif
-                                                            @foreach ($mergedActivitySlotTags as $tag)
-                                                                <span class="badge badge-primary badge-outline whitespace-normal text-left">
-                                                                    {{ $tag->translations->firstWhere('locale', app()->getLocale())?->label ?? ($tag->translations->firstWhere('locale', app()->getLocale())?->slug ?? '#'.$tag->id) }}
-                                                                </span>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
+                                                    <x-ui.activity-badge-group
+                                                        :items="$slotBadgeItems"
+                                                        class="mt-1"
+                                                        data-ui="event-show-slot-badge-group"
+                                                    />
                                                     @if ($activity->isCancelled() && $activity->cancel_reason)
                                                         <p class="mt-2 text-xs text-warning">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
                                                     @endif
@@ -323,11 +312,11 @@
                                                             ->values();
                                                     @endphp
                                                     @if ($slotActivityTypes->isNotEmpty())
-                                                        <div class="my-2 flex flex-wrap gap-1">
-                                                            @foreach ($slotActivityTypes as $type)
-                                                                <span class="badge badge-outline badge-info">{{ $type }}</span>
-                                                            @endforeach
-                                                        </div>
+                                                        <x-ui.activity-badge-group
+                                                            :items="app(\App\Services\Ui\ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotActivityTypes)"
+                                                            class="my-2"
+                                                            data-ui="event-show-slot-type-badges"
+                                                        />
                                                     @endif
                                                 @endif
                                             </div>

@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Activities;
 
+use App\Dto\Ui\ActivityBadgeGroupConfig;
 use App\Models\Activity;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationViewService;
+use App\Services\Ui\ActivityBadgeGroupBuilder;
 use Livewire\Component;
 
 class ShowActivity extends Component
@@ -62,7 +64,7 @@ class ShowActivity extends Component
         session()->flash('status', __('ui.activities.reopened_status'));
     }
 
-    public function render(ActivityParticipationViewService $participationView)
+    public function render(ActivityParticipationViewService $participationView, ActivityBadgeGroupBuilder $badgeGroupBuilder)
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
@@ -71,6 +73,7 @@ class ShowActivity extends Component
             'canceller',
             'activityType',
             'tags.translations',
+            'tags.tagCategory',
             'participants.user',
             'waitlist.user',
             'slot.event.enrollmentWindows',
@@ -82,8 +85,11 @@ class ShowActivity extends Component
 
         $vm = $participationView->forShow($activity, auth()->user());
 
+        $badgeItems = $badgeGroupBuilder->build($activity, ActivityBadgeGroupConfig::activityHero());
+
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
+            'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,
             'onWaitlist' => $vm->onWaitlist,
             'canJoin' => $vm->canJoin,

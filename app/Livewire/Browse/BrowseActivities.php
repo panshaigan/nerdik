@@ -76,7 +76,7 @@ class BrowseActivities extends Component
 
     public function render()
     {
-        $query = Activity::with(['creator', 'tags.translations', 'slot.event', 'place'])
+        $query = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'place'])
             ->attachedToPublicEvent();
 
         if (filled($this->from_date)) {

@@ -5,16 +5,19 @@
 ])
 
 @php
-    $typeSlug = $activity->activityType?->slug;
-    $typeLabel = $typeSlug ? __('ui.activities.types.'.$typeSlug) : __('ui.common.none');
-    if ($typeSlug !== null && $typeLabel === 'ui.activities.types.'.$typeSlug) {
-        $typeLabel = ucfirst($typeSlug);
-    }
+    use App\Dto\Ui\ActivityBadgeGroupConfig;
+    use App\Services\Ui\ActivityBadgeGroupBuilder;
+
     $durationLabel = format_activity_duration_compact($activity->duration_in_minutes);
     $filled = isset($activity->participants_count)
         ? (int) $activity->participants_count
         : (int) $activity->participants()->where('is_absent', false)->count();
     $max = $activity->max_participants;
+
+    $activityBadgeItems = app(ActivityBadgeGroupBuilder::class)->build(
+        $activity,
+        ActivityBadgeGroupConfig::browseCard(),
+    );
 @endphp
 
 <article class="ui-card ui-card-activity card border border-base-300 bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
@@ -47,8 +50,6 @@
             @endauth
         </div>
 
-        <p class="text-sm opacity-80">{{ __('ui.activities.type') }}: {{ $typeLabel }}</p>
-
         @if ($activity->creator)
             <p class="text-sm opacity-70">{{ __('Host') }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</p>
         @endif
@@ -73,8 +74,6 @@
             @endif
         </p>
 
-        <div class="mt-2">
-            @include('tags.partials.inline', ['tags' => $activity->tags])
-        </div>
+        <x-ui.activity-badge-group :items="$activityBadgeItems" data-ui="activity-card-badge-group" />
     </div>
 </article>
