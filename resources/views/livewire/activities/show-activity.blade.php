@@ -68,49 +68,57 @@
                         <img src="{{ $logoUrl }}" alt="" class="h-full w-full object-cover" />
                     </div>
                 @endif
-                <div class="relative z-10 flex flex-col gap-4 p-6 sm:p-8">
-                    <div class="min-w-0 space-y-2" dir="ltr">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            {{ $activityTypeLabel }}
-                        </p>
-                        <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
-                            {{ $activity->name }}
-                        </h1>
-                        @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
-                            <div class="flex flex-wrap items-center gap-1 pt-0.5">
-                                @if ($activity->tags->isNotEmpty())
-                                    @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
-                                @endif
-                                @if ($activity->requires_approval)
-                                    <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
-                                @endif
-                                @if ($activity->allows_observers)
-                                    <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
-                                @endif
-                                @if (filled($activity->minimum_age))
-                                    <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
-                                @endif
-                            </div>
-                        @endif
-                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
-                            @if (! $activity->is_host_passive && $hostUser)
-                                <div class="min-w-0 text-sm">
-                                    <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
-                                    <x-user-badge
-                                        :user="$hostUser"
-                                        size="md"
-                                        name-class="truncate text-base font-semibold text-base-content"
-                                        data-ui="activity-show-host"
-                                    />
-                                </div>
-                            @endif
-                            @if ($activity->duration_in_minutes)
-                                <div class="min-w-0 text-sm">
-                                    <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
-                                    <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                <div class="relative z-10 p-6 sm:p-8">
+                    <div class="flex items-start justify-between gap-4 sm:gap-6" dir="ltr">
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                {{ $activityTypeLabel }}
+                            </p>
+                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl">
+                                {{ $activity->name }}
+                            </h1>
+                            @if ($activity->tags->isNotEmpty() || filled($activity->minimum_age) || $activity->requires_approval || $activity->allows_observers)
+                                <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                                    @if ($activity->tags->isNotEmpty())
+                                        @include('tags.partials.inline', ['tags' => $activity->tags, 'class' => ''])
+                                    @endif
+                                    @if ($activity->requires_approval)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.requires_approval_badge') }}</span>
+                                    @endif
+                                    @if ($activity->allows_observers)
+                                        <span class="badge badge-primary badge-outline whitespace-normal text-left">{{ __('ui.activities.allows_observers_badge') }}</span>
+                                    @endif
+                                    @if (filled($activity->minimum_age))
+                                        <span class="badge badge-primary badge-outline tabular-nums">{{ $activity->minimum_age }}+</span>
+                                    @endif
                                 </div>
                             @endif
                         </div>
+                        @if ((! $activity->is_host_passive && $hostUser) || $activity->duration_in_minutes)
+                            <div
+                                class="flex max-w-[min(100%,14rem)] shrink-0 flex-col items-end gap-3 text-end sm:max-w-[16rem]"
+                                data-ui="activity-show-hero-meta"
+                            >
+                                @if (! $activity->is_host_passive && $hostUser)
+                                    <div class="text-sm">
+                                        <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
+                                        <x-user-badge
+                                            :user="$hostUser"
+                                            size="md"
+                                            class="mt-1 flex-row-reverse"
+                                            name-class="truncate text-end text-base font-semibold text-base-content"
+                                            data-ui="activity-show-host"
+                                        />
+                                    </div>
+                                @endif
+                                @if ($activity->duration_in_minutes)
+                                    <div class="text-sm">
+                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
+                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
