@@ -30,10 +30,14 @@ return [
 
     'surfaces' => [
         'event_slot' => [
-            'activity_type' => false,
-            'tag_category_keys' => null,
-            'requires_approval' => true,
-            'allows_observers' => true,
+            'activity_type' => true,
+            'tag_category_keys' => [
+                TagCategory::KEY_GAME,
+                TagCategory::KEY_GENRE,
+                TagCategory::KEY_TOPIC,
+            ],
+            'requires_approval' => false,
+            'allows_observers' => false,
             'minimum_age' => true,
         ],
         'activity_hero' => [
