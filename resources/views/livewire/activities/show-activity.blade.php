@@ -123,7 +123,7 @@
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2 bg-sample4"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
@@ -131,7 +131,7 @@
             >
                 <x-slot:toolbar>
                     @auth
-                        <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
+                        <div class="flex shrink-0 items-center gap-1 bg-sample4" data-ui="activity-show-tabs-toolbar">
                             @if ($canManageActivity)
                                 <x-button
                                     :link="route('activities.edit', $activity)"
