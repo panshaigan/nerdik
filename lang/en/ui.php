@@ -39,7 +39,7 @@ return [
         'listing_kind_activity' => 'Activity',
         'no_events_or_activities' => 'No matching events or activities found.',
         'activity_type' => [
-            'rpg' => 'RPG',
+            'rpg' => 'RPG Session',
             'wargame' => 'Wargame',
             'board' => 'Board game',
             'card' => 'Card game',
@@ -63,7 +63,7 @@ return [
         'type' => 'Type',
         'choose_type' => 'Choose type',
         'types' => [
-            'rpg' => 'RPG',
+            'rpg' => 'RPG Session',
             'wargame' => 'Wargame',
             'board' => 'Board game',
             'card' => 'Card game',

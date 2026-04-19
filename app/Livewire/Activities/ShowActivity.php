@@ -12,10 +12,21 @@ class ShowActivity extends Component
     public int $activityId;
 
     public ?string $cancelReason = null;
+    public string $tab = 'info';
+
+    protected array $queryString = [
+        'tab' => ['except' => 'info'],
+    ];
 
     public function mount(Activity $activity): void
     {
         $this->activityId = $activity->id;
+        $this->tab = $this->normalizeTab($this->tab);
+    }
+
+    public function updatedTab(string $value): void
+    {
+        $this->tab = $this->normalizeTab($value);
     }
 
     public function cancel(ActivityHostingModeService $hostingModes): void
@@ -82,5 +93,10 @@ class ShowActivity extends Component
             'activeWindowRemainingForActivity' => $vm->activeWindowRemainingForActivity,
             'activeWindowUserRemaining' => $vm->activeWindowUserRemaining,
         ]);
+    }
+
+    private function normalizeTab(?string $value): string
+    {
+        return in_array($value, ['info', 'participation'], true) ? $value : 'info';
     }
 }

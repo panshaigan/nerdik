@@ -185,4 +185,16 @@ class Activity extends Model
 
         return $n;
     }
+
+    public function getDurationForHumansAttribute(): string
+    {
+        $hours   = intdiv($this->duration_in_minutes, 60);
+        $minutes = $this->duration_in_minutes % 60;
+
+        return match(true) {
+            $hours > 0 && $minutes > 0 => "{$hours}h {$minutes}min",
+            $hours > 0                 => "{$hours}h",
+            default                    => "{$minutes}min",
+        };
+    }
 }

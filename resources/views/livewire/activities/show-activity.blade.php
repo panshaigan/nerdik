@@ -13,40 +13,6 @@
         ? __('ui.activities.host_title.'.$activityTypeSlug)
         : __('Host');
     $hasOpenRunBlurb = $slot && ! $event;
-    $showEventCard = $event || $hasOpenRunBlurb || $selfHosted;
-    $hasMetaStats = $activity->min_participants !== null
-        || (bool) $activity->duration_in_minutes
-        || $activity->cancellation_deadline_in_hours !== null
-        || $activity->price !== null;
-    $hasDetailRow = $showEventCard || $hasMetaStats;
-    $metaItems = [];
-    if ($activity->min_participants !== null) {
-        $metaItems[] = [
-            'label' => __('ui.activities.min_participants'),
-            'value' => (string) $activity->min_participants,
-        ];
-    }
-    if ($activity->duration_in_minutes) {
-        $metaItems[] = [
-            'label' => __('ui.activities.show_duration'),
-            'value' => $activity->duration_in_minutes.' min',
-        ];
-    }
-    if ($activity->cancellation_deadline_in_hours !== null) {
-        $metaItems[] = [
-            'label' => __('ui.activities.show_cancellation_deadline'),
-            'value' => $activity->cancellation_deadline_in_hours.' h',
-        ];
-    }
-    if ($activity->price !== null) {
-        $metaItems[] = [
-            'label' => __('ui.activities.show_price'),
-            'value' => format_number($activity->price, 2),
-        ];
-    }
-    $metaRows = count($metaItems) > 0
-        ? array_chunk($metaItems, (int) ceil(count($metaItems) / 2))
-        : [];
 @endphp
 
 <div class="py-10 sm:py-12">
@@ -110,7 +76,16 @@
                             @endif
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/75">
                                 @if (! $activity->is_host_passive && $activity->creator)
-                                    <span>{{ $hostRoleLabel }}: {{ $activity->creator->nickname ?? $activity->creator->email }}</span>
+                                    <div class="min-w-0 text-sm">
+                                        <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
+                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->creator->nickname ?? $activity->creator->email }}</p>
+                                    </div>
+                                @endif
+                                @if ($activity->duration_in_minutes)
+                                        <div class="min-w-0 text-sm">
+                                            <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
+                                            <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                        </div>
                                 @endif
                             </div>
                         </div>
@@ -196,106 +171,18 @@
             </div>
 
             <x-tabs
-                selected="info"
-                label-div-class="flex gap-5 overflow-x-auto border-b border-base-300 px-3 pt-4"
+                wire:model.live="tab"
+                label-div-class="flex gap-5 overflow-x-auto border-b border-base-300 px-3 pt-2"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
-                active-class="!text-base-content border-b-2 border-primary text-primary"
+                active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
                 data-ui="activity-show-tabs"
             >
-                <x-tab name="info" :label="__('ui.activities.show_about')" class="p-6 pt-4 sm:p-8 sm:pt-5" data-ui="activity-show-tab-info" icon="o-book-open">
-                    <div class="space-y-6">
-                        @if ($hasDetailRow)
-                            <div
-                                @class([
-                                    'activity-show-detail-layout',
-                                    'activity-show-detail-layout--split' => $showEventCard && $hasMetaStats,
-                                ])
-                                data-ui="activity-show-detail-row"
-                            >
-                                @if ($showEventCard)
-                                    <div @class(['activity-show-detail-event-cell', 'w-full' => ! $hasMetaStats])>
-                                        <div
-                                            class="max-w-full rounded-lg border border-base-300 bg-base-200/30 p-4 sm:max-w-sm"
-                                            data-ui="activity-show-event-card"
-                                        >
-                                            @if ($event)
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_at_event') }}</p>
-                                                <a href="{{ route('events.show', $event) }}" wire:navigate class="link link-primary mt-1 inline-block text-lg font-medium break-words">
-                                                    {{ $event->name }}
-                                                </a>
-                                                @if ($slot && ($slot->starts_at || $slot->ends_at || $slot->place))
-                                                    <div class="mt-5 space-y-1.5 border-t border-base-300/80 pt-5">
-                                                        @if ($slot->starts_at || $slot->ends_at)
-                                                            <p class="text-sm tabular-nums text-base-content/80">
-                                                                @if ($slot->starts_at && $slot->ends_at)
-                                                                    {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
-                                                                    <span class="text-base-content/50">–</span>
-                                                                    {{ format_in_user_tz($slot->ends_at, 'H:i') }}
-                                                                @elseif ($slot->starts_at)
-                                                                    {{ format_in_user_tz($slot->starts_at, 'D, M j · H:i') }}
-                                                                @elseif ($slot->ends_at)
-                                                                    {{ format_in_user_tz($slot->ends_at, 'D, M j · H:i') }}
-                                                                @endif
-                                                            </p>
-                                                        @endif
-                                                        @if ($slot->place)
-                                                            <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            @elseif ($selfHosted)
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_schedule') }}</p>
-                                                @if ($activity->starts_at || $activity->ends_at || $selfHostedPlace)
-                                                    <div class="mt-2 space-y-1.5">
-                                                        @if ($activity->starts_at || $activity->ends_at)
-                                                            <p class="text-sm tabular-nums text-base-content/80">
-                                                                @if ($activity->starts_at && $activity->ends_at)
-                                                                    {{ format_in_user_tz($activity->starts_at, 'D, M j · H:i') }}
-                                                                    <span class="text-base-content/50">–</span>
-                                                                    {{ format_in_user_tz($activity->ends_at, 'H:i') }}
-                                                                @elseif ($activity->starts_at)
-                                                                    {{ format_in_user_tz($activity->starts_at, 'D, M j · H:i') }}
-                                                                @endif
-                                                            </p>
-                                                        @endif
-                                                        @if ($selfHostedPlace)
-                                                            <p class="text-sm text-base-content/70">{{ $selfHostedPlace->venueRoomLabel() }}</p>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            @else
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ __('ui.activities.show_schedule') }}</p>
-                                                <p class="mt-1 text-sm font-medium leading-snug text-base-content/90">
-                                                    {{ __('ui.activities.show_open_run') }}
-                                                </p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endif
-
-                                @if ($hasMetaStats)
-                                    <div class="activity-show-detail-meta-cell w-full">
-                                        <div class="flex flex-col gap-4" data-ui="activity-show-meta-stats">
-                                            @foreach ($metaRows as $row)
-                                                <div class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-                                                    @foreach ($row as $item)
-                                                        <div class="min-w-0 text-sm">
-                                                            <p class="block text-xs leading-tight text-base-content/60">{{ $item['label'] }}</p>
-                                                            <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $item['value'] }}</p>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-
-                        <div @class(['border-t border-base-300 pt-6' => $hasDetailRow])>
+                <x-tab name="info" :label="__('ui.activities.show_about')" class="" data-ui="activity-show-tab-info" icon="o-book-open">
+                    <div class="space-y-6 px-6 sm:px-8" data-ui="activity-show-info">
+                        <div class="">
                             @if (filled(rich_text_excerpt($activity->description)))
-                                <div class="rich-text-content max-w-3xl text-sm leading-relaxed text-base-content/90">
+                                <div class="rich-text-content text-sm leading-relaxed text-base-content/90">
                                     {!! rich_text($activity->description) !!}
                                 </div>
                             @else
