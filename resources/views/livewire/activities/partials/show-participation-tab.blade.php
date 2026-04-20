@@ -13,13 +13,18 @@
             @forelse ($activity->participants as $p)
                 <x-list-item :item="$p" :avatar="false" value="id" sub-value="id" class="px-3 py-3 ">
                     <x-slot:value class="truncate text-sm font-medium text-base-content">
-                        <x-user-badge
-                            :user="$p->user"
-                            size="sm"
-                            :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
-                            name-class="truncate text-sm font-medium text-base-content"
-                            class="min-w-0 flex-1"
-                        />
+                            <div class="flex min-w-0 items-center gap-2">
+                                <x-user-badge
+                                    :user="$p->user"
+                                    size="sm"
+                                    :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
+                                    name-class="truncate text-sm font-medium text-base-content"
+                                    class="min-w-0 flex-1"
+                                />
+                                @if ($p->is_absent)
+                                    <span class="badge badge-warning badge-sm shrink-0">{{ __('ui.activities.absent') }}</span>
+                                @endif
+                            </div>
                     </x-slot:value>
                     <x-slot:sub-value class="truncate text-xs text-base-content/65">
                         @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
