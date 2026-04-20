@@ -14,6 +14,7 @@ use App\Models\TagCategory;
 return [
 
     'chip_order' => [
+        'meta:minimum_age',
         'activity_type',
         'tags:'.TagCategory::KEY_GAME,
         'tags:'.TagCategory::KEY_GENRE,
@@ -25,7 +26,7 @@ return [
         'tags:'.TagCategory::KEY_TRIGGER,
         'meta:requires_approval',
         'meta:allows_observers',
-        'meta:minimum_age',
+
     ],
 
     'surfaces' => [
@@ -74,9 +75,9 @@ return [
         TagCategory::KEY_GENRE    => 'neutral',   // was primary
         TagCategory::KEY_SETTING  => 'neutral',   // was primary
         TagCategory::KEY_MECHANIC => 'neutral',   // was primary
-        TagCategory::KEY_FORMAT   => 'base-300', // was secondary
-        TagCategory::KEY_OTHER    => 'base-300', // was secondary
-        TagCategory::KEY_TOPIC    => 'base-300', // was secondary
+        TagCategory::KEY_FORMAT   => 'neutral', // was secondary
+        TagCategory::KEY_OTHER    => 'neutral', // was secondary
+        TagCategory::KEY_TOPIC    => 'neutral', // was secondary
         TagCategory::KEY_TRIGGER  => 'warning',   // keep
     ],
 
@@ -84,7 +85,7 @@ return [
         'taxonomy_tag'       => 'neutral',   // was primary
         'activity_type'      => 'accent',    // was info → teal is more distinctive
         'minimum_age'        => 'warning',   // keep
-        'requires_approval'  => 'warning',   // was accent → needs more attention
+        'requires_approval'  => 'neutral',   // was accent → needs more attention
         'allows_observers'   => 'neutral',   // was accent → it's just a property
     ],
 ];
