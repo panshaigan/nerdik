@@ -6,6 +6,7 @@ return [
     ],
     'common' => [
         'cancel' => 'Anuluj',
+        'confirm' => 'Potwierdz',
         'create' => 'Utworz',
         'update' => 'Aktualizuj',
         'save' => 'Zapisz',
@@ -145,6 +146,7 @@ return [
         'cancelled_meta' => 'Odwolane przez :who o :when',
         'cancelled_status' => 'Sesja aktywnosci zostala odwolana.',
         'reopened_status' => 'Sesja aktywnosci zostala przywrocona.',
+        'deleted_status' => 'Aktywnosc zostala usunieta.',
         'signup_blocked_cancelled' => 'Ta sesja aktywnosci zostala odwolana.',
         'signup_blocked_not_joinable_mode' => 'Zapisy sa niedostepne dla tego trybu aktywnosci.',
         'proposal_event' => 'Wydarzenie',

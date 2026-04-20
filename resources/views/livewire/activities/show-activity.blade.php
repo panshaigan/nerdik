@@ -37,10 +37,6 @@
 
 <div class="py-10 sm:py-12">
     <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-        @if (session('status'))
-            <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
-        @endif
-
         @if ($isCancelled)
             <div role="alert" class="alert alert-warning text-sm">
                 <div class="space-y-1">
@@ -143,32 +139,23 @@
                                 >
                                     <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
                                 </x-button>
-                                <form
-                                    action="{{ route('activities.destroy', $activity) }}"
-                                    method="POST"
-                                    class="inline"
-                                    onsubmit="return confirm({{ json_encode(__('ui.activities.delete_confirm')) }})"
+                                <x-button
+                                    type="button"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                    :title="__('ui.activities.delete')"
+                                    :aria-label="__('ui.activities.delete').': '.$activity->name"
+                                    wire:click="confirmDeleteActivity"
+                                    data-ui="activity-show-delete"
                                 >
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-button
-                                        type="submit"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        :title="__('ui.activities.delete')"
-                                        :aria-label="__('ui.activities.delete').': '.$activity->name"
-                                        data-ui="activity-show-delete"
-                                    >
-                                        <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                    </x-button>
-                                </form>
+                                    <x-ui.icons.trash class="h-5 w-5 shrink-0" />
+                                </x-button>
                                 @if ($isCancelled)
                                     <x-button
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
                                         :title="__('ui.activities.reopen_action')"
                                         :aria-label="__('ui.activities.reopen_action')"
-                                        wire:click="reopen"
-                                        wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                        wire:click="confirmReopenActivity"
                                     >
                                         ↺
                                     </x-button>
@@ -178,8 +165,7 @@
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
                                         :title="__('ui.activities.cancel_action')"
                                         :aria-label="__('ui.activities.cancel_action')"
-                                        wire:click="cancel"
-                                        wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                        wire:click="confirmCancelActivity"
                                     >
                                         ×
                                     </x-button>
@@ -195,16 +181,21 @@
                                 <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
                             </x-button>
                             @if ($hasInterest)
-                                <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="activity-show-interest-remove">★</x-button>
-                                </form>
+                                <x-button
+                                    type="button"
+                                    wire:click="removeInterest"
+                                    class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                    :title="__('ui.interests.remove_from_interests')"
+                                    data-ui="activity-show-interest-remove"
+                                >★</x-button>
                             @else
-                                <form action="{{ route('interests.activities.add', $activity) }}" method="POST" class="inline">
-                                    @csrf
-                                    <x-button type="submit" class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="activity-show-interest-add">☆</x-button>
-                                </form>
+                                <x-button
+                                    type="button"
+                                    wire:click="addInterest"
+                                    class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add"
+                                    :title="__('ui.interests.add_to_interests')"
+                                    data-ui="activity-show-interest-add"
+                                >☆</x-button>
                             @endif
                         </div>
                     @endauth
@@ -236,5 +227,12 @@
                 </x-tab>
             </x-ui.tabs-with-toolbar>
         </div>
+
+        <x-ui.confirm-modal
+            wire:model="confirmModalOpen"
+            :title="$confirmModalTitle"
+            :message="$confirmModalMessage"
+            confirm-action="runConfirmedAction"
+        />
     </div>
 </div>
