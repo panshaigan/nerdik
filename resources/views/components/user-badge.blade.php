@@ -35,7 +35,7 @@
 
 <div {{ $attributes->class('flex items-center gap-2 min-w-0') }}>
     <div class="avatar">
-        <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-200 text-base-content/80">
+        <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
             @if ($avatarUrl)
                 <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
             @else

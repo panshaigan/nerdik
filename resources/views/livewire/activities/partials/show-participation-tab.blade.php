@@ -8,95 +8,88 @@
 
 <div data-ui="activity-show-participation">
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
-        <div class="min-w-0 md:pr-6" data-ui="activity-show-participants">
+        <div class="min-w-0" data-ui="activity-show-participants">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
-            <div class="">
-                @forelse ($activity->participants as $p)
-                    <x-list-item :item="$p" :avatar="false" value="id" sub-value="id" class="px-3 py-3">
-                        <x-slot:value class="truncate text-sm font-medium text-base-content">
-                            <x-user-badge
-                                :user="$p->user"
-                                size="sm"
-                                :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
-                                name-class="truncate text-sm font-medium text-base-content"
-                                class="min-w-0 flex-1"
-                            />
-                        </x-slot:value>
-                        <x-slot:sub-value class="truncate text-xs text-base-content/65">
-                            @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
-                                {{ __('ui.activities.host') }}
-                            @elseif ($p->is_absent)
-                                {{ __('ui.activities.absent') }}
-                            @endif
-                        </x-slot:sub-value>
-                        @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
-                            <x-slot:actions class="flex items-center gap-1">
-                                @if ($p->is_absent)
-                                    <form action="{{ route('activity-participants.unmark-absent', $p) }}" method="POST" class="inline">
-                                        @csrf
+            @forelse ($activity->participants as $p)
+                <x-list-item :item="$p" :avatar="false" value="id" sub-value="id" class="px-3 py-3 ">
+                    <x-slot:value class="truncate text-sm font-medium text-base-content">
+                        <x-user-badge
+                            :user="$p->user"
+                            size="sm"
+                            :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
+                            name-class="truncate text-sm font-medium text-base-content"
+                            class="min-w-0 flex-1"
+                        />
+                    </x-slot:value>
+                    <x-slot:sub-value class="truncate text-xs text-base-content/65">
+                        @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
+                            {{ __('ui.activities.host') }}
+                        @endif
+                    </x-slot:sub-value>
+                    @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
+                        <x-slot:actions class="flex items-center gap-1">
+                            @if ($p->is_absent)
+                                <form action="{{ route('activity-participants.unmark-absent', $p) }}" method="POST" class="inline">
+                                    @csrf
+                                    <x-button
+                                        type="submit"
+                                        class="btn btn-sm text-success"
+                                        :title="__('ui.activities.unmark_absent')"
+                                        :aria-label="__('ui.activities.unmark_absent')"
+                                    >{{ __('ui.activities.unmark_absent') }}</x-button>
+                                </form>
+                            @else
+                                <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
+                                    @csrf
+                                    @if ($canMarkAbsentNow)
                                         <x-button
                                             type="submit"
-                                            class="btn-ghost btn-square btn-sm text-success"
-                                            :title="__('ui.activities.unmark_absent')"
-                                            :aria-label="__('ui.activities.unmark_absent')"
-                                        >↺</x-button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
-                                        @csrf
-                                        @if ($canMarkAbsentNow)
-                                            <x-button
-                                                type="submit"
-                                                class="btn-ghost btn-sm text-warning"
-                                                :title="__('ui.activities.mark_absent')"
-                                                :aria-label="__('ui.activities.mark_absent')"
-                                            >{{ __('ui.activities.mark_absent') }}</x-button>
-                                        @endif
-                                    </form>
-                                @endif
-                                <form
-                                    action="{{ route('activity-participants.remove', $p) }}"
-                                    method="POST"
-                                    class="inline"
-                                >
-                                    @csrf
-                                    <x-button
-                                        type="submit"
-                                        class="btn-ghost btn-square btn-xs text-error"
-                                        :title="__('ui.activities.remove_participant')"
-                                        :aria-label="__('ui.activities.remove_participant')"
-                                    >
-                                        <x-ui.icons.trash class="h-4 w-4 shrink-0" />
-                                    </x-button>
+                                            class="btn btn-sm text-warning"
+                                            :title="__('ui.activities.mark_absent')"
+                                            :aria-label="__('ui.activities.mark_absent')"
+                                        >{{ __('ui.activities.mark_absent') }}</x-button>
+                                    @endif
                                 </form>
-                                <form
-                                    action="{{ route('activity-participants.move-to-waitlist', $p) }}"
-                                    method="POST"
-                                    class="inline"
-                                    onsubmit='return window.confirm({!! json_encode(__('ui.activities.move_to_waitlist_confirm'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!})'
+                            @endif
+                            <form
+                                action="{{ route('activity-participants.remove', $p) }}"
+                                method="POST"
+                                class="inline"
+                            >
+                                @csrf
+                                <x-button
+                                    type="submit"
+                                    class="btn-ghost btn-square btn-xs text-error"
+                                    :title="__('ui.activities.remove_participant')"
+                                    :aria-label="__('ui.activities.remove_participant')"
                                 >
-                                    @csrf
-                                    <x-button
-                                        type="submit"
-                                        class="btn-ghost btn-square btn-xs"
-                                        :title="__('ui.activities.move_to_waitlist')"
-                                        :aria-label="__('ui.activities.move_to_waitlist')"
-                                    >
-                                        <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                                        </svg>
-                                    </x-button>
-                                </form>
-                            </x-slot:actions>
-                        @endif
-                    </x-list-item>
-                @empty
-                    <p class="px-3 py-3 text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
-                @endforelse
-            </div>
+                                    <x-ui.icons.trash class="h-4 w-4 shrink-0" />
+                                </x-button>
+                            </form>
+                            <form
+                                action="{{ route('activity-participants.move-to-waitlist', $p) }}"
+                                method="POST"
+                                class="inline"
+                                onsubmit='return window.confirm({!! json_encode(__('ui.activities.move_to_waitlist_confirm'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!})'
+                            >
+                                @csrf
+                                <x-button
+                                    type="submit"
+                                    class="btn-warning btn-square btn-xs"
+                                    icon="o-arrow-right"
+                                    :title="__('ui.activities.move_to_waitlist')"
+                                    :aria-label="__('ui.activities.move_to_waitlist')"
+                                />
+                            </form>
+                        </x-slot:actions>
+                    @endif
+                </x-list-item>
+            @empty
+                <p class="px-3 py-3 text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
+            @endforelse
             @auth
                 @if (($isParticipant || $canJoin) && ! filled($stateBlockedMessage ?? null))
-                    <div class="mt-3 flex flex-wrap gap-2" data-ui="activity-show-participants-actions">
+                    <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-participants-actions">
                         @if ($isParticipant)
                             <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
                                 @csrf
@@ -132,13 +125,12 @@
                                             @csrf
                                             <x-button
                                                 type="submit"
-                                                class="btn-ghost btn-square btn-xs text-primary"
+                                                class="btn-success btn-square btn-xs"
+                                                icon="o-arrow-left"
                                                 :title="__('ui.activities.approve_from_waitlist')"
                                                 :aria-label="__('ui.activities.approve_from_waitlist')"
                                             >
-                                                <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                                                </svg>
+
                                             </x-button>
                                         </form>
                                     @endif
@@ -150,16 +142,13 @@
                                     />
                                 </div>
                             </x-slot:value>
-                            <x-slot:sub-value class="truncate text-xs text-base-content/65">
-                                #{{ $entry->position }}
-                            </x-slot:sub-value>
                         </x-list-item>
                     @endforeach
                 </div>
             @endif
             @auth
                 @if (($onWaitlist || $canJoin) && ! filled($stateBlockedMessage ?? null))
-                    <div class="mt-3 flex flex-wrap gap-2" data-ui="activity-show-waitlist-actions">
+                    <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-waitlist-actions">
                         @if ($onWaitlist)
                             <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
                                 @csrf
@@ -168,7 +157,7 @@
                         @elseif ($canJoin && ($activity->requires_approval || $isFull))
                             <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
                                 @csrf
-                                <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
+                                <x-button type="submit" class="btn-primary">{{ __('ui.activities.join_waitlist') }}</x-button>
                             </form>
                         @endif
                     </div>

@@ -104,16 +104,15 @@
                                         <x-user-badge
                                             :user="$hostUser"
                                             size="md"
-                                            class="mt-1 flex-row-reverse"
-                                            name-class="truncate text-end text-base font-semibold text-base-content"
+                                            class="mt-1 badge badge-primary"
+                                            name-class="truncate text-end font-semibold"
                                             data-ui="activity-show-host"
                                         />
                                     </div>
                                 @endif
                                 @if ($activity->duration_in_minutes)
                                     <div class="text-sm">
-                                        <p class="block text-xs leading-tight text-base-content/60">{{ __('ui.activities.show_duration') }}</p>
-                                        <p class="mt-1 block font-medium tabular-nums text-base-content">{{ $activity->duration_for_humans }}</p>
+                                        <p class="mt-1 block font-medium tabular-nums text-base-content"><x-icon name="o-clock" />{{ $activity->duration_for_humans }}</p>
                                     </div>
                                 @endif
                             </div>
