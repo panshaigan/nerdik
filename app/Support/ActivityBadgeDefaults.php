@@ -18,4 +18,12 @@ final class ActivityBadgeDefaults
             ? BadgeSemantic::fromConfig($value)
             : BadgeSemantic::Primary;
     }
+
+    public static function iconForKind(ActivityBadgeKind $kind): ?string
+    {
+        $kindKey = $kind->semanticConfigKey();
+        $value = config('activity-badges.icon_by_kind.'.$kindKey);
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
 }

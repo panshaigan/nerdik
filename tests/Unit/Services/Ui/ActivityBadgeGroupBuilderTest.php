@@ -233,6 +233,55 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
     }
 
     #[Test]
+    public function taxonomy_icon_uses_config_per_category(): void
+    {
+        Config::set('activity-badges.icon_by_tag_category.game', 'o-bolt');
+
+        $game = TagCategory::factory()->create(['key' => 'game']);
+        $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
+        TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Iconic']);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity->tags()->attach([$tag->id]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $tagItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Iconic');
+
+        $this->assertNotNull($tagItem);
+        $this->assertSame('o-bolt', $tagItem->icon);
+    }
+
+    #[Test]
+    public function taxonomy_icon_dto_override_per_category_wins_over_config(): void
+    {
+        Config::set('activity-badges.icon_by_tag_category.game', 'o-book-open');
+
+        $game = TagCategory::factory()->create(['key' => 'game']);
+        $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
+        TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Override']);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity->tags()->attach([$tag->id]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $config = ActivityBadgeGroupConfig::activityHero();
+        $config = new ActivityBadgeGroupConfig(
+            $config->preset,
+            $config->onlyTagCategoryKeys,
+            $config->tagsOverride,
+            $config->semanticByKindValue,
+            $config->semanticByTagCategoryKeyValue,
+            $config->iconByKind,
+            ['game' => 'o-fire'],
+        );
+
+        $items = $this->builder->build($activity, $config);
+        $tagItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Override');
+
+        $this->assertNotNull($tagItem);
+        $this->assertSame('o-fire', $tagItem->icon);
+    }
+
+    #[Test]
     public function tag_label_falls_back_when_missing_translation(): void
     {
         $game = TagCategory::factory()->create(['key' => 'game']);

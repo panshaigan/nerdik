@@ -3,13 +3,15 @@
 use App\Models\TagCategory;
 
 /**
- * Single source of truth for activity badge tones site-wide (DaisyUI semantics).
+ * Single source of truth for activity badge presentation site-wide.
  *
  * chip_order: universal display order (only chips that exist and are allowed for a surface are shown).
  * surfaces: which chip groups appear per UI surface. tag_category_keys null = all taxonomy tags on the activity.
  *
  * Allowed tone names (case-insensitive): primary, secondary, accent, neutral, info, success, warning, error.
  * You may also use an int matching App\Enums\BadgeSemantic.
+ *
+ * Icon names use the same format as `<x-icon name="...">` (e.g. "o-tag", "o-clock").
  */
 return [
 
@@ -87,5 +89,24 @@ return [
         'minimum_age'        => 'warning',   // keep
         'requires_approval'  => 'neutral',   // was accent → needs more attention
         'allows_observers'   => 'neutral',   // was accent → it's just a property
+    ],
+
+    'icon_by_tag_category' => [
+        TagCategory::KEY_GAME     => 'o-puzzle-piece',
+        TagCategory::KEY_GENRE    => 'o-book-open',
+        TagCategory::KEY_SETTING  => 'o-map-pin',
+        TagCategory::KEY_MECHANIC => 'o-cog-6-tooth',
+        TagCategory::KEY_FORMAT   => 'o-squares-2x2',
+        TagCategory::KEY_OTHER    => 'o-tag',
+        TagCategory::KEY_TOPIC    => 'o-chat-bubble-left-right',
+        TagCategory::KEY_TRIGGER  => 'o-exclamation-triangle',
+    ],
+
+    'icon_by_kind' => [
+        'taxonomy_tag'      => 'o-tag',
+        'activity_type'     => 'o-star',
+        'minimum_age'       => 'o-clock',
+        'requires_approval' => 'o-shield-check',
+        'allows_observers'  => 'o-eye',
     ],
 ];

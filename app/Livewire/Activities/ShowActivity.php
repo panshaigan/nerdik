@@ -65,6 +65,16 @@ class ShowActivity extends Component
         );
     }
 
+    public function confirmRemoveParticipant(int $participantId): void
+    {
+        $this->openConfirm(
+            'remove_participant',
+            __('ui.activities.remove_participant'),
+            __('ui.activities.remove_participant_confirm'),
+            $participantId,
+        );
+    }
+
     public function runConfirmedAction(ActivityHostingModeService $hostingModes, ActivityParticipationService $participation): void
     {
         $action = $this->pendingAction;
@@ -80,6 +90,7 @@ class ShowActivity extends Component
             'cancel_activity' => $this->cancel($hostingModes),
             'reopen_activity' => $this->reopen($hostingModes),
             'move_participant_to_waitlist' => $participantId !== null ? $this->moveParticipantToWaitlist($participantId, $participation) : null,
+            'remove_participant' => $participantId !== null ? $this->removeParticipant($participantId, $participation) : null,
             default => null,
         };
     }

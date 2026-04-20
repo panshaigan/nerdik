@@ -9,6 +9,7 @@ use App\Enums\ActivityBadgePreset;
 use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\Tag;
+use App\Support\ActivityBadgeDefaults;
 use Illuminate\Support\Collection;
 
 class ActivityBadgeGroupBuilder
@@ -42,6 +43,7 @@ class ActivityBadgeGroupBuilder
                     'activity_type:'.$activity->activity_type_id,
                     __('ui.activities.types.'.$slug),
                     $config->semanticFor(ActivityBadgeKind::ActivityType),
+                    $config->iconFor(ActivityBadgeKind::ActivityType),
                     false,
                     true,
                 ),
@@ -66,6 +68,7 @@ class ActivityBadgeGroupBuilder
                     'tag:'.$tag->id,
                     $this->tagLabel($tag),
                     $config->semanticForTaxonomyTag($category),
+                    $config->iconForTaxonomyTag($category),
                     false,
                     true,
                 ),
@@ -81,6 +84,7 @@ class ActivityBadgeGroupBuilder
                     'meta:requires_approval',
                     __('ui.activities.requires_approval_badge'),
                     $config->semanticFor(ActivityBadgeKind::RequiresApproval),
+                    $config->iconFor(ActivityBadgeKind::RequiresApproval),
                     false,
                     true,
                 ),
@@ -95,6 +99,7 @@ class ActivityBadgeGroupBuilder
                     'meta:allows_observers',
                     __('ui.activities.allows_observers_badge'),
                     $config->semanticFor(ActivityBadgeKind::AllowsObservers),
+                    $config->iconFor(ActivityBadgeKind::AllowsObservers),
                     false,
                     true,
                 ),
@@ -109,6 +114,7 @@ class ActivityBadgeGroupBuilder
                     'meta:minimum_age',
                     $activity->minimum_age.'+',
                     $config->semanticFor(ActivityBadgeKind::MinimumAge),
+                    $config->iconFor(ActivityBadgeKind::MinimumAge),
                 ),
             ];
         }
@@ -130,8 +136,13 @@ class ActivityBadgeGroupBuilder
      * @param  iterable<int, string>  $typeLabels  Already translated display strings
      * @return list<ActivityBadgeItem>
      */
-    public function buildActivityTypeChips(iterable $typeLabels, BadgeSemantic $semantic = BadgeSemantic::Info): array
+    public function buildActivityTypeChips(
+        iterable $typeLabels,
+        BadgeSemantic $semantic = BadgeSemantic::Info,
+        ?string $icon = null
+    ): array
     {
+        $resolvedIcon = $icon ?? ActivityBadgeDefaults::iconForKind(ActivityBadgeKind::ActivityType);
         $items = [];
         $i = 0;
         foreach ($typeLabels as $label) {
@@ -144,6 +155,7 @@ class ActivityBadgeGroupBuilder
                 'activity_type:slot:'.$i,
                 $label,
                 $semantic,
+                $resolvedIcon,
             );
             $i++;
         }
