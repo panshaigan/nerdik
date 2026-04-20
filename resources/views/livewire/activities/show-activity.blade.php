@@ -32,6 +32,7 @@
             ]]
             : [],
     ];
+    $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞').'</span>';
 @endphp
 
 <div class="py-10 sm:py-12">
@@ -257,18 +258,10 @@
                     </div>
                 </x-tab>
 
-                <x-tab name="participation" :label="__('ui.activities.show_participation_section')" class="p-6 pt-4 sm:p-8 sm:pt-5" data-ui="activity-show-tab-participation" icon="o-users">
+                <x-tab name="participation" :label="$participationSlotsLabel" class="p-6 pt-4 sm:p-8 sm:pt-5" data-ui="activity-show-tab-participation" icon="o-users">
                     <div data-ui="activity-show-participation">
-                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-base-300 pb-4">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3  pb-4">
                             <div class="flex flex-wrap items-center justify-end gap-3">
-                                <p class="shrink-0 text-lg font-medium tabular-nums text-base-content/90">
-                                    {{ $activity->participants->count() }}
-                                    @if ($activity->max_participants !== null)
-                                        <span class="text-base-content/50">/</span>{{ $activity->max_participants }}
-                                    @else
-                                        <span class="text-base-content/50">/</span>∞
-                                    @endif
-                                </p>
                                 @auth
                                     @if (($isParticipant || $onWaitlist || $canJoin) && !filled($stateBlockedMessage ?? null))
                                         <div class="flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
