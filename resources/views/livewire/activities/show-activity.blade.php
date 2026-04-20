@@ -79,6 +79,9 @@
                                         data-ui="activity-show-hero-event-link"
                                     >{{ $event->name }}</a>
                                 @endif
+                                @if ($activity->duration_in_minutes)
+                                    <x-icon name="o-clock" class="w-4 h-4" />{{ $activity->duration_for_humans }}
+                                @endif
                             </p>
                             <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl pb-4">
                                 {{ $activity->name }}
@@ -100,15 +103,10 @@
                                         <x-user-badge
                                             :user="$hostUser"
                                             size="md"
-                                            class="mt-1 badge badge-secondary"
+                                            class="mt-1 badge badge-neutral"
                                             name-class="truncate text-end font-semibold"
                                             data-ui="activity-show-host"
                                         />
-                                    </div>
-                                @endif
-                                @if ($activity->duration_in_minutes)
-                                    <div class="text-sm">
-                                        <p class="mt-1 block font-medium tabular-nums text-base-content"><x-icon name="o-clock" />{{ $activity->duration_for_humans }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -197,7 +195,7 @@
                         </div>
                     @endauth
                 </x-slot:toolbar>
-                <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-book-open">
+                <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-light-bulb">
                     @include('livewire.activities.partials.show-about-tab', [
                         'activity' => $activity,
                         'scheduleMapConfig' => $scheduleMapConfig,
