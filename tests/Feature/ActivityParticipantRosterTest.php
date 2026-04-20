@@ -167,4 +167,66 @@ class ActivityParticipantRosterTest extends TestCase
             ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $member->id)->exists()
         );
     }
+
+    public function test_host_can_remove_participant(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+        $memberRow = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        $this->actingAs($host);
+        $this->post(route('activity-participants.remove', $memberRow))->assertRedirect();
+
+        $this->assertFalse(
+            ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $member->id)->exists()
+        );
+    }
+
+    public function test_non_host_cannot_remove_participant(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $intruder = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+        $memberRow = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        $this->actingAs($intruder);
+        $this->post(route('activity-participants.remove', $memberRow))->assertForbidden();
+    }
+
+    public function test_cannot_remove_host_from_participants(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+        $hostRow = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $host->id,
+        ]);
+
+        $this->actingAs($host);
+        $this->post(route('activity-participants.remove', $hostRow))->assertRedirect();
+
+        $this->assertTrue(
+            ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $host->id)->exists()
+        );
+    }
 }

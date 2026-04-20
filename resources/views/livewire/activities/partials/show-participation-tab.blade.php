@@ -2,7 +2,7 @@
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0 md:pr-6" data-ui="activity-show-participants">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
-            <div class="bg-base-200">
+            <div class="">
                 @forelse ($activity->participants as $p)
                     <x-list-item :item="$p" :avatar="false" value="id" sub-value="id" class="px-3 py-3">
                         <x-slot:value class="truncate text-sm font-medium text-base-content">
@@ -28,7 +28,7 @@
                                         @csrf
                                         <x-button
                                             type="submit"
-                                            class="btn-ghost btn-square btn-xs text-success"
+                                            class="btn-ghost btn-square btn-sm text-success"
                                             :title="__('ui.activities.unmark_absent')"
                                             :aria-label="__('ui.activities.unmark_absent')"
                                         >↺</x-button>
@@ -38,14 +38,27 @@
                                         @csrf
                                         <x-button
                                             type="submit"
-                                            class="btn-ghost btn-square btn-xs text-error"
+                                            class="btn-ghost btn-sm text-warning"
                                             :title="__('ui.activities.mark_absent')"
                                             :aria-label="__('ui.activities.mark_absent')"
-                                        >
-                                            <x-ui.icons.trash class="h-4 w-4 shrink-0" />
-                                        </x-button>
+                                        >{{ __('ui.activities.mark_absent') }}</x-button>
                                     </form>
                                 @endif
+                                <form
+                                    action="{{ route('activity-participants.remove', $p) }}"
+                                    method="POST"
+                                    class="inline"
+                                >
+                                    @csrf
+                                    <x-button
+                                        type="submit"
+                                        class="btn-ghost btn-square btn-xs text-error"
+                                        :title="__('ui.activities.remove_participant')"
+                                        :aria-label="__('ui.activities.remove_participant')"
+                                    >
+                                        <x-ui.icons.trash class="h-4 w-4 shrink-0" />
+                                    </x-button>
+                                </form>
                                 <form
                                     action="{{ route('activity-participants.move-to-waitlist', $p) }}"
                                     method="POST"
@@ -94,15 +107,18 @@
             @if ($activity->waitlist->isEmpty())
                 <p class="text-sm text-base-content/60">{{ __('ui.activities.waitlist_empty_hint') }}</p>
             @else
-                <div class="rounded-lg border border-base-300/70 bg-base-100/50">
+                <div class="">
                     @foreach ($activity->waitlist as $entry)
-                        <x-list-item :item="$entry" :avatar="false" value="position" sub-value="position" class="px-3 py-3">
+                        <x-list-item :item="$entry" :avatar="false" value="position" class="px-3 py-3">
                             <x-slot:value class="truncate text-sm font-medium text-base-content">
-                                {{ $entry->user->nickname ?? $entry->user->email }}
+                                <x-user-badge
+                                    :user="$p->user"
+                                    size="sm"
+                                    :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
+                                    name-class="truncate text-sm font-medium text-base-content"
+                                    class="min-w-0 flex-1"
+                                />
                             </x-slot:value>
-                            <x-slot:sub-value class="truncate text-xs text-base-content/65">
-                                #{{ $entry->position }}
-                            </x-slot:sub-value>
                             @if ($canManageActivity && $activity->requires_approval)
                                 <x-slot:actions>
                                     <form
