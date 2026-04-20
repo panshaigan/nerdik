@@ -47,11 +47,15 @@ new class extends Component
             </div>
 
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
-                <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
+                <a
+                   href="{{ route('locale.switch', ['locale' => 'en']) }}"
+                   @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'bg-primary text-primary-content' : '' }}">
                     {{ __('EN') }}
                 </a>
-                <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
+                <a
+                   href="{{ route('locale.switch', ['locale' => 'pl']) }}"
+                   @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'bg-primary text-primary-content' : '' }}">
                     {{ __('PL') }}
                 </a>
@@ -137,11 +141,15 @@ new class extends Component
                 <div class="px-4 py-2">
                     <p class="text-xs uppercase tracking-wide opacity-70">{{ __('ui.common.language') }}</p>
                     <div class="mt-2 flex gap-2">
-                        <a href="{{ route('locale.switch', ['locale' => 'en', 'redirect' => request()->getRequestUri()]) }}"
+                        <a
+                           href="{{ route('locale.switch', ['locale' => 'en']) }}"
+                           @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                            class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'border-primary bg-primary text-primary-content' : '' }}">
                             {{ __('EN') }}
                         </a>
-                        <a href="{{ route('locale.switch', ['locale' => 'pl', 'redirect' => request()->getRequestUri()]) }}"
+                        <a
+                           href="{{ route('locale.switch', ['locale' => 'pl']) }}"
+                           @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                            class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'border-primary bg-primary text-primary-content' : '' }}">
                             {{ __('PL') }}
                         </a>
