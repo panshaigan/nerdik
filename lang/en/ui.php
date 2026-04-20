@@ -170,6 +170,15 @@ return [
         'host_title' => [
             'rpg' => 'Game Master',
         ],
+        'host' => 'Host',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'delete_confirm' => 'Are you sure you want to delete this activity?',
+        'leave' => 'Leave activity',
+        'leave_waitlist' => 'Leave waitlist',
+        'absent' => 'Absent',
+        'mark_absent' => 'Mark absent',
+        'no_participants' => 'No participants yet.',
     ],
     'events' => [
         'host' => 'Host',

@@ -11,7 +11,7 @@
     $selfHostedPlace = $activity->place;
     $hostRoleLabel = $activityTypeSlug && \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activityTypeSlug)
         ? __('ui.activities.host_title.'.$activityTypeSlug)
-        : __('Host');
+        : __('ui.activities.host');
     $hasOpenRunBlurb = $slot && ! $event;
     $hostUser = $activity->creator;
     $slotPlace = $slot?->place;
@@ -137,8 +137,8 @@
                                 <x-button
                                     :link="route('activities.edit', $activity)"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :title="__('Edit')"
-                                    :aria-label="__('Edit').': '.$activity->name"
+                                    :title="__('ui.activities.edit')"
+                                    :aria-label="__('ui.activities.edit').': '.$activity->name"
                                     data-ui="activity-show-edit"
                                 >
                                     <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
@@ -147,15 +147,15 @@
                                     action="{{ route('activities.destroy', $activity) }}"
                                     method="POST"
                                     class="inline"
-                                    onsubmit="return confirm({{ json_encode(__('Are you sure you want to delete this activity?')) }})"
+                                    onsubmit="return confirm({{ json_encode(__('ui.activities.delete_confirm')) }})"
                                 >
                                     @csrf
                                     @method('DELETE')
                                     <x-button
                                         type="submit"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        :title="__('Delete')"
-                                        :aria-label="__('Delete').': '.$activity->name"
+                                        :title="__('ui.activities.delete')"
+                                        :aria-label="__('ui.activities.delete').': '.$activity->name"
                                         data-ui="activity-show-delete"
                                     >
                                         <x-ui.icons.trash class="h-5 w-5 shrink-0" />
@@ -275,12 +275,12 @@
                                             @if ($isParticipant)
                                                 <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <x-button type="submit" class="btn-error">{{ __('Leave activity') }}</x-button>
+                                                    <x-button type="submit" class="btn-error">{{ __('ui.activities.leave') }}</x-button>
                                                 </form>
                                             @elseif ($onWaitlist)
                                                 <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <x-button type="submit" class="btn-neutral">{{ __('Leave waitlist') }}</x-button>
+                                                    <x-button type="submit" class="btn-neutral">{{ __('ui.activities.leave_waitlist') }}</x-button>
                                                 </form>
                                             @elseif ($canJoin)
                                                 @if ($activity->requires_approval || $isFull)
@@ -330,12 +330,12 @@
                                             <x-user-badge
                                                 :user="$p->user"
                                                 size="sm"
-                                                :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('Host') : null)"
+                                                :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
                                                 name-class="truncate text-sm font-medium text-base-content"
                                                 class="min-w-0 flex-1"
                                             />
                                             @if ($p->is_absent)
-                                                <span class="text-xs font-medium text-error">({{ __('Absent') }})</span>
+                                                <span class="text-xs font-medium text-error">({{ __('ui.activities.absent') }})</span>
                                             @endif
                                             @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
                                                 <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
@@ -347,7 +347,7 @@
                                                     @else
                                                         <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
                                                             @csrf
-                                                            <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('Mark absent') }}</x-button>
+                                                            <x-button type="submit" class="btn-ghost btn-xs text-error">{{ __('ui.activities.mark_absent') }}</x-button>
                                                         </form>
                                                     @endif
                                                     <form
@@ -363,7 +363,7 @@
                                             @endif
                                         </li>
                                     @empty
-                                        <li class="py-2 text-sm text-base-content/60">{{ __('No participants yet.') }}</li>
+                                        <li class="py-2 text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</li>
                                     @endforelse
                                 </ul>
                             </div>
