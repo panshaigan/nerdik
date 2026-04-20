@@ -12,6 +12,7 @@ final readonly class ActivityBadgeItem
         public string $key,
         public string $label,
         public BadgeSemantic $semantic,
+        public ?string $icon = null,
         public bool $outline = false,
         public bool $normalWrap = false,
         public ?string $dataUi = null,

@@ -133,15 +133,23 @@
                                 <x-button
                                     :link="route('activities.edit', $activity)"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :title="__('ui.activities.edit')"
+                                    :tooltip="__('ui.activities.edit')"
                                     :aria-label="__('ui.activities.edit').': '.$activity->name"
                                     data-ui="activity-show-edit"
                                     icon="o-pencil"
                                 />
                                 <x-button
+                                    :link="route('activities.create', ['duplicate' => $activity->slug])"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    :tooltip="__('ui.activities.duplicate_action')"
+                                    :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
+                                    data-ui="activity-show-duplicate"
+                                    icon="o-square-2-stack"
+                                />
+                                <x-button
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    :title="__('ui.activities.delete')"
+                                    :tooltip="__('ui.activities.delete')"
                                     :aria-label="__('ui.activities.delete').': '.$activity->name"
                                     wire:click="confirmDeleteActivity"
                                     data-ui="activity-show-delete"
@@ -151,7 +159,7 @@
                                     <x-button
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
-                                        :title="__('ui.activities.reopen_action')"
+                                        :tooltip="__('ui.activities.reopen_action')"
                                         :aria-label="__('ui.activities.reopen_action')"
                                         wire:click="confirmReopenActivity"
                                         icon="o-arrow-uturn-left"
@@ -160,27 +168,19 @@
                                     <x-button
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
-                                        :title="__('ui.activities.cancel_action')"
+                                        :tooltip="__('ui.activities.cancel_action')"
                                         :aria-label="__('ui.activities.cancel_action')"
                                         wire:click="confirmCancelActivity"
                                         icon="o-x-circle"
                                     />
                                 @endif
                             @endif
-                            <x-button
-                                :link="route('activities.create', ['duplicate' => $activity->slug])"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                :title="__('ui.activities.duplicate_action')"
-                                :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
-                                data-ui="activity-show-duplicate"
-                                icon="o-square-2-stack"
-                            />
                             @if ($hasInterest)
                                 <x-button
                                     type="button"
                                     wire:click="removeInterest"
                                     class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                    :title="__('ui.interests.remove_from_interests')"
+                                    :tooltip="__('ui.interests.remove_from_interests')"
                                     data-ui="activity-show-interest-remove"
                                     icon="s-star"
                                 />
@@ -189,7 +189,7 @@
                                     type="button"
                                     wire:click="addInterest"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                    :title="__('ui.interests.add_to_interests')"
+                                    :tooltip="__('ui.interests.add_to_interests')"
                                     data-ui="activity-show-interest-add"
                                     icon="o-star"
                                 />

@@ -54,20 +54,22 @@
                             @endif
                             <x-button
                                 type="button"
-                                class="btn-ghost btn-square btn-xs text-error"
+                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                 :title="__('ui.activities.remove_participant')"
                                 :aria-label="__('ui.activities.remove_participant')"
-                                wire:click="removeParticipant({{ $p->id }})"
+                                wire:click="confirmRemoveParticipant({{ $p->id }})"
                                 icon="o-trash"
                             />
+                            @if ($activity->requires_approval)
                             <x-button
                                 type="button"
-                                class="btn-warning btn-square btn-xs"
+                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
                                 icon="o-arrow-right"
                                 :title="__('ui.activities.move_to_waitlist')"
                                 :aria-label="__('ui.activities.move_to_waitlist')"
                                 wire:click="confirmMoveParticipantToWaitlist({{ $p->id }})"
                             />
+                            @endif
                         </x-slot:actions>
                     @endif
                 </x-list-item>
@@ -99,7 +101,7 @@
                                     @if ($canManageActivity && $activity->requires_approval)
                                         <x-button
                                             type="button"
-                                            class="btn-success btn-square btn-xs"
+                                            class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
                                             icon="o-arrow-left"
                                             :title="__('ui.activities.approve_from_waitlist')"
                                             :aria-label="__('ui.activities.approve_from_waitlist')"
