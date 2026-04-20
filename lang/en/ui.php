@@ -6,6 +6,7 @@ return [
     ],
     'common' => [
         'cancel' => 'Cancel',
+        'confirm' => 'Confirm',
         'create' => 'Create',
         'update' => 'Update',
         'save' => 'Save',
@@ -145,6 +146,7 @@ return [
         'cancelled_meta' => 'Cancelled by :who at :when',
         'cancelled_status' => 'Activity session cancelled.',
         'reopened_status' => 'Activity session reopened.',
+        'deleted_status' => 'Activity deleted.',
         'signup_blocked_cancelled' => 'This activity session has been cancelled.',
         'signup_blocked_not_joinable_mode' => 'Signups are disabled for this activity mode.',
         'proposal_event' => 'Event',

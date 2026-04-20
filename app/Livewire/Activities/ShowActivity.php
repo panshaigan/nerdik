@@ -3,14 +3,22 @@
 namespace App\Livewire\Activities;
 
 use App\Dto\Ui\ActivityBadgeGroupConfig;
+use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
+use App\Models\ActivityUser;
+use App\Models\ActivityWaitlistEntry;
 use App\Services\ActivityHostingModeService;
+use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Services\Ui\ActivityBadgeGroupBuilder;
+use Mary\Traits\Toast;
 use Livewire\Component;
 
 class ShowActivity extends Component
 {
+    use Toast;
+    use WithUiConfirmModal;
+
     public int $activityId;
 
     public ?string $cancelReason = null;
@@ -30,6 +38,50 @@ class ShowActivity extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+    }
+
+    public function confirmDeleteActivity(): void
+    {
+        $this->openConfirm('delete_activity', __('ui.activities.delete'), __('ui.activities.delete_confirm'));
+    }
+
+    public function confirmCancelActivity(): void
+    {
+        $this->openConfirm('cancel_activity', __('ui.activities.cancel_action'), __('ui.activities.cancel_confirm'));
+    }
+
+    public function confirmReopenActivity(): void
+    {
+        $this->openConfirm('reopen_activity', __('ui.activities.reopen_action'), __('ui.activities.reopen_confirm'));
+    }
+
+    public function confirmMoveParticipantToWaitlist(int $participantId): void
+    {
+        $this->openConfirm(
+            'move_participant_to_waitlist',
+            __('ui.activities.move_to_waitlist'),
+            __('ui.activities.move_to_waitlist_confirm'),
+            $participantId,
+        );
+    }
+
+    public function runConfirmedAction(ActivityHostingModeService $hostingModes, ActivityParticipationService $participation): void
+    {
+        $action = $this->pendingAction;
+        $participantId = $this->pendingParticipantId;
+        $this->closeConfirm();
+
+        if ($action === null) {
+            return;
+        }
+
+        match ($action) {
+            'delete_activity' => $this->deleteActivity(),
+            'cancel_activity' => $this->cancel($hostingModes),
+            'reopen_activity' => $this->reopen($hostingModes),
+            'move_participant_to_waitlist' => $participantId !== null ? $this->moveParticipantToWaitlist($participantId, $participation) : null,
+            default => null,
+        };
     }
 
     public function cancel(ActivityHostingModeService $hostingModes): void
@@ -52,7 +104,7 @@ class ShowActivity extends Component
 
         $hostingModes->cancel($activity, auth()->user(), $reason);
         $this->cancelReason = null;
-        session()->flash('status', __('ui.activities.cancelled_status'));
+        $this->success(__('ui.activities.cancelled_status'));
     }
 
     public function reopen(ActivityHostingModeService $hostingModes): void
@@ -61,7 +113,121 @@ class ShowActivity extends Component
         abort_unless(auth()->user()?->canModifyEntity($activity), 403);
 
         $hostingModes->reopen($activity);
-        session()->flash('status', __('ui.activities.reopened_status'));
+        $this->success(__('ui.activities.reopened_status'));
+    }
+
+    public function deleteActivity(): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        abort_unless(auth()->user()?->canModifyEntity($activity), 403);
+
+        $activity->delete();
+        $this->success(__('ui.activities.deleted_status'));
+        $this->redirect(route('search.index'), navigate: true);
+    }
+
+    public function addInterest(): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $this->success(__('ui.interests.added_activity'));
+    }
+
+    public function removeInterest(): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedActivities()->detach($activity->id);
+        $this->success(__('ui.interests.removed_activity'));
+    }
+
+    public function join(ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->join($activity, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function leave(ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->leave($activity, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function joinWaitlist(ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->joinWaitlist($activity, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function leaveWaitlist(ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->leaveWaitlist($activity, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function approveWaitlist(int $entryId, ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $entry = ActivityWaitlistEntry::query()->whereKey($entryId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->approveWaitlistEntry($activity, $entry, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function markParticipantAbsent(int $participantId, ActivityParticipationService $participation): void
+    {
+        $participant = ActivityUser::query()->whereKey($participantId)->firstOrFail();
+        $this->assertParticipantBelongsToActivity($participant);
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->markParticipantAbsent($participant, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function unmarkParticipantAbsent(int $participantId, ActivityParticipationService $participation): void
+    {
+        $participant = ActivityUser::query()->whereKey($participantId)->firstOrFail();
+        $this->assertParticipantBelongsToActivity($participant);
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->unmarkAbsent($participant, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function removeParticipant(int $participantId, ActivityParticipationService $participation): void
+    {
+        $participant = ActivityUser::query()->whereKey($participantId)->firstOrFail();
+        $this->assertParticipantBelongsToActivity($participant);
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->removeParticipant($participant, $user);
+        $this->toastFromSessionStatus();
+    }
+
+    public function moveParticipantToWaitlist(int $participantId, ActivityParticipationService $participation): void
+    {
+        $participant = ActivityUser::query()->whereKey($participantId)->firstOrFail();
+        $this->assertParticipantBelongsToActivity($participant);
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->moveParticipantToWaitlist($participant, $user);
+        $this->toastFromSessionStatus();
     }
 
     public function render(ActivityParticipationViewService $participationView, ActivityBadgeGroupBuilder $badgeGroupBuilder)
@@ -107,5 +273,18 @@ class ShowActivity extends Component
     private function normalizeTab(?string $value): string
     {
         return in_array($value, ['info', 'participation'], true) ? $value : 'info';
+    }
+
+    private function assertParticipantBelongsToActivity(ActivityUser $participant): void
+    {
+        abort_unless((int) $participant->activity_id === $this->activityId, 404);
+    }
+
+    private function toastFromSessionStatus(): void
+    {
+        $status = session()->pull('status');
+        if (is_string($status) && $status !== '') {
+            $this->info($status);
+        }
     }
 }
