@@ -43,7 +43,7 @@ enum BadgeSemantic: int
     /**
      * DaisyUI badge utility classes (outline variant matches existing activity/event UI).
      */
-    public function badgeClasses(bool $outline = true): string
+    public function badgeClasses(bool $outline = false): string
     {
         $tone = match ($this) {
             self::Primary => 'badge-primary',

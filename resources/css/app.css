@@ -22,46 +22,51 @@
 /* ─── Shared brand tokens (theme-independent) ─────────────────────── */
 @layer base {
     :root {
-        --brand-primary:           oklch(66.6% 0.190 305);
-        --brand-primary-content:   oklch(98% 0.01 305);
+        --brand-primary:           oklch(66.6% 0.190 305); /* violet — unchanged */
+        --brand-primary-content:   oklch(98%  0.01  305);
 
-        --brand-secondary:         oklch(66.6% 0.105 205);
-        --brand-secondary-content: oklch(98% 0.01 205);
+        --brand-secondary:         oklch(66.6% 0.105 205); /* sky-blue — unchanged */
+        --brand-secondary-content: oklch(98%  0.01  205);
 
-        --brand-accent:            oklch(66.6% 0.119 166);
-        --brand-accent-content:    oklch(15% 0.03 188);
+        /* CHANGED: hue 166→195, chroma 0.119→0.110
+           Brings accent into the blue-teal family (between secondary at 205
+           and pure teal at 185), so all three brand colors form a tight
+           analogous cluster: 195–205–305 */
+        --brand-accent:            oklch(66.6% 0.110 195);
+        --brand-accent-content:    oklch(15%  0.03  195);
 
-        --brand-info:              oklch(70% 0.16 220);
-        --brand-info-content:      oklch(98% 0.01 220);
-        --brand-success:           oklch(65% 0.18 150);
-        --brand-success-content:   oklch(98% 0.01 150);
-        --brand-warning:           oklch(75% 0.18 80);
-        --brand-warning-content:   oklch(20% 0.05 80);
-        --brand-error:             oklch(60% 0.22 25);
-        --brand-error-content:     oklch(98% 0.01 25);
+        --brand-info:              oklch(70%  0.16  220);
+        --brand-info-content:      oklch(98%  0.01  220);
+        --brand-success:           oklch(65%  0.18  150);
+        --brand-success-content:   oklch(98%  0.01  150);
+        --brand-warning:           oklch(75%  0.18  80);
+        /* CHANGED: 20%→22% + chroma bump for better contrast on yellow bg */
+        --brand-warning-content:   oklch(22%  0.06  80);
+        --brand-error:             oklch(60%  0.22  25);
+        --brand-error-content:     oklch(98%  0.01  25);
 
-        /* Neutrals and Bases (Light) */
-        --brand-neutral-light:         oklch(25% 0.02 250);
-        --brand-neutral-content-light: oklch(95% 0.01 250);
-        --brand-base-100-light:        oklch(100% 0 0);
-        --brand-base-200-light:        oklch(96% 0.01 250);
-        --brand-base-300-light:        oklch(90% 0.02 250);
-        --brand-base-content-light:     oklch(20% 0.02 250);
+        /* Neutrals (Light) */
+        --brand-neutral-light:          oklch(25% 0.02 250);
+        --brand-neutral-content-light:  oklch(95% 0.01 250);
+        --brand-base-100-light:         oklch(100% 0   0);
+        --brand-base-200-light:         oklch(96%  0.01 250);
+        --brand-base-300-light:         oklch(90%  0.02 250);
+        --brand-base-content-light:     oklch(20%  0.02 250);
 
-        /* Neutrals and Bases (Dark) */
-        --brand-neutral-dark:          oklch(80% 0.02 250);
-        --brand-neutral-content-dark:  oklch(15% 0.01 250);
-        --brand-base-100-dark:         oklch(18% 0.02 250);
-        --brand-base-200-dark:         oklch(22% 0.02 250);
-        --brand-base-300-dark:         oklch(27% 0.02 250);
-        --brand-base-content-dark:      oklch(90% 0.01 250);
+        /* Neutrals (Dark) */
+        --brand-neutral-dark:           oklch(80%  0.02 250);
+        --brand-neutral-content-dark:   oklch(15%  0.01 250);
+        --brand-base-100-dark:          oklch(18%  0.02 250);
+        --brand-base-200-dark:          oklch(22%  0.02 250);
+        --brand-base-300-dark:          oklch(27%  0.02 250);
+        --brand-base-content-dark:      oklch(90%  0.01 250);
 
-        --brand-rounded-btn: 0.5rem;     /* button border radius */
-        --brand-rounded-box: 0.75rem;    /* card/box radius */
-        --brand-rounded-badge: 9999px;   /* pill badges */
-        --brand-animation-btn: 0.15s;    /* press feedback */
-        --brand-border-btn: 1px;         /* outlined button border */
-        --brand-btn-focus-scale: 0.98;   /* subtle press feel */
+        --brand-rounded-btn:     0.5rem;
+        --brand-rounded-box:     0.75rem;
+        --brand-rounded-badge:   9999px;
+        --brand-animation-btn:   0.15s;
+        --brand-border-btn:      1px;
+        --brand-btn-focus-scale: 0.98;
     }
 }
 
@@ -200,6 +205,15 @@
 }
 
 .bg-sample6 {
+    background:
+        radial-gradient(120% 80% at 70% 20%, rgba(255, 20, 147, 0.15), transparent 50%),
+        radial-gradient(100% 60% at 30% 10%, rgba(0, 255, 255, 0.12), transparent 60%),
+        radial-gradient(90% 70% at 50% 0%, rgba(138, 43, 226, 0.18), transparent 65%),
+        radial-gradient(110% 50% at 80% 30%, rgba(255, 215, 0, 0.08), transparent 40%),
+        rgb(255, 255, 255);
+}
+
+[data-theme="dark"] .bg-sample6 {
     background:
         radial-gradient(120% 80% at 70% 20%, rgba(255, 20, 147, 0.15), transparent 50%),
         radial-gradient(100% 60% at 30% 10%, rgba(0, 255, 255, 0.12), transparent 60%),

@@ -42,10 +42,8 @@ class ActivityBadgeGroupBuilder
                     'activity_type:'.$activity->activity_type_id,
                     __('ui.activities.types.'.$slug),
                     $config->semanticFor(ActivityBadgeKind::ActivityType),
+                    false,
                     true,
-                    true,
-                    null,
-                    null,
                 ),
             ];
         }
@@ -68,10 +66,8 @@ class ActivityBadgeGroupBuilder
                     'tag:'.$tag->id,
                     $this->tagLabel($tag),
                     $config->semanticForTaxonomyTag($category),
+                    false,
                     true,
-                    true,
-                    null,
-                    null,
                 ),
             ];
         }
@@ -85,10 +81,8 @@ class ActivityBadgeGroupBuilder
                     'meta:requires_approval',
                     __('ui.activities.requires_approval_badge'),
                     $config->semanticFor(ActivityBadgeKind::RequiresApproval),
+                    false,
                     true,
-                    true,
-                    null,
-                    null,
                 ),
             ];
         }
@@ -101,10 +95,8 @@ class ActivityBadgeGroupBuilder
                     'meta:allows_observers',
                     __('ui.activities.allows_observers_badge'),
                     $config->semanticFor(ActivityBadgeKind::AllowsObservers),
+                    false,
                     true,
-                    true,
-                    null,
-                    null,
                 ),
             ];
         }
@@ -117,10 +109,6 @@ class ActivityBadgeGroupBuilder
                     'meta:minimum_age',
                     $activity->minimum_age.'+',
                     $config->semanticFor(ActivityBadgeKind::MinimumAge),
-                    true,
-                    false,
-                    null,
-                    null,
                 ),
             ];
         }
@@ -156,10 +144,6 @@ class ActivityBadgeGroupBuilder
                 'activity_type:slot:'.$i,
                 $label,
                 $semantic,
-                true,
-                false,
-                null,
-                null,
             );
             $i++;
         }
