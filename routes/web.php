@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('activity-participants/{participant}/mark-absent', [ParticipationController::class, 'markAbsent'])->name('activity-participants.mark-absent');
     Route::post('activity-participants/{participant}/unmark-absent', [ParticipationController::class, 'unmarkAbsent'])->name('activity-participants.unmark-absent');
     Route::post('activity-participants/{participant}/move-to-waitlist', [ParticipationController::class, 'moveParticipantToWaitlist'])->name('activity-participants.move-to-waitlist');
+    Route::post('activity-participants/{participant}/remove', [ParticipationController::class, 'removeParticipant'])->name('activity-participants.remove');
 
     Route::post('events/{event}/interests', [InterestController::class, 'addEvent'])->name('interests.events.add');
     Route::delete('events/{event}/interests', [InterestController::class, 'removeEvent'])->name('interests.events.remove');

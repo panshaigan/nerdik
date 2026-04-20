@@ -49,4 +49,9 @@ class ParticipationController extends Controller
     {
         return $participation->moveParticipantToWaitlist($participant, Auth::user());
     }
+
+    public function removeParticipant(ActivityUser $participant, ActivityParticipationService $participation)
+    {
+        return $participation->removeParticipant($participant, Auth::user());
+    }
 }

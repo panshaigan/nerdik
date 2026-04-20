@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\DB;
 
 class ActivityParticipantRosterService
 {
+    public function removeParticipant(ActivityUser $participant): void
+    {
+        $participant->delete();
+    }
+
     /**
      * Remove a participant and append them to the activity waitlist (host-initiated; does not auto-promote others).
      */

@@ -204,6 +204,25 @@ class ActivityParticipationService
         return redirect()->back()->with('status', __('ui.activities.participant_moved_to_waitlist'));
     }
 
+    public function removeParticipant(ActivityUser $participant, User $user): RedirectResponse
+    {
+        $activity = $participant->activity;
+
+        if ($msg = $this->signupStateBlockMessage($activity)) {
+            return redirect()->back()->with('status', $msg);
+        }
+
+        abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_remove_participant'));
+
+        if ((int) $participant->user_id === (int) ($activity->created_by ?? 0)) {
+            return redirect()->back()->with('status', __('ui.activities.cannot_remove_host_from_participants'));
+        }
+
+        $this->roster->removeParticipant($participant);
+
+        return redirect()->back()->with('status', __('ui.activities.participant_removed'));
+    }
+
     protected function signupStateBlockMessage(Activity $activity): ?string
     {
         if ($activity->isCancelled()) {
