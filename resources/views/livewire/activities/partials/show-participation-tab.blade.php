@@ -1,3 +1,11 @@
+@php
+    $activityStartsAtGmt = $activity->hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED
+        ? $activity->starts_at
+        : $activity->slot?->starts_at;
+    $canMarkAbsentNow = $activityStartsAtGmt !== null
+        && $activityStartsAtGmt->clone()->utc()->lte(now('UTC'));
+@endphp
+
 <div data-ui="activity-show-participation">
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0 md:pr-6" data-ui="activity-show-participants">
@@ -36,12 +44,14 @@
                                 @else
                                     <form action="{{ route('activity-participants.mark-absent', $p) }}" method="POST" class="inline">
                                         @csrf
-                                        <x-button
-                                            type="submit"
-                                            class="btn-ghost btn-sm text-warning"
-                                            :title="__('ui.activities.mark_absent')"
-                                            :aria-label="__('ui.activities.mark_absent')"
-                                        >{{ __('ui.activities.mark_absent') }}</x-button>
+                                        @if ($canMarkAbsentNow)
+                                            <x-button
+                                                type="submit"
+                                                class="btn-ghost btn-sm text-warning"
+                                                :title="__('ui.activities.mark_absent')"
+                                                :aria-label="__('ui.activities.mark_absent')"
+                                            >{{ __('ui.activities.mark_absent') }}</x-button>
+                                        @endif
                                     </form>
                                 @endif
                                 <form
@@ -111,27 +121,38 @@
                     @foreach ($activity->waitlist as $entry)
                         <x-list-item :item="$entry" :avatar="false" value="position" class="px-3 py-3">
                             <x-slot:value class="truncate text-sm font-medium text-base-content">
-                                <x-user-badge
-                                    :user="$p->user"
-                                    size="sm"
-                                    :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
-                                    name-class="truncate text-sm font-medium text-base-content"
-                                    class="min-w-0 flex-1"
-                                />
+                                <div class="flex min-w-0 items-center gap-2">
+                                    @if ($canManageActivity && $activity->requires_approval)
+                                        <form
+                                            action="{{ route('activities.waitlist.approve', [$activity, $entry]) }}"
+                                            method="POST"
+                                            class="inline shrink-0"
+                                            data-ui="activity-show-waitlist-approve"
+                                        >
+                                            @csrf
+                                            <x-button
+                                                type="submit"
+                                                class="btn-ghost btn-square btn-xs text-primary"
+                                                :title="__('ui.activities.approve_from_waitlist')"
+                                                :aria-label="__('ui.activities.approve_from_waitlist')"
+                                            >
+                                                <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                                </svg>
+                                            </x-button>
+                                        </form>
+                                    @endif
+                                    <x-user-badge
+                                        :user="$entry->user"
+                                        size="sm"
+                                        name-class="truncate text-sm font-medium text-base-content"
+                                        class="min-w-0 flex-1"
+                                    />
+                                </div>
                             </x-slot:value>
-                            @if ($canManageActivity && $activity->requires_approval)
-                                <x-slot:actions>
-                                    <form
-                                        action="{{ route('activities.waitlist.approve', [$activity, $entry]) }}"
-                                        method="POST"
-                                        class="inline shrink-0"
-                                        data-ui="activity-show-waitlist-approve"
-                                    >
-                                        @csrf
-                                        <x-button type="submit" class="btn-primary btn-sm">{{ __('ui.activities.approve_from_waitlist') }}</x-button>
-                                    </form>
-                                </x-slot:actions>
-                            @endif
+                            <x-slot:sub-value class="truncate text-xs text-base-content/65">
+                                #{{ $entry->position }}
+                            </x-slot:sub-value>
                         </x-list-item>
                     @endforeach
                 </div>
