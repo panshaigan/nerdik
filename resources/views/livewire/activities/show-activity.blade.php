@@ -100,7 +100,7 @@
                                         <x-user-badge
                                             :user="$hostUser"
                                             size="md"
-                                            class="mt-1 badge badge-primary"
+                                            class="mt-1 badge badge-secondary"
                                             name-class="truncate text-end font-semibold"
                                             data-ui="activity-show-host"
                                         />

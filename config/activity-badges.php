@@ -70,21 +70,21 @@ return [
     ],
 
     'semantic_by_tag_category' => [
-        TagCategory::KEY_GAME => 'primary',
-        TagCategory::KEY_GENRE => 'primary',
-        TagCategory::KEY_SETTING => 'primary',
-        TagCategory::KEY_MECHANIC => 'primary',
-        TagCategory::KEY_FORMAT => 'secondary',
-        TagCategory::KEY_OTHER => 'secondary',
-        TagCategory::KEY_TRIGGER => 'warning',
-        TagCategory::KEY_TOPIC => 'secondary',
+        TagCategory::KEY_GAME     => 'neutral',   // was primary
+        TagCategory::KEY_GENRE    => 'neutral',   // was primary
+        TagCategory::KEY_SETTING  => 'neutral',   // was primary
+        TagCategory::KEY_MECHANIC => 'neutral',   // was primary
+        TagCategory::KEY_FORMAT   => 'base-300', // was secondary
+        TagCategory::KEY_OTHER    => 'base-300', // was secondary
+        TagCategory::KEY_TOPIC    => 'base-300', // was secondary
+        TagCategory::KEY_TRIGGER  => 'warning',   // keep
     ],
 
     'semantic_by_kind' => [
-        'taxonomy_tag' => 'primary',
-        'activity_type' => 'info',
-        'minimum_age' => 'warning',
-        'requires_approval' => 'accent',
-        'allows_observers' => 'accent',
+        'taxonomy_tag'       => 'neutral',   // was primary
+        'activity_type'      => 'accent',    // was info → teal is more distinctive
+        'minimum_age'        => 'warning',   // keep
+        'requires_approval'  => 'warning',   // was accent → needs more attention
+        'allows_observers'   => 'neutral',   // was accent → it's just a property
     ],
 ];
