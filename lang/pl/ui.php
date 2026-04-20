@@ -170,6 +170,15 @@ return [
         'host_title' => [
             'rpg' => 'Mistrz gry',
         ],
+        'host' => 'Prowadzący',
+        'edit' => 'Edytuj',
+        'delete' => 'Usuń',
+        'delete_confirm' => 'Czy na pewno chcesz usunąć tę aktywność?',
+        'leave' => 'Opuść aktywność',
+        'leave_waitlist' => 'Opuść listę rezerwową',
+        'absent' => 'Nieobecny',
+        'mark_absent' => 'Oznacz nieobecność',
+        'no_participants' => 'Brak uczestników.',
     ],
     'events' => [
         'host' => 'Organizator',
