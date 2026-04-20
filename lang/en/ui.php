@@ -179,6 +179,7 @@ return [
         'absent' => 'Absent',
         'mark_absent' => 'Mark absent',
         'no_participants' => 'No participants yet.',
+        'waitlist_empty_hint' => 'No one is on the waitlist yet.',
     ],
     'events' => [
         'host' => 'Host',
