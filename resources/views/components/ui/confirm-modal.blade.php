@@ -4,7 +4,7 @@
     'confirmAction' => 'runConfirmedAction',
 ])
 
-<x-modal {{ $attributes }} :title="$title">
+<x-modal {{ $attributes }} :title="$title" class="backdrop-blur" box-class="bg-sample1" persistent separator>
     <p class="text-sm text-base-content/80 whitespace-pre-line">{{ $message }}</p>
 
     <div class="modal-action">

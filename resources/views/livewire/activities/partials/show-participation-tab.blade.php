@@ -58,9 +58,8 @@
                                 :title="__('ui.activities.remove_participant')"
                                 :aria-label="__('ui.activities.remove_participant')"
                                 wire:click="removeParticipant({{ $p->id }})"
-                            >
-                                <x-ui.icons.trash class="h-4 w-4 shrink-0" />
-                            </x-button>
+                                icon="o-trash"
+                            />
                             <x-button
                                 type="button"
                                 class="btn-warning btn-square btn-xs"

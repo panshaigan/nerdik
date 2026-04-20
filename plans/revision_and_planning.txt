@@ -26,6 +26,7 @@ UI/UX
 - ORGANIZCJA powinna być przypinywalna też do graczy.
 - search everything on top
 
+
 Notifications
     - review
     - event: "event soon!", "event soon - empty slots", "event soon - no slots planned" [FUTURE]
@@ -37,6 +38,7 @@ Notifications
         - "you waited enough to get the place" [MVP]
 
 Technicals
+    - update laravel to 13
     - security
     - performance
     - posgress?
