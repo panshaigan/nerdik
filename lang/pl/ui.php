@@ -158,7 +158,7 @@ return [
         'show_details' => 'Szczegoly',
         'show_schedule' => 'Termin i miejsce',
         'show_participation' => 'Udzial',
-        'show_participation_section' => 'Uczestnictwo',
+        'show_participation_section' => 'Zapisy',
         'show_participants' => 'Uczestnicy',
         'show_waitlist' => 'Lista rezerwowa',
         'show_footer_actions' => 'Akcje',

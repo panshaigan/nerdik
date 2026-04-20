@@ -158,7 +158,7 @@ return [
         'show_details' => 'Details',
         'show_schedule' => 'Schedule & location',
         'show_participation' => 'Participation',
-        'show_participation_section' => 'Participation',
+        'show_participation_section' => 'Sign-ups',
         'show_participants' => 'Participants',
         'show_waitlist' => 'Waitlist',
         'show_footer_actions' => 'Actions',
