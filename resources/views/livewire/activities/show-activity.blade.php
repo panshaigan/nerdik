@@ -136,9 +136,8 @@
                                     :title="__('ui.activities.edit')"
                                     :aria-label="__('ui.activities.edit').': '.$activity->name"
                                     data-ui="activity-show-edit"
-                                >
-                                    <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                                </x-button>
+                                    icon="o-pencil"
+                                />
                                 <x-button
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
@@ -146,9 +145,8 @@
                                     :aria-label="__('ui.activities.delete').': '.$activity->name"
                                     wire:click="confirmDeleteActivity"
                                     data-ui="activity-show-delete"
-                                >
-                                    <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                </x-button>
+                                    icon="o-trash"
+                                />
                                 @if ($isCancelled)
                                     <x-button
                                         type="button"
@@ -156,9 +154,8 @@
                                         :title="__('ui.activities.reopen_action')"
                                         :aria-label="__('ui.activities.reopen_action')"
                                         wire:click="confirmReopenActivity"
-                                    >
-                                        ↺
-                                    </x-button>
+                                        icon="o-arrow-uturn-left"
+                                    />
                                 @else
                                     <x-button
                                         type="button"
@@ -166,9 +163,8 @@
                                         :title="__('ui.activities.cancel_action')"
                                         :aria-label="__('ui.activities.cancel_action')"
                                         wire:click="confirmCancelActivity"
-                                    >
-                                        ×
-                                    </x-button>
+                                        icon="o-x-circle"
+                                    />
                                 @endif
                             @endif
                             <x-button
@@ -177,9 +173,8 @@
                                 :title="__('ui.activities.duplicate_action')"
                                 :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
                                 data-ui="activity-show-duplicate"
-                            >
-                                <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
-                            </x-button>
+                                icon="o-square-2-stack"
+                            />
                             @if ($hasInterest)
                                 <x-button
                                     type="button"
@@ -187,15 +182,17 @@
                                     class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
                                     :title="__('ui.interests.remove_from_interests')"
                                     data-ui="activity-show-interest-remove"
-                                >★</x-button>
+                                    icon="s-star"
+                                />
                             @else
                                 <x-button
                                     type="button"
                                     wire:click="addInterest"
-                                    class="btn btn-ghost btn-square btn-sm text-lg ui-action ui-action-interest-add"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
                                     :title="__('ui.interests.add_to_interests')"
                                     data-ui="activity-show-interest-add"
-                                >☆</x-button>
+                                    icon="o-star"
+                                />
                             @endif
                         </div>
                     @endauth
