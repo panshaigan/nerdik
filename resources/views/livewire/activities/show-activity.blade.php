@@ -260,60 +260,6 @@
 
                 <x-tab name="participation" :label="$participationSlotsLabel" class="p-6 pt-4 sm:p-8 sm:pt-5" data-ui="activity-show-tab-participation" icon="o-users">
                     <div data-ui="activity-show-participation">
-                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3  pb-4">
-                            <div class="flex flex-wrap items-center justify-end gap-3">
-                                @auth
-                                    @if (($isParticipant || $onWaitlist || $canJoin) && !filled($stateBlockedMessage ?? null))
-                                        <div class="flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
-                                            @if ($isParticipant)
-                                                <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <x-button type="submit" class="btn-error">{{ __('ui.activities.leave') }}</x-button>
-                                                </form>
-                                            @elseif ($onWaitlist)
-                                                <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <x-button type="submit" class="btn-neutral">{{ __('ui.activities.leave_waitlist') }}</x-button>
-                                                </form>
-                                            @elseif ($canJoin)
-                                                @if ($activity->requires_approval || $isFull)
-                                                    <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
-                                                        @csrf
-                                                        <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
-                                                    </form>
-                                                @else
-                                                    <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
-                                                        @csrf
-                                                        <x-button type="submit" class="btn-primary">{{ __('ui.activities.join') }}</x-button>
-                                                    </form>
-                                                @endif
-                                            @endif
-                                        </div>
-                                    @endif
-                                @endauth
-                            </div>
-                        </div>
-                        @auth
-                            @if (filled($stateBlockedMessage ?? null))
-                                <p class="mb-4 text-sm text-error" data-ui="activity-show-state-blocked">{{ $stateBlockedMessage }}</p>
-                            @endif
-                            @if (($activeWindowRemainingForActivity ?? null) !== null)
-                                <p class="mb-2 text-sm text-base-content/80" data-ui="activity-show-window-activity-cap">
-                                    {{ __('ui.events.enrollment_window_activity_spots_remaining', [
-                                        'remaining' => $activeWindowRemainingForActivity,
-                                        'max' => $activeWindowPerActivityMax,
-                                    ]) }}
-                                </p>
-                            @endif
-                            @if (($activeWindowUserRemaining ?? null) !== null)
-                                <p class="mb-4 text-sm text-base-content/70" data-ui="activity-show-window-user-cap">
-                                    {{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}
-                                </p>
-                            @endif
-                            @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
-                                <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
-                            @endif
-                        @endauth
                         <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
                             <div class="min-w-0 md:pr-6" data-ui="activity-show-participants">
                                 <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
@@ -393,6 +339,60 @@
                                 @endif
                             </div>
                         </div>
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3  pb-4">
+                            <div class="flex flex-wrap items-center justify-end gap-3">
+                                @auth
+                                    @if (($isParticipant || $onWaitlist || $canJoin) && !filled($stateBlockedMessage ?? null))
+                                        <div class="flex flex-wrap gap-2" data-ui="activity-show-participation-actions">
+                                            @if ($isParticipant)
+                                                <form action="{{ route('activities.leave', $activity) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <x-button type="submit" class="btn-error">{{ __('ui.activities.leave') }}</x-button>
+                                                </form>
+                                            @elseif ($onWaitlist)
+                                                <form action="{{ route('activities.leave-waitlist', $activity) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <x-button type="submit" class="btn-neutral">{{ __('ui.activities.leave_waitlist') }}</x-button>
+                                                </form>
+                                            @elseif ($canJoin)
+                                                @if ($activity->requires_approval || $isFull)
+                                                    <form action="{{ route('activities.join-waitlist', $activity) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <x-button type="submit" class="btn-warning">{{ __('ui.activities.join_waitlist') }}</x-button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('activities.join', $activity) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <x-button type="submit" class="btn-primary">{{ __('ui.activities.join') }}</x-button>
+                                                    </form>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endauth
+                            </div>
+                        </div>
+                        @auth
+                            @if (filled($stateBlockedMessage ?? null))
+                                <p class="mb-4 text-sm text-error" data-ui="activity-show-state-blocked">{{ $stateBlockedMessage }}</p>
+                            @endif
+                            @if (($activeWindowRemainingForActivity ?? null) !== null)
+                                <p class="mb-2 text-sm text-base-content/80" data-ui="activity-show-window-activity-cap">
+                                    {{ __('ui.events.enrollment_window_activity_spots_remaining', [
+                                        'remaining' => $activeWindowRemainingForActivity,
+                                        'max' => $activeWindowPerActivityMax,
+                                    ]) }}
+                                </p>
+                            @endif
+                            @if (($activeWindowUserRemaining ?? null) !== null)
+                                <p class="mb-4 text-sm text-base-content/70" data-ui="activity-show-window-user-cap">
+                                    {{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}
+                                </p>
+                            @endif
+                            @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
+                                <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
+                            @endif
+                        @endauth
                     </div>
                 </x-tab>
             </x-ui.tabs-with-toolbar>

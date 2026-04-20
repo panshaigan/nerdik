@@ -179,6 +179,7 @@ return [
         'absent' => 'Nieobecny',
         'mark_absent' => 'Oznacz nieobecność',
         'no_participants' => 'Brak uczestników.',
+        'waitlist_empty_hint' => 'Lista rezerwowa jest pusta.',
     ],
     'events' => [
         'host' => 'Organizator',
