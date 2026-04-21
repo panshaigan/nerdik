@@ -139,7 +139,7 @@
                                         });
                                     }
                                 }"
-                                class="space-y-2"
+                                class="space-y-1"
                             >
                                 <!-- Label -->
                                 <label class="text-sm font-medium flex justify-between">
