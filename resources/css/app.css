@@ -295,5 +295,8 @@ p {
 }
 
 .tox .tox-edit-area::before {
-    border-color: #000 !important; /* your black */
+    border-color: #000 !important;
+}
+[data-theme="dark"] .tox .tox-edit-area::before {
+    border-color: #fff !important;
 }
