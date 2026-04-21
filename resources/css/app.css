@@ -349,9 +349,13 @@ input[type="range"].thumb-only::-moz-range-thumb {
     top: 50%;
     left: 0;
     z-index: 1;
-    height: calc(var(--range-thumb-size) * 0.62);
+    /* Same height as thumb diameter — matches Mary <x-range> filled “pill” next to the handle. */
+    height: var(--range-thumb-size);
     transform: translateY(-50%);
-    border-radius: var(--radius-selector, 0.25rem);
-    /* Brighter bar like Daisy’s filled segment (single range uses thumb shadows; we approximate with a solid mix). */
-    background-color: color-mix(in oklab, var(--color-base-content) 38%, var(--color-base-100));
+    border-radius: calc(var(--range-thumb-size) / 3);
+    /* Same face color as Daisy range thumb (--range-thumb: base-100). */
+    background-color: var(--brand-base-content-light);
+}
+[data-theme="dark"] .participants-dual-range-fill {
+    background-color: var(--brand-base-content-dark);
 }
