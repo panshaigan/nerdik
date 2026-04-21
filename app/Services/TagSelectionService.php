@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\Models\ActivityType;
 use App\Models\Tag;
+use App\Models\TagCategory;
 use App\Models\TagContext;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-
 use Throwable;
 
 use function is_numeric;
@@ -16,9 +16,10 @@ use function is_string;
 class TagSelectionService
 {
     /**
-     * @param array<int|string, mixed> $tagIds
-     * @param array<int|string, mixed> $newTags
+     * @param  array<int|string, mixed>  $tagIds
+     * @param  array<int|string, mixed>  $newTags
      * @return list<int>
+     *
      * @throws Throwable
      */
     public function resolveFinalTagIds(array $tagIds, array $newTags = []): array
@@ -117,7 +118,7 @@ class TagSelectionService
 
     public function syncActivityTypeContexts(Tag $tag, array $types): void
     {
-        $tag->contexts()->where('context_type', 'activity_type')->delete();
+        $tag->contexts()->where('context_type', TagContext::CONTEXT_TYPE_ACTIVITY_TYPE)->delete();
 
         foreach ($types as $type) {
             $id = is_numeric($type) ? (int) $type : null;
@@ -126,11 +127,79 @@ class TagSelectionService
             }
             if ($id !== null && ActivityType::query()->whereKey($id)->exists()) {
                 $tag->contexts()->create([
-                    'context_type' => 'activity_type',
+                    'context_type' => TagContext::CONTEXT_TYPE_ACTIVITY_TYPE,
                     'context_id' => $id,
                 ]);
             }
         }
+    }
+
+    /**
+     * Whether a tag may appear in typeahead suggestions for the given activity type.
+     * Tags with no activity_type contexts are universal; otherwise the type must match.
+     */
+    public function isTagEligibleForActivityTypeSuggestions(Tag $tag, ?int $activityTypeId): bool
+    {
+        $tag->loadMissing('contexts');
+
+        $ids = $tag->contexts
+            ->where('context_type', TagContext::CONTEXT_TYPE_ACTIVITY_TYPE)
+            ->pluck('context_id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return true;
+        }
+
+        if ($activityTypeId === null || $activityTypeId <= 0) {
+            return false;
+        }
+
+        return $ids->contains($activityTypeId);
+    }
+
+    /**
+     * JSON-serializable rows for the activity tag picker (all tags; client filters suggestions by context).
+     *
+     * @param  Collection<int, Tag>  $tags
+     * @return list<array<string, mixed>>
+     */
+    public function tagsPayloadForActivityPicker(Collection $tags, string $locale): array
+    {
+        $categoryNamesById = TagCategory::query()
+            ->with('translations')
+            ->orderBy('key')
+            ->get()
+            ->mapWithKeys(fn (TagCategory $cat) => [(int) $cat->id => (string) $cat->name($locale)])
+            ->all();
+
+        return $tags->map(function (Tag $tag) use ($locale, $categoryNamesById) {
+            $tag->loadMissing(['translations', 'aliases', 'tagRelations', 'tagCategory.translations', 'contexts']);
+
+            $localeTranslation = $tag->translations->firstWhere('locale', $locale);
+            $fallbackTranslation = $localeTranslation ?: $tag->translations->firstWhere('locale', 'en');
+            $categoryId = (int) ($tag->tag_category_id ?? 0);
+            $categoryName = (string) (($tag->tagCategory?->name($locale) ?? '') ?: ($categoryNamesById[$categoryId] ?? ''));
+
+            $contextActivityTypeIds = $tag->contexts
+                ->where('context_type', TagContext::CONTEXT_TYPE_ACTIVITY_TYPE)
+                ->pluck('context_id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            return [
+                'id' => (int) $tag->id,
+                'category_id' => $categoryId,
+                'category_name' => $categoryName,
+                'slug' => (string) ($fallbackTranslation?->slug ?? ''),
+                'labels' => $tag->translations->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
+                'aliases' => $tag->aliases->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
+                'related_ids' => $tag->tagRelations->pluck('related_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
+                'context_activity_type_ids' => $contextActivityTypeIds,
+            ];
+        })->values()->all();
     }
 
     /**
@@ -139,7 +208,7 @@ class TagSelectionService
     public function getActivityTypeContextsAttribute($tag): Collection
     {
         return $tag->contexts()
-            ->where('context_type', 'activity_type')
+            ->where('context_type', TagContext::CONTEXT_TYPE_ACTIVITY_TYPE)
             ->get()
             ->map(fn (TagContext $c) => $c->activityType())
             ->filter();

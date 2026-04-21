@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class TagContext extends Model
 {
+    public const CONTEXT_TYPE_ACTIVITY_TYPE = 'activity_type';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -28,7 +30,7 @@ class TagContext extends Model
 
     public function activityType(): ?ActivityType
     {
-        if ($this->context_type !== 'activity_type') {
+        if ($this->context_type !== self::CONTEXT_TYPE_ACTIVITY_TYPE) {
             return null;
         }
 
