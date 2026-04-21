@@ -563,6 +563,7 @@ class ManageActivityForm extends Component
                 ->get()
                 ->map(static fn (TagCategory $cat) => [
                     'id' => (int) $cat->id,
+                    'key' => (string) $cat->key,
                     'name' => (string) $cat->name($locale),
                 ])
                 ->values()
