@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Domain\ActivityBadges;
+
+use App\Enums\BadgeSemantic;
+
+final readonly class ActivityBadgeItem
+{
+    public function __construct(
+        public ActivityBadgeKind $kind,
+        public string $key,
+        public string $label,
+        public BadgeSemantic $semantic,
+        public ?string $icon = null,
+        public bool $outline = false,
+        public bool $normalWrap = false,
+        public ?string $dataUi = null,
+        public ?string $title = null,
+    ) {}
+}
