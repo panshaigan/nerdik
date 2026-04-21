@@ -3,7 +3,8 @@
 @endpush
 
 <div class="space-y-4">
-    <form wire:submit.prevent="save" class="space-y-4" data-activity-form>
+    <x-form wire:submit.prevent="save" class="space-y-4" data-activity-form>
+        <x-errors title="Oops!" description="Please, fix them." icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -11,6 +12,7 @@
                         <x-input
                             wire:model.live.debounce.300ms="name"
                             label="{{ __('ui.activities.name') }}"
+                            placeholder="{{ __('ui.activities.name') }}"
                             type="text"
                             error-field="name"
                             required
@@ -19,6 +21,8 @@
                             aria-autocomplete="list"
                             aria-expanded="false"
                             aria-controls="activity-name-suggestions-popup"
+                            icon="o-bookmark"
+                            inline
                         />
                         <div
                             id="activity-name-suggestions-popup"
@@ -39,6 +43,8 @@
                             :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
                             :placeholder="__('ui.activities.choose_type')"
                             placeholder-value=""
+                            icon="o-squares-2x2"
+                            inline
                         />
                     </div>
                 </div>
@@ -96,12 +102,15 @@
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <x-input
                                 label="{{ __('ui.activities.min_participants') }}"
+                                placeholder="{{ __('ui.activities.min_participants') }}"
                                 wire:model="min_participants"
                                 type="number"
                                 min="1"
                                 data-activity-numeric
                                 data-activity-participants="min"
                                 error-field="min_participants"
+                                icon="o-users"
+                                inline
                             >
                                 <x-slot:append>
                                     <x-button
@@ -115,12 +124,15 @@
 
                             <x-input
                                 label="{{ __('ui.activities.max_participants') }}"
+                                placeholder="{{ __('ui.activities.max_participants') }}"
                                 wire:model="max_participants"
                                 type="number"
                                 min="1"
                                 data-activity-numeric
                                 data-activity-participants="max"
                                 error-field="max_participants"
+                                icon="o-users"
+                                inline
                             >
                                 <x-slot:append>
                                     <x-button
@@ -132,42 +144,36 @@
                                 </x-slot:append>
                             </x-input>
 
-                            <x-input
-                                label="{{ __('ui.activities.minimum_age') }}"
-                                wire:model="minimum_age"
-                                type="number"
-                                min="0"
-                                data-activity-numeric
-                                error-field="minimum_age"
-                            >
-                                <x-slot:append>
-                                    <x-button
-                                        type="button"
-                                        class="btn-outline btn-xs"
-                                        wire:click="$set('minimum_age', null)"
-                                        :aria-label="__('ui.activities.clear_field')"
-                                    >×</x-button>
-                                </x-slot:append>
-                            </x-input>
+                            <div x-data="{ value: @entangle('minimum_age') }" class="space-y-1">
+                                <label class="text-sm font-medium flex justify-between">
+                                    <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value"></span></span>
+                                </label>
+                                <x-range
+                                    x-model="value"
+                                    min="0"
+                                    max="18"
+                                />
+                            </div>
 
-                            <x-input
-                                label="{{ __('ui.activities.duration_in_minutes') }}"
-                                wire:model="duration_in_minutes"
-                                type="number"
-                                min="0"
-                                step="5"
-                                data-activity-numeric
-                                error-field="duration_in_minutes"
-                            >
-                                <x-slot:append>
-                                    <x-button
-                                        type="button"
-                                        class="btn-outline btn-xs"
-                                        wire:click="$set('duration_in_minutes', null)"
-                                        :aria-label="__('ui.activities.clear_field')"
-                                    >×</x-button>
-                                </x-slot:append>
-                            </x-input>
+                            <div x-data="{ value: @entangle('duration_in_minutes') }" class="space-y-1">
+                                <label class="text-sm font-medium flex justify-between">
+                                    <span>
+                                        {{ __('ui.activities.duration_in_minutes') }}:
+                                        <span class="font-semibold">
+                                            <span x-text="Math.floor(value / 60)"></span>h
+                                            <span x-show="value % 60 > 0">
+                                                <span x-text="value % 60"></span>m
+                                            </span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <x-range
+                                    x-model="value"
+                                    min="30"
+                                    max="720"
+                                    step="30"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -179,6 +185,7 @@
                 <div class="space-y-1">
                     <x-input
                         :label="__('ui.activities.cancellation_deadline_in_hours')"
+                        :placeholder="__('ui.activities.cancellation_deadline_in_hours')"
                         :hint="__('ui.activities.cancellation_deadline_description')"
                         wire:model="cancellation_deadline_in_hours"
                         type="number"
@@ -186,6 +193,8 @@
                         data-activity-numeric
                         class="w-full"
                         error-field="cancellation_deadline_in_hours"
+                        icon="o-clock"
+                        inline
                     >
                         <x-slot:append>
                             <x-button
@@ -347,19 +356,19 @@
         </div>
         @endif
 
-        <div id="ui-activity-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="activity-form-actions">
+        <x-slot:actions>
             <x-button id="ui-activity-clear-numeric" type="button" class="btn-outline ui-action ui-action-clear-numeric" wire:click="clearNumericFields" data-ui="activity-clear-numeric">
                 {{ __('ui.activities.clear_numeric_fields') }}
             </x-button>
 
             <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
-            <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save">
+            <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                 <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('Update') : __('Create') }}</span>
                 <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
             </x-button>
-        </div>
-    </form>
+        </x-slot:actions>
+    </x-form>
 </div>
 
 @push('scripts')

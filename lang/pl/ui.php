@@ -104,7 +104,7 @@ return [
         'move_to_waitlist' => 'Na liste rezerwowa',
         'unmark_absent' => 'Cofnij nieobecnosc',
         'move_to_waitlist_confirm' => 'Przeniesc tego uczestnika na liste rezerwowa? Jesli aktywnosc wymaga akceptacji, trzeba go bedzie ponownie zaakceptowac.',
-        'description' => 'Opis (opcjonalnie)',
+        'description' => 'Opis',
         'description_placeholder' => 'Opisz aktywnosc…',
         'max_participants_gte_min' => 'Maksimum uczestnikow nie moze byc mniejsze niz minimum.',
         'min_participants_lte_max' => 'Minimum uczestnikow nie moze byc wieksze niz maksimum.',
