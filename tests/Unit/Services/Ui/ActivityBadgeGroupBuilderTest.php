@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ui;
 
-use App\Dto\Ui\ActivityBadgeGroupConfig;
-use App\Dto\Ui\ActivityBadgeItem;
-use App\Enums\ActivityBadgeKind;
-use App\Enums\ActivityBadgePreset;
+use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
+use App\Domain\ActivityBadges\ActivityBadgeItem;
+use App\Domain\ActivityBadges\ActivityBadgeKind;
+use App\Domain\ActivityBadges\ActivityBadgePreset;
 use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
-use App\Services\Ui\ActivityBadgeGroupBuilder;
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
