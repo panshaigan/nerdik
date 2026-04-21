@@ -102,12 +102,12 @@
                                     maxLimit: 20,
 
                                     get minPercent() {
-                                        const m = Number(this.min || this.minLimit);
-                                        return ((m - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                        const val = this.min ?? this.minLimit;
+                                        return ((val - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
                                     },
                                     get maxPercent() {
-                                        const m = Number(this.max || this.maxLimit);
-                                        return ((m - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                        const val = this.max ?? this.maxLimit;
+                                        return ((val - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
                                     },
 
                                     init() {
@@ -143,29 +143,29 @@
                                     <!-- Active range -->
                                     <div
                                         class="absolute top-1/2 -translate-y-1/2 h-2 rounded bg-primary"
-                                        :style="`left: ${minPercent}%; width: ${maxPercent - minPercent}%`"
+                                        :style="{ left: minPercent + '%', width: (maxPercent - minPercent) + '%' }"
                                     ></div>
 
                                     <!-- Min input -->
                                     <input
                                         type="range"
-                                        x-model="min"
+                                        x-model.number="min"
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
                                         class="range range-xs absolute w-full bg-transparent thumb-only"
-                                        :class="Number(min) > (maxLimit / 2) ? 'z-30' : 'z-20'"
+                                        :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
                                     >
 
                                     <!-- Max input -->
                                     <input
                                         type="range"
-                                        x-model="max"
+                                        x-model.number="max"
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
                                         class="range range-xs absolute w-full bg-transparent thumb-only"
-                                        :class="Number(max) <= (maxLimit / 2) ? 'z-30' : 'z-10'"
+                                        :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
                                     >
                                 </div>
                             </div>
@@ -530,55 +530,6 @@
                 if (!namePopup.contains(e.target) && e.target !== nameInput) {
                     closeNamePopup();
                 }
-            }, { signal });
-        }
-
-        function parseNum(el) {
-            const v = el.value.trim();
-            if (v === '') return null;
-            const n = parseInt(v, 10);
-            return Number.isFinite(n) ? n : null;
-        }
-
-        function syncActivityMinMax() {
-            const form = document.querySelector('form[data-activity-form]');
-            if (!form) return;
-            const minEl = form.querySelector('input[data-activity-participants="min"]');
-            const maxEl = form.querySelector('input[data-activity-participants="max"]');
-            if (!minEl || !maxEl) return;
-
-            const minV = parseNum(minEl);
-            const maxV = parseNum(maxEl);
-
-            if (minV !== null) {
-                maxEl.min = String(minV);
-            } else {
-                maxEl.setAttribute('min', '1');
-            }
-
-            if (maxV !== null) {
-                minEl.max = String(maxV);
-            } else {
-                minEl.removeAttribute('max');
-            }
-
-            if (minV !== null && maxV !== null && maxV < minV) {
-                maxEl.value = String(minV);
-                maxEl.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }
-
-        const form = document.querySelector('form[data-activity-form]');
-        const minEl = form?.querySelector('input[data-activity-participants="min"]');
-        const maxEl = form?.querySelector('input[data-activity-participants="max"]');
-        if (minEl && maxEl) {
-            ['input', 'change'].forEach((ev) => {
-                minEl.addEventListener(ev, syncActivityMinMax, { signal });
-                maxEl.addEventListener(ev, syncActivityMinMax, { signal });
-            });
-            syncActivityMinMax();
-            form?.addEventListener('submit', () => {
-                syncActivityMinMax();
             }, { signal });
         }
 
