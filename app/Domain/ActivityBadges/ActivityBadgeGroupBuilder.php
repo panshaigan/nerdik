@@ -66,6 +66,8 @@ class ActivityBadgeGroupBuilder
                     $config->iconForTaxonomyTag($category),
                     false,
                     true,
+                    null,
+                    $tag->tagCategory?->name(app()->getLocale()),
                 ),
             ];
         }

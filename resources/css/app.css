@@ -75,6 +75,7 @@
     name: "light";
     default: true;
     color-scheme: light;
+    tooltip-color: var(--brand-base-300-light);
 
     --color-primary:           var(--brand-primary);
     --color-primary-content:   var(--brand-primary-content);
@@ -112,6 +113,7 @@
     name: "dark";
     prefersdark: true;
     color-scheme: dark;
+    tooltip-color: var(--brand-base-300-dark);
 
     --color-primary:           var(--brand-primary);
     --color-primary-content:   var(--brand-primary-content);
