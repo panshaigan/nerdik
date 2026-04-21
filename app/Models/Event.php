@@ -88,4 +88,9 @@ class Event extends Model
 
         return '';
     }
+
+    public function compactDateAttribute(): string
+    {
+        return format_date_range_compact($this->starts_at, $this->ends_at);
+    }
 }

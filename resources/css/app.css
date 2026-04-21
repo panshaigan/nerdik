@@ -33,7 +33,7 @@
            and pure teal at 185), so all three brand colors form a tight
            analogous cluster: 195–205–305 */
         --brand-accent:            oklch(66.6% 0.110 195);
-        --brand-accent-content:    oklch(15%  0.03  195);
+        --brand-accent-content:    oklch(98%  0.01  205);
 
         --brand-info:              oklch(70%  0.16  220);
         --brand-info-content:      oklch(98%  0.01  220);
@@ -75,7 +75,6 @@
     name: "light";
     default: true;
     color-scheme: light;
-    tooltip-color: var(--brand-base-300-light);
 
     --color-primary:           var(--brand-primary);
     --color-primary-content:   var(--brand-primary-content);
@@ -113,7 +112,6 @@
     name: "dark";
     prefersdark: true;
     color-scheme: dark;
-    tooltip-color: var(--brand-base-300-dark);
 
     --color-primary:           var(--brand-primary);
     --color-primary-content:   var(--brand-primary-content);
