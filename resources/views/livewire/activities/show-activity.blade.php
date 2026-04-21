@@ -40,23 +40,6 @@
 
 <div class="py-10 sm:py-12">
     <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-        @if ($isCancelled)
-            <div role="alert" class="alert alert-warning text-sm">
-                <div class="space-y-1">
-                    <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
-                    @if ($activity->cancel_reason)
-                        <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
-                    @endif
-                    <p class="opacity-80">
-                        {{ __('ui.activities.cancelled_meta', [
-                            'who' => $activity->canceller?->nickname ?? $activity->canceller?->email ?? __('ui.common.unknown_user'),
-                            'when' => $activity->cancelled_at ? format_datetime_in_user_tz($activity->cancelled_at) : '—',
-                        ]) }}
-                    </p>
-                </div>
-            </div>
-        @endif
-
         {{-- Hero --}}
         <div
             class="ui-activity-show-hero overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow"
@@ -112,6 +95,24 @@
                             @endif
                             </x-header>
                         </div>
+
+                        @if ($isCancelled)
+                            <div role="alert" class="alert text-sm mb-6">
+                                <div class="space-y-1">
+                                    <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
+                                    @if ($activity->cancel_reason)
+                                        <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
+                                    @endif
+                                    <p class="opacity-80">
+                                        {{ __('ui.activities.cancelled_meta', [
+                                            'who' => $activity->canceller?->nickname ?? $activity->canceller?->email ?? __('ui.common.unknown_user'),
+                                            'when' => $activity->cancelled_at ? format_datetime_in_user_tz($activity->cancelled_at) : '—',
+                                        ]) }}
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
+
                         <x-ui.activity-badge-group
                             :items="$badgeItems"
                             class="pt-0.5"

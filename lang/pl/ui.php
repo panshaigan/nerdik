@@ -144,7 +144,7 @@ return [
         'reopen_confirm' => 'Przywrocic te sesje aktywnosci?',
         'cancelled_badge' => 'Odwolane',
         'cancel_reason_label' => 'Powod',
-        'cancelled_meta' => 'Odwolane przez :who o :when',
+        'cancelled_meta' => 'Odwolane przez :who :when',
         'cancelled_status' => 'Sesja aktywnosci zostala odwolana.',
         'reopened_status' => 'Sesja aktywnosci zostala przywrocona.',
         'deleted_status' => 'Aktywnosc zostala usunieta.',
