@@ -94,49 +94,81 @@
 
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <x-input
-                                label="{{ __('ui.activities.min_participants') }}"
-                                placeholder="{{ __('ui.activities.min_participants') }}"
-                                wire:model="min_participants"
-                                type="number"
-                                min="1"
-                                data-activity-numeric
-                                data-activity-participants="min"
-                                error-field="min_participants"
-                                icon="o-users"
-                                inline
-                            >
-                                <x-slot:append>
-                                    <x-button
-                                        type="button"
-                                        class="btn-outline btn-xs"
-                                        wire:click="$set('min_participants', null)"
-                                        :aria-label="__('ui.activities.clear_field')"
-                                    >×</x-button>
-                                </x-slot:append>
-                            </x-input>
+                            <div
+                                x-data="{
+                                    min: @entangle('min_participants'),
+                                    max: @entangle('max_participants'),
+                                    minLimit: 1,
+                                    maxLimit: 20,
 
-                            <x-input
-                                label="{{ __('ui.activities.max_participants') }}"
-                                placeholder="{{ __('ui.activities.max_participants') }}"
-                                wire:model="max_participants"
-                                type="number"
-                                min="1"
-                                data-activity-numeric
-                                data-activity-participants="max"
-                                error-field="max_participants"
-                                icon="o-users"
-                                inline
+                                    get minPercent() {
+                                        const m = Number(this.min || this.minLimit);
+                                        return ((m - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                    },
+                                    get maxPercent() {
+                                        const m = Number(this.max || this.maxLimit);
+                                        return ((m - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                    },
+
+                                    init() {
+                                        this.min = this.min ?? this.minLimit;
+                                        this.max = this.max ?? this.maxLimit;
+
+                                        this.$watch('min', v => {
+                                            const val = Number(v);
+                                            const maxVal = Number(this.max);
+                                            if (val > maxVal) this.min = maxVal;
+                                        });
+
+                                        this.$watch('max', v => {
+                                            const val = Number(v);
+                                            const minVal = Number(this.min);
+                                            if (val < minVal) this.max = minVal;
+                                        });
+                                    }
+                                }"
+                                class="space-y-2"
                             >
-                                <x-slot:append>
-                                    <x-button
-                                        type="button"
-                                        class="btn-outline btn-xs"
-                                        wire:click="$set('max_participants', null)"
-                                        :aria-label="__('ui.activities.clear_field')"
-                                    >×</x-button>
-                                </x-slot:append>
-                            </x-input>
+                                <!-- Label -->
+                                <label class="text-sm font-medium flex justify-between">
+                                    <span>Participants</span>
+                                    <span class="font-semibold" x-text="`${min}–${max}`"></span>
+                                </label>
+
+                                <!-- Slider -->
+                                <div class="relative h-6">
+                                    <!-- Base track -->
+                                    <div class="absolute top-1/2 -translate-y-1/2 w-full h-2 rounded bg-base-300"></div>
+
+                                    <!-- Active range -->
+                                    <div
+                                        class="absolute top-1/2 -translate-y-1/2 h-2 rounded bg-primary"
+                                        :style="`left: ${minPercent}%; width: ${maxPercent - minPercent}%`"
+                                    ></div>
+
+                                    <!-- Min input -->
+                                    <input
+                                        type="range"
+                                        x-model="min"
+                                        :min="minLimit"
+                                        :max="maxLimit"
+                                        step="1"
+                                        class="range range-xs absolute w-full bg-transparent thumb-only"
+                                        :class="Number(min) > (maxLimit / 2) ? 'z-30' : 'z-20'"
+                                    >
+
+                                    <!-- Max input -->
+                                    <input
+                                        type="range"
+                                        x-model="max"
+                                        :min="minLimit"
+                                        :max="maxLimit"
+                                        step="1"
+                                        class="range range-xs absolute w-full bg-transparent thumb-only"
+                                        :class="Number(max) <= (maxLimit / 2) ? 'z-30' : 'z-10'"
+                                    >
+                                </div>
+                            </div>
 
                             <div
                                 x-data="{ value: @entangle('minimum_age') }"
