@@ -147,39 +147,31 @@
                                     <span class="font-semibold" x-text="`${min}–${max}`"></span>
                                 </label>
 
-                                {{-- Dual range: same Daisy .range / Mary Range component sizing; native fill off (.thumb-only) --}}
-                                <div class="relative h-6 w-full text-base-content">
-                                    <!-- Track (matches Daisy runnable-track height ≈ half default thumb) -->
+                                {{-- Dual range: Daisy .range / Mary <x-range> sizing; native fill off (.thumb-only); see .participants-dual-range in app.css --}}
+                                <div class="participants-dual-range text-base-content">
+                                    <div class="participants-dual-range-track" aria-hidden="true"></div>
                                     <div
-                                        class="pointer-events-none absolute top-1/2 z-0 h-[calc(var(--range-thumb-size,1.5rem)*0.5)] w-full -translate-y-1/2 rounded-full"
-                                        style="background: color-mix(in oklab, currentColor 10%, transparent)"
-                                    ></div>
-
-                                    <!-- Active segment (same “currentColor” fill feel as single range) -->
-                                    <div
-                                        class="pointer-events-none absolute top-1/2 z-[1] h-[calc(var(--range-thumb-size,1.5rem)*0.5)] -translate-y-1/2 rounded-full bg-current opacity-40"
+                                        class="participants-dual-range-fill"
+                                        aria-hidden="true"
                                         :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent) + '%' }"
                                     ></div>
 
-                                    <!-- Min input -->
                                     <input
                                         type="range"
                                         x-model.number="min"
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
-                                        class="thumb-only range absolute z-20 w-full"
+                                        class="thumb-only range absolute top-1/2 left-0 z-20 w-full -translate-y-1/2"
                                         :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
                                     >
-
-                                    <!-- Max input -->
                                     <input
                                         type="range"
                                         x-model.number="max"
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
-                                        class="thumb-only range absolute z-10 w-full"
+                                        class="thumb-only range absolute top-1/2 left-0 z-10 w-full -translate-y-1/2"
                                         :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
                                     >
                                 </div>
