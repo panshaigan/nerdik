@@ -6,7 +6,7 @@
         @foreach ($items as $item)
             <div
             @if($item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag)
-                class="tooltip"
+                class="tooltip tooltip-primary"
                 data-tip="{{ $item->title }}"
             @endif
             >

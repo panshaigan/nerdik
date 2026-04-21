@@ -152,7 +152,7 @@ class ShowActivity extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedActivities()->detach($activity->id);
-        $this->success(__('ui.interests.removed_activity'));
+        $this->warning(__('ui.interests.removed_activity'));
     }
 
     public function join(ActivityParticipationService $participation): void

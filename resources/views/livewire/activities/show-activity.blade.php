@@ -33,6 +33,9 @@
             : [],
     ];
     $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞').'</span>';
+    $venues = $event?->places->map(
+        fn ($place) => (string) $place->name.', '.$place->city->name(app()->getLocale())
+    )->join('; ');
 @endphp
 
 <div class="py-10 sm:py-12">
