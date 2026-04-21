@@ -321,3 +321,37 @@ input[type="range"].thumb-only::-webkit-slider-thumb {
 input[type="range"].thumb-only::-moz-range-thumb {
     pointer-events: all;
 }
+
+/* Dual-thumb participants slider: align track + fill with Mary <x-range> / Daisy .range (default md thumb). */
+.participants-dual-range {
+    --range-thumb-size: calc(var(--size-selector, 0.25rem) * 6);
+    position: relative;
+    width: 100%;
+    min-height: var(--range-thumb-size);
+}
+
+.participants-dual-range-track {
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: calc(var(--range-thumb-size) * 0.5);
+    transform: translateY(-50%);
+    border-radius: var(--radius-selector, 0.25rem);
+    background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+.participants-dual-range-fill {
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 1;
+    height: calc(var(--range-thumb-size) * 0.62);
+    transform: translateY(-50%);
+    border-radius: var(--radius-selector, 0.25rem);
+    /* Brighter bar like Daisy’s filled segment (single range uses thumb shadows; we approximate with a solid mix). */
+    background-color: color-mix(in oklab, var(--color-base-content) 38%, var(--color-base-100));
+}
