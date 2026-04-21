@@ -61,7 +61,7 @@ final class ActivityFactory extends Factory
                 180, 180,
                 240, 240, 240, 240,
             ]),
-            'allows_observers' => fake()->boolean(),
+            'allows_observers' => 0,
             'is_host_passive' => 0,
             'requires_approval' => fake()->boolean(0.3),
             'price' => null,

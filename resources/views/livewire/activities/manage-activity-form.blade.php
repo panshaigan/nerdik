@@ -7,8 +7,8 @@
         <x-errors title="Oops!" description="Please, fix them." icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div class="relative sm:col-span-2">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="relative">
                         <x-input
                             wire:model.live.debounce.300ms="name"
                             label="{{ __('ui.activities.name') }}"
@@ -47,52 +47,8 @@
                             inline
                         />
                     </div>
-                </div>
-            </div>
 
-            <div>
-                <x-editor
-                    wire:model="description"
-                    :label="__('ui.activities.description')"
-                    :gpl-license="true"
-                />
-                <x-field-error :messages="$errors->get('description')" class="mt-2" />
-            </div>
-
-            <div class="mt-4 border-t border-base-300 pt-4">
-                <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
-                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
-                <div wire:ignore>
-                    @include('tags.partials.selector', [
-                        'tags' => $tags,
-                        'selectedIds' => $tag_ids,
-                    ])
-                </div>
-                <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-                <x-field-error :messages="$errors->get('new_tags.*.category_id')" class="mt-2" />
-            </div>
-
-            <div id="ui-activity-proposal-section" class="ui-proposal-section mt-4 border-t border-base-300 pt-4" data-ui="activity-proposal-section">
-                <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex h-full items-center">
-                        <div class="space-y-4">
-                            <x-checkbox
-                                id="requires_approval"
-                                wire:model="requires_approval"
-                                :label="__('ui.activities.requires_approval')"
-                            />
-
-                            <x-checkbox
-                                id="allows_observers"
-                                wire:model="allows_observers"
-                                :label="__('ui.activities.allows_observers')"
-                            />
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
+                    <div>
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div
                                 x-data="{
@@ -211,17 +167,9 @@
                                     step="30"
                                 />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 md:items-center">
-                <div class="h-full"></div>
-
-                <div class="space-y-1">
-                    <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="space-y-1">
-                        <label class="text-sm font-medium flex justify-between">
+                            <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="space-y-1">
+                                <label class="text-sm font-medium flex justify-between">
                             <span>
                                 {{ __('ui.activities.cancellation_deadline_in_hours') }}:
                                 <span class="font-semibold">
@@ -232,24 +180,67 @@
                                     </span>
                                 </span>
                             </span>
-                            <x-popover class="transition-none">
-                                <x-slot:trigger>
-                                    <x-icon name="o-information-circle" class="" :popover="__('ui.activities.cancellation_deadline_description')"/>
-                                </x-slot:trigger>
-                                <x-slot:content>
-                                    {{ __('ui.activities.cancellation_deadline_description') }}
-                                </x-slot:content>
-                            </x-popover>
+                                    <x-popover class="transition-none">
+                                        <x-slot:trigger>
+                                            <x-icon name="o-information-circle" class="" :popover="__('ui.activities.cancellation_deadline_description')"/>
+                                        </x-slot:trigger>
+                                        <x-slot:content>
+                                            {{ __('ui.activities.cancellation_deadline_description') }}
+                                        </x-slot:content>
+                                    </x-popover>
 
-                        </label>
-                        <x-range
-                            x-model="value"
-                            min="0"
-                            max="48"
-                            step="6"
+                                </label>
+                                <x-range
+                                    x-model="value"
+                                    min="0"
+                                    max="48"
+                                    step="6"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <x-toggle
+                            id="requires_approval"
+                            :label="__('ui.activities.requires_approval_badge')"
+                            wire:model="requires_approval"
+                            :hint="__('ui.activities.requires_approval')"
+                            right
+                        />
+                        <x-toggle
+                            id="allows_observers"
+                            :label="__('ui.activities.allows_observers_badge')"
+                            wire:model="allows_observers"
+                            :hint="__('ui.activities.allows_observers')"
+                            right
                         />
                     </div>
                 </div>
+            </div>
+
+            <div class="mt-4 border-t border-base-300 pt-4">
+                <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
+                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
+                <div wire:ignore>
+                    @include('tags.partials.selector', [
+                        'tags' => $tags,
+                        'selectedIds' => $tag_ids,
+                    ])
+                </div>
+                <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
+                <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
+                <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
+                <x-field-error :messages="$errors->get('new_tags.*.category_id')" class="mt-2" />
+            </div>
+
+            <div>
+                <x-editor
+                    wire:model="description"
+                    :label="__('ui.activities.description')"
+                    :gpl-license="true"
+                />
+                <x-field-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
             <div class="mt-4 border-t border-base-300 pt-4 space-y-3">
