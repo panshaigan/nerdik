@@ -146,6 +146,27 @@ export function initActivityTagPicker(root) {
         );
     }
 
+    function clearRowStack(catId) {
+        const ui = rowUi.get(catId);
+        const row = ui?.input.closest('[data-atp-category-row]');
+        if (row) {
+            row.style.zIndex = '';
+        }
+    }
+
+    /** Later category rows share z-index and paint over earlier dropdowns; raise the open row. */
+    function prepareOpenDropdown(catId) {
+        rowUi.forEach((_, id) => {
+            if (id !== catId) {
+                closeResults(id);
+            }
+        });
+        const row = rowUi.get(catId)?.input.closest('[data-atp-category-row]');
+        if (row) {
+            row.style.zIndex = '2000';
+        }
+    }
+
     function closeResults(catId) {
         const ui = rowUi.get(catId);
         if (!ui) {
@@ -153,6 +174,7 @@ export function initActivityTagPicker(root) {
         }
         ui.results.classList.add('hidden');
         ui.activeIndex = -1;
+        clearRowStack(catId);
     }
 
     function resultButtons(catId) {
@@ -294,6 +316,7 @@ export function initActivityTagPicker(root) {
                     closeResults(catId);
                 });
                 results.appendChild(make);
+                prepareOpenDropdown(catId);
                 results.classList.remove('hidden');
             } else {
                 closeResults(catId);
@@ -341,6 +364,7 @@ export function initActivityTagPicker(root) {
         }
 
         results.appendChild(frag);
+        prepareOpenDropdown(catId);
         results.classList.remove('hidden');
     }
 
