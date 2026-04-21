@@ -415,6 +415,21 @@ export function initActivityTagPicker(root) {
 
     rowUi.forEach((ui, catId) => {
         const { input } = ui;
+        const fieldShell = input.closest('[data-atp-field]');
+        if (fieldShell && fieldShell.dataset.atpShellClickBound !== '1') {
+            fieldShell.dataset.atpShellClickBound = '1';
+            fieldShell.addEventListener('click', (e) => {
+                const t = e.target;
+                if (t === input) {
+                    return;
+                }
+                if (t.closest?.('button')) {
+                    return;
+                }
+                input.focus();
+                buildResults(catId, input.value);
+            });
+        }
         input.addEventListener('input', () => buildResults(catId, input.value));
         input.addEventListener('focus', () => buildResults(catId, input.value));
         input.addEventListener('keydown', (e) => {
