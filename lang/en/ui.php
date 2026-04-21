@@ -104,7 +104,7 @@ return [
         'move_to_waitlist' => 'Move to waitlist',
         'unmark_absent' => 'Clear absent',
         'move_to_waitlist_confirm' => 'Move this participant to the waitlist? They will need to be accepted again if the activity requires approval.',
-        'description' => 'Description (optional)',
+        'description' => 'Description',
         'description_placeholder' => 'Write activity description…',
         'max_participants_gte_min' => 'Maximum participants cannot be less than minimum.',
         'min_participants_lte_max' => 'Minimum participants cannot be greater than maximum.',
