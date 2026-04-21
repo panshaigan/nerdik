@@ -79,12 +79,6 @@
                     <div class="rounded-lg border border-base-300 bg-base-100 p-3 flex h-full items-center">
                         <div class="space-y-4">
                             <x-checkbox
-                                id="is_host_passive"
-                                wire:model="is_host_passive"
-                                :label="__('ui.activities.is_host_passive')"
-                            />
-
-                            <x-checkbox
                                 id="requires_approval"
                                 wire:model="requires_approval"
                                 :label="__('ui.activities.requires_approval')"
@@ -144,7 +138,11 @@
                                 </x-slot:append>
                             </x-input>
 
-                            <div x-data="{ value: @entangle('minimum_age') }" class="space-y-1">
+                            <div
+                                x-data="{ value: @entangle('minimum_age') }"
+                                x-init="$nextTick(() => value = value ?? 0)"
+                                class="space-y-1"
+                            >
                                 <label class="text-sm font-medium flex justify-between">
                                     <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value"></span></span>
                                 </label>
