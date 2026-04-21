@@ -300,3 +300,14 @@ p {
 [data-theme="dark"] .tox .tox-edit-area::before {
     border-color: #fff !important;
 }
+
+/* Re-enable pointer events on thumbs only */
+input[type="range"].thumb-only {
+    pointer-events: none;
+}
+input[type="range"].thumb-only::-webkit-slider-thumb {
+    pointer-events: all;
+}
+input[type="range"].thumb-only::-moz-range-thumb {
+    pointer-events: all;
+}
