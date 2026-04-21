@@ -72,21 +72,7 @@
                     {{-- Host: absolutely positioned at inline-end (no flex column — badge row can use full width below). Reserve end-padding only on title stack so it does not run under the host. --}}
                     <div class="relative min-w-0" dir="ltr">
                         <div class="min-w-0 space-y-2">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                {{ $activityTypeLabel }}
-                                @if ($event)
-                                    @
-                                    <a
-                                        href="{{ route('events.show', $event) }}"
-                                        wire:navigate
-                                        class="link link-primary break-words"
-                                        data-ui="activity-show-hero-event-link"
-                                    >{{ $event->name }}</a>
-                                @endif
-                                @if ($activity->duration_in_minutes)
-                                    <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
-                                @endif
-                            </p>
+
                             <x-header
                                 title="{{ $activity->name }}"
                                 class=""
@@ -94,6 +80,23 @@
                                 use-h1
                             >
                             @if ($showHeroHost)
+                                <x-slot:subtitle>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                        {{ $activityTypeLabel }}
+                                        @if ($event)
+                                            @
+                                            <a
+                                                href="{{ route('events.show', $event) }}"
+                                                wire:navigate
+                                                class="link link-primary break-words"
+                                                data-ui="activity-show-hero-event-link"
+                                            >{{ $event->name }}</a>
+                                        @endif
+                                        @if ($activity->duration_in_minutes)
+                                            <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
+                                        @endif
+                                    </p>
+                                </x-slot:subtitle>
                                 <x-slot:actions>
                                         <x-user-badge
                                             :user="$hostUser"

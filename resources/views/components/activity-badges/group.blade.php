@@ -7,7 +7,7 @@
             <div
             @if($item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag)
                 class="tooltip"
-                data-tip=""
+                data-tip="{{ $item->title }}"
             @endif
             >
                 <x-badge
