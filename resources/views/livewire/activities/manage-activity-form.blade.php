@@ -222,12 +222,7 @@
             <div class="mt-4 border-t border-base-300 pt-4">
                 <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
                 <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
-                <div wire:ignore>
-                    @include('tags.partials.selector', [
-                        'tags' => $tags,
-                        'selectedIds' => $tag_ids,
-                    ])
-                </div>
+                <x-activity.category-tags-picker :config="$activityTagPickerConfig" />
                 <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />

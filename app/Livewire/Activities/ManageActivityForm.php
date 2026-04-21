@@ -7,6 +7,7 @@ use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Tag;
+use App\Models\TagCategory;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
@@ -552,8 +553,34 @@ class ManageActivityForm extends Component
         ];
         $roomsFetchUrlTemplate = url('/places/__PLACE__/rooms');
 
+        $locale = app()->getLocale();
+        $tagSelection = app(TagSelectionService::class);
+        $activityTagPickerConfig = [
+            'locale' => $locale,
+            'categories' => TagCategory::query()
+                ->with('translations')
+                ->orderBy('key')
+                ->get()
+                ->map(static fn (TagCategory $cat) => [
+                    'id' => (int) $cat->id,
+                    'name' => (string) $cat->name($locale),
+                ])
+                ->values()
+                ->all(),
+            'tags' => $tagSelection->tagsPayloadForActivityPicker(
+                Tag::forActivityFormPicker()->get(),
+                $locale
+            ),
+            'initialSelectedIds' => $this->tag_ids,
+            'initialNewTags' => $this->new_tags,
+            'strings' => [
+                'createTag' => __('Create tag'),
+                'auto' => __('auto'),
+            ],
+        ];
+
         return view('livewire.activities.manage-activity-form', [
-            'tags' => Tag::orderedForSelector()->get(),
+            'activityTagPickerConfig' => $activityTagPickerConfig,
             'futureEvents' => $this->futureEventsForProposal(),
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
