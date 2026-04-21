@@ -7,6 +7,26 @@
 @endphp
 
 <div data-ui="activity-show-participation">
+    @auth
+
+            @if (filled($stateBlockedMessage ?? null))
+                <x-alert title="Hey!" description="{{ $stateBlockedMessage }}" icon="o-home" data-ui="activity-show-signup-blocked" class="alert-error mb-6" />
+            @endif
+            @if (($activeWindowRemainingForActivity ?? null) !== null)
+
+                <p class="mb-2 text-sm text-base-content/80" data-ui="activity-show-window-activity-cap">
+                    {{ __('ui.events.enrollment_window_activity_spots_remaining', [
+                        'remaining' => $activeWindowRemainingForActivity,
+                        'max' => $activeWindowPerActivityMax,
+                    ]) }}
+                </p>
+            @endif
+            @if (($activeWindowUserRemaining ?? null) !== null)
+                <p class="mb-4 text-sm text-base-content/70" data-ui="activity-show-window-user-cap">
+                    {{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}
+                </p>
+            @endif
+    @endauth
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0" data-ui="activity-show-participants">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
@@ -74,7 +94,7 @@
                     @endif
                 </x-list-item>
             @empty
-                <p class="px-3 py-3 text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
+                <p class="text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
             @endforelse
             @auth
                 @if (($isParticipant || $canJoin) && ! filled($stateBlockedMessage ?? null))
@@ -85,6 +105,9 @@
                             <x-button type="button" class="btn-primary" wire:click="join">{{ __('ui.activities.join') }}</x-button>
                         @endif
                     </div>
+                @endif
+                @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
+                    <x-alert title="Hey!" description="{{ $signupBlockedMessage }}" icon="o-home" data-ui="activity-show-signup-blocked" class="alert-neutral mb-6" />
                 @endif
             @endauth
         </div>
@@ -134,25 +157,4 @@
             @endauth
         </div>
     </div>
-    @auth
-        @if (filled($stateBlockedMessage ?? null))
-            <p class="mb-4 text-sm text-error" data-ui="activity-show-state-blocked">{{ $stateBlockedMessage }}</p>
-        @endif
-        @if (($activeWindowRemainingForActivity ?? null) !== null)
-            <p class="mb-2 text-sm text-base-content/80" data-ui="activity-show-window-activity-cap">
-                {{ __('ui.events.enrollment_window_activity_spots_remaining', [
-                    'remaining' => $activeWindowRemainingForActivity,
-                    'max' => $activeWindowPerActivityMax,
-                ]) }}
-            </p>
-        @endif
-        @if (($activeWindowUserRemaining ?? null) !== null)
-            <p class="mb-4 text-sm text-base-content/70" data-ui="activity-show-window-user-cap">
-                {{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}
-            </p>
-        @endif
-        @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
-            <p class="mb-4 text-sm text-error" data-ui="activity-show-signup-blocked">{{ $signupBlockedMessage }}</p>
-        @endif
-    @endauth
 </div>

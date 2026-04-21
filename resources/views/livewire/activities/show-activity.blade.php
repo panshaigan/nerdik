@@ -66,8 +66,12 @@
                     </div>
                 @endif
                 <div class="relative z-10 p-6 sm:p-8">
-                    <div class="flex items-start justify-between gap-4 sm:gap-6" dir="ltr">
-                        <div class="min-w-0 flex-1 space-y-2">
+                    @php
+                        $showHeroHost = ! $activity->is_host_passive && $hostUser;
+                    @endphp
+                    {{-- Host: absolutely positioned at inline-end (no flex column — badge row can use full width below). Reserve end-padding only on title stack so it does not run under the host. --}}
+                    <div class="relative min-w-0" dir="ltr">
+                        <div class="min-w-0 space-y-2">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                                 {{ $activityTypeLabel }}
                                 @if ($event)
@@ -75,42 +79,38 @@
                                     <a
                                         href="{{ route('events.show', $event) }}"
                                         wire:navigate
-                                        class="link link-primary break-words text-end"
+                                        class="link link-primary break-words"
                                         data-ui="activity-show-hero-event-link"
                                     >{{ $event->name }}</a>
                                 @endif
                                 @if ($activity->duration_in_minutes)
-                                    <x-icon name="o-clock" class="w-4 h-4" />{{ $activity->duration_for_humans }}
+                                    <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
                                 @endif
                             </p>
-                            <h1 class="text-2xl font-semibold leading-tight text-base-content sm:text-3xl pb-4">
-                                {{ $activity->name }}
-                            </h1>
-                            <x-ui.activity-badge-group
-                                :items="$badgeItems"
-                                class="pt-0.5"
-                                data-ui="activity-show-badge-group"
-                            />
-                        </div>
-                        @if ((! $activity->is_host_passive && $hostUser) || $activity->duration_in_minutes || $event)
-                            <div
-                                class="flex min-w-0 max-w-[min(100%,14rem)] shrink-0 flex-col items-end gap-3 text-end sm:max-w-[16rem]"
-                                data-ui="activity-show-hero-meta"
+                            <x-header
+                                title="{{ $activity->name }}"
+                                class=""
+                                separator
+                                use-h1
                             >
-                                @if (! $activity->is_host_passive && $hostUser)
-                                    <div class="text-sm">
-                                        <p class="block text-xs leading-tight text-base-content/60">{{ $hostRoleLabel }}</p>
+                            @if ($showHeroHost)
+                                <x-slot:actions>
                                         <x-user-badge
                                             :user="$hostUser"
                                             size="md"
-                                            class="mt-1 badge badge-neutral"
                                             name-class="truncate text-end font-semibold"
                                             data-ui="activity-show-host"
+                                            :title="$hostRoleLabel"
                                         />
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
+                                </x-slot:actions>
+                            @endif
+                            </x-header>
+                        </div>
+                        <x-ui.activity-badge-group
+                            :items="$badgeItems"
+                            class="pt-0.5"
+                            data-ui="activity-show-badge-group"
+                        />
                     </div>
                 </div>
             </div>
