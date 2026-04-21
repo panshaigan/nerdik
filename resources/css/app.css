@@ -301,9 +301,19 @@ p {
     border-color: #fff !important;
 }
 
-/* Re-enable pointer events on thumbs only */
+/* Re-enable pointer events on thumbs only.
+   Dual sliders: DaisyUI paints fill from track start → thumb via --range-fill + thumb shadows.
+   We draw the segment in Blade, so disable native track/fill while keeping thumbs. */
 input[type="range"].thumb-only {
     pointer-events: none;
+    --range-fill: 0;
+    --range-bg: transparent;
+}
+input[type="range"].thumb-only::-webkit-slider-runnable-track {
+    background-color: transparent;
+}
+input[type="range"].thumb-only::-moz-range-track {
+    background-color: transparent;
 }
 input[type="range"].thumb-only::-webkit-slider-thumb {
     pointer-events: all;

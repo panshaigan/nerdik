@@ -102,12 +102,24 @@
                                     maxLimit: 20,
 
                                     get minPercent() {
-                                        const val = this.min ?? this.minLimit;
-                                        return ((val - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                        const val = Number(this.min ?? this.minLimit);
+                                        const lo = this.minLimit;
+                                        const hi = this.maxLimit;
+                                        if (!Number.isFinite(val)) {
+                                            return 0;
+                                        }
+
+                                        return ((val - lo) / (hi - lo)) * 100;
                                     },
                                     get maxPercent() {
-                                        const val = this.max ?? this.maxLimit;
-                                        return ((val - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+                                        const val = Number(this.max ?? this.maxLimit);
+                                        const lo = this.minLimit;
+                                        const hi = this.maxLimit;
+                                        if (!Number.isFinite(val)) {
+                                            return 100;
+                                        }
+
+                                        return ((val - lo) / (hi - lo)) * 100;
                                     },
 
                                     init() {
@@ -135,15 +147,18 @@
                                     <span class="font-semibold" x-text="`${min}–${max}`"></span>
                                 </label>
 
-                                <!-- Slider -->
-                                <div class="relative h-6">
-                                    <!-- Base track -->
-                                    <div class="absolute top-1/2 -translate-y-1/2 w-full h-2 rounded bg-base-300"></div>
-
-                                    <!-- Active range -->
+                                {{-- Dual range: same Daisy .range / Mary Range component sizing; native fill off (.thumb-only) --}}
+                                <div class="relative h-6 w-full text-base-content">
+                                    <!-- Track (matches Daisy runnable-track height ≈ half default thumb) -->
                                     <div
-                                        class="absolute top-1/2 -translate-y-1/2 h-2 rounded bg-primary"
-                                        :style="{ left: minPercent + '%', width: (maxPercent - minPercent) + '%' }"
+                                        class="pointer-events-none absolute top-1/2 z-0 h-[calc(var(--range-thumb-size,1.5rem)*0.5)] w-full -translate-y-1/2 rounded-full"
+                                        style="background: color-mix(in oklab, currentColor 10%, transparent)"
+                                    ></div>
+
+                                    <!-- Active segment (same “currentColor” fill feel as single range) -->
+                                    <div
+                                        class="pointer-events-none absolute top-1/2 z-[1] h-[calc(var(--range-thumb-size,1.5rem)*0.5)] -translate-y-1/2 rounded-full bg-current opacity-40"
+                                        :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent) + '%' }"
                                     ></div>
 
                                     <!-- Min input -->
@@ -153,7 +168,7 @@
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
-                                        class="range range-xs absolute w-full bg-transparent thumb-only"
+                                        class="thumb-only range absolute z-20 w-full"
                                         :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
                                     >
 
@@ -164,7 +179,7 @@
                                         :min="minLimit"
                                         :max="maxLimit"
                                         step="1"
-                                        class="range range-xs absolute w-full bg-transparent thumb-only"
+                                        class="thumb-only range absolute z-10 w-full"
                                         :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
                                     >
                                 </div>
