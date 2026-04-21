@@ -220,28 +220,35 @@
                 <div class="h-full"></div>
 
                 <div class="space-y-1">
-                    <x-input
-                        :label="__('ui.activities.cancellation_deadline_in_hours')"
-                        :placeholder="__('ui.activities.cancellation_deadline_in_hours')"
-                        :hint="__('ui.activities.cancellation_deadline_description')"
-                        wire:model="cancellation_deadline_in_hours"
-                        type="number"
-                        min="0"
-                        data-activity-numeric
-                        class="w-full"
-                        error-field="cancellation_deadline_in_hours"
-                        icon="o-clock"
-                        inline
-                    >
-                        <x-slot:append>
-                            <x-button
-                                type="button"
-                                class="btn-outline btn-xs"
-                                wire:click="$set('cancellation_deadline_in_hours', null)"
-                                :aria-label="__('ui.activities.clear_field')"
-                            >×</x-button>
-                        </x-slot:append>
-                    </x-input>
+                    <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="space-y-1">
+                        <label class="text-sm font-medium flex justify-between">
+                            <span>
+                                {{ __('ui.activities.cancellation_deadline_in_hours') }}:
+                                <span class="font-semibold">
+                                    <span x-text="Math.floor(value / 24)" x-show="value >= 24"></span>
+                                    <span x-text="Math.floor(value / 24) === 1 ? 'day' : 'days'" x-show="value >= 24"></span>
+                                    <span x-show="value % 24 > 0">
+                                        <span x-text="value % 24"></span>h
+                                    </span>
+                                </span>
+                            </span>
+                            <x-popover class="transition-none">
+                                <x-slot:trigger>
+                                    <x-icon name="o-information-circle" class="" :popover="__('ui.activities.cancellation_deadline_description')"/>
+                                </x-slot:trigger>
+                                <x-slot:content>
+                                    {{ __('ui.activities.cancellation_deadline_description') }}
+                                </x-slot:content>
+                            </x-popover>
+
+                        </label>
+                        <x-range
+                            x-model="value"
+                            min="0"
+                            max="48"
+                            step="6"
+                        />
+                    </div>
                 </div>
             </div>
 
