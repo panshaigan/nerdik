@@ -47,6 +47,22 @@ class ActivityParticipationViewServiceTest extends TestCase
         $vm = app(ActivityParticipationViewService::class)->forShow($activity, $user);
 
         $this->assertSame(__('ui.activities.signup_blocked_cancelled'), $vm->stateBlockedMessage);
+        $this->assertNull($vm->signupBlockedMessage);
+        $this->assertFalse($vm->canJoin);
+    }
+
+    #[Test]
+    public function non_joinable_mode_sets_state_blocked_without_signup_block_message(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity, $user);
+
+        $this->assertSame(__('ui.activities.signup_blocked_not_joinable_mode'), $vm->stateBlockedMessage);
+        $this->assertNull($vm->signupBlockedMessage);
         $this->assertFalse($vm->canJoin);
     }
 

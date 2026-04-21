@@ -48,20 +48,26 @@ class ActivityParticipationViewService
             }
         }
 
-        if ($user !== null && ! $isParticipant && ! $onWaitlist && $activity->slot?->event_id) {
+        $stateBlockedMessage = null;
+        if ($activity->isCancelled()) {
+            $stateBlockedMessage = __('ui.activities.signup_blocked_cancelled');
+        } elseif (! $activity->isJoinableMode()) {
+            $stateBlockedMessage = __('ui.activities.signup_blocked_not_joinable_mode');
+        }
+
+        if (
+            $stateBlockedMessage === null
+            && $user !== null
+            && ! $isParticipant
+            && ! $onWaitlist
+            && $activity->slot?->event_id
+        ) {
             try {
                 $this->signupService->assertCanSignup($activity, $user);
             } catch (ValidationException $e) {
                 $signupGateOk = false;
                 $signupBlockedMessage = collect($e->errors())->flatten()->first();
             }
-        }
-
-        $stateBlockedMessage = null;
-        if ($activity->isCancelled()) {
-            $stateBlockedMessage = __('ui.activities.signup_blocked_cancelled');
-        } elseif (! $activity->isJoinableMode()) {
-            $stateBlockedMessage = __('ui.activities.signup_blocked_not_joinable_mode');
         }
 
         $canJoin = $user !== null && ! $isParticipant && ! $onWaitlist && $signupGateOk && $stateBlockedMessage === null;
