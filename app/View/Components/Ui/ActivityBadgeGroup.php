@@ -2,7 +2,7 @@
 
 namespace App\View\Components\Ui;
 
-use App\Dto\Ui\ActivityBadgeItem;
+use App\Domain\ActivityBadges\ActivityBadgeItem;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -19,6 +19,6 @@ class ActivityBadgeGroup extends Component
 
     public function render(): View|Closure|string
     {
-        return view('components.ui.activity-badge-group');
+        return view('components.activity-badges.group');
     }
 }

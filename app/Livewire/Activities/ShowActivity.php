@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Activities;
 
-use App\Dto\Ui\ActivityBadgeGroupConfig;
+use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -10,7 +10,7 @@ use App\Models\ActivityWaitlistEntry;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
-use App\Services\Ui\ActivityBadgeGroupBuilder;
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use Mary\Traits\Toast;
 use Livewire\Component;
 

@@ -220,9 +220,9 @@
                                             : (filled($slot->max_capacity) ? $slot->max_capacity : null);
                                         $slotBadgeItems = [];
                                         if ($activity) {
-                                            $slotBadgeItems = app(\App\Services\Ui\ActivityBadgeGroupBuilder::class)->build(
+                                            $slotBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->build(
                                                 $activity,
-                                                \App\Dto\Ui\ActivityBadgeGroupConfig::eventSlotCard(),
+                                                \App\Domain\ActivityBadges\ActivityBadgeGroupConfig::eventSlotCard(),
                                             );
                                         }
                                     @endphp
@@ -313,7 +313,7 @@
                                                     @endphp
                                                     @if ($slotActivityTypes->isNotEmpty())
                                                         <x-ui.activity-badge-group
-                                                            :items="app(\App\Services\Ui\ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotActivityTypes)"
+                                                            :items="app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotActivityTypes)"
                                                             class="my-2"
                                                             data-ui="event-show-slot-type-badges"
                                                         />

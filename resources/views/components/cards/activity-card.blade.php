@@ -5,8 +5,8 @@
 ])
 
 @php
-    use App\Dto\Ui\ActivityBadgeGroupConfig;
-    use App\Services\Ui\ActivityBadgeGroupBuilder;
+    use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
+    use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 
     $durationLabel = format_activity_duration_compact($activity->duration_in_minutes);
     $filled = isset($activity->participants_count)
