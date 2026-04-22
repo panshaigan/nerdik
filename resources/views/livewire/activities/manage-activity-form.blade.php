@@ -59,7 +59,7 @@
         </div>
 
         <x-slot:actions>
-            <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
+            <x-button id="ui-activity-cancel" @click="history.back()" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                 <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('ui.activities.update') : __('ui.activities.create') }}</span>
