@@ -667,6 +667,7 @@ class ManageActivityForm extends Component
             'singleSelect' => true,
             'maxNewVenues' => 1,
             'disallowMixSelectedAndNew' => true,
+            'hideSelectedChips' => true,
             'debounceLivewireMs' => 450,
             'strings' => [
                 'yourPlaces' => __('Your places'),

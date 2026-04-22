@@ -109,6 +109,7 @@ export function initEventPlacesUnified(root) {
     const singleSelect = cfg.singleSelect === true || cfg.singleSelect === 1 || cfg.singleSelect === '1';
     const maxNewVenuesParsed = Number.parseInt(String(cfg.maxNewVenues ?? ''), 10);
     const maxNewVenues = Number.isFinite(maxNewVenuesParsed) && maxNewVenuesParsed > 0 ? maxNewVenuesParsed : null;
+    const hideSelectedChips = cfg.hideSelectedChips === true || cfg.hideSelectedChips === 1 || cfg.hideSelectedChips === '1';
     const disallowMixSelectedAndNew =
         cfg.disallowMixSelectedAndNew === true
         || cfg.disallowMixSelectedAndNew === 1
@@ -306,21 +307,36 @@ export function initEventPlacesUnified(root) {
         });
 
         chipsEl.innerHTML = '';
+        const selectedLabels = [];
         selectedIds.forEach((id) => {
             const numericId = Number(id);
             const p = places.find((x) => Number(x.id) === numericId);
             const label = p ? p.label : `#${id}`;
-            const chip = document.createElement('span');
-            chip.className =
-                'inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs text-base-content';
-            chip.innerHTML = `${escapeHtml(label)} <button type="button" class="ml-1 opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
-            chip.querySelector('button').addEventListener('click', () => {
-                selectedIds.delete(id);
-                refreshPlaceMarkerIcon(id);
-                syncPlaceHiddensAndChips();
-            });
-            chipsEl.appendChild(chip);
+            selectedLabels.push(label);
+            if (!hideSelectedChips) {
+                const chip = document.createElement('span');
+                chip.className =
+                    'inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs text-base-content';
+                chip.innerHTML = `${escapeHtml(label)} <button type="button" class="ml-1 opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
+                chip.querySelector('button').addEventListener('click', () => {
+                    selectedIds.delete(id);
+                    refreshPlaceMarkerIcon(id);
+                    syncPlaceHiddensAndChips();
+                });
+                chipsEl.appendChild(chip);
+            }
         });
+        if (hideSelectedChips) {
+            chipsEl.classList.add('hidden');
+        }
+
+        if (newVenues.length > 0) {
+            searchInput.value = newVenues[0].name || '';
+        } else if (selectedLabels.length > 0) {
+            searchInput.value = selectedLabels[0];
+        } else {
+            searchInput.value = '';
+        }
         if (!skipEmit) {
             emitEventPlacesChange();
         }
