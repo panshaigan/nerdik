@@ -38,9 +38,9 @@
                     </x-slot:actions>
             </x-header>
         </div>
+        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
     </div>
     <x-form wire:submit.prevent="save" class="" data-activity-form>
-        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"

@@ -131,7 +131,7 @@ return [
         'propose_to_event_help' => 'Jeśli wybierzesz nadchodzące wydarzenie, zapis utworzy tę aktywność i wyśle organizatorowi wydarzenia propozycję (status: oczekująca). Możesz podać preferowany termin; organizator przypisze slot.',
         'hosting_mode_label' => 'Tryb prowadzenia',
         'hosting_modes' => [
-            'draft' => 'Szkic (decyzja pozniej)',
+            'draft' => 'Wyłączony',
             'self_hosted' => 'Prowadzone samodzielnie',
             'proposed_to_event' => 'Propozycja do wydarzenia',
             'scheduled_on_event' => 'Zaplanowane na wydarzeniu',
