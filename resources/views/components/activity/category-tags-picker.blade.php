@@ -13,6 +13,14 @@
      * Width of each category column; default two per row from `sm` up with gap-4 parent.
      */
     'itemClass' => 'min-w-0 basis-full sm:basis-[calc(50%-0.5rem)]',
+    /**
+     * Label sits on the top border (outlined / notch style). When false, uses a standard fieldset legend above the field.
+     */
+    'inlineLegend' => true,
+    /**
+     * Heroicon name for Mary (e.g. o-tag). Empty string hides the icon.
+     */
+    'icon' => 'o-tag',
 ])
 
 @php
@@ -44,6 +52,8 @@
     $categoriesOrdered = $categoriesOrdered
         ->concat($byKey->sortKeys()->values())
         ->values();
+
+    $showIcon = false;
 @endphp
 
 <div data-activity-tag-picker>
@@ -56,6 +66,7 @@
             @php
                 $cid = (int) ($cat['id'] ?? 0);
                 $cname = (string) ($cat['name'] ?? '');
+                $legendId = 'atp-legend-'.$cid;
             @endphp
             @if ($cid > 0)
                 <div
@@ -63,36 +74,87 @@
                     data-atp-category-row
                     data-category-id="{{ $cid }}"
                 >
-                    <fieldset class="fieldset py-0">
-                        <legend class="fieldset-legend mb-0.5">{{ $cname }}</legend>
+                    @if ($inlineLegend)
                         <div class="relative w-full min-w-0 max-w-full">
-                            {{-- Use a div, not <label>: a label would delegate clicks to the first focusable child (chip × buttons). --}}
                             <div
-                                class="input input-bordered flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
-                                data-atp-field
-                                role="group"
+                                class="relative rounded-lg border border-base-300 bg-base-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
                             >
-                                {{-- Chips: content-width only. `flex-1` here stole the row and captured clicks meant for the input. --}}
+                                <span
+                                    id="{{ $legendId }}"
+                                    class="absolute start-3 top-0 z-[1] inline-block -translate-y-1/2 bg-base-100 px-1 text-xs font-semibold leading-none text-base-content"
+                                >
+                                    {{ $cname }}
+                                </span>
+                                {{-- div not <label>: avoid delegating clicks to chip × buttons --}}
                                 <div
-                                    data-atp-chips
-                                    class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"
-                                ></div>
-                                <input
-                                    type="text"
-                                    data-atp-input
-                                    class="min-w-[8rem] flex-1 basis-[8rem] self-center"
-                                    placeholder="{{ __('Type to search tags (or create a new one)') }}"
-                                    autocomplete="off"
-                                    inputmode="search"
-                                    enterkeyhint="search"
-                                />
+                                    class="flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 px-4 py-4"
+                                    data-atp-field
+                                    role="group"
+                                    aria-labelledby="{{ $legendId }}"
+                                >
+                                    @if ($showIcon)
+                                        <x-icon
+                                            :name="$icon"
+                                            class="pointer-events-none h-4 w-4 shrink-0 self-center opacity-40"
+                                        />
+                                    @endif
+                                    <div
+                                        data-atp-chips
+                                        class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"
+                                    ></div>
+                                    <input
+                                        type="text"
+                                        data-atp-input
+                                        class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
+                                        placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                                        autocomplete="off"
+                                        inputmode="search"
+                                        enterkeyhint="search"
+                                    />
+                                </div>
                             </div>
                             <div
                                 data-atp-results
                                 class="absolute left-0 right-0 top-full z-10 mt-1 hidden max-h-60 isolate overflow-y-auto rounded-lg border border-base-300 bg-base-100 text-base-content shadow-2xl ring-1 ring-base-300/80 [background-color:var(--color-base-100)] py-1"
                             ></div>
                         </div>
-                    </fieldset>
+                    @else
+                        <fieldset class="fieldset py-0">
+                            <legend class="fieldset-legend mb-0.5">{{ $cname }}</legend>
+                            <div class="relative w-full min-w-0 max-w-full">
+                                <div
+                                    class="input input-bordered flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
+                                    data-atp-field
+                                    role="group"
+                                    aria-label="{{ $cname }}"
+                                >
+                                    @if ($showIcon)
+                                        <x-icon
+                                            :name="$icon"
+                                            class="pointer-events-none h-4 w-4 shrink-0 self-center opacity-40"
+                                        />
+                                    @endif
+                                    <div
+                                        data-atp-chips
+                                        class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"
+                                    ></div>
+                                    <input
+                                        type="text"
+                                        data-atp-input
+                                        class="min-w-[8rem] flex-1 basis-[8rem] self-center"
+                                        placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                                        autocomplete="off"
+                                        inputmode="search"
+                                        enterkeyhint="search"
+                                    />
+                                </div>
+                                <div
+                                    data-atp-results
+                                    class="absolute left-0 right-0 top-full z-10 mt-1 hidden max-h-60 isolate overflow-y-auto rounded-lg border border-base-300 bg-base-100 text-base-content shadow-2xl ring-1 ring-base-300/80 [background-color:var(--color-base-100)] py-1"
+                                ></div>
+                            </div>
+                        </fieldset>
+                    @endif
                 </div>
             @endif
         @endforeach
