@@ -287,7 +287,7 @@
                 @endif
 
                 @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED)
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-3">
                         <x-input
                             id="self_hosted_starts_at"
                             :label="__('ui.activities.self_hosted_starts_at')"
