@@ -2,7 +2,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 
-<div class="space-y-4">
+<div class="space-y-4 ">
     <x-form wire:submit.prevent="save" class="space-y-4" data-activity-form>
         <x-errors title="Oops!" description="Please, fix them." icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
@@ -300,7 +300,6 @@
                     >
                         <div>
                             <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
-                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.self_hosted_room_help') }}</p>
                             <div class="relative overflow-visible">
                                 <x-input
                                     id="self_hosted_room_name"
@@ -387,10 +386,6 @@
         @endif
 
         <x-slot:actions>
-            <x-button id="ui-activity-clear-numeric" type="button" class="btn-outline ui-action ui-action-clear-numeric" wire:click="clearNumericFields" data-ui="activity-clear-numeric">
-                {{ __('ui.activities.clear_numeric_fields') }}
-            </x-button>
-
             <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
