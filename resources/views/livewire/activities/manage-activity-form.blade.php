@@ -48,7 +48,7 @@
                         />
                     </div>
 
-                    <div class="card border p-4">
+                    <div class="card border border-base-300 p-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div
                                 x-data="{
@@ -200,7 +200,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="card border border-base-300 p-6 gap-y-3">
                         <x-toggle
                             id="requires_approval"
                             :label="__('ui.activities.requires_approval_badge')"
@@ -219,9 +219,8 @@
                 </div>
             </div>
 
-            <div class="mt-4 border-t border-base-300 pt-4">
+            <div class="mt-4">
                 <p class="fieldset-legend mb-0.5">{{ __('ui.activities.tags') }}</p>
-                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.activities.tags_help') }}</p>
                 <x-activity.category-tags-picker :config="$activityTagPickerConfig" />
                 <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
                 <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
