@@ -1,9 +1,30 @@
+@php
+    $title = $editingActivityId ? (__('Edit activity').$this->name) : __('Create activity');
+@endphp
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
+<div class="space-y-4">
+    <div
+        class="ui-activity-show-hero overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow"
+        data-ui="activity-show-hero"
+    >
+        <div class="relative min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px p-6">
+            <x-header
+                title="{{ $title }}"
+                class=""
+                separator
+                use-h1
+            >
+                    <x-slot:subtitle>
+                    </x-slot:subtitle>
+                    <x-slot:actions>
 
-<div class="space-y-4 ">
-    <x-form wire:submit.prevent="save" class="space-y-4" data-activity-form>
+                    </x-slot:actions>
+            </x-header>
+        </div>
+    </div>
+    <x-form wire:submit.prevent="save" class="space-y-4 p-6" data-activity-form>
         <x-errors title="Oops!" description="Please, fix them." icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <div>
