@@ -131,7 +131,7 @@ return [
         'propose_to_event_help' => 'If you pick an upcoming event, saving will store this activity and submit a pending proposal to that event organizer. You can suggest when you would like to run it; the organizer assigns a slot.',
         'hosting_mode_label' => 'Hosting mode',
         'hosting_modes' => [
-            'draft' => 'Draft (decide later)',
+            'draft' => 'Off',
             'self_hosted' => 'Self-hosted',
             'proposed_to_event' => 'Propose to event',
             'scheduled_on_event' => 'Scheduled on event',

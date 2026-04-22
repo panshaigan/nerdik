@@ -2,7 +2,7 @@
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
         <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
     @else
-        <x-select
+        <x-group
             id="hosting_mode"
             wire:model.live="hosting_mode"
             error-field="hosting_mode"
@@ -20,9 +20,7 @@
             data-selfhost-room-root
             data-selfhost-rooms-url-template="{{ $roomsFetchUrlTemplate }}"
         >
-            <p class="fieldset-legend font-medium text-base-content">{{ __('ui.activities.self_hosted_place') }}</p>
-            <p class="mb-3 text-sm text-base-content/80">{{ __('ui.activities.self_hosted_place_help') }}</p>
-            <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3" wire:ignore>
+            <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3 pt-6" wire:ignore>
                 <script type="application/json" data-ep-config>@json($selfHostedPlacesConfig)</script>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div class="relative z-[1000]">
@@ -34,6 +32,7 @@
                             :placeholder="__('ui.activities.self_hosted_place_search_placeholder')"
                             class="w-full"
                             :omit-error="true"
+                            inline
                         />
                         <div data-ep-results class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"></div>
                         <x-field-error :messages="$errors->get('self_hosted_venue_place_id')" class="mt-2" />
@@ -50,6 +49,7 @@
                             aria-autocomplete="list"
                             aria-expanded="false"
                             aria-controls="selfhost-room-suggestions-popup"
+                            inline
                         />
                         <div
                             id="selfhost-room-suggestions-popup"
@@ -67,6 +67,7 @@
                             :min="$selfHostedStartTimeMin"
                             error-field="self_hosted_starts_at"
                             data-selfhost-start-input
+                            inline
                         />
                     </div>
                 </div>
