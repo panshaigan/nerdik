@@ -3,6 +3,7 @@ import './maps-init';
 import './tags-init';
 import { bootActivityTagPickers } from './activity-tag-picker';
 import { initEventShowSlotForms } from './event-show-slot-forms';
+import { bootProposalEventAutocomplete } from './activities/proposal-event-autocomplete';
 import { initSlotEditForm } from './slot-form-modal';
 import { initSlotMassForm } from './slot-mass-form';
 
@@ -29,8 +30,10 @@ if (document.readyState === 'loading') {
 } else {
     bootSlotMassForms();
 }
+bootProposalEventAutocomplete();
 
 document.addEventListener('livewire:navigated', bootSlotMassForms);
+document.addEventListener('livewire:navigated', () => bootProposalEventAutocomplete());
 
 function registerActivityTagPickerMorphHook() {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
@@ -42,6 +45,7 @@ function registerActivityTagPickerMorphHook() {
 }
 
 document.addEventListener('DOMContentLoaded', () => bootActivityTagPickers());
+document.addEventListener('DOMContentLoaded', () => bootProposalEventAutocomplete());
 document.addEventListener('livewire:navigated', () => bootActivityTagPickers());
 document.addEventListener('livewire:init', registerActivityTagPickerMorphHook);
 document.addEventListener('livewire:initialized', registerActivityTagPickerMorphHook);

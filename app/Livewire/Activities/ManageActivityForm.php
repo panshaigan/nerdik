@@ -15,6 +15,7 @@ use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -23,6 +24,7 @@ class ManageActivityForm extends Component
     use AuthorizesOwnership;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
+    private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
 
     public ?int $editingActivityId = null;
     public User|null $creator = null;
@@ -50,6 +52,7 @@ class ManageActivityForm extends Component
     public bool $allows_observers = false;
 
     public ?int $proposal_event_id = null;
+    public string $proposal_event_search = '';
 
     public int $hosting_mode = Activity::HOSTING_MODE_DRAFT;
 
@@ -189,8 +192,36 @@ class ManageActivityForm extends Component
 
     public function updatedProposalEventId(mixed $value): void
     {
-        if ($value === '' || $value === null || (int) $value === 0) {
-            $this->proposal_slot_ids = [];
+        $this->proposal_slot_ids = [];
+        $normalized = ($value === '' || $value === null || (int) $value === 0) ? null : (int) $value;
+        if ($normalized === null) {
+            $this->proposal_preferred_start_time = null;
+            $this->proposal_event_search = '';
+
+            return;
+        }
+
+        $selected = $this->proposalEligibleEventsQuery()
+            ->whereKey($normalized)
+            ->first();
+
+        if (! $selected) {
+            $this->proposal_event_id = null;
+            $this->proposal_preferred_start_time = null;
+            $this->proposal_event_search = '';
+
+            return;
+        }
+
+        $this->proposal_event_search = $this->proposalEventLabel($selected);
+        $bounds = $this->proposalEventPreferredTimeBounds();
+        if (
+            $this->proposal_preferred_start_time === null
+            || ! $this->preferredTimeWithinBounds($this->proposal_preferred_start_time, $bounds['minUtc'], $bounds['maxUtc'])
+        ) {
+            // Default picker value to the selected event start so browser calendar/time controls
+            // open at the event's hour rather than current hour.
+            $this->proposal_preferred_start_time = $bounds['min'];
         }
     }
 
@@ -278,6 +309,7 @@ class ManageActivityForm extends Component
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
         }
+        $this->proposal_event_search = trim($this->proposal_event_search);
         if ($this->hosting_mode === 0 || $this->hosting_mode === '') {
             $this->hosting_mode = Activity::HOSTING_MODE_DRAFT;
         } else {
@@ -287,6 +319,7 @@ class ManageActivityForm extends Component
             $this->proposal_event_id = null;
             $this->proposal_preferred_start_time = null;
             $this->proposal_slot_ids = [];
+            $this->proposal_event_search = '';
         }
         if ($this->self_hosted_starts_at === '') {
             $this->self_hosted_starts_at = null;
@@ -434,7 +467,29 @@ class ManageActivityForm extends Component
                     });
                 }),
             ],
-            'proposal_preferred_start_time' => ['nullable', 'date'],
+            'proposal_preferred_start_time' => [
+                'nullable',
+                'date',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '' || $this->proposal_event_id === null) {
+                        return;
+                    }
+
+                    $bounds = $this->proposalEventPreferredTimeBounds();
+                    $preferredUtc = parse_datetime_to_utc(is_string($value) ? $value : (string) $value);
+                    if ($preferredUtc === null) {
+                        return;
+                    }
+                    if ($bounds['minUtc'] !== null && $preferredUtc->lt($bounds['minUtc'])) {
+                        $fail(__('ui.activities.proposal_preferred_start_time_before_event'));
+
+                        return;
+                    }
+                    if ($bounds['maxUtc'] !== null && $preferredUtc->gt($bounds['maxUtc'])) {
+                        $fail(__('ui.activities.proposal_preferred_start_time_after_event'));
+                    }
+                },
+            ],
             'proposal_slot_ids' => ['nullable', 'array'],
             'proposal_slot_ids.*' => [
                 'integer',
@@ -455,6 +510,13 @@ class ManageActivityForm extends Component
      */
     protected function futureEventsForProposal(): Collection
     {
+        return $this->proposalEligibleEventsQuery()
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    protected function proposalEligibleEventsQuery(): Builder
+    {
         return Event::query()
             ->where(function ($q) {
                 $q->where('ends_at', '>', now())
@@ -463,9 +525,80 @@ class ManageActivityForm extends Component
                             ->whereNotNull('starts_at')
                             ->where('starts_at', '>', now());
                     });
+            });
+    }
+
+    /**
+     * @return array{id: int, label: string}[]
+     */
+    public function searchProposalEvents(string $query = ''): array
+    {
+        $trimmed = trim($query);
+        $events = $this->proposalEligibleEventsQuery()
+            ->when($trimmed !== '', function (Builder $builder) use ($trimmed): void {
+                $builder->where(function (Builder $search) use ($trimmed): void {
+                    $search->where('name', 'like', '%'.$trimmed.'%')
+                        ->orWhereRaw('DATE_FORMAT(starts_at, "%Y-%m-%d %H:%i") like ?', ['%'.$trimmed.'%']);
+                });
             })
             ->orderBy('starts_at')
+            ->limit(self::PROPOSAL_EVENT_SUGGESTIONS_LIMIT)
             ->get();
+
+        return $events
+            ->map(fn (Event $event): array => ['id' => (int) $event->id, 'label' => $this->proposalEventLabel($event)])
+            ->values()
+            ->all();
+    }
+
+    protected function proposalEventLabel(Event $event): string
+    {
+        $label = (string) $event->name;
+        if ($event->starts_at) {
+            $label .= ' — '.format_in_user_tz($event->starts_at, 'Y-m-d H:i');
+        }
+
+        return $label;
+    }
+
+    /**
+     * @return array{min: ?string, max: ?string, minUtc: ?\Carbon\Carbon, maxUtc: ?\Carbon\Carbon}
+     */
+    protected function proposalEventPreferredTimeBounds(): array
+    {
+        if (! $this->proposal_event_id) {
+            return ['min' => null, 'max' => null, 'minUtc' => null, 'maxUtc' => null];
+        }
+
+        $event = $this->proposalEligibleEventsQuery()
+            ->whereKey($this->proposal_event_id)
+            ->first();
+        if (! $event) {
+            return ['min' => null, 'max' => null, 'minUtc' => null, 'maxUtc' => null];
+        }
+
+        return [
+            'min' => $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : null,
+            'max' => $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : null,
+            'minUtc' => $event->starts_at?->copy()->setTimezone('UTC'),
+            'maxUtc' => $event->ends_at?->copy()->setTimezone('UTC'),
+        ];
+    }
+
+    protected function preferredTimeWithinBounds(?string $preferredLocal, mixed $minUtc, mixed $maxUtc): bool
+    {
+        if ($preferredLocal === null || $preferredLocal === '') {
+            return true;
+        }
+        $preferredUtc = parse_datetime_to_utc($preferredLocal);
+        if ($preferredUtc === null) {
+            return true;
+        }
+        if ($minUtc !== null && $preferredUtc->lt($minUtc)) {
+            return false;
+        }
+
+        return $maxUtc === null || $preferredUtc->lte($maxUtc);
     }
 
     /**
@@ -546,6 +679,14 @@ class ManageActivityForm extends Component
             ],
         ];
         $roomsFetchUrlTemplate = url('/places/__PLACE__/rooms');
+        $proposalBounds = $this->proposalEventPreferredTimeBounds();
+        if ($this->proposal_event_id && $this->proposal_event_search === '') {
+            $selected = $this->proposalEligibleEventsQuery()
+                ->whereKey($this->proposal_event_id)
+                ->first();
+            $this->proposal_event_search = $selected ? $this->proposalEventLabel($selected) : '';
+        }
+        $proposalEventSuggestions = $this->searchProposalEvents();
 
         $locale = app()->getLocale();
         $tagSelection = app(TagSelectionService::class);
@@ -580,6 +721,9 @@ class ManageActivityForm extends Component
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
+            'proposalEventSuggestions' => $proposalEventSuggestions,
+            'proposalPreferredStartTimeMin' => $proposalBounds['min'],
+            'proposalPreferredStartTimeMax' => $proposalBounds['max'],
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => ActivityType::query()->orderBy('id')->get(),
         ]);

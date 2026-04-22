@@ -363,28 +363,38 @@
             <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.propose_to_event_help') }}</p>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                @php
-                    $proposalEventSelectOptions = $futureEvents->map(function ($ev) {
-                        $label = $ev->name;
-                        if ($ev->starts_at) {
-                            $label .= ' — '.format_in_user_tz($ev->starts_at, 'Y-m-d H:i');
-                        }
-
-                        return ['id' => $ev->id, 'name' => $label];
-                    })->values()->all();
-                @endphp
                 <div>
-                    <x-select
-                        id="proposal_event_id"
-                        wire:model.live="proposal_event_id"
-                        :label="__('ui.activities.proposal_event')"
-                        error-field="proposal_event_id"
-                        class="ui-field ui-field-proposal-event"
-                        data-ui="proposal-event-select"
-                        :options="$proposalEventSelectOptions"
-                        :placeholder="__('ui.activities.proposal_event_none')"
-                        placeholder-value=""
-                    />
+                    <div class="relative" data-proposal-event-autocomplete>
+                        <x-input
+                            id="proposal_event_search"
+                            class="ui-field ui-field-proposal-event"
+                            :label="__('ui.activities.proposal_event')"
+                            wire:model.live.debounce.250ms="proposal_event_search"
+                            error-field="proposal_event_id"
+                            type="search"
+                            autocomplete="off"
+                            data-proposal-event-input
+                            aria-autocomplete="list"
+                            aria-expanded="false"
+                            aria-controls="proposal-event-suggestions-popup"
+                            :placeholder="__('ui.activities.proposal_event_search_placeholder')"
+                            data-ui="proposal-event-search"
+                        />
+                        <input type="hidden" wire:model.live="proposal_event_id" data-proposal-event-id />
+                        <script type="application/json" data-proposal-event-config>
+                            @json([
+                                'initialSuggestions' => $proposalEventSuggestions,
+                                'noneLabel' => __('ui.activities.proposal_event_none'),
+                                'noResultsLabel' => __('ui.activities.proposal_event_search_no_results')
+                            ])
+                        </script>
+                        <div
+                            id="proposal-event-suggestions-popup"
+                            class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                            data-proposal-event-popup
+                            role="listbox"
+                        ></div>
+                    </div>
                     @if ($futureEvents->isEmpty())
                         <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_no_future_events') }}</p>
                     @endif
@@ -397,9 +407,15 @@
                         :label="__('ui.activities.proposal_preferred_start_time')"
                         wire:model="proposal_preferred_start_time"
                         type="datetime-local"
+                        :min="$proposalPreferredStartTimeMin"
+                        :max="$proposalPreferredStartTimeMax"
+                        :disabled="$proposal_event_id === null"
                         error-field="proposal_preferred_start_time"
                         data-ui="proposal-preferred-time-input"
                     />
+                    @if (! $proposal_event_id)
+                        <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_preferred_start_time_requires_event') }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -446,6 +462,7 @@
                 if (t.tagName === 'INPUT' && (t.type === 'checkbox' || t.type === 'radio' || t.type === 'submit' || t.type === 'button')) return;
                 if (t.hasAttribute('data-ts-input')) return;
                 if (t.hasAttribute('data-activity-name-input')) return;
+                if (t.hasAttribute('data-proposal-event-input')) return;
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
                 }

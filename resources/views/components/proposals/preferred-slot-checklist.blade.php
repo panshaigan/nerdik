@@ -16,7 +16,7 @@
             @php
                 $slotLabel = $slot->name;
                 if ($slot->starts_at) {
-                    $slotLabel .= ' · '.format_in_user_tz($slot->starts_at, 'H:i');
+                    $slotLabel .= ' · '.format_in_user_tz($slot->starts_at, 'Y-m-d H:i');
                 }
                 if ($slot->activity_id) {
                     $slotLabel .= ' ('.__('ui.proposals.taken').')';
