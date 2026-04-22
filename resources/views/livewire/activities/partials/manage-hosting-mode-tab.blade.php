@@ -1,12 +1,10 @@
-<div class="mt-4 border-t border-base-300 pt-4 space-y-3">
-    <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.activities.hosting_mode_label') }}</p>
+<div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
         <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
     @else
         <x-select
             id="hosting_mode"
             wire:model.live="hosting_mode"
-            :label="__('ui.activities.hosting_mode_label')"
             error-field="hosting_mode"
             :options="[
                 ['id' => \App\Models\Activity::HOSTING_MODE_DRAFT, 'name' => __('ui.activities.hosting_modes.draft')],
