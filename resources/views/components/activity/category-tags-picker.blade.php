@@ -87,7 +87,7 @@
                                 </span>
                                 {{-- div not <label>: avoid delegating clicks to chip × buttons --}}
                                 <div
-                                    class="flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 px-4 py-4"
+                                    class="flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-3 px-4 py-4"
                                     data-atp-field
                                     role="group"
                                     aria-labelledby="{{ $legendId }}"
