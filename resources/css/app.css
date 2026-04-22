@@ -324,7 +324,7 @@ input[type="range"].thumb-only::-moz-range-thumb {
 
 /* Dual-thumb participants slider: align track + fill with Mary <x-range> / Daisy .range (default md thumb). */
 .participants-dual-range {
-    --range-thumb-size: calc(var(--size-selector, 0.25rem) * 6);
+    --range-thumb-size: calc(var(--size-selector, 0.25rem) * 4);
     position: relative;
     width: 100%;
     min-height: var(--range-thumb-size);

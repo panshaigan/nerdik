@@ -40,7 +40,7 @@
             />
         </div>
 
-        <div class="card border border-base-300 p-4">
+        <div class="card border border-base-300 p-4 bg-sample6">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div
                     x-data="{
@@ -110,7 +110,7 @@
                             :min="minLimit"
                             :max="maxLimit"
                             step="1"
-                            class="thumb-only range absolute top-1/2 left-0 z-20 w-full -translate-y-1/2"
+                            class="thumb-only range range-xs absolute top-1/2 left-0 z-20 w-full -translate-y-1/2"
                             :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
                         >
                         <input
@@ -119,7 +119,7 @@
                             :min="minLimit"
                             :max="maxLimit"
                             step="1"
-                            class="thumb-only range absolute top-1/2 left-0 z-10 w-full -translate-y-1/2"
+                            class="thumb-only range range-xs absolute top-1/2 left-0 z-10 w-full -translate-y-1/2"
                             :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
                         >
                     </div>
@@ -194,7 +194,7 @@
             </div>
         </div>
 
-        <div class="card border border-base-300 p-6 gap-y-3">
+        <div class="card border border-base-300 p-6 gap-y-3 bg-sample6">
             <x-toggle
                 id="requires_approval"
                 :label="__('ui.activities.requires_approval_badge')"
@@ -213,12 +213,10 @@
     </div>
 </div>
 
-<div>
+<div class="pt-6">
     <x-editor
         wire:model="description"
-        :label="__('ui.activities.description')"
         :gpl-license="true"
-        popover="dsadasd"
     />
     <x-field-error :messages="$errors->get('description')" class="mt-2" />
 </div>
