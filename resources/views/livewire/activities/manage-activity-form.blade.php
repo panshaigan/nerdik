@@ -48,7 +48,7 @@
                         />
                     </div>
 
-                    <div>
+                    <div class="card border p-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div
                                 x-data="{
@@ -234,6 +234,7 @@
                     wire:model="description"
                     :label="__('ui.activities.description')"
                     :gpl-license="true"
+                    popover="dsadasd"
                 />
                 <x-field-error :messages="$errors->get('description')" class="mt-2" />
             </div>
