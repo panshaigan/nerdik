@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Tag;
 use App\Models\TagCategory;
+use App\Models\User;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
@@ -24,6 +25,7 @@ class ManageActivityForm extends Component
     private const NAME_SUGGESTIONS_LIMIT = 40;
 
     public ?int $editingActivityId = null;
+    public User|null $creator = null;
 
     public string $name = '';
 
@@ -88,6 +90,7 @@ class ManageActivityForm extends Component
             $this->authorizeCreatedBy($activity);
             $activity->load(['tags', 'place.parent']);
             $this->editingActivityId = $activity->id;
+            $this->creator = $activity->creator;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
             $this->activity_type_id = $activity->activity_type_id;

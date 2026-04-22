@@ -1,15 +1,15 @@
 @php
-    $title = $editingActivityId ? (__('ui.activities.edit_activity').$this->name) : __('ui.activities.create_activity');
+    $title = $editingActivityId ? (__('ui.activities.edit_activity').': '.$this->name) : __('ui.activities.create_activity');
 @endphp
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 <div class="space-y-4">
     <div
-        class="ui-activity-show-hero overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow"
+        class="ui-activity-show-hero overflow-hidden rounded border border-base-300 bg-base-100 shadow"
         data-ui="activity-show-hero"
     >
-        <div class="relative min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px p-6">
+        <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
             <x-header
                 title="{{ $title }}"
                 class=""
@@ -17,9 +17,18 @@
                 use-h1
             >
                     <x-slot:subtitle>
+                        {{__('Placeholder')}}
                     </x-slot:subtitle>
                     <x-slot:actions>
-
+                        @if ($creator)
+                        <x-user-badge
+                            :user="$creator"
+                            size="md"
+                            name-class="truncate text-end font-semibold"
+                            data-ui="activity-show-host"
+                            title="Creator"
+                        />
+                        @endif
                     </x-slot:actions>
             </x-header>
         </div>
