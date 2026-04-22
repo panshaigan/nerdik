@@ -24,9 +24,15 @@ new class extends Component
     };
 @endphp
 
-<nav x-data="{ open: false }" class="relative z-20 border-b border-base-300 bg-base-100/90 backdrop-blur">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 justify-between">
+<div x-data="{ open: false }" class="relative border-b border-base-300">
+    <x-nav
+        sticky
+        full-width
+        role="navigation"
+        aria-label="{{ __('Main navigation') }}"
+        class="relative z-20 !border-b-0 bg-base-100/90 backdrop-blur !z-20 [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
+    >
+        <x-slot:brand>
             <div class="flex">
                 <div class="flex shrink-0 items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate>
@@ -45,7 +51,9 @@ new class extends Component
                     </a>
                 </div>
             </div>
+        </x-slot:brand>
 
+        <x-slot:actions class="!gap-2 sm:!gap-2">
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
                 <a
                    href="{{ route('locale.switch', ['locale' => 'en']) }}"
@@ -103,8 +111,8 @@ new class extends Component
                         </li>
                     </ul>
                 </div>
+                @endauth
             </div>
-            @endauth
 
             <div class="-me-2 flex items-center sm:hidden">
                 <x-button type="button" @click="open = ! open" class="btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none">
@@ -114,8 +122,8 @@ new class extends Component
                     </svg>
                 </x-button>
             </div>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-nav>
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="space-y-1 pb-3 pt-2">
@@ -185,4 +193,4 @@ new class extends Component
             </div>
         </div>
     </div>
-</nav>
+</div>
