@@ -287,31 +287,58 @@
                 @endif
 
                 @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED)
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <x-input
-                            id="self_hosted_starts_at"
-                            :label="__('ui.activities.self_hosted_starts_at')"
-                            wire:model="self_hosted_starts_at"
-                            type="datetime-local"
-                            error-field="self_hosted_starts_at"
-                        />
-                    </div>
-
-                    <div data-selfhost-map-wrap>
+                    <div
+                        data-selfhost-map-wrap
+                        data-selfhost-room-root
+                        data-selfhost-rooms-url-template="{{ $roomsFetchUrlTemplate }}"
+                    >
                         <p class="fieldset-legend font-medium text-base-content">{{ __('ui.activities.self_hosted_place') }}</p>
                         <p class="mb-3 text-sm text-base-content/80">{{ __('ui.activities.self_hosted_place_help') }}</p>
                         <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3" wire:ignore>
                             <script type="application/json" data-ep-config>@json($selfHostedPlacesConfig)</script>
-                            <div class="relative z-[1000]">
-                                <x-input
-                                    type="search"
-                                    data-ep-search
-                                    autocomplete="off"
-                                    :placeholder="__('ui.activities.self_hosted_place_search_placeholder')"
-                                    class="w-full"
-                                    :omit-error="true"
-                                />
-                                <div data-ep-results class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"></div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="relative z-[1000]">
+                                    <x-input
+                                        type="search"
+                                        data-ep-search
+                                        autocomplete="off"
+                                        :label="__('ui.activities.self_hosted_place')"
+                                        :placeholder="__('ui.activities.self_hosted_place_search_placeholder')"
+                                        class="w-full"
+                                        :omit-error="true"
+                                    />
+                                    <div data-ep-results class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"></div>
+                                    <x-field-error :messages="$errors->get('self_hosted_venue_place_id')" class="mt-2" />
+                                </div>
+                                <div class="relative overflow-visible">
+                                    <x-input
+                                        id="self_hosted_room_name"
+                                        wire:model="self_hosted_room_name"
+                                        :label="__('ui.slots.room_optional')"
+                                        error-field="self_hosted_room_name"
+                                        autocomplete="off"
+                                        :placeholder="__('ui.slots.room_placeholder')"
+                                        data-selfhost-room-input
+                                        aria-autocomplete="list"
+                                        aria-expanded="false"
+                                        aria-controls="selfhost-room-suggestions-popup"
+                                    />
+                                    <div
+                                        id="selfhost-room-suggestions-popup"
+                                        class="fixed z-[9999] hidden max-h-[min(14rem,50vh)] overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                                        data-selfhost-room-popup
+                                        role="listbox"
+                                    ></div>
+                                </div>
+                                <div class="">
+                                    <x-input
+                                        id="self_hosted_starts_at"
+                                        :label="__('ui.activities.self_hosted_starts_at')"
+                                        wire:model="self_hosted_starts_at"
+                                        type="datetime-local"
+                                        error-field="self_hosted_starts_at"
+                                    />
+                                </div>
                             </div>
                             <div data-ep-map class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30" style="min-height: 280px; height: min(420px, 50vh);"></div>
                             <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
@@ -320,37 +347,6 @@
                                 <div data-ep-new-venues class="space-y-3"></div>
                             </div>
                             <div data-ep-place-ids></div>
-                        </div>
-                    </div>
-
-                    <div
-                        class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start"
-                        data-selfhost-room-root
-                        data-selfhost-rooms-url-template="{{ $roomsFetchUrlTemplate }}"
-                    >
-                        <div>
-                            <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
-                            <div class="relative overflow-visible">
-                                <x-input
-                                    id="self_hosted_room_name"
-                                    wire:model="self_hosted_room_name"
-                                    :label="''"
-                                    error-field="self_hosted_room_name"
-                                    autocomplete="off"
-                                    :placeholder="__('ui.slots.room_placeholder')"
-                                    data-selfhost-room-input
-                                    aria-autocomplete="list"
-                                    aria-expanded="false"
-                                    aria-controls="selfhost-room-suggestions-popup"
-                                />
-                                <div
-                                    id="selfhost-room-suggestions-popup"
-                                    class="fixed z-[9999] hidden max-h-[min(14rem,50vh)] overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                                    data-selfhost-room-popup
-                                    role="listbox"
-                                ></div>
-                            </div>
-                            <x-field-error :messages="$errors->get('self_hosted_venue_place_id')" class="mt-2" />
                         </div>
                     </div>
                 @endif
