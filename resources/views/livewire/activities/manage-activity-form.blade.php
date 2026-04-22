@@ -1,5 +1,5 @@
 @php
-    $title = $editingActivityId ? (__('Edit activity').$this->name) : __('Create activity');
+    $title = $editingActivityId ? (__('ui.activities.edit_activity').$this->name) : __('ui.activities.create_activity');
 @endphp
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -25,7 +25,7 @@
         </div>
     </div>
     <x-form wire:submit.prevent="save" class="space-y-4 p-6" data-activity-form>
-        <x-errors title="Oops!" description="Please, fix them." icon="o-face-frown" />
+        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <div>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -120,7 +120,7 @@
                             >
                                 <!-- Label -->
                                 <label class="text-sm font-medium flex justify-between">
-                                    <span>Participants</span>
+                                    <span>{{ __('ui.activities.participants') }}</span>
                                     <span class="font-semibold" x-text="`${min}–${max}`"></span>
                                 </label>
 
@@ -174,9 +174,9 @@
                                     <span>
                                         {{ __('ui.activities.duration_in_minutes') }}:
                                         <span class="font-semibold">
-                                            <span x-text="Math.floor(value / 60)"></span>h
+                                            <span x-text="Math.floor(value / 60)"></span>{{ __('ui.activities.duration_hours_short') }}
                                             <span x-show="value % 60 > 0">
-                                                <span x-text="value % 60"></span>m
+                                                <span x-text="value % 60"></span>{{ __('ui.activities.duration_minutes_short') }}
                                             </span>
                                         </span>
                                     </span>
@@ -195,9 +195,9 @@
                                 {{ __('ui.activities.cancellation_deadline_in_hours') }}:
                                 <span class="font-semibold">
                                     <span x-text="Math.floor(value / 24)" x-show="value >= 24"></span>
-                                    <span x-text="Math.floor(value / 24) === 1 ? 'day' : 'days'" x-show="value >= 24"></span>
+                                    <span x-text="Math.floor(value / 24) === 1 ? '{{ __('ui.activities.duration_day') }}' : '{{ __('ui.activities.duration_days') }}'" x-show="value >= 24"></span>
                                     <span x-show="value % 24 > 0">
-                                        <span x-text="value % 24"></span>h
+                                        <span x-text="value % 24"></span>{{ __('ui.activities.duration_hours_short') }}
                                     </span>
                                 </span>
                             </span>
@@ -298,7 +298,7 @@
                                     type="search"
                                     data-ep-search
                                     autocomplete="off"
-                                    :placeholder="__('Search places or address… (double-click map to add)')"
+                                    :placeholder="__('ui.activities.self_hosted_place_search_placeholder')"
                                     class="w-full"
                                     :omit-error="true"
                                 />
@@ -307,7 +307,7 @@
                             <div data-ep-map class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30" style="min-height: 280px; height: min(420px, 50vh);"></div>
                             <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
                             <div data-ep-new-venues-wrap class="{{ count($selfHostedPlacesConfig['initialNewPlaces'] ?? []) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
-                                <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
+                                <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('ui.activities.self_hosted_new_venues_label') }}</p>
                                 <div data-ep-new-venues class="space-y-3"></div>
                             </div>
                             <div data-ep-place-ids></div>
@@ -410,8 +410,8 @@
             <x-button id="ui-activity-cancel" :link="route('search.index')" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
-                <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('Update') : __('Create') }}</span>
-                <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+                <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('ui.activities.update') : __('ui.activities.create') }}</span>
+                <span wire:loading wire:target="save">{{ __('ui.common.saving') }}</span>
             </x-button>
         </x-slot:actions>
     </x-form>
