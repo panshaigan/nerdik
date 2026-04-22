@@ -30,6 +30,10 @@ class ManageActivityForm extends Component
     public User|null $creator = null;
     public string $tab = 'main-details';
 
+    protected array $queryString = [
+        'tab' => ['except' => 'main-details'],
+    ];
+
     public string $name = '';
 
     public string $description = '';
@@ -144,6 +148,17 @@ class ManageActivityForm extends Component
         }
 
         $this->resetSelfHostedRoomTrackingFingerprints();
+        $this->tab = $this->normalizeFormTab($this->tab);
+    }
+
+    public function updatedTab(string $value): void
+    {
+        $this->tab = $this->normalizeFormTab($value);
+    }
+
+    private function normalizeFormTab(?string $value): string
+    {
+        return in_array($value, ['main-details', 'tags', 'hosting-mode'], true) ? $value : 'main-details';
     }
 
     private function duplicateQuerySlug(): ?string
@@ -708,6 +723,8 @@ class ManageActivityForm extends Component
         $tagSelection = app(TagSelectionService::class);
         $activityTagPickerConfig = [
             'locale' => $locale,
+            'semanticByTagCategory' => config('activity-badges.semantic_by_tag_category', []),
+            'defaultTaxonomySemantic' => config('activity-badges.semantic_by_kind.taxonomy_tag', 'neutral'),
             'categories' => TagCategory::query()
                 ->with('translations')
                 ->orderBy('key')

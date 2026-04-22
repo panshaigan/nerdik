@@ -27,6 +27,7 @@
     use App\Models\TagCategory;
 
     $cfg = is_array($config) ? $config : [];
+    $atpInputPlaceholder = __('Type to search tags (or create a new one)');
 
     /**
      * Display order: this list is walked top-to-bottom. Keys must match `tag_categories.key`.
@@ -57,7 +58,7 @@
 @endphp
 
 <div data-activity-tag-picker>
-    <script type="application/json" data-atp-config>@json($cfg)</script>
+    <script type="application/json" data-atp-config>@json(array_merge($cfg, ['inputPlaceholder' => $atpInputPlaceholder]))</script>
     @if (empty($cfg['tags'] ?? []))
         <p class="mb-4 text-sm text-base-content/70">{{ __('No tags in the system yet. Start typing to create the first ones.') }}</p>
     @endif
@@ -106,7 +107,8 @@
                                         type="text"
                                         data-atp-input
                                         class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
-                                        placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                                        data-atp-placeholder="{{ $atpInputPlaceholder }}"
+                                        placeholder="{{ $atpInputPlaceholder }}"
                                         autocomplete="off"
                                         inputmode="search"
                                         enterkeyhint="search"
@@ -142,7 +144,8 @@
                                         type="text"
                                         data-atp-input
                                         class="min-w-[8rem] flex-1 basis-[8rem] self-center"
-                                        placeholder="{{ __('Type to search tags (or create a new one)') }}"
+                                        data-atp-placeholder="{{ $atpInputPlaceholder }}"
+                                        placeholder="{{ $atpInputPlaceholder }}"
                                         autocomplete="off"
                                         inputmode="search"
                                         enterkeyhint="search"

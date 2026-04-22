@@ -27,6 +27,18 @@ function sameNewTagsPayload(a, b) {
     return JSON.stringify(a || []) === JSON.stringify(b || []);
 }
 
+/** Semantic tone class suffixes; aligned with `config/activity-badges.php` and `BadgeSemantic::badgeClasses()`. */
+const BADGE_TONE_CLASS = {
+    primary: 'badge-primary',
+    secondary: 'badge-secondary',
+    accent: 'badge-accent',
+    neutral: 'badge-neutral',
+    info: 'badge-info',
+    success: 'badge-success',
+    warning: 'badge-warning',
+    error: 'badge-error',
+};
+
 function syncLivewireTagState(root, tagIds, newTagsPayload) {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
         return;
@@ -115,6 +127,29 @@ export function initActivityTagPicker(root) {
         return;
     }
 
+    const categoryIdToKey = new Map(
+        (cfg.categories || [])
+            .filter((c) => c && (c.id ?? 0) > 0)
+            .map((c) => [Number(c.id), String(c.key || '')]),
+    );
+
+    function resolveSemanticForCategoryId(cid) {
+        const key = categoryIdToKey.get(Number(cid));
+        const byCat = cfg.semanticByTagCategory || {};
+        if (key && byCat[key] != null && String(byCat[key]).trim() !== '') {
+            return String(byCat[key]).toLowerCase();
+        }
+
+        return String(cfg.defaultTaxonomySemantic || 'neutral').toLowerCase();
+    }
+
+    function chipClassesForCategoryId(cid) {
+        const sem = resolveSemanticForCategoryId(cid);
+        const tone = BADGE_TONE_CLASS[sem] || BADGE_TONE_CLASS.neutral;
+
+        return `mary-tags-element badge ${tone} h-auto min-h-0 max-w-full gap-1 border-0 px-2 py-1 text-xs font-normal normal-case inline-flex items-center whitespace-normal`;
+    }
+
     /** @type {Map<number, { input: HTMLInputElement, results: HTMLElement, chips: HTMLElement, activeIndex: number }>} */
     const rowUi = new Map();
 
@@ -128,6 +163,36 @@ export function initActivityTagPicker(root) {
         }
         rowUi.set(catId, { input, results, chips, activeIndex: -1 });
     });
+
+    function countTagsInCategory(catId) {
+        let n = 0;
+        const cid = Number(catId);
+        selected.forEach((id) => {
+            const t = byId.get(id);
+            if (t && Number(t.category_id) === cid) {
+                n += 1;
+            }
+        });
+        pendingNew
+            .filter((t) => Number(t.category_id) === cid)
+            .forEach(() => {
+                n += 1;
+            });
+
+        return n;
+    }
+
+    function updateInputPlaceholders() {
+        const fallback = String(cfg.inputPlaceholder || cfg.strings?.typeToSearch || '');
+        rowUi.forEach((ui) => {
+            const base = (ui.input?.dataset?.atpPlaceholder || '').trim() || fallback;
+            const catId = Number(ui.input?.closest?.('[data-atp-category-row]')?.dataset?.categoryId);
+            if (!ui.input || !Number.isFinite(catId) || catId <= 0) {
+                return;
+            }
+            ui.input.placeholder = countTagsInCategory(catId) > 0 ? '' : base;
+        });
+    }
 
     function emitTagsChange() {
         const tagIds = Array.from(selected)
@@ -389,9 +454,8 @@ export function initActivityTagPicker(root) {
                     ? ` <span class="rounded bg-base-300 px-1 py-0.5 text-[10px] uppercase">${cfg.strings?.auto || 'auto'}</span>`
                     : '';
                 const chip = document.createElement('span');
-                chip.className =
-                    'mary-tags-element inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs';
-                chip.innerHTML = `${label}${autoBadge} <button type="button" class="opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
+                chip.className = chipClassesForCategoryId(catId);
+                chip.innerHTML = `${label}${autoBadge} <button type="button" class="shrink-0 opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
                 chip.querySelector('button')?.addEventListener('click', () => removeTag(id));
                 chips.appendChild(chip);
             });
@@ -400,9 +464,8 @@ export function initActivityTagPicker(root) {
             .filter((t) => Number(t.category_id) === Number(catId))
             .forEach((t) => {
                 const chip = document.createElement('span');
-                chip.className =
-                    'mary-tags-element inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs';
-                chip.innerHTML = `${t.label} <button type="button" class="opacity-60 hover:opacity-100" data-rm-pending="${norm(t.label)}">×</button>`;
+                chip.className = chipClassesForCategoryId(catId);
+                chip.innerHTML = `${t.label} <button type="button" class="shrink-0 opacity-60 hover:opacity-100" data-rm-pending="${norm(t.label)}">×</button>`;
                 chip.querySelector('button')?.addEventListener('click', () => removePending(catId, norm(t.label)));
                 chips.appendChild(chip);
             });
@@ -410,6 +473,7 @@ export function initActivityTagPicker(root) {
 
     function renderAllRows() {
         rowUi.forEach((_, catId) => renderRowChips(catId));
+        updateInputPlaceholders();
         emitTagsChange();
     }
 
