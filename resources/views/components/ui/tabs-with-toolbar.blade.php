@@ -19,14 +19,15 @@
     <div class="{{ $labelBarClass }}">
         <div class="{{ $labelDivClass }} min-w-0 flex-1">
             <template x-for="tab in tabs" :key="tab.name">
-                <a
+                <button
+                    type="button"
                     role="tab"
                     x-init="if (typeof tab == 'undefined') $el.remove()"
                     x-html="tab.label"
                     @click="tab.disabled ? null: selected = tab.name"
                     :class="{ '{{ $activeClass }} tab-active': selected === tab.name, 'hidden': tab.hidden }"
                     class="tab {{ $labelClass }}"
-                ></a>
+                ></button>
             </template>
         </div>
         @if (isset($toolbar) && ! $toolbar->isEmpty())

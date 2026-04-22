@@ -28,6 +28,7 @@ class ManageActivityForm extends Component
 
     public ?int $editingActivityId = null;
     public User|null $creator = null;
+    public string $tab = 'main-details';
 
     public string $name = '';
 
