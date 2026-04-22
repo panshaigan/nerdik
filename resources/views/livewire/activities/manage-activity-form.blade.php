@@ -4,7 +4,7 @@
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
-<div class="space-y-4">
+<div>
     <div
         class="ui-activity-show-hero overflow-hidden rounded border border-base-300 bg-base-100 shadow"
         data-ui="activity-show-hero"
@@ -16,6 +16,12 @@
                 separator
                 use-h1
             >
+                <x-slot:title>
+                    <div class="flex items-center gap-2">
+                        <x-icon name="o-chevron-left" class="cursor-pointer" onclick="history.back()" />
+                        <span>{{ $title }}</span>
+                    </div>
+                </x-slot:title>
                     <x-slot:subtitle>
                         {{__('Placeholder')}}
                     </x-slot:subtitle>
@@ -33,7 +39,7 @@
             </x-header>
         </div>
     </div>
-    <x-form wire:submit.prevent="save" class="space-y-4 p-6" data-activity-form>
+    <x-form wire:submit.prevent="save" class="" data-activity-form>
         <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar
@@ -44,22 +50,22 @@
                 tabs-class="w-full"
                 data-ui="activity-manage-tabs"
             >
-                <x-tab name="main-details" :label="__('Main details')" class="space-y-4 p-4 sm:p-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
+                <x-tab name="main-details" :label="__('Main details')" class="px-6 py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
                     @include('livewire.activities.partials.manage-main-details-tab')
                 </x-tab>
 
-                <x-tab name="tags" :label="__('ui.activities.tags')" class="space-y-4 p-4 sm:p-6" data-ui="activity-manage-tab-tags" icon="o-tag">
+                <x-tab name="tags" :label="__('ui.activities.tags')" class="px-6 py-6" data-ui="activity-manage-tab-tags" icon="o-tag">
                     @include('livewire.activities.partials.manage-tags-tab')
                 </x-tab>
 
-                <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="space-y-4 p-4 sm:p-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
+                <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="px-6 py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
                     @include('livewire.activities.partials.manage-hosting-mode-tab')
                 </x-tab>
             </x-ui.tabs-with-toolbar>
         </div>
 
-        <x-slot:actions>
-            <x-button id="ui-activity-cancel" @click="history.back()" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
+        <x-slot:actions class="px-6 pb-6">
+            <x-button id="ui-activity-cancel" @click="history.back()" class="btn-ghost ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                 <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('ui.activities.update') : __('ui.activities.create') }}</span>

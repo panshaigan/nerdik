@@ -137,6 +137,7 @@
                         x-model="value"
                         min="0"
                         max="18"
+                        class="range-xs"
                     />
                 </div>
 
@@ -157,6 +158,7 @@
                         min="30"
                         max="720"
                         step="30"
+                        class="range-xs"
                     />
                 </div>
 
@@ -186,6 +188,7 @@
                         min="0"
                         max="48"
                         step="6"
+                        class="range-xs"
                     />
                 </div>
             </div>
