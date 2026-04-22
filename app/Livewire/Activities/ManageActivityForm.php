@@ -14,7 +14,6 @@ use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
@@ -144,7 +143,6 @@ class ManageActivityForm extends Component
         }
 
         $this->resetSelfHostedRoomTrackingFingerprints();
-        $this->ensureSelfHostedStartDefault();
     }
 
     private function duplicateQuerySlug(): ?string
@@ -230,26 +228,6 @@ class ManageActivityForm extends Component
     public function updatedHostingMode(): void
     {
         $this->resetSelfHostedRoomTrackingFingerprints();
-        $this->ensureSelfHostedStartDefault();
-    }
-
-    private function ensureSelfHostedStartDefault(): void
-    {
-        if (
-            $this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED
-            && ($this->self_hosted_starts_at === null || $this->self_hosted_starts_at === '')
-        ) {
-            $this->self_hosted_starts_at = $this->selfHostedDefaultStart();
-        }
-    }
-
-    private function selfHostedDefaultStart(): string
-    {
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
-
-        return Carbon::now($tz)->addDay()->setTime(12, 0)->format('Y-m-d\TH:i');
     }
 
     public function updatedPlaceIds(): void
