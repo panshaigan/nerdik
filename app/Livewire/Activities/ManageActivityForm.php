@@ -14,6 +14,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
@@ -143,6 +144,7 @@ class ManageActivityForm extends Component
         }
 
         $this->resetSelfHostedRoomTrackingFingerprints();
+        $this->ensureSelfHostedStartDefault();
     }
 
     private function duplicateQuerySlug(): ?string
@@ -228,6 +230,26 @@ class ManageActivityForm extends Component
     public function updatedHostingMode(): void
     {
         $this->resetSelfHostedRoomTrackingFingerprints();
+        $this->ensureSelfHostedStartDefault();
+    }
+
+    private function ensureSelfHostedStartDefault(): void
+    {
+        if (
+            $this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED
+            && ($this->self_hosted_starts_at === null || $this->self_hosted_starts_at === '')
+        ) {
+            $this->self_hosted_starts_at = $this->selfHostedDefaultStart();
+        }
+    }
+
+    private function selfHostedDefaultStart(): string
+    {
+        $tz = auth()->check() && auth()->user()->timezone
+            ? auth()->user()->timezone
+            : config('app.timezone');
+
+        return Carbon::now($tz)->addDay()->setTime(12, 0)->format('Y-m-d\TH:i');
     }
 
     public function updatedPlaceIds(): void
@@ -428,7 +450,19 @@ class ManageActivityForm extends Component
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
             'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],
-            'self_hosted_starts_at' => ['nullable', 'date'],
+            'self_hosted_starts_at' => [
+                'nullable',
+                'date',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '' || $this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
+                        return;
+                    }
+                    $parsed = parse_datetime_to_utc((string) $value);
+                    if ($parsed !== null && $parsed->lt(now()->setTimezone('UTC'))) {
+                        $fail(__('ui.activities.self_hosted_starts_at_future_only'));
+                    }
+                },
+            ],
             'self_hosted_venue_place_id' => ['nullable', 'integer', Rule::exists('places', 'id')->where(fn ($q) => $q->where('type', 'venue'))],
             'self_hosted_room_name' => ['nullable', 'string', 'max:255'],
             'self_hosted_place_id' => ['nullable', 'integer', 'exists:places,id'],
@@ -668,6 +702,8 @@ class ManageActivityForm extends Component
             'maxNewVenues' => 1,
             'disallowMixSelectedAndNew' => true,
             'hideSelectedChips' => true,
+            'openSuggestionsOnFocus' => true,
+            'emptyQuerySuggestions' => 'saved_places_only',
             'debounceLivewireMs' => 450,
             'strings' => [
                 'yourPlaces' => __('Your places'),
@@ -720,6 +756,7 @@ class ManageActivityForm extends Component
             'activityTagPickerConfig' => $activityTagPickerConfig,
             'futureEvents' => $this->futureEventsForProposal(),
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
+            'selfHostedStartTimeMin' => format_in_user_tz(now(), 'Y-m-d\TH:i'),
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSuggestions' => $proposalEventSuggestions,

@@ -110,6 +110,8 @@ export function initEventPlacesUnified(root) {
     const maxNewVenuesParsed = Number.parseInt(String(cfg.maxNewVenues ?? ''), 10);
     const maxNewVenues = Number.isFinite(maxNewVenuesParsed) && maxNewVenuesParsed > 0 ? maxNewVenuesParsed : null;
     const hideSelectedChips = cfg.hideSelectedChips === true || cfg.hideSelectedChips === 1 || cfg.hideSelectedChips === '1';
+    const openSuggestionsOnFocus = cfg.openSuggestionsOnFocus === true || cfg.openSuggestionsOnFocus === 1 || cfg.openSuggestionsOnFocus === '1';
+    const emptyQuerySuggestions = String(cfg.emptyQuerySuggestions || 'none');
     const disallowMixSelectedAndNew =
         cfg.disallowMixSelectedAndNew === true
         || cfg.disallowMixSelectedAndNew === 1
@@ -598,9 +600,7 @@ export function initEventPlacesUnified(root) {
         searchTimer = setTimeout(runSearch, 280);
     });
     searchInput.addEventListener('focus', () => {
-        if (searchInput.value.trim().length >= 2) {
-            runSearch();
-        }
+        runSearch({ fromFocus: true });
     });
 
     document.addEventListener('click', (e) => {
@@ -644,13 +644,13 @@ export function initEventPlacesUnified(root) {
         }
     });
 
-    async function runSearch() {
+    async function runSearch({ fromFocus = false } = {}) {
         const raw = searchInput.value.trim();
         const qLower = raw.toLowerCase();
         resultsEl.innerHTML = '';
         activeResultIndex = -1;
 
-        if (raw.length < 2) {
+        if (raw.length < 2 && !(fromFocus && openSuggestionsOnFocus && raw.length === 0)) {
             resultsEl.classList.add('hidden');
 
             return;
@@ -658,8 +658,13 @@ export function initEventPlacesUnified(root) {
 
         const LOCAL_SAVED_LIMIT = 10;
         const LOCAL_DRAFT_LIMIT = 8;
-        const localSaved = places.filter((p) => p.label.toLowerCase().includes(qLower)).slice(0, LOCAL_SAVED_LIMIT);
-        const localDraft = newVenues
+        const useFocusEmptySavedOnly = fromFocus && raw.length === 0 && emptyQuerySuggestions === 'saved_places_only';
+        const localSaved = useFocusEmptySavedOnly
+            ? places.slice(0, LOCAL_SAVED_LIMIT)
+            : places.filter((p) => p.label.toLowerCase().includes(qLower)).slice(0, LOCAL_SAVED_LIMIT);
+        const localDraft = useFocusEmptySavedOnly
+            ? []
+            : newVenues
             .filter((v) => {
                 const n = v.name.trim();
                 if (!n) {
@@ -677,11 +682,13 @@ export function initEventPlacesUnified(root) {
                 lng: v.lng,
             }));
         let remote = [];
-        try {
-            const { data } = await axios.get(cfg.searchUrl, { params: { q: raw } });
-            remote = data.results || [];
-        } catch {
-            remote = [];
+        if (!useFocusEmptySavedOnly) {
+            try {
+                const { data } = await axios.get(cfg.searchUrl, { params: { q: raw } });
+                remote = data.results || [];
+            } catch {
+                remote = [];
+            }
         }
 
         resultsEl.classList.remove('hidden');
