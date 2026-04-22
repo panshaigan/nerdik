@@ -296,7 +296,7 @@
                         <p class="mb-3 text-sm text-base-content/80">{{ __('ui.activities.self_hosted_place_help') }}</p>
                         <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3" wire:ignore>
                             <script type="application/json" data-ep-config>@json($selfHostedPlacesConfig)</script>
-                            <div class="grid grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div class="relative z-[1000]">
                                     <x-input
                                         type="search"
@@ -336,6 +336,7 @@
                                         :label="__('ui.activities.self_hosted_starts_at')"
                                         wire:model="self_hosted_starts_at"
                                         type="datetime-local"
+                                        :min="$selfHostedStartTimeMin"
                                         error-field="self_hosted_starts_at"
                                     />
                                 </div>

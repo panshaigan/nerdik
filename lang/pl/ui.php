@@ -145,6 +145,7 @@ return [
         'self_hosted_place_search_placeholder' => 'Szukaj miejsc lub adresów… (kliknij dwukrotnie mapę, aby dodać)',
         'self_hosted_new_venues_label' => 'Nowe miejsca (zostaną utworzone po zapisaniu)',
         'self_hosted_requires_place_and_start' => 'Aktywnosc samodzielna wymaga miejsca i czasu startu.',
+        'self_hosted_starts_at_future_only' => 'Start aktywnosci samodzielnej nie moze byc w przeszlosci.',
         'cannot_propose_self_hosted_with_participants' => 'Nie mozna przelaczyc na propozycje wydarzenia, gdy sa uczestnicy lub lista rezerwowa.',
         'cancel_action' => 'Odwołaj',
         'reopen_action' => 'Przywróć',

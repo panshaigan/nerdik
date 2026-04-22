@@ -145,6 +145,7 @@ return [
         'self_hosted_place_search_placeholder' => 'Search places or address… (double-click map to add)',
         'self_hosted_new_venues_label' => 'New venues (created when you save)',
         'self_hosted_requires_place_and_start' => 'Self-hosted activities require both place and start time.',
+        'self_hosted_starts_at_future_only' => 'Self-hosted start time cannot be in the past.',
         'cannot_propose_self_hosted_with_participants' => 'Cannot switch to event proposal while participants or waitlist entries exist.',
         'cancel_action' => 'Cancel',
         'reopen_action' => 'Reopen',
