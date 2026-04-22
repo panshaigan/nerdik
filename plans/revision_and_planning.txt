@@ -2,7 +2,6 @@ UI/UX
 - graphically enhance the screens + check for not translated strings
 - participation screen must be live
 - enhancements
-    - disable tinymce focus border
     - Enrollment windwos should be numbered to make a difference between them
     - add descriptions to enrollments ('for the prepaid people')
     - maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
@@ -10,9 +9,6 @@ UI/UX
         - fold the plan outside the enrollment windows
         - add possibility to filter out empty slots
         - dont drop the event start label
-    - activity:
-        - passive host displayed just for organizer
-- handle tag contex
 - think about slots naming/counters
     - extract number from name?
 - my tags/places cruds
