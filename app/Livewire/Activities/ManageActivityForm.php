@@ -327,15 +327,6 @@ class ManageActivityForm extends Component
         return $attributes;
     }
 
-    public function clearNumericFields(): void
-    {
-        $this->min_participants = null;
-        $this->max_participants = null;
-        $this->minimum_age = null;
-        $this->duration_in_minutes = null;
-        $this->cancellation_deadline_in_hours = null;
-    }
-
     public function save(
         TagSelectionService $tagSelectionService,
         ActivityHostingModeService $hostingModes,
