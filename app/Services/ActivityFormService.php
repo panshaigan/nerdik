@@ -114,6 +114,14 @@ class ActivityFormService
             return null;
         }
 
+        $hasActiveProposal = ActivityProposal::query()
+            ->where('activity_id', $activity->id)
+            ->whereIn('status', [ActivityProposalStatus::Pending, ActivityProposalStatus::Accepted])
+            ->exists();
+        if ($hasActiveProposal) {
+            return null;
+        }
+
         $event = Event::findOrFail($form->proposal_event_id);
 
         $preferred = $form->proposal_preferred_start_time;

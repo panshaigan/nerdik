@@ -145,6 +145,33 @@
 
         const nameInput = document.querySelector('[data-activity-name-input]');
         const namePopup = document.querySelector('[data-activity-name-popup]');
+        const proposalPreferredInput = document.querySelector('#proposal_preferred_start_time');
+        if (proposalPreferredInput) {
+            const proposalPreferredShell = proposalPreferredInput.closest('label.input');
+            const openProposalPicker = (e) => {
+                if (proposalPreferredInput.disabled || proposalPreferredInput.readOnly) {
+                    return;
+                }
+                const clickedShellButNotInput =
+                    proposalPreferredShell
+                    && proposalPreferredShell.contains(e.target)
+                    && e.target !== proposalPreferredInput;
+                if (!clickedShellButNotInput && e.target !== proposalPreferredInput) {
+                    return;
+                }
+                if ((!proposalPreferredInput.value || proposalPreferredInput.value.trim() === '') && proposalPreferredInput.min) {
+                    proposalPreferredInput.value = proposalPreferredInput.min;
+                    proposalPreferredInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    proposalPreferredInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                if (typeof proposalPreferredInput.showPicker === 'function') {
+                    e.preventDefault();
+                    proposalPreferredInput.showPicker();
+                }
+            };
+            proposalPreferredInput.addEventListener('pointerdown', openProposalPicker, { signal });
+            proposalPreferredShell?.addEventListener('pointerdown', openProposalPicker, { signal });
+        }
         if (nameInput && namePopup) {
             const suggestions = @json($nameSuggestions);
             let shown = [];
