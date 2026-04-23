@@ -703,7 +703,7 @@ class ManageActivityForm extends Component
             'emptyQuerySuggestions' => 'saved_places_only',
             'debounceLivewireMs' => 450,
             'strings' => [
-                'yourPlaces' => __('Your places'),
+                'yourPlaces' => __('Saved Venues'),
                 'mapSearch' => __('Map search'),
                 'noResults' => __('No results'),
                 'newVenuesHeading' => __('New venues (created when you save)'),

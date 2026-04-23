@@ -1,5 +1,7 @@
 @php
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+    $hasSelfHostedVenueSelection = $self_hosted_venue_place_id !== null
+        || ($place_ids ?? []) !== [];
 @endphp
 
 <div class="">
@@ -49,6 +51,7 @@
                             error-field="self_hosted_room_name"
                             autocomplete="off"
                             :placeholder="__('ui.slots.room_placeholder')"
+                            :disabled="! $hasSelfHostedVenueSelection"
                             data-selfhost-room-input
                             aria-autocomplete="list"
                             aria-expanded="false"
@@ -110,6 +113,7 @@
                         aria-controls="proposal-event-suggestions-popup"
                         :placeholder="__('ui.activities.proposal_event_search_placeholder')"
                         data-ui="proposal-event-search"
+                        inline
                     />
                     <input type="hidden" wire:model.live="proposal_event_id" data-proposal-event-id />
                     <script type="application/json" data-proposal-event-config>
@@ -134,7 +138,6 @@
             <div>
                 <x-input
                     id="proposal_preferred_start_time"
-                    class="ui-field ui-field-proposal-preferred-time w-full"
                     :label="__('ui.activities.proposal_preferred_start_time')"
                     wire:model="proposal_preferred_start_time"
                     type="datetime-local"
@@ -144,10 +147,8 @@
                     :disabled="$proposal_event_id === null"
                     error-field="proposal_preferred_start_time"
                     data-ui="proposal-preferred-time-input"
+                    inline
                 />
-                @if (! $proposal_event_id)
-                    <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_preferred_start_time_requires_event') }}</p>
-                @endif
             </div>
         </div>
 
