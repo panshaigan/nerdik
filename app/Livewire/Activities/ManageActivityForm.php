@@ -38,6 +38,8 @@ class ManageActivityForm extends Component
 
     public string $description = '';
 
+    public string $slug = '';
+
     public ?int $activity_type_id = null;
 
     public ?int $min_participants = null;
@@ -112,6 +114,7 @@ class ManageActivityForm extends Component
             $this->allows_observers = (bool) $activity->allows_observers;
             $this->hosting_mode = (int) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
             $this->self_hosted_place_id = $activity->place_id;
+            $this->slug = $activity->slug;
             $selfHostedPlace = $activity->place;
             if ($selfHostedPlace?->type === 'room') {
                 $this->self_hosted_venue_place_id = $selfHostedPlace->parent_id;

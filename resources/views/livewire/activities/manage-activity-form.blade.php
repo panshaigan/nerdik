@@ -18,7 +18,7 @@
             >
                 <x-slot:title>
                     <div class="flex items-center gap-2">
-                        <x-icon name="o-chevron-left" class="cursor-pointer" onclick="history.back()" />
+                        <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
                         <span>{{ $title }}</span>
                     </div>
                 </x-slot:title>
