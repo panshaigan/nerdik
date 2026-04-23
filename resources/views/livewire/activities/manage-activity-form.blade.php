@@ -68,7 +68,15 @@
             <x-button id="ui-activity-cancel" @click="history.back()" class="btn-ghost ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
-                <span wire:loading.remove wire:target="save">{{ $editingActivityId ? __('ui.activities.update') : __('ui.activities.create') }}</span>
+                <span wire:loading.remove wire:target="save">
+                    {{
+                        $editingActivityId
+                            ? __('ui.activities.update')
+                            : ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT
+                                ? __('ui.proposals.submit_proposal')
+                                : __('ui.activities.create'))
+                    }}
+                </span>
                 <span wire:loading wire:target="save">{{ __('ui.common.saving') }}</span>
             </x-button>
         </x-slot:actions>
@@ -285,6 +293,10 @@
         roomInput.setAttribute('aria-expanded', 'false');
     }
 
+    function activityFormRoomSetEnabled(roomInput, enabled) {
+        roomInput.disabled = !enabled;
+    }
+
     function activityFormRoomRender(els, state, shownItems) {
         const { roomInput, roomPopup } = els;
         roomPopup.innerHTML = '';
@@ -343,6 +355,7 @@
         const newDraft =
             (detail && Array.isArray(detail.newVenues) && detail.newVenues.length > 0)
             || (detail === undefined && activityFormRoomHasNewVenueDraft(mapWrap));
+        activityFormRoomSetEnabled(roomInput, !!venueId && !newDraft);
         const key = newDraft ? 'new' : venueId;
         const firstRun = roomRoot.dataset.activityRoomVenueInit !== '1';
 

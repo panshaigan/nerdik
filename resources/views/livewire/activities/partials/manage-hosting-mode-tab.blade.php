@@ -1,7 +1,5 @@
 @php
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
-    $hasSelfHostedVenueSelection = $self_hosted_venue_place_id !== null
-        || ($place_ids ?? []) !== [];
 @endphp
 
 <div class="">
@@ -51,7 +49,6 @@
                             error-field="self_hosted_room_name"
                             autocomplete="off"
                             :placeholder="__('ui.slots.room_placeholder')"
-                            :disabled="! $hasSelfHostedVenueSelection"
                             data-selfhost-room-input
                             aria-autocomplete="list"
                             aria-expanded="false"
