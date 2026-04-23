@@ -18,7 +18,7 @@
             />
             <div
                 id="activity-name-suggestions-popup"
-                class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                class="absolute left-0 right-0 z-30 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                 data-activity-name-popup
                 role="listbox"
                 wire:ignore

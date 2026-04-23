@@ -246,7 +246,34 @@ class ManageActivityForm extends Component
 
     public function updatedHostingMode(): void
     {
+        if ($this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            $this->resetProposalFields();
+        } elseif ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+            $this->resetSelfHostedFields();
+        } else {
+            $this->resetSelfHostedFields();
+            $this->resetProposalFields();
+        }
+
         $this->resetSelfHostedRoomTrackingFingerprints();
+    }
+
+    private function resetProposalFields(): void
+    {
+        $this->proposal_event_id = null;
+        $this->proposal_event_search = '';
+        $this->proposal_preferred_start_time = null;
+        $this->proposal_slot_ids = [];
+    }
+
+    private function resetSelfHostedFields(): void
+    {
+        $this->self_hosted_starts_at = null;
+        $this->self_hosted_venue_place_id = null;
+        $this->self_hosted_room_name = null;
+        $this->self_hosted_place_id = null;
+        $this->place_ids = [];
+        $this->new_places = [];
     }
 
     public function updatedPlaceIds(): void

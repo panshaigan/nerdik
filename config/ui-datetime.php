@@ -11,5 +11,5 @@ return [
     | config('ui-datetime.minute_step', 5) * 60
     |
     */
-    'minute_step' => 5,
+    'minute_step' => 1,
 ];
