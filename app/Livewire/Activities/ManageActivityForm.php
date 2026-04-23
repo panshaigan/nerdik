@@ -39,6 +39,7 @@ class ManageActivityForm extends Component
     public ?int $pendingHostingMode = null;
     public ?int $hostingModeBeforeChange = null;
     public bool $initialProposalCancelled = false;
+    public bool $proposalFieldsReadonly = false;
 
     protected array $queryString = [
         'tab' => ['except' => 'main-details'],
@@ -141,6 +142,25 @@ class ManageActivityForm extends Component
             $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
+            if ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+                $proposal = $activity->proposals()
+                    ->where('status', ActivityProposalStatus::Pending)
+                    ->latest('id')
+                    ->first()
+                    ?? $activity->proposals()
+                        ->where('status', ActivityProposalStatus::Accepted)
+                        ->latest('id')
+                        ->first();
+                if ($proposal !== null) {
+                    $proposal->loadMissing('event');
+                    $this->proposal_event_id = (int) $proposal->event_id;
+                    $this->proposal_event_search = $proposal->event ? $this->proposalEventLabel($proposal->event) : '';
+                    $this->proposal_preferred_start_time = $proposal->preferred_start_time
+                        ? format_in_user_tz($proposal->preferred_start_time, 'Y-m-d\TH:i')
+                        : null;
+                }
+                $this->proposalFieldsReadonly = true;
+            }
         } elseif (($dupSlug = $this->duplicateQuerySlug()) !== null) {
             $source = Activity::query()->with('tags')->where('slug', $dupSlug)->first();
             if ($source !== null) {
@@ -246,15 +266,6 @@ class ManageActivityForm extends Component
         }
 
         $this->proposal_event_search = $this->proposalEventLabel($selected);
-        $bounds = $this->proposalEventPreferredTimeBounds();
-        if (
-            $this->proposal_preferred_start_time === null
-            || ! $this->preferredTimeWithinBounds($this->proposal_preferred_start_time, $bounds['minUtc'], $bounds['maxUtc'])
-        ) {
-            // Default picker value to the selected event start so browser calendar/time controls
-            // open at the event's hour rather than current hour.
-            $this->proposal_preferred_start_time = $bounds['min'];
-        }
     }
 
     public function updatingHostingMode(mixed $value): void
@@ -306,6 +317,11 @@ class ManageActivityForm extends Component
             $this->resetSelfHostedFields();
             $this->resetProposalFields();
         }
+
+        $this->proposalFieldsReadonly =
+            $this->editingActivityId !== null
+            && (int) $this->initialHostingMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT
+            && (int) $this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT;
 
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->hostingModeBeforeChange = (int) $this->hosting_mode;
@@ -364,13 +380,14 @@ class ManageActivityForm extends Component
             ]);
         }
 
-        $this->redirect(route('activities.edit', $activity), navigate: true);
+        $this->redirect(route('activities.edit', ['activity' => $activity, 'tab' => 'hosting-mode']), navigate: true);
     }
 
     public function closeConfirm(): void
     {
         $this->traitCloseConfirm();
         $this->pendingHostingMode = null;
+        $this->proposalFieldsReadonly = false;
     }
 
     private function resetProposalFields(): void
@@ -906,6 +923,7 @@ class ManageActivityForm extends Component
             'proposalPreferredStartTimeMax' => $proposalBounds['max'],
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => ActivityType::query()->orderBy('id')->get(),
+            'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
         ]);
     }
 }
