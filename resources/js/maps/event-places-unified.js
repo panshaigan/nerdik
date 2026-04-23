@@ -823,8 +823,83 @@ export function initEventPlacesUnified(root) {
         });
     }
 
+    function fitMapToCurrentData() {
+        const layers = [];
+
+        Object.values(markersById).forEach((m) => {
+            if (m) {
+                layers.push(m);
+            }
+        });
+        newMarkers.forEach((m) => {
+            if (m) {
+                layers.push(m);
+            }
+        });
+
+        if (layers.length === 0) {
+            return;
+        }
+
+        const group = L.featureGroup(layers);
+        const bounds = group.getBounds();
+        if (bounds && bounds.isValid()) {
+            map.fitBounds(bounds.pad(FIT_BOUNDS_PADDING_RATIO));
+        }
+    }
+
+    function mapHasRenderableSize() {
+        const rect = mapEl.getBoundingClientRect();
+        return rect.width > 20 && rect.height > 20;
+    }
+
+    function scheduleInvalidateWhenVisible() {
+        if (!mapHasRenderableSize()) {
+            return;
+        }
+        scheduleInvalidateSize();
+        // When map was initialized while hidden, invalidate alone can keep wrong/world view.
+        [0, 120, 320].forEach((ms) => {
+            setTimeout(() => {
+                fitMapToCurrentData();
+            }, ms);
+        });
+    }
+
+    // Expose for tabbed forms that reveal the map after it was initialized hidden.
+    root._epScheduleInvalidate = scheduleInvalidateSize;
+
     scheduleInvalidateSize();
     window.addEventListener('resize', () => map.invalidateSize());
+
+    // Tabs use x-show (display: none/block); observers ensure map reflows when becoming visible.
+    if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+            scheduleInvalidateWhenVisible();
+        });
+        ro.observe(mapEl);
+        if (root.parentElement) {
+            ro.observe(root.parentElement);
+        }
+        root._epResizeObserver = ro;
+    }
+
+    if (typeof MutationObserver !== 'undefined') {
+        const mo = new MutationObserver(() => {
+            scheduleInvalidateWhenVisible();
+        });
+        let node = root;
+        for (let i = 0; i < 4 && node; i += 1) {
+            mo.observe(node, { attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+            node = node.parentElement;
+        }
+        root._epMutationObserver = mo;
+    }
+
+    // Extra guard for delayed tab transitions.
+    [0, 120, 320, 700, 1200].forEach((ms) => {
+        setTimeout(scheduleInvalidateWhenVisible, ms);
+    });
 
     root.dataset.epInitialized = '1';
 }

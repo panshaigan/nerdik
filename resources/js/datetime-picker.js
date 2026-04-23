@@ -77,6 +77,8 @@ export function bootDateTimePickers() {
                 input.value = tomorrowNoonLocalValue();
                 input.dataset.selfhostStartSeeded = input.value;
                 input.dataset.selfhostStartChanged = '0';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             event.preventDefault();
