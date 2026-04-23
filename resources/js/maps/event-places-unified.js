@@ -292,10 +292,7 @@ export function initEventPlacesUnified(root) {
             m.addTo(markersLayer);
         });
 
-        if (withCoords.length > 0) {
-            const group = L.featureGroup(Object.values(markersById));
-            map.fitBounds(group.getBounds().pad(FIT_BOUNDS_PADDING_RATIO));
-        }
+        fitMapToCurrentData();
     }
 
     function syncPlaceHiddensAndChips(skipEmit = false) {
@@ -823,29 +820,54 @@ export function initEventPlacesUnified(root) {
         });
     }
 
-    function fitMapToCurrentData() {
-        const layers = [];
+    function fitToLayers(layers) {
+        if (layers.length === 0) {
+            return false;
+        }
+        const group = L.featureGroup(layers);
+        const bounds = group.getBounds();
+        if (!bounds || !bounds.isValid()) {
+            return false;
+        }
+        map.fitBounds(bounds.pad(FIT_BOUNDS_PADDING_RATIO));
+        if (layers.length === 1) {
+            map.setZoom(Math.max(map.getZoom(), MIN_FOCUS_ZOOM));
+        }
 
+        return true;
+    }
+
+    function fitMapToCurrentData() {
+        // 1) If self-hosted selected venue exists, focus only selected marker(s).
+        const selectedLayers = [];
+        selectedIds.forEach((id) => {
+            const m = markersById[id];
+            if (m) {
+                selectedLayers.push(m);
+            }
+        });
+        if (fitToLayers(selectedLayers)) {
+            return;
+        }
+
+        // 2) If no selected place, show all pins (saved + new).
+        const allLayers = [];
         Object.values(markersById).forEach((m) => {
             if (m) {
-                layers.push(m);
+                allLayers.push(m);
             }
         });
         newMarkers.forEach((m) => {
             if (m) {
-                layers.push(m);
+                allLayers.push(m);
             }
         });
-
-        if (layers.length === 0) {
+        if (fitToLayers(allLayers)) {
             return;
         }
 
-        const group = L.featureGroup(layers);
-        const bounds = group.getBounds();
-        if (bounds && bounds.isValid()) {
-            map.fitBounds(bounds.pad(FIT_BOUNDS_PADDING_RATIO));
-        }
+        // 3) No pins at all: default to Poland.
+        map.setView(INITIAL_CENTER, INITIAL_ZOOM);
     }
 
     function mapHasRenderableSize() {
