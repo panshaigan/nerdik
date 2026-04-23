@@ -311,7 +311,7 @@ class ManageActivityForm extends Component
         $this->hostingModeBeforeChange = (int) $this->hosting_mode;
     }
 
-    public function runConfirmedAction(): void
+    public function runConfirmedAction(ActivityHostingModeService $hostingModes): void
     {
         $action = $this->pendingAction;
         $nextMode = $this->pendingHostingMode;
@@ -341,6 +341,30 @@ class ManageActivityForm extends Component
         $this->hosting_mode = (int) $nextMode;
         $this->allowHostingModeChangeWithoutConfirm = false;
         $this->pendingHostingMode = null;
+
+        if ($this->editingActivityId === null) {
+            return;
+        }
+
+        $activity = Activity::query()->findOrFail($this->editingActivityId);
+        $this->authorizeCreatedBy($activity);
+        $targetMode = (int) $nextMode;
+
+        if ($targetMode === Activity::HOSTING_MODE_DRAFT) {
+            $hostingModes->setDraft($activity);
+        } elseif ($targetMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+            $hostingModes->markProposedToEvent($activity);
+        } elseif ($targetMode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            // Enter self-hosted setup mode immediately; place/start are filled by user after reload.
+            $activity->update([
+                'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+                'place_id' => null,
+                'starts_at' => null,
+                'ends_at' => null,
+            ]);
+        }
+
+        $this->redirect(route('activities.edit', $activity), navigate: true);
     }
 
     public function closeConfirm(): void

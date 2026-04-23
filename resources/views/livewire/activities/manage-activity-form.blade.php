@@ -117,6 +117,29 @@
             }, { signal });
         }
 
+        const activityTabsRoot = document.querySelector('[data-ui="activity-manage-tabs"]');
+        const refreshSelfHostedMaps = () => {
+            document.querySelectorAll('#ui-activity-selfhost-places-section[data-event-places-unified]').forEach((root) => {
+                if (typeof root._epScheduleInvalidate === 'function') {
+                    root._epScheduleInvalidate();
+                } else {
+                    window.dispatchEvent(new Event('resize'));
+                }
+            });
+        };
+        if (activityTabsRoot) {
+            activityTabsRoot.addEventListener('click', (e) => {
+                const tabButton = e.target.closest('[role="tab"]');
+                if (!tabButton) {
+                    return;
+                }
+                // Hosting tab can become visible asynchronously after Alpine/Livewire updates.
+                [0, 120, 320, 700].forEach((ms) => {
+                    setTimeout(refreshSelfHostedMaps, ms);
+                });
+            }, { signal });
+        }
+
         const nameInput = document.querySelector('[data-activity-name-input]');
         const namePopup = document.querySelector('[data-activity-name-popup]');
         if (nameInput && namePopup) {
