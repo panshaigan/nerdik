@@ -208,52 +208,6 @@
             }, { signal });
         }
 
-        const selfhostStartInput = document.querySelector('[data-selfhost-start-input]');
-        if (selfhostStartInput) {
-            const pad = (n) => String(n).padStart(2, '0');
-            const localNoonValue = () => {
-                const d = new Date();
-                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T12:00`;
-            };
-            const seedNoonForPicker = () => {
-                if (selfhostStartInput.value && selfhostStartInput.value.trim() !== '') {
-                    return;
-                }
-                const seeded = localNoonValue();
-                selfhostStartInput.value = seeded;
-                selfhostStartInput.dataset.selfhostStartSeeded = seeded;
-                selfhostStartInput.dataset.selfhostStartChanged = '0';
-                if (typeof selfhostStartInput.showPicker === 'function') {
-                    selfhostStartInput.showPicker();
-                }
-            };
-            selfhostStartInput.addEventListener('pointerdown', (e) => {
-                if (
-                    typeof selfhostStartInput.showPicker === 'function'
-                    && (!selfhostStartInput.value || selfhostStartInput.value.trim() === '')
-                ) {
-                    e.preventDefault();
-                    seedNoonForPicker();
-                }
-            }, { signal });
-            selfhostStartInput.addEventListener('input', () => {
-                if (selfhostStartInput.dataset.selfhostStartSeeded) {
-                    selfhostStartInput.dataset.selfhostStartChanged = '1';
-                }
-            }, { signal });
-            selfhostStartInput.addEventListener('blur', () => {
-                const seeded = selfhostStartInput.dataset.selfhostStartSeeded;
-                const changed = selfhostStartInput.dataset.selfhostStartChanged === '1';
-                if (seeded && !changed && selfhostStartInput.value === seeded) {
-                    selfhostStartInput.value = '';
-                    selfhostStartInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    selfhostStartInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                delete selfhostStartInput.dataset.selfhostStartSeeded;
-                delete selfhostStartInput.dataset.selfhostStartChanged;
-            }, { signal });
-        }
-
         activityFormBindSelfHostedRoomIfPresent();
     }
 

@@ -2,6 +2,10 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 
+@php
+    $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+@endphp
+
 <form wire:submit.prevent="save" class="space-y-4" data-event-form>
 <div id="ui-event-form-fields" class="ui-form ui-form-event space-y-4" data-ui="event-form-fields">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -63,6 +67,7 @@
                 wire:model="starts_at"
                 label="{{ __('Starts at') }}"
                 type="datetime-local"
+                :step="$datetimeMinuteStepSeconds"
                 error-field="starts_at"
                 required
                 data-event-start-at
@@ -76,6 +81,7 @@
                 wire:model="ends_at"
                 label="{{ __('Ends at') }}"
                 type="datetime-local"
+                :step="$datetimeMinuteStepSeconds"
                 error-field="ends_at"
                 required
                 data-event-ends-at
@@ -160,6 +166,7 @@
                             <x-input
                                 wire:model="enrollment_windows.{{ $index }}.starts_at"
                                 type="datetime-local"
+                                :step="$datetimeMinuteStepSeconds"
                                 :label="__('ui.events.enrollment_window_starts')"
                                 class="w-full min-w-0"
                             />
@@ -169,6 +176,7 @@
                             <x-input
                                 wire:model="enrollment_windows.{{ $index }}.ends_at"
                                 type="datetime-local"
+                                :step="$datetimeMinuteStepSeconds"
                                 :label="__('ui.events.enrollment_window_ends')"
                                 class="w-full min-w-0"
                                 :max="$eventSignupPeriodMax ?? null"

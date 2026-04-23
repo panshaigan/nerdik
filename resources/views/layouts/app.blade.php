@@ -18,7 +18,10 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-sample5 font-sans antialiased text-base-content">
+    <body
+        class="bg-sample5 font-sans antialiased text-base-content"
+        data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
+    >
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 

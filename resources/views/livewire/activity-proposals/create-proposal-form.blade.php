@@ -1,3 +1,7 @@
+@php
+    $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+@endphp
+
 <div class="py-12">
     <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
@@ -45,6 +49,7 @@
                         :label="__('ui.proposals.preferred_start_time_optional')"
                         wire:model="preferred_start_time"
                         type="datetime-local"
+                        :step="$datetimeMinuteStepSeconds"
                         error-field="preferred_start_time"
                     />
                 </div>

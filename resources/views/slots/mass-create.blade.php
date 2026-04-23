@@ -44,6 +44,7 @@
         ?? ($editMode
             ? route('slots.update', $slot)
             : ($lockedEvent ? route('events.slots.mass', $lockedEvent) : '#'));
+    $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
 @endphp
 
 <form
@@ -185,6 +186,7 @@
                         label="{{ __('ui.slots.starts_at_optional') }}"
                         name="starts_at"
                         type="datetime-local"
+                        :step="$datetimeMinuteStepSeconds"
                         value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="starts_at"
                     />
@@ -194,6 +196,7 @@
                         label="{{ __('ui.slots.ends_at_optional') }}"
                         name="ends_at"
                         type="datetime-local"
+                        :step="$datetimeMinuteStepSeconds"
                         value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="ends_at"
                     />

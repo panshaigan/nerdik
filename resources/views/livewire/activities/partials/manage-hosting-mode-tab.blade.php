@@ -1,3 +1,7 @@
+@php
+    $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+@endphp
+
 <div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
         <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
@@ -64,6 +68,7 @@
                             :label="__('ui.activities.self_hosted_starts_at')"
                             wire:model="self_hosted_starts_at"
                             type="datetime-local"
+                            :step="$datetimeMinuteStepSeconds"
                             :min="$selfHostedStartTimeMin"
                             error-field="self_hosted_starts_at"
                             data-selfhost-start-input
@@ -133,6 +138,7 @@
                     :label="__('ui.activities.proposal_preferred_start_time')"
                     wire:model="proposal_preferred_start_time"
                     type="datetime-local"
+                    :step="$datetimeMinuteStepSeconds"
                     :min="$proposalPreferredStartTimeMin"
                     :max="$proposalPreferredStartTimeMax"
                     :disabled="$proposal_event_id === null"
