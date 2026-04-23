@@ -106,13 +106,8 @@ export function bootDateTimePickers() {
             if (!(input instanceof HTMLInputElement) || !input.hasAttribute('data-selfhost-start-input')) {
                 return;
             }
-            const seeded = input.dataset.selfhostStartSeeded;
-            const changed = input.dataset.selfhostStartChanged === '1';
-            if (seeded && !changed && input.value === seeded) {
-                input.value = '';
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            }
+            // Keep seeded value on blur so users can intentionally accept tomorrow 12:00
+            // by just opening the picker and clicking outside.
             delete input.dataset.selfhostStartSeeded;
             delete input.dataset.selfhostStartChanged;
         },

@@ -70,17 +70,24 @@
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                 <span wire:loading.remove wire:target="save">
                     {{
-                        $editingActivityId
-                            ? __('ui.activities.update')
-                            : ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT
-                                ? __('ui.proposals.submit_proposal')
-                                : __('ui.activities.create'))
+                        ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT
+                            ? __('ui.proposals.submit_proposal')
+                            : ($editingActivityId
+                                ? __('ui.activities.update')
+                                : __('ui.activities.create')))
                     }}
                 </span>
                 <span wire:loading wire:target="save">{{ __('ui.common.saving') }}</span>
             </x-button>
         </x-slot:actions>
     </x-form>
+
+    <x-ui.confirm-modal
+        wire:model="confirmModalOpen"
+        :title="$confirmModalTitle"
+        :message="$confirmModalMessage"
+        confirm-action="runConfirmedAction"
+    />
 </div>
 
 @push('scripts')
