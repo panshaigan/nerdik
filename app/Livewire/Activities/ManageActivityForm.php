@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Activities;
 
+use App\Enums\ActivityProposalStatus;
+use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
@@ -21,6 +24,9 @@ use Livewire\Component;
 
 class ManageActivityForm extends Component
 {
+    use WithUiConfirmModal {
+        closeConfirm as protected traitCloseConfirm;
+    }
     use AuthorizesOwnership;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
@@ -29,6 +35,10 @@ class ManageActivityForm extends Component
     public ?int $editingActivityId = null;
     public User|null $creator = null;
     public string $tab = 'main-details';
+    public ?int $initialHostingMode = null;
+    public ?int $pendingHostingMode = null;
+    public ?int $hostingModeBeforeChange = null;
+    public bool $initialProposalCancelled = false;
 
     protected array $queryString = [
         'tab' => ['except' => 'main-details'],
@@ -93,6 +103,7 @@ class ManageActivityForm extends Component
 
     /** @see updatedNewPlaces() */
     private ?string $cachedSelfHostedNewPlacesFingerprint = null;
+    private bool $allowHostingModeChangeWithoutConfirm = false;
 
     public function mount(?Activity $activity = null): void
     {
@@ -113,6 +124,7 @@ class ManageActivityForm extends Component
             $this->requires_approval = (bool) $activity->requires_approval;
             $this->allows_observers = (bool) $activity->allows_observers;
             $this->hosting_mode = (int) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
+            $this->initialHostingMode = $this->hosting_mode;
             $this->self_hosted_place_id = $activity->place_id;
             $this->slug = $activity->slug;
             $selfHostedPlace = $activity->place;
@@ -152,6 +164,7 @@ class ManageActivityForm extends Component
 
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
+        $this->hostingModeBeforeChange = $this->hosting_mode;
     }
 
     public function updatedTab(string $value): void
@@ -244,8 +257,47 @@ class ManageActivityForm extends Component
         }
     }
 
+    public function updatingHostingMode(mixed $value): void
+    {
+        $this->hostingModeBeforeChange = (int) $this->hosting_mode;
+    }
+
     public function updatedHostingMode(): void
     {
+        $nextMode = (int) $this->hosting_mode;
+        $prevMode = (int) ($this->hostingModeBeforeChange ?? $nextMode);
+
+        if (
+            ! $this->allowHostingModeChangeWithoutConfirm
+            && $this->editingActivityId !== null
+            && $nextMode !== $prevMode
+            && in_array((int) $this->initialHostingMode, [
+                Activity::HOSTING_MODE_SELF_HOSTED,
+                Activity::HOSTING_MODE_PROPOSED_TO_EVENT,
+            ], true)
+        ) {
+            $this->pendingHostingMode = $nextMode;
+            $this->allowHostingModeChangeWithoutConfirm = true;
+            $this->hosting_mode = $prevMode;
+            $this->allowHostingModeChangeWithoutConfirm = false;
+
+            if ((int) $this->initialHostingMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+                $this->openConfirm(
+                    'confirm_hosting_mode_change_from_proposed',
+                    __('ui.activities.hosting_mode_change_confirm_title'),
+                    __('ui.activities.hosting_mode_change_from_proposed_confirm'),
+                );
+            } else {
+                $this->openConfirm(
+                    'confirm_hosting_mode_change_from_self_hosted',
+                    __('ui.activities.hosting_mode_change_confirm_title'),
+                    __('ui.activities.hosting_mode_change_confirm'),
+                );
+            }
+
+            return;
+        }
+
         if ($this->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
             $this->resetProposalFields();
         } elseif ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
@@ -256,6 +308,45 @@ class ManageActivityForm extends Component
         }
 
         $this->resetSelfHostedRoomTrackingFingerprints();
+        $this->hostingModeBeforeChange = (int) $this->hosting_mode;
+    }
+
+    public function runConfirmedAction(): void
+    {
+        $action = $this->pendingAction;
+        $nextMode = $this->pendingHostingMode;
+        $this->traitCloseConfirm();
+
+        if ($action === null || $nextMode === null) {
+            $this->pendingHostingMode = null;
+
+            return;
+        }
+
+        if (
+            $action === 'confirm_hosting_mode_change_from_proposed'
+            && ! $this->initialProposalCancelled
+            && $this->editingActivityId !== null
+        ) {
+            $latestPendingProposal = ActivityProposal::query()
+                ->where('activity_id', $this->editingActivityId)
+                ->where('status', ActivityProposalStatus::Pending)
+                ->latest('id')
+                ->first();
+            $latestPendingProposal?->delete();
+            $this->initialProposalCancelled = true;
+        }
+
+        $this->allowHostingModeChangeWithoutConfirm = true;
+        $this->hosting_mode = (int) $nextMode;
+        $this->allowHostingModeChangeWithoutConfirm = false;
+        $this->pendingHostingMode = null;
+    }
+
+    public function closeConfirm(): void
+    {
+        $this->traitCloseConfirm();
+        $this->pendingHostingMode = null;
     }
 
     private function resetProposalFields(): void
@@ -512,6 +603,7 @@ class ManageActivityForm extends Component
     {
         return [
             'proposal_event_id' => [
+                Rule::requiredIf(fn (): bool => (int) $this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT),
                 'nullable',
                 'integer',
                 Rule::exists('events', 'id')->where(function ($query) {

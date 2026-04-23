@@ -27,7 +27,7 @@
             <div id="ui-activity-selfhost-places-section" data-event-places-unified class="space-y-3 pt-6" wire:ignore>
                 <script type="application/json" data-ep-config>@json($selfHostedPlacesConfig)</script>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div class="relative z-[1000]">
+                    <div class="relative z-[500]">
                         <x-input
                             type="search"
                             data-ep-search
