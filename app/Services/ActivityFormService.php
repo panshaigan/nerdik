@@ -117,12 +117,15 @@ class ActivityFormService
         $event = Event::findOrFail($form->proposal_event_id);
 
         $preferred = $form->proposal_preferred_start_time;
+        $preferredUtc = $preferred !== null && $preferred !== ''
+            ? parse_datetime_to_utc((string) $preferred)?->toDateTimeString()
+            : null;
 
         $proposal = ActivityProposal::create([
             'activity_id' => $activity->id,
             'event_id' => $event->id,
             'created_by' => auth()->id(),
-            'preferred_start_time' => $preferred !== null && $preferred !== '' ? $preferred : null,
+            'preferred_start_time' => $preferredUtc,
             'status' => ActivityProposalStatus::Pending,
         ]);
         $proposal->load(['activity', 'event', 'creator']);

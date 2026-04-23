@@ -110,6 +110,8 @@
                         aria-controls="proposal-event-suggestions-popup"
                         :placeholder="__('ui.activities.proposal_event_search_placeholder')"
                         data-ui="proposal-event-search"
+                        :readonly="$proposalFieldsReadonly"
+                        :disabled="$proposalFieldsReadonly"
                         inline
                     />
                     <input type="hidden" wire:model.live="proposal_event_id" data-proposal-event-id />
@@ -141,7 +143,8 @@
                     :step="$datetimeMinuteStepSeconds"
                     :min="$proposalPreferredStartTimeMin"
                     :max="$proposalPreferredStartTimeMax"
-                    :disabled="$proposal_event_id === null"
+                    :readonly="$proposalFieldsReadonly"
+                    :disabled="$proposalFieldsReadonly || $proposal_event_id === null"
                     error-field="proposal_preferred_start_time"
                     data-ui="proposal-preferred-time-input"
                     inline
@@ -155,6 +158,7 @@
                     :slots="$proposalEventSlots"
                     wire-model="proposal_slot_ids"
                     error-field="proposal_slot_ids"
+                    :readonly="$proposalFieldsReadonly"
                 />
             </div>
         @endif

@@ -2,6 +2,7 @@
     'slots',
     'wireModel',
     'errorField' => null,
+    'readonly' => false,
 ])
 
 @php
@@ -22,13 +23,17 @@
                     $slotLabel .= ' ('.__('ui.proposals.taken').')';
                 }
             @endphp
-            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300/80 bg-base-200/30 px-3 py-2">
+            <label @class([
+                'flex items-start gap-3 rounded-lg border border-base-300/80 bg-base-200/30 px-3 py-2',
+                'cursor-pointer' => ! $readonly,
+                'cursor-not-allowed opacity-70' => $readonly,
+            ])>
                 <input
                     type="checkbox"
                     class="checkbox checkbox-sm mt-0.5"
                     wire:model="{{ $wireModel }}"
                     value="{{ $slot->id }}"
-                    @disabled((bool) $slot->activity_id)
+                    @disabled((bool) $slot->activity_id || $readonly)
                 >
                 <span class="text-sm">{{ $slotLabel }}</span>
             </label>
