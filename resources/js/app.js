@@ -2,6 +2,7 @@ import './bootstrap';
 import './maps-init';
 import './tags-init';
 import { bootActivityTagPickers } from './activity-tag-picker';
+import { bootDateTimePickers } from './datetime-picker';
 import { initEventShowSlotForms } from './event-show-slot-forms';
 import { bootProposalEventAutocomplete } from './activities/proposal-event-autocomplete';
 import { initSlotEditForm } from './slot-form-modal';
@@ -11,6 +12,7 @@ window.initSlotEditForm = initSlotEditForm;
 window.initSlotMassForm = initSlotMassForm;
 
 initEventShowSlotForms();
+bootDateTimePickers();
 
 function bootSlotMassForms() {
     document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
