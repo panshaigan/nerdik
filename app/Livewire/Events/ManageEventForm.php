@@ -22,6 +22,8 @@ class ManageEventForm extends Component
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
 
+    private const ORGANIZATION_SUGGESTIONS_LIMIT = 500;
+
     public ?int $editingEventId = null;
 
     public string $name = '';
@@ -46,11 +48,12 @@ class ManageEventForm extends Component
      */
     public array $new_places = [];
 
-    public Event|null $editingEvent = null;
+    public ?Event $editingEvent = null;
 
     public ?string $slug = null;
 
-    public User|null $creator = null;
+    public ?User $creator = null;
+
     public string $tab = 'main-details';
 
     /**
@@ -319,7 +322,7 @@ class ManageEventForm extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(fn ($q) => $q->where('created_by', Auth::id()))],
+            'organization_id' => ['nullable', 'integer', Rule::exists(Organization::class, 'id')->withoutTrashed()],
             'organization_name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
@@ -400,12 +403,7 @@ class ManageEventForm extends Component
         }
 
         if ($id !== null) {
-            $exists = Organization::query()
-                ->where('id', $id)
-                ->where('created_by', Auth::id())
-                ->exists();
-
-            if ($exists) {
+            if (Organization::query()->whereKey($id)->exists()) {
                 return $id;
             }
         }
@@ -420,10 +418,7 @@ class ManageEventForm extends Component
 
     protected function findOrCreateOrganizationForUser(string $name): Organization
     {
-        $userId = Auth::id();
-
         $existing = Organization::query()
-            ->where('created_by', $userId)
             ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
             ->first();
 
@@ -461,13 +456,15 @@ class ManageEventForm extends Component
     }
 
     /**
+     * All non-soft-deleted organizations (for autocomplete), bounded for payload size.
+     *
      * @return list<array{id: int, name: string}>
      */
     protected function organizationSuggestionsForCurrentUser(): array
     {
         return Organization::query()
-            ->where('created_by', Auth::id())
             ->orderBy('name')
+            ->limit(self::ORGANIZATION_SUGGESTIONS_LIMIT)
             ->get(['id', 'name'])
             ->map(fn (Organization $org) => ['id' => $org->id, 'name' => $org->name])
             ->values()
