@@ -6,8 +6,7 @@
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
     $title = $editingEvent ? (__('ui.events.edit_event').': '.$this->name) : __('ui.events.create');
 @endphp
-
-<x-form wire:submit.prevent="save" data-event-form>
+<div>
     <div
         class="overflow-hidden rounded border border-base-300 bg-base-100 shadow"
     >
@@ -50,39 +49,42 @@
         </div>
         <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
     </div>
-    <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
-        <x-ui.tabs-with-toolbar
-            wire:model.live="tab"
-            label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
-            label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
-            active-class="!text-base-content border-b border-primary text-primary"
-            tabs-class="w-full"
-            data-ui="event-manage-tabs"
-        >
-            <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
-                @include('livewire.events.partials.manage-main-details-tab')
-            </x-tab>
+    <x-form wire:submit.prevent="save" data-event-form>
+        <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
+            <x-ui.tabs-with-toolbar
+                wire:model.live="tab"
+                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+                active-class="!text-base-content border-b border-primary text-primary"
+                tabs-class="w-full"
+                data-ui="event-manage-tabs"
+            >
 
-            <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
-                @include('livewire.events.partials.manage-location-tab')
-            </x-tab>
+                <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
+                    @include('livewire.events.partials.manage-main-details-tab')
+                </x-tab>
 
-            <x-tab name="enrollment-windows" :label="__('Enrollment windows')" class="px-6 pt-6" data-ui="event-manage-tab-enrollment-windows" icon="o-calendar">
-                @include('livewire.events.partials.manage-enrollment-windows-tab')
-            </x-tab>
-        </x-ui.tabs-with-toolbar>
-    </div>
+                <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
+                    @include('livewire.events.partials.manage-location-tab')
+                </x-tab>
 
-    <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
-        <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+                <x-tab name="enrollment-windows" :label="__('Enrollment windows')" class="px-6 pt-6" data-ui="event-manage-tab-enrollment-windows" icon="o-calendar">
+                    @include('livewire.events.partials.manage-enrollment-windows-tab')
+                </x-tab>
+            </x-ui.tabs-with-toolbar>
+        </div>
 
-        <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
-            <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
-            <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
-        </x-button>
-    </x-slot:actions>
-</x-form>
+        <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
+            <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
 
+            <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
+                <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+            </x-button>
+        </x-slot:actions>
+    </x-form>
+
+</div>
 @push('scripts')
 <script>
 (() => {

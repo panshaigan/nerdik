@@ -1,5 +1,4 @@
 <div class="" data-ui="event-enrollment-windows-section">
-    <p class="fieldset-legend font-medium text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</p>
     <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
 
     <div class="space-y-3">
