@@ -112,7 +112,7 @@ class ManageActivityForm extends Component
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load(['tags', 'place.parent']);
+            $activity->load(['tags', 'place.parent', 'slot.event']);
             $this->editingActivityId = $activity->id;
             $this->editingActivity = $activity;
             $this->creator = $activity->creator;

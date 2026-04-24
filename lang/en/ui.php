@@ -136,7 +136,7 @@ return [
             'proposed_to_event' => 'Run it at an event',
             'scheduled_on_event' => 'Scheduled on event',
         ],
-        'hosting_mode_locked_scheduled' => 'This activity is already scheduled on an event. Hosting mode cannot be changed here.',
+        'hosting_mode_locked_scheduled' => 'This activity is already scheduled on event ":event". Hosting mode cannot be changed here.',
         'self_hosted_starts_at' => 'Self-hosted start time',
         'self_hosted_place' => 'Self-hosted venue',
         'self_hosted_place_help' => 'Pick one venue on the map, then optionally choose or type a room name.',
