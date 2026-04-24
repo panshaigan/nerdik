@@ -15,12 +15,13 @@
     <div class="max-h-64 space-y-2 overflow-y-auto pr-1">
         @foreach ($slots as $slot)
             @php
-                $slotLabel = $slot->name;
+                $slotLabel = '';
                 if ($slot->starts_at) {
-                    $slotLabel .= ' · '.format_in_user_tz($slot->starts_at, 'Y-m-d H:i');
+                    $slotLabel .= format_datetime_in_user_tz($slot->starts_at).' ';
                 }
+                $taken = '';
                 if ($slot->activity_id) {
-                    $slotLabel .= ' ('.__('ui.proposals.taken').')';
+                    $taken = ' ('.__('ui.proposals.taken').')';
                 }
             @endphp
             <label @class([
@@ -35,7 +36,7 @@
                     value="{{ $slot->id }}"
                     @disabled((bool) $slot->activity_id || $readonly)
                 >
-                <span class="text-sm">{{ $slotLabel }}</span>
+                <span class=""><x-icon name="o-calendar" />{{ $slotLabel }}</span> <span class=""><x-icon name="o-home" />{{$slot->name}}</span> {{ $taken }}
             </label>
         @endforeach
     </div>

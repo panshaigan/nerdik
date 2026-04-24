@@ -99,6 +99,8 @@ class ManageActivityForm extends Component
     /** @var list<array{label: string, category_id: int|string}> */
     public array $new_tags = [];
 
+    public Activity|null $editingActivity = null;
+
     /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
     private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
 
@@ -112,6 +114,7 @@ class ManageActivityForm extends Component
             $this->authorizeCreatedBy($activity);
             $activity->load(['tags', 'place.parent']);
             $this->editingActivityId = $activity->id;
+            $this->editingActivity = $activity;
             $this->creator = $activity->creator;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
@@ -155,9 +158,6 @@ class ManageActivityForm extends Component
                     $proposal->loadMissing('event');
                     $this->proposal_event_id = (int) $proposal->event_id;
                     $this->proposal_event_search = $proposal->event ? $this->proposalEventLabel($proposal->event) : '';
-                    $this->proposal_preferred_start_time = $proposal->preferred_start_time
-                        ? format_in_user_tz($proposal->preferred_start_time, 'Y-m-d\TH:i')
-                        : null;
                 }
                 $this->proposalFieldsReadonly = true;
             }
@@ -330,10 +330,9 @@ class ManageActivityForm extends Component
     public function runConfirmedAction(ActivityHostingModeService $hostingModes): void
     {
         $action = $this->pendingAction;
-        $nextMode = $this->pendingHostingMode;
         $this->traitCloseConfirm();
 
-        if ($action === null || $nextMode === null) {
+        if ($action === null) {
             $this->pendingHostingMode = null;
 
             return;
@@ -353,8 +352,9 @@ class ManageActivityForm extends Component
             $this->initialProposalCancelled = true;
         }
 
+        $targetMode = Activity::HOSTING_MODE_DRAFT;
         $this->allowHostingModeChangeWithoutConfirm = true;
-        $this->hosting_mode = (int) $nextMode;
+        $this->hosting_mode = $targetMode;
         $this->allowHostingModeChangeWithoutConfirm = false;
         $this->pendingHostingMode = null;
 
@@ -364,21 +364,8 @@ class ManageActivityForm extends Component
 
         $activity = Activity::query()->findOrFail($this->editingActivityId);
         $this->authorizeCreatedBy($activity);
-        $targetMode = (int) $nextMode;
 
-        if ($targetMode === Activity::HOSTING_MODE_DRAFT) {
-            $hostingModes->setDraft($activity);
-        } elseif ($targetMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
-            $hostingModes->markProposedToEvent($activity);
-        } elseif ($targetMode === Activity::HOSTING_MODE_SELF_HOSTED) {
-            // Enter self-hosted setup mode immediately; place/start are filled by user after reload.
-            $activity->update([
-                'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-                'place_id' => null,
-                'starts_at' => null,
-                'ends_at' => null,
-            ]);
-        }
+        $hostingModes->setDraft($activity);
 
         $this->redirect(route('activities.edit', ['activity' => $activity, 'tab' => 'hosting-mode']), navigate: true);
     }
@@ -658,29 +645,6 @@ class ManageActivityForm extends Component
                     });
                 }),
             ],
-            'proposal_preferred_start_time' => [
-                'nullable',
-                'date',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if ($value === null || $value === '' || $this->proposal_event_id === null) {
-                        return;
-                    }
-
-                    $bounds = $this->proposalEventPreferredTimeBounds();
-                    $preferredUtc = parse_datetime_to_utc(is_string($value) ? $value : (string) $value);
-                    if ($preferredUtc === null) {
-                        return;
-                    }
-                    if ($bounds['minUtc'] !== null && $preferredUtc->lt($bounds['minUtc'])) {
-                        $fail(__('ui.activities.proposal_preferred_start_time_before_event'));
-
-                        return;
-                    }
-                    if ($bounds['maxUtc'] !== null && $preferredUtc->gt($bounds['maxUtc'])) {
-                        $fail(__('ui.activities.proposal_preferred_start_time_after_event'));
-                    }
-                },
-            ],
             'proposal_slot_ids' => ['nullable', 'array'],
             'proposal_slot_ids.*' => [
                 'integer',
@@ -873,7 +837,6 @@ class ManageActivityForm extends Component
             ],
         ];
         $roomsFetchUrlTemplate = url('/places/__PLACE__/rooms');
-        $proposalBounds = $this->proposalEventPreferredTimeBounds();
         if ($this->proposal_event_id && $this->proposal_event_search === '') {
             $selected = $this->proposalEligibleEventsQuery()
                 ->whereKey($this->proposal_event_id)
@@ -919,8 +882,6 @@ class ManageActivityForm extends Component
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSuggestions' => $proposalEventSuggestions,
-            'proposalPreferredStartTimeMin' => $proposalBounds['min'],
-            'proposalPreferredStartTimeMax' => $proposalBounds['max'],
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => ActivityType::query()->orderBy('id')->get(),
             'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
