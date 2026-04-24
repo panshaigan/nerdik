@@ -10,11 +10,13 @@
                 type="search"
                 data-ep-search
                 autocomplete="off"
+                :label="__('ui.slots.venue_optional')"
                 :placeholder="__('Search places or address… (double-click map to add)')"
                 class="ui-field ui-field-event-place-search w-full"
                 :omit-error="true"
                 id="ui-event-place-search"
                 data-ui="event-place-search"
+                inline
             />
             <div
                 id="ui-event-place-search-results"

@@ -11,7 +11,9 @@
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_starts')"
+                            :placeholder="__('ui.events.enrollment_window_starts')"
                             class="w-full min-w-0"
+                            inline
                         />
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index)" class="mt-2" />
                     </div>
@@ -21,8 +23,10 @@
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_ends')"
+                            :placeholder="__('ui.events.enrollment_window_ends')"
                             class="w-full min-w-0"
                             :max="$eventSignupPeriodMax ?? null"
+                            inline
                         />
                     </div>
                     <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
