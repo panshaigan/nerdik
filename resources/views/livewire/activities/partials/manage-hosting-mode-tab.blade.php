@@ -4,7 +4,6 @@
 
 <div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
-        {{$proposal_event_id}}
         <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
     @else
         <x-group
