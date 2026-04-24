@@ -142,6 +142,7 @@
         const endsAtEl = document.querySelector('[data-event-ends-at]');
 
         if (input && popup) {
+            const nameScope = popup.parentElement;
             const suggestions = @json($nameSuggestions ?? []);
             let shown = [];
             let active = -1;
@@ -239,7 +240,7 @@
             }, { signal });
 
             document.addEventListener('click', (e) => {
-                if (!popup.contains(e.target) && e.target !== input) {
+                if (nameScope && !nameScope.contains(e.target)) {
                     closePopup();
                 }
             }, { signal });
@@ -249,6 +250,7 @@
         const orgPopup = document.querySelector('[data-event-org-popup]');
         const orgIdInput = document.querySelector('[data-event-org-id]');
         if (orgInput && orgPopup && orgIdInput) {
+            const orgScope = orgPopup.parentElement;
             const orgSuggestions = @json($organizationSuggestions ?? []);
             let orgShown = [];
             let orgActive = -1;
@@ -366,7 +368,7 @@
             }, { signal });
 
             document.addEventListener('click', (e) => {
-                if (!orgPopup.contains(e.target) && e.target !== orgInput) {
+                if (orgScope && !orgScope.contains(e.target)) {
                     closeOrgPopup();
                 }
             }, { signal });

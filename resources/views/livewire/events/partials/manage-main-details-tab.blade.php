@@ -1,5 +1,12 @@
+@php
+    $enforceFuture = (bool) ($enforceFutureDates ?? false);
+    $eventStartsAtMin = $enforceFuture ? format_in_user_tz(now(), 'Y-m-d\TH:i') : null;
+    $eventEndsAtMin = ($starts_at ?? '') !== ''
+        ? $starts_at
+        : ($enforceFuture ? format_in_user_tz(now(), 'Y-m-d\TH:i') : null);
+@endphp
 <div class="grid grid-cols-2 gap-4">
-    <div class="">
+    <div class="relative">
         <x-input
             wire:model.live.debounce.300ms="name"
             label="{{ __('Name') }}"
@@ -16,14 +23,14 @@
             inline
         />
         <div id="event-name-suggestions-popup"
-             class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+             class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
              data-event-name-popup
              wire:ignore
              role="listbox">
         </div>
     </div>
 
-    <div class="">
+    <div class="relative">
         <input type="hidden" wire:model="organization_id" data-event-org-id />
         <x-input
             wire:model.live.debounce.300ms="organization_name"
@@ -40,7 +47,7 @@
             inline
         />
         <div id="event-org-suggestions-popup"
-             class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+             class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
              data-event-org-popup
              wire:ignore
              role="listbox"></div>
@@ -54,10 +61,11 @@
             label="{{ __('Starts at') }}"
             type="datetime-local"
             :step="$datetimeMinuteStepSeconds"
+            :min="$eventStartsAtMin"
             error-field="starts_at"
             required
             data-event-start-at
-            data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
+            data-enforce-future="{{ $enforceFuture ? '1' : '0' }}"
             class="w-full"
             inline
         />
@@ -69,6 +77,7 @@
             label="{{ __('Ends at') }}"
             type="datetime-local"
             :step="$datetimeMinuteStepSeconds"
+            :min="$eventEndsAtMin"
             error-field="ends_at"
             required
             data-event-ends-at
