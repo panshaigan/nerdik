@@ -19,7 +19,7 @@
             >
                 <x-slot:title>
                     <div class="flex items-center gap-2">
-                        <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
+                        <a href="/events/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
                         <span>{{ $title }}</span>
                     </div>
                 </x-slot:title>
