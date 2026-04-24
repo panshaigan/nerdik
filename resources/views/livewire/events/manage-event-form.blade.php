@@ -7,11 +7,9 @@
     $title = $editingEvent ? (__('ui.events.edit_event').': '.$this->name) : __('ui.events.create');
 @endphp
 
-<x-form wire:submit.prevent="save" class="space-y-4" data-event-form>
-<div id="ui-event-form-fields" class="ui-form ui-form-event space-y-4" data-ui="event-form-fields">
+<x-form wire:submit.prevent="save" data-event-form>
     <div
-        class="ui-activity-show-hero overflow-hidden rounded border border-base-300 bg-base-100 shadow"
-        data-ui="activity-show-hero"
+        class="overflow-hidden rounded border border-base-300 bg-base-100 shadow"
     >
         <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
             <x-header
@@ -52,247 +50,37 @@
         </div>
         <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
     </div>
-    <div class="grid grid-cols-2 gap-4 px-6 pt-6">
-        <div class="">
-            <x-input
-                wire:model.live.debounce.300ms="name"
-                label="{{ __('Name') }}"
-                placeholder="{{ __('Name') }}"
-                type="text"
-                error-field="name"
-                required
-                autocomplete="off"
-                data-event-name-input
-                aria-autocomplete="list"
-                aria-expanded="false"
-                aria-controls="event-name-suggestions-popup"
-                icon="o-bookmark"
-                inline
-            />
-            <div id="event-name-suggestions-popup"
-                 class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                 data-event-name-popup
-                 wire:ignore
-                 role="listbox">
-            </div>
-        </div>
+    <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
+        <x-ui.tabs-with-toolbar
+            wire:model.live="tab"
+            label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+            label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+            active-class="!text-base-content border-b border-primary text-primary"
+            tabs-class="w-full"
+            data-ui="event-manage-tabs"
+        >
+            <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
+                @include('livewire.events.partials.manage-main-details-tab')
+            </x-tab>
 
-        <div class="">
-            <input type="hidden" wire:model="organization_id" data-event-org-id />
-            <x-input
-                wire:model.live.debounce.300ms="organization_name"
-                label="{{ __('Organization') }}"
-                placeholder="{{ __('Organization (optional)') }}"
-                type="text"
-                error-field="organization_name"
-                autocomplete="off"
-                data-event-org-input
-                aria-autocomplete="list"
-                aria-expanded="false"
-                aria-controls="event-org-suggestions-popup"
-                icon="o-building-office-2"
-                inline
-            />
-            <div id="event-org-suggestions-popup"
-                 class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                 data-event-org-popup
-                 wire:ignore
-                 role="listbox"></div>
-            <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
-            <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
-        </div>
+            <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
+                @include('livewire.events.partials.manage-location-tab')
+            </x-tab>
 
-        <div class="">
-            <x-input
-                wire:model="starts_at"
-                label="{{ __('Starts at') }}"
-                type="datetime-local"
-                :step="$datetimeMinuteStepSeconds"
-                error-field="starts_at"
-                required
-                data-event-start-at
-                data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
-                class="w-full"
-                inline
-            />
-        </div>
-
-        <div class="">
-            <x-input
-                wire:model="ends_at"
-                label="{{ __('Ends at') }}"
-                type="datetime-local"
-                :step="$datetimeMinuteStepSeconds"
-                error-field="ends_at"
-                required
-                data-event-ends-at
-                class="w-full"
-                inline
-            />
-        </div>
+            <x-tab name="enrollment-windows" :label="__('Enrollment windows')" class="px-6 pt-6" data-ui="event-manage-tab-enrollment-windows" icon="o-calendar">
+                @include('livewire.events.partials.manage-enrollment-windows-tab')
+            </x-tab>
+        </x-ui.tabs-with-toolbar>
     </div>
 
-    <div class="px-6">
-        <x-editor
-            wire:model="description"
-            :label="__('Description (optional)')"
-            :gpl-license="true"
-        />
-        <x-field-error :messages="$errors->get('description')" class="mt-2" />
-    </div>
+    <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
+        <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
 
-
-    <div class="p-6">
-        <p class="fieldset-legend font-medium text-base-content">{{ __('Where (optional)') }}</p>
-        <p class="mb-3 text-sm text-base-content/80">
-            {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
-        </p>
-
-        <div id="ui-event-places-section" data-event-places-unified class="ui-event-places space-y-3" data-ui="event-places-section" wire:ignore>
-            <script type="application/json" data-ep-config>@json($eventPlacesConfig)</script>
-            <div class="relative z-[1000]">
-                <x-input
-                    type="search"
-                    data-ep-search
-                    autocomplete="off"
-                    :placeholder="__('Search places or address… (double-click map to add)')"
-                    class="ui-field ui-field-event-place-search w-full"
-                    :omit-error="true"
-                    id="ui-event-place-search"
-                    data-ui="event-place-search"
-                />
-                <div
-                    id="ui-event-place-search-results"
-                    data-ep-results
-                    class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                    data-ui="event-place-search-results"
-                ></div>
-            </div>
-
-            <div
-                id="ui-event-places-map"
-                data-ep-map
-                class="z-0 w-full overflow-hidden rounded-md border border-base-300 bg-base-200/30"
-                style="min-height: 280px; height: min(420px, 50vh);"
-                data-ui="event-places-map"
-            ></div>
-
-            <div data-ep-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
-
-            <div
-                data-ep-new-venues-wrap
-                class="{{ count($eventPlacesConfig['initialNewPlaces'] ?? []) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3"
-            >
-                <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
-                <div data-ep-new-venues class="space-y-3"></div>
-            </div>
-
-            <div data-ep-place-ids></div>
-        </div>
-
-        <x-field-error :messages="$errors->get('place_ids')" class="mt-2" />
-        <x-field-error :messages="$errors->get('place_ids.*')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_places')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_places.*')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
-    </div>
-
-    <div class="mt-4 border-t border-base-300 p-6" data-ui="event-enrollment-windows-section">
-        <p class="fieldset-legend font-medium text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</p>
-        <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
-
-        <div class="space-y-3">
-            @foreach ($enrollment_windows as $index => $row)
-                <div wire:key="enrollment-window-{{ $index }}" class="rounded-lg border border-base-300 bg-base-100/80 p-3 sm:p-4">
-                    <div class="flex min-w-0 flex-nowrap items-end gap-2 overflow-x-auto pb-0.5 sm:gap-3">
-                        <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
-                            <x-input
-                                wire:model="enrollment_windows.{{ $index }}.starts_at"
-                                type="datetime-local"
-                                :step="$datetimeMinuteStepSeconds"
-                                :label="__('ui.events.enrollment_window_starts')"
-                                class="w-full min-w-0"
-                            />
-                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index)" class="mt-2" />
-                        </div>
-                        <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
-                            <x-input
-                                wire:model="enrollment_windows.{{ $index }}.ends_at"
-                                type="datetime-local"
-                                :step="$datetimeMinuteStepSeconds"
-                                :label="__('ui.events.enrollment_window_ends')"
-                                class="w-full min-w-0"
-                                :max="$eventSignupPeriodMax ?? null"
-                            />
-                        </div>
-                        <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
-                            <x-input
-                                wire:model.live="enrollment_windows.{{ $index }}.max_activities_per_user"
-                                type="number"
-                                min="0"
-                                step="1"
-                                :label="__('ui.events.enrollment_window_max_activities')"
-                                class="w-full"
-                            />
-                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities_per_user')" class="mt-2" />
-                        </div>
-                        <div class="min-w-[7rem] max-w-[11rem] shrink-0">
-                            <x-input
-                                wire:model.live="enrollment_windows.{{ $index }}.max_allowed_participants_per_activity"
-                                type="number"
-                                min="0"
-                                step="1"
-                                :label="__('ui.events.enrollment_window_max_participants_per_activity')"
-                                class="w-full"
-                            />
-                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_allowed_participants_per_activity')" class="mt-2" />
-                        </div>
-                        <div class="min-w-[8rem] shrink-0 self-center pt-5">
-                            <label class="flex cursor-pointer items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    class="checkbox checkbox-sm"
-                                    wire:model.live="enrollment_windows.{{ $index }}.accumulative_activities"
-                                />
-                                <span class="text-xs text-base-content/80">{{ __('ui.events.enrollment_window_accumulative') }}</span>
-                            </label>
-                            <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.accumulative_activities')" class="mt-2" />
-                        </div>
-                        <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
-                            <x-button
-                                type="button"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                wire:click="removeEnrollmentWindow({{ $index }})"
-                                wire:loading.attr="disabled"
-                                :title="__('Remove')"
-                                :aria-label="__('Remove')"
-                                data-ui="event-enrollment-window-remove"
-                            >
-                                <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                            </x-button>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <x-button type="button" class="btn-outline btn-sm mt-2" wire:click="addEnrollmentWindow" wire:loading.attr="disabled">
-            {{ __('ui.events.enrollment_window_add') }}
+        <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
+            <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
+            <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
         </x-button>
-
-        <x-field-error :messages="$errors->get('enrollment_windows')" class="mt-2" />
-    </div>
-
-</div>
-
-        <div id="ui-event-form-actions" class="ui-form-actions mt-6 flex justify-end gap-3" data-ui="event-form-actions">
-            <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
-
-            <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
-                <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
-                <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
-            </x-button>
-        </div>
+    </x-slot:actions>
 </x-form>
 
 @push('scripts')
@@ -321,6 +109,28 @@
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
                 }
+            }, { signal });
+        }
+
+        const eventTabsRoot = document.querySelector('[data-ui="event-manage-tabs"]');
+        const refreshEventMaps = () => {
+            document.querySelectorAll('#ui-event-places-section[data-event-places-unified]').forEach((root) => {
+                if (typeof root._epScheduleInvalidate === 'function') {
+                    root._epScheduleInvalidate();
+                } else {
+                    window.dispatchEvent(new Event('resize'));
+                }
+            });
+        };
+        if (eventTabsRoot) {
+            eventTabsRoot.addEventListener('click', (e) => {
+                const tabButton = e.target.closest('[role="tab"]');
+                if (!tabButton) {
+                    return;
+                }
+                [0, 120, 320, 700].forEach((ms) => {
+                    setTimeout(refreshEventMaps, ms);
+                });
             }, { signal });
         }
 
