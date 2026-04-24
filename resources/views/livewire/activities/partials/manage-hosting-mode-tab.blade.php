@@ -5,7 +5,19 @@
 
 <div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
-        <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled', ['event' => $event->name ?? '?']) }}</p>
+        @php
+            $eventLink = $event
+                ? new \Illuminate\Support\HtmlString(
+                    Blade::render('<x-sluggable-link :model="$event" />', ['event' => $event])
+                )
+                : '?';
+        @endphp
+
+        <p class="text-sm text-base-content/70">
+            {!! __('ui.activities.hosting_mode_locked_scheduled', [
+                'event' => $eventLink
+            ]) !!}
+        </p>
     @else
         <x-group
             id="hosting_mode"

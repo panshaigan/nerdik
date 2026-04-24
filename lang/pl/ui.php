@@ -136,7 +136,7 @@ return [
             'proposed_to_event' => 'Poprowadzę na istniejącym wydarzeniu',
             'scheduled_on_event' => 'Zaplanowane na wydarzeniu',
         ],
-        'hosting_mode_locked_scheduled' => 'Ta aktywnosc jest juz zaplanowana na wydarzeniu ":event". Nie mozna tu zmienic trybu prowadzenia.',
+        'hosting_mode_locked_scheduled' => 'Ta aktywnosc jest juz zaplanowana na wydarzeniu :event. Nie mozna tu zmienic trybu prowadzenia.',
         'self_hosted_starts_at' => 'Start aktywnosci samodzielnej',
         'self_hosted_place' => 'Miejsce/sala aktywnosci samodzielnej',
         'self_hosted_place_help' => 'Wybierz jedno miejsce na mapie, a potem opcjonalnie wybierz albo wpisz nazwe sali.',
