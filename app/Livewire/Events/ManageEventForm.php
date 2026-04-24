@@ -5,6 +5,7 @@ namespace App\Livewire\Events;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\User;
 use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
@@ -44,6 +45,12 @@ class ManageEventForm extends Component
      * @var list<array<string, mixed>>
      */
     public array $new_places = [];
+
+    public Event|null $editingEvent = null;
+
+    public ?string $slug = null;
+
+    public User|null $creator = null;
 
     /**
      * Enrollment windows for this event (local datetime-local strings + optional caps/mode).
@@ -103,6 +110,9 @@ class ManageEventForm extends Component
             $maxBase = max(0, 255 - mb_strlen($suffix));
             $name = mb_substr($name, 0, $maxBase).$suffix;
         }
+        $this->editingEvent = $event;
+        $this->slug = $event->slug;
+        $this->creator = $event->creator;
         $this->name = $name;
         $this->description = (string) ($event->description ?? '');
         $this->organization_id = $event->organization_id;

@@ -4,15 +4,60 @@
 
 @php
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+    $title = $editingEvent ? (__('ui.events.edit_event').': '.$this->name) : __('ui.events.create');
 @endphp
 
-<form wire:submit.prevent="save" class="space-y-4" data-event-form>
+<x-form wire:submit.prevent="save" class="space-y-4" data-event-form>
 <div id="ui-event-form-fields" class="ui-form ui-form-event space-y-4" data-ui="event-form-fields">
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="relative sm:col-span-2">
+    <div
+        class="ui-activity-show-hero overflow-hidden rounded border border-base-300 bg-base-100 shadow"
+        data-ui="activity-show-hero"
+    >
+        <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
+            <x-header
+                title="{{ $title }}"
+                class=""
+                separator
+                use-h1
+            >
+                <x-slot:title>
+                    <div class="flex items-center gap-2">
+                        <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
+                        <span>{{ $title }}</span>
+                    </div>
+                </x-slot:title>
+                <x-slot:subtitle>
+                    {{__('Placeholder')}}
+                </x-slot:subtitle>
+                <x-slot:actions>
+                    @if ($creator)
+                        <x-user-badge
+                            :user="$creator"
+                            size="md"
+                            name-class="truncate text-end font-semibold"
+                            data-ui="activity-show-host"
+                            title="Creator"
+                        />
+                    @endif
+                </x-slot:actions>
+            </x-header>
+            <div class="flex justify-end">
+                <x-toggle
+                    id="is_public"
+                    wire:model="is_public"
+                    :label="__('Public event')"
+                    :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
+                />
+            </div>
+        </div>
+        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+    </div>
+    <div class="grid grid-cols-2 gap-4 px-6 pt-6">
+        <div class="">
             <x-input
                 wire:model.live.debounce.300ms="name"
                 label="{{ __('Name') }}"
+                placeholder="{{ __('Name') }}"
                 type="text"
                 error-field="name"
                 required
@@ -21,19 +66,23 @@
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="event-name-suggestions-popup"
+                icon="o-bookmark"
+                inline
             />
             <div id="event-name-suggestions-popup"
                  class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
                  data-event-name-popup
                  wire:ignore
-                 role="listbox"></div>
+                 role="listbox">
+            </div>
         </div>
 
-        <div class="relative sm:col-span-1">
+        <div class="">
             <input type="hidden" wire:model="organization_id" data-event-org-id />
             <x-input
                 wire:model.live.debounce.300ms="organization_name"
-                label="{{ __('Organization (optional)') }}"
+                label="{{ __('Organization') }}"
+                placeholder="{{ __('Organization (optional)') }}"
                 type="text"
                 error-field="organization_name"
                 autocomplete="off"
@@ -41,6 +90,8 @@
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="event-org-suggestions-popup"
+                icon="o-building-office-2"
+                inline
             />
             <div id="event-org-suggestions-popup"
                  class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
@@ -50,19 +101,8 @@
             <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
             <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
         </div>
-    </div>
 
-    <div>
-        <x-editor
-            wire:model="description"
-            :label="__('Description (optional)')"
-            :gpl-license="true"
-        />
-        <x-field-error :messages="$errors->get('description')" class="mt-2" />
-    </div>
-
-    <div class="grid grid-cols-1 items-end gap-4 lg:grid-cols-12">
-        <div class="lg:col-span-3 lg:max-w-[14rem]">
+        <div class="">
             <x-input
                 wire:model="starts_at"
                 label="{{ __('Starts at') }}"
@@ -73,10 +113,11 @@
                 data-event-start-at
                 data-enforce-future="{{ $enforceFutureDates ? '1' : '0' }}"
                 class="w-full"
+                inline
             />
         </div>
 
-        <div class="lg:col-span-3 lg:max-w-[14rem]">
+        <div class="">
             <x-input
                 wire:model="ends_at"
                 label="{{ __('Ends at') }}"
@@ -86,20 +127,22 @@
                 required
                 data-event-ends-at
                 class="w-full"
-            />
-        </div>
-
-        <div class="rounded-lg border border-base-300 bg-base-100 p-3 lg:col-span-6">
-            <x-checkbox
-                id="is_public"
-                wire:model="is_public"
-                :label="__('Public event')"
-                :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
+                inline
             />
         </div>
     </div>
 
-    <div>
+    <div class="px-6">
+        <x-editor
+            wire:model="description"
+            :label="__('Description (optional)')"
+            :gpl-license="true"
+        />
+        <x-field-error :messages="$errors->get('description')" class="mt-2" />
+    </div>
+
+
+    <div class="p-6">
         <p class="fieldset-legend font-medium text-base-content">{{ __('Where (optional)') }}</p>
         <p class="mb-3 text-sm text-base-content/80">
             {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
@@ -154,7 +197,7 @@
         <x-field-error :messages="$errors->get('new_places.*.name')" class="mt-2" />
     </div>
 
-    <div class="mt-4 border-t border-base-300 pt-4" data-ui="event-enrollment-windows-section">
+    <div class="mt-4 border-t border-base-300 p-6" data-ui="event-enrollment-windows-section">
         <p class="fieldset-legend font-medium text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</p>
         <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
 
@@ -250,7 +293,7 @@
                 <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
             </x-button>
         </div>
-</form>
+</x-form>
 
 @push('scripts')
 <script>

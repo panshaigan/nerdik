@@ -215,6 +215,8 @@ return [
         'end' => 'End',
         'tags' => 'Tags',
         'edit' => 'Edit',
+        'edit_event' => 'Edit event',
+        'create' => 'Create Event',
         'propose_activity' => 'Propose an activity',
         'copy_event' => 'Copy event',
         'duplicate_action' => 'Duplicate as new event',
