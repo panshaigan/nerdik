@@ -1,5 +1,6 @@
 @php
     $title = $editingActivityId ? (__('ui.activities.edit_activity').': '.$this->name) : __('ui.activities.create_activity');
+    $isCancelled = $editingActivity->isCancelled();
 @endphp
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -37,6 +38,22 @@
                         @endif
                     </x-slot:actions>
             </x-header>
+            @if ($isCancelled)
+                <div role="alert" class="alert text-sm mb-6">
+                    <div class="space-y-1">
+                        <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
+                        @if ($editingActivity->cancel_reason)
+                            <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $editingActivity->cancel_reason }}</p>
+                        @endif
+                        <p class="opacity-80">
+                            {{ __('ui.activities.cancelled_meta', [
+                                'who' => $editingActivity->canceller?->nickname ?? $editingActivity->canceller?->email ?? __('ui.common.unknown_user'),
+                                'when' => $editingActivity->cancelled_at ? format_datetime_in_user_tz($editingActivity->cancelled_at) : '—',
+                            ]) }}
+                        </p>
+                    </div>
+                </div>
+            @endif
         </div>
         <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
     </div>
@@ -145,33 +162,6 @@
 
         const nameInput = document.querySelector('[data-activity-name-input]');
         const namePopup = document.querySelector('[data-activity-name-popup]');
-        const proposalPreferredInput = document.querySelector('#proposal_preferred_start_time');
-        if (proposalPreferredInput) {
-            const proposalPreferredShell = proposalPreferredInput.closest('label.input');
-            const openProposalPicker = (e) => {
-                if (proposalPreferredInput.disabled || proposalPreferredInput.readOnly) {
-                    return;
-                }
-                const clickedShellButNotInput =
-                    proposalPreferredShell
-                    && proposalPreferredShell.contains(e.target)
-                    && e.target !== proposalPreferredInput;
-                if (!clickedShellButNotInput && e.target !== proposalPreferredInput) {
-                    return;
-                }
-                if ((!proposalPreferredInput.value || proposalPreferredInput.value.trim() === '') && proposalPreferredInput.min) {
-                    proposalPreferredInput.value = proposalPreferredInput.min;
-                    proposalPreferredInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    proposalPreferredInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                if (typeof proposalPreferredInput.showPicker === 'function') {
-                    e.preventDefault();
-                    proposalPreferredInput.showPicker();
-                }
-            };
-            proposalPreferredInput.addEventListener('pointerdown', openProposalPicker, { signal });
-            proposalPreferredShell?.addEventListener('pointerdown', openProposalPicker, { signal });
-        }
         if (nameInput && namePopup) {
             const suggestions = @json($nameSuggestions);
             let shown = [];

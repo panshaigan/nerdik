@@ -1,4 +1,0 @@
----
-description: prefere using makefile over shell script. we run environment on sail. for example you can run the tests by make test
-alwaysApply: true
----

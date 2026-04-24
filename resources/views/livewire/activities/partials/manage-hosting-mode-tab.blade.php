@@ -4,6 +4,7 @@
 
 <div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+        {{$proposal_event_id}}
         <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
     @else
         <x-group
@@ -90,10 +91,7 @@
 
 @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT)
     <div class="mt-4 border-t border-base-300 pt-4">
-        <p class="fieldset-legend mb-0.5 font-medium">{{ __('ui.activities.propose_to_event') }}</p>
-        <p class="mb-3 text-xs text-base-content/70">{{ __('ui.activities.propose_to_event_help') }}</p>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
             <div>
                 <div class="relative" data-proposal-event-autocomplete>
                     <x-input
@@ -134,22 +132,6 @@
                 @endif
             </div>
 
-            <div>
-                <x-input
-                    id="proposal_preferred_start_time"
-                    :label="__('ui.activities.proposal_preferred_start_time')"
-                    wire:model="proposal_preferred_start_time"
-                    type="datetime-local"
-                    :step="$datetimeMinuteStepSeconds"
-                    :min="$proposalPreferredStartTimeMin"
-                    :max="$proposalPreferredStartTimeMax"
-                    :readonly="$proposalFieldsReadonly"
-                    :disabled="$proposalFieldsReadonly || $proposal_event_id === null"
-                    error-field="proposal_preferred_start_time"
-                    data-ui="proposal-preferred-time-input"
-                    inline
-                />
-            </div>
         </div>
 
         @if ($proposal_event_id && $proposalEventSlots->isNotEmpty())
