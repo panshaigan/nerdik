@@ -1,10 +1,11 @@
 @php
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
+    $event = $editingActivity?->slot?->event;
 @endphp
 
 <div class="">
     @if ($hosting_mode === \App\Models\Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
-        <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled') }}</p>
+        <p class="text-sm text-base-content/70">{{ __('ui.activities.hosting_mode_locked_scheduled', ['event' => $event->name ?? '?']) }}</p>
     @else
         <x-group
             id="hosting_mode"
