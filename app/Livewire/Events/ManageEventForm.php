@@ -51,6 +51,7 @@ class ManageEventForm extends Component
     public ?string $slug = null;
 
     public User|null $creator = null;
+    public string $tab = 'main-details';
 
     /**
      * Enrollment windows for this event (local datetime-local strings + optional caps/mode).
@@ -67,6 +68,10 @@ class ManageEventForm extends Component
 
     /** When set, creating the event will clone empty slots from this source (owner-only; re-checked on save). */
     public ?int $duplicateSlotsFromEventId = null;
+
+    protected array $queryString = [
+        'tab' => ['except' => 'main-details'],
+    ];
 
     public function mount(?Event $event = null): void
     {
@@ -85,6 +90,18 @@ class ManageEventForm extends Component
         if ($this->enrollment_windows === []) {
             $this->enrollment_windows = [$this->defaultEnrollmentWindowRow()];
         }
+
+        $this->tab = $this->normalizeFormTab($this->tab);
+    }
+
+    public function updatedTab(string $value): void
+    {
+        $this->tab = $this->normalizeFormTab($value);
+    }
+
+    private function normalizeFormTab(?string $value): string
+    {
+        return in_array($value, ['main-details', 'location', 'enrollment-windows'], true) ? $value : 'main-details';
     }
 
     private function duplicateEventQuerySlug(): ?string
