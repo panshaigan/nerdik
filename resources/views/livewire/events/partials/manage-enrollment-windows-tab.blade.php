@@ -97,7 +97,7 @@
                 </div>
 
                 @if ($index > 0)
-                    <div class="absolute right-2 top-2">
+                    <div class="flex justify-end">
                         <x-button
                             type="button"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
@@ -115,15 +115,17 @@
         @endforeach
     </div>
 
-    <x-button
-        type="button"
-        class="btn-outline btn-sm mt-2"
-        wire:click="addEnrollmentWindow"
-        :disabled="!$canAddEnrollmentWindow"
-        wire:loading.attr="disabled"
-    >
-        {{ __('ui.events.enrollment_window_add') }}
-    </x-button>
+    <div class="mt-6 flex justify-end">
+        <x-button
+            type="button"
+            class="btn-neutral btn-sm"
+            wire:click="addEnrollmentWindow"
+            :disabled="!$canAddEnrollmentWindow"
+            wire:loading.attr="disabled"
+        >
+            {{ __('ui.events.enrollment_window_add') }}
+        </x-button>
+    </div>
 
     <x-field-error :messages="$errors->get('enrollment_windows')" class="mt-2" />
 </div>
