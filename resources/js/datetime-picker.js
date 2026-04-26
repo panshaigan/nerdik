@@ -45,7 +45,7 @@ function eventStartInputFromContext(input) {
     return form?.querySelector('[data-event-start-at]') ?? document.querySelector('[data-event-start-at]');
 }
 
-/** Default for empty event end: strictly after start (Laravel `after:starts_at`) or tomorrow noon. */
+/** Default for empty event end: match start exactly, or tomorrow noon. */
 function defaultEventEndSeedLocalValue(startInput) {
     const raw = startInput?.value?.trim();
     if (!raw) {
@@ -55,8 +55,6 @@ function defaultEventEndSeedLocalValue(startInput) {
     if (Number.isNaN(d.getTime())) {
         return tomorrowNoonLocalValue();
     }
-    const addMinutes = Math.max(1, Math.ceil(stepSecondsFromDom() / 60));
-    d.setMinutes(d.getMinutes() + addMinutes);
 
     return formatLocalDateTime(d);
 }

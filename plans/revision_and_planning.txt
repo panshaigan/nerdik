@@ -1,5 +1,4 @@
-main details
-    - the end date minutes should be 00
+
 map
     - map: all the venues should be shown on the dropdown
     - maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
