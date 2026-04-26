@@ -831,6 +831,7 @@ class ManageActivityForm extends Component
             'hideSelectedChips' => true,
             'openSuggestionsOnFocus' => true,
             'emptyQuerySuggestions' => 'saved_places_only',
+            'limitRemoteToViewport' => true,
             'debounceLivewireMs' => 450,
             'strings' => [
                 'yourPlaces' => __('Saved Venues'),
