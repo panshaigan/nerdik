@@ -29,42 +29,55 @@
                             inline
                         />
                     </div>
-                    <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
-                        <label class="mb-1 block text-sm text-base-content/80">
-                            {{ __('ui.events.enrollment_window_max_activities') }}
+                    <div
+                        x-data="{ value: @entangle('enrollment_windows.' . $index . '.max_activities_per_user') }"
+                        x-init="$nextTick(() => value = value ?? 0)"
+                        class="space-y-1 min-w-[6.5rem] max-w-[9rem] shrink-0"
+                    >
+                        <label class="text-sm font-medium flex justify-between">
+                        <span>
+                            {{ __('ui.events.enrollment_window_max_activities') }}:
+                            <span class="font-semibold" x-text="value"></span>
+                        </span>
                         </label>
+
                         <x-range
-                            wire:model.live="enrollment_windows.{{ $index }}.max_activities_per_user"
+                            x-model="value"
                             min="0"
-                            max="255"
+                            max="10"
                             step="1"
                             class="range-xs w-full"
                         />
-                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities_per_user')" class="mt-2" />
                     </div>
-                    <div class="min-w-[7rem] max-w-[11rem] shrink-0">
-                        <label class="mb-1 block text-sm text-base-content/80">
-                            {{ __('ui.events.enrollment_window_max_participants_per_activity') }}
+                    <div
+                        x-data="{ value: @entangle('enrollment_windows.' . $index . '.max_allowed_participants_per_activity') }"
+                        x-init="$nextTick(() => value = value ?? 0)"
+                        class="space-y-1 min-w-[6.5rem] max-w-[9rem] shrink-0"
+                    >
+                        <label class="text-sm font-medium flex justify-between">
+                        <span>
+                            {{ __('ui.events.enrollment_window_max_activities') }}:
+                            <span class="font-semibold" x-text="value"></span>
+                        </span>
                         </label>
+
                         <x-range
-                            wire:model.live="enrollment_windows.{{ $index }}.max_allowed_participants_per_activity"
+                            x-model="value"
                             min="0"
-                            max="65535"
+                            max="10"
                             step="1"
                             class="range-xs w-full"
                         />
-                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_allowed_participants_per_activity')" class="mt-2" />
                     </div>
                     <div class="min-w-[8rem] shrink-0 self-center pt-5">
                         <label class="flex cursor-pointer items-center gap-2">
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm"
-                                wire:model.live="enrollment_windows.{{ $index }}.accumulative_activities"
+                                wire:model="enrollment_windows.{{ $index }}.accumulative_activities"
                             />
                             <span class="text-xs text-base-content/80">{{ __('ui.events.enrollment_window_accumulative') }}</span>
                         </label>
-                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.accumulative_activities')" class="mt-2" />
                     </div>
                     @if ($index > 0)
                         <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
