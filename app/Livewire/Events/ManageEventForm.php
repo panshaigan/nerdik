@@ -522,6 +522,7 @@ class ManageEventForm extends Component
             'reverseUrl' => route('geocode.reverse'),
             'openSuggestionsOnFocus' => true,
             'emptyQuerySuggestions' => 'saved_places_only',
+            'limitRemoteToViewport' => true,
             'strings' => [
                 'yourPlaces' => __('Your places'),
                 'mapSearch' => __('Map search'),

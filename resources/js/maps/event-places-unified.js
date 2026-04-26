@@ -112,6 +112,10 @@ export function initEventPlacesUnified(root) {
     const hideSelectedChips = cfg.hideSelectedChips === true || cfg.hideSelectedChips === 1 || cfg.hideSelectedChips === '1';
     const openSuggestionsOnFocus = cfg.openSuggestionsOnFocus === true || cfg.openSuggestionsOnFocus === 1 || cfg.openSuggestionsOnFocus === '1';
     const emptyQuerySuggestions = String(cfg.emptyQuerySuggestions || 'none');
+    const limitRemoteToViewport =
+        cfg.limitRemoteToViewport === true
+        || cfg.limitRemoteToViewport === 1
+        || cfg.limitRemoteToViewport === '1';
     const disallowMixSelectedAndNew =
         cfg.disallowMixSelectedAndNew === true
         || cfg.disallowMixSelectedAndNew === 1
@@ -662,6 +666,15 @@ export function initEventPlacesUnified(root) {
             .slice(0, limit);
     }
 
+    function isInCurrentViewport(lat, lng) {
+        const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
+        if (!bounds || typeof bounds.contains !== 'function') {
+            return true;
+        }
+
+        return bounds.contains([lat, lng]);
+    }
+
     async function runSearch({ fromFocus = false, forceOpen = false } = {}) {
         const raw = searchInput.value.trim();
         const qLower = raw.toLowerCase();
@@ -708,7 +721,16 @@ export function initEventPlacesUnified(root) {
         if (!useFocusEmptySavedOnly && raw.length >= 2) {
             try {
                 const { data } = await axios.get(cfg.searchUrl, { params: { q: raw } });
-                remote = data.results || [];
+                remote = (data.results || []).filter((r) => {
+                    if (!limitRemoteToViewport) {
+                        return true;
+                    }
+                    if (r?.lat == null || r?.lon == null) {
+                        return false;
+                    }
+
+                    return isInCurrentViewport(Number(r.lat), Number(r.lon));
+                });
             } catch {
                 remote = [];
             }
