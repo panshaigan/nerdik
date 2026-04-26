@@ -243,6 +243,7 @@ DROP TABLE IF EXISTS `event_enrollment_windows`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `event_enrollment_windows` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
   `event_id` bigint(20) unsigned NOT NULL,
   `max_activities_per_user` tinyint(3) unsigned DEFAULT NULL,
   `accumulative_activities` tinyint(1) NOT NULL DEFAULT 0,

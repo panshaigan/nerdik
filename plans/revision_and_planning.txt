@@ -1,10 +1,3 @@
-enrollments
-    - change numeric inputs to ranges
-    - make accumulative trigger?
-    - add descriptions to enrollments ('for the prepaid people')
-    - Enrollment windwos should be numbered to make a difference between them
-    - for the added enrollment windows, start should be bigger than previous one end. end should be autopopulated to start
-
 event page:
     - add tabs: /main /slots /proposals
     - adjust enrollment windows
