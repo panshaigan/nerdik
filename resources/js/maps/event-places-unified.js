@@ -573,6 +573,13 @@ export function initEventPlacesUnified(root) {
         const { lat, lng } = e.latlng;
         addNewVenue({ lat, lng });
     });
+    map.on('moveend zoomend', () => {
+        const raw = searchInput.value.trim();
+        if (resultsEl.classList.contains('hidden') || raw.length !== 0 || emptyQuerySuggestions !== 'saved_places_only') {
+            return;
+        }
+        runSearch({ forceOpen: true });
+    });
 
     let searchTimer;
     let activeResultIndex = -1;
@@ -598,6 +605,9 @@ export function initEventPlacesUnified(root) {
     });
     searchInput.addEventListener('focus', () => {
         runSearch({ fromFocus: true });
+    });
+    searchInput.addEventListener('click', () => {
+        runSearch({ fromFocus: true, forceOpen: true });
     });
 
     document.addEventListener('click', (e) => {
@@ -641,13 +651,26 @@ export function initEventPlacesUnified(root) {
         }
     });
 
-    async function runSearch({ fromFocus = false } = {}) {
+    function localSavedPlacesForCurrentViewport(limit) {
+        const bounds = typeof map.getBounds === 'function' ? map.getBounds() : null;
+        if (!bounds || typeof bounds.contains !== 'function') {
+            return [];
+        }
+
+        return places
+            .filter((p) => p.lat != null && p.lng != null && bounds.contains([p.lat, p.lng]))
+            .slice(0, limit);
+    }
+
+    async function runSearch({ fromFocus = false, forceOpen = false } = {}) {
         const raw = searchInput.value.trim();
         const qLower = raw.toLowerCase();
         resultsEl.innerHTML = '';
         activeResultIndex = -1;
 
-        if (raw.length < 2 && !(fromFocus && openSuggestionsOnFocus && raw.length === 0)) {
+        const canOpenEmpty = raw.length === 0 && (forceOpen || (fromFocus && openSuggestionsOnFocus));
+        const bypassMinQueryLength = forceOpen;
+        if (raw.length < 2 && !canOpenEmpty && !bypassMinQueryLength) {
             resultsEl.classList.add('hidden');
 
             return;
@@ -655,9 +678,12 @@ export function initEventPlacesUnified(root) {
 
         const LOCAL_SAVED_LIMIT = 10;
         const LOCAL_DRAFT_LIMIT = 8;
-        const useFocusEmptySavedOnly = fromFocus && raw.length === 0 && emptyQuerySuggestions === 'saved_places_only';
+        const useFocusEmptySavedOnly = raw.length === 0 && emptyQuerySuggestions === 'saved_places_only' && canOpenEmpty;
         const localSaved = useFocusEmptySavedOnly
-            ? places.slice(0, LOCAL_SAVED_LIMIT)
+            ? (() => {
+                const viewportSaved = localSavedPlacesForCurrentViewport(LOCAL_SAVED_LIMIT);
+                return viewportSaved.length > 0 ? viewportSaved : places.slice(0, LOCAL_SAVED_LIMIT);
+            })()
             : places.filter((p) => p.label.toLowerCase().includes(qLower)).slice(0, LOCAL_SAVED_LIMIT);
         const localDraft = useFocusEmptySavedOnly
             ? []
@@ -679,7 +705,7 @@ export function initEventPlacesUnified(root) {
                 lng: v.lng,
             }));
         let remote = [];
-        if (!useFocusEmptySavedOnly) {
+        if (!useFocusEmptySavedOnly && raw.length >= 2) {
             try {
                 const { data } = await axios.get(cfg.searchUrl, { params: { q: raw } });
                 remote = data.results || [];

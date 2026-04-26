@@ -1,6 +1,6 @@
 @php
     $title = $editingActivityId ? (__('ui.activities.edit_activity').': '.$this->name) : __('ui.activities.create_activity');
-    $isCancelled = $editingActivity->isCancelled();
+    $isCancelled = $editingActivity?->isCancelled();
 @endphp
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -18,10 +18,12 @@
                 use-h1
             >
                 <x-slot:title>
-                    <div class="flex items-center gap-2">
-                        <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
-                        <span>{{ $title }}</span>
-                    </div>
+                    @if ($this->slug)
+                        <div class="flex items-center gap-2">
+                            <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
+                            <span>{{ $title }}</span>
+                        </div>
+                    @endif
                 </x-slot:title>
                     <x-slot:subtitle>
                         {{__('Placeholder')}}
@@ -82,7 +84,9 @@
         </div>
 
         <x-slot:actions class="px-6 pb-6">
+            @if ($this->slug)
             <x-button id="ui-activity-cancel" :link="route('activities.show', ['activity' => $editingActivity->slug])" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
+            @endif
 
             <x-button id="ui-activity-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="activity-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                 <span wire:loading.remove wire:target="save">

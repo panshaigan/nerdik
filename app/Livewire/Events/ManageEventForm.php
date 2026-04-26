@@ -520,6 +520,8 @@ class ManageEventForm extends Component
             'initialNewPlaces' => $initialNewPlaces,
             'searchUrl' => route('geocode.search'),
             'reverseUrl' => route('geocode.reverse'),
+            'openSuggestionsOnFocus' => true,
+            'emptyQuerySuggestions' => 'saved_places_only',
             'strings' => [
                 'yourPlaces' => __('Your places'),
                 'mapSearch' => __('Map search'),
