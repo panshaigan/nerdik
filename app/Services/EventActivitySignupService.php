@@ -348,6 +348,7 @@ class EventActivitySignupService
      * Validate period rows for an event form (non-overlapping, end on/before event end, may start before event).
      *
      * @param  list<array{
+     *   name?: string,
      *   starts_at: string,
      *   ends_at: string,
      *   max_activities_per_user?: mixed,
@@ -355,6 +356,7 @@ class EventActivitySignupService
      *   accumulative_activities?: mixed
      * }>  $rows
      * @return list<array{
+     *   name: string|null,
      *   starts_at: Carbon,
      *   ends_at: Carbon,
      *   max_activities_per_user: int|null,
@@ -374,6 +376,7 @@ class EventActivitySignupService
 
         $normalized = [];
         foreach ($rows as $i => $row) {
+            $name = isset($row['name']) ? trim((string) $row['name']) : '';
             $s = isset($row['starts_at']) ? trim((string) $row['starts_at']) : '';
             $e = isset($row['ends_at']) ? trim((string) $row['ends_at']) : '';
             if ($s === '' && $e === '') {
@@ -443,6 +446,7 @@ class EventActivitySignupService
             $accumulative = (bool) ($row['accumulative_activities'] ?? false);
 
             $normalized[] = [
+                'name' => $name !== '' ? $name : null,
                 'starts_at' => $start,
                 'ends_at' => $end,
                 'max_activities_per_user' => $max,

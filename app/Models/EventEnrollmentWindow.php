@@ -13,6 +13,7 @@ class EventEnrollmentWindow extends Model
 
     protected $fillable = [
         'event_id',
+        'name',
         'starts_at',
         'ends_at',
         'max_activities_per_user',

@@ -7,6 +7,17 @@
                 <div class="flex min-w-0 flex-nowrap items-end gap-2 overflow-x-auto pb-0.5 sm:gap-3">
                     <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
                         <x-input
+                            wire:model.live="enrollment_windows.{{ $index }}.name"
+                            type="text"
+                            :label="__('ui.events.enrollment_window_name')"
+                            :placeholder="__('ui.events.enrollment_window_name')"
+                            class="w-full min-w-0"
+                            inline
+                        />
+                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.name')" class="mt-2" />
+                    </div>
+                    <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
+                        <x-input
                             wire:model.live="enrollment_windows.{{ $index }}.starts_at"
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
@@ -15,7 +26,7 @@
                             class="w-full min-w-0"
                             inline
                         />
-                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index)" class="mt-2" />
+                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.starts_at')" class="mt-2" />
                     </div>
                     <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
                         <x-input
@@ -28,6 +39,7 @@
                             :max="$eventSignupPeriodMax ?? null"
                             inline
                         />
+                        <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.ends_at')" class="mt-2" />
                     </div>
                     <div
                         x-data="{ value: @entangle('enrollment_windows.' . $index . '.max_activities_per_user') }"

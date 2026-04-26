@@ -220,6 +220,7 @@ class ManageEventForm extends Component
         $this->new_places = [];
         $this->enrollment_windows = $event->enrollmentWindows
             ->map(fn ($p) => [
+                'name' => (string) $p->name,
                 'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
                 'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
                 'max_activities_per_user' => $p->max_activities_per_user,
@@ -232,6 +233,7 @@ class ManageEventForm extends Component
 
     /**
      * @return array{
+     *   name: string,
      *   starts_at: string,
      *   ends_at: string,
      *   max_activities_per_user: int|string|null,
@@ -247,6 +249,7 @@ class ManageEventForm extends Component
             : '';
 
         return [
+            'name' => __('ui.events.enrollment_window_default_name', ['index' => 1]),
             'starts_at' => $starts,
             'ends_at' => $ends,
             'max_activities_per_user' => null,
@@ -265,6 +268,7 @@ class ManageEventForm extends Component
         $previousEnd = is_array($previous) ? trim((string) ($previous['ends_at'] ?? '')) : '';
 
         $this->enrollment_windows[] = [
+            'name' => __('ui.events.enrollment_window_default_name', ['index' => count($this->enrollment_windows) + 1]),
             'starts_at' => $this->enrollmentWindowDefaultStartLocal($previousEnd !== '' ? $previousEnd : null),
             'ends_at' => $this->ends_at,
             'max_activities_per_user' => null,
@@ -384,6 +388,7 @@ class ManageEventForm extends Component
         $event->enrollmentWindows()->delete();
         foreach ($normalized as $row) {
             $event->enrollmentWindows()->create([
+                'name' => $row['name'],
                 'starts_at' => $row['starts_at']->toDateTimeString(),
                 'ends_at' => $row['ends_at']->toDateTimeString(),
                 'max_activities_per_user' => $row['max_activities_per_user'],
@@ -404,6 +409,7 @@ class ManageEventForm extends Component
             'organization_name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'enrollment_windows.*.name' => ['required', 'string', 'max:255'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'place_ids' => ['nullable', 'array'],

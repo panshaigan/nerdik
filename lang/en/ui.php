@@ -252,6 +252,8 @@ return [
         'enrollment_windows_heading' => 'Activity enrollment windows',
         'enrollment_windows_help' => 'Participants can join or join the waitlist for activities at this event only during these windows. A window may open before the event starts, but it must close by the event end. Leave the list empty (clear all rows) for no time restriction. Add several non-overlapping windows if needed. “Max activities” caps how many activities someone may sign up for during that window (empty or 0 = unlimited). “Max participants per activity” caps how many participants can join each single activity during that window.',
         'enrollment_window_starts' => 'Enrollment opens',
+        'enrollment_window_name' => 'Name',
+        'enrollment_window_default_name' => 'Enrollment window #:index',
         'enrollment_window_ends' => 'Enrollment closes',
         'enrollment_window_period' => 'Enrollment window (opens — closes)',
         'enrollment_window_max_activities' => 'Max activities per person',
