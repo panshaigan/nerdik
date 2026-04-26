@@ -1,14 +1,28 @@
-enrollments
-    - add descriptions to enrollments ('for the prepaid people')
-    - Enrollment windwos should be numbered to make a difference between them
+main details
+    - the end date minutes should be 00
 map
     - map: all the venues should be shown on the dropdown
     - maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
+enrollments
+    - for the first date start should be automatically set to tomorrow 12:00
+    - for the first date end should be automatically set to the end of the event
+    - change numeric inputs to ranges
+    - make accumulative trigger?
+    - add descriptions to enrollments ('for the prepaid people')
+    - Enrollment windwos should be numbered to make a difference between them
+    - for the added enrollment windows, start should be bigger than previous one end. end should be autopopulated to start
+
+event page:
+    - add tabs: /main /slots /proposals
+    - adjust enrollment windows
 
 slots
+    - beautify
+    - ensure the funcitonalities
     - dont drop the event start label
     - think about slots naming/counters
         - extract number from name?
+    - beautify
     - Morph comment markers around @if / @foreach etc. are what help Livewire’s DOM morphing in tricky cases. Turning them off can make some conditional updates a bit less smooth. If anything odd shows up only after a Livewire update on that page, the long-term fix is to split show-event into smaller Blade partials/components so the template stays smaller with morph markers re-enabled.
         0 Practical takeaway for later
         Do: break the event screen into clear Blade partials or child components (info / slots / proposals), optionally behind tabs.

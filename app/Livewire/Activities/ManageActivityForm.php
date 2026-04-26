@@ -464,6 +464,12 @@ class ManageActivityForm extends Component
                 $this->{$key} = null;
             }
         }
+        foreach (['minimum_age', 'cancellation_deadline_in_hours'] as $key) {
+            if ($this->{$key} !== null) {
+                $value = (int) $this->{$key};
+                $this->{$key} = $value > 0 ? $value : null;
+            }
+        }
 
         if ($this->proposal_event_id === '' || $this->proposal_event_id === 0) {
             $this->proposal_event_id = null;
