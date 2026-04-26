@@ -1,6 +1,4 @@
 enrollments
-    - for the first date start should be automatically set to tomorrow 12:00
-    - for the first date end should be automatically set to the end of the event
     - change numeric inputs to ranges
     - make accumulative trigger?
     - add descriptions to enrollments ('for the prepaid people')

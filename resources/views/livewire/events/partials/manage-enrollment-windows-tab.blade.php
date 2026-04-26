@@ -30,24 +30,28 @@
                         />
                     </div>
                     <div class="min-w-[6.5rem] max-w-[9rem] shrink-0">
-                        <x-input
+                        <label class="mb-1 block text-sm text-base-content/80">
+                            {{ __('ui.events.enrollment_window_max_activities') }}
+                        </label>
+                        <x-range
                             wire:model.live="enrollment_windows.{{ $index }}.max_activities_per_user"
-                            type="number"
                             min="0"
+                            max="255"
                             step="1"
-                            :label="__('ui.events.enrollment_window_max_activities')"
-                            class="w-full"
+                            class="range-xs w-full"
                         />
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_activities_per_user')" class="mt-2" />
                     </div>
                     <div class="min-w-[7rem] max-w-[11rem] shrink-0">
-                        <x-input
+                        <label class="mb-1 block text-sm text-base-content/80">
+                            {{ __('ui.events.enrollment_window_max_participants_per_activity') }}
+                        </label>
+                        <x-range
                             wire:model.live="enrollment_windows.{{ $index }}.max_allowed_participants_per_activity"
-                            type="number"
                             min="0"
+                            max="65535"
                             step="1"
-                            :label="__('ui.events.enrollment_window_max_participants_per_activity')"
-                            class="w-full"
+                            class="range-xs w-full"
                         />
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.max_allowed_participants_per_activity')" class="mt-2" />
                     </div>
