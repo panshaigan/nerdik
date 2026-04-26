@@ -102,9 +102,80 @@ class ManageEventForm extends Component
         $this->tab = $this->normalizeFormTab($value);
     }
 
+    public function updatedEndsAt(string $value): void
+    {
+        $eventEnd = trim($value);
+        if ($eventEnd === '') {
+            return;
+        }
+
+        foreach ($this->enrollment_windows as $i => $row) {
+            $this->enrollment_windows[$i]['ends_at'] = $eventEnd;
+        }
+    }
+
     private function normalizeFormTab(?string $value): string
     {
-        return in_array($value, ['main-details', 'location', 'enrollment-windows'], true) ? $value : 'main-details';
+        if (! in_array($value, ['main-details', 'location', 'enrollment-windows'], true)) {
+            return 'main-details';
+        }
+        if ($value === 'enrollment-windows' && ! $this->eventDatesReadyForEnrollmentWindows()) {
+            return 'main-details';
+        }
+
+        return $value;
+    }
+
+    protected function eventDatesReadyForEnrollmentWindows(): bool
+    {
+        return trim($this->starts_at) !== '' && trim($this->ends_at) !== '';
+    }
+
+    protected function canAddAnotherEnrollmentWindow(): bool
+    {
+        if (! $this->eventDatesReadyForEnrollmentWindows()) {
+            return false;
+        }
+
+        $first = $this->enrollment_windows[0] ?? null;
+        if (! is_array($first)) {
+            return false;
+        }
+
+        $firstStarts = trim((string) ($first['starts_at'] ?? ''));
+        $firstEnds = trim((string) ($first['ends_at'] ?? ''));
+        if ($firstStarts === '' || $firstEnds === '') {
+            return false;
+        }
+
+        $firstEndUtc = parse_datetime_to_utc($firstEnds);
+        $eventEndUtc = parse_datetime_to_utc($this->ends_at);
+
+        return $firstEndUtc !== null
+            && $eventEndUtc !== null
+            && $firstEndUtc->lt($eventEndUtc);
+    }
+
+    protected function enrollmentWindowDefaultStartLocal(?string $baseLocal = null): string
+    {
+        $tz = $this->userTimezone();
+        $base = $baseLocal !== null
+            ? parse_datetime_to_utc($baseLocal)?->setTimezone($tz)
+            : null;
+
+        $start = ($base ?? Carbon::now($tz))
+            ->copy()
+            ->addDay()
+            ->setTime(12, 0, 0);
+
+        return $start->format('Y-m-d\TH:i');
+    }
+
+    protected function userTimezone(): string
+    {
+        return auth()->check() && auth()->user()?->timezone
+            ? auth()->user()->timezone
+            : config('app.timezone');
     }
 
     private function duplicateEventQuerySlug(): ?string
@@ -170,7 +241,7 @@ class ManageEventForm extends Component
      */
     protected function defaultEnrollmentWindowRow(): array
     {
-        $starts = format_in_user_tz(Carbon::now(), 'Y-m-d\TH:i');
+        $starts = $this->enrollmentWindowDefaultStartLocal();
         $ends = $this->ends_at !== '' && $this->ends_at !== null
             ? $this->ends_at
             : '';
@@ -186,9 +257,16 @@ class ManageEventForm extends Component
 
     public function addEnrollmentWindow(): void
     {
+        if (! $this->canAddAnotherEnrollmentWindow()) {
+            return;
+        }
+
+        $previous = end($this->enrollment_windows);
+        $previousEnd = is_array($previous) ? trim((string) ($previous['ends_at'] ?? '')) : '';
+
         $this->enrollment_windows[] = [
-            'starts_at' => '',
-            'ends_at' => '',
+            'starts_at' => $this->enrollmentWindowDefaultStartLocal($previousEnd !== '' ? $previousEnd : null),
+            'ends_at' => $this->ends_at,
             'max_activities_per_user' => null,
             'max_allowed_participants_per_activity' => null,
             'accumulative_activities' => false,
@@ -546,6 +624,8 @@ class ManageEventForm extends Component
                 ? route('events.show', Event::query()->findOrFail($this->editingEventId))
                 : route('search.index'),
             'eventSignupPeriodMax' => $this->ends_at !== '' ? $this->ends_at : null,
+            'enrollmentWindowsTabDisabled' => ! $this->eventDatesReadyForEnrollmentWindows(),
+            'canAddEnrollmentWindow' => $this->canAddAnotherEnrollmentWindow(),
         ]);
     }
 }

@@ -7,7 +7,7 @@
                 <div class="flex min-w-0 flex-nowrap items-end gap-2 overflow-x-auto pb-0.5 sm:gap-3">
                     <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
                         <x-input
-                            wire:model="enrollment_windows.{{ $index }}.starts_at"
+                            wire:model.live="enrollment_windows.{{ $index }}.starts_at"
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_starts')"
@@ -19,7 +19,7 @@
                     </div>
                     <div class="min-w-[11rem] shrink-0 sm:min-w-0 sm:flex-1">
                         <x-input
-                            wire:model="enrollment_windows.{{ $index }}.ends_at"
+                            wire:model.live="enrollment_windows.{{ $index }}.ends_at"
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_ends')"
@@ -62,25 +62,33 @@
                         </label>
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.accumulative_activities')" class="mt-2" />
                     </div>
-                    <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
-                        <x-button
-                            type="button"
-                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                            wire:click="removeEnrollmentWindow({{ $index }})"
-                            wire:loading.attr="disabled"
-                            :title="__('Remove')"
-                            :aria-label="__('Remove')"
-                            data-ui="event-enrollment-window-remove"
-                        >
-                            <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                        </x-button>
-                    </div>
+                    @if ($index > 0)
+                        <div class="ml-auto flex shrink-0 justify-end self-end pb-1">
+                            <x-button
+                                type="button"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                wire:click="removeEnrollmentWindow({{ $index }})"
+                                wire:loading.attr="disabled"
+                                :title="__('Remove')"
+                                :aria-label="__('Remove')"
+                                data-ui="event-enrollment-window-remove"
+                            >
+                                <x-ui.icons.trash class="h-5 w-5 shrink-0" />
+                            </x-button>
+                        </div>
+                    @endif
                 </div>
             </div>
         @endforeach
     </div>
 
-    <x-button type="button" class="btn-outline btn-sm mt-2" wire:click="addEnrollmentWindow" wire:loading.attr="disabled">
+    <x-button
+        type="button"
+        class="btn-outline btn-sm mt-2"
+        wire:click="addEnrollmentWindow"
+        :disabled="!$canAddEnrollmentWindow"
+        wire:loading.attr="disabled"
+    >
         {{ __('ui.events.enrollment_window_add') }}
     </x-button>
 

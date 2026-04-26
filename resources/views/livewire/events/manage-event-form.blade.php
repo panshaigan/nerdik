@@ -68,7 +68,14 @@
                     @include('livewire.events.partials.manage-location-tab')
                 </x-tab>
 
-                <x-tab name="enrollment-windows" :label="__('Enrollment windows')" class="px-6 pt-6" data-ui="event-manage-tab-enrollment-windows" icon="o-calendar">
+                <x-tab
+                    name="enrollment-windows"
+                    :label="__('Enrollment windows')"
+                    :disabled="$enrollmentWindowsTabDisabled"
+                    class="px-6 pt-6"
+                    data-ui="event-manage-tab-enrollment-windows"
+                    icon="o-calendar"
+                >
                     @include('livewire.events.partials.manage-enrollment-windows-tab')
                 </x-tab>
             </x-ui.tabs-with-toolbar>
@@ -405,12 +412,46 @@
             }
         }
 
+        function syncEnrollmentWindowsTabDisabledState() {
+            if (!eventTabsRoot || !window.Alpine || !startsAtEl || !endsAtEl) {
+                return;
+            }
+
+            const tabsState = window.Alpine.$data(eventTabsRoot);
+            if (!tabsState || !Array.isArray(tabsState.tabs)) {
+                return;
+            }
+
+            const enrollmentTab = tabsState.tabs.find((tab) => tab && tab.name === 'enrollment-windows');
+            if (!enrollmentTab) {
+                return;
+            }
+
+            const eventDatesReady = startsAtEl.value.trim() !== '' && endsAtEl.value.trim() !== '';
+            enrollmentTab.disabled = !eventDatesReady;
+            if (eventDatesReady) {
+                // Mary pre-renders disabled visual classes into label HTML; drop them once tab becomes enabled.
+                enrollmentTab.label = String(enrollmentTab.label)
+                    .replace(/\btext-base-content\/30\b/g, '')
+                    .replace(/\bcursor-not-allowed\b/g, '')
+                    .replace(/\s{2,}/g, ' ');
+            }
+            if (!eventDatesReady && tabsState.selected === 'enrollment-windows') {
+                tabsState.selected = 'main-details';
+            }
+        }
+
         if (startsAtEl && endsAtEl) {
             syncDateGuards();
+            syncEnrollmentWindowsTabDisabledState();
             startsAtEl.addEventListener('change', syncDateGuards, { signal });
             startsAtEl.addEventListener('input', syncDateGuards, { signal });
+            startsAtEl.addEventListener('change', syncEnrollmentWindowsTabDisabledState, { signal });
+            startsAtEl.addEventListener('input', syncEnrollmentWindowsTabDisabledState, { signal });
             endsAtEl.addEventListener('change', syncDateGuards, { signal });
             endsAtEl.addEventListener('input', syncDateGuards, { signal });
+            endsAtEl.addEventListener('change', syncEnrollmentWindowsTabDisabledState, { signal });
+            endsAtEl.addEventListener('input', syncEnrollmentWindowsTabDisabledState, { signal });
 
             const form = startsAtEl.closest('form');
             if (form) {

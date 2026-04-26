@@ -1,6 +1,3 @@
-map
-    - map: all the venues should be shown on the dropdown
-    - maps: add an option in dropdown: choose on map. dropdown shoukld appear from start
 enrollments
     - for the first date start should be automatically set to tomorrow 12:00
     - for the first date end should be automatically set to the end of the event
