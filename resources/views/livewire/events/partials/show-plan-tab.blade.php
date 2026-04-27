@@ -1,4 +1,20 @@
-<div id="ui-event-show-slots" class="ui-event-show-slots p-6" data-ui="event-show-slots">
+<div
+    id="ui-event-show-slots"
+    class="ui-event-show-slots p-6"
+    data-ui="event-show-slots"
+    x-data="{
+        selectedProposalSlotIds: $wire.entangle('proposalSlotIds').live,
+        toggleProposalSlot(slotId) {
+            const normalizedIds = this.selectedProposalSlotIds.map((id) => Number(id));
+
+            if (normalizedIds.includes(slotId)) {
+                this.selectedProposalSlotIds = normalizedIds.filter((id) => id !== slotId);
+            } else {
+                this.selectedProposalSlotIds = [...normalizedIds, slotId];
+            }
+        }
+    }"
+>
     <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.event_plan') }}</h3>
         <div class="flex flex-wrap items-center justify-end gap-2">
@@ -56,10 +72,10 @@
                                     'mockup-browser w-full group relative rounded-lg border border-base-300 bg-base-100/50',
                                     'bg-base-300 transition hover:border-base-content/20 activity-attached' => $activity,
                                     'cursor-pointer bg-base-200' => auth()->check() && ! $activity,
-                                    'ring-2 ring-primary/50 bg-primary/5' => auth()->check() && ! $activity && in_array($slot->id, $proposalSlotIds, true),
                                 ])
                                 @if (auth()->check() && ! $activity)
-                                    wire:click="toggleProposalSlot({{ $slot->id }})"
+                                    x-on:click="toggleProposalSlot({{ $slot->id }})"
+                                    :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ring-2 ring-primary/50 bg-primary/5' : ''"
                                 @endif
                             >
 
