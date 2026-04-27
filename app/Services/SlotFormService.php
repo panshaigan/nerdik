@@ -253,6 +253,54 @@ class SlotFormService
     }
 
     /**
+     * Determine the first index for a new mass-created name batch in a strict "<base> #NN" format.
+     */
+    private function nextMassSlotIndexSeed(int $eventId, ?string $startsAtUtc, ?int $placeId, string $baseName): int
+    {
+        $normalizedBaseName = trim($baseName);
+        if ($normalizedBaseName === '') {
+            return 1;
+        }
+
+        $query = Slot::query()
+            ->where('event_id', $eventId)
+            ->whereNull('deleted_at');
+
+        if ($startsAtUtc === null) {
+            $query->whereNull('starts_at');
+        } else {
+            $query->where('starts_at', $startsAtUtc);
+        }
+
+        if ($placeId === null) {
+            $query->whereNull('place_id');
+        } else {
+            $query->where('place_id', $placeId);
+        }
+
+        $candidateNames = $query
+            ->where('name', 'like', $normalizedBaseName.' #%')
+            ->pluck('name');
+
+        $strictPattern = '/^'.preg_quote($normalizedBaseName, '/').'\s#(\d{2,})$/u';
+        $maxExistingIndex = 0;
+
+        foreach ($candidateNames as $candidateName) {
+            if (! is_string($candidateName)) {
+                continue;
+            }
+
+            if (preg_match($strictPattern, $candidateName, $matches) !== 1) {
+                continue;
+            }
+
+            $maxExistingIndex = max($maxExistingIndex, (int) $matches[1]);
+        }
+
+        return $maxExistingIndex + 1;
+    }
+
+    /**
      * Persist mass-created slots. Throws {@see ValidationException} on validation / business-rule failure.
      */
     public function performMassCreate(Request $request): void
@@ -295,11 +343,18 @@ class SlotFormService
         $endsAtUtc = ! empty($validated['ends_at'])
             ? parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString()
             : null;
+        $baseName = trim((string) $validated['base_name']);
+        $firstIndex = $this->nextMassSlotIndexSeed(
+            (int) $validated['event_id'],
+            $startsAtUtc,
+            $resolvedPlaceId,
+            $baseName
+        );
 
-        for ($i = 1; $i <= $validated['count']; $i++) {
+        for ($i = 0; $i < (int) $validated['count']; $i++) {
             $slot = Slot::create([
                 'event_id' => $validated['event_id'],
-                'name' => sprintf('%s #%02d', $validated['base_name'], $i),
+                'name' => sprintf('%s #%02d', $baseName, $firstIndex + $i),
                 'starts_at' => $startsAtUtc,
                 'ends_at' => $endsAtUtc,
                 'requires_approval' => $requiresApproval,
