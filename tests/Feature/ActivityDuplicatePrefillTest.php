@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
+use App\Models\ActivityType;
+use App\Models\Event;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,5 +53,58 @@ class ActivityDuplicatePrefillTest extends TestCase
             ->assertSet('self_hosted_starts_at', null)
             ->assertSet('place_ids', [])
             ->assertSet('tag_ids', [(int) $tag->id]);
+    }
+
+    public function test_manage_activity_form_prefills_proposal_values_and_filters_activity_types_by_slot_intersection(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->create([
+            'starts_at' => now()->addDays(7),
+            'ends_at' => now()->addDays(8),
+        ]);
+
+        $typeA = ActivityType::factory()->create();
+        $typeB = ActivityType::factory()->create();
+        $typeC = ActivityType::factory()->create();
+
+        $slotOne = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+            'max_capacity' => 8,
+            'starts_at' => now()->addDays(7)->setTime(10, 0),
+            'ends_at' => now()->addDays(7)->setTime(11, 30),
+        ]);
+        $slotOne->activityTypes()->sync([$typeA->id, $typeB->id]);
+
+        $slotTwo = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+            'max_capacity' => null,
+            'starts_at' => now()->addDays(7)->setTime(12, 0),
+            'ends_at' => now()->addDays(7)->setTime(14, 30),
+        ]);
+        $slotTwo->activityTypes()->sync([$typeB->id, $typeC->id]);
+
+        $slotThree = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+            'max_capacity' => 12,
+            'starts_at' => now()->addDays(7)->setTime(15, 0),
+            'ends_at' => now()->addDays(7)->setTime(16, 0),
+        ]);
+        $slotThree->activityTypes()->sync([]);
+
+        Livewire::actingAs($user)
+            ->withQueryParams([
+                'proposal_event_id' => $event->id,
+                'proposal_slot_ids' => [$slotOne->id, $slotTwo->id, $slotThree->id],
+            ])
+            ->test(ManageActivityForm::class)
+            ->assertSet('hosting_mode', Activity::HOSTING_MODE_PROPOSED_TO_EVENT)
+            ->assertSet('max_participants', 11)
+            ->assertSet('duration_in_minutes', 60)
+            ->assertViewHas('activityTypes', function ($activityTypes) use ($typeB): bool {
+                return $activityTypes->pluck('id')->map(fn ($id) => (int) $id)->values()->all() === [(int) $typeB->id];
+            });
     }
 }

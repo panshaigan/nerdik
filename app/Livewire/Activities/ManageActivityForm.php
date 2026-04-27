@@ -9,6 +9,7 @@ use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\User;
@@ -40,6 +41,8 @@ class ManageActivityForm extends Component
     public ?int $hostingModeBeforeChange = null;
     public bool $initialProposalCancelled = false;
     public bool $proposalFieldsReadonly = false;
+    /** @var list<int>|null */
+    public ?array $proposal_allowed_activity_type_ids = null;
 
     protected array $queryString = [
         'tab' => ['except' => 'main-details'],
@@ -182,6 +185,8 @@ class ManageActivityForm extends Component
             }
         }
 
+        $this->applyProposalContextPrefill();
+
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
         $this->hostingModeBeforeChange = $this->hosting_mode;
@@ -249,6 +254,7 @@ class ManageActivityForm extends Component
         if ($normalized === null) {
             $this->proposal_preferred_start_time = null;
             $this->proposal_event_search = '';
+            $this->proposal_allowed_activity_type_ids = null;
 
             return;
         }
@@ -261,11 +267,18 @@ class ManageActivityForm extends Component
             $this->proposal_event_id = null;
             $this->proposal_preferred_start_time = null;
             $this->proposal_event_search = '';
+            $this->proposal_allowed_activity_type_ids = null;
 
             return;
         }
 
         $this->proposal_event_search = $this->proposalEventLabel($selected);
+        $this->applyProposalContextPrefill();
+    }
+
+    public function updatedProposalSlotIds(): void
+    {
+        $this->applyProposalContextPrefill();
     }
 
     public function updatingHostingMode(mixed $value): void
@@ -383,6 +396,7 @@ class ManageActivityForm extends Component
         $this->proposal_event_search = '';
         $this->proposal_preferred_start_time = null;
         $this->proposal_slot_ids = [];
+        $this->proposal_allowed_activity_type_ids = null;
     }
 
     private function resetSelfHostedFields(): void
@@ -555,10 +569,15 @@ class ManageActivityForm extends Component
      */
     protected function rules(): array
     {
+        $activityTypeRules = ['required', 'integer', 'exists:activity_types,id'];
+        if ($this->proposal_allowed_activity_type_ids !== null) {
+            $activityTypeRules[] = Rule::in($this->proposal_allowed_activity_type_ids);
+        }
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'activity_type_id' => ['required', 'integer', 'exists:activity_types,id'],
+            'activity_type_id' => $activityTypeRules,
             'min_participants' => [
                 'nullable',
                 'integer',
@@ -723,6 +742,93 @@ class ManageActivityForm extends Component
     }
 
     /**
+     * @return Collection<int, Slot>
+     */
+    protected function proposalEffectiveSlots(): Collection
+    {
+        if (! $this->proposal_event_id) {
+            return new Collection;
+        }
+
+        $query = Slot::query()
+            ->with('activityTypes:id')
+            ->where('event_id', $this->proposal_event_id)
+            ->whereNull('activity_id');
+
+        if ($this->proposal_slot_ids !== []) {
+            $query->whereIn('id', $this->proposal_slot_ids);
+        }
+
+        return $query
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    protected function applyProposalContextPrefill(): void
+    {
+        if ($this->editingActivityId !== null || $this->duplicateQuerySlug() !== null || ! $this->proposal_event_id) {
+            return;
+        }
+
+        $this->hosting_mode = Activity::HOSTING_MODE_PROPOSED_TO_EVENT;
+
+        $slots = $this->proposalEffectiveSlots();
+        if ($slots->isEmpty()) {
+            return;
+        }
+
+        $allowedTypeIds = $this->proposalAllowedActivityTypeIdsFromSlots($slots);
+        $this->proposal_allowed_activity_type_ids = $allowedTypeIds;
+        if ($this->activity_type_id !== null && ! in_array((int) $this->activity_type_id, $allowedTypeIds, true)) {
+            $this->activity_type_id = null;
+        }
+
+        $prefilledMaxParticipants = $slots
+            ->pluck('max_capacity')
+            ->filter(fn (mixed $capacity): bool => $capacity !== null)
+            ->map(fn (mixed $capacity): int => max(1, ((int) $capacity) - 1))
+            ->max();
+        if (is_int($prefilledMaxParticipants)) {
+            $this->max_participants = $prefilledMaxParticipants;
+        }
+
+        $prefilledDuration = $slots
+            ->map(function (Slot $slot): ?int {
+                if ($slot->starts_at === null || $slot->ends_at === null || $slot->ends_at->lte($slot->starts_at)) {
+                    return null;
+                }
+
+                return $slot->starts_at->diffInMinutes($slot->ends_at);
+            })
+            ->filter(fn (?int $minutes): bool => $minutes !== null && $minutes > 0)
+            ->min();
+        if (is_int($prefilledDuration)) {
+            $this->duration_in_minutes = $prefilledDuration;
+        }
+
+    }
+
+    /**
+     * @param  Collection<int, Slot>  $slots
+     * @return list<int>
+     */
+    protected function proposalAllowedActivityTypeIdsFromSlots(Collection $slots): array
+    {
+        $allActivityTypeIds = ActivityType::query()->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $allowed = $allActivityTypeIds;
+
+        foreach ($slots as $slot) {
+            $slotAllowed = $slot->activity_types_ids;
+            if ($slotAllowed === []) {
+                continue;
+            }
+            $allowed = array_values(array_intersect($allowed, $slotAllowed));
+        }
+
+        return $allowed;
+    }
+
+    /**
      * @return array{min: ?string, max: ?string, minUtc: ?\Carbon\Carbon, maxUtc: ?\Carbon\Carbon}
      */
     protected function proposalEventPreferredTimeBounds(): array
@@ -881,6 +987,11 @@ class ManageActivityForm extends Component
             ],
         ];
 
+        $activityTypesQuery = ActivityType::query()->orderBy('id');
+        if ($this->proposal_allowed_activity_type_ids !== null) {
+            $activityTypesQuery->whereIn('id', $this->proposal_allowed_activity_type_ids);
+        }
+
         return view('livewire.activities.manage-activity-form', [
             'activityTagPickerConfig' => $activityTagPickerConfig,
             'futureEvents' => $this->futureEventsForProposal(),
@@ -890,7 +1001,7 @@ class ManageActivityForm extends Component
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSuggestions' => $proposalEventSuggestions,
             'proposalEventSlots' => $proposalEventSlots,
-            'activityTypes' => ActivityType::query()->orderBy('id')->get(),
+            'activityTypes' => $activityTypesQuery->get(),
             'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
         ]);
     }
