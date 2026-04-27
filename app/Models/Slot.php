@@ -168,13 +168,13 @@ class Slot extends Model
     {
         $this->loadMissing('place.parent');
 
-        $start = $this->starts_at ? format_in_user_tz($this->starts_at, 'H:i') : '—';
-        $end = $this->ends_at ? format_in_user_tz($this->ends_at, 'H:i') : '—';
+        $start = $this->starts_at ? format_in_user_tz($this->starts_at, 'd M [H:i') : '—';
+        $end = $this->ends_at ? format_in_user_tz($this->ends_at, 'H:i]') : '—';
         $venueRoom = $this->place?->venueRoomLabel() ?? '—';
         $name = (string) $this->name;
         $cap = $this->max_capacity !== null ? (string) $this->max_capacity : '—';
 
-        return "{$start} - {$end} {$venueRoom}: {$name} {$cap}";
+        return "{$start} - {$end} {$venueRoom}: {$name}";
     }
 
     /**
