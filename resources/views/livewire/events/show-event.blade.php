@@ -118,6 +118,12 @@
             </x-ui.tabs-with-toolbar>
         </div>
 
+        @include('slots.partials.create-modal-shell', [
+            'event' => $event,
+            'slotMassVenues' => $slotMassVenues,
+            'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
+            'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+        ])
         @include('slots.partials.edit-modal-shell')
     </div>
 </div>
