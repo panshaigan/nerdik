@@ -84,18 +84,7 @@ class Slot extends Model
     public function setActivityTypes(array $types): void
     {
         $types = array_values(array_unique(array_filter(array_map('intval', $types), fn ($t) => $t > 0)));
-        $this->activityTypes()->delete();
-
-        if ($types === []) {
-            return;
-        }
-
-        $rows = array_map(fn ($t) => [
-            'slot_id' => $this->id,
-            'activity_type_id' => $t,
-        ], $types);
-
-        ActivityTypeSlot::query()->insert($rows);
+        $this->activityTypes()->sync($types);
     }
 
     /**

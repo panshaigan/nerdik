@@ -16,7 +16,7 @@
                     $freeSlotsAll = $event->slots->whereNull('activity_id')->values();
                     $freeSlots = $freeSlotsAll->filter(fn ($s) => $s->fitsProposalActivity($pa))->values();
                 @endphp
-                <div class="grid grid-cols-2 gap-2 sm:grid-cols-1">
+                <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                             <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 font-medium break-words">
