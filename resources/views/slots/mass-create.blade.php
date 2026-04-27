@@ -78,7 +78,7 @@
 
     <div class="space-y-4">
         @if ($embeddedInModal)
-            <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <h3
                     class="text-lg font-semibold leading-tight text-base-content"
                     @if ($editMode) id="slot-edit-modal-title" @endif
@@ -182,7 +182,7 @@
             </div>
         @endif
 
-        <div class="space-y-4">
+        <div class="">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <x-input
@@ -213,22 +213,6 @@
                 'grid grid-cols-1 gap-4',
                 'sm:grid-cols-2 sm:items-end' => ! $embeddedInModal,
             ])>
-                <div
-                    x-data="{ value: {{ (int) old('max_capacity', ($editMode && $slot) ? ($slot->max_capacity ?? 0) : 0) }} }"
-                    class="space-y-1"
-                >
-                    <label class="text-xs font-medium flex justify-between">
-                        <span>{{ __('ui.slots.max_capacity_optional') }}: <span class="font-semibold" x-text="value"></span></span>
-                    </label>
-                    <input type="hidden" name="max_capacity" :value="value">
-                    <x-range
-                        x-model.number="value"
-                        min="0"
-                        max="10"
-                        step="1"
-                        class="range-xs"
-                    />
-                </div>
                 @unless ($embeddedInModal)
                     <div class="flex flex-col gap-1 pb-0.5 sm:pb-1">
                         <div class="flex items-center gap-2">
@@ -247,7 +231,6 @@
                     <x-select
                         :label="__('ui.slots.activity_types')"
                         :placeholder="__('ui.slots.activity_types')"
-                        required
                         :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
                         placeholder-value=""
                         icon="o-squares-2x2"
@@ -264,7 +247,7 @@
             <x-field-error :messages="$errors->get('activity_types.*')" class="mt-2" />
         </div>
 
-        <div class="border-t border-base-300 pt-4 overflow-visible" data-slot-mass-place-root>
+        <div class="border-t border-base-300 pt-8 overflow-visible" data-slot-mass-place-root>
             @if ($lockedEvent && $slotMassVenues->isEmpty())
                 <p class="text-sm text-base-content/70">{{ __('ui.slots.no_places_on_event') }}</p>
             @else
@@ -351,6 +334,22 @@
                     @endif
                 </div>
             @endif
+            <div
+                x-data="{ value: {{ (int) old('max_capacity', ($editMode && $slot) ? ($slot->max_capacity ?? 0) : 0) }} }"
+                class="space-y-1 mt-4"
+            >
+                <label class="text-xs font-medium flex justify-between">
+                    <span>{{ __('ui.slots.max_capacity_optional') }}: <span class="font-semibold" x-text="value"></span></span>
+                </label>
+                <input type="hidden" name="max_capacity" :value="value">
+                <x-range
+                    x-model.number="value"
+                    min="0"
+                    max="20"
+                    step="1"
+                    class="range-xs"
+                />
+            </div>
         </div>
 
         <script type="application/json" data-slot-mass-config>@json($slotMassConfig)</script>
