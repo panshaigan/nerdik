@@ -271,41 +271,52 @@
                 <div class="grid grid-cols-1 gap-4 overflow-visible lg:grid-cols-2 lg:items-start">
                     <div class="min-w-0 overflow-visible">
                         <fieldset class="fieldset py-0">
-                            <legend class="fieldset-legend mb-0.5">{{ __('ui.slots.venue_optional') }}</legend>
-                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.venue_help') }}</p>
-
                             @if ($singleVenueLocked)
                                 <input
                                     type="hidden"
                                     name="venue_place_id"
                                     value="{{ $slotMassVenues->first()->id }}"
+                                    label="{{ __('ui.slots.venue_optional') }}"
+                                    inline
                                     data-slot-venue-id
                                 />
-                                <select class="select select-bordered w-full" disabled>
-                                    <option selected>{{ $slotMassVenues->first()->name }}</option>
-                                </select>
+                                <x-select
+                                    label="{{ __('ui.slots.venue_optional') }}"
+                                    :options="[[
+                                        'id' => $slotMassVenues->first()->id,
+                                        'name' => $slotMassVenues->first()->name,
+                                    ]]"
+                                    class="w-full"
+                                    label="{{ __('ui.slots.venue_optional') }}"
+                                    inline
+                                    disabled
+                                />
                             @elseif ($lockedEvent && $slotMassVenues->isNotEmpty())
-                                <select
+                                <x-select
                                     name="venue_place_id"
                                     id="venue_place_id"
-                                    class="select select-bordered w-full"
+                                    :options="$slotMassVenues
+                                        ->sortByDesc(fn ($v) => (string) $defaultVenuePlaceId === (string) $v->id)
+                                        ->map(fn ($v) => ['id' => $v->id, 'name' => $v->name.' ('.$v->type.')'])
+                                        ->values()
+                                        ->all()"
+                                    class="w-full"
+                                    label="{{ __('ui.slots.venue_optional') }}"
+                                    inline
                                     data-slot-venue-select
-                                >
-                                    @foreach ($slotMassVenues as $v)
-                                        <option value="{{ $v->id }}" @selected((string) $defaultVenuePlaceId === (string) $v->id)>
-                                            {{ $v->name }} ({{ $v->type }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                                />
                             @else
-                                <select
+                                <x-select
                                     name="venue_place_id"
                                     id="venue_place_id"
-                                    class="select select-bordered w-full"
+                                    :options="[]"
+                                    :placeholder="__('ui.common.none')"
+                                    placeholder-value=""
+                                    class="w-full"
+                                    label="{{ __('ui.slots.venue_optional') }}"
+                                    inline
                                     data-slot-venue-select
-                                >
-                                    <option value="">{{ __('ui.common.none') }}</option>
-                                </select>
+                                />
                             @endif
                             <x-field-error :messages="$errors->get('venue_place_id')" class="mt-2" />
                         </fieldset>
@@ -313,21 +324,20 @@
 
                     @if (($lockedEvent && $slotMassVenues->isNotEmpty()) || ! $lockedEvent)
                         <div class="min-w-0 overflow-visible" data-slot-room-block>
-                            <p class="fieldset-legend mb-0.5">{{ __('ui.slots.room_optional') }}</p>
-                            <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.room_help') }}</p>
                             <div class="relative overflow-visible">
                                 <x-input
-                                    label=""
+                                    label="{{ __('ui.slots.room_optional') }}"
+                                    placeholder="{{ __('ui.slots.room_optional') }}"
                                     name="new_room_name"
                                     type="text"
                                     value="{{ $defaultRoomName }}"
                                     error-field="new_room_name"
                                     autocomplete="off"
-                                    placeholder="{{ __('ui.slots.room_placeholder') }}"
                                     data-slot-room-input
                                     aria-autocomplete="list"
                                     aria-expanded="false"
                                     aria-controls="slot-room-suggestions-popup"
+                                    inline
                                 />
                                 <div
                                     id="slot-room-suggestions-popup"
