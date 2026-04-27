@@ -1,0 +1,243 @@
+<div id="ui-event-show-slots" class="ui-event-show-slots p-6" data-ui="event-show-slots">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h3 class="text-lg font-medium text-base-content">{{ __('ui.events.event_plan') }}</h3>
+        <div class="flex flex-wrap items-center justify-end gap-2">
+            @auth
+                @php
+                    $proposeActivityUrl = ! empty($proposalSlotIds)
+                        ? route('activities.create').'?'.http_build_query([
+                            'proposal_event_id' => $event->id,
+                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                        ])
+                        : route('activities.create', ['proposal_event_id' => $event->id]);
+                @endphp
+                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                    {{ __('ui.events.propose_activity') }}
+                </x-button>
+                @if ($canManageEvent)
+                    <x-button
+                        id="ui-event-show-create-slots"
+                        type="button"
+                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary ui-action ui-action-create-slots"
+                        onclick="document.getElementById('event-slots-create-modal')?.showModal()"
+                        :title="__('ui.slots.create_slots')"
+                        :aria-label="__('ui.slots.create_slots')"
+                        data-ui="event-show-create-slots"
+                    >
+                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </x-button>
+                @endif
+            @endauth
+        </div>
+    </div>
+    <ul class="space-y-6">
+        @forelse ($slotHourGroups as $group)
+            <li class="list-none">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    {{ $group['label'] }}
+                </p>
+                @if ($group['slots']->isNotEmpty())
+                    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($group['slots'] as $slot)
+                            @php
+                                $activity = $slot->activity;
+                                $participantsCount = $activity
+                                    ? $activity->physicalHeadcountForSlotCapacity()
+                                    : (filled($slot->max_capacity) ? $slot->max_capacity : null);
+                                $slotBadgeItems = [];
+                                if ($activity) {
+                                    $slotBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->build(
+                                        $activity,
+                                        \App\Domain\ActivityBadges\ActivityBadgeGroupConfig::eventSlotCard(),
+                                    );
+                                }
+                            @endphp
+                            <li
+                                @class([
+                                    'group relative rounded-lg border border-base-300 bg-base-100/50 p-4',
+                                    'transition hover:border-base-content/20' => $activity,
+                                    'cursor-pointer' => auth()->check() && ! $activity,
+                                    'ring-2 ring-primary/50 bg-primary/5' => auth()->check() && ! $activity && in_array($slot->id, $proposalSlotIds, true),
+                                ])
+                                @if (auth()->check() && ! $activity)
+                                    wire:click="toggleProposalSlot({{ $slot->id }})"
+                                @endif
+                            >
+                                @if ($activity)
+                                    <a
+                                        href="{{ route('activities.show', $activity) }}"
+                                        wire:navigate
+                                        class="absolute inset-0 z-[1] block cursor-pointer rounded-lg ring-inset ring-primary/0 transition group-hover:ring-2 group-hover:ring-primary/15"
+                                        aria-label="{{ $activity->name }}"
+                                    >
+                                    </a>
+                                @endif
+                                <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
+                                    <div class="min-w-0 flex-1 space-y-1.5">
+                                        @if ($activity)
+                                            <h4 class="text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
+                                            @if ($activity->isCancelled())
+                                                <div class="mt-1">
+                                                    <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>
+                                                </div>
+                                            @endif
+                                        @endif
+                                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+                                            <span @class(['font-medium text-base-content' => ! $activity, 'font-medium text-base-content/80' => $activity])>{{ $slot->name }}</span>
+                                            @if ($slot->starts_at || $slot->ends_at)
+                                                <span class="inline-flex items-center gap-1.5 tabular-nums text-base-content/70">
+                                                    <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>
+                                                        @if ($slot->starts_at && $slot->ends_at)
+                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/50"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                        @elseif ($slot->starts_at)
+                                                            {{ format_in_user_tz($slot->starts_at, 'H:i') }}
+                                                        @else
+                                                            {{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                        @endif
+                                                    </span>
+                                                </span>
+                                            @endif
+                                            @if ($participantsCount !== null)
+                                                <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">
+                                                    <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                                                    </svg>
+                                                    <span>{{ $participantsCount }}</span>
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
+                                            <p class="text-xs text-base-content/70">
+                                                {{ __('ui.events.enrollment_window_activity_spots_remaining', [
+                                                    'remaining' => $activeWindowRemainingByActivityId[(int) $activity->id],
+                                                    'max' => $activeEnrollmentWindow?->maxAllowedParticipantsPerActivityEffective(),
+                                                ]) }}
+                                            </p>
+                                        @endif
+                                        @if ($slot->place)
+                                            <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
+                                        @endif
+                                        @if ($activity)
+                                            <x-ui.activity-badge-group
+                                                :items="$slotBadgeItems"
+                                                class="mt-1"
+                                                data-ui="event-show-slot-badge-group"
+                                            />
+                                            @if ($activity->isCancelled() && $activity->cancel_reason)
+                                                <p class="mt-2 text-xs text-warning">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
+                                            @endif
+                                        @else
+                                            @php
+                                                $slotActivityTypes = collect($slot->activityTypes)
+                                                    ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                                                    ->filter()
+                                                    ->unique()
+                                                    ->values();
+                                            @endphp
+                                            @if ($slotActivityTypes->isNotEmpty())
+                                                <x-ui.activity-badge-group
+                                                    :items="app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotActivityTypes)"
+                                                    class="my-2"
+                                                    data-ui="event-show-slot-type-badges"
+                                                />
+                                            @endif
+                                        @endif
+                                    </div>
+                                    @auth
+                                        @php
+                                            $showDetachActivity = $canManageEvent && $activity;
+                                            $showSlotEditDelete = auth()->user()?->canModifyEntity($slot) ?? false;
+                                        @endphp
+                                        @if ($showDetachActivity || $showSlotEditDelete)
+                                            <div class="relative z-[3] flex shrink-0 gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
+                                                @if ($canManageEvent && $activity)
+                                                    @if ($activity->isCancelled())
+                                                        <x-button
+                                                            type="button"
+                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                                            :title="__('ui.activities.reopen_action')"
+                                                            :aria-label="__('ui.activities.reopen_action')"
+                                                            wire:click="reopenSlotActivity({{ $slot->id }})"
+                                                            wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                                        >
+                                                            ↺
+                                                        </x-button>
+                                                    @else
+                                                        <x-button
+                                                            type="button"
+                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                                            :title="__('ui.activities.cancel_action')"
+                                                            :aria-label="__('ui.activities.cancel_action')"
+                                                            wire:click="cancelSlotActivity({{ $slot->id }})"
+                                                            wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                                        >
+                                                            ×
+                                                        </x-button>
+                                                    @endif
+                                                @endif
+                                                @if ($showDetachActivity)
+                                                    <x-button
+                                                        type="button"
+                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                                        :title="__('ui.events.detach_activity_from_slot')"
+                                                        :aria-label="__('ui.events.detach_activity_from_slot')"
+                                                        wire:click="detachActivityFromSlot({{ $slot->id }})"
+                                                        wire:confirm="{{ __('ui.events.detach_activity_from_slot_confirm') }}"
+                                                    >
+                                                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622.621-.621A4.5 4.5 0 0 0 12.182 3.182l-4.5 4.5a4.5 4.5 0 0 0 0 6.364l1.757 1.757" />
+                                                        </svg>
+                                                    </x-button>
+                                                @endif
+                                                @if ($showSlotEditDelete)
+                                                    <x-button
+                                                        type="button"
+                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                        :title="__('ui.events.edit_slot')"
+                                                        :aria-label="__('ui.events.edit_slot')"
+                                                        onclick="window.openSlotEditModal?.({{ $slot->id }})"
+                                                    >
+                                                        <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
+                                                    </x-button>
+                                                    <x-button
+                                                        type="button"
+                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                                        :title="__('Delete')"
+                                                        :aria-label="__('Delete')"
+                                                        wire:click="deleteSlot({{ $slot->id }})"
+                                                        wire:confirm="{{ __('Are you sure?') }}"
+                                                    >
+                                                        <x-ui.icons.trash class="h-5 w-5 shrink-0" />
+                                                    </x-button>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endauth
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @elseif (! empty($group['boundary']))
+                    <ul class="grid grid-cols-1 gap-3">
+                        <li class="rounded-lg border border-base-300 bg-base-100/50 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                @if ($group['boundary'] === 'event_start')
+                                    {{ __('ui.events.event_boundary_starts') }}
+                                @else
+                                    {{ __('ui.events.event_boundary_ends') }}
+                                @endif
+                            </p>
+                        </li>
+                    </ul>
+                @endif
+            </li>
+        @empty
+            <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
+        @endforelse
+    </ul>
+</div>
