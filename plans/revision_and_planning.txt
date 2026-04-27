@@ -1,7 +1,3 @@
-event page:
-    - add tabs: /main /slots /proposals
-    - adjust enrollment windows
-
 slots
     - beautify
     - ensure the funcitonalities

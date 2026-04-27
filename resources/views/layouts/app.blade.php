@@ -25,15 +25,6 @@
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="border-b border-base-300 bg-base-100/90 shadow-sm backdrop-blur">
-                    <div class="max-w-7xl mx-auto py-6 px-4 text-base-content sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endif
-
             <div class="flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
                 <x-main full-width with-nav>
                     <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0">

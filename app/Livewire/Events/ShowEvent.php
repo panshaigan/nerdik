@@ -21,6 +21,11 @@ class ShowEvent extends Component
     use AuthorizesOwnership;
 
     public int $eventId;
+    public string $tab = 'description';
+
+    protected array $queryString = [
+        'tab' => ['except' => 'description'],
+    ];
 
     /** Bumped when slots change via async JS so the component re-renders. */
     public int $slotListVersion = 0;
@@ -41,8 +46,14 @@ class ShowEvent extends Component
     public function mount(Event $event): void
     {
         $this->eventId = $event->id;
+        $this->tab = $this->normalizeTab($this->tab);
         $event->load(['slots.activity']);
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
+    }
+
+    public function updatedTab(string $value): void
+    {
+        $this->tab = $this->normalizeTab($value);
     }
 
     public function toggleProposalSlot(int $slotId): void
@@ -333,5 +344,10 @@ class ShowEvent extends Component
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
             'slotHourGroups' => $slotHourGroups,
         ]);
+    }
+
+    private function normalizeTab(?string $value): string
+    {
+        return in_array($value, ['description', 'plan', 'proposals'], true) ? $value : 'description';
     }
 }
