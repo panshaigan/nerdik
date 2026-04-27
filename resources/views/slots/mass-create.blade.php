@@ -214,17 +214,18 @@
                 'sm:grid-cols-2 sm:items-end' => ! $embeddedInModal,
             ])>
                 <div
-                    x-data="{ value: @entangle('max_capacity') }"
+                    x-data="{ value: {{ (int) old('max_capacity', ($editMode && $slot) ? ($slot->max_capacity ?? 0) : 0) }} }"
                     class="space-y-1"
-                    x-init="$nextTick(() => value = value ?? 0)"
                 >
                     <label class="text-xs font-medium flex justify-between">
                         <span>{{ __('ui.slots.max_capacity_optional') }}: <span class="font-semibold" x-text="value"></span></span>
                     </label>
+                    <input type="hidden" name="max_capacity" :value="value">
                     <x-range
-                        x-model="value"
+                        x-model.number="value"
                         min="0"
                         max="10"
+                        step="1"
                         class="range-xs"
                     />
                 </div>
