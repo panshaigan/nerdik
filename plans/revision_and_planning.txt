@@ -1,22 +1,10 @@
-slots
-    - Morph comment markers around @if / @foreach etc. are what help Livewire’s DOM morphing in tricky cases.
-    Turning them off can make some conditional updates a bit less smooth. If anything odd shows up only after a
-     Livewire update on that page, the long-term fix is to split show-event into smaller Blade partials/components
-     so the template stays smaller with morph markers re-enabled.
-        0 Practical takeaway for later
-        Do: break the event screen into clear Blade partials or child components (info / slots / proposals), optionally behind tabs.
-        Consider: lazy proposals (and maybe slots) if those blocks are heavy.
-        Don’t assume: tabs alone shrink the runtime DOM unless you also defer rendering or split what gets sent.
-
 Search
 Dashboard
 My tags/places/events/activies
 
 UI/UX
 - participation screen must be live
-
 - ORGANIZCJA powinna być przypinywalna też do graczy.
-
 
 Notifications
     - review
