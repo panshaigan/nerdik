@@ -31,6 +31,7 @@ final class EventEnrollmentWindowFactory extends Factory
     public function definition(): array
     {
         return [
+            'name' => fake()->name,
             'event_id' => Event::factory(),
             'max_activities_per_user' => fake()->numberBetween(0, 2),
             'accumulative_activities' => fake()->boolean(),
