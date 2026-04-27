@@ -70,6 +70,20 @@ return [
             'allows_observers' => false,
             'minimum_age' => true,
         ],
+        'event_proposal' => [
+            'activity_type' => true,
+            'tag_category_keys' => [
+                TagCategory::KEY_GAME,
+                TagCategory::KEY_GENRE,
+                TagCategory::KEY_TOPIC,
+                TagCategory::KEY_FORMAT,
+                TagCategory::KEY_OTHER,
+                TagCategory::KEY_TRIGGER,
+            ],
+            'requires_approval' => true,
+            'allows_observers' => true,
+            'minimum_age' => true,
+        ],
     ],
 
     'semantic_by_tag_category' => [

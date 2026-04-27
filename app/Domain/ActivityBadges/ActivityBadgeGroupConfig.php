@@ -41,6 +41,11 @@ final readonly class ActivityBadgeGroupConfig
         return new self(ActivityBadgePreset::BrowseCard, null, null, $semanticByKindValue, $semanticByTagCategoryKeyValue);
     }
 
+    public static function eventProposal(array $semanticByKindValue = [], array $semanticByTagCategoryKeyValue = []): self
+    {
+        return new self(ActivityBadgePreset::EventProposal, null, null, $semanticByKindValue, $semanticByTagCategoryKeyValue);
+    }
+
     public function semanticFor(ActivityBadgeKind $kind): BadgeSemantic
     {
         $v = $this->semanticByKindValue[$kind->value] ?? null;
