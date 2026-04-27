@@ -210,7 +210,7 @@ return [
 
     // Disabled: very large Blade views (e.g. event show) exceed PHP PCRE limits in
     // SupportMorphAwareBladeCompilation (preg_match "regular expression is too large").
-    'inject_morph_markers' => false,
+    'inject_morph_markers' => true,
 
     /*
     |---------------------------------------------------------------------------
