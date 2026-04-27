@@ -1,3 +1,6 @@
+- search everything on top
+- should we allow users to delete their own tags?
+
 Features:
 	- (anyone) Sign up / Sign in:
         - email+password [MVP]

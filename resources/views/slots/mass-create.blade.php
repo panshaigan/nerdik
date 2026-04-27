@@ -163,6 +163,7 @@
                 <div class="relative sm:col-span-1">
                     <x-input
                         label="{{ __('ui.slots.base_name') }}"
+                        placeholder="{{ __('ui.slots.base_name') }}"
                         name="base_name"
                         type="text"
                         value="{{ old('base_name') }}"
@@ -173,6 +174,7 @@
                         aria-autocomplete="list"
                         aria-expanded="false"
                         aria-controls="slot-base-name-suggestions-popup"
+                        inline
                     />
                     <div
                         id="slot-base-name-suggestions-popup"
@@ -183,16 +185,20 @@
                     <script type="application/json" data-slot-base-name-suggestions-json>@json($slotBaseNameSuggestions)</script>
                 </div>
 
-                <div>
-                    <x-input
-                        label="{{ __('ui.slots.count') }}"
-                        name="count"
-                        type="number"
+                <div
+                    x-data="{ value: {{ (int) old('count', 1) }} }"
+                    class="space-y-1"
+                >
+                    <label class="text-xs font-medium flex justify-between">
+                        <span>{{ __('ui.slots.count') }}: <span class="font-semibold" x-text="value"></span></span>
+                    </label>
+                    <input type="hidden" name="count" :value="value">
+                    <x-range
+                        x-model.number="value"
                         min="1"
-                        max="100"
-                        value="{{ old('count', $countDefault) }}"
-                        error-field="count"
-                        required
+                        max="20"
+                        step="1"
+                        class="range-xs"
                     />
                 </div>
             </div>
@@ -225,6 +231,7 @@
                     />
                 </div>
             </div>
+
             <div @class([
                 'grid grid-cols-1 gap-4',
                 'sm:grid-cols-2 sm:items-end' => ! $embeddedInModal,
