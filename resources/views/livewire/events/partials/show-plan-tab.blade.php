@@ -32,11 +32,23 @@
                                     ? $activity->physicalHeadcountForSlotCapacity()
                                     : (filled($slot->max_capacity) ? $slot->max_capacity : null);
                                 $slotBadgeItems = [];
+                                $slotTypeBadgeItems = [];
                                 if ($activity) {
                                     $slotBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->build(
                                         $activity,
                                         \App\Domain\ActivityBadges\ActivityBadgeGroupConfig::eventSlotCard(),
                                     );
+                                } else {
+                                    $slotActivityTypes = collect($slot->activityTypes)
+                                        ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                                        ->filter()
+                                        ->unique()
+                                        ->values();
+
+                                    if ($slotActivityTypes->isNotEmpty()) {
+                                        $slotTypeBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)
+                                            ->buildActivityTypeChips($slotActivityTypes);
+                                    }
                                 }
                             @endphp
                             <li
@@ -116,28 +128,8 @@
                                             </p>
                                         @endif
                                         @if ($activity)
-                                            <x-ui.activity-badge-group
-                                                :items="$slotBadgeItems"
-                                                class="mt-1"
-                                                data-ui="event-show-slot-badge-group"
-                                            />
                                             @if ($activity->isCancelled() && $activity->cancel_reason)
                                                 <p class="mt-2 text-xs text-warning">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
-                                            @endif
-                                        @else
-                                            @php
-                                                $slotActivityTypes = collect($slot->activityTypes)
-                                                    ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
-                                                    ->filter()
-                                                    ->unique()
-                                                    ->values();
-                                            @endphp
-                                            @if ($slotActivityTypes->isNotEmpty())
-                                                <x-ui.activity-badge-group
-                                                    :items="app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotActivityTypes)"
-                                                    class="my-2"
-                                                    data-ui="event-show-slot-type-badges"
-                                                />
                                             @endif
                                         @endif
                                     </div>
@@ -212,6 +204,21 @@
                                         @endif
                                     @endauth
                                 </div>
+                                @if ($activity)
+                                    <div @class(['relative z-[2] mt-2', 'pointer-events-none' => $activity])>
+                                        <x-ui.activity-badge-group
+                                            :items="$slotBadgeItems"
+                                            data-ui="event-show-slot-badge-group"
+                                        />
+                                    </div>
+                                @elseif (! empty($slotTypeBadgeItems))
+                                    <div class="relative z-[2] mt-2">
+                                        <x-ui.activity-badge-group
+                                            :items="$slotTypeBadgeItems"
+                                            data-ui="event-show-slot-type-badges"
+                                        />
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
                     </ul>
