@@ -1,45 +1,45 @@
 <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            @if (session('status'))
-                <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
-            @endif
-            @if ($errors->any())
-                <div role="alert" class="alert alert-error text-sm">{{ $errors->first() }}</div>
-            @endif
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        @if (session('status'))
+            <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
+        @endif
+        @if ($errors->any())
+            <div role="alert" class="alert alert-error text-sm">{{ $errors->first() }}</div>
+        @endif
 
-            @php
-                $title = $event->name;
-            @endphp
+        @php
+            $title = $event->name;
+        @endphp
 
-            <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
-                <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
-                    <x-header
-                        title="{{ $title }}"
-                        class=""
-                        separator
-                        use-h1
-                    >
-                        <x-slot:title>
-                            <div class="flex items-center gap-2">
-                                <span>{{ $title }}</span>
-                            </div>
-                        </x-slot:title>
-                        <x-slot:subtitle>
-                            {{__('Placeholder')}}
-                        </x-slot:subtitle>
-                        <x-slot:actions>
-                            @if ($event->creator)
-                                <x-user-badge
-                                    :user="$event->creator"
-                                    size="md"
-                                    name-class="truncate text-end font-semibold"
-                                    data-ui="activity-show-host"
-                                    title="Creator"
-                                />
-                            @endif
-                        </x-slot:actions>
-                    </x-header>
-                </div>
+        <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
+            <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
+                <x-header
+                    title="{{ $title }}"
+                    class=""
+                    separator
+                    use-h1
+                >
+                    <x-slot:title>
+                        <div class="flex items-center gap-2">
+                            <span>{{ $title }}</span>
+                        </div>
+                    </x-slot:title>
+                    <x-slot:subtitle>
+                        {{__('Placeholder')}}
+                    </x-slot:subtitle>
+                    <x-slot:actions>
+                        @if ($event->creator)
+                            <x-user-badge
+                                :user="$event->creator"
+                                size="md"
+                                name-class="truncate text-end font-semibold"
+                                data-ui="activity-show-host"
+                                title="Creator"
+                            />
+                        @endif
+                    </x-slot:actions>
+                </x-header>
+            </div>
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
                 label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
@@ -53,37 +53,49 @@
                     @auth
                         @if ($canManageEvent)
                             <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
+                                @if ($canManageEvent)
+                                    <x-button
+                                        id="ui-event-show-create-slots"
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary ui-action ui-action-create-slots"
+                                        onclick="document.getElementById('event-slots-create-modal')?.showModal()"
+                                        :title="__('ui.slots.create_slots')"
+                                        :aria-label="__('ui.slots.create_slots')"
+                                        data-ui="event-show-create-slots"
+                                    >
+                                        <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                    </x-button>
+                                @endif
                                 <x-button
                                     :link="route('events.edit', $event)"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :title="__('Edit')"
+                                    :tooltip="__('Edit')"
                                     :aria-label="__('Edit').': '.$event->name"
                                     data-ui="event-show-edit-open"
-                                >
-                                    <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                                </x-button>
+                                    icon="o-pencil"
+                                />
                                 @if (auth()->user()?->canCreateEvents())
                                     <x-button
                                         :link="route('events.create', ['duplicate' => $event->slug])"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                        :title="__('ui.events.duplicate_action')"
+                                        :tooltip="__('ui.events.duplicate_action')"
                                         :aria-label="__('ui.events.duplicate_action').': '.$event->name"
                                         data-ui="event-show-duplicate-open"
-                                    >
-                                        <x-ui.icons.duplicate class="h-5 w-5 shrink-0" />
-                                    </x-button>
+                                        icon="o-square-2-stack"
+                                    />
                                 @endif
                                 <x-button
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                     wire:click="deleteEvent"
                                     wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
-                                    :title="__('Delete')"
+                                    :tooltip="__('Delete')"
                                     :aria-label="__('Delete').': '.$event->name"
                                     data-ui="event-show-delete"
-                                >
-                                    <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                </x-button>
+                                    icon="o-trash"
+                                />
                             </div>
                         @endif
                     @endauth
@@ -106,10 +118,6 @@
             </x-ui.tabs-with-toolbar>
         </div>
 
-            @include('slots.partials.edit-modal-shell')
-
-            <div class="flex gap-3">
-                <x-button :link="route('search.index')" class="btn-ghost btn-sm">{{ __('ui.events.back_to_search') }}</x-button>
-            </div>
-        </div>
+        @include('slots.partials.edit-modal-shell')
     </div>
+</div>

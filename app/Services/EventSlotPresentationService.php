@@ -41,16 +41,16 @@ class EventSlotPresentationService
         }
 
         $firstTimedSlot = $sorted->first(fn (Slot $s) => $s->starts_at !== null);
-        $prependEventStart = false;
-        if ($event->starts_at) {
-            if ($firstTimedSlot === null) {
-                $prependEventStart = true;
-            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
-                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
-                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
-                $prependEventStart = $eventHour !== $firstHour;
-            }
-        }
+        $prependEventStart = true;
+//        if ($event->starts_at) {
+//            if ($firstTimedSlot === null) {
+//                $prependEventStart = true;
+//            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
+//                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
+//                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
+//                $prependEventStart = $eventHour !== $firstHour;
+//            }
+//        }
 
         if ($prependEventStart) {
             array_unshift($out, [
