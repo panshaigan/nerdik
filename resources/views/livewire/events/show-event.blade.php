@@ -59,7 +59,7 @@
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary ui-action ui-action-create-slots"
                                         onclick="document.getElementById('event-slots-create-modal')?.showModal()"
-                                        :title="__('ui.slots.create_slots')"
+                                        :tooltip="__('ui.slots.create_slots')"
                                         :aria-label="__('ui.slots.create_slots')"
                                         data-ui="event-show-create-slots"
                                     >
