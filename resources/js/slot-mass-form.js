@@ -58,6 +58,9 @@ export function initSlotMassForm(form) {
 
     const oldVenue = config.oldVenuePlaceId ?? null;
     const isEdit = Boolean(config.isEdit);
+    const eventDatetimeBounds = config.eventDatetimeBounds && typeof config.eventDatetimeBounds === 'object'
+        ? config.eventDatetimeBounds
+        : {};
 
     const baseNameSuggestionsJson = massForm.querySelector('[data-slot-base-name-suggestions-json]');
     const nameSuggestionsJson = massForm.querySelector('[data-slot-name-suggestions-json]');
@@ -159,6 +162,8 @@ export function initSlotMassForm(form) {
     const venueSelect = massForm.querySelector('[data-slot-venue-select]');
     const roomInput = massForm.querySelector('[data-slot-room-input]');
     const roomPopup = massForm.querySelector('[data-slot-room-popup]');
+    const startsAtInput = massForm.querySelector('input[name="starts_at"]');
+    const endsAtInput = massForm.querySelector('input[name="ends_at"]');
 
     const noneLabel = config.strings?.none ?? '—';
 
@@ -258,6 +263,88 @@ export function initSlotMassForm(form) {
         }
     }
 
+    function parseLocalDateTime(value) {
+        if (!value) {
+            return null;
+        }
+        const parsed = new Date(value);
+
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatLocalDateTime(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function getCurrentEventId() {
+        if (!eventSelect) {
+            const hiddenEventInput = massForm.querySelector('input[name="event_id"]');
+
+            return hiddenEventInput?.value || '';
+        }
+
+        return String(eventSelect.value || '');
+    }
+
+    function getCurrentEventBounds() {
+        const eventId = getCurrentEventId();
+        if (!eventId) {
+            return null;
+        }
+
+        return eventDatetimeBounds[eventId] || eventDatetimeBounds[Number.parseInt(eventId, 10)] || null;
+    }
+
+    function applyEventDatetimeLimits() {
+        const bounds = getCurrentEventBounds();
+        const eventStart = bounds?.starts_at || '';
+        const eventEnd = bounds?.ends_at || '';
+        if (startsAtInput) {
+            startsAtInput.min = eventStart;
+            startsAtInput.max = eventEnd;
+        }
+        if (endsAtInput) {
+            endsAtInput.min = eventStart;
+            endsAtInput.max = eventEnd;
+        }
+    }
+
+    function defaultStartsAtIfEmpty() {
+        if (!startsAtInput || startsAtInput.value) {
+            return;
+        }
+        const bounds = getCurrentEventBounds();
+        if (bounds?.starts_at) {
+            startsAtInput.value = bounds.starts_at;
+        }
+    }
+
+    function defaultEndsAtIfEmpty() {
+        if (!endsAtInput || endsAtInput.value) {
+            return;
+        }
+
+        const bounds = getCurrentEventBounds();
+        const baseDate = parseLocalDateTime(startsAtInput?.value || '') || parseLocalDateTime(bounds?.starts_at || '');
+        if (!baseDate) {
+            return;
+        }
+
+        const defaultEnd = new Date(baseDate.getTime() + (4 * 60 * 60 * 1000));
+        let finalEnd = defaultEnd;
+        const eventEndDate = parseLocalDateTime(bounds?.ends_at || '');
+        if (eventEndDate && finalEnd > eventEndDate) {
+            finalEnd = eventEndDate;
+        }
+        endsAtInput.value = formatLocalDateTime(finalEnd);
+    }
+
     venueSelect?.addEventListener('change', () => {
         if (roomInput) {
             roomInput.value = '';
@@ -271,6 +358,7 @@ export function initSlotMassForm(form) {
             roomInput.value = '';
         }
         fillVenueOptionsForEvent(String(eventSelect.value));
+        applyEventDatetimeLimits();
         hideRoomPopupIfAny();
     });
 
@@ -288,6 +376,12 @@ export function initSlotMassForm(form) {
     if (roomInput && roomPopup) {
         wireRoomAutocomplete(roomInput, roomPopup, massForm, () => roomList);
     }
+
+    applyEventDatetimeLimits();
+    startsAtInput?.addEventListener('focus', defaultStartsAtIfEmpty);
+    startsAtInput?.addEventListener('click', defaultStartsAtIfEmpty);
+    endsAtInput?.addEventListener('focus', defaultEndsAtIfEmpty);
+    endsAtInput?.addEventListener('click', defaultEndsAtIfEmpty);
 }
 
 /**

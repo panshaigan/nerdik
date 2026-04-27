@@ -33,6 +33,22 @@
             'none' => __('ui.common.none'),
         ],
     ];
+    $eventDatetimeBounds = [];
+    if (isset($events) && $events) {
+        foreach ($events as $ev) {
+            $eventDatetimeBounds[(int) $ev->id] = [
+                'starts_at' => $ev->starts_at ? format_in_user_tz($ev->starts_at, 'Y-m-d\TH:i') : null,
+                'ends_at' => $ev->ends_at ? format_in_user_tz($ev->ends_at, 'Y-m-d\TH:i') : null,
+            ];
+        }
+    }
+    if ($lockedEvent) {
+        $eventDatetimeBounds[(int) $lockedEvent->id] = [
+            'starts_at' => $lockedEvent->starts_at ? format_in_user_tz($lockedEvent->starts_at, 'Y-m-d\TH:i') : null,
+            'ends_at' => $lockedEvent->ends_at ? format_in_user_tz($lockedEvent->ends_at, 'Y-m-d\TH:i') : null,
+        ];
+    }
+    $slotMassConfig['eventDatetimeBounds'] = $eventDatetimeBounds;
     $defaultRequiresApproval = ($editMode && $slot) ? (bool) $slot->requires_approval : true;
     $requiresApprovalChecked = filter_var(
         old('requires_approval', $defaultRequiresApproval ? '1' : '0'),

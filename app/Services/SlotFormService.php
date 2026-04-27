@@ -20,7 +20,7 @@ class SlotFormService
 
     private const MASS_CREATE_COUNT_MAX = 100;
 
-    private const SLOT_MAX_CAPACITY_MIN = 1;
+    private const SLOT_MAX_CAPACITY_MIN = 0;
 
     /**
      * Venues and room lists for the mass-create form when the event is not locked.
@@ -241,6 +241,17 @@ class SlotFormService
         ];
     }
 
+    private function normalizeMaxCapacity(mixed $maxCapacity): ?int
+    {
+        if ($maxCapacity === null || $maxCapacity === '') {
+            return null;
+        }
+
+        $normalized = (int) $maxCapacity;
+
+        return $normalized === 0 ? null : $normalized;
+    }
+
     /**
      * Persist mass-created slots. Throws {@see ValidationException} on validation / business-rule failure.
      */
@@ -293,7 +304,7 @@ class SlotFormService
                 'ends_at' => $endsAtUtc,
                 'requires_approval' => $requiresApproval,
                 'place_id' => $resolvedPlaceId,
-                'max_capacity' => $validated['max_capacity'] ?? null,
+                'max_capacity' => $this->normalizeMaxCapacity($validated['max_capacity'] ?? null),
             ]);
 
             if (! empty($activityTypes)) {
@@ -351,6 +362,7 @@ class SlotFormService
         } else {
             $data['ends_at'] = null;
         }
+        $data['max_capacity'] = $this->normalizeMaxCapacity($data['max_capacity'] ?? null);
 
         DB::transaction(function () use ($slot, $data, $resolvedPlaceId, $activityTypes): void {
             $data['place_id'] = $resolvedPlaceId;
