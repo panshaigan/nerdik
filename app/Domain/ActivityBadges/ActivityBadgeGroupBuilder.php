@@ -176,6 +176,7 @@ class ActivityBadgeGroupBuilder
             ActivityBadgePreset::ActivityHero => 'activity_hero',
             ActivityBadgePreset::EventSlotCard => 'event_slot',
             ActivityBadgePreset::BrowseCard => 'browse_card',
+            ActivityBadgePreset::EventProposal => 'event_proposal',
         };
     }
 

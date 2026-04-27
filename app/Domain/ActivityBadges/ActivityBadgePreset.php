@@ -12,4 +12,7 @@ enum ActivityBadgePreset: int
 
     /** Browse / search listing card: taxonomy tags only (all categories on activity). */
     case BrowseCard = 3;
+
+    /** Event pending proposal row: compact tags and meta under activity title. */
+    case EventProposal = 4;
 }
