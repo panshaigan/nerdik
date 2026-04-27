@@ -42,7 +42,7 @@
                             <li
                                 @class([
                                     'group relative rounded-lg border border-base-300 bg-base-100/50 p-4',
-                                    'transition hover:border-base-content/20' => $activity,
+                                    'bg-base-200 transition hover:border-base-content/20' => $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity,
                                     'ring-2 ring-primary/50 bg-primary/5' => auth()->check() && ! $activity && in_array($slot->id, $proposalSlotIds, true),
                                 ])
@@ -96,6 +96,17 @@
                                                 </span>
                                             @endif
                                         </div>
+                                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+                                            @if ($slot->place)
+                                                <span class="inline-flex shrink-0 items-center gap-1.5 text-base-content/60">
+                                                    <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                                    </svg>
+                                                    <span>{{ $slot->place->venueRoomLabel() }}</span>
+                                                </span>
+                                            @endif
+                                        </div>
                                         @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
                                             <p class="text-xs text-base-content/70">
                                                 {{ __('ui.events.enrollment_window_activity_spots_remaining', [
@@ -103,9 +114,6 @@
                                                     'max' => $activeEnrollmentWindow?->maxAllowedParticipantsPerActivityEffective(),
                                                 ]) }}
                                             </p>
-                                        @endif
-                                        @if ($slot->place)
-                                            <p class="text-sm text-base-content/70">{{ $slot->place->venueRoomLabel() }}</p>
                                         @endif
                                         @if ($activity)
                                             <x-ui.activity-badge-group
