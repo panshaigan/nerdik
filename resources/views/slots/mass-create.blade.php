@@ -120,6 +120,7 @@
             <div class="relative">
                 <x-input
                     label="{{ __('ui.activities.name') }}"
+                    placeholder="{{ __('ui.activities.name') }}"
                     name="name"
                     type="text"
                     value="{{ old('name', $slot->name) }}"
@@ -130,6 +131,8 @@
                     aria-autocomplete="list"
                     aria-expanded="false"
                     aria-controls="slot-edit-name-suggestions-popup"
+                    icon="o-bookmark"
+                    inline
                 />
                 <div
                     id="slot-edit-name-suggestions-popup"
@@ -184,21 +187,25 @@
                 <div>
                     <x-input
                         label="{{ __('ui.slots.starts_at_optional') }}"
+                        placeholder="{{ __('ui.slots.starts_at_optional') }}"
                         name="starts_at"
                         type="datetime-local"
                         :step="$datetimeMinuteStepSeconds"
                         value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="starts_at"
+                        inline
                     />
                 </div>
                 <div>
                     <x-input
                         label="{{ __('ui.slots.ends_at_optional') }}"
+                        placeholder="{{ __('ui.slots.ends_at_optional') }}"
                         name="ends_at"
                         type="datetime-local"
                         :step="$datetimeMinuteStepSeconds"
                         value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="ends_at"
+                        inline
                     />
                 </div>
             </div>
@@ -206,14 +213,19 @@
                 'grid grid-cols-1 gap-4',
                 'sm:grid-cols-2 sm:items-end' => ! $embeddedInModal,
             ])>
-                <div>
-                    <x-input
-                        label="{{ __('ui.slots.max_capacity_optional') }}"
-                        name="max_capacity"
-                        type="number"
-                        min="1"
-                        value="{{ old('max_capacity', $editMode && $slot ? $slot->max_capacity : '') }}"
-                        error-field="max_capacity"
+                <div
+                    x-data="{ value: @entangle('max_capacity') }"
+                    class="space-y-1"
+                    x-init="$nextTick(() => value = value ?? 0)"
+                >
+                    <label class="text-xs font-medium flex justify-between">
+                        <span>{{ __('ui.slots.max_capacity_optional') }}: <span class="font-semibold" x-text="value"></span></span>
+                    </label>
+                    <x-range
+                        x-model="value"
+                        min="0"
+                        max="10"
+                        class="range-xs"
                     />
                 </div>
                 @unless ($embeddedInModal)
@@ -230,16 +242,18 @@
 
         <div data-slot-activity-types-root>
             <fieldset class="fieldset py-0">
-                <legend class="fieldset-legend mb-1 font-medium">{{ __('ui.slots.activity_types') }}</legend>
-                <p class="mb-2 text-xs text-base-content/70">{{ __('ui.slots.activity_types_help') }}</p>
-
                 <div class="relative z-10">
-                    <select data-slot-activity-add class="select select-bordered w-full">
-                        <option value="">{{ __('ui.slots.add_activity_type') }}</option>
-                        @foreach ($activityTypes as $type)
-                            <option value="{{ $type->id }}">{{ __('ui.activities.types.'.$type->slug) }}</option>
-                        @endforeach
-                    </select>
+                    <x-select
+                        :label="__('ui.slots.activity_types')"
+                        :placeholder="__('ui.slots.activity_types')"
+                        required
+                        :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
+                        placeholder-value=""
+                        icon="o-squares-2x2"
+                        inline
+                        data-slot-activity-add
+                    />
+
                 </div>
 
                 <div data-slot-activity-chips class="mt-2 flex min-h-[1.5rem] flex-wrap gap-2"></div>

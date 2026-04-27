@@ -23,6 +23,7 @@
 @layer base {
     :root {
         --brand-primary:           oklch(66.6% 0.190 305); /* violet — unchanged */
+        --brand-primary-dark:      oklch(from var(--brand-primary) calc(l - 0.12) c h);
         --brand-primary-content:   oklch(98%  0.01  305);
 
         --brand-secondary:         oklch(66.6% 0.105 205); /* sky-blue — unchanged */
@@ -182,12 +183,8 @@
 
 .bg-sample5 {
     background:
-    radial-gradient(circle at 30% 70%, var(--brand-accent), transparent 60%),
-    radial-gradient(circle at 70% 30%, var(--brand-secondary), transparent 60%),
-    repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(99, 102, 241, 0.15) 5px, rgba(99, 102, 241, 0.15) 6px, transparent 6px, transparent 15px),
-    repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(99, 102, 241, 0.15) 5px, rgba(99, 102, 241, 0.15) 6px, transparent 6px, transparent 15px),
-    repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(139, 92, 246, 0.12) 10px, rgba(139, 92, 246, 0.12) 11px, transparent 11px, transparent 30px),
-    repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(139, 92, 246, 0.12) 10px, rgba(139, 92, 246, 0.12) 11px, transparent 11px, transparent 30px)
+    radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
+    radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
     var(--brand-base-300-light);
 
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat;
@@ -195,12 +192,8 @@
 
 [data-theme="dark"] .bg-sample5 {
     background:
-        radial-gradient(circle at 30% 70%, var(--brand-accent), transparent 60%),
-        radial-gradient(circle at 70% 30%, var(--brand-secondary), transparent 60%),
-        repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(99, 102, 241, 0.15) 5px, rgba(99, 102, 241, 0.15) 6px, transparent 6px, transparent 15px),
-        repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(99, 102, 241, 0.15) 5px, rgba(99, 102, 241, 0.15) 6px, transparent 6px, transparent 15px),
-        repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(139, 92, 246, 0.12) 10px, rgba(139, 92, 246, 0.12) 11px, transparent 11px, transparent 30px),
-        repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(139, 92, 246, 0.12) 10px, rgba(139, 92, 246, 0.12) 11px, transparent 11px, transparent 30px)
+        radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
+        radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
         var(--brand-base-300-dark);
 }
 
@@ -358,4 +351,22 @@ input[type="range"].thumb-only::-moz-range-thumb {
 }
 [data-theme="dark"] .participants-dual-range-fill {
     background-color: var(--brand-base-content-dark);
+}
+
+.mockup-browser .mockup-browser-toolbar:before {
+    box-shadow:
+        1.4em 0 var(--brand-neutral-dark),
+        2.8em 0 var(--brand-neutral-dark),
+        4.2em 0 var(--brand-neutral-dark);
+
+    opacity: 0.45;
+}
+
+.activity-attached.mockup-browser .mockup-browser-toolbar:before {
+    box-shadow:
+        1.4em 0 var(--brand-primary),
+        2.8em 0 var(--brand-primary),
+        4.2em 0 var(--brand-primary);
+
+    opacity: 0.85;
 }
