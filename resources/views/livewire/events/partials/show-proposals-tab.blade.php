@@ -19,7 +19,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 font-medium break-words">
+                            <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 font-medium break-words text-lg">
                                 {{ $pa->name }}
                             </a>
                             <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
