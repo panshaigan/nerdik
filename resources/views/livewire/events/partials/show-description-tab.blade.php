@@ -110,16 +110,6 @@
                 @if ($event->hostDisplayName())
                     <p class="text-xs text-white/90">{{ __('Organized by') }} {{ $event->hostDisplayName() }}</p>
                 @endif
-                <x-button
-                    type="button"
-                    x-data="{ copied: false }"
-                    x-on:click="navigator.clipboard.writeText('{{ url()->current() }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                    class="pointer-events-auto btn-ghost btn-xs mt-1 text-white"
-                    x-bind:title="copied ? @js(__('ui.events.copied')) : @js(__('ui.events.copy_link'))"
-                >
-                    <span x-show="!copied">{{ __('ui.events.share') }}</span>
-                    <span x-show="copied" x-cloak>{{ __('ui.events.link_copied') }}</span>
-                </x-button>
             </div>
         </div>
     </div>
