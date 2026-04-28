@@ -93,7 +93,47 @@ export function initTagSelector(root) {
 
     const browseTextSearch = cfg.browseTextSearch;
 
-    /** Browse only: set Livewire name/description query (`q`). Shown as a chip in Blade; input is only for typing. */
+    let browseTextQuery = String(browseTextSearch?.value || '').trim();
+
+    function renderBrowseTextChip() {
+        if (!browseTextSearch?.enabled) {
+            return;
+        }
+
+        chips.querySelectorAll('[data-ts-browse-text-chip="1"]').forEach((el) => el.remove());
+        if (!browseTextQuery) {
+            return;
+        }
+
+        const chip = document.createElement('span');
+        chip.dataset.tsBrowseTextChip = '1';
+        chip.className =
+            'inline-flex max-w-full items-center gap-1 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 mt-2 text-xs text-base-content';
+        chip.title = cfg.strings?.browseTextSearchHint || 'Text search';
+
+        const label = document.createElement('span');
+        label.className = 'sr-only';
+        label.textContent = `${cfg.strings?.browseTextSearchLabel || 'Text search'}:`;
+
+        const value = document.createElement('span');
+        value.className = 'min-w-0 truncate';
+        value.textContent = browseTextQuery;
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'btn-ghost btn-xs btn-square min-h-0 h-5 w-5 shrink-0 p-0 opacity-70 hover:opacity-100';
+        remove.setAttribute('aria-label', cfg.strings?.browseTextSearchRemove || 'Remove text search');
+        remove.textContent = '×';
+        remove.addEventListener('click', () => {
+            setBrowseTextQuery('');
+            renderBrowseTextChip();
+        });
+
+        chip.append(label, value, remove);
+        chips.appendChild(chip);
+    }
+
+    /** Browse only: set Livewire name/description query (`q`) and keep inline text chip in sync. */
     function setBrowseTextQuery(raw) {
         if (!browseTextSearch?.enabled) {
             return;
@@ -111,10 +151,13 @@ export function initTagSelector(root) {
         const get =
             typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null;
         const val = String(raw ?? '').trim();
+        browseTextQuery = val;
         if (get && get(prop) === val) {
+            renderBrowseTextChip();
             return;
         }
         wire.set(prop, val);
+        renderBrowseTextChip();
     }
 
     /** Clear typing field only (does not change committed text search `q`). */
@@ -281,6 +324,7 @@ export function initTagSelector(root) {
                 chip.querySelector('button')?.addEventListener('click', () => removeTag(id));
                 chips.appendChild(chip);
             });
+        renderBrowseTextChip();
         updateHiddenInputs();
         emitTagsChange();
     }
