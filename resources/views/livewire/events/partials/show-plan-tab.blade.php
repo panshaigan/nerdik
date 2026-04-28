@@ -69,7 +69,7 @@
                             @endphp
                             <li
                                 @class([
-                                    'mockup-browser w-full group relative rounded-lg border border-base-300 bg-base-100/50',
+                                    'slot-browser-card w-full group relative rounded-lg border border-base-300 bg-base-100/50',
                                     'bg-base-300 transition hover:border-base-content/20 activity-attached' => $activity,
                                     'cursor-pointer bg-base-200' => auth()->check() && ! $activity,
                                 ])
@@ -79,7 +79,7 @@
                                 @endif
                             >
 
-                                <div class="mockup-browser-toolbar flex items-center">
+                                <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
                                     @auth
                                         @php

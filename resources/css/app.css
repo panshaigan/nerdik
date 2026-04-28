@@ -353,20 +353,37 @@ input[type="range"].thumb-only::-moz-range-thumb {
     background-color: var(--brand-base-content-dark);
 }
 
-.mockup-browser .mockup-browser-toolbar:before {
+.slot-browser-card {
+    overflow: visible;
+}
+
+.slot-browser-card .slot-browser-card-toolbar {
+    position: relative;
+    min-height: 2rem;
+    padding: 0.5rem 1rem 0.35rem;
+}
+
+.slot-browser-card .slot-browser-card-toolbar:before {
+    content: "";
+    position: absolute;
+    top: 0.8rem;
+    left: 1rem;
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 9999px;
+    background: var(--brand-neutral-dark);
     box-shadow:
         1.4em 0 var(--brand-neutral-dark),
         2.8em 0 var(--brand-neutral-dark),
         4.2em 0 var(--brand-neutral-dark);
-
     opacity: 0.45;
 }
 
-.activity-attached.mockup-browser .mockup-browser-toolbar:before {
+.activity-attached.slot-browser-card .slot-browser-card-toolbar:before {
+    background: var(--brand-primary);
     box-shadow:
         1.4em 0 var(--brand-primary),
         2.8em 0 var(--brand-primary),
         4.2em 0 var(--brand-primary);
-
     opacity: 0.85;
 }
