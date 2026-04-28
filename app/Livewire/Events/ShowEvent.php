@@ -135,7 +135,17 @@ class ShowEvent extends Component
             return;
         }
 
-        $decisions->detachActivityFromSlot($event, $slot);
+        try {
+            $decisions->detachActivityFromSlot($event, $slot);
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $messages) {
+                foreach ($messages as $message) {
+                    $this->addError('detachActivityFromSlot', $message);
+                }
+            }
+
+            return;
+        }
 
         $this->refreshAfterSlotMutation();
         session()->flash('status', __('ui.status.activity_detached_from_slot'));

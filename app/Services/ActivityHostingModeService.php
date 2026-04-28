@@ -156,7 +156,12 @@ class ActivityHostingModeService
 
             $activity = Activity::query()->find($activityId);
             if ($activity !== null) {
-                $this->markProposedToEvent($activity);
+                $activity->update([
+                    'hosting_mode' => Activity::HOSTING_MODE_PROPOSED_TO_EVENT,
+                    'place_id' => null,
+                    'starts_at' => null,
+                    'ends_at' => null,
+                ]);
             }
         });
 
