@@ -1,5 +1,4 @@
-Dashboard
-My tags/places/events/activies
+places/events/activies
 
 UI/UX
 - participation screen must be live
