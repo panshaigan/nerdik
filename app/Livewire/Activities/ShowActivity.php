@@ -143,6 +143,10 @@ class ShowActivity extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $eventId = $activity->slot?->event_id;
+        if ($eventId !== null) {
+            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
+        }
         $this->success(__('ui.interests.added_activity'));
     }
 

@@ -88,30 +88,6 @@
                                         @endphp
                                         @if ($showDetachActivity || $showSlotEditDelete || $activity)
                                             <div class="flex justify-end relative z-[3] gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
-                                                @if ($activity)
-                                                    @php
-                                                        $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
-                                                    @endphp
-                                                    @if ($isInterestedInActivity)
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="removeActivityInterest({{ (int) $activity->id }})"
-                                                            class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                            :tooltip="__('ui.interests.remove_from_interests')"
-                                                            data-ui="event-show-slot-interest-remove"
-                                                            icon="s-star"
-                                                        />
-                                                    @else
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="addActivityInterest({{ (int) $activity->id }})"
-                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                            :tooltip="__('ui.interests.add_to_interests')"
-                                                            data-ui="event-show-slot-interest-add"
-                                                            icon="o-star"
-                                                        />
-                                                    @endif
-                                                @endif
                                                 @if ($showSlotEditDelete)
                                                     <x-button
                                                         type="button"
@@ -162,6 +138,30 @@
                                                     >
                                                         <x-ui.icons.trash class="h-5 w-5 shrink-0" />
                                                     </x-button>
+                                                    @if ($activity)
+                                                        @php
+                                                            $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
+                                                        @endphp
+                                                        @if ($isInterestedInActivity)
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="removeActivityInterest({{ (int) $activity->id }})"
+                                                                class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                                                :tooltip-bottom="__('ui.interests.remove_from_interests')"
+                                                                data-ui="event-show-slot-interest-remove"
+                                                                icon="s-star"
+                                                            />
+                                                        @else
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="addActivityInterest({{ (int) $activity->id }})"
+                                                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                                                :tooltip-bottom="__('ui.interests.add_to_interests')"
+                                                                data-ui="event-show-slot-interest-add"
+                                                                icon="o-star"
+                                                            />
+                                                        @endif
+                                                    @endif
                                                 @endif
                                             </div>
                                         @endif
