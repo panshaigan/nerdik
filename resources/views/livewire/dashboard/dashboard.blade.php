@@ -7,15 +7,6 @@
         <section class="space-y-4">
             <div class="rounded-2xl border border-base-300 bg-base-100/90 p-6 shadow-xl">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div class="space-y-3">
-                        <span class="inline-flex rounded-full bg-success/20 px-3 py-1 text-xs font-semibold text-success-content">
-                            Completed
-                        </span>
-                        <h3 class="text-3xl font-bold tracking-tight">
-                            Sesje RPG w Mistrzu i Malgorzacie - luty 2026
-                        </h3>
-                        <p class="text-sm opacity-70">Sunday, February 8 · 13:30-17:30</p>
-                    </div>
                     <div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
                         <div class="rounded-xl bg-primary/15 p-4 text-center">
                             <p class="text-3xl font-bold text-primary">{{ $myActivities->count() }}</p>
@@ -29,19 +20,6 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-                <div class="flex-1">
-                    <x-input
-                        type="text"
-                        icon="o-magnifying-glass"
-                        placeholder="Filter by title or host..."
-                        class="w-full"
-                        :omit-error="true"
-                    />
-                </div>
-                <x-button type="button" class="btn-outline">Filters</x-button>
-            </div>
-
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @forelse ($myActivities->take(3) as $activity)
                     <x-cards.activity-card :activity="$activity" />
@@ -52,12 +30,6 @@
                 @endforelse
             </div>
         </section>
-
-        <div class="overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
-            <div class="p-6 text-base-content">
-                {{ __("You're logged in!") }}
-            </div>
-        </div>
 
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow">
