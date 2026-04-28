@@ -1,4 +1,4 @@
-places/events/activies
+places
 profile
 
 UI/UX

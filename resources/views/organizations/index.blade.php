@@ -9,7 +9,22 @@
          * can leave the edit view empty. Re-run after the modal is visible (create + edit).
          */
         window.refreshNerdikOrgModalTinyMCE = function () {
-            if (typeof tinymce === 'undefined' || !tinymce.editors?.length) {
+            if (typeof tinymce === 'undefined') {
+                return;
+            }
+            if (Array.isArray(tinymce.editors) && tinymce.editors.length > 0) {
+                [...tinymce.editors].forEach((ed) => {
+                    const target = ed.targetElm;
+                    if (!target || !target.isConnected) {
+                        try {
+                            ed.remove();
+                        } catch (e) {
+                            console.warn('TinyMCE orphan cleanup', e);
+                        }
+                    }
+                });
+            }
+            if (!tinymce.editors?.length) {
                 return;
             }
             tinymce.editors.forEach((ed) => {
@@ -33,6 +48,31 @@
                 }
             });
         };
+
+        window.destroyNerdikOrgModalTinyMCE = function () {
+            if (typeof tinymce === 'undefined' || !Array.isArray(tinymce.editors) || tinymce.editors.length === 0) {
+                return;
+            }
+            [...tinymce.editors].forEach((ed) => {
+                const container = ed.getContainer?.();
+                if (!container || !container.closest('dialog[data-org-modal]')) {
+                    return;
+                }
+                try {
+                    ed.remove();
+                } catch (e) {
+                    console.warn('TinyMCE modal destroy', e);
+                }
+            });
+        };
+
+        document.addEventListener('close', (e) => {
+            const modal = e.target?.closest?.('dialog[data-org-modal]');
+            if (!modal) {
+                return;
+            }
+            window.destroyNerdikOrgModalTinyMCE?.();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Enter') {
