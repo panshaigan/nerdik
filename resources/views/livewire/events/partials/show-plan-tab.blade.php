@@ -72,13 +72,16 @@
                                     'slot-browser-card w-full group relative rounded-lg border border-base-300 bg-base-100/50',
                                     'bg-base-300 transition hover:border-base-content/20 activity-attached' => $activity,
                                     'cursor-pointer bg-base-200' => auth()->check() && ! $activity,
+                                    'indicator' => !$activity,
                                 ])
                                 @if (auth()->check() && ! $activity)
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
                                     :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ring-2 ring-primary/50 bg-primary/5' : ''"
                                 @endif
                             >
-
+                                @if (!$activity)
+                                    <span class="indicator-item badge badge-primary">Free</span>
+                                @endif
                                 <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
                                     @auth
@@ -92,17 +95,16 @@
                                                     <x-button
                                                         type="button"
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                                        :tooltip-bottom="__('ui.events.edit_slot')"
+                                                        :tooltip="__('ui.events.edit_slot')"
                                                         :aria-label="__('ui.events.edit_slot')"
                                                         onclick="window.openSlotEditModal?.({{ $slot->id }})"
-                                                    >
-                                                        <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                                                    </x-button>
+                                                        icon="o-pencil"
+                                                    />
                                                     @if ($showDetachActivity)
                                                         <x-button
                                                             type="button"
                                                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
-                                                            :tooltip-bottom="__('ui.events.detach_activity_from_slot')"
+                                                            :tooltip="__('ui.events.detach_activity_from_slot')"
                                                             :aria-label="__('ui.events.detach_activity_from_slot')"
                                                             wire:click="confirmDetachActivityFromSlot({{ $slot->id }})"
                                                             icon="o-link-slash"
@@ -113,7 +115,7 @@
                                                             <x-button
                                                                 type="button"
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
-                                                                :tooltip-bottom="__('ui.activities.reopen_action')"
+                                                                :tooltip="__('ui.activities.reopen_action')"
                                                                 :aria-label="__('ui.activities.reopen_action')"
                                                                 wire:click="confirmReopenSlotActivity({{ $slot->id }})"
                                                                 icon="o-arrow-uturn-left"
@@ -122,7 +124,7 @@
                                                             <x-button
                                                                 type="button"
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                                                :tooltip-bottom="__('ui.activities.cancel_action')"
+                                                                :tooltip="__('ui.activities.cancel_action')"
                                                                 :aria-label="__('ui.activities.cancel_action')"
                                                                 wire:click="confirmCancelSlotActivity({{ $slot->id }})"
                                                                 icon="o-x-circle"
@@ -132,12 +134,11 @@
                                                     <x-button
                                                         type="button"
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                                        :tooltip-bottom="__('Delete')"
+                                                        :tooltip="__('Delete')"
                                                         :aria-label="__('Delete')"
                                                         wire:click="confirmDeleteSlot({{ $slot->id }})"
-                                                    >
-                                                        <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                                                    </x-button>
+                                                        icon="o-trash"
+                                                    />
                                                     @if ($activity)
                                                         @php
                                                             $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
@@ -147,7 +148,7 @@
                                                                 type="button"
                                                                 wire:click="removeActivityInterest({{ (int) $activity->id }})"
                                                                 class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                                :tooltip-bottom="__('ui.interests.remove_from_interests')"
+                                                                :tooltip="__('ui.interests.remove_from_interests')"
                                                                 data-ui="event-show-slot-interest-remove"
                                                                 icon="s-star"
                                                             />
@@ -156,7 +157,7 @@
                                                                 type="button"
                                                                 wire:click="addActivityInterest({{ (int) $activity->id }})"
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                                :tooltip-bottom="__('ui.interests.add_to_interests')"
+                                                                :tooltip="__('ui.interests.add_to_interests')"
                                                                 data-ui="event-show-slot-interest-add"
                                                                 icon="o-star"
                                                             />
