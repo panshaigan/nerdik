@@ -4,16 +4,18 @@
     <div>
         <x-input
             label="{{ __('Name') }}"
+            placeholder="{{ __('Name') }}"
             name="name"
             type="text"
             value="{{ old('name', $organization->name ?? '') }}"
             error-field="name"
             required
+            inline
         />
     </div>
 
     <div>
-        <x-textarea label="{{ __('Description (optional)') }}" name="description" error-field="description" rows="3">{{ old('description', $organization->description ?? '') }}</x-textarea>
+        <x-textarea label="{{ __('Description') }}" name="description" error-field="description" rows="3">{{ old('description', $organization->description ?? '') }}</x-textarea>
     </div>
 </div>
 
