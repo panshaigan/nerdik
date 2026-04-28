@@ -14,10 +14,19 @@ trait WithUiConfirmModal
 
     public ?int $pendingParticipantId = null;
 
-    protected function openConfirm(string $action, string $title, string $message, ?int $participantId = null): void
+    public ?int $pendingContextId = null;
+
+    protected function openConfirm(
+        string $action,
+        string $title,
+        string $message,
+        ?int $participantId = null,
+        ?int $contextId = null
+    ): void
     {
         $this->pendingAction = $action;
         $this->pendingParticipantId = $participantId;
+        $this->pendingContextId = $contextId;
         $this->confirmModalTitle = $title;
         $this->confirmModalMessage = $message;
         $this->confirmModalOpen = true;
@@ -30,5 +39,6 @@ trait WithUiConfirmModal
         $this->confirmModalMessage = '';
         $this->pendingAction = null;
         $this->pendingParticipantId = null;
+        $this->pendingContextId = null;
     }
 }

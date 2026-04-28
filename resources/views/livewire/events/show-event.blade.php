@@ -86,8 +86,7 @@
                                 <x-button
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    wire:click="deleteEvent"
-                                    wire:confirm="{{ __('Are you sure you want to delete this event?') }}"
+                                    wire:click="confirmDeleteEvent"
                                     :tooltip="__('Delete')"
                                     :aria-label="__('Delete').': '.$event->name"
                                     data-ui="event-show-delete"
@@ -122,5 +121,28 @@
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
         ])
         @include('slots.partials.edit-modal-shell')
+
+        <x-ui.confirm-modal
+            wire:model="confirmModalOpen"
+            :title="$confirmModalTitle"
+            :message="$confirmModalMessage"
+            confirm-action="runConfirmedAction"
+        >
+            @if ($pendingAction === 'cancel_slot_activity' && $pendingContextId !== null)
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{{ __('ui.activities.cancel_reason_label') }}</span>
+                    </label>
+                    <textarea
+                        class="textarea textarea-bordered w-full"
+                        rows="4"
+                        wire:model.defer="slotCancelReason.{{ (int) $pendingContextId }}"
+                    ></textarea>
+                    @error('slotCancelReason.'.$pendingContextId)
+                        <div class="mt-2 text-xs text-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endif
+        </x-ui.confirm-modal>
     </div>
 </div>
