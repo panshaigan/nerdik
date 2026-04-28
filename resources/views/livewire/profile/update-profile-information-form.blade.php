@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -8,6 +9,8 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    private const ORGANIZATION_SUGGESTIONS_LIMIT = 100;
+
     public string $name = '';
 
     public string $nickname = '';
@@ -17,6 +20,10 @@ new class extends Component
     public string $discord_handle = '';
 
     public string $timezone = '';
+
+    public ?int $organization_id = null;
+
+    public string $organization_name = '';
 
     /**
      * Mount the component.
@@ -29,6 +36,8 @@ new class extends Component
         $this->email = $u->email;
         $this->discord_handle = $u->discord_handle ?? '';
         $this->timezone = $u->timezone ?? '';
+        $this->organization_id = $u->organization_id;
+        $this->organization_name = (string) ($u->organization?->name ?? '');
     }
 
     /**
@@ -44,9 +53,15 @@ new class extends Component
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'discord_handle' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'timezone'],
+            'organization_id' => ['nullable', 'integer', Rule::exists(Organization::class, 'id')->withoutTrashed()],
+            'organization_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user->fill($validated);
+        $user->organization_id = $this->resolveOrganizationIdFromRequest(
+            $validated['organization_id'] ?? null,
+            $validated['organization_name'] ?? null
+        );
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -73,6 +88,71 @@ new class extends Component
         $user->sendEmailVerificationNotification();
 
         Session::flash('status', 'verification-link-sent');
+    }
+
+    protected function resolveOrganizationIdFromName(?string $organizationName): ?int
+    {
+        $name = trim((string) $organizationName);
+
+        if ($name === '') {
+            return null;
+        }
+
+        $organization = Organization::query()
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
+            ->first();
+
+        if ($organization === null) {
+            $organization = Organization::create([
+                'name' => $name,
+            ]);
+        }
+
+        return $organization->id;
+    }
+
+    protected function resolveOrganizationIdFromRequest(mixed $organizationId, ?string $organizationName): ?int
+    {
+        if ($organizationId !== null && $organizationId !== '') {
+            $id = (int) $organizationId;
+            if (Organization::query()->whereKey($id)->exists()) {
+                return $id;
+            }
+        }
+
+        return $this->resolveOrganizationIdFromName($organizationName);
+    }
+
+    /**
+     * @return list<array{id:int,name:string}>
+     */
+    protected function organizationSuggestionsForCurrentUser(): array
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return [];
+        }
+
+        return Organization::query()
+            ->where(function ($query) use ($user) {
+                $query
+                    ->where('created_by', $user->id)
+                    ->orWhereHas('events', fn ($events) => $events->where('created_by', $user->id))
+                    ->orWhere('id', $user->organization_id);
+            })
+            ->orderBy('name')
+            ->limit(self::ORGANIZATION_SUGGESTIONS_LIMIT)
+            ->get(['id', 'name'])
+            ->map(fn (Organization $organization) => ['id' => $organization->id, 'name' => $organization->name])
+            ->values()
+            ->all();
+    }
+
+    public function with(): array
+    {
+        return [
+            'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
+        ];
     }
 }; ?>
 
@@ -123,6 +203,32 @@ new class extends Component
             class="ui-field ui-field-discord"
             data-ui="profile-discord"
         />
+
+        <div class="relative">
+            <input type="hidden" wire:model="organization_id" data-profile-org-id />
+            <x-input
+                wire:model.live.debounce.300ms="organization_name"
+                label="{{ __('Organization (optional)') }}"
+                type="text"
+                name="organization_name"
+                placeholder="{{ __('Organization') }}"
+                error-field="organization_name"
+                autocomplete="off"
+                class="ui-field ui-field-organization"
+                data-ui="profile-organization"
+                data-profile-org-input
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="profile-org-suggestions-popup"
+            />
+            <div id="profile-org-suggestions-popup"
+                class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                data-profile-org-popup
+                wire:ignore
+                role="listbox"></div>
+            <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
+            <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
+        </div>
 
         <div>
             <fieldset class="fieldset py-0">
@@ -191,3 +297,157 @@ new class extends Component
         </div>
     </form>
 </section>
+
+@push('scripts')
+<script>
+(() => {
+    let profileOrgScriptsAbort;
+    function initProfileOrgInput() {
+        profileOrgScriptsAbort?.abort();
+        profileOrgScriptsAbort = new AbortController();
+        const signal = profileOrgScriptsAbort.signal;
+
+        const orgInput = document.querySelector('[data-profile-org-input]');
+        const orgPopup = document.querySelector('[data-profile-org-popup]');
+        const orgIdInput = document.querySelector('[data-profile-org-id]');
+        if (!orgInput || !orgPopup || !orgIdInput) {
+            return;
+        }
+
+        const orgScope = orgPopup.parentElement;
+        const orgSuggestions = @json($organizationSuggestions ?? []);
+        let orgShown = [];
+        let orgActive = -1;
+        let selectedOrg = null;
+        const oid = orgIdInput.value.trim();
+        const oname = orgInput.value.trim();
+        if (oid !== '' && oname !== '') {
+            selectedOrg = { id: parseInt(oid, 10), name: oname };
+        }
+
+        function syncSelectionFromInput() {
+            const text = orgInput.value.trim();
+            if (selectedOrg && text.toLowerCase() !== selectedOrg.name.toLowerCase()) {
+                orgIdInput.value = '';
+                orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                selectedOrg = null;
+            }
+        }
+
+        function closePopup() {
+            orgPopup.classList.add('hidden');
+            orgPopup.innerHTML = '';
+            orgActive = -1;
+            orgInput.setAttribute('aria-expanded', 'false');
+        }
+
+        function openPopup() {
+            if (orgShown.length === 0) {
+                closePopup();
+                return;
+            }
+            orgPopup.classList.remove('hidden');
+            orgInput.setAttribute('aria-expanded', 'true');
+        }
+
+        function applyActive() {
+            [...orgPopup.querySelectorAll('[data-org-suggestion-idx]')].forEach((el, idx) => {
+                const isActive = idx === orgActive;
+                el.classList.toggle('bg-base-200', isActive);
+                el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+        }
+
+        function chooseOrg(item) {
+            orgInput.value = item.name;
+            orgInput.dispatchEvent(new Event('input', { bubbles: true }));
+            orgIdInput.value = String(item.id);
+            orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+            selectedOrg = { id: item.id, name: item.name };
+            closePopup();
+        }
+
+        function renderOrg(items) {
+            orgShown = items.slice(0, 8);
+            orgPopup.innerHTML = '';
+            orgActive = -1;
+
+            if (orgShown.length === 0) {
+                closePopup();
+                return;
+            }
+
+            const frag = document.createDocumentFragment();
+            orgShown.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                btn.textContent = item.name;
+                btn.dataset.orgSuggestionIdx = String(idx);
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('aria-selected', 'false');
+                btn.addEventListener('mousedown', (e) => e.preventDefault());
+                btn.addEventListener('click', () => chooseOrg(item));
+                frag.appendChild(btn);
+            });
+            orgPopup.appendChild(frag);
+            openPopup();
+        }
+
+        function updateOrgFromInput() {
+            syncSelectionFromInput();
+            const q = orgInput.value.trim().toLowerCase();
+            if (q.length < 1) {
+                renderOrg(orgSuggestions.slice(0, 8));
+                return;
+            }
+
+            const items = orgSuggestions.filter(
+                (o) => o.name.toLowerCase().includes(q) && o.name.toLowerCase() !== q
+            );
+            renderOrg(items);
+        }
+
+        orgInput.addEventListener('input', updateOrgFromInput, { signal });
+        orgInput.addEventListener('focus', updateOrgFromInput, { signal });
+        orgInput.addEventListener('click', updateOrgFromInput, { signal });
+        orgInput.addEventListener('keydown', (e) => {
+            if (orgPopup.classList.contains('hidden') || orgShown.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                orgActive = (orgActive + 1) % orgShown.length;
+                applyActive();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                orgActive = orgActive <= 0 ? orgShown.length - 1 : orgActive - 1;
+                applyActive();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (orgActive >= 0 && orgActive < orgShown.length) {
+                    chooseOrg(orgShown[orgActive]);
+                }
+            } else if (e.key === 'Escape') {
+                closePopup();
+            }
+        }, { signal });
+
+        document.addEventListener('click', (e) => {
+            if (orgScope && !orgScope.contains(e.target)) {
+                closePopup();
+            }
+        }, { signal });
+    }
+
+    document.addEventListener('livewire:navigating', () => {
+        profileOrgScriptsAbort?.abort();
+    });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProfileOrgInput, { once: true });
+    } else {
+        initProfileOrgInput();
+    }
+    document.addEventListener('livewire:navigated', initProfileOrgInput);
+})();
+</script>
+@endpush

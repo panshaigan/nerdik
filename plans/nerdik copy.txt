@@ -2,6 +2,7 @@
 - should we allow users to delete their own tags?: no, it will be auto deletion of not used tags
 - places
 - add avatars/logos
+- participation screen must be live
 
 Features:
 	- (anyone) Sign up / Sign in:

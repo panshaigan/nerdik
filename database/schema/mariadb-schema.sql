@@ -662,6 +662,7 @@ CREATE TABLE `users` (
   `nickname` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `organization_id` bigint(20) unsigned DEFAULT NULL,
   `google_id` varchar(255) DEFAULT NULL,
   `avatar_path` varchar(255) DEFAULT NULL,
   `discord_handle` varchar(255) DEFAULT NULL,
@@ -678,7 +679,9 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
-  UNIQUE KEY `nickname` (`nickname`)
+  UNIQUE KEY `nickname` (`nickname`),
+  KEY `users_organization_id_foreign` (`organization_id`),
+  CONSTRAINT `users_organization_id_foreign` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'nickname',
         'email',
         'password',
+        'organization_id',
         'is_admin',
         'is_event_organizer',
         'google_id',
@@ -96,6 +97,11 @@ class User extends Authenticatable
     public function interestedEvents()
     {
         return $this->belongsToMany(Event::class, 'user_event_interests');
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public function interestedActivities()
