@@ -33,6 +33,9 @@
             @endauth
         </div>
     </div>
+    @error('detachActivityFromSlot')
+        <div role="alert" class="alert alert-error mb-4 text-sm">{{ $message }}</div>
+    @enderror
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             <li class="list-none">
