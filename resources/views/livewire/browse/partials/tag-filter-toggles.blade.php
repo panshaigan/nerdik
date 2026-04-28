@@ -14,10 +14,22 @@
             >
             </x-group>
         </div>
+        <button
+            type="button"
+            class="btn ml-2"
+            x-on:click="filtersOpen = !filtersOpen"
+            x-bind:class="{ 'btn-primary': filtersOpen, 'btn-outline': !filtersOpen }"
+            x-bind:aria-pressed="filtersOpen ? 'true' : 'false'"
+        >
+            <x-icon name="o-funnel" />
+            {{ __('Filters') }}
+        </button>
         <x-button
-            icon="o-funnel"
-            label="Filters"
-            class="ml-2"
+            type="button"
+            label="{{ __('Reset') }}"
+            class="btn-outline ml-2"
+            wire:click="clearFilters"
+            wire:loading.attr="disabled"
         />
     </div>
 </div>

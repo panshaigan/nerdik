@@ -1,14 +1,11 @@
 <div class="py-12">
     <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="ui-filter-form ui-filter-form-events" data-ui="browse-events-form">
+        <div class="ui-filter-form ui-filter-form-events" data-ui="browse-events-form" x-data="{ filtersOpen: @js($this->hasBBox()) }">
             <div class="" data-ui="browse-events-filters-card">
                 <div class="">
                     @include('livewire.browse.partials.tag-filter-toggles')
                 </div>
-                <details class="card border border-base-300 bg-base-100 p-4 shadow-sm mt-2" @if ($this->hasBBox()) open @endif>
-                    <summary class="cursor-pointer text-sm font-medium text-base-content flex items-center">
-                        <span><x-icon name="o-funnel" /> {{ __('Filters') }}</span>
-                    </summary>
+                <div x-show="filtersOpen" x-cloak class="card border border-base-300 bg-base-100 p-4 shadow-sm mt-2">
                     @include('livewire.browse.partials.listing-type-filter')
                     <div class="mt-4 space-y-3">
                         <input type="hidden" id="bbox_min_lat" value="{{ $min_lat ?? '' }}">
@@ -24,7 +21,7 @@
                             data-ui="browse-events-map"
                         ></div>
                     </div>
-                </details>
+                </div>
                 <div class="flex items-center gap-4 w-full">
                     <div class="flex-1 min-w-0">
                         @include('livewire.browse.partials.tag-filter')

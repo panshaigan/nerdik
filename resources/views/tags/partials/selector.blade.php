@@ -84,7 +84,7 @@
         {{-- Unified shell: selected tag chips + input inside one bordered field, matching manage tags UX. --}}
         <label
             data-ts-field
-            class="input input-bordered flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
+            class="input input-bordered rounded-xl flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
         >
             <div data-ts-chips class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"></div>
             <x-input
