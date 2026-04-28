@@ -104,8 +104,9 @@ new class extends Component
                         </li>
                         <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
                         <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('Organizations') }}</a></li>
-                        <li><a href="#">{{ __('Dummy menu item') }}</a></li>
-                        <li><a href="#">{{ __('Another quick action') }}</a></li>
+                        <li><a wire:navigate href="{{ route('me.events') }}">{{ __('ui.me.menu_events') }}</a></li>
+                        <li><a wire:navigate href="{{ route('me.activities') }}">{{ __('ui.me.menu_activities') }}</a></li>
+                        <li><a wire:navigate href="{{ route('me.participated-activities') }}">{{ __('ui.me.menu_participated') }}</a></li>
                         <li>
                             <x-button type="button" wire:click="logout" class="btn-ghost h-auto min-h-0 w-full justify-start font-normal">{{ __('Log Out') }}</x-button>
                         </li>
@@ -185,6 +186,18 @@ new class extends Component
                 <a href="{{ route('organizations.index') }}" wire:navigate
                    class="{{ $navLink(request()->routeIs('organizations.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                     {{ __('Organizations') }}
+                </a>
+                <a href="{{ route('me.events') }}" wire:navigate
+                   class="{{ $navLink(request()->routeIs('me.events')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
+                    {{ __('ui.me.menu_events') }}
+                </a>
+                <a href="{{ route('me.activities') }}" wire:navigate
+                   class="{{ $navLink(request()->routeIs('me.activities')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
+                    {{ __('ui.me.menu_activities') }}
+                </a>
+                <a href="{{ route('me.participated-activities') }}" wire:navigate
+                   class="{{ $navLink(request()->routeIs('me.participated-activities')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
+                    {{ __('ui.me.menu_participated') }}
                 </a>
                 <x-button type="button" wire:click="logout" class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
                     {{ __('Log Out') }}
