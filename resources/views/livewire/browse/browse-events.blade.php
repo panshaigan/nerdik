@@ -1,11 +1,10 @@
 <div class="py-12">
     <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
         <div class="ui-filter-form ui-filter-form-events space-y-4" data-ui="browse-events-form">
-            <div class="card border border-base-300 bg-base-100 p-4 shadow-sm" data-ui="browse-events-filters-card">
+            <div class="" data-ui="browse-events-filters-card">
                 <div class="flex flex-col gap-3">
                     <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div class="min-w-0 w-full flex-1 space-y-2">
-                            @include('livewire.browse.partials.listing-type-filter')
                             @include('livewire.browse.partials.tag-filter')
                         </div>
                         <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 lg:pt-1">
@@ -15,7 +14,8 @@
                 </div>
             </div>
             <details class="card border border-base-300 bg-base-100 p-4 shadow-sm" @if ($this->hasBBox()) open @endif>
-                <summary class="cursor-pointer text-sm font-medium text-base-content">{{ __('Filter by map area') }}</summary>
+                <summary class="cursor-pointer text-sm font-medium text-base-content">{{ __('Filters') }}</summary>
+                @include('livewire.browse.partials.listing-type-filter')
                 <div class="mt-4 space-y-3">
                     <input type="hidden" id="bbox_min_lat" value="{{ $min_lat ?? '' }}">
                     <input type="hidden" id="bbox_max_lat" value="{{ $max_lat ?? '' }}">
