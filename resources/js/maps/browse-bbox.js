@@ -429,11 +429,27 @@ export function initBrowseBboxMap() {
         return;
     }
 
+    const kickStart = () => {
+        let attempts = 0;
+        const kick = () => {
+            if (tryStartBrowseBboxMap(root) || attempts++ > 120) {
+                return;
+            }
+            requestAnimationFrame(kick);
+        };
+        kick();
+    };
+
     if (!tryStartBrowseBboxMap(root)) {
         requestAnimationFrame(() => {
             if (!tryStartBrowseBboxMap(root)) {
                 requestAnimationFrame(() => tryStartBrowseBboxMap(root));
             }
         });
+    }
+
+    if (root.dataset.browseBboxPanelOpenListener !== '1') {
+        root.dataset.browseBboxPanelOpenListener = '1';
+        window.addEventListener('browse-bbox:panel-open', kickStart);
     }
 }
