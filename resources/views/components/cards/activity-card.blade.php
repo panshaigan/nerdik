@@ -25,7 +25,7 @@
     );
 @endphp
 
-<article class="ui-card ui-card-activity card relative overflow-hidden rounded-2xl border border-neutral bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
+<article class="ui-card ui-card-activity card relative overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
     <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="activity-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
