@@ -56,6 +56,11 @@ class Event extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function interestedUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_event_interests');
+    }
+
     public function places()
     {
         return $this->belongsToMany(Place::class, 'event_place');
