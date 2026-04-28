@@ -28,7 +28,10 @@ class OrganizationIndex extends Component
     {
         $editSlug = request()->query('edit');
         if (is_string($editSlug) && $editSlug !== '') {
-            $organization = Organization::query()->where('slug', $editSlug)->first();
+            $organization = Organization::query()
+                ->where('slug', $editSlug)
+                ->where('created_by', auth()->id())
+                ->first();
             if ($organization !== null) {
                 $this->openEditModal($organization->id);
             }
@@ -133,11 +136,10 @@ class OrganizationIndex extends Component
 
     public function render()
     {
-        $organizationsQuery = Organization::query()->orderBy('name');
-        if (! auth()->user()->is_admin) {
-            $organizationsQuery->where('created_by', auth()->id());
-        }
-        $organizations = $organizationsQuery->get();
+        $organizations = Organization::query()
+            ->where('created_by', auth()->id())
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.organizations.organization-index', [
             'organizations' => $organizations,
