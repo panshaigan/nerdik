@@ -1,6 +1,6 @@
 {{-- Tag match mode selector; search and listing filters are rendered in sibling partials. --}}
 <div class="ml-auto" data-ui="browse-tag-filter-toggles">
-    <div class="flex items-center">
+    <div class="flex items-center gap-4">
         <div class="flex items-center">
             <x-group
                 wire:model.live="tags_match_all"
@@ -16,7 +16,7 @@
         </div>
         <button
             type="button"
-            class="btn ml-2 rounded-xl"
+            class="btn rounded-xl"
             x-on:click="
                 filtersOpen = !filtersOpen;
                 if (filtersOpen) {
@@ -32,7 +32,7 @@
         <x-button
             type="button"
             label="{{ __('Reset') }}"
-            class="btn-outline ml-2 rounded-xl"
+            class="btn-outline rounded-xl"
             wire:click="clearFilters"
             wire:loading.attr="disabled"
         />

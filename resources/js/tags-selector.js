@@ -121,7 +121,7 @@ export function initTagSelector(root) {
 
         const remove = document.createElement('button');
         remove.type = 'button';
-        remove.className = 'btn-ghost btn-xs btn-square min-h-0 h-5 w-5 shrink-0 p-0 opacity-70 hover:opacity-100';
+        remove.className = 'opacity-60 hover:opacity-100';
         remove.setAttribute('aria-label', cfg.strings?.browseTextSearchRemove || 'Remove text search');
         remove.textContent = '×';
         remove.addEventListener('click', () => {
