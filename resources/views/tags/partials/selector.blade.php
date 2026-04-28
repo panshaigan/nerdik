@@ -87,7 +87,7 @@
             class="input input-bordered flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
         >
             <div data-ts-chips class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"></div>
-            <input
+            <x-input
                 type="text"
                 inputmode="search"
                 enterkeyhint="search"
@@ -95,6 +95,7 @@
                 class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
                 placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
+                icon="o-magnifying-glass"
             />
         </label>
         <div
