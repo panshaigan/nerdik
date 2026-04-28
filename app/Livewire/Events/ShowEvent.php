@@ -16,11 +16,13 @@ use App\Traits\AuthorizesOwnership;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class ShowEvent extends Component
 {
     use AuthorizesOwnership;
     use WithUiConfirmModal;
+    use Toast;
 
     public int $eventId;
     public string $tab = 'description';
@@ -79,6 +81,24 @@ class ShowEvent extends Component
         }
     }
 
+    public function addInterest(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        $this->success(__('ui.interests.added_event'));
+    }
+
+    public function removeInterest(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedEvents()->detach($event->id);
+        $this->warning(__('ui.interests.removed_event'));
+    }
+
     #[On('slot-mutations-refresh')]
     public function refreshAfterSlotMutation(): void
     {
@@ -101,7 +121,7 @@ class ShowEvent extends Component
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
         $event->delete();
-        session()->flash('status', __('Event deleted.'));
+        $this->success(__('Event deleted.'));
         $this->redirect(route('search.index'), navigate: true);
     }
 
@@ -147,6 +167,17 @@ class ShowEvent extends Component
         );
     }
 
+    public function confirmReopenSlotActivity(int $slotId): void
+    {
+        $this->openConfirm(
+            'reopen_slot_activity',
+            __('ui.activities.reopen_action'),
+            __('ui.activities.reopen_confirm'),
+            null,
+            $slotId,
+        );
+    }
+
     public function runConfirmedAction(
         ActivityProposalDecisionService $decisions,
         ActivityHostingModeService $hostingModes
@@ -164,6 +195,7 @@ class ShowEvent extends Component
             'delete_slot' => $slotId !== null ? $this->deleteSlot($slotId) : null,
             'detach_activity_from_slot' => $slotId !== null ? $this->detachActivityFromSlot($slotId, $decisions) : null,
             'cancel_slot_activity' => $slotId !== null ? $this->cancelSlotActivity($slotId, $hostingModes) : null,
+            'reopen_slot_activity' => $slotId !== null ? $this->reopenSlotActivity($slotId, $hostingModes) : null,
             default => null,
         };
     }
@@ -184,6 +216,7 @@ class ShowEvent extends Component
             fn ($id) => (int) $id !== (int) $slotId
         ));
         $this->syncSlotEndsForThisEvent();
+        $this->success(__('Slot deleted.'));
     }
 
     public function detachActivityFromSlot(int $slotId, ActivityProposalDecisionService $decisions): void
@@ -203,8 +236,16 @@ class ShowEvent extends Component
         try {
             $decisions->detachActivityFromSlot($event, $slot);
         } catch (ValidationException $e) {
+            $messages = collect($e->errors())->flatten()->filter()->values();
+            if ($messages->isNotEmpty()) {
+                $this->warning((string) $messages->first());
+            } else {
+                $this->warning(__('ui.status.oops'));
+            }
+
             foreach ($e->errors() as $messages) {
                 foreach ($messages as $message) {
+                    // Keep the errors available for inline consumers, but show feedback as toast.
                     $this->addError('detachActivityFromSlot', $message);
                 }
             }
@@ -213,7 +254,7 @@ class ShowEvent extends Component
         }
 
         $this->refreshAfterSlotMutation();
-        session()->flash('status', __('ui.status.activity_detached_from_slot'));
+        $this->success(__('ui.status.activity_detached_from_slot'));
     }
 
     public function cancelSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
@@ -254,7 +295,7 @@ class ShowEvent extends Component
         unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
-        session()->flash('status', __('ui.activities.cancelled_status'));
+        $this->success(__('ui.activities.cancelled_status'));
     }
 
     public function reopenSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
@@ -277,7 +318,7 @@ class ShowEvent extends Component
         $hostingModes->reopen($activity);
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
-        session()->flash('status', __('ui.activities.reopened_status'));
+        $this->success(__('ui.activities.reopened_status'));
     }
 
     public function acceptPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
@@ -291,7 +332,7 @@ class ShowEvent extends Component
             ->firstOrFail();
 
         if ($proposal->status !== ActivityProposalStatus::Pending) {
-            session()->flash('status', __('ui.status.proposal_not_pending'));
+            $this->warning(__('ui.status.proposal_not_pending'));
 
             return;
         }
@@ -315,7 +356,7 @@ class ShowEvent extends Component
         unset($this->proposalAcceptSlotId[$proposalId], $this->proposalAcceptSlotId[(string) $proposalId]);
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
-        session()->flash('status', __('ui.status.proposal_accepted'));
+        $this->success(__('ui.status.proposal_accepted'));
     }
 
     public function rejectPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
@@ -329,14 +370,14 @@ class ShowEvent extends Component
             ->firstOrFail();
 
         if ($proposal->status !== ActivityProposalStatus::Pending) {
-            session()->flash('status', __('ui.status.proposal_not_pending'));
+            $this->warning(__('ui.status.proposal_not_pending'));
 
             return;
         }
 
         $decisions->reject($proposal);
         $this->slotListVersion++;
-        session()->flash('status', __('ui.status.proposal_rejected'));
+        $this->success(__('ui.status.proposal_rejected'));
     }
 
     protected function syncSlotEndsForThisEvent(): void
@@ -380,6 +421,9 @@ class ShowEvent extends Component
             ->get();
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
+        $hasInterest = $user !== null
+            ? $user->interestedEvents()->whereKey($event->id)->exists()
+            : false;
 
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
@@ -413,6 +457,7 @@ class ShowEvent extends Component
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
+            'hasInterest' => $hasInterest,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
