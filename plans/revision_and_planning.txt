@@ -1,4 +1,3 @@
-places
 profile
 
 UI/UX

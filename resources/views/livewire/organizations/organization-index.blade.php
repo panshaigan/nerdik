@@ -81,16 +81,18 @@
                     <x-input
                         wire:model="name"
                         label="{{ __('Name') }}"
+                        placeholder="{{ __('Name') }}"
                         type="text"
                         error-field="name"
                         required
+                        inline
                     />
 
                     <div wire:key="org-modal-editor-{{ $modalRenderKey }}">
                         <x-editor
                             id="org-description-{{ $modalRenderKey }}"
                             wire:model="description"
-                            :label="__('Description (optional)')"
+                            :label="__('Description')"
                             :gpl-license="true"
                             :config="['height' => 260, 'z_index' => 100020]"
                         />
