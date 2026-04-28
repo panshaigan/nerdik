@@ -32,6 +32,25 @@
                         @endif
                     </x-slot:actions>
                 </x-header>
+                <div class="mb-4 rounded-lg border border-base-300 bg-base-100/70 px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-base-content/80">
+                    <span class="inline-flex items-center gap-1.5">
+                        <x-icon name="o-check-badge" class="h-4 w-4 text-success" />
+                        <span>{{ __('ui.events.confirmed_activities') }}:</span>
+                        <span class="font-semibold text-base-content">{{ (int) $confirmedActivitiesCount }}</span>
+                    </span>
+                                <span class="inline-flex items-center gap-1.5">
+                        <x-icon name="o-users" class="h-4 w-4 text-primary" />
+                        <span>{{ __('ui.events.confirmed_participants') }}:</span>
+                        <span class="font-semibold text-base-content">{{ (int) $confirmedParticipantsCount }}</span>
+                    </span>
+                                <span class="inline-flex items-center gap-1.5">
+                        <x-icon name="o-star" class="h-4 w-4 text-warning" />
+                        <span>{{ __('ui.events.interested_people_count') }}:</span>
+                        <span class="font-semibold text-base-content">{{ (int) $interestedPeopleCount }}</span>
+                    </span>
+                    </div>
+                </div>
             </div>
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"

@@ -5,6 +5,7 @@ namespace App\Livewire\Events;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\ActivityProposal;
+use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -97,6 +98,34 @@ class ShowEvent extends Component
         abort_unless($user !== null, 403);
         $user->interestedEvents()->detach($event->id);
         $this->warning(__('ui.interests.removed_event'));
+    }
+
+    public function addActivityInterest(int $activityId): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $activity = Activity::query()
+            ->whereKey($activityId)
+            ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
+            ->firstOrFail();
+
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $this->success(__('ui.interests.added_activity'));
+    }
+
+    public function removeActivityInterest(int $activityId): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $activity = Activity::query()
+            ->whereKey($activityId)
+            ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
+            ->firstOrFail();
+
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $user->interestedActivities()->detach($activity->id);
+        $this->warning(__('ui.interests.removed_activity'));
     }
 
     #[On('slot-mutations-refresh')]
@@ -401,10 +430,15 @@ class ShowEvent extends Component
             'enrollmentWindows',
             'slots' => fn ($q) => $q->with([
                 'place.parent',
-                'activity.tags.translations',
-                'activity.tags.tagCategory',
-                'activity.activityType',
-                'activity.canceller',
+                'activity' => fn ($aq) => $aq->with([
+                    'tags.translations',
+                    'tags.tagCategory',
+                    'activityType',
+                    'canceller',
+                ])->withCount([
+                    'participants',
+                    'interestedUsers',
+                ]),
                 'activityTypes',
             ])->orderBy('starts_at'),
         ]);
@@ -424,6 +458,23 @@ class ShowEvent extends Component
         $hasInterest = $user !== null
             ? $user->interestedEvents()->whereKey($event->id)->exists()
             : false;
+        $interestedActivityIds = $user !== null
+            ? $user->interestedActivities()
+                ->whereIn('activities.id', $event->slots->pluck('activity_id')->filter()->all())
+                ->pluck('activities.id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
+
+        $confirmedActivities = $event->slots
+            ->pluck('activity')
+            ->filter(fn ($activity) => $activity !== null && ! $activity->isCancelled())
+            ->values();
+        $confirmedActivitiesCount = $confirmedActivities->count();
+        $confirmedParticipantsCount = (int) $confirmedActivities->sum(
+            fn ($activity) => (int) ($activity->participants_count ?? 0)
+        );
+        $interestedPeopleCount = (int) $event->interestedUsers()->count();
 
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
@@ -458,6 +509,10 @@ class ShowEvent extends Component
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
             'hasInterest' => $hasInterest,
+            'interestedActivityIds' => $interestedActivityIds,
+            'confirmedActivitiesCount' => $confirmedActivitiesCount,
+            'confirmedParticipantsCount' => $confirmedParticipantsCount,
+            'interestedPeopleCount' => $interestedPeopleCount,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,

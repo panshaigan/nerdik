@@ -78,6 +78,11 @@ class Activity extends Model
         return $this->belongsToMany(User::class, 'activity_user');
     }
 
+    public function interestedUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_activity_interests');
+    }
+
     public function waitlist()
     {
         return $this->hasMany(ActivityWaitlistEntry::class)->orderBy('position');
