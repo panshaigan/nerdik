@@ -107,8 +107,7 @@
                                                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
                                                             :tooltip-bottom="__('ui.events.detach_activity_from_slot')"
                                                             :aria-label="__('ui.events.detach_activity_from_slot')"
-                                                            wire:click="detachActivityFromSlot({{ $slot->id }})"
-                                                            wire:confirm="{{ __('ui.events.detach_activity_from_slot_confirm') }}"
+                                                            wire:click="confirmDetachActivityFromSlot({{ $slot->id }})"
                                                             icon="o-link-slash"
                                                         />
                                                     @endif
@@ -129,8 +128,7 @@
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                                                 :tooltip-bottom="__('ui.activities.cancel_action')"
                                                                 :aria-label="__('ui.activities.cancel_action')"
-                                                                wire:click="cancelSlotActivity({{ $slot->id }})"
-                                                                wire:confirm="{{ __('ui.activities.cancel_confirm') }}"
+                                                                wire:click="confirmCancelSlotActivity({{ $slot->id }})"
                                                                 icon="o-x-circle"
                                                             />
                                                         @endif
@@ -140,8 +138,7 @@
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                                         :tooltip-bottom="__('Delete')"
                                                         :aria-label="__('Delete')"
-                                                        wire:click="deleteSlot({{ $slot->id }})"
-                                                        wire:confirm="{{ __('Are you sure?') }}"
+                                                        wire:click="confirmDeleteSlot({{ $slot->id }})"
                                                     >
                                                         <x-ui.icons.trash class="h-5 w-5 shrink-0" />
                                                     </x-button>

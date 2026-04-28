@@ -3,6 +3,7 @@
 namespace App\Livewire\Events;
 
 use App\Enums\ActivityProposalStatus;
+use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
@@ -19,6 +20,7 @@ use Livewire\Component;
 class ShowEvent extends Component
 {
     use AuthorizesOwnership;
+    use WithUiConfirmModal;
 
     public int $eventId;
     public string $tab = 'description';
@@ -101,6 +103,69 @@ class ShowEvent extends Component
         $event->delete();
         session()->flash('status', __('Event deleted.'));
         $this->redirect(route('search.index'), navigate: true);
+    }
+
+    public function confirmDeleteEvent(): void
+    {
+        $this->openConfirm(
+            'delete_event',
+            __('Delete'),
+            __('Are you sure you want to delete this event?'),
+        );
+    }
+
+    public function confirmDeleteSlot(int $slotId): void
+    {
+        $this->openConfirm(
+            'delete_slot',
+            __('Delete'),
+            __('Are you sure?'),
+            null,
+            $slotId,
+        );
+    }
+
+    public function confirmDetachActivityFromSlot(int $slotId): void
+    {
+        $this->openConfirm(
+            'detach_activity_from_slot',
+            __('ui.events.detach_activity_from_slot'),
+            __('ui.events.detach_activity_from_slot_confirm'),
+            null,
+            $slotId,
+        );
+    }
+
+    public function confirmCancelSlotActivity(int $slotId): void
+    {
+        $this->openConfirm(
+            'cancel_slot_activity',
+            __('ui.activities.cancel_action'),
+            __('ui.activities.cancel_confirm'),
+            null,
+            $slotId,
+        );
+    }
+
+    public function runConfirmedAction(
+        ActivityProposalDecisionService $decisions,
+        ActivityHostingModeService $hostingModes
+    ): void {
+        $action = $this->pendingAction;
+        $slotId = $this->pendingContextId;
+        $this->closeConfirm();
+
+        if ($action === null) {
+            return;
+        }
+
+        match ($action) {
+            'delete_event' => $this->deleteEvent(),
+            'delete_slot' => $slotId !== null ? $this->deleteSlot($slotId) : null,
+            'detach_activity_from_slot' => $slotId !== null ? $this->detachActivityFromSlot($slotId, $decisions) : null,
+            'cancel_slot_activity' => $slotId !== null ? $this->cancelSlotActivity($slotId, $hostingModes) : null,
+            default => null,
+        };
     }
 
     public function deleteSlot(int $slotId): void
