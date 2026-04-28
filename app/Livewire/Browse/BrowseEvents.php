@@ -268,6 +268,8 @@ class BrowseEvents extends Component
             'creator',
             'places.country.translations',
             'places.city.translations',
+            'slots.activity.activityType',
+            'slots.activityTypes',
         ]);
         $this->applyBrowseEventSort($query);
         $paginator = $query->paginate(self::PER_PAGE);
@@ -283,7 +285,7 @@ class BrowseEvents extends Component
      */
     protected function paginateActivitiesOnly()
     {
-        $query = $this->baseActivityQuery()->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'place'])
+        $query = $this->baseActivityQuery()->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
             ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
         $this->applyBrowseActivitySort($query);
         $paginator = $query->paginate(self::PER_PAGE);
@@ -344,6 +346,8 @@ class BrowseEvents extends Component
                     'creator',
                     'places.country.translations',
                     'places.city.translations',
+                    'slots.activity.activityType',
+                    'slots.activityTypes',
                 ])
                 ->whereIn('id', $eventIds)
                 ->get()
@@ -352,7 +356,7 @@ class BrowseEvents extends Component
         $activities = $activityIds === []
             ? collect()
             : Activity::query()
-                ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'place'])
+                ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
                 ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)])
                 ->whereIn('id', $activityIds)
                 ->get()

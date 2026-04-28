@@ -5,9 +5,11 @@
 ])
 
 @php
+    use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+    use App\Enums\BadgeSemantic;
+
+    $detailsUrl = route('events.show', $event);
     $locale = app()->getLocale();
-    $placeNames = $event->places->pluck('name')->filter()->unique()->values();
-    $placeChips = $placeNames->take(3);
     $locationLabels = [];
     foreach ($event->places as $place) {
         $city = $place->city?->name($locale);
@@ -25,9 +27,29 @@
     }
     $locationSummary = implode(' · ', array_values($locationLabels));
     $dateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
+    $slotTypeLabels = collect($event->slots ?? [])
+        ->flatMap(function ($slot) {
+            $activityTypeFromActivity = $slot->activity?->activityType?->slug
+                ? [__('ui.activities.types.'.$slot->activity->activityType->slug)]
+                : [];
+
+            $allowedTypesFromSlot = collect($slot->activityTypes ?? [])
+                ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                ->filter()
+                ->values()
+                ->all();
+
+            return array_merge($activityTypeFromActivity, $allowedTypesFromSlot);
+        })
+        ->filter()
+        ->unique()
+        ->values();
+    $slotTypeBadgeItems = $slotTypeLabels->isNotEmpty()
+        ? app(ActivityBadgeGroupBuilder::class)->buildActivityTypeChips($slotTypeLabels, BadgeSemantic::Info)
+        : [];
 @endphp
 
-<article class="ui-card ui-card-event card overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
+<article class="ui-card ui-card-event card relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
     <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="event-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
@@ -36,7 +58,7 @@
                 </span>
             </div>
             @auth
-                <div class="shrink-0">
+                <div class="relative z-20 shrink-0">
                     @if (in_array($event->id, $interestedEventIds))
                         <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
                             @csrf
@@ -54,7 +76,7 @@
         </div>
 
         <h3 class="mb-1 text-3xl font-bold leading-tight">
-            <a href="{{ route('events.show', $event) }}" wire:navigate class="ui-link ui-link-title hover:underline" data-ui="event-card-title-link">{{ $event->name }}</a>
+            <span class="ui-link ui-link-title" data-ui="event-card-title-link">{{ $event->name }}</span>
         </h3>
 
         @if ($event->hostDisplayName())
@@ -89,14 +111,19 @@
             <p class="line-clamp-2 text-sm text-base-content/80">{{ rich_text_excerpt($event->description, 160) }}</p>
         @endif
 
-        @if ($placeChips->isNotEmpty())
-            <div class="flex flex-wrap gap-2">
-                @foreach ($placeChips as $placeName)
-                    <span class="badge rounded-full border-0 bg-info/20 px-3 py-2 text-xs font-medium text-info-content">
-                        {{ $placeName }}
-                    </span>
-                @endforeach
-            </div>
+        @if ($slotTypeBadgeItems !== [])
+            <x-ui.activity-badge-group
+                :items="$slotTypeBadgeItems"
+                class="!my-0 gap-2"
+                data-ui="event-card-slot-type-badges"
+            />
         @endif
     </div>
+    <a
+        href="{{ $detailsUrl }}"
+        wire:navigate
+        class="absolute inset-0 z-10"
+        aria-label="{{ __('Open event') }}: {{ $event->name }}"
+        data-ui="event-card-link"
+    ></a>
 </article>
