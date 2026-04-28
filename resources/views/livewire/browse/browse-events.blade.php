@@ -6,23 +6,12 @@
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                         @include('livewire.browse.partials.tag-filter-toggles', ['includePastEventsToggle' => true])
                         @include('livewire.browse.partials.listing-type-filter')
-                        @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
-                        @if ($this->hasActiveFilters())
-                            <x-button
-                                id="ui-browse-events-clear"
-                                type="button"
-                                wire:click="clearFilters"
-                                class="btn-ghost ui-action ui-action-clear shrink-0"
-                                data-ui="browse-events-clear"
-                            >{{ __('Clear') }}</x-button>
-                        @endif
                     </div>
                     <div class="min-w-0 w-full">
                         @include('livewire.browse.partials.tag-filter')
                     </div>
                 </div>
             </div>
-
             <details class="card border border-base-300 bg-base-100 p-4 shadow-sm" @if ($this->hasBBox()) open @endif>
                 <summary class="cursor-pointer text-sm font-medium text-base-content">{{ __('Filter by map area') }}</summary>
                 <div class="mt-4 space-y-3">
@@ -41,7 +30,9 @@
                 </div>
             </details>
         </div>
-
+        <div class="flex justify-end">
+            @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
+        </div>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($browseListings as $row)
                 @if ($row['kind'] === 'event')
