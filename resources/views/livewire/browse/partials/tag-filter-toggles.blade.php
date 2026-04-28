@@ -6,7 +6,7 @@
                 wire:model.live="tags_match_all"
                 data-ui="browse-tag-filter-match-mode"
                 legend-class="mb-0"
-                class="btn"
+                class="btn rounded-xl"
                 :options="[
                     ['id' => 0, 'name' => __('ui.browse.tags_match_any')],
                     ['id' => 1, 'name' => __('ui.browse.tags_match_all')],
@@ -16,8 +16,13 @@
         </div>
         <button
             type="button"
-            class="btn ml-2"
-            x-on:click="filtersOpen = !filtersOpen"
+            class="btn ml-2 rounded-xl"
+            x-on:click="
+                filtersOpen = !filtersOpen;
+                if (filtersOpen) {
+                    $nextTick(() => window.dispatchEvent(new CustomEvent('browse-bbox:panel-open')));
+                }
+            "
             x-bind:class="{ 'btn-primary': filtersOpen, 'btn-outline': !filtersOpen }"
             x-bind:aria-pressed="filtersOpen ? 'true' : 'false'"
         >
@@ -27,7 +32,7 @@
         <x-button
             type="button"
             label="{{ __('Reset') }}"
-            class="btn-outline ml-2"
+            class="btn-outline ml-2 rounded-xl"
             wire:click="clearFilters"
             wire:loading.attr="disabled"
         />
