@@ -57,12 +57,16 @@
         'strings' => [
             'createTag' => __('Create tag'),
             'auto' => __('auto'),
+            'browseTextSearchHint' => __('ui.browse.text_search_chip_hint'),
+            'browseTextSearchLabel' => __('ui.browse.text_search_chip_label'),
+            'browseTextSearchRemove' => __('ui.browse.text_search_remove'),
         ],
     ];
     if ($browseTextSearch) {
         $tagSelectorConfig['browseTextSearch'] = [
             'enabled' => true,
             'property' => 'q',
+            'value' => (string) ($browseTextValue ?? ''),
         ];
     }
 @endphp
