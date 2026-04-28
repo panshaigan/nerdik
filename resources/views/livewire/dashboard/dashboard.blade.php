@@ -40,11 +40,13 @@
                             <x-cards.event-card
                                 :event="$row['event']"
                                 :interested-event-ids="$interestedEventIds ?? []"
+                                :participating-event-ids="$participatingEventIds ?? []"
                             />
                         @else
                             <x-cards.activity-card
                                 :activity="$row['activity']"
                                 :interested-activity-ids="$interestedActivityIds ?? []"
+                                :participating-activity-ids="$participatingActivityIds ?? []"
                             />
                         @endif
                     @endforeach

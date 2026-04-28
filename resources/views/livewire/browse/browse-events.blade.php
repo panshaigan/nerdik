@@ -38,12 +38,14 @@
                     <x-cards.event-card
                         :event="$row['event']"
                         :interested-event-ids="$interestedEventIds ?? []"
+                        :participating-event-ids="$participatingEventIds ?? []"
                         :show-listing-kind="true"
                     />
                 @else
                     <x-cards.activity-card
                         :activity="$row['activity']"
                         :interested-activity-ids="$interestedActivityIds ?? []"
+                        :participating-activity-ids="$participatingActivityIds ?? []"
                         :show-listing-kind="true"
                     />
                 @endif
