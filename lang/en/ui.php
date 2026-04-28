@@ -4,6 +4,18 @@ return [
     'nav' => [
         'search' => 'Search',
     ],
+    'me' => [
+        'menu_events' => 'All my events',
+        'menu_activities' => 'All my activities',
+        'menu_participated' => 'Activities I participate in',
+        'page_title_events' => 'All my events',
+        'page_title_activities' => 'All my activities',
+        'page_title_participated' => 'Activities I participate in',
+        'filter_by_name' => 'Filter by name',
+        'no_events' => 'No events found.',
+        'no_activities_owned' => 'No activities found.',
+        'no_activities_participated' => 'No activities found.',
+    ],
     'common' => [
         'cancel' => 'Cancel',
         'confirm' => 'Confirm',

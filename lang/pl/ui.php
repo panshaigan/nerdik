@@ -4,6 +4,18 @@ return [
     'nav' => [
         'search' => 'Szukaj',
     ],
+    'me' => [
+        'menu_events' => 'Wszystkie moje wydarzenia',
+        'menu_activities' => 'Wszystkie moje aktywnosci',
+        'menu_participated' => 'Aktywnosci, w ktorych uczestnicze',
+        'page_title_events' => 'Wszystkie moje wydarzenia',
+        'page_title_activities' => 'Wszystkie moje aktywnosci',
+        'page_title_participated' => 'Aktywnosci, w ktorych uczestnicze',
+        'filter_by_name' => 'Filtruj po nazwie',
+        'no_events' => 'Brak wydarzen.',
+        'no_activities_owned' => 'Brak aktywnosci.',
+        'no_activities_participated' => 'Brak aktywnosci.',
+    ],
     'common' => [
         'cancel' => 'Anuluj',
         'confirm' => 'Potwierdz',
