@@ -1,12 +1,5 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        @if (session('status'))
-            <div role="alert" class="alert alert-success text-sm">{{ session('status') }}</div>
-        @endif
-        @if ($errors->any())
-            <div role="alert" class="alert alert-error text-sm">{{ $errors->first() }}</div>
-        @endif
-
         @php
             $title = $event->name;
         @endphp
@@ -51,9 +44,9 @@
             >
                 <x-slot:toolbar>
                     @auth
-                        @if ($canManageEvent)
-                            <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
-                                @if ($canManageEvent)
+                        <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
+                            @if ($canManageEvent)
+                                <div class="flex shrink-0 items-center gap-1">
                                     <x-button
                                         id="ui-event-show-create-slots"
                                         type="button"
@@ -64,7 +57,6 @@
                                         data-ui="event-show-create-slots"
                                         icon="o-plus"
                                     />
-                                @endif
                                 <x-button
                                     :link="route('events.edit', $event)"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
@@ -92,8 +84,29 @@
                                     data-ui="event-show-delete"
                                     icon="o-trash"
                                 />
-                            </div>
-                        @endif
+                                </div>
+                            @endif
+
+                            @if ($hasInterest)
+                                <x-button
+                                    type="button"
+                                    wire:click="removeInterest"
+                                    class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                    :tooltip="__('ui.interests.remove_from_interests')"
+                                    data-ui="event-show-interest-remove"
+                                    icon="s-star"
+                                />
+                            @else
+                                <x-button
+                                    type="button"
+                                    wire:click="addInterest"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                    :tooltip="__('ui.interests.add_to_interests')"
+                                    data-ui="event-show-interest-add"
+                                    icon="o-star"
+                                />
+                            @endif
+                        </div>
                     @endauth
                 </x-slot:toolbar>
 

@@ -33,9 +33,6 @@
             @endauth
         </div>
     </div>
-    @error('detachActivityFromSlot')
-        <div role="alert" class="alert alert-error mb-4 text-sm">{{ $message }}</div>
-    @enderror
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             <li class="list-none">
@@ -118,8 +115,7 @@
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
                                                                 :tooltip-bottom="__('ui.activities.reopen_action')"
                                                                 :aria-label="__('ui.activities.reopen_action')"
-                                                                wire:click="reopenSlotActivity({{ $slot->id }})"
-                                                                wire:confirm="{{ __('ui.activities.reopen_confirm') }}"
+                                                                wire:click="confirmReopenSlotActivity({{ $slot->id }})"
                                                                 icon="o-arrow-uturn-left"
                                                             />
                                                         @else
