@@ -5,6 +5,7 @@ namespace App\Livewire\Browse;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Tag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -390,11 +391,33 @@ class BrowseEvents extends Component
         $interestedActivityIds = auth()->check()
             ? auth()->user()->interestedActivities()->pluck('activities.id')->toArray()
             : [];
+        $participatingActivityIds = auth()->check()
+            ? ActivityUser::query()
+                ->where('user_id', auth()->id())
+                ->where('is_absent', false)
+                ->distinct('activity_id')
+                ->pluck('activity_id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
+        $participatingEventIds = auth()->check()
+            ? DB::table('activity_user')
+                ->join('slots', 'slots.activity_id', '=', 'activity_user.activity_id')
+                ->whereNotNull('slots.event_id')
+                ->where('activity_user.user_id', auth()->id())
+                ->where('activity_user.is_absent', false)
+                ->distinct()
+                ->pluck('slots.event_id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
 
         return view('livewire.browse.browse-events', [
             'browseListings' => $paginator,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
+            'participatingActivityIds' => $participatingActivityIds,
+            'participatingEventIds' => $participatingEventIds,
             'tags' => Tag::orderedForSelector()->get(),
         ]);
     }

@@ -1,6 +1,7 @@
 @props([
     'event',
     'interestedEventIds' => [],
+    'participatingEventIds' => [],
     'showListingKind' => false,
 ])
 
@@ -9,6 +10,10 @@
     use App\Enums\BadgeSemantic;
 
     $detailsUrl = route('events.show', $event);
+    $currentUser = auth()->user();
+    $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
+    $isParticipating = $currentUser !== null
+        && in_array((int) $event->id, array_map('intval', $participatingEventIds), true);
     $locale = app()->getLocale();
     $locationLabels = [];
     foreach ($event->places as $place) {
@@ -49,7 +54,7 @@
         : [];
 @endphp
 
-<article class="ui-card ui-card-event card relative overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
+<article class="ui-card ui-card-event card relative flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
     <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="event-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
@@ -58,7 +63,18 @@
                 </span>
             </div>
             @auth
-                <div class="relative z-20 shrink-0">
+                <div class="relative z-20 shrink-0 flex items-center gap-1">
+                    @if ($isOwner)
+                        <a
+                            href="{{ route('events.edit', $event) }}"
+                            wire:navigate
+                            class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20"
+                            title="{{ __('ui.events.edit_event') }}"
+                            data-ui="event-card-edit"
+                        >
+                            <x-icon name="o-pencil" class="h-3.5 w-3.5" />
+                        </a>
+                    @endif
                     @if (in_array($event->id, $interestedEventIds))
                         <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
                             @csrf
@@ -82,9 +98,16 @@
         @if ($event->hostDisplayName())
             <p class="text-base text-base-100/85">{{ __('Host') }}: {{ $event->hostDisplayName() }}</p>
         @endif
+
+        @if ($isParticipating)
+            <p class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-success-content">
+                <x-icon name="o-check-circle" class="h-4 w-4" />
+                <span>{{ __('ui.activities.show_participation') }}</span>
+            </p>
+        @endif
     </div>
 
-    <div class="space-y-4 p-5">
+    <div class="flex grow flex-col space-y-4 p-5">
         <div class="grid grid-cols-2 gap-4 text-sm text-base-content/80">
             @if ($dateSummary !== '')
                 <div class="space-y-0.5">
@@ -112,11 +135,13 @@
         @endif
 
         @if ($slotTypeBadgeItems !== [])
-            <x-ui.activity-badge-group
-                :items="$slotTypeBadgeItems"
-                class="!my-0 gap-2"
-                data-ui="event-card-slot-type-badges"
-            />
+            <div class="mt-auto">
+                <x-ui.activity-badge-group
+                    :items="$slotTypeBadgeItems"
+                    class="!my-0 gap-2"
+                    data-ui="event-card-slot-type-badges"
+                />
+            </div>
         @endif
     </div>
     <a

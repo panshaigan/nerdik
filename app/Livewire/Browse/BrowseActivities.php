@@ -5,6 +5,7 @@ namespace App\Livewire\Browse;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
+use App\Models\ActivityUser;
 use App\Models\Place;
 use App\Models\Tag;
 use Livewire\Attributes\Url;
@@ -129,11 +130,21 @@ class BrowseActivities extends Component
         $interestedActivityIds = auth()->check()
             ? auth()->user()->interestedActivities()->pluck('activities.id')->toArray()
             : [];
+        $participatingActivityIds = auth()->check()
+            ? ActivityUser::query()
+                ->where('user_id', auth()->id())
+                ->where('is_absent', false)
+                ->distinct('activity_id')
+                ->pluck('activity_id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
 
         return view('livewire.browse.browse-activities', [
             'activities' => $activities,
             'places' => $places,
             'interestedActivityIds' => $interestedActivityIds,
+            'participatingActivityIds' => $participatingActivityIds,
             'tags' => Tag::orderedForSelector()->get(),
         ]);
     }

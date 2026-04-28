@@ -1,4 +1,5 @@
 places/events/activies
+profile
 
 UI/UX
 - participation screen must be live

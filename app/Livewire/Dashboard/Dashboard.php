@@ -97,6 +97,22 @@ class Dashboard extends Component
 
         $interestedEventIds = $user->interestedEvents()->pluck('events.id')->map(fn ($id) => (int) $id)->all();
         $interestedActivityIds = $user->interestedActivities()->pluck('activities.id')->map(fn ($id) => (int) $id)->all();
+        $participatingActivityIds = ActivityUser::query()
+            ->where('user_id', $user->id)
+            ->where('is_absent', false)
+            ->distinct('activity_id')
+            ->pluck('activity_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $participatingEventIds = DB::table('activity_user')
+            ->join('slots', 'slots.activity_id', '=', 'activity_user.activity_id')
+            ->whereNotNull('slots.event_id')
+            ->where('activity_user.user_id', $user->id)
+            ->where('activity_user.is_absent', false)
+            ->distinct()
+            ->pluck('slots.event_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
         return view('livewire.dashboard.dashboard', [
             'hostedActivitiesCount' => $hostedActivitiesCount,
@@ -105,6 +121,8 @@ class Dashboard extends Component
             'feed' => $feed,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
+            'participatingActivityIds' => $participatingActivityIds,
+            'participatingEventIds' => $participatingEventIds,
         ]);
     }
 

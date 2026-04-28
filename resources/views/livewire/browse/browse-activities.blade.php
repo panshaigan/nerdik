@@ -54,7 +54,11 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($activities as $activity)
-                <x-cards.activity-card :activity="$activity" :interested-activity-ids="$interestedActivityIds ?? []" />
+                <x-cards.activity-card
+                    :activity="$activity"
+                    :interested-activity-ids="$interestedActivityIds ?? []"
+                    :participating-activity-ids="$participatingActivityIds ?? []"
+                />
             @empty
                 <div class="col-span-full rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
                     {{ __('No activities found.') }}

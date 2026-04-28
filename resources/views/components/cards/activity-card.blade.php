@@ -1,14 +1,27 @@
 @props([
     'activity',
     'interestedActivityIds' => [],
+    'participatingActivityIds' => [],
     'showListingKind' => false,
 ])
 
 @php
     use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
     use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+    use App\Models\Activity;
 
     $detailsUrl = route('activities.show', $activity);
+    $currentUser = auth()->user();
+    $isOwner = $currentUser !== null && (int) ($activity->created_by ?? 0) === (int) $currentUser->id;
+    $isParticipating = $currentUser !== null
+        && in_array((int) $activity->id, array_map('intval', $participatingActivityIds), true);
+    $hostingMode = (int) ($activity->hosting_mode ?? 0);
+    $proposalEvent = null;
+    if ($hostingMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
+        $proposalEvent = $activity->relationLoaded('proposals')
+            ? optional($activity->proposals->sortByDesc('id')->first())->event
+            : $activity->proposals()->with('event')->latest('id')->first()?->event;
+    }
     $durationLabel = format_activity_duration_compact($activity->duration_in_minutes);
     $filled = isset($activity->participants_count)
         ? (int) $activity->participants_count
@@ -25,16 +38,45 @@
     );
 @endphp
 
-<article class="ui-card ui-card-activity card relative overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
+<article class="ui-card ui-card-activity card relative flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
     <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="activity-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
                 <span class="badge badge-sm border-0 bg-base-100/20 text-base-100">
                     {{ $showListingKind ? __('ui.browse.listing_kind_activity') : __('Activity') }}
                 </span>
+                @if ($hostingMode === Activity::HOSTING_MODE_DRAFT)
+                    <span class="badge badge-sm border-0 bg-base-100/15 text-base-100/90">
+                        {{ __('ui.activities.hosting_modes.draft') }}
+                    </span>
+                @elseif ($hostingMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT)
+                    <span class="badge badge-sm border-0 bg-base-100/15 text-base-100/90">
+                        {{ __('ui.activities.hosting_modes.proposed_to_event') }}
+                    </span>
+                    @if ($proposalEvent)
+                        <a
+                            href="{{ route('events.show', $proposalEvent) }}"
+                            wire:navigate
+                            class="ml-1 text-xs underline decoration-base-100/50 underline-offset-2 hover:decoration-base-100 relative z-20"
+                        >
+                            {{ $proposalEvent->name }}
+                        </a>
+                    @endif
+                @endif
             </div>
             @auth
-                <div class="relative z-20 shrink-0">
+                <div class="relative z-20 shrink-0 flex items-center gap-1">
+                    @if ($isOwner)
+                        <a
+                            href="{{ route('activities.edit', $activity) }}"
+                            wire:navigate
+                            class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20"
+                            title="{{ __('ui.activities.edit_activity') }}"
+                            data-ui="activity-card-edit"
+                        >
+                            <x-icon name="o-pencil" class="h-3.5 w-3.5" />
+                        </a>
+                    @endif
                     @if (in_array($activity->id, $interestedActivityIds))
                         <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
                             @csrf
@@ -64,6 +106,13 @@
             />
         @endif
 
+        @if ($isParticipating)
+            <p class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-success-content">
+                <x-icon name="o-check-circle" class="h-4 w-4" />
+                <span>{{ __('ui.activities.show_participation') }}</span>
+            </p>
+        @endif
+
         @if ($activity->slot && $activity->slot->event)
             <p class="text-sm text-base-100/75">
                 {{ __('ui.browse.attached_event') }}:
@@ -74,7 +123,7 @@
         @endif
     </div>
 
-    <div class="space-y-4 p-5">
+    <div class="flex grow flex-col space-y-4 p-5">
         <div class="grid grid-cols-2 gap-4 text-sm text-base-content/80">
             @if ($timeSummary !== '')
                 <div class="space-y-0.5">
@@ -113,11 +162,13 @@
             <p class="text-sm text-base-content/80">{{ __('ui.browse.duration_label') }}: {{ $durationLabel }}</p>
         @endif
 
-        <x-ui.activity-badge-group
-            :items="$activityBadgeItems"
-            class="!my-0 gap-2"
-            data-ui="activity-card-badge-group"
-        />
+        <div class="mt-auto">
+            <x-ui.activity-badge-group
+                :items="$activityBadgeItems"
+                class="!my-0 gap-2"
+                data-ui="activity-card-badge-group"
+            />
+        </div>
     </div>
     <a
         href="{{ $detailsUrl }}"
