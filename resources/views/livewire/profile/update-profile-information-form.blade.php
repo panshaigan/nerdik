@@ -159,6 +159,8 @@ new class extends Component
                 autocomplete="username"
                 class="ui-field ui-field-email"
                 data-ui="profile-email"
+                readonly
+                disabled
             />
 
             @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())

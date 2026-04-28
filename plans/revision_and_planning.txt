@@ -1,5 +1,3 @@
-profile
-
 UI/UX
 - participation screen must be live
 - ORGANIZCJA powinna być przypinywalna też do graczy.
