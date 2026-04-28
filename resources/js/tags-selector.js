@@ -233,6 +233,15 @@ export function initTagSelector(root) {
 
     function addWithAttached(id) {
         const rootId = Number(id);
+        if (root.hasAttribute('data-browse-tag-selector')) {
+            if (!rootId || selected.has(rootId)) return;
+            selected.add(rootId);
+            explicitSelected.add(rootId);
+            autoSelected.delete(rootId);
+            renderSelected();
+            return;
+        }
+
         const stack = [{ id: rootId, isAuto: false }];
         while (stack.length) {
             const curMeta = stack.pop();

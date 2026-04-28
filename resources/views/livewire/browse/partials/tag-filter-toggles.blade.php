@@ -3,7 +3,7 @@
     <x-group
         wire:model.live="tags_match_all"
         data-ui="browse-tag-filter-match-mode"
-        class="w-full min-w-[14rem]"
+        class=""
         label="Match"
         :options="[
             ['id' => 0, 'name' => __('ui.browse.tags_match_any')],

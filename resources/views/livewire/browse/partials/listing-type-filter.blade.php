@@ -1,6 +1,5 @@
 {{-- Mutually exclusive: only one of only_events / only_activities, or neither for both. --}}
 <div data-ui="browse-listing-type-filter">
-    <x-dropdown :label="__('Filters')" class="btn-outline btn-sm">
         <div class="w-64 space-y-2 p-3">
             <x-checkbox
                 wire:model.live="include_past_events"
@@ -18,5 +17,4 @@
                 data-ui="browse-only-activities"
             />
         </div>
-    </x-dropdown>
 </div>
