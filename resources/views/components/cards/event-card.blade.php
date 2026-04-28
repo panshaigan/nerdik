@@ -7,6 +7,7 @@
 @php
     $locale = app()->getLocale();
     $placeNames = $event->places->pluck('name')->filter()->unique()->values();
+    $placeChips = $placeNames->take(3);
     $locationLabels = [];
     foreach ($event->places as $place) {
         $city = $place->city?->name($locale);
@@ -26,65 +27,76 @@
     $dateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
 @endphp
 
-<article class="ui-card ui-card-event card border border-base-300 bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
-    <div class="card-body p-5" data-ui="event-card-body">
-        @if ($showListingKind)
-            <p class="mb-2">
-                <span class="badge badge-secondary badge-sm">{{ __('ui.browse.listing_kind_event') }}</span>
-            </p>
-        @endif
-        <div class="flex items-start justify-between gap-2">
-            <h3 class="card-title text-xl leading-tight">
-                <a href="{{ route('events.show', $event) }}" wire:navigate class="link link-primary ui-link ui-link-title" data-ui="event-card-title-link">{{ $event->name }}</a>
-            </h3>
-            <div class="flex shrink-0 items-center gap-0.5">
-                @auth
+<article class="ui-card ui-card-event card overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
+    <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="event-card-body">
+        <div class="mb-3 flex items-start justify-between gap-3">
+            <div>
+                <span class="badge badge-sm border-0 bg-base-100/20 text-base-100">
+                    {{ $showListingKind ? __('ui.browse.listing_kind_event') : __('Event') }}
+                </span>
+            </div>
+            @auth
+                <div class="shrink-0">
                     @if (in_array($event->id, $interestedEventIds))
                         <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <x-button type="submit" class="btn-ghost btn-sm text-warning ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="event-card-interest-remove">★</x-button>
+                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-base-100/10 text-warning hover:bg-base-100/20 ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="event-card-interest-remove">★</x-button>
                         </form>
                     @else
                         <form action="{{ route('interests.events.add', $event) }}" method="POST" class="inline">
                             @csrf
-                            <x-button type="submit" class="btn-ghost btn-sm ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="event-card-interest-add">☆</x-button>
+                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20 ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="event-card-interest-add">☆</x-button>
                         </form>
                     @endif
-                @endauth
-                <x-button
-                    type="button"
-                    x-data="{ copied: false }"
-                    x-on:click="navigator.clipboard.writeText('{{ route('events.show', $event) }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                    class="btn-ghost btn-sm ui-action ui-action-share"
-                    :title="__('Copy link')"
-                    data-ui="event-card-share"
-                >
-                    <span x-show="!copied">{{ __('Share') }}</span>
-                    <span x-show="copied" x-cloak>{{ __('Copied!') }}</span>
-                </x-button>
-            </div>
+                </div>
+            @endauth
         </div>
 
+        <h3 class="mb-1 text-3xl font-bold leading-tight">
+            <a href="{{ route('events.show', $event) }}" wire:navigate class="ui-link ui-link-title hover:underline" data-ui="event-card-title-link">{{ $event->name }}</a>
+        </h3>
+
         @if ($event->hostDisplayName())
-            <p class="text-sm opacity-70">{{ __('Host') }}: {{ $event->hostDisplayName() }}</p>
+            <p class="text-base text-base-100/85">{{ __('Host') }}: {{ $event->hostDisplayName() }}</p>
         @endif
+    </div>
 
-        @if ($dateSummary !== '')
-            <p class="text-sm tabular-nums opacity-80">{{ $dateSummary }}</p>
-        @endif
+    <div class="space-y-4 p-5">
+        <div class="grid grid-cols-2 gap-4 text-sm text-base-content/80">
+            @if ($dateSummary !== '')
+                <div class="space-y-0.5">
+                    <p class="font-semibold text-base-content/75">{{ __('Date') }}:</p>
+                    <p class="flex items-center gap-1.5 tabular-nums text-base-content">
+                        <x-icon name="o-clock" class="h-4 w-4 text-base-content/60" />
+                        <span>{{ $dateSummary }}</span>
+                    </p>
+                </div>
+            @endif
 
-        @if ($placeNames->isNotEmpty())
-            <p class="text-sm text-base-content/90">{{ $placeNames->implode(', ') }}</p>
-        @endif
-
-        @if ($locationSummary !== '')
-            <p class="text-sm opacity-70">{{ $locationSummary }}</p>
-        @endif
+            @if ($locationSummary !== '')
+                <div class="space-y-0.5">
+                    <p class="font-semibold text-base-content/75">{{ __('Location') }}:</p>
+                    <p class="flex items-center gap-1.5 text-base-content">
+                        <x-icon name="o-home" class="h-4 w-4 text-base-content/60" />
+                        <span>{{ $locationSummary }}</span>
+                    </p>
+                </div>
+            @endif
+        </div>
 
         @if (filled(rich_text_excerpt($event->description)))
-    <p class="line-clamp-3 text-sm opacity-80">{{ rich_text_excerpt($event->description, 160) }}</p>
-    @endif
+            <p class="line-clamp-2 text-sm text-base-content/80">{{ rich_text_excerpt($event->description, 160) }}</p>
+        @endif
 
+        @if ($placeChips->isNotEmpty())
+            <div class="flex flex-wrap gap-2">
+                @foreach ($placeChips as $placeName)
+                    <span class="badge rounded-full border-0 bg-info/20 px-3 py-2 text-xs font-medium text-info-content">
+                        {{ $placeName }}
+                    </span>
+                @endforeach
+            </div>
+        @endif
     </div>
 </article>
