@@ -2,10 +2,10 @@
     <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="ui-filter-form ui-filter-form-events" data-ui="browse-events-form" x-data="{ filtersOpen: @js($this->hasBBox()) }">
             <div class="" data-ui="browse-events-filters-card">
-                <div class="">
+                <div class="mb-6">
                     @include('livewire.browse.partials.tag-filter-toggles')
                 </div>
-                <div x-show="filtersOpen" x-cloak class="card border border-base-300 bg-base-100 p-4 shadow-sm mt-2">
+                <div x-show="filtersOpen" x-cloak class="card border border-base-300 bg-base-100 p-4 shadow-sm mb-6">
                     @include('livewire.browse.partials.listing-type-filter')
                     <div class="mt-4 space-y-3">
                         <input type="hidden" id="bbox_min_lat" value="{{ $min_lat ?? '' }}">
@@ -22,7 +22,7 @@
                         ></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 w-full">
+                <div class="flex items-center gap-4 w-full mb-6">
                     <div class="flex-1 min-w-0">
                         @include('livewire.browse.partials.tag-filter')
                     </div>
@@ -32,7 +32,7 @@
         <div class="flex justify-end">
             @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
         </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($browseListings as $row)
                 @if ($row['kind'] === 'event')
                     <x-cards.event-card
