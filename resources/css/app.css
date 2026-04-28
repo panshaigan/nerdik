@@ -387,3 +387,6 @@ input[type="range"].thumb-only::-moz-range-thumb {
         4.2em 0 var(--brand-primary);
     opacity: 0.85;
 }
+li.indicator {
+    display: list-item;
+}
