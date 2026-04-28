@@ -69,11 +69,12 @@
             wire:model="modalOpen"
             :title="$modalMode === 'create' ? __('Add organization') : __('Edit organization')"
             box-class="max-w-2xl"
+            data-org-modal
         >
             @if ($modalOpen)
                 <form
                     wire:submit.prevent="save"
-                    wire:key="org-modal-form-{{ $modalMode }}-{{ $editingOrganizationId ?? 'new' }}"
+                    wire:key="org-modal-form-{{ $modalRenderKey }}-{{ $modalMode }}-{{ $editingOrganizationId ?? 'new' }}"
                     class="space-y-4"
                     data-org-modal-form
                 >
@@ -85,9 +86,10 @@
                         required
                     />
 
-                    <div>
+                    <div wire:key="org-modal-editor-{{ $modalRenderKey }}">
                         <x-editor
-                            wire:model.live="description"
+                            id="org-description-{{ $modalRenderKey }}"
+                            wire:model="description"
                             :label="__('Description (optional)')"
                             :gpl-license="true"
                             :config="['height' => 260, 'z_index' => 100020]"

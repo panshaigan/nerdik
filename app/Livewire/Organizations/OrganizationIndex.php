@@ -18,6 +18,8 @@ class OrganizationIndex extends Component
 
     public ?int $editingOrganizationId = null;
 
+    public int $modalRenderKey = 0;
+
     public string $name = '';
 
     public string $description = '';
@@ -42,6 +44,7 @@ class OrganizationIndex extends Component
     public function openCreateModal(): void
     {
         $this->resetForm();
+        $this->modalRenderKey++;
         $this->modalMode = 'create';
         $this->modalOpen = true;
         $this->scheduleTinyMceModalRefresh();
@@ -57,6 +60,7 @@ class OrganizationIndex extends Component
         $this->name = $organization->name;
         $this->description = (string) ($organization->description ?? '');
         $this->resetErrorBag();
+        $this->modalRenderKey++;
         $this->modalOpen = true;
         $this->scheduleTinyMceModalRefresh();
     }
