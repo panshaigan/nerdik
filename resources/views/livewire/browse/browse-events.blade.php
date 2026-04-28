@@ -3,12 +3,14 @@
         <div class="ui-filter-form ui-filter-form-events space-y-4" data-ui="browse-events-form">
             <div class="card border border-base-300 bg-base-100 p-4 shadow-sm" data-ui="browse-events-filters-card">
                 <div class="flex flex-col gap-3">
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
-                        @include('livewire.browse.partials.tag-filter-toggles', ['includePastEventsToggle' => true])
-                        @include('livewire.browse.partials.listing-type-filter')
-                    </div>
-                    <div class="min-w-0 w-full">
-                        @include('livewire.browse.partials.tag-filter')
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="min-w-0 w-full flex-1 space-y-2">
+                            @include('livewire.browse.partials.listing-type-filter')
+                            @include('livewire.browse.partials.tag-filter')
+                        </div>
+                        <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 lg:pt-1">
+                            @include('livewire.browse.partials.tag-filter-toggles')
+                        </div>
                     </div>
                 </div>
             </div>

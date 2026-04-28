@@ -1,21 +1,22 @@
 {{-- Mutually exclusive: only one of only_events / only_activities, or neither for both. --}}
-<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-base-content/80" data-ui="browse-listing-type-filter">
-    <label class="flex cursor-pointer items-center gap-2">
-        <input
-            type="checkbox"
-            wire:model.live="only_events"
-            class="checkbox checkbox-sm checkbox-primary"
-            data-ui="browse-only-events"
-        />
-        <span>{{ __('ui.browse.only_events') }}</span>
-    </label>
-    <label class="flex cursor-pointer items-center gap-2">
-        <input
-            type="checkbox"
-            wire:model.live="only_activities"
-            class="checkbox checkbox-sm checkbox-primary"
-            data-ui="browse-only-activities"
-        />
-        <span>{{ __('ui.browse.only_activities') }}</span>
-    </label>
+<div data-ui="browse-listing-type-filter">
+    <x-dropdown :label="__('Filters')" class="btn-outline btn-sm">
+        <div class="w-64 space-y-2 p-3">
+            <x-checkbox
+                wire:model.live="include_past_events"
+                :label="__('ui.browse.include_past_events')"
+                data-ui="browse-include-past-events"
+            />
+            <x-checkbox
+                wire:model.live="only_events"
+                :label="__('ui.browse.only_events')"
+                data-ui="browse-only-events"
+            />
+            <x-checkbox
+                wire:model.live="only_activities"
+                :label="__('ui.browse.only_activities')"
+                data-ui="browse-only-activities"
+            />
+        </div>
+    </x-dropdown>
 </div>

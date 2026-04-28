@@ -395,6 +395,22 @@ export function initTagSelector(root) {
         results.classList.remove('hidden');
     }
 
+    const fieldShell = input.closest('[data-ts-field]');
+    if (fieldShell && fieldShell.dataset.tsShellClickBound !== '1') {
+        fieldShell.dataset.tsShellClickBound = '1';
+        fieldShell.addEventListener('click', (e) => {
+            const t = e.target;
+            if (t === input) {
+                return;
+            }
+            if (t.closest?.('button')) {
+                return;
+            }
+            input.focus();
+            buildResults(input.value);
+        });
+    }
+
     input.addEventListener('input', () => {
         buildResults(input.value);
     });
@@ -417,9 +433,9 @@ export function initTagSelector(root) {
             paintActive();
             return;
         }
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
-            const q = input.value.trim();
+            const q = input.value.replace(/,/g, '').trim();
             if (!q) {
                 closeResults();
                 setBrowseTextQuery('');

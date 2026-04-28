@@ -81,14 +81,18 @@
         @json($tagSelectorConfig)
     </script>
     <div class="relative z-[1000]">
-        {{-- Same structure as Mary <x-input>: label.input wraps the native input so DaisyUI border + focus ring match other fields. --}}
-        <label class="input input-bordered flex w-full min-w-0 items-center gap-2">
+        {{-- Unified shell: selected tag chips + input inside one bordered field, matching manage tags UX. --}}
+        <label
+            data-ts-field
+            class="input input-bordered flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2"
+        >
+            <div data-ts-chips class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"></div>
             <input
                 type="text"
                 inputmode="search"
                 enterkeyhint="search"
                 data-ts-input
-                class="min-w-0 grow basis-0"
+                class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
                 placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
             />
@@ -98,8 +102,6 @@
             class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
         ></div>
     </div>
-
-    <div data-ts-chips class="flex min-h-[1.5rem] flex-wrap gap-2"></div>
 
     <div data-ts-new-wrap class="hidden space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
         <p class="text-xs font-medium text-base-content">{{ __('New tags to create') }}</p>
