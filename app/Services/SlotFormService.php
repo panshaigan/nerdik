@@ -227,7 +227,7 @@ class SlotFormService
         if ($newRoomName !== '') {
             $existing = Place::query()
                 ->where('parent_id', $venueId)
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($newRoomName)])
+                ->whereRaw('LOWER(name) = LOWER(?)', [$newRoomName])
                 ->first();
 
             if ($existing) {
@@ -329,7 +329,7 @@ class SlotFormService
         }
 
         $candidateNames = $query
-            ->where('name', 'like', $normalizedBaseName.' #%')
+            ->whereRaw('LOWER(name) LIKE LOWER(?)', [$normalizedBaseName.' #%'])
             ->pluck('name');
 
         $strictPattern = '/^'.preg_quote($normalizedBaseName, '/').'\s#(\d{2,})$/u';

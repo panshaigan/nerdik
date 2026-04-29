@@ -8,8 +8,8 @@ use App\Models\Slot;
 use App\Models\User;
 use App\Services\SlotFormService;
 use App\Services\TagSelectionService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -152,5 +152,45 @@ class SlotFormServiceTest extends TestCase
 
         $slot->refresh();
         $this->assertSame($venueB->id, (int) $slot->place_id);
+    }
+
+    #[Test]
+    public function resolve_mass_slot_place_id_reuses_existing_room_case_insensitively(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $event = Event::create([
+            'name' => 'Case Room Event',
+            'slug' => 'case-room-event',
+            'created_by' => $user->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'is_public' => true,
+        ]);
+
+        $venue = Place::create([
+            'name' => 'Venue C',
+            'type' => 'venue',
+            'is_online' => false,
+        ]);
+        $event->places()->attach($venue->id);
+
+        $existingRoom = Place::create([
+            'name' => 'Room Alpha',
+            'type' => 'room',
+            'parent_id' => $venue->id,
+            'is_online' => false,
+        ]);
+
+        $request = Request::create('/slots/mass', 'POST', [
+            'venue_place_id' => $venue->id,
+            'new_room_name' => 'room alpha',
+        ]);
+
+        $resolvedPlaceId = $this->makeService()->resolveMassSlotPlaceId($request, $event);
+
+        $this->assertSame($existingRoom->id, $resolvedPlaceId);
+        $this->assertSame(1, Place::query()->where('type', 'room')->where('parent_id', $venue->id)->count());
     }
 }

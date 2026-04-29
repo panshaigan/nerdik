@@ -55,10 +55,10 @@ class TagSelectionService
 
         $existing = Tag::query()
             ->whereHas('translations', function ($q) use ($lower) {
-                $q->whereRaw('LOWER(label) = ?', [$lower]);
+                $q->whereRaw('LOWER(label) = LOWER(?)', [$lower]);
             })
             ->orWhereHas('aliases', function ($q) use ($lower) {
-                $q->whereRaw('LOWER(alias) = ?', [$lower]);
+                $q->whereRaw('LOWER(alias) = LOWER(?)', [$lower]);
             })
             ->first();
 

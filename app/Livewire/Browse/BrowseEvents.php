@@ -205,8 +205,10 @@ class BrowseEvents extends Component
         }
 
         if ($this->q !== '') {
-            $term = '%'.$this->q.'%';
-            $query->where(fn (Builder $q) => $q->where('events.name', 'like', $term)->orWhere('events.description', 'like', $term));
+            $term = '%'.mb_strtolower($this->q).'%';
+            $query->where(fn (Builder $q) => $q
+                ->whereRaw('LOWER(events.name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(events.description) LIKE ?', [$term]));
         }
 
         $this->applyBrowseTagFilter($query, 'slots.activity.tags');
@@ -234,8 +236,10 @@ class BrowseEvents extends Component
         $query = Activity::query()->attachedToPublicEvent(! $this->include_past_events);
 
         if ($this->q !== '') {
-            $term = '%'.$this->q.'%';
-            $query->where(fn (Builder $q) => $q->where('activities.name', 'like', $term)->orWhere('activities.description', 'like', $term));
+            $term = '%'.mb_strtolower($this->q).'%';
+            $query->where(fn (Builder $q) => $q
+                ->whereRaw('LOWER(activities.name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(activities.description) LIKE ?', [$term]));
         }
 
         $this->applyBrowseTagFilter($query, 'tags');

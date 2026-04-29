@@ -497,7 +497,7 @@ class ManageEventForm extends Component
     protected function findOrCreateOrganizationForUser(string $name): Organization
     {
         $existing = Organization::query()
-            ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
+            ->whereRaw('LOWER(name) = LOWER(?)', [$name])
             ->first();
 
         if ($existing !== null) {
