@@ -160,6 +160,7 @@ class EnrollmentWindowQuotasTest extends TestCase
         bool $accumulative = false
     ): void {
         $event->enrollmentWindows()->create([
+            'name' => 'Window',
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
             'max_activities_per_user' => $maxPerUser,
