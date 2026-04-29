@@ -9,12 +9,11 @@ Notifications
         - "you waited enough to get the place" [MVP]
 
 Technicals
-    - testing
     - security:
         csrf, xss, sql injection, Insecure Direct Object References,
         Authentication & Session Hijacking; Clickjacking: http header: X-Frame-Options', 'DENY'
         Directory Traversal: sanitize user input for paths
-        composer audit/ snyk/ dependabot
+        / snyk/ dependabot
         tools: OWASP ZAP, PHPStan
 
         penetration testing: Nikto
