@@ -392,8 +392,7 @@ return new class extends Migration
         Schema::create('tag_contexts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->string('context_type', 100);
-            $table->bigInteger('context_id');
+            $table->morphs('context');
             $table->unique(['tag_id', 'context_type', 'context_id'], 'tag_contexts_unique_idx');
             $table->index(['context_type', 'context_id'], 'tag_contexts_context_lookup_idx');
             $table->index(['tag_id', 'context_type'], 'tag_contexts_tag_type_idx');
@@ -405,8 +404,7 @@ return new class extends Migration
         Schema::create('taggables', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->string('taggable_type', 100);
-            $table->bigInteger('taggable_id');
+            $table->morphs('taggable');
             $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'taggables_unique_idx');
             $table->index(['taggable_type', 'taggable_id'], 'taggables_taggable_lookup_idx');
             $table->index(['tag_id', 'taggable_type'], 'taggables_tag_type_idx');
@@ -438,8 +436,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
-            $table->string('notifiable_type');
-            $table->bigInteger('notifiable_id');
+            $table->morphs('notifiable');
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
@@ -467,7 +464,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->text('payload');
+            $table->longText('payload');
             $table->integer('last_activity')->index();
         });
 
@@ -476,8 +473,8 @@ return new class extends Migration
         // ------------------------------------------------------------------ //
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
-            $table->text('value');
-            $table->integer('expiration')->index();
+            $table->mediumText('value');
+            $table->bigInteger('expiration')->index();
         });
 
         // ------------------------------------------------------------------ //
@@ -486,7 +483,7 @@ return new class extends Migration
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->string('owner');
-            $table->integer('expiration')->index();
+            $table->bigInteger('expiration')->index();
         });
 
         // ------------------------------------------------------------------ //
@@ -539,11 +536,11 @@ return new class extends Migration
             $table->bigIncrements('sequence');
             $table->uuid('uuid')->unique();
             $table->uuid('batch_id')->index();
-            $table->string('family_hash')->nullable()->index();
+            $table->string('family_hash')->nullable();
             $table->boolean('should_display_on_index')->default(true);
             $table->string('type', 20);
-            $table->text('content');
-            $table->dateTime('created_at')->nullable()->index();
+            $table->longText('content');
+            $table->dateTime('created_at')->nullable();
             $table->index(['type', 'should_display_on_index']);
         });
 
