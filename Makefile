@@ -2,8 +2,7 @@ SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
 
-.PHONY: up down restart ps logs shell migrate migrate-fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require migrate-refresh dump-schema
-
+.PHONY: up down restart ps logs shell migrate migrate-fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require migrate-refresh dump-schema clear-cache artisan
 up:
 	$(SAIL) up -d
 
@@ -49,6 +48,9 @@ scheduler:
 serve:
 	$(SAIL) artisan serve
 
+clear-cache:
+	$(SAIL) artisan optimize:clear
+
 test:
 	$(SAIL) artisan test
 
@@ -67,4 +69,7 @@ composer-install:
 composer-require:
 	@if [ -z "$(PACKAGE)" ]; then echo "Usage: make composer-require PACKAGE=vendor/package"; exit 1; fi
 	$(SAIL) composer require $(PACKAGE)
+
+artisan:
+	$(SAIL) artisan $(filter-out $@,$(MAKECMDGOALS))
 

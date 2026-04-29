@@ -3,6 +3,16 @@
 - places
 - add avatars/logos
 - participation screen must be live
+- activity languages
+- feedback system
+- losowanie uczestników, jeśli jest więcej
+tag extraction:
+    Key package design choices to decide early
+    Do you want package to enforce your schema, or allow customization?
+    DB compatibility target (MySQL/Postgres only?)
+    How much UI you ship vs backend-only core
+    API surface stability (events, contracts, extension hooks)
+
 
 Features:
 	- (anyone) Sign up / Sign in:
