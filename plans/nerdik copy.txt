@@ -1,3 +1,7 @@
+- performance
+- regenerate the admin panel
+
+
 - search everything on top
 - should we allow users to delete their own tags?: no, it will be auto deletion of not used tags
 - places
@@ -12,6 +16,14 @@ tag extraction:
     DB compatibility target (MySQL/Postgres only?)
     How much UI you ship vs backend-only core
     API surface stability (events, contracts, extension hooks)
+
+
+- deletion policy
+    - cleaning scripts (Schedule::command('telescope:prune')->daily();)
+    - countries and city translations do we need them? + language rule always fallback to english
+    - DDDize Scheduling/Proposals/Tagging
+        - rename mass create to create in the code
+        - refactor signup to enroll in the code
 
 
 Features:
