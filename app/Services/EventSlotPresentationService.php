@@ -40,7 +40,7 @@ class EventSlotPresentationService
             ];
         }
 
-        $firstTimedSlot = $sorted->first(fn (Slot $s) => $s->starts_at !== null);
+        $sorted->first(fn (Slot $s) => $s->starts_at !== null);
         $prependEventStart = true;
 //        if ($event->starts_at) {
 //            if ($firstTimedSlot === null) {
