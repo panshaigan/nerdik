@@ -161,6 +161,14 @@ class PlaceController extends Controller
             ]);
         }
 
+        $user = auth()->user();
+        if ($user === null || ! $user->canModifyEntity($place)) {
+            return response()->json([
+                'rooms' => [],
+                'message' => __('ui.activities.self_hosted_venue_rooms_not_found'),
+            ]);
+        }
+
         $rooms = Place::query()
             ->where('parent_id', $place->id)
             ->where('type', 'room')

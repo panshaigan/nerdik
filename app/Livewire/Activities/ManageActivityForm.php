@@ -165,7 +165,11 @@ class ManageActivityForm extends Component
                 $this->proposalFieldsReadonly = true;
             }
         } elseif (($dupSlug = $this->duplicateQuerySlug()) !== null) {
-            $source = Activity::query()->with('tags')->where('slug', $dupSlug)->first();
+            $source = Activity::query()
+                ->with('tags')
+                ->where('slug', $dupSlug)
+                ->where('created_by', auth()->id())
+                ->first();
             if ($source !== null) {
                 $this->applyDuplicatePrefillFromActivity($source);
             }

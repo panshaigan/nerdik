@@ -23,7 +23,7 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
     session(['locale' => $locale]);
 
     $redirectTo = (string) $request->query('redirect', '');
-    if (! str_starts_with($redirectTo, '/')) {
+    if (!str_starts_with($redirectTo, '/') || str_starts_with($redirectTo, '//')) {
         $redirectTo = route('dashboard');
     }
 
@@ -77,6 +77,9 @@ Route::middleware(['auth'])->group(function () {
         ->except(['show', 'index']);
 
     Route::get('events/{event}/propose', function (Event $event) {
+        $user = auth()->user();
+        abort_unless($event->is_public || $user?->canModifyEntity($event), 403);
+
         return view('activity-proposals.create', compact('event'));
     })->name('events.propose');
     Route::post('events/{event}/copy', [EventController::class, 'copy'])->name('events.copy');
