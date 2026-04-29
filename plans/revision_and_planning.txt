@@ -26,7 +26,7 @@ Technicals
         - Facebook login
         - wont i need openstreet api or smth?
     - deletion policy
-    - cleaning scripts
+    - cleaning scripts (Schedule::command('telescope:prune')->daily();)
     - countries and city translations do we need them? + language rule always fallback to english
     - DDDize Scheduling/Proposals/Tagging
         - rename mass create to create in the code
