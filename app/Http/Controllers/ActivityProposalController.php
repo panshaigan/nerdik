@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\ActivityProposalStatus;
 use App\Models\ActivityProposal;
 use App\Services\ActivityProposalDecisionService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +15,7 @@ class ActivityProposalController extends Controller
      * Accept a proposal: assign the activity to the chosen slot, or auto-pick a fitting free slot
      * (preferred slots first, then any random fitting free slot).
      */
-    public function accept(Request $request, ActivityProposal $proposal, ActivityProposalDecisionService $decisions): RedirectResponse
+    public function accept(Request $request, ActivityProposal $proposal, ActivityProposalDecisionService $decisions)
     {
         $event = $proposal->event;
         abort_unless(Auth::user()?->canModifyEntity($event), 403, __('ui.status.forbidden_accept'));
@@ -39,7 +38,7 @@ class ActivityProposalController extends Controller
     /**
      * Reject a proposal.
      */
-    public function reject(ActivityProposal $proposal, ActivityProposalDecisionService $decisions): RedirectResponse
+    public function reject(ActivityProposal $proposal, ActivityProposalDecisionService $decisions)
     {
         $event = $proposal->event;
         abort_unless(Auth::user()?->canModifyEntity($event), 403, __('ui.status.forbidden_reject'));

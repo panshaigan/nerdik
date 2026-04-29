@@ -9,7 +9,6 @@ use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Tag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
@@ -381,7 +380,7 @@ class BrowseEvents extends Component
         return $paginator;
     }
 
-    public function render(): View
+    public function render()
     {
         $paginator = $this->paginateBrowseListings();
 

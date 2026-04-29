@@ -4,7 +4,6 @@ namespace App\Livewire\Me;
 
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Models\Event;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -25,7 +24,7 @@ class MyEvents extends Component
         $this->resetPage();
     }
 
-    public function render(): View
+    public function render()
     {
         $userId = auth()->id();
         $query = Event::query()
