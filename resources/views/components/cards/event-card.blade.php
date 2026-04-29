@@ -76,16 +76,21 @@
                         </a>
                     @endif
                     @if (in_array($event->id, $interestedEventIds))
-                        <form action="{{ route('interests.events.remove', $event) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-base-100/10 text-warning hover:bg-base-100/20 ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="event-card-interest-remove">★</x-button>
-                        </form>
+                        <x-button
+                            type="button"
+                            wire:click.stop="toggleEventInterest({{ (int) $event->id }})"
+                            class="btn btn-xs rounded-full border-base-100/50 bg-base-100/10 text-warning hover:bg-base-100/20 ui-action ui-action-interest-remove"
+                            :title="__('ui.interests.remove_from_interests')"
+                            data-ui="event-card-interest-remove"
+                        >★</x-button>
                     @else
-                        <form action="{{ route('interests.events.add', $event) }}" method="POST" class="inline">
-                            @csrf
-                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20 ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="event-card-interest-add">☆</x-button>
-                        </form>
+                        <x-button
+                            type="button"
+                            wire:click.stop="toggleEventInterest({{ (int) $event->id }})"
+                            class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20 ui-action ui-action-interest-add"
+                            :title="__('ui.interests.add_to_interests')"
+                            data-ui="event-card-interest-add"
+                        >☆</x-button>
                     @endif
                 </div>
             @endauth
