@@ -223,7 +223,7 @@ class ActivityParticipationService
         return redirect()->back()->with('status', __('ui.activities.participant_removed'));
     }
 
-    protected function signupStateBlockMessage(Activity $activity): ?string
+    protected function signupStateBlockMessage(Activity $activity): array|string|null
     {
         if ($activity->isCancelled()) {
             return __('ui.activities.signup_blocked_cancelled');
