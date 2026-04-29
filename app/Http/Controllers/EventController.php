@@ -6,6 +6,9 @@ use App\Models\Event;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +23,7 @@ class EventController extends Controller
     /**
      * Mass-create slots from the event page (JSON / no full-page redirect).
      */
-    public function massStoreSlots(Request $request, Event $event)
+    public function massStoreSlots(Request $request, Event $event): JsonResponse
     {
         $this->authorizeCreatedBy($event);
 
@@ -42,7 +45,7 @@ class EventController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
         abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
 
@@ -52,7 +55,7 @@ class EventController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Event $event)
+    public function edit(Event $event): View
     {
         $this->authorizeCreatedBy($event);
 
@@ -62,7 +65,7 @@ class EventController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Event $event)
+    public function destroy(Event $event): RedirectResponse
     {
         $this->authorizeCreatedBy($event);
 
@@ -74,10 +77,10 @@ class EventController extends Controller
 
     /**
      * Create a new event by copying an existing one:
-     * - copies basic fields
-     * - copies slots, but clears activity_id (empty slots)
+     * - Copies basic fields
+     * - Copies slots but clears activity_id (empty slots)
      */
-    public function copy(Event $event)
+    public function copy(Event $event): RedirectResponse
     {
         if (! auth()->check()) {
             abort(403, __('Unauthorized.'));

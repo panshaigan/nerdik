@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Place;
 use App\Models\Tag;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -75,7 +76,7 @@ class BrowseActivities extends Component
             || $this->hasTagFilterActive();
     }
 
-    public function render()
+    public function render(): View
     {
         $query = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
             ->attachedToPublicEvent();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Organization;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -14,7 +15,7 @@ class OrganizationController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): RedirectResponse
     {
         return redirect()->route('organizations.index', ['create' => '1']);
     }
@@ -22,7 +23,7 @@ class OrganizationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -40,7 +41,7 @@ class OrganizationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Organization $organization)
+    public function show(Organization $organization): void
     {
         //
     }
@@ -48,7 +49,7 @@ class OrganizationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Organization $organization)
+    public function edit(Organization $organization): RedirectResponse
     {
         $this->authorizeCreatedBy($organization);
 
@@ -58,7 +59,7 @@ class OrganizationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Organization $organization)
+    public function update(Request $request, Organization $organization): RedirectResponse
     {
         $this->authorizeCreatedBy($organization);
 
@@ -78,7 +79,7 @@ class OrganizationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Organization $organization)
+    public function destroy(Organization $organization): RedirectResponse
     {
         $this->authorizeCreatedBy($organization);
 

@@ -8,9 +8,10 @@ use App\Models\Event;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Mary\Traits\Toast;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Dashboard extends Component
 {
@@ -19,7 +20,7 @@ class Dashboard extends Component
 
     private const PER_PAGE = 15;
 
-    public function render()
+    public function render(): View
     {
         $user = Auth::user();
         $this->toastFromSessionStatus();

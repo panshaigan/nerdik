@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class ActivityController extends Controller
 {
@@ -12,7 +14,7 @@ class ActivityController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
         return view('activities.create');
     }
@@ -20,7 +22,7 @@ class ActivityController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Activity $activity)
+    public function edit(Activity $activity): View
     {
         $this->authorizeCreatedBy($activity);
 
@@ -32,7 +34,7 @@ class ActivityController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Activity $activity)
+    public function destroy(Activity $activity): RedirectResponse
     {
         $this->authorizeCreatedBy($activity);
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Organizations;
 use App\Models\Organization;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class OrganizationIndex extends Component
@@ -134,7 +135,7 @@ class OrganizationIndex extends Component
         $this->resetErrorBag();
     }
 
-    public function render()
+    public function render(): View
     {
         $organizations = Organization::query()
             ->where('created_by', auth()->id())

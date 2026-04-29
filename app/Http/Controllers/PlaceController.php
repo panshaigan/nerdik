@@ -6,7 +6,9 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Place;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -36,7 +38,7 @@ class PlaceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): View
     {
         $places = Place::with('parent')
             ->orderBy('type')
@@ -49,7 +51,7 @@ class PlaceController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
         $parents = Place::orderBy('name')->get();
 
@@ -63,7 +65,7 @@ class PlaceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -91,7 +93,7 @@ class PlaceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Place $place)
+    public function show(Place $place): void
     {
         //
     }
@@ -99,7 +101,7 @@ class PlaceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Place $place)
+    public function edit(Place $place): View
     {
         $this->authorizeCreatedBy($place);
 
@@ -117,7 +119,7 @@ class PlaceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Place $place)
+    public function update(Request $request, Place $place): RedirectResponse
     {
         $this->authorizeCreatedBy($place);
 
@@ -173,7 +175,7 @@ class PlaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Place $place)
+    public function destroy(Place $place): RedirectResponse
     {
         $this->authorizeCreatedBy($place);
 
