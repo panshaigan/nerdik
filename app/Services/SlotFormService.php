@@ -71,6 +71,56 @@ class SlotFormService
     }
 
     /**
+     * Venues and room lists for the mass-create form scoped to one user's accessible events.
+     *
+     * @return array{eventVenuesByEventId: array<int, list<array{id:int,name:string,type:string}>>, roomsByEventAndVenue: array<int, array<int, list<array{id:int,name:string}>>>}
+     */
+    public function massFormPlaceDataForUser(?int $userId, bool $isAdmin = false): array
+    {
+        $events = Event::query()
+            ->with(['places' => fn ($q) => $q->orderBy('name')])
+            ->when(! $isAdmin, fn ($query) => $query->where('created_by', $userId))
+            ->orderBy('starts_at', 'desc')
+            ->get();
+
+        $eventVenuesByEventId = [];
+        $roomsByEventAndVenue = [];
+
+        foreach ($events as $event) {
+            $venues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+
+            $eventVenuesByEventId[$event->id] = $venues
+                ->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'type' => $p->type])
+                ->values()
+                ->all();
+
+            $venueIds = $venues->pluck('id');
+            if ($venueIds->isEmpty()) {
+                continue;
+            }
+
+            $children = Place::query()
+                ->whereIn('parent_id', $venueIds)
+                ->where('type', 'room')
+                ->orderBy('name')
+                ->get()
+                ->groupBy('parent_id');
+
+            foreach ($venues as $v) {
+                $roomsByEventAndVenue[$event->id][$v->id] = ($children[$v->id] ?? collect())
+                    ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
+                    ->values()
+                    ->all();
+            }
+        }
+
+        return [
+            'eventVenuesByEventId' => $eventVenuesByEventId,
+            'roomsByEventAndVenue' => $roomsByEventAndVenue,
+        ];
+    }
+
+    /**
      * Venues linked to an event (prefer `type = venue`, else all).
      *
      * @return Collection<int, Place>

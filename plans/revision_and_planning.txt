@@ -10,7 +10,6 @@ Notifications
 
 Technicals
     - security:
-        csrf, xss, sql injection, Insecure Direct Object References,
         Authentication & Session Hijacking; Clickjacking: http header: X-Frame-Options', 'DENY'
         Directory Traversal: sanitize user input for paths
         / snyk/ dependabot

@@ -51,4 +51,36 @@ class EventOrganizerAccessTest extends TestCase
             ->post(route('events.copy', $event))
             ->assertForbidden();
     }
+
+    public function test_user_cannot_open_propose_page_for_private_event_they_do_not_own(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+
+        $event = Event::factory()->private()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'organization_id' => null,
+        ]);
+
+        $this->actingAs($stranger)
+            ->get(route('events.propose', $event))
+            ->assertForbidden();
+    }
+
+    public function test_user_can_open_propose_page_for_public_event_they_do_not_own(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'organization_id' => null,
+        ]);
+
+        $this->actingAs($stranger)
+            ->get(route('events.propose', $event))
+            ->assertOk();
+    }
 }

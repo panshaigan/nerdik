@@ -26,12 +26,19 @@ class SlotController extends Controller
 
         $slot->load(['event.places', 'place.parent', 'activityTypes']);
 
-        $events = Event::orderBy('starts_at', 'desc')->get();
+        $user = auth()->user();
+        $events = Event::query()
+            ->when(! $user?->is_admin, fn ($query) => $query->where('created_by', $user?->id))
+            ->orderBy('starts_at', 'desc')
+            ->get();
 
         $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
         $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
 
-        $massPlaceData = $this->slotFormService->massFormPlaceDataForAllEvents();
+        $massPlaceData = $this->slotFormService->massFormPlaceDataForUser(
+            $user?->id,
+            (bool) $user?->is_admin
+        );
 
         $slotVenueRoomDefaults = $this->slotFormService->slotVenueRoomDefaultsFromPlace($slot);
 

@@ -107,4 +107,23 @@ class ActivityDuplicatePrefillTest extends TestCase
                 return $activityTypes->pluck('id')->map(fn ($id) => (int) $id)->values()->all() === [(int) $typeB->id];
             });
     }
+
+    public function test_non_owner_cannot_prefill_activity_from_duplicate_param(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $source = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'name' => 'Secret Activity',
+        ]);
+
+        Livewire::actingAs($stranger)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('name', '')
+            ->assertSet('description', '')
+            ->assertSet('activity_type_id', null)
+            ->assertSet('tag_ids', []);
+    }
 }
