@@ -17,17 +17,15 @@ final class UserFactory extends Factory
     const SAMPLE_PASSWORD = 'password';
 
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = User::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     public function definition(): array
     {
         return [
@@ -70,6 +68,13 @@ final class UserFactory extends Factory
             'nickname' => $nickname,
             'name' => $name,
             'email' => $email,
+        ]);
+    }
+
+    public function unverified(): self
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
         ]);
     }
 }

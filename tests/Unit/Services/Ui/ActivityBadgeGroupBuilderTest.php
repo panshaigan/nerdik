@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Ui;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Domain\ActivityBadges\ActivityBadgeItem;
 use App\Domain\ActivityBadges\ActivityBadgeKind;
@@ -13,7 +14,6 @@ use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
-use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
@@ -52,17 +52,17 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
 
         $this->assertCount(4, $items);
-        $this->assertSame(ActivityBadgeKind::ActivityType, $items[0]->kind);
+        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[0]->kind);
+        $this->assertSame('16+', $items[0]->label);
         $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[1]->kind);
         $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[2]->kind);
-        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[3]->kind);
-        $this->assertSame('16+', $items[3]->label);
+        $this->assertSame(ActivityBadgeKind::RequiresApproval, $items[3]->kind);
         $gameItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Alpha');
         $genreItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Beta');
         $this->assertNotNull($gameItem);
         $this->assertNotNull($genreItem);
-        $this->assertSame(BadgeSemantic::Primary, $gameItem->semantic);
-        $this->assertSame(BadgeSemantic::Info, $genreItem->semantic);
+        $this->assertSame(BadgeSemantic::Neutral, $gameItem->semantic);
+        $this->assertSame(BadgeSemantic::Neutral, $genreItem->semantic);
     }
 
     #[Test]
@@ -75,17 +75,17 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $tagTopic = Tag::factory()->create(['tag_category_id' => $topic->id]);
         TagTranslation::factory()->create(['tag_id' => $tagTopic->id, 'locale' => 'en', 'label' => 'T']);
 
-        $activity = Activity::factory()->create(['minimum_age' => 12]);
+        $activity = Activity::factory()->create(['minimum_age' => 12, 'activity_type_id' => null]);
         $activity->tags()->attach([$tagGame->id, $tagTopic->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
         $items = $this->builder->build($activity, ActivityBadgeGroupConfig::eventSlotCard());
 
         $kinds = array_map(fn (ActivityBadgeItem $i) => $i->kind, $items);
-        $this->assertSame([ActivityBadgeKind::TaxonomyTag, ActivityBadgeKind::TaxonomyTag, ActivityBadgeKind::MinimumAge], $kinds);
-        $this->assertSame('G', $items[0]->label);
-        $this->assertSame('T', $items[1]->label);
-        $this->assertSame('12+', $items[2]->label);
+        $this->assertSame([ActivityBadgeKind::MinimumAge, ActivityBadgeKind::TaxonomyTag, ActivityBadgeKind::TaxonomyTag], $kinds);
+        $this->assertSame('12+', $items[0]->label);
+        $this->assertSame('G', $items[1]->label);
+        $this->assertSame('T', $items[2]->label);
     }
 
     #[Test]
@@ -98,7 +98,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $tagTopic = Tag::factory()->create(['tag_category_id' => $topic->id]);
         TagTranslation::factory()->create(['tag_id' => $tagTopic->id, 'locale' => 'en', 'label' => 'T']);
 
-        $activity = Activity::factory()->create(['minimum_age' => 12]);
+        $activity = Activity::factory()->create(['minimum_age' => 12, 'activity_type_id' => null]);
         $activity->tags()->attach([$tagGame->id, $tagTopic->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -112,9 +112,9 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $items = $this->builder->build($activity, $config);
 
         $this->assertCount(2, $items);
-        $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[0]->kind);
-        $this->assertSame('G', $items[0]->label);
-        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[1]->kind);
+        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[0]->kind);
+        $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[1]->kind);
+        $this->assertSame('G', $items[1]->label);
     }
 
     #[Test]
@@ -132,12 +132,11 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
 
         $items = $this->builder->build($activity, ActivityBadgeGroupConfig::browseCard());
 
-        $this->assertCount(3, $items);
-        $this->assertSame(ActivityBadgeKind::ActivityType, $items[0]->kind);
+        $this->assertCount(2, $items);
+        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[0]->kind);
+        $this->assertSame('18+', $items[0]->label);
         $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[1]->kind);
         $this->assertSame('Solo', $items[1]->label);
-        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[2]->kind);
-        $this->assertSame('18+', $items[2]->label);
     }
 
     #[Test]
@@ -177,7 +176,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Zed']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -197,7 +196,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         TagTranslation::factory()->create(['tag_id' => $tagGame->id, 'locale' => 'en', 'label' => 'G']);
         $tagGenre = Tag::factory()->create(['tag_category_id' => $genre->id]);
         TagTranslation::factory()->create(['tag_id' => $tagGenre->id, 'locale' => 'en', 'label' => 'R']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
         $activity->tags()->attach([$tagGame->id, $tagGenre->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -220,7 +219,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'X']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -240,7 +239,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Iconic']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -259,7 +258,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Override']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 

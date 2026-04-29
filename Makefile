@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
 
-.PHONY: up down restart ps logs shell migrate migrate-fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require migrate-refresh dump-schema clear-cache artisan
+.PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require dump cache artisan pint
 up:
 	$(SAIL) up -d
 
@@ -27,16 +27,16 @@ tinker:
 migrate:
 	$(SAIL) artisan migrate
 
-migrate-fresh:
+fresh:
 	$(SAIL) artisan migrate:fresh
 
-migrate-refresh:
+refresh:
 	$(SAIL) artisan migrate:refresh --seed
 
 seed:
 	$(SAIL) artisan db:seed
 
-dump-schema:
+dump:
 	$(SAIL) artisan schema:dump --prune
 
 queue:
@@ -48,7 +48,7 @@ scheduler:
 serve:
 	$(SAIL) artisan serve
 
-clear-cache:
+cache:
 	$(SAIL) artisan optimize:clear
 
 test:
@@ -72,4 +72,7 @@ composer-require:
 
 artisan:
 	$(SAIL) artisan $(filter-out $@,$(MAKECMDGOALS))
+
+pint:
+	$(SAIL) bin pint --dirty --format agent
 

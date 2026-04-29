@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Cache;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use function now;
 
 class TagCategory extends Model
 {
+    use HasFactory;
+
     public $timestamps = false;
 
     public const KEY_GAME = 'game';
@@ -28,8 +30,6 @@ class TagCategory extends Model
     public const KEY_TRIGGER = 'trigger';
 
     public const KEY_TOPIC = 'topic';
-
-
 
     /** @var list<string> */
     public const DEFAULT_KEYS = [

@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class TagContext extends Model
 {
+    use HasFactory;
+
     public const CONTEXT_TYPE_ACTIVITY_TYPE = 'activity_type';
 
     public $timestamps = false;
