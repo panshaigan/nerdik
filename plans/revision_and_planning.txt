@@ -10,15 +10,8 @@ Notifications
 
 Technicals
     - posgress?
-    - performance
-    - check the admin panel
     - APIs:
-        - GOOGLE login (create app + add widget to login page)
-        - Facebook login
-        - wont i need openstreet api or smth?
-    - deletion policy
-    - cleaning scripts (Schedule::command('telescope:prune')->daily();)
-    - countries and city translations do we need them? + language rule always fallback to english
-    - DDDize Scheduling/Proposals/Tagging
-        - rename mass create to create in the code
-        - refactor signup to enroll in the code
+            - GOOGLE login (create app + add widget to login page)
+            - Facebook login
+            = user flow
+            - wont i need openstreet api or smth?

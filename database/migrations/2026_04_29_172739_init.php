@@ -1,0 +1,626 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Single-file migration for all application + Laravel framework tables.
+ * PostgreSQL-compatible (no unsigned, no binary collation).
+ *
+ * Creation order respects foreign-key dependencies.
+ * The users <-> organizations circular dependency is resolved by:
+ *   1. Creating organizations without user FKs
+ *   2. Creating users (with organization_id FK)
+ *   3. Adding user FKs to organizations in a Schema::table() call
+ */
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // ------------------------------------------------------------------ //
+        // 1. COUNTRIES
+        // ------------------------------------------------------------------ //
+        Schema::create('countries', function (Blueprint $table) {
+            $table->id();
+            $table->char('iso_alpha2', 2)->unique();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 2. COUNTRY TRANSLATIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('country_translations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->string('locale', 12);
+            $table->string('name');
+            $table->unique(['country_id', 'locale']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 3. CITIES
+        // ------------------------------------------------------------------ //
+        Schema::create('cities', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('country_id')->constrained()->cascadeOnDelete();
+            $table->string('slug')->nullable();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 4. CITY TRANSLATIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('city_translations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('city_id')->constrained()->cascadeOnDelete();
+            $table->string('locale', 12);
+            $table->string('name');
+            $table->unique(['city_id', 'locale']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 5. ORGANIZATIONS  (user FKs added after users table is created)
+        // ------------------------------------------------------------------ //
+        Schema::create('organizations', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('logo_path')->nullable();
+            $table->string('slug')->unique();
+            $table->string('acronym', 12)->nullable();
+            $table->text('description')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            // FK columns declared now; constraints added below after users exist
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->index('created_by');
+            $table->index('updated_by');
+            $table->index('deleted_by');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 6. USERS
+        // ------------------------------------------------------------------ //
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('nickname')->unique();
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('google_id')->nullable();
+            $table->string('avatar_path')->nullable();
+            $table->string('discord_handle')->nullable();
+            $table->string('current_location')->nullable();
+            $table->string('timezone', 50)->nullable();
+            $table->boolean('is_admin')->default(false);
+            $table->boolean('is_event_organizer')->default(false);
+            $table->text('languages')->nullable(); // JSON stored as text (utf8mb4_bin in MySQL)
+            $table->boolean('notify_email_proposal_updates')->default(true);
+            $table->boolean('notify_email_waitlist_promoted')->default(true);
+            $table->rememberToken();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->timestamps();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 7. ADD USER FKs TO ORGANIZATIONS  (circular dep resolution)
+        // ------------------------------------------------------------------ //
+        Schema::table('organizations', function (Blueprint $table) {
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('deleted_by')->references('id')->on('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 8. PLACES
+        // ------------------------------------------------------------------ //
+        Schema::create('places', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->enum('type', ['venue', 'room']);
+            $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('city_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->string('address')->nullable();
+            $table->string('links')->nullable();
+            $table->boolean('is_online')->default(false);
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+            $table->string('logo_path')->nullable();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            // Self-referential FK (parent venue -> room)
+            $table->foreign('parent_id')->references('id')->on('places')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 9. EVENTS
+        // ------------------------------------------------------------------ //
+        Schema::create('events', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
+            $table->boolean('is_public')->default(true);
+            $table->string('logo_path')->nullable();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 10. EVENT_PLACE  (pivot)
+        // ------------------------------------------------------------------ //
+        Schema::create('event_place', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('place_id')->constrained()->cascadeOnDelete();
+            $table->unique(['event_id', 'place_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 11. EVENT ENROLLMENT WINDOWS
+        // ------------------------------------------------------------------ //
+        Schema::create('event_enrollment_windows', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->smallInteger('max_activities_per_user')->nullable();
+            $table->boolean('accumulative_activities')->default(false);
+            $table->smallInteger('max_allowed_participants_per_activity')->nullable();
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
+            $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index(['event_id', 'starts_at', 'ends_at'], 'event_signup_periods_event_id_starts_at_ends_at_index');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 12. ACTIVITY TYPES
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('slug', 100)->unique();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 13. ACTIVITIES
+        // ------------------------------------------------------------------ //
+        Schema::create('activities', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            // No ON DELETE rule in original → default RESTRICT in PG
+            $table->foreignId('activity_type_id')->nullable()->constrained('activity_types');
+            $table->smallInteger('hosting_mode')->default(1);
+            $table->foreignId('place_id')->nullable()->constrained('places')->nullOnDelete();
+            $table->smallInteger('min_participants')->nullable();
+            $table->smallInteger('max_participants')->nullable();
+            $table->smallInteger('minimum_age')->nullable();
+            $table->smallInteger('cancellation_deadline_in_hours')->nullable();
+            $table->smallInteger('duration_in_minutes')->nullable();
+            $table->boolean('allows_observers')->default(false);
+            $table->boolean('is_host_passive')->default(false);
+            $table->boolean('requires_approval')->default(false);
+            $table->decimal('price', 10, 2)->nullable();
+            $table->string('logo_path')->nullable();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->text('cancel_reason')->nullable();
+            $table->dateTime('starts_at')->nullable();
+            $table->dateTime('ends_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('cancelled_at');
+            $table->index('hosting_mode');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 14. SLOTS
+        // ------------------------------------------------------------------ //
+        Schema::create('slots', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('activity_id')->nullable()->constrained('activities')->nullOnDelete();
+            $table->foreignId('place_id')->nullable()->constrained('places')->nullOnDelete();
+            $table->boolean('requires_approval')->default(false);
+            $table->smallInteger('max_capacity')->nullable();
+            $table->dateTime('starts_at')->nullable();
+            $table->dateTime('ends_at')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 15. ACTIVITY_USER  (participants)
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->boolean('is_absent')->default(false);
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unique(['activity_id', 'user_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 16. ACTIVITY WAITLIST ENTRIES
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_waitlist_entries', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->smallInteger('position')->nullable();
+            $table->timestamps();
+            $table->unique(['activity_id', 'user_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 17. ACTIVITY PROPOSALS
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_proposals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            // Nullable; kept after slot is decoupled from activity
+            $table->foreignId('accepted_slot_id')->nullable()->constrained('slots')->nullOnDelete();
+            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->dateTime('preferred_start_time')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            // NOT NULL + CASCADE in original
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 18. ACTIVITY_PROPOSAL_SLOT  (pivot)
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_proposal_slot', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('activity_proposal_id')->constrained('activity_proposals')->cascadeOnDelete();
+            $table->foreignId('slot_id')->constrained()->cascadeOnDelete();
+            $table->unique(['activity_proposal_id', 'slot_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 19. ACTIVITY_TYPE_SLOT  (pivot)
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_type_slot', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('slot_id')->constrained()->cascadeOnDelete();
+            // Nullable column, CASCADE so row is removed when type is deleted
+            $table->foreignId('activity_type_id')->nullable()->constrained('activity_types')->cascadeOnDelete();
+            $table->unique(['slot_id', 'activity_type_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 20. TAG CATEGORIES
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('key', 50)->unique();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 21. TAG CATEGORY TRANSLATIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_category_translations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_category_id')->constrained()->cascadeOnDelete();
+            $table->string('locale', 10);
+            $table->string('label', 100);
+            $table->unique(['tag_category_id', 'locale']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 22. TAGS
+        // ------------------------------------------------------------------ //
+        Schema::create('tags', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_category_id')->nullable()->constrained('tag_categories')->nullOnDelete();
+            $table->string('logo_path')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 23. TAG TRANSLATIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_translations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+            $table->string('locale', 5);
+            $table->string('label');
+            $table->string('slug')->nullable();
+            $table->unique(['tag_id', 'locale']);
+            $table->unique(['locale', 'slug']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 24. TAG ALIASES
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_aliases', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+            $table->string('locale', 5)->nullable();
+            $table->string('alias');
+            $table->unique(['tag_id', 'alias', 'locale']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 25. TAG RELATIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_relations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
+            $table->foreignId('related_tag_id')->constrained('tags')->cascadeOnDelete();
+            $table->unique(['tag_id', 'related_tag_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 26. TAG CONTEXTS  (polymorphic, no FK on context)
+        // ------------------------------------------------------------------ //
+        Schema::create('tag_contexts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+            $table->string('context_type', 100);
+            $table->unsignedBigInteger('context_id');
+            $table->unique(['tag_id', 'context_type', 'context_id'], 'tag_contexts_unique_idx');
+            $table->index(['context_type', 'context_id'], 'tag_contexts_context_lookup_idx');
+            $table->index(['tag_id', 'context_type'], 'tag_contexts_tag_type_idx');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 27. TAGGABLES  (polymorphic, no FK on taggable)
+        // ------------------------------------------------------------------ //
+        Schema::create('taggables', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+            $table->string('taggable_type', 100);
+            $table->unsignedBigInteger('taggable_id');
+            $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'taggables_unique_idx');
+            $table->index(['taggable_type', 'taggable_id'], 'taggables_taggable_lookup_idx');
+            $table->index(['tag_id', 'taggable_type'], 'taggables_tag_type_idx');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 28. USER ACTIVITY INTERESTS  (wishlist)
+        // ------------------------------------------------------------------ //
+        Schema::create('user_activity_interests', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+            $table->unique(['user_id', 'activity_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 29. USER EVENT INTERESTS  (wishlist)
+        // ------------------------------------------------------------------ //
+        Schema::create('user_event_interests', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
+            $table->unique(['user_id', 'event_id']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 30. NOTIFICATIONS  (Laravel Notifiable; UUID primary key)
+        // ------------------------------------------------------------------ //
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->string('notifiable_type');
+            $table->unsignedBigInteger('notifiable_id');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+            $table->index(['notifiable_type', 'notifiable_id']);
+        });
+
+        // ================================================================== //
+        // LARAVEL FRAMEWORK TABLES
+        // ================================================================== //
+
+        // ------------------------------------------------------------------ //
+        // 31. PASSWORD RESET TOKENS
+        // ------------------------------------------------------------------ //
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 32. SESSIONS
+        // ------------------------------------------------------------------ //
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->text('payload');
+            $table->integer('last_activity')->index();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 33. CACHE
+        // ------------------------------------------------------------------ //
+        Schema::create('cache', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->text('value');
+            $table->integer('expiration')->index();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 34. CACHE LOCKS
+        // ------------------------------------------------------------------ //
+        Schema::create('cache_locks', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->string('owner');
+            $table->integer('expiration')->index();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 35. JOBS
+        // ------------------------------------------------------------------ //
+        Schema::create('jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('queue');
+            $table->text('payload');
+            $table->smallInteger('attempts');
+            $table->integer('reserved_at')->nullable();
+            $table->integer('available_at');
+            $table->integer('created_at');
+            $table->index(['queue', 'reserved_at', 'available_at']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 36. JOB BATCHES
+        // ------------------------------------------------------------------ //
+        Schema::create('job_batches', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->integer('total_jobs');
+            $table->integer('pending_jobs');
+            $table->integer('failed_jobs');
+            $table->text('failed_job_ids');
+            $table->text('options')->nullable();
+            $table->integer('cancelled_at')->nullable();
+            $table->integer('created_at');
+            $table->integer('finished_at')->nullable();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 37. FAILED JOBS
+        // ------------------------------------------------------------------ //
+        Schema::create('failed_jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('uuid')->unique();
+            $table->text('connection');
+            $table->text('queue');
+            $table->text('payload');
+            $table->text('exception');
+            $table->timestamp('failed_at')->useCurrent();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 38. TELESCOPE ENTRIES
+        // ------------------------------------------------------------------ //
+        Schema::create('telescope_entries', function (Blueprint $table) {
+            $table->bigIncrements('sequence');
+            $table->uuid('uuid')->unique();
+            $table->uuid('batch_id')->index();
+            $table->string('family_hash')->nullable()->index();
+            $table->boolean('should_display_on_index')->default(true);
+            $table->string('type', 20);
+            $table->text('content');
+            $table->dateTime('created_at')->nullable()->index();
+            $table->index(['type', 'should_display_on_index']);
+        });
+
+        // ------------------------------------------------------------------ //
+        // 39. TELESCOPE ENTRIES TAGS
+        // ------------------------------------------------------------------ //
+        Schema::create('telescope_entries_tags', function (Blueprint $table) {
+            $table->uuid('entry_uuid');
+            $table->string('tag');
+            $table->primary(['entry_uuid', 'tag']);
+            $table->index('tag');
+            $table->foreign('entry_uuid')
+                ->references('uuid')
+                ->on('telescope_entries')
+                ->cascadeOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 40. TELESCOPE MONITORING
+        // ------------------------------------------------------------------ //
+        Schema::create('telescope_monitoring', function (Blueprint $table) {
+            $table->string('tag')->primary();
+        });
+    }
+
+    public function down(): void
+    {
+        // Drop in strict reverse dependency order
+
+        Schema::dropIfExists('telescope_monitoring');
+        Schema::dropIfExists('telescope_entries_tags');
+        Schema::dropIfExists('telescope_entries');
+
+        Schema::dropIfExists('failed_jobs');
+        Schema::dropIfExists('job_batches');
+        Schema::dropIfExists('jobs');
+        Schema::dropIfExists('cache_locks');
+        Schema::dropIfExists('cache');
+        Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+
+        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('user_event_interests');
+        Schema::dropIfExists('user_activity_interests');
+        Schema::dropIfExists('taggables');
+        Schema::dropIfExists('tag_contexts');
+        Schema::dropIfExists('tag_relations');
+        Schema::dropIfExists('tag_aliases');
+        Schema::dropIfExists('tag_translations');
+        Schema::dropIfExists('tags');
+        Schema::dropIfExists('tag_category_translations');
+        Schema::dropIfExists('tag_categories');
+        Schema::dropIfExists('activity_type_slot');
+        Schema::dropIfExists('activity_proposal_slot');
+        Schema::dropIfExists('activity_proposals');
+        Schema::dropIfExists('activity_waitlist_entries');
+        Schema::dropIfExists('activity_user');
+        Schema::dropIfExists('slots');
+        Schema::dropIfExists('activities');
+        Schema::dropIfExists('activity_types');
+        Schema::dropIfExists('event_enrollment_windows');
+        Schema::dropIfExists('event_place');
+        Schema::dropIfExists('events');
+        Schema::dropIfExists('places');
+
+        // Remove user FKs from organizations before dropping users
+        Schema::table('organizations', function (Blueprint $table) {
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['updated_by']);
+            $table->dropForeign(['deleted_by']);
+        });
+
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('organizations');
+        Schema::dropIfExists('city_translations');
+        Schema::dropIfExists('cities');
+        Schema::dropIfExists('country_translations');
+        Schema::dropIfExists('countries');
+    }
+};
