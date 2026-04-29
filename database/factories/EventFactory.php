@@ -35,6 +35,7 @@ final class EventFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         $name = fake()->name;

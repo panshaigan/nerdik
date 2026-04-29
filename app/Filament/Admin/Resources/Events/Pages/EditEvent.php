@@ -12,6 +12,7 @@ class EditEvent extends EditRecord
 {
     protected static string $resource = EventResource::class;
 
+    #[\Override]
     protected function getHeaderActions(): array
     {
         return [

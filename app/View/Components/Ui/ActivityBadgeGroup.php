@@ -17,6 +17,7 @@ class ActivityBadgeGroup extends Component
         public ?string $dataUi = null,
     ) {}
 
+    #[\Override]
     public function render(): View|Closure|string
     {
         return view('components.activity-badges.group');

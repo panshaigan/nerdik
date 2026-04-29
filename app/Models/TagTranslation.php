@@ -20,6 +20,7 @@ class TagTranslation extends Model
         'slug',
     ];
 
+    #[\Override]
     protected static function booted(): void
     {
         static::saving(function (TagTranslation $translation) {

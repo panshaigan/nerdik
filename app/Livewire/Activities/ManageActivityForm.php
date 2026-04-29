@@ -472,6 +472,7 @@ class ManageActivityForm extends Component
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
+    #[\Override]
     protected function prepareForValidation($attributes)
     {
         foreach (['min_participants', 'max_participants', 'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours'] as $key) {

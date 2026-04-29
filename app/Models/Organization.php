@@ -12,6 +12,7 @@ class Organization extends Model
 {
     use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
 
+    #[\Override]
     public function getRouteKeyName(): string
     {
         return 'slug';

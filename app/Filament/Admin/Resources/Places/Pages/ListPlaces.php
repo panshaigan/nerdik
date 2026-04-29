@@ -10,6 +10,7 @@ class ListPlaces extends ListRecords
 {
     protected static string $resource = PlaceResource::class;
 
+    #[\Override]
     protected function getHeaderActions(): array
     {
         return [

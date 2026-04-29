@@ -24,6 +24,7 @@ final class CountryTranslationFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         return [

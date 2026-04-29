@@ -30,6 +30,7 @@ class TabsWithToolbar extends Component
         public string $toolbarWrapperClass = 'flex shrink-0 items-center gap-1 px-2 pb-2 pt-2 sm:px-3',
     ) {}
 
+    #[\Override]
     public function render(): View|Closure|string
     {
         return view('components.ui.tabs-with-toolbar');
