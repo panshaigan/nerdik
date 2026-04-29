@@ -12,8 +12,6 @@ use App\Services\LocationResolver;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -322,7 +320,7 @@ class ManageEventForm extends Component
         return $attributes;
     }
 
-    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService, EventEmptySlotCloneService $slotCloneService): RedirectResponse
+    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService, EventEmptySlotCloneService $slotCloneService)
     {
         $validated = $this->validate($this->rules());
 
@@ -558,7 +556,7 @@ class ManageEventForm extends Component
             ->all();
     }
 
-    public function render(): View
+    public function render()
     {
         $places = Place::with(['city.translations', 'country.translations'])
             ->venues()

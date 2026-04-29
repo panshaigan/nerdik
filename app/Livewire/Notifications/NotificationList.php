@@ -2,9 +2,6 @@
 
 namespace App\Livewire\Notifications;
 
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,7 +16,7 @@ class NotificationList extends Component
         session()->flash('status', __('All notifications marked as read.'));
     }
 
-    public function markReadAndGo(string $id): Redirector|RedirectResponse
+    public function markReadAndGo(string $id)
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
@@ -28,7 +25,7 @@ class NotificationList extends Component
         return redirect($url);
     }
 
-    public function render(): View
+    public function render()
     {
         $notifications = Auth::user()->notifications()->paginate(20);
 

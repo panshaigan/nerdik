@@ -14,7 +14,6 @@ use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
-use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -421,7 +420,7 @@ class ShowEvent extends Component
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
     }
 
-    public function render(EventSlotPresentationService $slotPresentation): View
+    public function render(EventSlotPresentationService $slotPresentation)
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 

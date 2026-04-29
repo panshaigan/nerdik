@@ -8,16 +8,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class GoogleAuthController extends Controller
 {
-    public function redirect(): RedirectResponse
+    public function redirect()
     {
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(): \Illuminate\Http\RedirectResponse
+    public function callback()
     {
         $googleUser = Socialite::driver('google')->user();
 
