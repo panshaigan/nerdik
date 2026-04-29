@@ -9,31 +9,25 @@ Notifications
         - "you waited enough to get the place" [MVP]
 
 Technicals
-    - update laravel to 13
-    - security
-    - performance
+    - testing
+    - security:
+        csrf, xss, sql injection, Insecure Direct Object References,
+        Authentication & Session Hijacking; Clickjacking: http header: X-Frame-Options', 'DENY'
+        Directory Traversal: sanitize user input for paths
+        composer audit/ snyk/ dependabot
+        tools: OWASP ZAP, PHPStan
+
+        penetration testing: Nikto
     - posgress?
+    - performance
+    - check the admin panel
     - APIs:
         - GOOGLE login (create app + add widget to login page)
         - Facebook login
         - wont i need openstreet api or smth?
-    - testing
     - deletion policy
     - cleaning scripts
     - countries and city translations do we need them? + language rule always fallback to english
     - DDDize Scheduling/Proposals/Tagging
         - rename mass create to create in the code
         - refactor signup to enroll in the code
-    - check the admin panel
-
-Features
-    - activity languages
-    - feedback system
-    - losowanie uczestników, jeśli jest więcej
-
-tag extraction:
-    Key package design choices to decide early
-    Do you want package to enforce your schema, or allow customization?
-    DB compatibility target (MySQL/Postgres only?)
-    How much UI you ship vs backend-only core
-    API surface stability (events, contracts, extension hooks)
