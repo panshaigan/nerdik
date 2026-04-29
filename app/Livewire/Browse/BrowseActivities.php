@@ -11,9 +11,11 @@ use App\Models\Tag;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class BrowseActivities extends Component
 {
+    use Toast;
     use WithBrowseListingSort;
     use WithBrowseTagFilter;
     use WithPagination;
@@ -73,6 +75,28 @@ class BrowseActivities extends Component
             || filled($this->to_date)
             || $this->place_id !== null
             || $this->hasTagFilterActive();
+    }
+
+    public function toggleActivityInterest(int $activityId): void
+    {
+        $activity = Activity::query()->whereKey($activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $alreadyInterested = $user->interestedActivities()->whereKey($activity->id)->exists();
+        if ($alreadyInterested) {
+            $user->interestedActivities()->detach($activity->id);
+            $this->warning(__('ui.interests.removed_activity'));
+
+            return;
+        }
+
+        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $eventId = $activity->slot?->event_id;
+        if ($eventId !== null) {
+            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
+        }
+        $this->success(__('ui.interests.added_activity'));
     }
 
     public function render()

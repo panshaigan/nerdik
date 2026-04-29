@@ -8,9 +8,11 @@ use App\Models\ActivityUser;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class MyParticipatedActivities extends Component
 {
+    use Toast;
     use WithBrowseListingSort;
     use WithPagination;
 
@@ -22,6 +24,28 @@ class MyParticipatedActivities extends Component
     public function updatedQ(): void
     {
         $this->resetPage();
+    }
+
+    public function toggleActivityInterest(int $activityId): void
+    {
+        $activity = Activity::query()->whereKey($activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $alreadyInterested = $user->interestedActivities()->whereKey($activity->id)->exists();
+        if ($alreadyInterested) {
+            $user->interestedActivities()->detach($activity->id);
+            $this->warning(__('ui.interests.removed_activity'));
+
+            return;
+        }
+
+        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $eventId = $activity->slot?->event_id;
+        if ($eventId !== null) {
+            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
+        }
+        $this->success(__('ui.interests.added_activity'));
     }
 
     public function render()

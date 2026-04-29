@@ -19,6 +19,46 @@ class Dashboard extends Component
 
     private const PER_PAGE = 15;
 
+    public function toggleEventInterest(int $eventId): void
+    {
+        $event = Event::query()->whereKey($eventId)->firstOrFail();
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        $alreadyInterested = $user->interestedEvents()->whereKey($event->id)->exists();
+        if ($alreadyInterested) {
+            $user->interestedEvents()->detach($event->id);
+            $this->warning(__('ui.interests.removed_event'));
+
+            return;
+        }
+
+        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        $this->success(__('ui.interests.added_event'));
+    }
+
+    public function toggleActivityInterest(int $activityId): void
+    {
+        $activity = Activity::query()->whereKey($activityId)->firstOrFail();
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        $alreadyInterested = $user->interestedActivities()->whereKey($activity->id)->exists();
+        if ($alreadyInterested) {
+            $user->interestedActivities()->detach($activity->id);
+            $this->warning(__('ui.interests.removed_activity'));
+
+            return;
+        }
+
+        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $eventId = $activity->slot?->event_id;
+        if ($eventId !== null) {
+            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
+        }
+        $this->success(__('ui.interests.added_activity'));
+    }
+
     public function render()
     {
         $user = Auth::user();

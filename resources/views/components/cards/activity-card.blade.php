@@ -78,16 +78,21 @@
                         </a>
                     @endif
                     @if (in_array($activity->id, $interestedActivityIds))
-                        <form action="{{ route('interests.activities.remove', $activity) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-base-100/10 text-warning hover:bg-base-100/20 ui-action ui-action-interest-remove" :title="__('ui.interests.remove_from_interests')" data-ui="activity-card-interest-remove">★</x-button>
-                        </form>
+                        <x-button
+                            type="button"
+                            wire:click.stop="toggleActivityInterest({{ (int) $activity->id }})"
+                            class="btn btn-xs rounded-full border-base-100/50 bg-base-100/10 text-warning hover:bg-base-100/20 ui-action ui-action-interest-remove"
+                            :title="__('ui.interests.remove_from_interests')"
+                            data-ui="activity-card-interest-remove"
+                        >★</x-button>
                     @else
-                        <form action="{{ route('interests.activities.add', $activity) }}" method="POST" class="inline">
-                            @csrf
-                            <x-button type="submit" class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20 ui-action ui-action-interest-add" :title="__('ui.interests.add_to_interests')" data-ui="activity-card-interest-add">☆</x-button>
-                        </form>
+                        <x-button
+                            type="button"
+                            wire:click.stop="toggleActivityInterest({{ (int) $activity->id }})"
+                            class="btn btn-xs rounded-full border-base-100/50 bg-transparent text-base-100 hover:bg-base-100/20 ui-action ui-action-interest-add"
+                            :title="__('ui.interests.add_to_interests')"
+                            data-ui="activity-card-interest-add"
+                        >☆</x-button>
                     @endif
                 </div>
             @endauth

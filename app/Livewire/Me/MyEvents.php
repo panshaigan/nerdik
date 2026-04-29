@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class MyEvents extends Component
 {
+    use Toast;
     use WithBrowseListingSort;
     use WithPagination;
 
@@ -22,6 +24,24 @@ class MyEvents extends Component
     public function updatedQ(): void
     {
         $this->resetPage();
+    }
+
+    public function toggleEventInterest(int $eventId): void
+    {
+        $event = Event::query()->whereKey($eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $alreadyInterested = $user->interestedEvents()->whereKey($event->id)->exists();
+        if ($alreadyInterested) {
+            $user->interestedEvents()->detach($event->id);
+            $this->warning(__('ui.interests.removed_event'));
+
+            return;
+        }
+
+        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        $this->success(__('ui.interests.added_event'));
     }
 
     public function render()
