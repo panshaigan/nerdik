@@ -292,6 +292,7 @@ class ManageEventForm extends Component
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
+    #[\Override]
     protected function prepareForValidation($attributes)
     {
         if ($this->organization_id === '' || $this->organization_id === 0) {

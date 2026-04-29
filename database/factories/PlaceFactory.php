@@ -30,6 +30,7 @@ final class PlaceFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         $name = fake()->name;

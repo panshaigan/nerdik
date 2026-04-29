@@ -21,6 +21,7 @@ class Activity extends Model
 
     public const HOSTING_MODE_SCHEDULED_ON_EVENT = 4;
 
+    #[\Override]
     public function getRouteKeyName(): string
     {
         return 'slug';

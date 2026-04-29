@@ -26,6 +26,7 @@ final class UserFactory extends Factory
     /**
      * Define the model's default state.
      */
+    #[\Override]
     public function definition(): array
     {
         return [

@@ -27,6 +27,7 @@ final class OrganizationFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         $name = fake()->company();

@@ -16,6 +16,7 @@ class Country extends Model
         'iso_alpha2',
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [

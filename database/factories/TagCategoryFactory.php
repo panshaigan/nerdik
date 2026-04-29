@@ -24,6 +24,7 @@ final class TagCategoryFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         return [

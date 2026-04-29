@@ -16,6 +16,7 @@ class Place extends Model
     public const TYPE_ROOM = 'room';
     public const TYPE_VENUE = 'venue';
 
+    #[\Override]
     public function getRouteKeyName(): string
     {
         return 'slug';

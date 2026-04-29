@@ -24,6 +24,7 @@ final class ActivityWaitlistEntryFactory extends Factory
     *
     * @return array
     */
+    #[\Override]
     public function definition(): array
     {
         return [
