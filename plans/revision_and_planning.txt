@@ -9,13 +9,6 @@ Notifications
         - "you waited enough to get the place" [MVP]
 
 Technicals
-    - security:
-        Authentication & Session Hijacking; Clickjacking: http header: X-Frame-Options', 'DENY'
-        Directory Traversal: sanitize user input for paths
-        / snyk/ dependabot
-        tools: OWASP ZAP, PHPStan
-
-        penetration testing: Nikto
     - posgress?
     - performance
     - check the admin panel

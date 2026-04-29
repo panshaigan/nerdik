@@ -5,7 +5,6 @@ namespace App\Livewire\Events;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
-use App\Models\User;
 use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
@@ -48,11 +47,7 @@ class ManageEventForm extends Component
      */
     public array $new_places = [];
 
-    public ?Event $editingEvent = null;
-
     public ?string $slug = null;
-
-    public ?User $creator = null;
 
     public string $tab = 'main-details';
 
@@ -201,9 +196,7 @@ class ManageEventForm extends Component
             $maxBase = max(0, 255 - mb_strlen($suffix));
             $name = mb_substr($name, 0, $maxBase).$suffix;
         }
-        $this->editingEvent = $event;
         $this->slug = $event->slug;
-        $this->creator = $event->creator;
         $this->name = $name;
         $this->description = (string) ($event->description ?? '');
         $this->organization_id = $event->organization_id;
@@ -547,7 +540,13 @@ class ManageEventForm extends Component
      */
     protected function organizationSuggestionsForCurrentUser(): array
     {
+        $userId = Auth::id();
+        if ($userId === null) {
+            return [];
+        }
+
         return Organization::query()
+            ->where('created_by', $userId)
             ->orderBy('name')
             ->limit(self::ORGANIZATION_SUGGESTIONS_LIMIT)
             ->get(['id', 'name'])
@@ -558,6 +557,10 @@ class ManageEventForm extends Component
 
     public function render()
     {
+        $editingEvent = $this->editingEventId !== null
+            ? Event::query()->with('creator')->find($this->editingEventId)
+            : null;
+
         $places = Place::with(['city.translations', 'country.translations'])
             ->venues()
             ->orderBy('name')
@@ -633,6 +636,8 @@ class ManageEventForm extends Component
             'eventSignupPeriodMax' => $this->ends_at !== '' ? $this->ends_at : null,
             'enrollmentWindowsTabDisabled' => ! $this->eventDatesReadyForEnrollmentWindows(),
             'canAddEnrollmentWindow' => $this->canAddAnotherEnrollmentWindow(),
+            'editingEvent' => $editingEvent,
+            'creator' => $editingEvent?->creator,
         ]);
     }
 }

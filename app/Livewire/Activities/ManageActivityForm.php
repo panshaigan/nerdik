@@ -12,7 +12,6 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\TagCategory;
-use App\Models\User;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
@@ -34,7 +33,6 @@ class ManageActivityForm extends Component
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
 
     public ?int $editingActivityId = null;
-    public User|null $creator = null;
     public string $tab = 'main-details';
     public ?int $initialHostingMode = null;
     public ?int $pendingHostingMode = null;
@@ -102,8 +100,6 @@ class ManageActivityForm extends Component
     /** @var list<array{label: string, category_id: int|string}> */
     public array $new_tags = [];
 
-    public Activity|null $editingActivity = null;
-
     /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
     private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
 
@@ -117,8 +113,6 @@ class ManageActivityForm extends Component
             $this->authorizeCreatedBy($activity);
             $activity->load(['tags', 'place.parent', 'slot.event']);
             $this->editingActivityId = $activity->id;
-            $this->editingActivity = $activity;
-            $this->creator = $activity->creator;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
             $this->activity_type_id = $activity->activity_type_id;
@@ -355,20 +349,6 @@ class ManageActivityForm extends Component
             return;
         }
 
-        if (
-            $action === 'confirm_hosting_mode_change_from_proposed'
-            && ! $this->initialProposalCancelled
-            && $this->editingActivityId !== null
-        ) {
-            $latestPendingProposal = ActivityProposal::query()
-                ->where('activity_id', $this->editingActivityId)
-                ->where('status', ActivityProposalStatus::Pending)
-                ->latest('id')
-                ->first();
-            $latestPendingProposal?->delete();
-            $this->initialProposalCancelled = true;
-        }
-
         $targetMode = Activity::HOSTING_MODE_DRAFT;
         $this->allowHostingModeChangeWithoutConfirm = true;
         $this->hosting_mode = $targetMode;
@@ -381,6 +361,16 @@ class ManageActivityForm extends Component
 
         $activity = Activity::query()->findOrFail($this->editingActivityId);
         $this->authorizeCreatedBy($activity);
+
+        if ($action === 'confirm_hosting_mode_change_from_proposed' && ! $this->initialProposalCancelled) {
+            $latestPendingProposal = ActivityProposal::query()
+                ->where('activity_id', $activity->id)
+                ->where('status', ActivityProposalStatus::Pending)
+                ->latest('id')
+                ->first();
+            $latestPendingProposal?->delete();
+            $this->initialProposalCancelled = true;
+        }
 
         $hostingModes->setDraft($activity);
 
@@ -900,6 +890,12 @@ class ManageActivityForm extends Component
     public function render()
     {
         $exceptId = $this->editingActivityId;
+        $editingActivity = null;
+        if ($this->editingActivityId !== null) {
+            $editingActivity = Activity::query()
+                ->with(['creator', 'canceller', 'slot.event'])
+                ->find($this->editingActivityId);
+        }
 
         $proposalEventSlots = collect();
         if ($this->proposal_event_id) {
@@ -1008,6 +1004,8 @@ class ManageActivityForm extends Component
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => $activityTypesQuery->get(),
             'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
+            'editingActivity' => $editingActivity,
+            'creator' => $editingActivity?->creator,
         ]);
     }
 }
