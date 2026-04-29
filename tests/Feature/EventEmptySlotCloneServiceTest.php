@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Activity;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
@@ -31,6 +32,7 @@ class EventEmptySlotCloneServiceTest extends TestCase
         $activity = Activity::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
+            'activity_type_id' => ActivityType::factory()->create()->id,
         ]);
 
         $slot = Slot::factory()->create([

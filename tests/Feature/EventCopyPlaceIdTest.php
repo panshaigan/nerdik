@@ -17,7 +17,9 @@ class EventCopyPlaceIdTest extends TestCase
     #[Test]
     public function copying_event_copies_slots_with_place_id(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'is_event_organizer' => true,
+        ]);
         $this->actingAs($user);
 
         $event = Event::create([

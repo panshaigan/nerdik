@@ -119,6 +119,7 @@ class ProfileTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-profile-information-form')
+            ->set('organization_id', null)
             ->set('organization_name', '')
             ->call('updateProfileInformation');
 

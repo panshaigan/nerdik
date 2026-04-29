@@ -7,7 +7,6 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class EventDuplicatePrefillTest extends TestCase
@@ -45,13 +44,9 @@ class EventDuplicatePrefillTest extends TestCase
             'organization_id' => null,
         ]);
 
-        try {
-            Livewire::actingAs($stranger)
-                ->withQueryParams(['duplicate' => $event->slug])
-                ->test(ManageEventForm::class);
-            $this->fail('Expected HTTP 403');
-        } catch (HttpException $e) {
-            $this->assertSame(403, $e->getStatusCode());
-        }
+        Livewire::actingAs($stranger)
+            ->withQueryParams(['duplicate' => $event->slug])
+            ->test(ManageEventForm::class)
+            ->assertForbidden();
     }
 }
