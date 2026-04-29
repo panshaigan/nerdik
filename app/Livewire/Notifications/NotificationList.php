@@ -3,6 +3,7 @@
 namespace App\Livewire\Notifications;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,9 +21,12 @@ class NotificationList extends Component
     {
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
-        $url = $notification->data['url'] ?? route('dashboard');
+        $url = $notification->data['url'] ?? '';
+        $safeUrl = is_string($url) && Str::startsWith($url, '/') && ! Str::startsWith($url, '//')
+            ? $url
+            : route('dashboard');
 
-        return redirect($url);
+        return redirect($safeUrl);
     }
 
     public function render()

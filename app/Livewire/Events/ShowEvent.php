@@ -14,7 +14,9 @@ use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -304,22 +306,25 @@ class ShowEvent extends Component
         $user = auth()->user();
         abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
 
-        $reason = $this->slotCancelReason[$slotId]
+        $rawReason = $this->slotCancelReason[$slotId]
             ?? $this->slotCancelReason[(string) $slotId]
             ?? null;
-        $reason = is_string($reason) ? trim($reason) : null;
+        $reason = is_string($rawReason) ? trim($rawReason) : null;
         if ($reason === '') {
             $reason = null;
         }
-
-        if ($reason !== null && mb_strlen($reason) > 1000) {
-            $this->addError('slotCancelReason.'.$slotId, __('validation.max.string', [
-                'attribute' => 'cancel_reason',
-                'max' => 1000,
-            ]));
+        $reasonValidation = Validator::make(
+            ['reason' => $reason],
+            ['reason' => ['nullable', 'string', 'max:1000']]
+        );
+        if ($reasonValidation->fails()) {
+            foreach ($reasonValidation->errors()->all() as $message) {
+                $this->addError('slotCancelReason.'.$slotId, $message);
+            }
 
             return;
         }
+        $reason = $reasonValidation->validated()['reason'] ?? null;
 
         $hostingModes->cancel($activity, $user, $reason);
         unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
@@ -370,9 +375,32 @@ class ShowEvent extends Component
         $rawSlotId = $this->proposalAcceptSlotId[$proposalId]
             ?? $this->proposalAcceptSlotId[(string) $proposalId]
             ?? '';
+        $normalizedSlotId = ($rawSlotId === '' || $rawSlotId === null) ? null : $rawSlotId;
+        $slotValidation = Validator::make(
+            ['slot_id' => $normalizedSlotId],
+            [
+                'slot_id' => [
+                    'nullable',
+                    'integer',
+                    Rule::exists('slots', 'id')->where(
+                        fn ($query) => $query
+                            ->where('event_id', $event->id)
+                            ->whereNull('activity_id')
+                    ),
+                ],
+            ]
+        );
+        if ($slotValidation->fails()) {
+            foreach ($slotValidation->errors()->all() as $message) {
+                $this->addError('proposalAcceptSlot.'.$proposalId, $message);
+            }
+
+            return;
+        }
+        $validatedSlotId = $slotValidation->validated()['slot_id'] ?? null;
 
         try {
-            $decisions->accept($proposal, $rawSlotId);
+            $decisions->accept($proposal, $validatedSlotId ?? '');
         } catch (ValidationException $e) {
             foreach ($e->errors() as $messages) {
                 foreach ($messages as $message) {
