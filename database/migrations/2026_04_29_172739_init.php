@@ -70,9 +70,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             // FK columns declared now; constraints added below after users exist
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
             $table->index('created_by');
             $table->index('updated_by');
             $table->index('deleted_by');
@@ -121,7 +121,7 @@ return new class extends Migration
             $table->enum('type', ['venue', 'room']);
             $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('city_id')->nullable()->constrained()->nullOnDelete();
-            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->foreignId('parent_id')->nullable();
             $table->string('address')->nullable();
             $table->string('links')->nullable();
             $table->boolean('is_online')->default(false);
@@ -393,7 +393,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
             $table->string('context_type', 100);
-            $table->unsignedBigInteger('context_id');
+            $table->bigInteger('context_id');
             $table->unique(['tag_id', 'context_type', 'context_id'], 'tag_contexts_unique_idx');
             $table->index(['context_type', 'context_id'], 'tag_contexts_context_lookup_idx');
             $table->index(['tag_id', 'context_type'], 'tag_contexts_tag_type_idx');
@@ -406,7 +406,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
             $table->string('taggable_type', 100);
-            $table->unsignedBigInteger('taggable_id');
+            $table->bigInteger('taggable_id');
             $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'taggables_unique_idx');
             $table->index(['taggable_type', 'taggable_id'], 'taggables_taggable_lookup_idx');
             $table->index(['tag_id', 'taggable_type'], 'taggables_tag_type_idx');
@@ -439,7 +439,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('type');
             $table->string('notifiable_type');
-            $table->unsignedBigInteger('notifiable_id');
+            $table->bigInteger('notifiable_id');
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
@@ -464,7 +464,7 @@ return new class extends Migration
         // ------------------------------------------------------------------ //
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+            $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->text('payload');
