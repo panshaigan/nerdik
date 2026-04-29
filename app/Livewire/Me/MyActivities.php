@@ -5,6 +5,7 @@ namespace App\Livewire\Me;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,7 +25,7 @@ class MyActivities extends Component
         $this->resetPage();
     }
 
-    public function render()
+    public function render(): View
     {
         $userId = auth()->id();
         $query = Activity::query()

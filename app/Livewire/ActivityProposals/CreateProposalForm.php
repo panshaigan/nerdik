@@ -7,6 +7,8 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Services\ActivityProposalFlowService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -34,7 +36,7 @@ class CreateProposalForm extends Component
         ];
     }
 
-    public function save()
+    public function save(): RedirectResponse
     {
         $validated = $this->validate($this->rules());
 
@@ -64,7 +66,7 @@ class CreateProposalForm extends Component
         return redirect()->route('events.show', $event);
     }
 
-    public function render()
+    public function render(): View
     {
         $this->event->loadMissing('slots');
 

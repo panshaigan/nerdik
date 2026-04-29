@@ -11,6 +11,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use Illuminate\Contracts\View\View;
 use Mary\Traits\Toast;
 use Livewire\Component;
 
@@ -245,7 +246,7 @@ class ShowActivity extends Component
         $this->toastFromSessionStatus();
     }
 
-    public function render(ActivityParticipationViewService $participationView, ActivityBadgeGroupBuilder $badgeGroupBuilder)
+    public function render(ActivityParticipationViewService $participationView, ActivityBadgeGroupBuilder $badgeGroupBuilder): View
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 

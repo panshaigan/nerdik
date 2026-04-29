@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\Country;
 use App\Services\LocationResolver;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -26,7 +27,7 @@ class GeocodeController extends Controller
      *
      * @see https://operations.osmfoundation.org/policies/nominatim/
      */
-    public function reverse(Request $request)
+    public function reverse(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'lat' => ['required', 'numeric', 'between:-90,90'],
@@ -38,7 +39,7 @@ class GeocodeController extends Controller
 
         $cacheKey = sprintf('geocode:reverse:%.5f:%.5f', $lat, $lng);
 
-        $raw = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($lat, $lng) {
+        $raw = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, static function () use ($lat, $lng) {
             $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
                     'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
@@ -101,7 +102,7 @@ class GeocodeController extends Controller
      *
      * @see https://operations.osmfoundation.org/policies/nominatim/
      */
-    public function search(Request $request)
+    public function search(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'q' => ['required', 'string', 'min:2', 'max:200'],
@@ -110,7 +111,7 @@ class GeocodeController extends Controller
         $q = trim($validated['q']);
         $cacheKey = 'geocode:search:'.md5(mb_strtolower($q));
 
-        $rows = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($q) {
+        $rows = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, static function () use ($q) {
             $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
                     'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
@@ -167,7 +168,7 @@ class GeocodeController extends Controller
     }
 
     /**
-     * Build short address as "Street HouseNumber" when possible.
+     * Build a short address as "Street HouseNumber" when possible.
      *
      * @param  array<string, mixed>  $address
      */

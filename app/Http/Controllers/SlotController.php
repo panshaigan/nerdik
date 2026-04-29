@@ -6,6 +6,9 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +23,7 @@ class SlotController extends Controller
     /**
      * Slot edit form fragment for the event-page modal (fetched via XHR).
      */
-    public function edit(Request $request, Slot $slot)
+    public function edit(Request $request, Slot $slot): View
     {
         $this->authorizeCreatedBy($slot);
 
@@ -58,8 +61,10 @@ class SlotController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * @return JsonResponse|RedirectResponse
      */
-    public function update(Request $request, Slot $slot)
+    public function update(Request $request, Slot $slot): RedirectResponse|JsonResponse
     {
         $this->authorizeCreatedBy($slot);
 

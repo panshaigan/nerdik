@@ -18,6 +18,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
@@ -892,7 +893,7 @@ class ManageActivityForm extends Component
             ->all();
     }
 
-    public function render()
+    public function render(): View
     {
         $exceptId = $this->editingActivityId;
 
