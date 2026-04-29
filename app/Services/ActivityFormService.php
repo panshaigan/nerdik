@@ -227,7 +227,7 @@ class ActivityFormService
             $room = Place::query()
                 ->where('type', 'room')
                 ->where('parent_id', $venue->id)
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($form->self_hosted_room_name)])
+                ->whereRaw('LOWER(name) = LOWER(?)', [$form->self_hosted_room_name])
                 ->first();
             if ($room === null) {
                 $room = Place::create([

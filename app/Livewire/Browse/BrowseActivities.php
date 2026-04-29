@@ -141,8 +141,10 @@ class BrowseActivities extends Component
         $this->applyBrowseTagFilter($query, 'tags');
 
         if ($this->q !== '') {
-            $term = '%'.$this->q.'%';
-            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('description', 'like', $term));
+            $term = '%'.mb_strtolower($this->q).'%';
+            $query->where(fn ($q) => $q
+                ->whereRaw('LOWER(name) LIKE ?', [$term])
+                ->orWhereRaw('LOWER(description) LIKE ?', [$term]));
         }
 
         $this->applyBrowseActivitySort($query);

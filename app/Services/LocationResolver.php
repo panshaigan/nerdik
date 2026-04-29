@@ -85,7 +85,7 @@ class LocationResolver
         $existing = City::query()
             ->where('country_id', $countryId)
             ->whereHas('translations', function ($q) use ($lower) {
-                $q->whereRaw('LOWER(name) = ?', [$lower]);
+                $q->whereRaw('LOWER(name) = LOWER(?)', [$lower]);
             })
             ->first();
 
@@ -116,7 +116,7 @@ class LocationResolver
         }
 
         $id = DB::table('country_translations')
-            ->whereRaw('LOWER(name) = ?', [$lower])
+            ->whereRaw('LOWER(name) = LOWER(?)', [$lower])
             ->value('country_id');
 
         return $id ? (int) $id : null;

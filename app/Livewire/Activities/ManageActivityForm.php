@@ -17,28 +17,37 @@ use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
 use App\Traits\AuthorizesOwnership;
-use Illuminate\Database\Eloquent\Collection;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class ManageActivityForm extends Component
 {
+    use AuthorizesOwnership;
     use WithUiConfirmModal {
         closeConfirm as protected traitCloseConfirm;
     }
-    use AuthorizesOwnership;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
+
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
 
     public ?int $editingActivityId = null;
+
     public string $tab = 'main-details';
+
     public ?int $initialHostingMode = null;
+
     public ?int $pendingHostingMode = null;
+
     public ?int $hostingModeBeforeChange = null;
+
     public bool $initialProposalCancelled = false;
+
     public bool $proposalFieldsReadonly = false;
+
     /** @var list<int>|null */
     public ?array $proposal_allowed_activity_type_ids = null;
 
@@ -71,6 +80,7 @@ class ManageActivityForm extends Component
     public bool $allows_observers = false;
 
     public ?int $proposal_event_id = null;
+
     public string $proposal_event_search = '';
 
     public int $hosting_mode = Activity::HOSTING_MODE_DRAFT;
@@ -105,6 +115,7 @@ class ManageActivityForm extends Component
 
     /** @see updatedNewPlaces() */
     private ?string $cachedSelfHostedNewPlacesFingerprint = null;
+
     private bool $allowHostingModeChangeWithoutConfirm = false;
 
     public function mount(?Activity $activity = null): void
@@ -709,16 +720,25 @@ class ManageActivityForm extends Component
     public function searchProposalEvents(string $query = ''): array
     {
         $trimmed = trim($query);
-        $events = $this->proposalEligibleEventsQuery()
-            ->when($trimmed !== '', function (Builder $builder) use ($trimmed): void {
-                $builder->where(function (Builder $search) use ($trimmed): void {
-                    $search->where('name', 'like', '%'.$trimmed.'%')
-                        ->orWhereRaw('DATE_FORMAT(starts_at, "%Y-%m-%d %H:%i") like ?', ['%'.$trimmed.'%']);
-                });
-            })
-            ->orderBy('starts_at')
-            ->limit(self::PROPOSAL_EVENT_SUGGESTIONS_LIMIT)
-            ->get();
+        $eventsQuery = $this->proposalEligibleEventsQuery()
+            ->orderBy('starts_at');
+        if ($trimmed === '') {
+            $events = $eventsQuery
+                ->limit(self::PROPOSAL_EVENT_SUGGESTIONS_LIMIT)
+                ->get();
+        } else {
+            $normalizedQuery = mb_strtolower($trimmed);
+            $events = $eventsQuery
+                ->limit(self::PROPOSAL_EVENT_SUGGESTIONS_LIMIT * 10)
+                ->get()
+                ->filter(function (Event $event) use ($normalizedQuery): bool {
+                    $label = mb_strtolower($this->proposalEventLabel($event));
+
+                    return str_contains($label, $normalizedQuery);
+                })
+                ->take(self::PROPOSAL_EVENT_SUGGESTIONS_LIMIT)
+                ->values();
+        }
 
         return $events
             ->map(fn (Event $event): array => ['id' => (int) $event->id, 'label' => $this->proposalEventLabel($event)])
@@ -824,7 +844,7 @@ class ManageActivityForm extends Component
     }
 
     /**
-     * @return array{min: ?string, max: ?string, minUtc: ?\Carbon\Carbon, maxUtc: ?\Carbon\Carbon}
+     * @return array{min: ?string, max: ?string, minUtc: ?Carbon, maxUtc: ?Carbon}
      */
     protected function proposalEventPreferredTimeBounds(): array
     {
