@@ -200,4 +200,108 @@ class CancellationNotificationsTest extends TestCase
 
         Notification::assertSentTo($waitlistUser, EventCancelledNotification::class);
     }
+
+    public function test_activity_cancellation_notifies_users_who_saved_activity_interest(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $interestedUser = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+            'is_host_passive' => true,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $interestedUser->interestedActivities()->attach($activity->id);
+
+        app(ActivityHostingModeService::class)->cancel($activity->fresh(), $organizer, 'Organizer cancelled');
+
+        Notification::assertSentTo($interestedUser, ActivityCancelledNotification::class);
+    }
+
+    public function test_event_cancel_notifies_users_who_saved_event_interest(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $interestedUser = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $interestedUser->interestedEvents()->attach($event->id);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('cancelEvent');
+
+        Notification::assertSentTo($interestedUser, EventCancelledNotification::class);
+        Notification::assertNotSentTo($organizer, EventCancelledNotification::class);
+    }
+
+    public function test_event_cancel_notifies_users_who_saved_activity_interest_on_programme_activity(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $activityFan = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $activityFan->interestedActivities()->attach($activity->id);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('cancelEvent');
+
+        Notification::assertSentTo($activityFan, EventCancelledNotification::class);
+    }
 }

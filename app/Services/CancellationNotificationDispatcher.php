@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\ActivityCancelledNotification;
 use App\Notifications\EventCancelledNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 class CancellationNotificationDispatcher
@@ -22,7 +23,8 @@ class CancellationNotificationDispatcher
         $activity->loadMissing(['creator', 'slot.event']);
 
         $recipientIds = collect($this->activityParticipantUserIds($activity))
-            ->merge($this->activityWaitlistUserIds($activity));
+            ->merge($this->activityWaitlistUserIds($activity))
+            ->merge($this->userIdsInterestedInActivities([(int) $activity->getKey()]));
 
         $hostId = $activity->created_by !== null ? (int) $activity->created_by : null;
         if ($hostId !== null && (int) $cancelledBy->id !== $hostId) {
@@ -139,13 +141,65 @@ class CancellationNotificationDispatcher
             ->pluck('created_by')
             ->map(fn ($id) => (int) $id);
 
-        $ids = $ids->merge($proposalCreatorIds);
+        $interestUserIds = collect($this->userIdsInterestedInEvent((int) $event->getKey()))
+            ->merge($this->userIdsInterestedInActivities($activityIds));
+
+        $ids = $ids->merge($proposalCreatorIds)->merge($interestUserIds);
 
         return $ids
             ->map(fn ($id) => (int) $id)
             ->filter(fn (int $id) => $id > 0)
             ->unique()
             ->reject(fn (int $id): bool => $id === (int) $cancelledBy->id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $activityIds
+     * @return list<int>
+     */
+    private function userIdsInterestedInActivities(array $activityIds): array
+    {
+        $normalized = [];
+        foreach ($activityIds as $id) {
+            $intId = (int) $id;
+            if ($intId > 0) {
+                $normalized[$intId] = true;
+            }
+        }
+
+        if ($normalized === []) {
+            return [];
+        }
+
+        return DB::table('user_interests')
+            ->where('interest_type', (new Activity)->getMorphClass())
+            ->whereIn('interest_id', array_keys($normalized))
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id) => $id <= 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function userIdsInterestedInEvent(int $eventId): array
+    {
+        if ($eventId <= 0) {
+            return [];
+        }
+
+        return DB::table('user_interests')
+            ->where('interest_type', (new Event)->getMorphClass())
+            ->where('interest_id', $eventId)
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id) => $id <= 0)
+            ->unique()
             ->values()
             ->all();
     }
