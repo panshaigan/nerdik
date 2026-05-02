@@ -68,7 +68,7 @@ class EventController extends Controller
         $this->authorizeCreatedBy($event);
 
         abort_if(
-            $event->hasSignupPressure() && ! $event->isCancelled(),
+            $event->organiserHardDeleteBlockedWhileActive(),
             403,
             __('ui.events.delete_forbidden_use_cancel')
         );

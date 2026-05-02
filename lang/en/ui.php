@@ -309,8 +309,8 @@ return [
         'cancelled_meta' => 'Cancelled by :who at :when',
         'signup_blocked_cancelled' => 'This event has been cancelled.',
         'signup_blocked_event_cancelled' => 'This event has been cancelled; sign-ups are closed.',
-        'delete_forbidden_use_cancel' => 'You cannot delete this event while activities have participants or people on waiting lists. Cancel the event instead.',
-        'cancel_only_when_roster_present' => 'Use delete when nobody is signed up to scheduled activities. Cancel is only needed when someone has joined or joined a waitlist.',
+        'delete_forbidden_use_cancel' => 'You cannot delete this event while activities are scheduled on it (or anyone is signed up or on a waiting list). Cancel the event instead.',
+        'cancel_only_when_programme_nonempty' => 'Use delete when the event has no scheduled activities or sign-ups yet. Cancel when there is anything on the programme or roster pressure.',
     ],
     'slots' => [
         'create_slot' => 'Create slot',

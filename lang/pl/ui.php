@@ -305,8 +305,8 @@ return [
         'cancelled_meta' => 'Anulowal(a): :who, kiedy: :when',
         'signup_blocked_cancelled' => 'To wydarzenie zostalo anulowane.',
         'signup_blocked_event_cancelled' => 'To wydarzenie zostalo anulowane; zapisy sa zamkniete.',
-        'delete_forbidden_use_cancel' => 'Nie mozesz usunac tego wydarzenia, dopoki aktywnosci maja uczestnikow lub ludzi na listach oczekujacych. Zamiast tego anuluj wydarzenie.',
-        'cancel_only_when_roster_present' => 'Gdy nikt nie jest zapisany, uzyj usuniecia. Anuluj tylko gdy ktos jest uczestnikiem lub na liscie oczekujacych.',
+        'delete_forbidden_use_cancel' => 'Nie mozesz usunac tego wydarzenia, dopoki sa na nim zaplanowane aktywnosci lub ktos jest zapisany / na liscie oczekujacych. Zamiast tego anuluj wydarzenie.',
+        'cancel_only_when_programme_nonempty' => 'Gdy nie ma jeszcze zaplanowanych aktywnosci ani zapisów, skorzystaj z usuniecia. Anuluj po pojawieniu sie programu lub obecnosci zapisów / list oczekujacych.',
     ],
     'slots' => [
         'create_slot' => 'Utworz slot',
