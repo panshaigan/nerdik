@@ -21,6 +21,7 @@
     <body
         class="bg-sample5 font-sans antialiased text-base-content"
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
+        @auth data-user-id="{{ auth()->id() }}" @endauth
     >
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
