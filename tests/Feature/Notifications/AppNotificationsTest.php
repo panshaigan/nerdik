@@ -7,10 +7,14 @@ use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\User;
+use App\Notifications\ActivityParticipantJoinedNotification;
+use App\Notifications\ActivityParticipantLeftNotification;
+use App\Notifications\ActivityRemovedByHostNotification;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Notifications\WaitlistPromotedNotification;
+use App\Services\ActivityParticipantRosterService;
 use App\Services\EventActivitySignupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -135,5 +139,266 @@ class AppNotificationsTest extends TestCase
 
         Notification::assertSentTo($carol, WaitlistPromotedNotification::class);
         Notification::assertNotSentTo($bob, WaitlistPromotedNotification::class);
+    }
+
+    public function test_user_join_activity_notifies_host_with_default_subject_when_below_minimum(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $joiner = User::factory()->create(['nickname' => 'Joiner']);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 3,
+            'max_participants' => 10,
+        ]);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity->fresh(), $joiner);
+
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantJoinedNotification::class,
+            function (ActivityParticipantJoinedNotification $notification) use ($activity, $joiner): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $notification->activity->is($activity)
+                    && $notification->joiner->is($joiner)
+                    && $notification->participantCount === 1
+                    && $payload['is_full'] === false
+                    && $payload['min_reached'] === false
+                    && str_contains($payload['toast_title'], $joiner->nickname);
+            }
+        );
+    }
+
+    public function test_user_join_activity_payload_marks_min_reached_when_count_at_minimum(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $existing = User::factory()->create();
+        $joiner = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 2,
+            'max_participants' => 10,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $existing->id]);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity->fresh(), $joiner);
+
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantJoinedNotification::class,
+            function (ActivityParticipantJoinedNotification $notification): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $payload['min_reached'] === true
+                    && $payload['is_full'] === false
+                    && $payload['participant_count'] === 2;
+            }
+        );
+    }
+
+    public function test_user_join_activity_uses_roster_full_subject_when_count_reaches_max(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $existing = User::factory()->create();
+        $joiner = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 1,
+            'max_participants' => 2,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $existing->id]);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity->fresh(), $joiner);
+
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantJoinedNotification::class,
+            function (ActivityParticipantJoinedNotification $notification) use ($activity): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $payload['is_full'] === true
+                    && $payload['participant_count'] === 2
+                    && str_contains($payload['toast_title'], $activity->name)
+                    && str_contains($payload['toast_title'], 'full');
+            }
+        );
+    }
+
+    public function test_user_join_activity_does_not_notify_host_when_joiner_is_host(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 1,
+            'max_participants' => 5,
+        ]);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity->fresh(), $host);
+
+        Notification::assertNotSentTo($host, ActivityParticipantJoinedNotification::class);
+    }
+
+    public function test_user_leave_activity_notifies_host_with_replacement_when_waitlist_promotes(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create(['nickname' => 'Alice']);
+        $bob = User::factory()->create(['nickname' => 'Bob']);
+        $carol = User::factory()->create(['nickname' => 'Carol']);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 2,
+            'max_participants' => 2,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $alice->id]);
+        $bobParticipant = ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $bob->id]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $carol->id,
+            'position' => 1,
+        ]);
+
+        app(EventActivitySignupService::class)->userLeaveActivity($activity->fresh(), $bobParticipant);
+
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantLeftNotification::class,
+            function (ActivityParticipantLeftNotification $notification) use ($bob, $carol): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $notification->leaver->is($bob)
+                    && $notification->promotedFromWaitlist?->is($carol) === true
+                    && $payload['promoted_user_id'] === $carol->id
+                    && $payload['below_minimum'] === false
+                    && $payload['participant_count'] === 2;
+            }
+        );
+    }
+
+    public function test_user_leave_activity_notifies_host_with_below_minimum_when_no_replacement(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create(['nickname' => 'Alice']);
+        $bob = User::factory()->create(['nickname' => 'Bob']);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 2,
+            'max_participants' => 5,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $alice->id]);
+        $bobParticipant = ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $bob->id]);
+
+        app(EventActivitySignupService::class)->userLeaveActivity($activity->fresh(), $bobParticipant);
+
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantLeftNotification::class,
+            function (ActivityParticipantLeftNotification $notification): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $payload['promoted_user_id'] === null
+                    && $payload['below_minimum'] === true
+                    && $payload['participant_count'] === 1
+                    && str_contains($payload['toast_title'], 'below minimum');
+            }
+        );
+    }
+
+    public function test_remove_participant_notifies_user_with_removed_mode(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        app(ActivityParticipantRosterService::class)->removeParticipant($participant);
+
+        Notification::assertSentTo(
+            $member,
+            ActivityRemovedByHostNotification::class,
+            function (ActivityRemovedByHostNotification $notification) use ($activity): bool {
+                return $notification->mode === ActivityRemovedByHostNotification::MODE_REMOVED
+                    && $notification->activity->is($activity);
+            }
+        );
+    }
+
+    public function test_move_participant_to_waitlist_notifies_user_with_waitlist_mode(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        app(ActivityParticipantRosterService::class)->moveParticipantToWaitlist($participant);
+
+        Notification::assertSentTo(
+            $member,
+            ActivityRemovedByHostNotification::class,
+            function (ActivityRemovedByHostNotification $notification) use ($activity): bool {
+                return $notification->mode === ActivityRemovedByHostNotification::MODE_MOVED_TO_WAITLIST
+                    && $notification->activity->is($activity);
+            }
+        );
+    }
+
+    public function test_new_roster_notifications_include_all_three_channels(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        $joined = new ActivityParticipantJoinedNotification($activity, $user, 1);
+        $left = new ActivityParticipantLeftNotification($activity, $user, 0);
+        $removed = new ActivityRemovedByHostNotification(
+            $activity,
+            ActivityRemovedByHostNotification::MODE_REMOVED,
+        );
+
+        foreach ([$joined, $left, $removed] as $notification) {
+            $channels = $notification->via($user);
+
+            $this->assertContains('database', $channels);
+            $this->assertContains('broadcast', $channels);
+            $this->assertContains('mail', $channels);
+        }
     }
 }

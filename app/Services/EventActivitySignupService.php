@@ -8,6 +8,8 @@ use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
+use App\Notifications\ActivityParticipantJoinedNotification;
+use App\Notifications\ActivityParticipantLeftNotification;
 use App\Notifications\WaitlistPromotedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -21,11 +23,26 @@ class EventActivitySignupService
         $activity->participants()->create([
             'user_id' => $user->id,
         ]);
+
+        $fresh = $activity->fresh();
+        if ($fresh === null) {
+            return;
+        }
+
+        $host = $fresh->created_by !== null ? User::find($fresh->created_by) : null;
+        if ($host instanceof User && (int) $host->id !== (int) $user->id) {
+            $host->notify(new ActivityParticipantJoinedNotification(
+                $fresh,
+                $user,
+                (int) $fresh->participants()->count(),
+            ));
+        }
     }
 
     public function userLeaveActivity(Activity $activity, ActivityUser $participant): void
     {
         $promotedUser = null;
+        $leavingUser = $participant->user;
 
         DB::transaction(function () use ($participant, $activity, &$promotedUser): void {
             $participant->delete();
@@ -43,8 +60,22 @@ class EventActivitySignupService
             }
         });
 
-        if ($promotedUser instanceof User) {
-            $promotedUser->notify(new WaitlistPromotedNotification($activity->fresh()));
+        $fresh = $activity->fresh();
+
+        if ($promotedUser instanceof User && $fresh !== null) {
+            $promotedUser->notify(new WaitlistPromotedNotification($fresh));
+        }
+
+        if ($fresh !== null && $leavingUser instanceof User) {
+            $host = $fresh->created_by !== null ? User::find($fresh->created_by) : null;
+            if ($host instanceof User && (int) $host->id !== (int) $leavingUser->id) {
+                $host->notify(new ActivityParticipantLeftNotification(
+                    $fresh,
+                    $leavingUser,
+                    (int) $fresh->participants()->count(),
+                    $promotedUser,
+                ));
+            }
         }
     }
 
