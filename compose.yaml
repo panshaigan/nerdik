@@ -25,6 +25,25 @@ services:
             - pgsql
             - mailpit
 
+    worker:
+        image: sail-8.5/app
+        command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - pgsql
+        environment:
+            - QUEUE_CONNECTION=database
+
+    scheduler:
+        image: sail-8.5/app
+        command: >
+            sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - pgsql
+
     pgsql:
         image: 'postgres:17'
         ports:

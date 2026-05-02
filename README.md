@@ -4,7 +4,7 @@ A system for organizing and participating in nerd events (RPG sessions, board ga
 
 ## Development
 
-- **Stack:** Laravel 12, Sail (Docker), MariaDB, Redis, Mailpit, Adminer
+- **Stack:** Laravel 13, Sail (Docker), PostgreSQL, Mailpit, Adminer
 - **Frontend:** Tailwind CSS v4 (via `@tailwindcss/vite`), DaisyUI v5, Mary UI (Livewire components). Source CSS: `resources/css/app.css` (`@import "tailwindcss"`, `@plugin "daisyui"`, `@source` globs for views, JS, Mary, pagination, and Filament Blade under `vendor/filament`).
 - **Start:** `make up` then open http://localhost (or your Sail URL)
 - **Artisan:** run via Sail, e.g. `./vendor/bin/sail artisan migrate` or use Makefile: `make migrate`, `make seed`, `make test`, `make queue`
