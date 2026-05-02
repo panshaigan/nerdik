@@ -6,11 +6,12 @@ use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
-    use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string
@@ -29,13 +30,59 @@ class Event extends Model
         'slug',
         'starts_at',
         'ends_at',
+        'cancelled_at',
+        'cancelled_by',
+        'cancel_reason',
     ];
 
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_public' => 'boolean',
+        'cancelled_at' => 'datetime',
     ];
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null;
+    }
+
+    /**
+     * True when any slot activity has roster pressure (participants or waitlist).
+     * Used to force cancel instead of hard delete for organisers.
+     */
+    public function hasSignupPressure(): bool
+    {
+        $activityIds = $this->slots()
+            ->whereNotNull('activity_id')
+            ->pluck('activity_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($activityIds === []) {
+            return false;
+        }
+
+        $hasParticipants = ActivityUser::query()
+            ->whereIn('activity_id', $activityIds)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if ($hasParticipants) {
+            return true;
+        }
+
+        return ActivityWaitlistEntry::query()
+            ->whereIn('activity_id', $activityIds)
+            ->exists();
+    }
 
     public function organization()
     {

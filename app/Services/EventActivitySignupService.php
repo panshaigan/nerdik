@@ -290,6 +290,12 @@ class EventActivitySignupService
             return;
         }
 
+        if ($event->isCancelled()) {
+            throw ValidationException::withMessages([
+                '_' => [__('ui.events.signup_blocked_event_cancelled')],
+            ]);
+        }
+
         $now = Carbon::now();
 
         $periods = $event->enrollmentWindows;

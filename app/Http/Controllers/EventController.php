@@ -67,8 +67,14 @@ class EventController extends Controller
     {
         $this->authorizeCreatedBy($event);
 
+        abort_if(
+            $event->hasSignupPressure() && ! $event->isCancelled(),
+            403,
+            __('ui.events.delete_forbidden_use_cancel')
+        );
+
         $cancelledBy = auth()->user();
-        if ($cancelledBy !== null) {
+        if ($cancelledBy !== null && ! $event->isCancelled()) {
             app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event, $cancelledBy);
         }
 

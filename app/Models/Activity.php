@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
-    use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
 
     public const HOSTING_MODE_DRAFT = 1;
 
@@ -139,6 +139,26 @@ class Activity extends Model
     }
 
     /**
+     * Hard delete is allowed only for draft-ish activities without roster and not scheduled on an event.
+     */
+    public function allowsHardDeletion(): bool
+    {
+        if ($this->isCancelled()) {
+            return false;
+        }
+
+        if ((int) $this->hosting_mode === self::HOSTING_MODE_SCHEDULED_ON_EVENT) {
+            return false;
+        }
+
+        if ($this->participants()->whereNull('deleted_at')->exists()) {
+            return false;
+        }
+
+        return ! $this->waitlist()->exists();
+    }
+
+    /**
      * Activities visible in browse:
      * - self-hosted activities
      * - activities scheduled on a public event slot.
@@ -159,7 +179,9 @@ class Activity extends Model
                             ->where('activities.hosting_mode', self::HOSTING_MODE_SCHEDULED_ON_EVENT)
                             ->whereHas('slot', function (Builder $q) use ($slotMustNotHaveEnded): void {
                                 $q->whereNotNull('event_id')
-                                    ->whereHas('event', fn (Builder $e) => $e->where('is_public', true));
+                                    ->whereHas('event', fn (Builder $e) => $e
+                                        ->where('is_public', true)
+                                        ->whereNull('cancelled_at'));
                                 if ($slotMustNotHaveEnded) {
                                     $q->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
                                 }
@@ -194,13 +216,13 @@ class Activity extends Model
 
     public function getDurationForHumansAttribute(): string
     {
-        $hours   = intdiv($this->duration_in_minutes, 60);
+        $hours = intdiv($this->duration_in_minutes, 60);
         $minutes = $this->duration_in_minutes % 60;
 
-        return match(true) {
+        return match (true) {
             $hours > 0 && $minutes > 0 => "{$hours}h {$minutes}min",
-            $hours > 0                 => "{$hours}h",
-            default                    => "{$minutes}min",
+            $hours > 0 => "{$hours}h",
+            default => "{$minutes}min",
         };
     }
 }

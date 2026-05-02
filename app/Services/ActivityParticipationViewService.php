@@ -27,6 +27,7 @@ class ActivityParticipationViewService
         $activeWindowRemainingForActivity = null;
         $activeWindowUserRemaining = null;
 
+        $activity->loadMissing('slot.event');
         $event = $activity->slot?->event;
         $activeEnrollmentWindow = $event !== null
             ? $this->signupService->firstPeriodContaining($event, Carbon::now())
@@ -51,6 +52,8 @@ class ActivityParticipationViewService
         $stateBlockedMessage = null;
         if ($activity->isCancelled()) {
             $stateBlockedMessage = __('ui.activities.signup_blocked_cancelled');
+        } elseif ($activity->slot?->event !== null && $activity->slot->event->isCancelled()) {
+            $stateBlockedMessage = __('ui.events.signup_blocked_event_cancelled');
         } elseif (! $activity->isJoinableMode()) {
             $stateBlockedMessage = __('ui.activities.signup_blocked_not_joinable_mode');
         }

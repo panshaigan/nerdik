@@ -6,6 +6,22 @@
 
         <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
             <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
+                @if ($event->isCancelled())
+                    <div role="alert" class="alert alert-warning mb-4 text-sm">
+                        <div class="space-y-1">
+                            <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
+                            @if ($event->cancel_reason)
+                                <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $event->cancel_reason }}</p>
+                            @endif
+                            <p class="opacity-80">
+                                {{ __('ui.events.cancelled_meta', [
+                                    'who' => $event->canceller?->nickname ?? $event->canceller?->email ?? __('ui.common.unknown_user'),
+                                    'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
+                                ]) }}
+                            </p>
+                        </div>
+                    </div>
+                @endif
                 <x-header
                     title="{{ $title }}"
                     class=""
@@ -94,15 +110,48 @@
                                         icon="o-square-2-stack"
                                     />
                                 @endif
-                                <x-button
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    wire:click="confirmDeleteEvent"
-                                    :tooltip="__('Delete')"
-                                    :aria-label="__('Delete').': '.$event->name"
-                                    data-ui="event-show-delete"
-                                    icon="o-trash"
-                                />
+                                @if (! $event->isCancelled())
+                                    @if (($eventSignupPressureBlocksDelete ?? false))
+                                        <x-button
+                                            type="button"
+                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                            wire:click="confirmCancelEvent"
+                                            :tooltip="__('ui.events.cancel_action')"
+                                            :aria-label="__('ui.events.cancel_action').': '.$event->name"
+                                            data-ui="event-show-cancel-event"
+                                            icon="o-x-circle"
+                                        />
+                                    @else
+                                        <x-button
+                                            type="button"
+                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                            wire:click="confirmDeleteEvent"
+                                            :tooltip="__('Delete')"
+                                            :aria-label="__('Delete').': '.$event->name"
+                                            data-ui="event-show-delete"
+                                            icon="o-trash"
+                                        />
+                                    @endif
+                                @else
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                        wire:click="confirmReopenEvent"
+                                        :tooltip="__('ui.events.reopen_action')"
+                                        :aria-label="__('ui.events.reopen_action')"
+                                        data-ui="event-show-reopen-event"
+                                        icon="o-arrow-uturn-left"
+                                    />
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                        wire:click="confirmDeleteEvent"
+                                        :tooltip="__('Delete')"
+                                        :aria-label="__('Delete').': '.$event->name"
+                                        data-ui="event-show-delete-after-cancel"
+                                        icon="o-trash"
+                                    />
+                                @endif
                                 </div>
                             @endif
 
@@ -171,6 +220,21 @@
                         wire:model.defer="slotCancelReason.{{ (int) $pendingContextId }}"
                     ></textarea>
                     @error('slotCancelReason.'.$pendingContextId)
+                        <div class="mt-2 text-xs text-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endif
+            @if ($pendingAction === 'cancel_event')
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">{{ __('ui.activities.cancel_reason_label') }}</span>
+                    </label>
+                    <textarea
+                        class="textarea textarea-bordered w-full"
+                        rows="4"
+                        wire:model.defer="eventCancelReason"
+                    ></textarea>
+                    @error('eventCancelReason')
                         <div class="mt-2 text-xs text-error">{{ $message }}</div>
                     @enderror
                 </div>
