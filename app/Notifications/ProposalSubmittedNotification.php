@@ -15,6 +15,11 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
     use BroadcastsWithDatabasePayload;
     use Queueable;
 
+    /**
+     * Discriminator echoed in broadcasts for JS listeners ({@see lw_event_refresh} is not overwritten by Laravel merges).
+     */
+    public const string LIVEWIRE_REFRESH_PROPOSAL_SUBMITTED_FOR_EVENT = 'proposal_submitted_for_event';
+
     public function __construct(
         public ActivityProposal $proposal
     ) {}
@@ -54,6 +59,8 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
         return [
             'type' => 'proposal_submitted',
             'proposal_id' => $this->proposal->id,
+            'lw_event_refresh' => self::LIVEWIRE_REFRESH_PROPOSAL_SUBMITTED_FOR_EVENT,
+            'event_id' => $this->proposal->event_id ?? $this->proposal->event?->getKey(),
             'activity_name' => $this->proposal->activity->name,
             'event_name' => $this->proposal->event->name ?? null,
             'url' => route('events.show', $this->proposal->event),

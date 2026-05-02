@@ -1,4 +1,9 @@
-<div id="ui-event-show-pending-proposals" class="ui-event-show-pending-proposals p-6" data-ui="event-show-pending-proposals">
+<div
+    id="ui-event-show-pending-proposals"
+    wire:key="event-show-pending-proposals-{{ $organizerProposalRefreshTick }}-{{ $pendingProposals->count() }}"
+    class="ui-event-show-pending-proposals p-6"
+    data-ui="event-show-pending-proposals"
+>
     <h3 class="mb-1 text-lg font-medium text-base-content">{{ __('ui.events.pending_proposals') }}</h3>
     <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.pending_proposals_help') }}</p>
     <ul class="divide-y divide-base-300">
