@@ -384,6 +384,10 @@ return [
         'activity_cancelled_toast' => '„:activity” zostala anulowana (:by)',
         'event_cancelled_list' => 'Wydarzenie anulowane',
         'event_cancelled_toast' => 'Wydarzenie „:event” zostalo anulowane',
+        'activity_reopened_list' => 'Aktywnosc wznowiona',
+        'activity_reopened_toast' => '„:activity” zostala wznowiona (:by)',
+        'event_reopened_list' => 'Wydarzenie wznowione',
+        'event_reopened_toast' => 'Wydarzenie „:event” zostalo wznowione (:by)',
     ],
     'status' => [
         'oops' => 'Ups!',

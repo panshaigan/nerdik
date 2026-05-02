@@ -59,6 +59,15 @@
                             @elseif ($type === 'event_cancelled')
                                 <span class="font-medium text-base-content">{{ __('ui.notifications.event_cancelled_list') }}</span>
                                 <span class="opacity-80"> – {{ $d['event_name'] ?? '' }}</span>
+                            @elseif ($type === 'activity_reopened')
+                                <span class="font-medium text-base-content">{{ __('ui.notifications.activity_reopened_list') }}</span>
+                                <span class="opacity-80"> – {{ $d['activity_name'] ?? '' }}</span>
+                                @if (!empty($d['event_name']))
+                                    <span class="text-sm opacity-70"> · {{ $d['event_name'] }}</span>
+                                @endif
+                            @elseif ($type === 'event_reopened')
+                                <span class="font-medium text-base-content">{{ __('ui.notifications.event_reopened_list') }}</span>
+                                <span class="opacity-80"> – {{ $d['event_name'] ?? '' }}</span>
                             @else
                                 <span class="opacity-90">{{ json_encode($d) }}</span>
                             @endif

@@ -12,7 +12,9 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
 use App\Notifications\ActivityCancelledNotification;
+use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
+use App\Notifications\EventReopenedNotification;
 use App\Services\ActivityHostingModeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -303,5 +305,87 @@ class CancellationNotificationsTest extends TestCase
             ->call('cancelEvent');
 
         Notification::assertSentTo($activityFan, EventCancelledNotification::class);
+    }
+
+    public function test_activity_reopen_notifies_users_who_saved_activity_interest(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $interestedUser = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+            'is_host_passive' => true,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $interestedUser->interestedActivities()->attach($activity->id);
+
+        app(ActivityHostingModeService::class)->cancel($activity->fresh(), $organizer, 'Hold');
+
+        Notification::fake();
+
+        app(ActivityHostingModeService::class)->reopen($activity->fresh(), $organizer);
+
+        Notification::assertSentTo($interestedUser, ActivityReopenedNotification::class);
+        Notification::assertNotSentTo($organizer, ActivityReopenedNotification::class);
+    }
+
+    public function test_event_reopen_notifies_users_who_saved_event_or_activity_interest(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $eventFollower = User::factory()->create();
+        $activityFollower = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $eventFollower->interestedEvents()->attach($event->id);
+        $activityFollower->interestedActivities()->attach($activity->id);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('cancelEvent');
+
+        Notification::fake();
+
+        Livewire::test(ShowEvent::class, ['event' => $event->fresh()])
+            ->call('reopenEvent');
+
+        Notification::assertSentTo($eventFollower, EventReopenedNotification::class);
+        Notification::assertSentTo($activityFollower, EventReopenedNotification::class);
+        Notification::assertNotSentTo($organizer, EventReopenedNotification::class);
     }
 }

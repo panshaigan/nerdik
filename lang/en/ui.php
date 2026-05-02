@@ -388,6 +388,10 @@ return [
         'activity_cancelled_toast' => '“:activity” was cancelled (:by)',
         'event_cancelled_list' => 'Event cancelled',
         'event_cancelled_toast' => 'The event “:event” was cancelled',
+        'activity_reopened_list' => 'Activity reopened',
+        'activity_reopened_toast' => '“:activity” was reopened (:by)',
+        'event_reopened_list' => 'Event reopened',
+        'event_reopened_toast' => 'The event “:event” was reopened (:by)',
     ],
     'status' => [
         'oops' => 'Oops!',

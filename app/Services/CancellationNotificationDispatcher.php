@@ -11,34 +11,22 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
 use App\Notifications\ActivityCancelledNotification;
+use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
+use App\Notifications\EventReopenedNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
+/**
+ * Sends cancel/reopen notices to the same stakeholder sets: participants, waitlists, hosts (activity cancel parity),
+ * pending proposal authors (events), and event/activity interest wishlists. The cancelling/reopening actor is excluded.
+ */
 class CancellationNotificationDispatcher
 {
     public function notifyActivityCancelled(Activity $activity, User $cancelledBy): void
     {
-        $activity->loadMissing(['creator', 'slot.event']);
-
-        $recipientIds = collect($this->activityParticipantUserIds($activity))
-            ->merge($this->activityWaitlistUserIds($activity))
-            ->merge($this->userIdsInterestedInActivities([(int) $activity->getKey()]));
-
-        $hostId = $activity->created_by !== null ? (int) $activity->created_by : null;
-        if ($hostId !== null && (int) $cancelledBy->id !== $hostId) {
-            $recipientIds->push($hostId);
-        }
-
-        /** @var list<int> $uniqueRecipients */
-        $uniqueRecipients = $recipientIds
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn (int $id) => $id > 0)
-            ->unique()
-            ->reject(fn (int $id): bool => $id === (int) $cancelledBy->id)
-            ->values()
-            ->all();
+        $uniqueRecipients = $this->activityStakeholderRecipientUserIds($activity, $cancelledBy);
 
         if ($uniqueRecipients === []) {
             return;
@@ -50,9 +38,50 @@ class CancellationNotificationDispatcher
         );
     }
 
+    /**
+     * Stakeholders to notify when an activity lifecycle change affects participants, waitlist, host interest, or wishlisted users — same roster as cancellation.
+     *
+     * @return list<int>
+     */
+    public function activityStakeholderRecipientUserIds(Activity $activity, User $actor): array
+    {
+        $activity->loadMissing(['creator', 'slot.event']);
+
+        $recipientIds = collect($this->activityParticipantUserIds($activity))
+            ->merge($this->activityWaitlistUserIds($activity))
+            ->merge($this->userIdsInterestedInActivities([(int) $activity->getKey()]));
+
+        $hostId = $activity->created_by !== null ? (int) $activity->created_by : null;
+        if ($hostId !== null && (int) $actor->id !== $hostId) {
+            $recipientIds->push($hostId);
+        }
+
+        return $recipientIds
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->reject(fn (int $id): bool => $id === (int) $actor->id)
+            ->values()
+            ->all();
+    }
+
+    public function notifyActivityReopened(Activity $activity, User $reopenedBy): void
+    {
+        $uniqueRecipients = $this->activityStakeholderRecipientUserIds($activity, $reopenedBy);
+
+        if ($uniqueRecipients === []) {
+            return;
+        }
+
+        Notification::send(
+            User::query()->whereKey($uniqueRecipients)->get(),
+            new ActivityReopenedNotification($activity, $reopenedBy)
+        );
+    }
+
     public function notifyEventCancelled(Event $event, User $cancelledBy): void
     {
-        $recipientIds = $this->eventCancellationRecipientIds($event, $cancelledBy);
+        $recipientIds = $this->eventStakeholderRecipientUserIds($event, $cancelledBy);
 
         if ($recipientIds === []) {
             return;
@@ -67,39 +96,12 @@ class CancellationNotificationDispatcher
         Notification::send(User::query()->whereKey($recipientIds)->get(), $notification);
     }
 
-    /** @return list<int> */
-    private function activityParticipantUserIds(Activity $activity): array
-    {
-        return ActivityUser::query()
-            ->where('activity_id', $activity->getKey())
-            ->whereNull('deleted_at')
-            ->pluck('user_id')
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->reject(fn (int $id) => $id <= 0)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /** @return list<int> */
-    private function activityWaitlistUserIds(Activity $activity): array
-    {
-        return ActivityWaitlistEntry::query()
-            ->where('activity_id', $activity->getKey())
-            ->pluck('user_id')
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->reject(fn (int $id) => $id <= 0)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
     /**
+     * Same roster as event cancellation: programme participants/waitlists, hosts, pending proposers, event/activity interests.
+     *
      * @return list<int>
      */
-    private function eventCancellationRecipientIds(Event $event, User $cancelledBy): array
+    public function eventStakeholderRecipientUserIds(Event $event, User $actor): array
     {
         /** @var Collection<int> $ids */
         $ids = collect();
@@ -150,7 +152,50 @@ class CancellationNotificationDispatcher
             ->map(fn ($id) => (int) $id)
             ->filter(fn (int $id) => $id > 0)
             ->unique()
-            ->reject(fn (int $id): bool => $id === (int) $cancelledBy->id)
+            ->reject(fn (int $id): bool => $id === (int) $actor->id)
+            ->values()
+            ->all();
+    }
+
+    public function notifyEventReopened(Event $event, User $reopenedBy): void
+    {
+        $recipientIds = $this->eventStakeholderRecipientUserIds($event, $reopenedBy);
+
+        if ($recipientIds === []) {
+            return;
+        }
+
+        Notification::send(
+            User::query()->whereKey($recipientIds)->get(),
+            new EventReopenedNotification($event, $reopenedBy)
+        );
+    }
+
+    /** @return list<int> */
+    private function activityParticipantUserIds(Activity $activity): array
+    {
+        return ActivityUser::query()
+            ->where('activity_id', $activity->getKey())
+            ->whereNull('deleted_at')
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id) => $id <= 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** @return list<int> */
+    private function activityWaitlistUserIds(Activity $activity): array
+    {
+        return ActivityWaitlistEntry::query()
+            ->where('activity_id', $activity->getKey())
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id) => $id <= 0)
+            ->unique()
             ->values()
             ->all();
     }
