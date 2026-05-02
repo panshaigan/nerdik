@@ -3,13 +3,25 @@
 namespace App\Services;
 
 use App\Models\ActivityUser;
+use App\Models\User;
+use App\Notifications\ActivityRemovedByHostNotification;
 use Illuminate\Support\Facades\DB;
 
 class ActivityParticipantRosterService
 {
     public function removeParticipant(ActivityUser $participant): void
     {
+        $user = $participant->user;
+        $activity = $participant->activity;
+
         $participant->delete();
+
+        if ($user instanceof User && $activity !== null) {
+            $user->notify(new ActivityRemovedByHostNotification(
+                $activity,
+                ActivityRemovedByHostNotification::MODE_REMOVED,
+            ));
+        }
     }
 
     /**
@@ -19,6 +31,7 @@ class ActivityParticipantRosterService
     {
         $activity = $participant->activity;
         $userId = $participant->user_id;
+        $user = $participant->user;
 
         DB::transaction(function () use ($activity, $participant, $userId) {
             $participant->delete();
@@ -28,6 +41,13 @@ class ActivityParticipantRosterService
                 'position' => $nextPosition,
             ]);
         });
+
+        if ($user instanceof User && $activity !== null) {
+            $user->notify(new ActivityRemovedByHostNotification(
+                $activity,
+                ActivityRemovedByHostNotification::MODE_MOVED_TO_WAITLIST,
+            ));
+        }
     }
 
     public function clearParticipantAbsent(ActivityUser $participant): void
