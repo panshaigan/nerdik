@@ -50,13 +50,17 @@ class ProposalAcceptedNotification extends Notification implements ShouldQueue, 
      */
     public function toArray(object $notifiable): array
     {
+        $event = $this->proposal->event;
+
         return [
             'type' => 'proposal_accepted',
             'proposal_id' => $this->proposal->id,
             'activity_name' => $this->proposal->activity->name,
-            'event_name' => $this->proposal->event->name ?? null,
+            'event_name' => $event->name ?? null,
             'event_id' => $this->proposal->event_id,
-            'url' => route('events.show', $this->proposal->event),
+            'url' => route('events.show', ['event' => $event, 'tab' => 'plan'], false),
+            'toast_title' => __('Proposal accepted'),
+            'toast_description' => __('ui.notifications.activity_label', ['name' => $this->proposal->activity->name]),
         ];
     }
 }

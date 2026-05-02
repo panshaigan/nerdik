@@ -56,14 +56,18 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
      */
     public function toArray(object $notifiable): array
     {
+        $event = $this->proposal->event;
+
         return [
             'type' => 'proposal_submitted',
             'proposal_id' => $this->proposal->id,
             'lw_event_refresh' => self::LIVEWIRE_REFRESH_PROPOSAL_SUBMITTED_FOR_EVENT,
-            'event_id' => $this->proposal->event_id ?? $this->proposal->event?->getKey(),
+            'event_id' => $this->proposal->event_id ?? $event?->getKey(),
             'activity_name' => $this->proposal->activity->name,
-            'event_name' => $this->proposal->event->name ?? null,
-            'url' => route('events.show', $this->proposal->event),
+            'event_name' => $event->name ?? null,
+            'url' => route('events.show', ['event' => $event, 'tab' => 'proposals'], false),
+            'toast_title' => __('ui.notifications.proposal_submitted_list'),
+            'toast_description' => __('ui.notifications.activity_label', ['name' => $this->proposal->activity->name]),
         ];
     }
 }

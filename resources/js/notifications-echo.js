@@ -47,6 +47,35 @@ function subscribeToUserNotifications() {
         window.Livewire.dispatch('database-notifications-updated');
 
         const payload = parseEchoNotificationPayload(notification);
+        if (typeof window.toast === 'function') {
+            const fallbackTitleByType = {
+                proposal_submitted: 'Proposal submitted',
+                proposal_accepted: 'Proposal accepted',
+                proposal_rejected: 'Proposal rejected',
+                waitlist_promoted: 'You got a place!',
+            };
+
+            const toastTitle = payload?.toast_title
+                || (typeof payload?.type === 'string' ? fallbackTitleByType[payload.type] : null)
+                || 'New notification';
+            const toastDescription = payload?.toast_description
+                || payload?.activity_name
+                || payload?.event_name
+                || '';
+
+            window.toast({
+                toast: {
+                    type: 'info',
+                    title: toastTitle,
+                    description: toastDescription,
+                    icon: '',
+                    css: 'alert-info',
+                    timeout: 4000,
+                    noProgress: false,
+                },
+            });
+        }
+
         const eventRaw = payload?.event_id;
         if (eventRaw === undefined || eventRaw === null || Number.isNaN(Number(eventRaw))) {
             return;

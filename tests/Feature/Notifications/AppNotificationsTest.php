@@ -60,6 +60,53 @@ class AppNotificationsTest extends TestCase
         );
     }
 
+    public function test_notification_payload_urls_target_expected_tabs(): void
+    {
+        $user = User::factory()->create();
+        $proposal = ActivityProposal::factory()->create()->load(['activity', 'event']);
+        $activity = Activity::factory()->create();
+
+        $acceptedPayload = (new ProposalAcceptedNotification($proposal))->toArray($user);
+        $rejectedPayload = (new ProposalRejectedNotification($proposal))->toArray($user);
+        $submittedPayload = (new ProposalSubmittedNotification($proposal))->toArray($user);
+        $waitlistPayload = (new WaitlistPromotedNotification($activity))->toArray($user);
+
+        $this->assertStringContainsString('tab=plan', $acceptedPayload['url']);
+        $this->assertStringContainsString('/events/', $acceptedPayload['url']);
+
+        $this->assertStringContainsString('/activities/', $rejectedPayload['url']);
+        $this->assertStringNotContainsString('tab=', $rejectedPayload['url']);
+
+        $this->assertStringContainsString('tab=proposals', $submittedPayload['url']);
+        $this->assertStringContainsString('/events/', $submittedPayload['url']);
+
+        $this->assertStringContainsString('tab=participation', $waitlistPayload['url']);
+        $this->assertStringContainsString('/activities/', $waitlistPayload['url']);
+    }
+
+    public function test_notification_payloads_include_toast_metadata(): void
+    {
+        $user = User::factory()->create();
+        $proposal = ActivityProposal::factory()->create()->load(['activity', 'event']);
+        $activity = Activity::factory()->create();
+
+        $payloads = [
+            (new ProposalAcceptedNotification($proposal))->toArray($user),
+            (new ProposalRejectedNotification($proposal))->toArray($user),
+            (new ProposalSubmittedNotification($proposal))->toArray($user),
+            (new WaitlistPromotedNotification($activity))->toArray($user),
+        ];
+
+        foreach ($payloads as $payload) {
+            $this->assertArrayHasKey('toast_title', $payload);
+            $this->assertArrayHasKey('toast_description', $payload);
+            $this->assertIsString($payload['toast_title']);
+            $this->assertIsString($payload['toast_description']);
+            $this->assertNotSame('', $payload['toast_title']);
+            $this->assertNotSame('', $payload['toast_description']);
+        }
+    }
+
     public function test_user_leave_activity_notifies_promoted_waitlist_user(): void
     {
         Notification::fake();
