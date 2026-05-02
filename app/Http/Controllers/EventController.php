@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Services\CancellationNotificationDispatcher;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\SlotFormService;
 use App\Traits\AuthorizesOwnership;
@@ -65,6 +66,11 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $this->authorizeCreatedBy($event);
+
+        $cancelledBy = auth()->user();
+        if ($cancelledBy !== null) {
+            app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event, $cancelledBy);
+        }
 
         $event->delete();
 

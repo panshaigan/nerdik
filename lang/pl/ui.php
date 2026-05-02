@@ -367,6 +367,10 @@ return [
         'waitlist_promoted_subject' => 'Masz miejsce w: :activity',
         'waitlist_promoted_line_1' => 'Zostales(-as) przeniesiony(-a) z listy rezerwowej i jestes teraz uczestnikiem aktywnosci:',
         'view_activity' => 'Zobacz aktywnosc',
+        'activity_cancelled_list' => 'Aktywnosc anulowana',
+        'activity_cancelled_toast' => '„:activity” zostala anulowana (:by)',
+        'event_cancelled_list' => 'Wydarzenie anulowane',
+        'event_cancelled_toast' => 'Wydarzenie „:event” zostalo anulowane',
     ],
     'status' => [
         'oops' => 'Ups!',

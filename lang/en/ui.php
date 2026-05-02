@@ -371,6 +371,10 @@ return [
         'waitlist_promoted_subject' => 'You got a place on :activity',
         'waitlist_promoted_line_1' => 'You have been moved from the waitlist and are now a participant in the activity:',
         'view_activity' => 'View activity',
+        'activity_cancelled_list' => 'Activity cancelled',
+        'activity_cancelled_toast' => '“:activity” was cancelled (:by)',
+        'event_cancelled_list' => 'Event cancelled',
+        'event_cancelled_toast' => 'The event “:event” was cancelled',
     ],
     'status' => [
         'oops' => 'Oops!',

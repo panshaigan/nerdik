@@ -11,6 +11,7 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
+use App\Services\CancellationNotificationDispatcher;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
@@ -176,6 +177,10 @@ class ShowEvent extends Component
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
+        $cancelledBy = auth()->user();
+        if ($cancelledBy !== null) {
+            app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event, $cancelledBy);
+        }
         $event->delete();
         $this->success(__('Event deleted.'));
         $this->redirect(route('search.index'), navigate: true);
