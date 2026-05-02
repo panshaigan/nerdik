@@ -53,6 +53,8 @@ function subscribeToUserNotifications() {
                 proposal_accepted: 'Proposal accepted',
                 proposal_rejected: 'Proposal rejected',
                 waitlist_promoted: 'You got a place!',
+                activity_cancelled: 'Activity cancelled',
+                event_cancelled: 'Event cancelled',
             };
 
             const toastTitle = payload?.toast_title

@@ -111,6 +111,11 @@ class ActivityHostingModeService
             'cancelled_by' => $actor->id,
             'cancel_reason' => $reason !== null ? trim($reason) : null,
         ]);
+
+        app(CancellationNotificationDispatcher::class)->notifyActivityCancelled(
+            $activity->fresh(),
+            $actor
+        );
     }
 
     public function reopen(Activity $activity): void
