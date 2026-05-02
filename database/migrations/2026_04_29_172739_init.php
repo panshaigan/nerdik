@@ -152,8 +152,12 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->dateTime('starts_at');
             $table->dateTime('ends_at');
+            $table->text('cancel_reason')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
+            $table->index('cancelled_at');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();

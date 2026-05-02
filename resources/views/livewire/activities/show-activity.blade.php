@@ -151,15 +151,17 @@
                                     data-ui="activity-show-duplicate"
                                     icon="o-square-2-stack"
                                 />
-                                <x-button
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    :tooltip="__('ui.activities.delete')"
-                                    :aria-label="__('ui.activities.delete').': '.$activity->name"
-                                    wire:click="confirmDeleteActivity"
-                                    data-ui="activity-show-delete"
-                                    icon="o-trash"
-                                />
+                                @if ($canHardDeleteActivity ?? false)
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                        :tooltip="__('ui.activities.delete')"
+                                        :aria-label="__('ui.activities.delete').': '.$activity->name"
+                                        wire:click="confirmDeleteActivity"
+                                        data-ui="activity-show-delete"
+                                        icon="o-trash"
+                                    />
+                                @endif
                                 @if ($isCancelled)
                                     <x-button
                                         type="button"

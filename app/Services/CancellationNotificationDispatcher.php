@@ -6,6 +6,7 @@ use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
+use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
@@ -20,7 +21,8 @@ class CancellationNotificationDispatcher
     {
         $activity->loadMissing(['creator', 'slot.event']);
 
-        $recipientIds = collect($this->activityParticipantUserIds($activity));
+        $recipientIds = collect($this->activityParticipantUserIds($activity))
+            ->merge($this->activityWaitlistUserIds($activity));
 
         $hostId = $activity->created_by !== null ? (int) $activity->created_by : null;
         if ($hostId !== null && (int) $cancelledBy->id !== $hostId) {
@@ -56,7 +58,8 @@ class CancellationNotificationDispatcher
 
         $notification = new EventCancelledNotification(
             $event->getKey(),
-            (string) $event->name
+            (string) $event->name,
+            (string) $event->slug
         );
 
         Notification::send(User::query()->whereKey($recipientIds)->get(), $notification);
@@ -68,6 +71,20 @@ class CancellationNotificationDispatcher
         return ActivityUser::query()
             ->where('activity_id', $activity->getKey())
             ->whereNull('deleted_at')
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->reject(fn (int $id) => $id <= 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** @return list<int> */
+    private function activityWaitlistUserIds(Activity $activity): array
+    {
+        return ActivityWaitlistEntry::query()
+            ->where('activity_id', $activity->getKey())
             ->pluck('user_id')
             ->filter()
             ->map(fn ($id) => (int) $id)
@@ -108,7 +125,12 @@ class CancellationNotificationDispatcher
                 ->pluck('created_by')
                 ->map(fn ($id) => (int) $id);
 
-            $ids = $ids->merge($participantIds)->merge($hostIds);
+            $waitlistIds = ActivityWaitlistEntry::query()
+                ->whereIn('activity_id', $activityIds)
+                ->pluck('user_id')
+                ->map(fn ($id) => (int) $id);
+
+            $ids = $ids->merge($participantIds)->merge($hostIds)->merge($waitlistIds);
         }
 
         $proposalCreatorIds = ActivityProposal::query()

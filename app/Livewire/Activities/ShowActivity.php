@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Activities;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
@@ -10,9 +11,8 @@ use App\Models\ActivityWaitlistEntry;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
-use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
-use Mary\Traits\Toast;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class ShowActivity extends Component
 {
@@ -131,6 +131,12 @@ class ShowActivity extends Component
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($activity), 403);
+
+        if (! $activity->allowsHardDeletion()) {
+            $this->warning(__('ui.activities.delete_forbidden_requires_cancel'));
+
+            return;
+        }
 
         $activity->delete();
         $this->success(__('ui.activities.deleted_status'));
@@ -270,6 +276,7 @@ class ShowActivity extends Component
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
+            'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,
             'onWaitlist' => $vm->onWaitlist,

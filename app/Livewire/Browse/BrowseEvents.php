@@ -198,7 +198,9 @@ class BrowseEvents extends Component
      */
     protected function baseEventQuery(): Builder
     {
-        $query = Event::query()->where('is_public', true);
+        $query = Event::query()
+            ->where('is_public', true)
+            ->whereNull('events.cancelled_at');
 
         if (! $this->include_past_events) {
             $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);

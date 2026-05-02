@@ -36,6 +36,8 @@ class ActivityController extends Controller
     {
         $this->authorizeCreatedBy($activity);
 
+        abort_unless($activity->allowsHardDeletion(), 403, __('ui.activities.delete_forbidden_requires_cancel'));
+
         $activity->delete();
 
         return redirect()->route('search.index')

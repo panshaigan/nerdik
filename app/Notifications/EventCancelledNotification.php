@@ -15,7 +15,8 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
 
     public function __construct(
         public int $eventId,
-        public string $eventName
+        public string $eventName,
+        public string $eventSlug = ''
     ) {}
 
     /**
@@ -31,11 +32,15 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
      */
     public function toArray(object $notifiable): array
     {
+        $url = $this->eventSlug !== ''
+            ? route('events.show', ['event' => $this->eventSlug], false)
+            : route('search.index', [], false);
+
         return [
             'type' => 'event_cancelled',
             'event_id' => $this->eventId,
             'event_name' => $this->eventName,
-            'url' => route('search.index', [], false),
+            'url' => $url,
             'toast_title' => __('ui.notifications.event_cancelled_list'),
             'toast_description' => __('ui.notifications.event_cancelled_toast', [
                 'event' => $this->eventName,

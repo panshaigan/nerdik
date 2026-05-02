@@ -55,6 +55,8 @@ class ShowEvent extends Component
     /** @var array<int|string, string> */
     public array $slotCancelReason = [];
 
+    public ?string $eventCancelReason = null;
+
     public function mount(Event $event): void
     {
         $this->eventId = $event->id;
@@ -92,6 +94,11 @@ class ShowEvent extends Component
     public function addInterest(): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        if ($event->isCancelled()) {
+            $this->warning(__('ui.events.signup_blocked_cancelled'));
+
+            return;
+        }
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedEvents()->syncWithoutDetaching([$event->id]);
@@ -110,6 +117,11 @@ class ShowEvent extends Component
     public function addActivityInterest(int $activityId): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        if ($event->isCancelled()) {
+            $this->warning(__('ui.events.signup_blocked_cancelled'));
+
+            return;
+        }
         $activity = Activity::query()
             ->whereKey($activityId)
             ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
@@ -177,13 +189,76 @@ class ShowEvent extends Component
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
+        if ($event->hasSignupPressure() && ! $event->isCancelled()) {
+            $this->warning(__('ui.events.delete_forbidden_use_cancel'));
+
+            return;
+        }
+
         $cancelledBy = auth()->user();
-        if ($cancelledBy !== null) {
+        if ($cancelledBy !== null && ! $event->isCancelled()) {
             app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event, $cancelledBy);
         }
         $event->delete();
         $this->success(__('Event deleted.'));
         $this->redirect(route('search.index'), navigate: true);
+    }
+
+    public function cancelEvent(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $this->authorizeCreatedBy($event);
+        if ($event->isCancelled()) {
+            return;
+        }
+        if (! $event->hasSignupPressure()) {
+            $this->warning(__('ui.events.cancel_only_when_roster_present'));
+
+            return;
+        }
+
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $reason = $this->eventCancelReason !== null ? trim($this->eventCancelReason) : null;
+        if ($reason === '') {
+            $reason = null;
+        }
+        if ($reason !== null && mb_strlen($reason) > 1000) {
+            $this->addError('eventCancelReason', __('validation.max.string', [
+                'attribute' => 'cancel_reason',
+                'max' => 1000,
+            ]));
+
+            return;
+        }
+
+        $event->update([
+            'cancelled_at' => now(),
+            'cancelled_by' => $user->id,
+            'cancel_reason' => $reason,
+        ]);
+        $this->eventCancelReason = null;
+
+        app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event->fresh(), $user);
+        $this->success(__('ui.events.cancelled_status'));
+    }
+
+    public function reopenEvent(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $this->authorizeCreatedBy($event);
+
+        if (! $event->isCancelled()) {
+            return;
+        }
+
+        $event->update([
+            'cancelled_at' => null,
+            'cancelled_by' => null,
+            'cancel_reason' => null,
+        ]);
+        $this->success(__('ui.events.reopened_status'));
     }
 
     public function confirmDeleteEvent(): void
@@ -192,6 +267,24 @@ class ShowEvent extends Component
             'delete_event',
             __('Delete'),
             __('Are you sure you want to delete this event?'),
+        );
+    }
+
+    public function confirmCancelEvent(): void
+    {
+        $this->openConfirm(
+            'cancel_event',
+            __('ui.events.cancel_action'),
+            __('ui.events.cancel_confirm'),
+        );
+    }
+
+    public function confirmReopenEvent(): void
+    {
+        $this->openConfirm(
+            'reopen_event',
+            __('ui.events.reopen_action'),
+            __('ui.events.reopen_confirm'),
         );
     }
 
@@ -253,6 +346,8 @@ class ShowEvent extends Component
 
         match ($action) {
             'delete_event' => $this->deleteEvent(),
+            'cancel_event' => $this->cancelEvent(),
+            'reopen_event' => $this->reopenEvent(),
             'delete_slot' => $slotId !== null ? $this->deleteSlot($slotId) : null,
             'detach_activity_from_slot' => $slotId !== null ? $this->detachActivityFromSlot($slotId, $decisions) : null,
             'cancel_slot_activity' => $slotId !== null ? $this->cancelSlotActivity($slotId, $hostingModes) : null,
@@ -483,6 +578,7 @@ class ShowEvent extends Component
 
         $event->load([
             'creator',
+            'canceller',
             'organization',
             'places',
             'enrollmentWindows',
@@ -562,6 +658,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
+            'eventSignupPressureBlocksDelete' => $event->hasSignupPressure() && ! $event->isCancelled(),
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
