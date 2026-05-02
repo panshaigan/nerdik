@@ -4,8 +4,8 @@ namespace App\Livewire\Events;
 
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithUiConfirmModal;
-use App\Models\ActivityProposal;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -14,9 +14,9 @@ use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -24,10 +24,11 @@ use Mary\Traits\Toast;
 class ShowEvent extends Component
 {
     use AuthorizesOwnership;
-    use WithUiConfirmModal;
     use Toast;
+    use WithUiConfirmModal;
 
     public int $eventId;
+
     public string $tab = 'description';
 
     protected array $queryString = [
@@ -36,6 +37,9 @@ class ShowEvent extends Component
 
     /** Bumped when slots change via async JS so the component re-renders. */
     public int $slotListVersion = 0;
+
+    /** Bumped when the organizer receives a live proposal submission for this event. */
+    public int $organizerProposalRefreshTick = 0;
 
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];
@@ -129,6 +133,26 @@ class ShowEvent extends Component
         abort_unless($user !== null, 403);
         $user->interestedActivities()->detach($activity->id);
         $this->warning(__('ui.interests.removed_activity'));
+    }
+
+    #[On('event-proposal-submitted-broadcast')]
+    public function refreshOrganizerForIncomingProposal(int|string $eventId): void
+    {
+        if ((int) $eventId !== (int) $this->eventId) {
+            return;
+        }
+
+        $event = Event::query()->whereKey($this->eventId)->first();
+        if ($event === null) {
+            return;
+        }
+
+        $user = auth()->user();
+        if ($user === null || ! $user->canModifyEntity($event)) {
+            return;
+        }
+
+        $this->organizerProposalRefreshTick++;
     }
 
     #[On('slot-mutations-refresh')]

@@ -45,6 +45,21 @@ class AppNotificationsTest extends TestCase
         $this->assertContains('broadcast', (new ProposalRejectedNotification($proposal))->via($user));
     }
 
+    public function test_proposal_submitted_notification_payload_includes_event_id_for_live_refresh(): void
+    {
+        $user = User::factory()->create();
+        $proposal = ActivityProposal::factory()->create()->load(['activity', 'event']);
+
+        $payload = (new ProposalSubmittedNotification($proposal))->toArray($user);
+
+        $this->assertArrayHasKey('event_id', $payload);
+        $this->assertSame((int) $proposal->event_id, (int) $payload['event_id']);
+        $this->assertSame(
+            ProposalSubmittedNotification::LIVEWIRE_REFRESH_PROPOSAL_SUBMITTED_FOR_EVENT,
+            $payload['lw_event_refresh'] ?? null
+        );
+    }
+
     public function test_user_leave_activity_notifies_promoted_waitlist_user(): void
     {
         Notification::fake();
