@@ -53,6 +53,14 @@ class Event extends Model
     }
 
     /**
+     * True when any event slot is bound to an activity.
+     */
+    public function hasScheduledSlotActivities(): bool
+    {
+        return $this->slots()->whereNotNull('activity_id')->exists();
+    }
+
+    /**
      * True when any slot activity has roster pressure (participants or waitlist).
      * Used to force cancel instead of hard delete for organisers.
      */
@@ -82,6 +90,25 @@ class Event extends Model
         return ActivityWaitlistEntry::query()
             ->whereIn('activity_id', $activityIds)
             ->exists();
+    }
+
+    /**
+     * When the event is not cancelled: hard delete must not be used — cancel first —
+     * if anything is scheduled on slots or there is signup/waitlist pressure.
+     */
+    public function organiserHardDeleteBlockedWhileActive(): bool
+    {
+        if ($this->isCancelled()) {
+            return false;
+        }
+
+        return $this->hasScheduledSlotActivities() || $this->hasSignupPressure();
+    }
+
+    /** Use explicit cancel when deleting would wrongly skip notifying stakeholders about a non-empty programme. */
+    public function qualifiesForExplicitOrganiserCancellation(): bool
+    {
+        return $this->hasScheduledSlotActivities() || $this->hasSignupPressure();
     }
 
     public function organization()

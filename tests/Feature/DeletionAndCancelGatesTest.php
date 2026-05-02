@@ -90,6 +90,63 @@ class DeletionAndCancelGatesTest extends TestCase
         $this->delete(route('events.destroy', $event))->assertForbidden();
     }
 
+    public function test_event_destroy_forbidden_when_scheduled_activity_has_no_roster_pressure(): void
+    {
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $this->actingAs($organizer);
+
+        $this->delete(route('events.destroy', $event))->assertForbidden();
+        $event->refresh();
+        $this->assertFalse($event->isCancelled());
+        $this->assertTrue($event->hasScheduledSlotActivities());
+    }
+
+    public function test_event_cancel_allowed_when_scheduled_activity_has_empty_roster(): void
+    {
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])->call('cancelEvent');
+
+        $event->refresh();
+        $this->assertTrue($event->isCancelled());
+    }
+
     public function test_event_cancel_sets_cancelled_at_and_clears_on_reopen(): void
     {
         $organizer = User::factory()->create();

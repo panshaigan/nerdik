@@ -189,7 +189,7 @@ class ShowEvent extends Component
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
-        if ($event->hasSignupPressure() && ! $event->isCancelled()) {
+        if ($event->organiserHardDeleteBlockedWhileActive()) {
             $this->warning(__('ui.events.delete_forbidden_use_cancel'));
 
             return;
@@ -211,8 +211,8 @@ class ShowEvent extends Component
         if ($event->isCancelled()) {
             return;
         }
-        if (! $event->hasSignupPressure()) {
-            $this->warning(__('ui.events.cancel_only_when_roster_present'));
+        if (! $event->qualifiesForExplicitOrganiserCancellation()) {
+            $this->warning(__('ui.events.cancel_only_when_programme_nonempty'));
 
             return;
         }
@@ -658,7 +658,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
-            'eventSignupPressureBlocksDelete' => $event->hasSignupPressure() && ! $event->isCancelled(),
+            'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
