@@ -55,7 +55,9 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue, 
             'proposal_id' => $this->proposal->id,
             'activity_name' => $this->proposal->activity->name,
             'event_name' => $this->proposal->event->name ?? null,
-            'url' => route('activity-proposals.index'),
+            'url' => route('activities.show', $this->proposal->activity, false),
+            'toast_title' => __('Proposal rejected'),
+            'toast_description' => __('ui.notifications.activity_label', ['name' => $this->proposal->activity->name]),
         ];
     }
 }

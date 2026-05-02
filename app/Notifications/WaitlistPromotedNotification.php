@@ -50,7 +50,9 @@ class WaitlistPromotedNotification extends Notification implements ShouldQueue, 
             'type' => 'waitlist_promoted',
             'activity_id' => $this->activity->id,
             'activity_name' => $this->activity->name,
-            'url' => route('activities.show', $this->activity),
+            'url' => route('activities.show', ['activity' => $this->activity, 'tab' => 'participation'], false),
+            'toast_title' => __('You got a place!'),
+            'toast_description' => __('ui.notifications.activity_label', ['name' => $this->activity->name]),
         ];
     }
 }
