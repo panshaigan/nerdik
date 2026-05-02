@@ -1,10 +1,17 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
+    #[On('database-notifications-updated')]
+    public function refreshNotificationIndicators(): void
+    {
+        //
+    }
+
     /**
      * Log the current user out of the application.
      */

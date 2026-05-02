@@ -4,12 +4,19 @@ namespace App\Livewire\Notifications;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class NotificationList extends Component
 {
     use WithPagination;
+
+    #[On('database-notifications-updated')]
+    public function refreshNotificationList(): void
+    {
+        $this->resetPage();
+    }
 
     public function markAllRead(): void
     {

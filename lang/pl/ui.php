@@ -359,6 +359,7 @@ return [
         'proposal_submitted_subject' => 'Nowa propozycja dla wydarzenia: :event',
         'proposal_submitted_line_1' => 'Dodano nowa propozycje aktywnosci do Twojego wydarzenia.',
         'proposal_submitted_line_2' => 'Zaproponowal(a): :name',
+        'proposal_submitted_list' => 'Nowa propozycja aktywnosci',
         'review_proposal' => 'Przejrz propozycje',
         'activity_label' => 'Aktywnosc: :name',
         'event_label' => 'Wydarzenie: :name',

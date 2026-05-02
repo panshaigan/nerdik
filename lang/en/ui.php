@@ -363,6 +363,7 @@ return [
         'proposal_submitted_subject' => 'New proposal for :event',
         'proposal_submitted_line_1' => 'A new activity proposal was submitted for your event.',
         'proposal_submitted_line_2' => 'Proposed by: :name',
+        'proposal_submitted_list' => 'New activity proposal',
         'review_proposal' => 'Review proposal',
         'activity_label' => 'Activity: :name',
         'event_label' => 'Event: :name',

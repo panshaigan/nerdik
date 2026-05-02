@@ -3,13 +3,16 @@
 namespace App\Notifications;
 
 use App\Models\ActivityProposal;
+use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ProposalSubmittedNotification extends Notification implements ShouldQueue
+class ProposalSubmittedNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
+    use BroadcastsWithDatabasePayload;
     use Queueable;
 
     public function __construct(
@@ -21,7 +24,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
         if ($notifiable->notify_email_proposal_updates ?? true) {
             $channels[] = 'mail';
         }

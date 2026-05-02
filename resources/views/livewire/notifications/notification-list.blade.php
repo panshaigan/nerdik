@@ -29,7 +29,13 @@
                             wire:loading.attr="disabled"
                             wire:target="markReadAndGo"
                         >
-                            @if ($type === 'proposal_accepted')
+                            @if ($type === 'proposal_submitted')
+                                <span class="font-medium text-base-content">{{ __('ui.notifications.proposal_submitted_list') }}</span>
+                                <span class="opacity-80"> – {{ $d['activity_name'] ?? '' }}</span>
+                                @if (!empty($d['event_name']))
+                                    <span class="text-sm opacity-70"> · {{ $d['event_name'] }}</span>
+                                @endif
+                            @elseif ($type === 'proposal_accepted')
                                 <span class="font-medium text-base-content">{{ __('Proposal accepted') }}</span>
                                 <span class="opacity-80"> – {{ $d['activity_name'] ?? '' }}</span>
                                 @if (!empty($d['event_name']))
