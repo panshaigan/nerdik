@@ -8,6 +8,7 @@ use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
+use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
@@ -121,9 +122,10 @@ class ShowActivity extends Component
     public function reopen(ActivityHostingModeService $hostingModes): void
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
-        abort_unless(auth()->user()?->canModifyEntity($activity), 403);
+        $user = auth()->user();
+        abort_unless($user instanceof User && $user->canModifyEntity($activity), 403);
 
-        $hostingModes->reopen($activity);
+        $hostingModes->reopen($activity, $user);
         $this->success(__('ui.activities.reopened_status'));
     }
 

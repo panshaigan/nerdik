@@ -258,6 +258,11 @@ class ShowEvent extends Component
             'cancelled_by' => null,
             'cancel_reason' => null,
         ]);
+
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        app(CancellationNotificationDispatcher::class)->notifyEventReopened($event->fresh(), $user);
         $this->success(__('ui.events.reopened_status'));
     }
 
@@ -474,7 +479,7 @@ class ShowEvent extends Component
         $user = auth()->user();
         abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
 
-        $hostingModes->reopen($activity);
+        $hostingModes->reopen($activity, $user);
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
         $this->success(__('ui.activities.reopened_status'));

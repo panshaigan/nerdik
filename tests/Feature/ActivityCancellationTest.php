@@ -36,7 +36,7 @@ class ActivityCancellationTest extends TestCase
         $this->assertSame($host->id, (int) $activity->cancelled_by);
         $this->assertSame('Host is unavailable', $activity->cancel_reason);
 
-        $service->reopen($activity);
+        $service->reopen($activity, $host);
         $activity->refresh();
 
         $this->assertNull($activity->cancelled_at);

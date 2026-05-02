@@ -118,13 +118,18 @@ class ActivityHostingModeService
         );
     }
 
-    public function reopen(Activity $activity): void
+    public function reopen(Activity $activity, User $actor): void
     {
         $activity->update([
             'cancelled_at' => null,
             'cancelled_by' => null,
             'cancel_reason' => null,
         ]);
+
+        app(CancellationNotificationDispatcher::class)->notifyActivityReopened(
+            $activity->fresh(),
+            $actor
+        );
     }
 
     public function detachAcceptedSlot(Event $event, Slot $slot): bool

@@ -55,6 +55,8 @@ function subscribeToUserNotifications() {
                 waitlist_promoted: 'You got a place!',
                 activity_cancelled: 'Activity cancelled',
                 event_cancelled: 'Event cancelled',
+                activity_reopened: 'Activity reopened',
+                event_reopened: 'Event reopened',
             };
 
             const toastTitle = payload?.toast_title
