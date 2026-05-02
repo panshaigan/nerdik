@@ -17,4 +17,8 @@ function subscribeToUserNotifications() {
     });
 }
 
+// Livewire’s inline script can run before deferred Vite bundles, so `livewire:init` may
+// fire before this module executes (same pattern as resources/js/maps-init.js).
 document.addEventListener('livewire:init', subscribeToUserNotifications);
+document.addEventListener('livewire:initialized', subscribeToUserNotifications);
+document.addEventListener('DOMContentLoaded', subscribeToUserNotifications);
