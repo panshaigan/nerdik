@@ -1,17 +1,9 @@
-Notifications
+Notifications (1 day)
     - review
-    - event: "event soon!", "event soon - empty slots", "event soon - no slots planned" [FUTURE]
-    - activity: "proposal waiting for acceptance", "proposal accepted/rejected"
-    - participation:
-        - "someone joined your activity" [FUTURE]
-        - "activity is about to be cancelled" [FUTURE]
-        - "activity is soon - are you sure you will participate? if not, sign off" [FUTURE]
-        - "you waited enough to get the place" [MVP]
 
-Technicals
-    - posgress?
+Technicals (1 day)
     - APIs:
-            - GOOGLE login (create app + add widget to login page)
-            - Facebook login
-            = user flow
-            - wont i need openstreet api or smth?
+        - GOOGLE login (create app + add widget to login page)
+        - Facebook login
+        - user account flow. 2FA?
+        - wont i need openstreet api?

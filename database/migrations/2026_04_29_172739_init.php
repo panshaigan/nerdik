@@ -491,7 +491,7 @@ return new class extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
             $table->string('queue');
-            $table->text('payload');
+            $table->jsonb('payload');
             $table->smallInteger('attempts');
             $table->integer('reserved_at')->nullable();
             $table->integer('available_at');
@@ -508,8 +508,8 @@ return new class extends Migration
             $table->integer('total_jobs');
             $table->integer('pending_jobs');
             $table->integer('failed_jobs');
-            $table->text('failed_job_ids');
-            $table->text('options')->nullable();
+            $table->jsonb('failed_job_ids')->default('[]');
+            $table->jsonb('options')->nullable();
             $table->integer('cancelled_at')->nullable();
             $table->integer('created_at');
             $table->integer('finished_at')->nullable();
@@ -523,7 +523,7 @@ return new class extends Migration
             $table->string('uuid')->unique();
             $table->text('connection');
             $table->text('queue');
-            $table->text('payload');
+            $table->jsonb('payload');
             $table->text('exception');
             $table->timestamp('failed_at')->useCurrent();
         });
