@@ -97,7 +97,7 @@ class User extends Authenticatable
 
     public function interestedEvents()
     {
-        return $this->belongsToMany(Event::class, 'user_event_interests');
+        return $this->morphedByMany(Event::class, 'interest', 'user_interests');
     }
 
     public function organization()
@@ -107,6 +107,6 @@ class User extends Authenticatable
 
     public function interestedActivities()
     {
-        return $this->belongsToMany(Activity::class, 'user_activity_interests');
+        return $this->morphedByMany(Activity::class, 'interest', 'user_interests');
     }
 }

@@ -81,7 +81,7 @@ class Activity extends Model
 
     public function interestedUsers()
     {
-        return $this->belongsToMany(User::class, 'user_activity_interests');
+        return $this->morphToMany(User::class, 'interest', 'user_interests');
     }
 
     public function waitlist()

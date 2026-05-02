@@ -133,7 +133,7 @@ class Event extends Model
 
     public function interestedUsers()
     {
-        return $this->belongsToMany(User::class, 'user_event_interests');
+        return $this->morphToMany(User::class, 'interest', 'user_interests');
     }
 
     public function places()

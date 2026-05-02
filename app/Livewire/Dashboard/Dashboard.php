@@ -8,9 +8,9 @@ use App\Models\Event;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Mary\Traits\Toast;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Dashboard extends Component
 {
@@ -200,18 +200,20 @@ class Dashboard extends Component
             ->map(fn (Activity $activity) => ['kind' => 'activity', 'id' => (int) $activity->id, 'sort_at' => $activity->sort_at]);
         $rows = $rows->concat($participatingActivityRows);
 
-        $interestedEventRows = DB::table('user_event_interests')
-            ->join('events', 'events.id', '=', 'user_event_interests.event_id')
-            ->where('user_event_interests.user_id', $userId)
+        $interestedEventRows = DB::table('user_interests')
+            ->join('events', 'events.id', '=', 'user_interests.interest_id')
+            ->where('user_interests.user_id', $userId)
+            ->where('user_interests.interest_type', (new Event)->getMorphClass())
             ->whereRaw($eventSortExpr.' >= ?', [now()])
             ->selectRaw("'event' as kind, events.id as id, ".$eventSortExpr.' as sort_at')
             ->get()
             ->map(fn ($row) => ['kind' => 'event', 'id' => (int) $row->id, 'sort_at' => $row->sort_at]);
         $rows = $rows->concat($interestedEventRows);
 
-        $interestedActivityRows = DB::table('user_activity_interests')
-            ->join('activities', 'activities.id', '=', 'user_activity_interests.activity_id')
-            ->where('user_activity_interests.user_id', $userId)
+        $interestedActivityRows = DB::table('user_interests')
+            ->join('activities', 'activities.id', '=', 'user_interests.interest_id')
+            ->where('user_interests.user_id', $userId)
+            ->where('user_interests.interest_type', (new Activity)->getMorphClass())
             ->whereRaw($activitySortExpr.' >= ?', [now()])
             ->selectRaw("'activity' as kind, activities.id as id, ".$activitySortExpr.' as sort_at')
             ->get()

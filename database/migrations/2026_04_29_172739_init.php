@@ -415,23 +415,15 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 28. USER ACTIVITY INTERESTS  (wishlist)
+        // 28. USER INTERESTS  (wishlist; polymorphic Activity|Event[, Tag later])
         // ------------------------------------------------------------------ //
-        Schema::create('user_activity_interests', function (Blueprint $table) {
+        Schema::create('user_interests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->unique(['user_id', 'activity_id']);
-        });
-
-        // ------------------------------------------------------------------ //
-        // 29. USER EVENT INTERESTS  (wishlist)
-        // ------------------------------------------------------------------ //
-        Schema::create('user_event_interests', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('event_id')->constrained()->cascadeOnDelete();
-            $table->unique(['user_id', 'event_id']);
+            $table->morphs('interest');
+            $table->unique(['user_id', 'interest_type', 'interest_id']);
+            $table->index(['interest_type', 'interest_id'], 'user_interests_interest_lookup_idx');
+            $table->index(['user_id', 'interest_type'], 'user_interests_interest_type_idx');
         });
 
         // ------------------------------------------------------------------ //
@@ -586,8 +578,7 @@ return new class extends Migration
         Schema::dropIfExists('password_reset_tokens');
 
         Schema::dropIfExists('notifications');
-        Schema::dropIfExists('user_event_interests');
-        Schema::dropIfExists('user_activity_interests');
+        Schema::dropIfExists('user_interests');
         Schema::dropIfExists('taggables');
         Schema::dropIfExists('tag_contexts');
         Schema::dropIfExists('tag_relations');
