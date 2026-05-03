@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
         'is_event_organizer',
         'google_id',
+        'facebook_id',
         'avatar_path',
         'discord_handle',
         'current_location',

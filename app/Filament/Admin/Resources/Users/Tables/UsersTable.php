@@ -31,6 +31,8 @@ class UsersTable
                     ->sortable(),
                 TextColumn::make('google_id')
                     ->searchable(),
+                TextColumn::make('facebook_id')
+                    ->searchable(),
                 TextColumn::make('avatar_path')
                     ->searchable(),
                 TextColumn::make('discord_handle')

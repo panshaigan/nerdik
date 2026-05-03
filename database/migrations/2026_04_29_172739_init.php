@@ -89,6 +89,7 @@ return new class extends Migration
             $table->string('password');
             $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
             $table->string('google_id')->nullable();
+            $table->string('facebook_id')->nullable();
             $table->string('avatar_path')->nullable();
             $table->string('discord_handle')->nullable();
             $table->string('current_location')->nullable();

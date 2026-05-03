@@ -35,6 +35,7 @@ final class UserFactory extends Factory
             'email' => fake()->safeEmail,
             'password' => Hash::make(self::SAMPLE_PASSWORD),
             'google_id' => null,
+            'facebook_id' => null,
             'avatar_path' => null,
             'discord_handle' => null,
             'current_location' => null,

@@ -35,6 +35,19 @@ new #[Layout('layouts.guest')] class extends Component
                 {{ __('Log in with Google') }}
             </x-button>
         </div>
+    @endif
+
+    @if (config('services.facebook.client_id'))
+        <div class="mb-4">
+            {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
+            <x-button id="ui-auth-login-facebook" :link="route('facebook.redirect')" :no-wire-navigate="true" class="btn-outline w-full gap-2 border-base-300 ui-action ui-action-facebook" data-ui="auth-login-facebook">
+                <svg class="h-5 w-5" viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.017 1.792-4.683 4.533-4.683 1.313 0 2.686.235 2.686.235v2.971h-1.513c-1.491 0-1.956.93-1.956 1.886v2.262h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+                {{ __('Log in with Facebook') }}
+            </x-button>
+        </div>
+    @endif
+
+    @if (config('services.google.client_id') || config('services.facebook.client_id'))
         <div class="relative my-4">
             <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-base-300"></div></div>
             <div class="relative flex justify-center text-sm"><span class="bg-base-100 px-2 text-base-content/60">{{ __('or') }}</span></div>
