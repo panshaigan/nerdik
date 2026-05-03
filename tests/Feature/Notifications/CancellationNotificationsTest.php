@@ -388,4 +388,45 @@ class CancellationNotificationsTest extends TestCase
         Notification::assertSentTo($activityFollower, EventReopenedNotification::class);
         Notification::assertNotSentTo($organizer, EventReopenedNotification::class);
     }
+
+    public function test_event_cancel_does_not_send_activity_cancelled_notifications(): void
+    {
+        Notification::fake();
+
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+        ]);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('cancelEvent');
+
+        Notification::assertSentTo($participant, EventCancelledNotification::class);
+        Notification::assertSentTo($host, EventCancelledNotification::class);
+        Notification::assertNotSentTo($participant, ActivityCancelledNotification::class);
+        Notification::assertNotSentTo($host, ActivityCancelledNotification::class);
+    }
 }
