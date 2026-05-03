@@ -12,9 +12,11 @@ use App\Models\Slot;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
 use App\Services\CancellationNotificationDispatcher;
+use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -233,11 +235,19 @@ class ShowEvent extends Component
             return;
         }
 
-        $event->update([
-            'cancelled_at' => now(),
-            'cancelled_by' => $user->id,
-            'cancel_reason' => $reason,
-        ]);
+        DB::transaction(function () use ($event, $reason, $user): void {
+            $event->update([
+                'cancelled_at' => now(),
+                'cancelled_by' => $user->id,
+                'cancel_reason' => $reason,
+            ]);
+
+            app(EventProgrammeCancellationSyncService::class)->cancelScheduledActivitiesForEvent(
+                $event,
+                $user,
+                $reason
+            );
+        });
         $this->eventCancelReason = null;
 
         app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event->fresh(), $user);
@@ -253,11 +263,15 @@ class ShowEvent extends Component
             return;
         }
 
-        $event->update([
-            'cancelled_at' => null,
-            'cancelled_by' => null,
-            'cancel_reason' => null,
-        ]);
+        DB::transaction(function () use ($event): void {
+            app(EventProgrammeCancellationSyncService::class)->reopenActivitiesCancelledWithEvent($event);
+
+            $event->update([
+                'cancelled_at' => null,
+                'cancelled_by' => null,
+                'cancel_reason' => null,
+            ]);
+        });
 
         $user = auth()->user();
         abort_unless($user !== null, 403);

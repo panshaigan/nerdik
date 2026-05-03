@@ -124,6 +124,7 @@ class ActivityHostingModeService
             'cancelled_at' => null,
             'cancelled_by' => null,
             'cancel_reason' => null,
+            'cancelled_with_event_id' => null,
         ]);
 
         app(CancellationNotificationDispatcher::class)->notifyActivityReopened(

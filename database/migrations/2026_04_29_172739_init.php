@@ -223,6 +223,7 @@ return new class extends Migration
             $table->text('cancel_reason')->nullable();
             $table->dateTime('starts_at')->nullable();
             $table->dateTime('ends_at')->nullable();
+            $table->foreignId('cancelled_with_event_id')->nullable()->constrained('events')->nullOnDelete();
             $table->timestamp('cancelled_at')->nullable();
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

@@ -7,6 +7,7 @@ use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
@@ -38,6 +39,7 @@ class Activity extends Model
         'cancelled_at',
         'cancelled_by',
         'cancel_reason',
+        'cancelled_with_event_id',
         'min_participants',
         'max_participants',
         'minimum_age',
@@ -112,6 +114,11 @@ class Activity extends Model
     public function canceller()
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function cancelledWithEvent(): BelongsTo
+    {
+        return $this->belongsTo(Event::class, 'cancelled_with_event_id');
     }
 
     /** @return list<int> */
