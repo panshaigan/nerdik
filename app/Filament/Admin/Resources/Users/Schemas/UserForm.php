@@ -31,6 +31,8 @@ class UserForm
                     ->required(),
                 TextInput::make('google_id')
                     ->default(null),
+                TextInput::make('facebook_id')
+                    ->default(null),
                 TextInput::make('avatar_path')
                     ->default(null),
                 TextInput::make('discord_handle')

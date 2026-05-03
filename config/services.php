@@ -41,6 +41,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
     ],
 
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI', env('APP_URL').'/auth/facebook/callback'),
+    ],
+
     /*
     | Google reCAPTCHA v2 (checkbox). Set RECAPTCHA_ENABLED=true in production plus NOCAPTCHA_* keys.
     | Disabled by default locally so Sail works without Google keys (see ".env.example").
