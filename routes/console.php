@@ -9,5 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('telescope:prune')->daily();
+Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
 
 // Schedule::command('model:prune')->daily();

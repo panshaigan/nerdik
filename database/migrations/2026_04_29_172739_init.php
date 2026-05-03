@@ -438,12 +438,25 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // ------------------------------------------------------------------ //
+        // 31. SCHEDULED NOTIFICATION DISPATCHES
+        // ------------------------------------------------------------------ //
+        Schema::create('scheduled_notification_dispatches', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->date('dispatch_date');
+            $table->string('dedupe_key');
+            $table->timestamp('sent_at');
+            $table->timestamps();
+            $table->unique(['user_id', 'dispatch_date', 'dedupe_key'], 'scheduled_notification_dispatches_unique_key');
+        });
+
         // ================================================================== //
         // LARAVEL FRAMEWORK TABLES
         // ================================================================== //
 
         // ------------------------------------------------------------------ //
-        // 31. PASSWORD RESET TOKENS
+        // 32. PASSWORD RESET TOKENS
         // ------------------------------------------------------------------ //
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -452,7 +465,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 32. SESSIONS
+        // 33. SESSIONS
         // ------------------------------------------------------------------ //
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -464,7 +477,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 33. CACHE
+        // 34. CACHE
         // ------------------------------------------------------------------ //
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -473,7 +486,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 34. CACHE LOCKS
+        // 35. CACHE LOCKS
         // ------------------------------------------------------------------ //
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -482,7 +495,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 35. JOBS
+        // 36. JOBS
         // ------------------------------------------------------------------ //
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
@@ -496,7 +509,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 36. JOB BATCHES
+        // 37. JOB BATCHES
         // ------------------------------------------------------------------ //
         Schema::create('job_batches', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -512,7 +525,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 37. FAILED JOBS
+        // 38. FAILED JOBS
         // ------------------------------------------------------------------ //
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
@@ -525,7 +538,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 38. TELESCOPE ENTRIES
+        // 39. TELESCOPE ENTRIES
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries', function (Blueprint $table) {
             $table->bigIncrements('sequence');
@@ -540,7 +553,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 39. TELESCOPE ENTRIES TAGS
+        // 40. TELESCOPE ENTRIES TAGS
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries_tags', function (Blueprint $table) {
             $table->uuid('entry_uuid');
@@ -554,7 +567,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 40. TELESCOPE MONITORING
+        // 41. TELESCOPE MONITORING
         // ------------------------------------------------------------------ //
         Schema::create('telescope_monitoring', function (Blueprint $table) {
             $table->string('tag')->primary();
@@ -577,6 +590,7 @@ return new class extends Migration
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
 
+        Schema::dropIfExists('scheduled_notification_dispatches');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('user_interests');
         Schema::dropIfExists('taggables');
