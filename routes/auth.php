@@ -7,6 +7,7 @@ use Livewire\Volt\Volt;
 
 Route::middleware('guest')->group(function () {
     Volt::route('register', 'pages.auth.register')
+        ->middleware(['throttle:registration'])
         ->name('register');
 
     Volt::route('login', 'pages.auth.login')
@@ -16,6 +17,7 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
     Volt::route('forgot-password', 'pages.auth.forgot-password')
+        ->middleware(['throttle:password.request'])
         ->name('password.request');
 
     Volt::route('reset-password/{token}', 'pages.auth.reset-password')

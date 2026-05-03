@@ -2,7 +2,9 @@
 
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
@@ -13,15 +15,51 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function sendVerification(): void
     {
-        if (Auth::user()->hasVerifiedEmail()) {
+        $user = Auth::user();
+
+        if ($user === null) {
+            return;
+        }
+
+        if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
 
             return;
         }
 
-        Auth::user()->sendEmailVerificationNotification();
+        $this->ensureVerificationResendIsNotRateLimited($user->id);
+
+        RateLimiter::hit($this->verificationResendThrottleKey($user->id));
+
+        $user->sendEmailVerificationNotification();
 
         Session::flash('status', 'verification-link-sent');
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    protected function ensureVerificationResendIsNotRateLimited(int $userId): void
+    {
+        $key = $this->verificationResendThrottleKey($userId);
+
+        if (! RateLimiter::tooManyAttempts($key, 6)) {
+            return;
+        }
+
+        $seconds = RateLimiter::availableIn($key);
+
+        throw ValidationException::withMessages([
+            'verificationResend' => trans('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]),
+        ]);
+    }
+
+    protected function verificationResendThrottleKey(int $userId): string
+    {
+        return 'verification-resend:'.$userId;
     }
 
     /**
@@ -45,6 +83,10 @@ new #[Layout('layouts.guest')] class extends Component
             {{ __('A new verification link has been sent to the email address you provided during registration.') }}
         </div>
     @endif
+
+    @error('verificationResend')
+        <div class="mb-4 text-sm font-medium text-error" role="alert">{{ $message }}</div>
+    @enderror
 
     <div class="mt-4 flex items-center justify-between gap-3">
         <x-button id="ui-auth-verify-resend" class="btn-primary ui-action ui-action-resend" wire:click="sendVerification" data-ui="auth-verify-resend">

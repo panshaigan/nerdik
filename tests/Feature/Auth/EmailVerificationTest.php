@@ -57,4 +57,13 @@ class EmailVerificationTest extends TestCase
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
+
+    public function test_unverified_users_are_redirected_from_dashboard_to_verification_notice(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard', absolute: false))
+            ->assertRedirect(route('verification.notice', absolute: false));
+    }
 }

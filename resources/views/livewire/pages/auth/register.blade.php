@@ -4,7 +4,9 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
@@ -21,6 +23,10 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function register(): void
     {
+        $this->ensureRegistrationIsNotRateLimited();
+
+        RateLimiter::hit($this->registrationThrottleKey());
+
         $validated = $this->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'nickname' => ['required', 'string', 'max:255'],
@@ -34,7 +40,33 @@ new #[Layout('layouts.guest')] class extends Component
 
         Auth::login($user);
 
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        $this->redirect(route('verification.notice', absolute: false), navigate: true);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    protected function ensureRegistrationIsNotRateLimited(): void
+    {
+        $key = $this->registrationThrottleKey();
+
+        if (! RateLimiter::tooManyAttempts($key, 5)) {
+            return;
+        }
+
+        $seconds = RateLimiter::availableIn($key);
+
+        throw ValidationException::withMessages([
+            'email' => trans('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]),
+        ]);
+    }
+
+    protected function registrationThrottleKey(): string
+    {
+        return 'registration-submit:'.request()->ip();
     }
 }; ?>
 
