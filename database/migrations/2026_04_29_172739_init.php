@@ -439,7 +439,27 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 31. SCHEDULED NOTIFICATION DISPATCHES
+        // 31. NOTIFICATION EMAIL LOGS
+        // ------------------------------------------------------------------ //
+        Schema::create('notification_email_logs', function (Blueprint $table) {
+            $table->id();
+            $table->timestamp('sent_at');
+            $table->string('notification_type');
+            $table->nullableMorphs('notifiable');
+            $table->foreignId('recipient_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('recipient_email');
+            $table->string('mailer')->nullable();
+            $table->string('provider_message_id')->nullable();
+            $table->jsonb('metadata')->nullable();
+            $table->timestamps();
+
+            $table->index('sent_at', 'notification_email_logs_sent_at_idx');
+            $table->index(['notification_type', 'sent_at'], 'notification_email_logs_type_sent_at_idx');
+            $table->index(['recipient_user_id', 'sent_at'], 'notification_email_logs_user_sent_at_idx');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 32. SCHEDULED NOTIFICATION DISPATCHES
         // ------------------------------------------------------------------ //
         Schema::create('scheduled_notification_dispatches', function (Blueprint $table) {
             $table->id();
@@ -456,7 +476,7 @@ return new class extends Migration
         // ================================================================== //
 
         // ------------------------------------------------------------------ //
-        // 32. PASSWORD RESET TOKENS
+        // 33. PASSWORD RESET TOKENS
         // ------------------------------------------------------------------ //
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -465,7 +485,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 33. SESSIONS
+        // 34. SESSIONS
         // ------------------------------------------------------------------ //
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -477,7 +497,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 34. CACHE
+        // 35. CACHE
         // ------------------------------------------------------------------ //
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -486,7 +506,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 35. CACHE LOCKS
+        // 36. CACHE LOCKS
         // ------------------------------------------------------------------ //
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -495,7 +515,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 36. JOBS
+        // 37. JOBS
         // ------------------------------------------------------------------ //
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
@@ -509,7 +529,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 37. JOB BATCHES
+        // 38. JOB BATCHES
         // ------------------------------------------------------------------ //
         Schema::create('job_batches', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -525,7 +545,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 38. FAILED JOBS
+        // 39. FAILED JOBS
         // ------------------------------------------------------------------ //
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
@@ -538,7 +558,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 39. TELESCOPE ENTRIES
+        // 40. TELESCOPE ENTRIES
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries', function (Blueprint $table) {
             $table->bigIncrements('sequence');
@@ -553,7 +573,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 40. TELESCOPE ENTRIES TAGS
+        // 41. TELESCOPE ENTRIES TAGS
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries_tags', function (Blueprint $table) {
             $table->uuid('entry_uuid');
@@ -567,7 +587,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 41. TELESCOPE MONITORING
+        // 42. TELESCOPE MONITORING
         // ------------------------------------------------------------------ //
         Schema::create('telescope_monitoring', function (Blueprint $table) {
             $table->string('tag')->primary();
@@ -591,6 +611,7 @@ return new class extends Migration
         Schema::dropIfExists('password_reset_tokens');
 
         Schema::dropIfExists('scheduled_notification_dispatches');
+        Schema::dropIfExists('notification_email_logs');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('user_interests');
         Schema::dropIfExists('taggables');

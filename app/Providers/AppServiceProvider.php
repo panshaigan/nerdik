@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogNotificationEmail;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Event;
@@ -11,7 +12,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -60,5 +63,7 @@ class AppServiceProvider extends ServiceProvider
 
             return $user !== null && $user->canModifyEntity($entity);
         });
+
+        EventFacade::listen(NotificationSent::class, LogNotificationEmail::class);
     }
 }
