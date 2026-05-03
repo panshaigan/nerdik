@@ -31,7 +31,7 @@ class SendScheduledPeriodicNotificationsCommand extends Command
         $now = CarbonImmutable::now('UTC');
 
         User::query()
-            ->select(['id', 'timezone', 'email'])
+            ->select(['id', 'timezone', 'email', 'notification_preferences'])
             ->orderBy('id')
             ->cursor()
             ->each(function (User $user) use ($now, $sendTime): void {
@@ -42,7 +42,10 @@ class SendScheduledPeriodicNotificationsCommand extends Command
                 }
 
                 $dispatchDate = $localNow->toDateString();
-                $items = $this->collector->collectForUser($user, $now);
+                $items = collect($this->collector->collectForUser($user, $now))
+                    ->filter(fn (array $item): bool => $user->retainsScheduledDigestItem($item))
+                    ->values()
+                    ->all();
                 if ($items === []) {
                     return;
                 }

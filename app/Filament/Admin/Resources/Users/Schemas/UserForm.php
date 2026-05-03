@@ -5,7 +5,6 @@ namespace App\Filament\Admin\Resources\Users\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -43,10 +42,6 @@ class UserForm
                 Textarea::make('languages')
                     ->default(null)
                     ->columnSpanFull(),
-                Toggle::make('notify_email_proposal_updates')
-                    ->required(),
-                Toggle::make('notify_email_waitlist_promoted')
-                    ->required(),
             ]);
     }
 }

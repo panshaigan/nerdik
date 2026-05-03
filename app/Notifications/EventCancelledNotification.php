@@ -2,16 +2,20 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class EventCancelledNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
+    use RespectsNotificationPreferences;
 
     public function __construct(
         public int $eventId,
@@ -19,12 +23,18 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
         public string $eventSlug = ''
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
-        return ['database', 'broadcast'];
+        return NotificationPreferenceKey::EventCancelled;
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $message = (new MailMessage)
+            ->subject(__('ui.notifications.event_cancelled_email_subject', ['event' => $this->eventName]))
+            ->line(__('ui.notifications.event_cancelled_email_intro', ['event' => $this->eventName]));
+
+        return $message->action(__('ui.notifications.view_event'), $this->resolveEventShowUrl(true));
     }
 
     /**
@@ -32,9 +42,7 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
      */
     public function toArray(object $notifiable): array
     {
-        $url = $this->eventSlug !== ''
-            ? route('events.show', ['event' => $this->eventSlug], false)
-            : route('search.index', [], false);
+        $url = $this->resolveEventShowUrl(false);
 
         return [
             'type' => 'event_cancelled',
@@ -46,5 +54,14 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
                 'event' => $this->eventName,
             ]),
         ];
+    }
+
+    private function resolveEventShowUrl(bool $absolute): string
+    {
+        if ($this->eventSlug !== '') {
+            return route('events.show', ['event' => $this->eventSlug], $absolute);
+        }
+
+        return route('search.index', [], $absolute);
     }
 }

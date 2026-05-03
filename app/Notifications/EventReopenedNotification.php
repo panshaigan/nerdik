@@ -2,30 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Models\Event;
 use App\Models\User;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class EventReopenedNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
+    use RespectsNotificationPreferences;
 
     public function __construct(
         public Event $event,
         public User $reopenedBy
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
-        return ['database', 'broadcast'];
+        return NotificationPreferenceKey::EventReopened;
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
+
+        return (new MailMessage)
+            ->subject(__('ui.notifications.event_reopened_email_subject', ['event' => $this->event->name]))
+            ->line(__('ui.notifications.event_reopened_email_intro', [
+                'event' => $this->event->name,
+                'by' => $reopenedByName,
+            ]))
+            ->action(__('ui.notifications.view_event'), $this->resolveEventShowUrl(true));
     }
 
     /**
@@ -35,9 +49,7 @@ class EventReopenedNotification extends Notification implements ShouldQueue, Sho
     {
         $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
 
-        $url = $this->event->slug !== ''
-            ? route('events.show', ['event' => $this->event->slug], false)
-            : route('search.index', [], false);
+        $url = $this->resolveEventShowUrl(false);
 
         return [
             'type' => 'event_reopened',
@@ -51,5 +63,14 @@ class EventReopenedNotification extends Notification implements ShouldQueue, Sho
                 'by' => $reopenedByName,
             ]),
         ];
+    }
+
+    private function resolveEventShowUrl(bool $absolute): string
+    {
+        if ($this->event->slug !== '') {
+            return route('events.show', ['event' => $this->event->slug], $absolute);
+        }
+
+        return route('search.index', [], $absolute);
     }
 }

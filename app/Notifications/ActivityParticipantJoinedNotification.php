@@ -2,9 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
 use App\Models\User;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -15,6 +17,7 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
+    use RespectsNotificationPreferences;
 
     public function __construct(
         public Activity $activity,
@@ -22,12 +25,9 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
         public int $participantCount,
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
-        return ['database', 'broadcast', 'mail'];
+        return NotificationPreferenceKey::ActivityParticipantJoined;
     }
 
     public function toMail(object $notifiable): MailMessage

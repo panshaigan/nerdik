@@ -39,10 +39,6 @@ class UsersTable
                     ->searchable(),
                 TextColumn::make('timezone')
                     ->searchable(),
-                IconColumn::make('notify_email_proposal_updates')
-                    ->boolean(),
-                IconColumn::make('notify_email_waitlist_promoted')
-                    ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
