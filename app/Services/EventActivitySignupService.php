@@ -37,6 +37,8 @@ class EventActivitySignupService
                 (int) $fresh->participants()->count(),
             ));
         }
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
 
     public function userLeaveActivity(Activity $activity, ActivityUser $participant): void
@@ -77,6 +79,8 @@ class EventActivitySignupService
                 ));
             }
         }
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
 
     public function userJoinWaitlist(Activity $activity, User $user): void
@@ -86,6 +90,8 @@ class EventActivitySignupService
             'user_id' => $user->id,
             'position' => $nextPosition,
         ]);
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
 
     public function userLeaveWaitlist(Activity $activity, ActivityWaitlistEntry $waitlistEntry): void
@@ -93,6 +99,8 @@ class EventActivitySignupService
         $pos = $waitlistEntry->position;
         $waitlistEntry->delete();
         $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
 
     public function hostApproveWaitlistEntry(Activity $activity, ActivityWaitlistEntry $waitlistEntry): void
@@ -109,6 +117,8 @@ class EventActivitySignupService
         });
 
         $targetUser->notify(new WaitlistPromotedNotification($activity->fresh()));
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
 
     /**

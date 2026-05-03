@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -26,6 +27,9 @@ class ShowActivity extends Component
 
     public string $tab = 'info';
 
+    /** Bumped when another client changes roster while this viewer has the Participation tab open. */
+    public int $participationBroadcastRefreshTick = 0;
+
     protected array $queryString = [
         'tab' => ['except' => 'info'],
     ];
@@ -39,6 +43,20 @@ class ShowActivity extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+    }
+
+    #[On('activity-participation-updated')]
+    public function refreshParticipationFromBroadcast(int|string|null $activityId = null): void
+    {
+        if ($activityId === null || (int) $activityId !== $this->activityId) {
+            return;
+        }
+
+        if ($this->tab !== 'participation') {
+            return;
+        }
+
+        $this->participationBroadcastRefreshTick++;
     }
 
     public function confirmDeleteActivity(): void
