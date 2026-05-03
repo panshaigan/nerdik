@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -75,6 +76,14 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('password.request', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
+        });
+
+        Password::defaults(function (): Password {
+            if (app()->environment('testing')) {
+                return Password::min(8);
+            }
+
+            return Password::min(12)->letters()->mixedCase()->numbers()->symbols()->uncompromised();
         });
     }
 }

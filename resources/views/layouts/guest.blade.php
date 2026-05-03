@@ -28,5 +28,30 @@
                 {{ $slot }}
             </div>
         </div>
+
+        <script>
+            function nerdikAuthRegisterRecaptcha(token) {
+                nerdikWireSetRecaptchaToken('ui-auth-register-form', token);
+            }
+
+            function nerdikAuthForgotRecaptcha(token) {
+                nerdikWireSetRecaptchaToken('ui-auth-forgot-form', token);
+            }
+
+            function nerdikWireSetRecaptchaToken(formId, token) {
+                const form = document.getElementById(formId);
+                if (!form || typeof window.Livewire === 'undefined') {
+                    return;
+                }
+
+                const root = form.closest('[wire\\:id]');
+                const id = root ? root.getAttribute('wire:id') : null;
+                if (id !== null && id !== '') {
+                    window.Livewire.find(id).set('gRecaptchaResponse', token);
+                }
+            }
+        </script>
+
+        @stack('scripts')
     </body>
 </html>

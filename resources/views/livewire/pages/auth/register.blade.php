@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\EnsuresRecaptchaVerifiedWhenEnabled;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -12,27 +13,40 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.guest')] class extends Component
 {
+    use EnsuresRecaptchaVerifiedWhenEnabled;
+
     public string $name = '';
+
     public string $nickname = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
+    protected function recaptchaDataCallback(): string
+    {
+        return 'nerdikAuthRegisterRecaptcha';
+    }
 
     /**
      * Handle an incoming registration request.
      */
     public function register(): void
     {
-        $this->ensureRegistrationIsNotRateLimited();
-
-        RateLimiter::hit($this->registrationThrottleKey());
-
-        $validated = $this->validate([
+        $validated = $this->validate($this->rulesIncludingRecaptchaIfEnabled([
             'name' => ['nullable', 'string', 'max:255'],
             'nickname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-        ]);
+        ]));
+
+        unset($validated['gRecaptchaResponse']);
+
+        $this->ensureRegistrationIsNotRateLimited();
+
+        RateLimiter::hit($this->registrationThrottleKey());
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -70,6 +84,10 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
+@php
+    use Anhskohbo\NoCaptcha\Facades\NoCaptcha;
+@endphp
+
 <div id="ui-auth-register-root" class="ui-auth ui-auth-register" data-ui="auth-register-root">
     @if (config('services.google.client_id'))
         <div class="mb-4">
@@ -82,6 +100,12 @@ new #[Layout('layouts.guest')] class extends Component
             <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-base-300"></div></div>
             <div class="relative flex justify-center text-sm"><span class="bg-base-100 px-2 text-base-content/60">{{ __('or') }}</span></div>
         </div>
+    @endif
+
+    @if (auth_recaptcha_enforced())
+        @push('scripts')
+            {!! NoCaptcha::renderJs() !!}
+        @endpush
     @endif
 
     <form id="ui-auth-register-form" wire:submit="register" class="ui-form ui-form-auth-register space-y-4" data-ui="auth-register-form">
@@ -142,6 +166,16 @@ new #[Layout('layouts.guest')] class extends Component
             class="ui-field ui-field-password-confirmation"
             data-ui="auth-register-password-confirmation"
         />
+
+        @if (auth_recaptcha_enforced())
+            <div wire:ignore class="flex min-h-[78px] flex-col justify-center" data-ui="auth-register-recaptcha">
+                {!! NoCaptcha::display(['data-callback' => $this->recaptchaDataCallback()]) !!}
+            </div>
+
+            @error('gRecaptchaResponse')
+                <div class="text-sm font-medium text-error" role="alert">{{ $message }}</div>
+            @enderror
+        @endif
 
         <div class="flex items-center justify-end gap-3">
             <a class="link link-primary text-sm" href="{{ route('login') }}" wire:navigate>

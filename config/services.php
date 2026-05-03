@@ -41,4 +41,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
     ],
 
+    /*
+    | Google reCAPTCHA v2 (checkbox). Set RECAPTCHA_ENABLED=true in production plus NOCAPTCHA_* keys.
+    | Disabled by default locally so Sail works without Google keys (see ".env.example").
+    */
+    'recaptcha' => [
+        'enabled' => filter_var(env('RECAPTCHA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+    ],
+
 ];
