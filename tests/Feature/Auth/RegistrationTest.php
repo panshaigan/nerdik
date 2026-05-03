@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -21,6 +24,8 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        Notification::fake();
+
         $component = Volt::test('pages.auth.register')
             ->set('name', 'Test User')
             ->set('nickname', 'test-user')
@@ -30,8 +35,14 @@ class RegistrationTest extends TestCase
 
         $component->call('register');
 
-        $component->assertRedirect(route('dashboard', absolute: false));
+        $component->assertRedirect(route('verification.notice', absolute: false));
 
         $this->assertAuthenticated();
+
+        /** @var User|null $user */
+        $user = User::where('email', 'test@example.com')->first();
+        $this->assertNotNull($user);
+
+        Notification::assertSentTo($user, VerifyEmail::class);
     }
 }
