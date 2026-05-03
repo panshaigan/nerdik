@@ -24,9 +24,11 @@ class AppNotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_waitlist_promoted_notification_includes_broadcast_channel(): void
+    public function test_waitlist_promoted_notification_includes_expected_channels_when_enabled(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'notification_preferences' => null,
+        ]);
         $activity = Activity::factory()->create();
 
         $notification = new WaitlistPromotedNotification($activity);
@@ -34,9 +36,42 @@ class AppNotificationsTest extends TestCase
 
         $this->assertContains('database', $channels);
         $this->assertContains('broadcast', $channels);
-        if ($user->notify_email_waitlist_promoted ?? true) {
-            $this->assertContains('mail', $channels);
-        }
+        $this->assertContains('mail', $channels);
+    }
+
+    public function test_waitlist_promoted_notification_skips_mail_when_email_disabled(): void
+    {
+        $user = User::factory()->create([
+            'notification_preferences' => [
+                'waitlist_promoted' => [
+                    'in_app' => true,
+                    'email' => false,
+                ],
+            ],
+        ]);
+        $activity = Activity::factory()->create();
+
+        $channels = (new WaitlistPromotedNotification($activity))->via($user);
+
+        $this->assertContains('database', $channels);
+        $this->assertNotContains('mail', $channels);
+    }
+
+    public function test_proposals_notification_returns_no_channels_when_both_prefs_disabled(): void
+    {
+        $user = User::factory()->create([
+            'notification_preferences' => [
+                'proposals' => [
+                    'in_app' => false,
+                    'email' => false,
+                ],
+            ],
+        ]);
+        $proposal = ActivityProposal::factory()->create();
+
+        $this->assertSame([], (new ProposalSubmittedNotification($proposal))->via($user));
+        $this->assertSame([], (new ProposalAcceptedNotification($proposal))->via($user));
+        $this->assertSame([], (new ProposalRejectedNotification($proposal))->via($user));
     }
 
     public function test_proposal_notifications_include_broadcast_channel(): void

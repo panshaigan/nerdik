@@ -42,8 +42,7 @@ final class UserFactory extends Factory
             'is_admin' => 0,
             'is_event_organizer' => 0,
             'languages' => null,
-            'notify_email_proposal_updates' => fake()->boolean(),
-            'notify_email_waitlist_promoted' => fake()->boolean(),
+            'notification_preferences' => null,
             'remember_token' => Str::random(10),
             'email_verified_at' => fake()->dateTime(),
         ];

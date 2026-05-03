@@ -2,8 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -14,22 +16,15 @@ class WaitlistPromotedNotification extends Notification implements ShouldQueue, 
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
+    use RespectsNotificationPreferences;
 
     public function __construct(
         public Activity $activity
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
-        $channels = ['database', 'broadcast'];
-        if ($notifiable->notify_email_waitlist_promoted ?? true) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return NotificationPreferenceKey::WaitlistPromoted;
     }
 
     public function toMail(object $notifiable): MailMessage

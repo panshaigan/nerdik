@@ -15,9 +15,7 @@ class EmailNotificationLogTest extends TestCase
 
     public function test_mail_notification_creates_email_log_entry(): void
     {
-        $user = User::factory()->create([
-            'notify_email_waitlist_promoted' => true,
-        ]);
+        $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
         $user->notify(new WaitlistPromotedNotification($activity));

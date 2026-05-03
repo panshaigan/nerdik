@@ -2,8 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Models\ActivityProposal;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -14,6 +16,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
+    use RespectsNotificationPreferences;
 
     /**
      * Discriminator echoed in broadcasts for JS listeners ({@see lw_event_refresh} is not overwritten by Laravel merges).
@@ -24,17 +27,9 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
         public ActivityProposal $proposal
     ) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
-        $channels = ['database', 'broadcast'];
-        if ($notifiable->notify_email_proposal_updates ?? true) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return NotificationPreferenceKey::Proposals;
     }
 
     public function toMail(object $notifiable): MailMessage

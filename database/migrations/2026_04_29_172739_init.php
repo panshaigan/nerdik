@@ -96,8 +96,7 @@ return new class extends Migration
             $table->boolean('is_admin')->default(false);
             $table->boolean('is_event_organizer')->default(false);
             $table->text('languages')->nullable(); // JSON stored as text (utf8mb4_bin in MySQL)
-            $table->boolean('notify_email_proposal_updates')->default(true);
-            $table->boolean('notify_email_waitlist_promoted')->default(true);
+            $table->jsonb('notification_preferences')->nullable();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();

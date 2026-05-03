@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\NotificationPreferenceKey;
 use Database\Factories\UserFactory;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,8 +35,7 @@ class User extends Authenticatable
         'current_location',
         'timezone',
         'languages',
-        'notify_email_proposal_updates',
-        'notify_email_waitlist_promoted',
+        'notification_preferences',
     ];
 
     /**
@@ -60,8 +60,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'languages' => 'array',
-            'notify_email_proposal_updates' => 'boolean',
-            'notify_email_waitlist_promoted' => 'boolean',
+            'notification_preferences' => 'array',
             'is_admin' => 'boolean',
             'is_event_organizer' => 'boolean',
         ];
@@ -108,5 +107,68 @@ class User extends Authenticatable
     public function interestedActivities()
     {
         return $this->morphedByMany(Activity::class, 'interest', 'user_interests');
+    }
+
+    /**
+     * Resolved matrix: every known key is present; missing storage keys default both channels to true.
+     *
+     * @return array<string, array{in_app: bool, email: bool}>
+     */
+    public function resolvedNotificationPreferences(): array
+    {
+        $matrix = NotificationPreferenceKey::defaultMatrix();
+        $stored = $this->notification_preferences;
+        if (! is_array($stored)) {
+            return $matrix;
+        }
+
+        foreach (NotificationPreferenceKey::cases() as $case) {
+            $key = $case->value;
+            $block = $stored[$key] ?? null;
+            if (! is_array($block)) {
+                continue;
+            }
+
+            if (array_key_exists('in_app', $block)) {
+                $matrix[$key]['in_app'] = (bool) $block['in_app'];
+            }
+            if (array_key_exists('email', $block)) {
+                $matrix[$key]['email'] = (bool) $block['email'];
+            }
+        }
+
+        return $matrix;
+    }
+
+    public function wantsNotificationChannel(NotificationPreferenceKey $key, string $channel): bool
+    {
+        if ($channel !== 'in_app' && $channel !== 'email') {
+            throw new \InvalidArgumentException('Channel must be in_app or email.');
+        }
+
+        return $this->resolvedNotificationPreferences()[$key->value][$channel];
+    }
+
+    /**
+     * @param  array<string, array{in_app: bool, email: bool}>  $preferences
+     */
+    public function setNotificationPreferencesPayload(array $preferences): void
+    {
+        $this->notification_preferences = $preferences;
+    }
+
+    /**
+     * @param  array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}  $item
+     */
+    public function retainsScheduledDigestItem(array $item): bool
+    {
+        $category = isset($item['category']) ? (string) $item['category'] : '';
+        $key = NotificationPreferenceKey::tryFromScheduledCategory($category);
+        if ($key === null) {
+            return true;
+        }
+
+        return $this->wantsNotificationChannel($key, 'in_app')
+            || $this->wantsNotificationChannel($key, 'email');
     }
 }
