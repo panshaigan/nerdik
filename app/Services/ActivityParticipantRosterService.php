@@ -22,6 +22,10 @@ class ActivityParticipantRosterService
                 ActivityRemovedByHostNotification::MODE_REMOVED,
             ));
         }
+
+        if ($activity !== null) {
+            ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+        }
     }
 
     /**
@@ -48,15 +52,23 @@ class ActivityParticipantRosterService
                 ActivityRemovedByHostNotification::MODE_MOVED_TO_WAITLIST,
             ));
         }
+
+        if ($activity !== null) {
+            ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+        }
     }
 
     public function clearParticipantAbsent(ActivityUser $participant): void
     {
         $participant->update(['is_absent' => false]);
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $participant->activity_id);
     }
 
     public function markParticipantAbsent(ActivityUser $participant): void
     {
         $participant->update(['is_absent' => true]);
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $participant->activity_id);
     }
 }

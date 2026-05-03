@@ -1,5 +1,6 @@
 import './bootstrap';
 import './notifications-echo';
+import './activities-echo';
 import './maps-init';
 import './tags-init';
 import { bootActivityTagPickers } from './activity-tag-picker';
