@@ -17,6 +17,7 @@ class QueueAndScheduleConfigurationTest extends TestCase
     {
         $this->artisan('schedule:list')
             ->expectsOutputToContain('telescope:prune')
+            ->expectsOutputToContain('notifications:scheduled-digest')
             ->assertExitCode(0);
     }
 }
