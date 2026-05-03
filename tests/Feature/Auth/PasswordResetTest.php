@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
@@ -80,5 +81,23 @@ class PasswordResetTest extends TestCase
 
             return true;
         });
+    }
+
+    public function test_reset_password_requires_recaptcha_response_when_recaptcha_enabled(): void
+    {
+        Notification::fake();
+
+        Config::set('services.recaptcha.enabled', true);
+        Config::set('captcha.sitekey', 'test-site-key');
+        Config::set('captcha.secret', 'test-secret-key');
+
+        $user = User::factory()->create();
+
+        Volt::test('pages.auth.forgot-password')
+            ->set('email', $user->email)
+            ->call('sendPasswordResetLink')
+            ->assertHasErrors(['gRecaptchaResponse']);
+
+        Notification::assertNothingSent();
     }
 }

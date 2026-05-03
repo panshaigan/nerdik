@@ -31,5 +31,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+
+        <!-- reCAPTCHA stays off during tests unless a test overrides config (avoid Google API calls). -->
+        <env name="RECAPTCHA_ENABLED" value="false"/>
+        <env name="NOCAPTCHA_SITEKEY" value=""/>
+        <env name="NOCAPTCHA_SECRET" value=""/>
     </php>
 </phpunit>

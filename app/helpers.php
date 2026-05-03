@@ -4,6 +4,21 @@ use App\Support\RichText;
 use Carbon\Carbon;
 use Illuminate\Support\HtmlString;
 
+if (! function_exists('auth_recaptcha_enforced')) {
+    /**
+     * Whether Google reCAPTCHA must be validated on auth flows (registration, forgot-password).
+     */
+    function auth_recaptcha_enforced(): bool
+    {
+        if (! filter_var(config('services.recaptcha.enabled'), FILTER_VALIDATE_BOOLEAN)) {
+            return false;
+        }
+
+        return filled((string) config('captcha.sitekey'))
+            && filled((string) config('captcha.secret'));
+    }
+}
+
 if (! function_exists('parse_datetime_to_utc')) {
     /**
      * Parse a datetime string (e.g. from datetime-local input) as the current user's timezone and return Carbon in UTC.
@@ -88,15 +103,15 @@ if (! function_exists('format_date_in_user_tz')) {
             : config('app.timezone');
 
         $carbon = $carbon->setTimezone($tz)->locale(app()->getLocale());
-        if (! class_exists(\IntlDateFormatter::class)) {
+        if (! class_exists(IntlDateFormatter::class)) {
             return $carbon->isoFormat('ll');
         }
 
-        $resolvedDateType = $dateType ?? \IntlDateFormatter::MEDIUM;
-        $formatter = new \IntlDateFormatter(
+        $resolvedDateType = $dateType ?? IntlDateFormatter::MEDIUM;
+        $formatter = new IntlDateFormatter(
             app()->getLocale(),
             $resolvedDateType,
-            \IntlDateFormatter::NONE,
+            IntlDateFormatter::NONE,
             $tz
         );
 
@@ -280,12 +295,12 @@ if (! function_exists('format_number')) {
             return '';
         }
 
-        if (! class_exists(\NumberFormatter::class)) {
+        if (! class_exists(NumberFormatter::class)) {
             return (string) $value;
         }
 
-        $formatter = new \NumberFormatter(app()->getLocale(), \NumberFormatter::DECIMAL);
-        $formatter->setAttribute(\NumberFormatter::FRACTION_DIGITS, max(0, $decimals));
+        $formatter = new NumberFormatter(app()->getLocale(), NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, max(0, $decimals));
 
         $formatted = $formatter->format((float) $value);
 
