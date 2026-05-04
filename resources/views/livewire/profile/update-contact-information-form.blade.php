@@ -1,9 +1,7 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -21,17 +19,11 @@ new class extends Component
 
     public function updateContactInformation(): void
     {
-        $user = Auth::user();
         $validated = $this->validate([
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'discord_handle' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $user->email = $validated['email'];
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-        $user->save();
+        $user = Auth::user();
 
         $profile = $user->profile()->firstOrCreate();
         $profile->discord_handle = $validated['discord_handle'] ?: null;
@@ -57,7 +49,7 @@ new class extends Component
 
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <form id="ui-profile-contact-form" wire:submit="updateContactInformation" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
-        <x-input wire:model="email" label="{{ __('Email') }}" type="email" name="email" error-field="email" required />
+        <x-input wire:model="email" label="{{ __('Email') }}" type="email" name="email" error-field="email" required readonly disabled />
         <x-input wire:model="discord_handle" label="{{ __('Discord (optional)') }}" type="text" name="discord_handle" error-field="discord_handle" />
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())

@@ -83,9 +83,11 @@
             advanced: 'password-updated',
         };
         const currentTab = () => {
-            const selected = root.querySelector('[role="tab"][aria-selected="true"]');
-            const controls = selected?.getAttribute('aria-controls') ?? '';
-            return controls.startsWith('tab-') ? controls.replace('tab-', '') : 'identity';
+            const data = window.Alpine?.$data?.(root);
+            if (data && typeof data.selected === 'string' && data.selected !== '') {
+                return data.selected;
+            }
+            return 'identity';
         };
 
         let pendingTab = null;
@@ -108,6 +110,22 @@
                 }
             }
             return false;
+        }
+
+        function markFormClean(tab) {
+            const formSelector = tabFormMap[tab];
+            const form = formSelector ? shell.querySelector(formSelector) : null;
+            if (!form) {
+                return;
+            }
+
+            form.querySelectorAll('input, select, textarea').forEach((field) => {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    field.defaultChecked = field.checked;
+                } else {
+                    field.defaultValue = field.value;
+                }
+            });
         }
 
         function switchToPendingTab() {
@@ -143,7 +161,7 @@
             if (!tabButton) {
                 return;
             }
-            const targetTab = (tabButton.getAttribute('aria-controls') ?? '').replace('tab-', '');
+            const targetTab = tabButton.dataset.tabName ?? '';
             const tab = currentTab();
             if (!targetTab || targetTab === tab) {
                 return;
@@ -189,6 +207,7 @@
                 if (waitingSaveTab !== tab) {
                     return;
                 }
+                markFormClean(tab);
                 waitingSaveTab = null;
                 switchToPendingTab();
             }, { signal });

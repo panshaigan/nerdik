@@ -22,6 +22,7 @@
                 <button
                     type="button"
                     role="tab"
+                    :data-tab-name="tab.name"
                     x-init="if (typeof tab == 'undefined') $el.remove()"
                     x-html="tab.label"
                     @click="tab.disabled ? null: selected = tab.name"
