@@ -5,7 +5,7 @@
         @endphp
 
         <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
-            <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
+            <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/40 via-primary-dark-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
                 @if ($event->isCancelled())
                     <div role="alert" class="alert alert-warning mb-4 text-sm">
                         <div class="space-y-1">

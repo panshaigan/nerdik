@@ -22,7 +22,7 @@
 /* ─── Shared brand tokens (theme-independent) ─────────────────────── */
 @layer base {
     :root {
-        --brand-primary:           oklch(66.6% 0.190 305); /* violet — unchanged */
+        --brand-primary:           oklch(62% 0.22 303); /* violet — unchanged */
         --brand-primary-dark:      oklch(from var(--brand-primary) calc(l - 0.12) c h);
         --brand-primary-content:   oklch(98%  0.01  305);
 
@@ -33,7 +33,7 @@
            Brings accent into the blue-teal family (between secondary at 205
            and pure teal at 185), so all three brand colors form a tight
            analogous cluster: 195–205–305 */
-        --brand-accent:            oklch(66.6% 0.110 195);
+        --brand-accent: oklch(0.655 0.128 168.298);
         --brand-accent-content:    oklch(98%  0.01  205);
 
         --brand-info:              oklch(70%  0.16  220);
@@ -55,19 +55,26 @@
         --brand-base-content-light:     oklch(20%  0.02 250);
 
         /* Neutrals (Dark) */
-        --brand-neutral-dark:           oklch(80%  0.02 250);
-        --brand-neutral-content-dark:   oklch(15%  0.01 250);
-        --brand-base-100-dark:          oklch(18%  0.02 250);
-        --brand-base-200-dark:          oklch(22%  0.02 250);
-        --brand-base-300-dark:          oklch(27%  0.02 250);
-        --brand-base-content-dark:      oklch(90%  0.01 250);
+        --brand-neutral-dark:           oklch(80%  0.02 248);
+        --brand-neutral-content-dark:   oklch(15%  0.01 248);
+        --brand-base-100-dark:          oklch(18%  0.05 248);
+        --brand-base-200-dark:          oklch(22%  0.05 248);
+        --brand-base-300-dark:          oklch(27%  0.05 248);
+        --brand-base-content-dark:      oklch(90%  0.01 248);
 
-        --brand-rounded-btn:     0.5rem;
-        --brand-rounded-box:     0.75rem;
-        --brand-rounded-badge:   9999px;
         --brand-animation-btn:   0.15s;
+        --brand-border:          1px;
         --brand-border-btn:      1px;
         --brand-btn-focus-scale: 0.98;
+        --brand-radius-selector: 1rem;
+        --brand-radius-field:    1rem;
+        --brand-radius-box:      1rem;
+        --brand-rounded-btn:     0.5rem;
+        --brand-rounded-box:     1rem;
+        --brand-rounded-badge:   9999px;
+        --brand-size-selector:   0.3125rem;
+        --brand-size-field:      0.3125rem;
+        --brand-depth:           1;
     }
 }
 
@@ -100,12 +107,19 @@
     --color-error:             var(--brand-error);
     --color-error-content:     var(--brand-error-content);
 
+    --animation-btn: var(--brand-animation-btn);
+    --border: var(--brand-border);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-btn-focus-scale);
     --rounded-btn: var(--brand-rounded-btn);
     --rounded-box: var(--brand-rounded-box);
     --rounded-badge: var(--brand-rounded-badge);
-    --animation-btn: var(--brand-animation-btn);
-    --border-btn: var(--brand-border-btn);
-    --btn-focus-scale: var(--brand-focus-scale);
+    --radius-selector: var(--brand-radius-selector);
+    --radius-field: var(--brand-radius-field);
+    --radius-box: var(--brand-radius-box);
+    --size-selector: var(--brand-size-selector);
+    --size-field: var(--brand-size-field);
+    --depth: var(--brand-depth);
 }
 
 /* ─── Dark theme — only neutrals change ───────────────────────────── */
@@ -138,12 +152,19 @@
     --color-error:             var(--brand-error);
     --color-error-content:     var(--brand-error-content);
 
+    --animation-btn: var(--brand-animation-btn);
+    --border: var(--brand-border);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-btn-focus-scale);
     --rounded-btn: var(--brand-rounded-btn);
     --rounded-box: var(--brand-rounded-box);
     --rounded-badge: var(--brand-rounded-badge);
-    --animation-btn: var(--brand-animation-btn);
-    --border-btn: var(--brand-border-btn);
-    --btn-focus-scale: var(--brand-focus-scale);
+    --radius-selector: var(--brand-radius-selector);
+    --radius-field: var(--brand-radius-field);
+    --radius-box: var(--brand-radius-box);
+    --size-selector: var(--brand-size-selector);
+    --size-field: var(--brand-size-field);
+    --depth: var(--brand-depth);
 }
 
 .bg-sample1 {
@@ -156,8 +177,14 @@
 
 .bg-sample2 {
     background-image:
-        radial-gradient(circle at 30% 70%, var(--brand-accent), transparent 60%),
-        radial-gradient(circle at 70% 30%, var(--brand-secondary), transparent 60%);
+        radial-gradient(circle at 30% 70%, var(--brand-primary-dark), transparent 60%),
+        radial-gradient(circle at 70% 30%, var(--brand-base-100-light), transparent 60%);
+}
+
+[data-theme="dark"] .bg-sample2 {
+    background-image:
+        radial-gradient(circle at 30% 70%, var(--brand-primary-dark), transparent 60%),
+        radial-gradient(circle at 70% 30%, var(--brand-base-100-dark), transparent 60%);
 }
 
 .bg-sample3 {
@@ -185,7 +212,7 @@
     background:
     radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
     radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
-    var(--brand-base-300-light);
+    var(--brand-base-100-light);
 
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat;
 }
@@ -194,7 +221,7 @@
     background:
         radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
         radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
-        var(--brand-base-300-dark);
+        var(--brand-base-100-dark);
 }
 
 .bg-sample6 {
