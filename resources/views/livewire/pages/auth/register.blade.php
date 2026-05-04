@@ -23,6 +23,8 @@ new #[Layout('layouts.guest')] class extends Component
 
     public string $password_confirmation = '';
 
+    public string $timezone = '';
+
     protected function recaptchaDataCallback(): string
     {
         return 'nerdikAuthRegisterRecaptcha';
@@ -37,6 +39,7 @@ new #[Layout('layouts.guest')] class extends Component
             'nickname' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'timezone' => ['nullable', 'string', 'timezone'],
         ]));
 
         unset($validated['gRecaptchaResponse']);
@@ -48,6 +51,10 @@ new #[Layout('layouts.guest')] class extends Component
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered($user = User::create($validated)));
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['timezone' => ($validated['timezone'] ?? '') !== '' ? $validated['timezone'] : null]
+        );
 
         Auth::login($user);
 
@@ -120,6 +127,7 @@ new #[Layout('layouts.guest')] class extends Component
     @endif
 
     <form id="ui-auth-register-form" wire:submit="register" class="ui-form ui-form-auth-register space-y-4" data-ui="auth-register-form">
+        <input type="hidden" wire:model="timezone" data-register-timezone />
         <x-input
             wire:model="nickname"
             label="{{ __('Nickname') }}"
@@ -186,3 +194,42 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+(() => {
+    let registerTimezoneAbort;
+    function initRegisterTimezone() {
+        registerTimezoneAbort?.abort();
+        registerTimezoneAbort = new AbortController();
+        const signal = registerTimezoneAbort.signal;
+        const timezoneInput = document.querySelector('[data-register-timezone]');
+        if (!timezoneInput) {
+            return;
+        }
+
+        let timezone = '';
+        try {
+            timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (error) {
+            timezone = '';
+        }
+
+        if (timezone !== '') {
+            document.cookie = `browser_timezone=${encodeURIComponent(timezone)}; path=/; max-age=31536000; samesite=lax`;
+            timezoneInput.value = timezone;
+            timezoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+            timezoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    document.addEventListener('livewire:navigating', () => registerTimezoneAbort?.abort());
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRegisterTimezone, { once: true });
+    } else {
+        initRegisterTimezone();
+    }
+    document.addEventListener('livewire:navigated', initRegisterTimezone);
+})();
+</script>
+@endpush

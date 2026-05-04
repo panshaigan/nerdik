@@ -21,24 +21,26 @@ class ProfileTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSeeVolt('profile.update-profile-information-form')
+            ->assertSeeVolt('profile.profile-tabs')
+            ->assertSeeVolt('profile.update-identity-information-form')
+            ->assertSeeVolt('profile.update-contact-information-form')
+            ->assertSeeVolt('profile.update-avatar-form')
             ->assertSeeVolt('profile.update-password-form')
             ->assertSeeVolt('profile.notification-settings-form')
             ->assertSeeVolt('profile.delete-user-form');
     }
 
-    public function test_profile_information_can_be_updated(): void
+    public function test_identity_information_can_be_updated(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-profile-information-form')
+        $component = Volt::test('profile.update-identity-information-form')
             ->set('name', 'Test User')
-            ->set('email', 'test@example.com')
-            ->set('avatar_bg_color', '#112233')
-            ->set('avatar_text_color', '#ddeeff')
-            ->call('updateProfileInformation');
+            ->set('nickname', 'test-user')
+            ->set('timezone', 'Europe/Warsaw')
+            ->call('updateIdentityInformation');
 
         $component
             ->assertHasNoErrors()
@@ -47,28 +49,48 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
-        $this->assertSame('#112233', $user->profile?->avatar_bg_color);
-        $this->assertSame('#ddeeff', $user->profile?->avatar_text_color);
+        $this->assertSame('test-user', $user->nickname);
+        $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    public function test_contact_information_can_be_updated(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
+        $component = Volt::test('profile.update-contact-information-form')
             ->set('email', $user->email)
-            ->call('updateProfileInformation');
+            ->set('discord_handle', 'nerdik-user')
+            ->call('updateContactInformation');
 
         $component
             ->assertHasNoErrors()
             ->assertNoRedirect();
 
-        $this->assertNotNull($user->refresh()->email_verified_at);
+        $this->assertSame('nerdik-user', $user->refresh()->profile?->discord_handle);
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_avatar_information_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $component = Volt::test('profile.update-avatar-form')
+            ->set('avatar_bg_color', '#112233')
+            ->set('avatar_text_color', '#ddeeff')
+            ->call('updateAvatar');
+
+        $component
+            ->assertHasNoErrors()
+            ->assertNoRedirect();
+
+        $user->refresh();
+
+        $this->assertSame('#112233', $user->profile?->avatar_bg_color);
+        $this->assertSame('#ddeeff', $user->profile?->avatar_text_color);
     }
 
     public function test_user_can_attach_existing_organization_from_profile(): void
@@ -82,9 +104,9 @@ class ProfileTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-profile-information-form')
+        $component = Volt::test('profile.update-identity-information-form')
             ->set('organization_name', 'Nerdik Org')
-            ->call('updateProfileInformation');
+            ->call('updateIdentityInformation');
 
         $component
             ->assertHasNoErrors()
@@ -102,9 +124,9 @@ class ProfileTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-profile-information-form')
+        $component = Volt::test('profile.update-identity-information-form')
             ->set('organization_name', 'Brand New Org')
-            ->call('updateProfileInformation');
+            ->call('updateIdentityInformation');
 
         $component
             ->assertHasNoErrors()
@@ -124,10 +146,10 @@ class ProfileTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-profile-information-form')
+        $component = Volt::test('profile.update-identity-information-form')
             ->set('organization_id', null)
             ->set('organization_name', '')
-            ->call('updateProfileInformation');
+            ->call('updateIdentityInformation');
 
         $component
             ->assertHasNoErrors()
@@ -189,5 +211,15 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('name=Color%20User', $html);
         $this->assertStringContainsString('background=112233', $html);
         $this->assertStringContainsString('color=ddeeff', $html);
+    }
+
+    public function test_profile_page_has_tab_query_parameter(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/profile?tab=contact');
+
+        $response->assertOk();
+        $response->assertSee('data-ui="profile-tabs"', false);
     }
 }

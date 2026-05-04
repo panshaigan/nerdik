@@ -31,7 +31,8 @@ class RegistrationTest extends TestCase
             ->set('nickname', 'test-user')
             ->set('email', 'test@example.com')
             ->set('password', 'password')
-            ->set('password_confirmation', 'password');
+            ->set('password_confirmation', 'password')
+            ->set('timezone', 'Europe/Warsaw');
 
         $component->call('register');
 
@@ -44,6 +45,7 @@ class RegistrationTest extends TestCase
         $this->assertNotNull($user);
         $this->assertSame('test-user', $user->nickname);
         $this->assertNull($user->name);
+        $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
 
         Notification::assertSentTo($user, VerifyEmail::class);
     }
