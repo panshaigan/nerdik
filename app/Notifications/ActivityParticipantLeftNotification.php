@@ -113,7 +113,7 @@ class ActivityParticipantLeftNotification extends Notification implements Should
 
     protected function leaverDisplayName(): string
     {
-        return $this->leaver->nickname ?? $this->leaver->email ?? __('ui.common.unknown_user');
+        return $this->leaver->displayName();
     }
 
     protected function promotedDisplayName(): string
@@ -123,6 +123,6 @@ class ActivityParticipantLeftNotification extends Notification implements Should
             return __('ui.common.unknown_user');
         }
 
-        return $user->nickname ?? $user->email ?? __('ui.common.unknown_user');
+        return $user->displayName();
     }
 }

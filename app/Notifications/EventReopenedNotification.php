@@ -31,7 +31,7 @@ class EventReopenedNotification extends Notification implements ShouldQueue, Sho
 
     public function toMail(object $notifiable): MailMessage
     {
-        $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
+        $reopenedByName = $this->reopenedBy->displayName();
 
         return (new MailMessage)
             ->subject(__('ui.notifications.event_reopened_email_subject', ['event' => $this->event->name]))
@@ -47,7 +47,7 @@ class EventReopenedNotification extends Notification implements ShouldQueue, Sho
      */
     public function toArray(object $notifiable): array
     {
-        $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
+        $reopenedByName = $this->reopenedBy->displayName();
 
         $url = $this->resolveEventShowUrl(false);
 

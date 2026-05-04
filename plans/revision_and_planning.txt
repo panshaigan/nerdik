@@ -1,9 +1,13 @@
-Notifications (1 day)
-    - review
 
-Technicals (1 day)
-    - APIs:
-        - GOOGLE login (create app + add widget to login page)
-        - Facebook login
-        - user account flow. 2FA?
-        - wont i need openstreet api?
+
+
+
+- user lacking avatars. introduce colors/gradients
+- avatars sources
+    - gravatar
+    - google
+    - facebook
+    - file upload
+- refinements/performance
+- colors
+

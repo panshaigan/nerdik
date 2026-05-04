@@ -54,9 +54,33 @@ class FacebookAuthControllerTest extends TestCase
 
         $user = User::where('email', 'newuser@example.com')->firstOrFail();
         $this->assertSame('999000111', $user->facebook_id);
+        $this->assertSame('newuser', $user->nickname);
         $this->assertNotNull($user->email_verified_at);
         $this->assertAuthenticatedAs($user);
         Event::assertDispatched(Verified::class);
+    }
+
+    #[Test]
+    public function callback_creates_a_new_user_with_suffixed_nickname_on_collision(): void
+    {
+        Event::fake([Verified::class]);
+
+        // Str::slug strips dots, so 'jane.doe' -> 'janedoe'.
+        User::factory()->create(['nickname' => 'janedoe']);
+        User::factory()->create(['nickname' => 'janedoe_2']);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: '888777666',
+            email: 'jane.doe@yahoo.com',
+            name: 'Jane Doe',
+        ));
+
+        $response = $this->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $user = User::where('email', 'jane.doe@yahoo.com')->firstOrFail();
+        $this->assertSame('janedoe_3', $user->nickname);
     }
 
     #[Test]

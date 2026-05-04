@@ -35,7 +35,7 @@ class ActivityCancelledNotification extends Notification implements ShouldQueue,
         $this->activity->loadMissing(['slot.event']);
 
         $event = $this->activity->slot?->event;
-        $cancelledByName = $this->cancelledBy->nickname ?? $this->cancelledBy->email ?? __('ui.common.unknown_user');
+        $cancelledByName = $this->cancelledBy->displayName();
         $message = (new MailMessage)
             ->subject(__('ui.notifications.activity_cancelled_email_subject', ['activity' => $this->activity->name]))
             ->line(__('ui.notifications.activity_cancelled_email_intro', [
@@ -66,7 +66,7 @@ class ActivityCancelledNotification extends Notification implements ShouldQueue,
         $this->activity->loadMissing(['slot.event']);
 
         $event = $this->activity->slot?->event;
-        $cancelledByName = $this->cancelledBy->nickname ?? $this->cancelledBy->email ?? __('ui.common.unknown_user');
+        $cancelledByName = $this->cancelledBy->displayName();
 
         return [
             'type' => 'activity_cancelled',

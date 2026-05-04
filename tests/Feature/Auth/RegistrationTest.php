@@ -28,7 +28,6 @@ class RegistrationTest extends TestCase
         Notification::fake();
 
         $component = Volt::test('pages.auth.register')
-            ->set('name', 'Test User')
             ->set('nickname', 'test-user')
             ->set('email', 'test@example.com')
             ->set('password', 'password')
@@ -43,6 +42,8 @@ class RegistrationTest extends TestCase
         /** @var User|null $user */
         $user = User::where('email', 'test@example.com')->first();
         $this->assertNotNull($user);
+        $this->assertSame('test-user', $user->nickname);
+        $this->assertNull($user->name);
 
         Notification::assertSentTo($user, VerifyEmail::class);
     }
@@ -56,7 +57,6 @@ class RegistrationTest extends TestCase
         Config::set('captcha.secret', 'test-secret-key');
 
         $component = Volt::test('pages.auth.register')
-            ->set('name', 'Test User')
             ->set('nickname', 'test-user')
             ->set('email', 'test@example.com')
             ->set('password', 'password')

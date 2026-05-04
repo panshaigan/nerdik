@@ -15,7 +15,7 @@
                             @endif
                             <p class="opacity-80">
                                 {{ __('ui.events.cancelled_meta', [
-                                    'who' => $event->canceller?->nickname ?? $event->canceller?->email ?? __('ui.common.unknown_user'),
+                                    'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
                                     'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
                                 ]) }}
                             </p>

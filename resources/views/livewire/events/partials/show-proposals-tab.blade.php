@@ -27,7 +27,7 @@
                             <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 font-medium break-words text-lg">
                                 {{ $pa->name }}
                             </a>
-                            <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator->nickname ?? $proposal->creator->email }}</span>
+                            <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator?->displayName() }}</span>
                         </div>
                     </div>
                     <div class="flex flex-wrap justify-end gap-2">

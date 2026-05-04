@@ -8,7 +8,6 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -34,7 +33,7 @@ class GoogleAuthController extends Controller
             } else {
                 $user = User::create([
                     'name' => $googleUser->getName(),
-                    'nickname' => Str::slug(explode('@', (string) $googleUser->getEmail())[0], '_'),
+                    'nickname' => User::generateUniqueNicknameFromEmail((string) $googleUser->getEmail()),
                     'email' => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'password' => Hash::make(uniqid('', true)),
