@@ -22,6 +22,7 @@ class GoogleAuthController extends Controller
     {
         $googleUser = Socialite::driver('google')->user();
         $googleEmailVerified = $this->isGoogleEmailMarkedVerified($googleUser);
+        $browserTimezone = $this->resolveBrowserTimezone();
 
         $user = User::whereHas('profile', function ($query) use ($googleUser): void {
             $query->where('google_id', $googleUser->getId());
@@ -32,6 +33,9 @@ class GoogleAuthController extends Controller
             if ($user) {
                 $profile = $user->profile()->firstOrCreate();
                 $profile->google_id = $googleUser->getId();
+                if ($profile->timezone === null && $browserTimezone !== null) {
+                    $profile->timezone = $browserTimezone;
+                }
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);
@@ -44,6 +48,9 @@ class GoogleAuthController extends Controller
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->google_id = $googleUser->getId();
+                if ($browserTimezone !== null) {
+                    $profile->timezone = $browserTimezone;
+                }
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);
@@ -78,5 +85,15 @@ class GoogleAuthController extends Controller
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
+    }
+
+    private function resolveBrowserTimezone(): ?string
+    {
+        $raw = request()->cookie('browser_timezone');
+        if (! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        return in_array($raw, timezone_identifiers_list(), true) ? $raw : null;
     }
 }

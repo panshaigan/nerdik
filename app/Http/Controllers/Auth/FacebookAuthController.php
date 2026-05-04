@@ -22,6 +22,7 @@ class FacebookAuthController extends Controller
     {
         $facebookUser = Socialite::driver('facebook')->user();
         $facebookEmail = $facebookUser->getEmail();
+        $browserTimezone = $this->resolveBrowserTimezone();
 
         if ($facebookEmail === null || $facebookEmail === '') {
             return redirect()->route('login')->with(
@@ -39,6 +40,9 @@ class FacebookAuthController extends Controller
             if ($user) {
                 $profile = $user->profile()->firstOrCreate();
                 $profile->facebook_id = $facebookUser->getId();
+                if ($profile->timezone === null && $browserTimezone !== null) {
+                    $profile->timezone = $browserTimezone;
+                }
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);
@@ -51,6 +55,9 @@ class FacebookAuthController extends Controller
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->facebook_id = $facebookUser->getId();
+                if ($browserTimezone !== null) {
+                    $profile->timezone = $browserTimezone;
+                }
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);
@@ -75,5 +82,15 @@ class FacebookAuthController extends Controller
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
+    }
+
+    private function resolveBrowserTimezone(): ?string
+    {
+        $raw = request()->cookie('browser_timezone');
+        if (! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        return in_array($raw, timezone_identifiers_list(), true) ? $raw : null;
     }
 }
