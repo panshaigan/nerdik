@@ -41,9 +41,6 @@
                 <x-button type="button" class="btn-ghost" data-profile-unsaved-cancel>
                     {{ __('Cancel') }}
                 </x-button>
-                <x-button type="button" class="btn-outline" data-profile-unsaved-discard>
-                    {{ __('Discard changes') }}
-                </x-button>
                 <x-button type="button" class="btn-primary" data-profile-unsaved-save>
                     {{ __('Save and switch') }}
                 </x-button>
@@ -61,8 +58,8 @@
         profileTabsAbort = new AbortController();
         const signal = profileTabsAbort.signal;
 
-        const root = document.querySelector('[data-ui="profile-tabs"]');
         const shell = document.querySelector('[data-ui="profile-tabs-shell"]');
+        const root = shell?.querySelector('[x-data]');
         const dialog = document.querySelector('#ui-profile-unsaved-dialog');
         if (!root || !shell || !dialog) {
             return;
@@ -92,68 +89,57 @@
 
         let pendingTab = null;
         let waitingSaveTab = null;
+        const baselineByTab = {};
 
-        function formIsDirty(form) {
-            const fields = form.querySelectorAll('input, select, textarea');
-            for (const field of fields) {
-                if (field.type === 'hidden') {
-                    continue;
-                }
-                if (field.type === 'checkbox' || field.type === 'radio') {
-                    if (field.defaultChecked !== field.checked) {
-                        return true;
+        function snapshotForm(form) {
+            const fields = [...form.querySelectorAll('input, select, textarea')]
+                .filter((field) => field.name && field.type !== 'hidden')
+                .map((field) => {
+                    if (field.type === 'checkbox' || field.type === 'radio') {
+                        return `${field.name}:${field.checked ? '1' : '0'}`;
                     }
-                    continue;
-                }
-                if ((field.defaultValue ?? '') !== field.value) {
-                    return true;
-                }
-            }
-            return false;
+
+                    return `${field.name}:${field.value ?? ''}`;
+                });
+
+            return fields.join('|');
         }
 
-        function markFormClean(tab) {
+        function formIsDirty(tab) {
+            const formSelector = tabFormMap[tab];
+            const form = formSelector ? shell.querySelector(formSelector) : null;
+            if (!form) {
+                return false;
+            }
+
+            const current = snapshotForm(form);
+            if (!(tab in baselineByTab)) {
+                baselineByTab[tab] = current;
+            }
+
+            return baselineByTab[tab] !== current;
+        }
+
+        function captureBaseline(tab) {
             const formSelector = tabFormMap[tab];
             const form = formSelector ? shell.querySelector(formSelector) : null;
             if (!form) {
                 return;
             }
 
-            form.querySelectorAll('input, select, textarea').forEach((field) => {
-                if (field.type === 'checkbox' || field.type === 'radio') {
-                    field.defaultChecked = field.checked;
-                } else {
-                    field.defaultValue = field.value;
-                }
-            });
+            baselineByTab[tab] = snapshotForm(form);
         }
 
         function switchToPendingTab() {
             if (!pendingTab) {
                 return;
             }
-            const lw = window.Livewire?.find(root.closest('[wire\\:id]')?.getAttribute('wire:id'));
+            const livewireRoot = shell.closest('[wire\\:id]');
+            const lw = window.Livewire?.find(livewireRoot?.getAttribute('wire:id'));
             if (lw) {
                 lw.set('tab', pendingTab);
             }
             pendingTab = null;
-        }
-
-        function discardCurrentForm() {
-            const tab = currentTab();
-            const formSelector = tabFormMap[tab];
-            if (!formSelector) {
-                return;
-            }
-            const form = shell.querySelector(formSelector);
-            if (!form) {
-                return;
-            }
-            form.reset();
-            form.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-            });
         }
 
         root.addEventListener('click', (event) => {
@@ -166,9 +152,8 @@
             if (!targetTab || targetTab === tab) {
                 return;
             }
-            const formSelector = tabFormMap[tab];
-            const form = formSelector ? shell.querySelector(formSelector) : null;
-            if (!form || !formIsDirty(form)) {
+
+            if (!formIsDirty(tab)) {
                 return;
             }
             pendingTab = targetTab;
@@ -180,12 +165,6 @@
         dialog.querySelector('[data-profile-unsaved-cancel]')?.addEventListener('click', () => {
             pendingTab = null;
             dialog.close();
-        }, { signal });
-
-        dialog.querySelector('[data-profile-unsaved-discard]')?.addEventListener('click', () => {
-            discardCurrentForm();
-            dialog.close();
-            switchToPendingTab();
         }, { signal });
 
         dialog.querySelector('[data-profile-unsaved-save]')?.addEventListener('click', () => {
@@ -207,10 +186,14 @@
                 if (waitingSaveTab !== tab) {
                     return;
                 }
-                markFormClean(tab);
+                captureBaseline(tab);
                 waitingSaveTab = null;
                 switchToPendingTab();
             }, { signal });
+        });
+
+        Object.keys(tabFormMap).forEach((tab) => {
+            captureBaseline(tab);
         });
     }
 
