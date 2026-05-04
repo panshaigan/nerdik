@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Resources\Users\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -29,19 +30,23 @@ class UserForm
                 TextInput::make('password')
                     ->password()
                     ->required(),
-                TextInput::make('google_id')
+                TextInput::make('profile.google_id')
                     ->default(null),
-                TextInput::make('facebook_id')
+                TextInput::make('profile.facebook_id')
                     ->default(null),
-                TextInput::make('avatar_path')
+                TextInput::make('profile.avatar_path')
                     ->default(null),
-                TextInput::make('discord_handle')
+                TextInput::make('profile.avatar_bg_color')
+                    ->default('#1d4ed8'),
+                TextInput::make('profile.avatar_text_color')
+                    ->default('#ffffff'),
+                TextInput::make('profile.discord_handle')
                     ->default(null),
-                TextInput::make('current_location')
+                TextInput::make('profile.current_location')
                     ->default(null),
-                TextInput::make('timezone')
+                TextInput::make('profile.timezone')
                     ->default(null),
-                Textarea::make('languages')
+                Textarea::make('profile.languages')
                     ->default(null)
                     ->columnSpanFull(),
             ]);

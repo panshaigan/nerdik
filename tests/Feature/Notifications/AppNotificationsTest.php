@@ -26,9 +26,7 @@ class AppNotificationsTest extends TestCase
 
     public function test_waitlist_promoted_notification_includes_expected_channels_when_enabled(): void
     {
-        $user = User::factory()->create([
-            'notification_preferences' => null,
-        ]);
+        $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
         $notification = new WaitlistPromotedNotification($activity);
@@ -41,7 +39,8 @@ class AppNotificationsTest extends TestCase
 
     public function test_waitlist_promoted_notification_skips_mail_when_email_disabled(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'notification_preferences' => [
                 'waitlist_promoted' => [
                     'in_app' => true,
@@ -59,7 +58,8 @@ class AppNotificationsTest extends TestCase
 
     public function test_proposals_notification_returns_no_channels_when_both_prefs_disabled(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'notification_preferences' => [
                 'proposals' => [
                     'in_app' => false,

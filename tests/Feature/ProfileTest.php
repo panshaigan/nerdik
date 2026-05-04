@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -35,6 +36,8 @@ class ProfileTest extends TestCase
         $component = Volt::test('profile.update-profile-information-form')
             ->set('name', 'Test User')
             ->set('email', 'test@example.com')
+            ->set('avatar_bg_color', '#112233')
+            ->set('avatar_text_color', '#ddeeff')
             ->call('updateProfileInformation');
 
         $component
@@ -46,6 +49,8 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+        $this->assertSame('#112233', $user->profile?->avatar_bg_color);
+        $this->assertSame('#ddeeff', $user->profile?->avatar_text_color);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
@@ -164,5 +169,25 @@ class ProfileTest extends TestCase
             ->assertNoRedirect();
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_user_badge_uses_ui_avatars_with_profile_colors(): void
+    {
+        $user = User::factory()->create([
+            'nickname' => 'Color User',
+        ]);
+        $user->profile()->update([
+            'avatar_bg_color' => '#112233',
+            'avatar_text_color' => '#ddeeff',
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" avatar-only />', [
+            'user' => $user->fresh('profile'),
+        ]);
+
+        $this->assertStringContainsString('ui-avatars.com/api/', $html);
+        $this->assertStringContainsString('name=Color%20User', $html);
+        $this->assertStringContainsString('background=112233', $html);
+        $this->assertStringContainsString('color=ddeeff', $html);
     }
 }

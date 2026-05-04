@@ -88,23 +88,34 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('google_id')->nullable();
-            $table->string('facebook_id')->nullable();
-            $table->string('avatar_path')->nullable();
-            $table->string('discord_handle')->nullable();
-            $table->string('current_location')->nullable();
-            $table->string('timezone', 50)->nullable();
             $table->boolean('is_admin')->default(false);
             $table->boolean('is_event_organizer')->default(false);
-            $table->text('languages')->nullable(); // JSON stored as text (utf8mb4_bin in MySQL)
-            $table->jsonb('notification_preferences')->nullable();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
         });
 
         // ------------------------------------------------------------------ //
-        // 7. ADD USER FKs TO ORGANIZATIONS  (circular dep resolution)
+        // 7. USER PROFILES
+        // ------------------------------------------------------------------ //
+        Schema::create('user_profiles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+            $table->string('google_id')->nullable();
+            $table->string('facebook_id')->nullable();
+            $table->string('avatar_path')->nullable();
+            $table->string('avatar_bg_color', 7)->nullable();
+            $table->string('avatar_text_color', 7)->nullable();
+            $table->string('discord_handle')->nullable();
+            $table->string('current_location')->nullable();
+            $table->string('timezone', 50)->nullable();
+            $table->text('languages')->nullable(); // JSON stored as text (utf8mb4_bin in MySQL)
+            $table->jsonb('notification_preferences')->nullable();
+            $table->timestamps();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 8. ADD USER FKs TO ORGANIZATIONS  (circular dep resolution)
         // ------------------------------------------------------------------ //
         Schema::table('organizations', function (Blueprint $table) {
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
@@ -113,7 +124,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 8. PLACES
+        // 9. PLACES
         // ------------------------------------------------------------------ //
         Schema::create('places', function (Blueprint $table) {
             $table->id();
@@ -140,7 +151,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 9. EVENTS
+        // 10. EVENTS
         // ------------------------------------------------------------------ //
         Schema::create('events', function (Blueprint $table) {
             $table->id();
@@ -164,7 +175,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 10. EVENT_PLACE  (pivot)
+        // 11. EVENT_PLACE  (pivot)
         // ------------------------------------------------------------------ //
         Schema::create('event_place', function (Blueprint $table) {
             $table->id();
@@ -174,7 +185,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 11. EVENT ENROLLMENT WINDOWS
+        // 12. EVENT ENROLLMENT WINDOWS
         // ------------------------------------------------------------------ //
         Schema::create('event_enrollment_windows', function (Blueprint $table) {
             $table->id();
@@ -192,7 +203,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 12. ACTIVITY TYPES
+        // 13. ACTIVITY TYPES
         // ------------------------------------------------------------------ //
         Schema::create('activity_types', function (Blueprint $table) {
             $table->id();
@@ -200,7 +211,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 13. ACTIVITIES
+        // 14. ACTIVITIES
         // ------------------------------------------------------------------ //
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
@@ -237,7 +248,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 14. SLOTS
+        // 15. SLOTS
         // ------------------------------------------------------------------ //
         Schema::create('slots', function (Blueprint $table) {
             $table->id();
@@ -257,7 +268,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 15. ACTIVITY_USER  (participants)
+        // 16. ACTIVITY_USER  (participants)
         // ------------------------------------------------------------------ //
         Schema::create('activity_user', function (Blueprint $table) {
             $table->id();
@@ -273,7 +284,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 16. ACTIVITY WAITLIST ENTRIES
+        // 17. ACTIVITY WAITLIST ENTRIES
         // ------------------------------------------------------------------ //
         Schema::create('activity_waitlist_entries', function (Blueprint $table) {
             $table->id();
@@ -285,7 +296,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 17. ACTIVITY PROPOSALS
+        // 18. ACTIVITY PROPOSALS
         // ------------------------------------------------------------------ //
         Schema::create('activity_proposals', function (Blueprint $table) {
             $table->id();
@@ -304,7 +315,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 18. ACTIVITY_PROPOSAL_SLOT  (pivot)
+        // 19. ACTIVITY_PROPOSAL_SLOT  (pivot)
         // ------------------------------------------------------------------ //
         Schema::create('activity_proposal_slot', function (Blueprint $table) {
             $table->id();
@@ -314,7 +325,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 19. ACTIVITY_TYPE_SLOT  (pivot)
+        // 20. ACTIVITY_TYPE_SLOT  (pivot)
         // ------------------------------------------------------------------ //
         Schema::create('activity_type_slot', function (Blueprint $table) {
             $table->id();
@@ -325,7 +336,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 20. TAG CATEGORIES
+        // 21. TAG CATEGORIES
         // ------------------------------------------------------------------ //
         Schema::create('tag_categories', function (Blueprint $table) {
             $table->id();
@@ -333,7 +344,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 21. TAG CATEGORY TRANSLATIONS
+        // 22. TAG CATEGORY TRANSLATIONS
         // ------------------------------------------------------------------ //
         Schema::create('tag_category_translations', function (Blueprint $table) {
             $table->id();
@@ -344,7 +355,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 22. TAGS
+        // 23. TAGS
         // ------------------------------------------------------------------ //
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
@@ -358,7 +369,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 23. TAG TRANSLATIONS
+        // 24. TAG TRANSLATIONS
         // ------------------------------------------------------------------ //
         Schema::create('tag_translations', function (Blueprint $table) {
             $table->id();
@@ -371,7 +382,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 24. TAG ALIASES
+        // 25. TAG ALIASES
         // ------------------------------------------------------------------ //
         Schema::create('tag_aliases', function (Blueprint $table) {
             $table->id();
@@ -382,7 +393,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 25. TAG RELATIONS
+        // 26. TAG RELATIONS
         // ------------------------------------------------------------------ //
         Schema::create('tag_relations', function (Blueprint $table) {
             $table->id();
@@ -392,7 +403,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 26. TAG CONTEXTS  (polymorphic, no FK on context)
+        // 27. TAG CONTEXTS  (polymorphic, no FK on context)
         // ------------------------------------------------------------------ //
         Schema::create('tag_contexts', function (Blueprint $table) {
             $table->id();
@@ -404,7 +415,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 27. TAGGABLES  (polymorphic, no FK on taggable)
+        // 28. TAGGABLES  (polymorphic, no FK on taggable)
         // ------------------------------------------------------------------ //
         Schema::create('taggables', function (Blueprint $table) {
             $table->id();
@@ -416,7 +427,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 28. USER INTERESTS  (wishlist; polymorphic Activity|Event[, Tag later])
+        // 29. USER INTERESTS  (wishlist; polymorphic Activity|Event[, Tag later])
         // ------------------------------------------------------------------ //
         Schema::create('user_interests', function (Blueprint $table) {
             $table->id();
@@ -428,7 +439,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 30. NOTIFICATIONS  (Laravel Notifiable; UUID primary key)
+        // 31. NOTIFICATIONS  (Laravel Notifiable; UUID primary key)
         // ------------------------------------------------------------------ //
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -440,7 +451,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 31. NOTIFICATION EMAIL LOGS
+        // 32. NOTIFICATION EMAIL LOGS
         // ------------------------------------------------------------------ //
         Schema::create('notification_email_logs', function (Blueprint $table) {
             $table->id();
@@ -460,7 +471,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 32. SCHEDULED NOTIFICATION DISPATCHES
+        // 33. SCHEDULED NOTIFICATION DISPATCHES
         // ------------------------------------------------------------------ //
         Schema::create('scheduled_notification_dispatches', function (Blueprint $table) {
             $table->id();
@@ -477,7 +488,7 @@ return new class extends Migration
         // ================================================================== //
 
         // ------------------------------------------------------------------ //
-        // 33. PASSWORD RESET TOKENS
+        // 34. PASSWORD RESET TOKENS
         // ------------------------------------------------------------------ //
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -486,7 +497,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 34. SESSIONS
+        // 35. SESSIONS
         // ------------------------------------------------------------------ //
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -498,7 +509,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 35. CACHE
+        // 36. CACHE
         // ------------------------------------------------------------------ //
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -507,7 +518,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 36. CACHE LOCKS
+        // 37. CACHE LOCKS
         // ------------------------------------------------------------------ //
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
@@ -516,7 +527,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 37. JOBS
+        // 38. JOBS
         // ------------------------------------------------------------------ //
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
@@ -530,7 +541,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 38. JOB BATCHES
+        // 39. JOB BATCHES
         // ------------------------------------------------------------------ //
         Schema::create('job_batches', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -546,7 +557,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 39. FAILED JOBS
+        // 40. FAILED JOBS
         // ------------------------------------------------------------------ //
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
@@ -559,7 +570,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 40. TELESCOPE ENTRIES
+        // 41. TELESCOPE ENTRIES
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries', function (Blueprint $table) {
             $table->bigIncrements('sequence');
@@ -574,7 +585,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 41. TELESCOPE ENTRIES TAGS
+        // 42. TELESCOPE ENTRIES TAGS
         // ------------------------------------------------------------------ //
         Schema::create('telescope_entries_tags', function (Blueprint $table) {
             $table->uuid('entry_uuid');
@@ -588,7 +599,7 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 42. TELESCOPE MONITORING
+        // 43. TELESCOPE MONITORING
         // ------------------------------------------------------------------ //
         Schema::create('telescope_monitoring', function (Blueprint $table) {
             $table->string('tag')->primary();
@@ -643,6 +654,7 @@ return new class extends Migration
             $table->dropForeign(['deleted_by']);
         });
 
+        Schema::dropIfExists('user_profiles');
         Schema::dropIfExists('users');
         Schema::dropIfExists('organizations');
         Schema::dropIfExists('city_translations');

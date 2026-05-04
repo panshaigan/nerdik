@@ -10,22 +10,14 @@
 
 @php
     $resolvedName = trim((string) ($name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
-    $resolvedAvatarPath = $avatarPath ?? $user?->avatar_path;
-    $avatarUrl = null;
-    if (is_string($resolvedAvatarPath) && $resolvedAvatarPath !== '') {
-        $avatarUrl = str_starts_with($resolvedAvatarPath, 'http://') || str_starts_with($resolvedAvatarPath, 'https://')
-            ? $resolvedAvatarPath
-            : \Illuminate\Support\Facades\Storage::disk('public')->url($resolvedAvatarPath);
-    }
-
-    $initials = collect(preg_split('/\s+/u', $resolvedName) ?: [])
-        ->filter()
-        ->take(2)
-        ->map(fn (string $part) => mb_strtoupper(mb_substr($part, 0, 1)))
-        ->implode('');
-    if ($initials === '') {
-        $initials = mb_strtoupper(mb_substr($resolvedName, 0, 1));
-    }
+    $avatarBackgroundColor = ltrim((string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8'), '#');
+    $avatarTextColor = ltrim((string) ($user?->profile?->avatar_text_color ?? '#ffffff'), '#');
+    $avatarUrl = sprintf(
+        'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
+        rawurlencode($resolvedName),
+        rawurlencode($avatarBackgroundColor),
+        rawurlencode($avatarTextColor),
+    );
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',
@@ -37,22 +29,14 @@
 @if ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>
         <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
-            @if ($avatarUrl)
-                <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
-            @else
-                <span class="flex h-full w-full items-center justify-center font-semibold">{{ $initials }}</span>
-            @endif
+            <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
         </div>
     </div>
 @else
     <div {{ $attributes->class('flex items-center gap-2 min-w-0') }}>
         <div class="avatar">
             <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
-                @if ($avatarUrl)
-                    <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
-                @else
-                    <span class="flex h-full w-full items-center justify-center font-semibold">{{ $initials }}</span>
-                @endif
+                <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
             </div>
         </div>
         <div class="min-w-0">

@@ -8,6 +8,7 @@ use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -30,14 +31,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'organization_id',
         'is_admin',
         'is_event_organizer',
-        'google_id',
-        'facebook_id',
-        'avatar_path',
-        'discord_handle',
-        'current_location',
-        'timezone',
-        'languages',
-        'notification_preferences',
     ];
 
     /**
@@ -61,11 +54,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'languages' => 'array',
-            'notification_preferences' => 'array',
             'is_admin' => 'boolean',
             'is_event_organizer' => 'boolean',
         ];
+    }
+
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
     }
 
     /**
@@ -159,7 +155,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function resolvedNotificationPreferences(): array
     {
         $matrix = NotificationPreferenceKey::defaultMatrix();
-        $stored = $this->notification_preferences;
+        $stored = $this->profile?->notification_preferences;
         if (! is_array($stored)) {
             return $matrix;
         }
@@ -196,7 +192,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function setNotificationPreferencesPayload(array $preferences): void
     {
-        $this->notification_preferences = $preferences;
+        $profile = $this->profile()->firstOrCreate();
+        $profile->notification_preferences = $preferences;
+        $profile->save();
+        $this->setRelation('profile', $profile);
     }
 
     /**
@@ -212,5 +211,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $this->wantsNotificationChannel($key, 'in_app')
             || $this->wantsNotificationChannel($key, 'email');
+    }
+
+    protected function getTimezoneAttribute(): ?string
+    {
+        return $this->profile?->timezone;
     }
 }

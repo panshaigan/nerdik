@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Organization;
+use App\Models\UserProfile;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -21,6 +22,10 @@ new class extends Component
 
     public string $timezone = '';
 
+    public string $avatar_bg_color = '#1d4ed8';
+
+    public string $avatar_text_color = '#ffffff';
+
     public ?int $organization_id = null;
 
     public string $organization_name = '';
@@ -34,8 +39,10 @@ new class extends Component
         $this->name = $u->name ?? '';
         $this->nickname = $u->nickname ?? '';
         $this->email = $u->email;
-        $this->discord_handle = $u->discord_handle ?? '';
-        $this->timezone = $u->timezone ?? '';
+        $this->discord_handle = $u->profile?->discord_handle ?? '';
+        $this->timezone = $u->profile?->timezone ?? '';
+        $this->avatar_bg_color = $u->profile?->avatar_bg_color ?? '#1d4ed8';
+        $this->avatar_text_color = $u->profile?->avatar_text_color ?? '#ffffff';
         $this->organization_id = $u->organization_id;
         $this->organization_name = (string) ($u->organization?->name ?? '');
     }
@@ -53,11 +60,17 @@ new class extends Component
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'discord_handle' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'timezone'],
+            'avatar_bg_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'avatar_text_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'organization_id' => ['nullable', 'integer', Rule::exists(Organization::class, 'id')->withoutTrashed()],
             'organization_name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $user->fill($validated);
+        $user->fill([
+            'name' => $validated['name'],
+            'nickname' => $validated['nickname'],
+            'email' => $validated['email'],
+        ]);
         $user->organization_id = $this->resolveOrganizationIdFromRequest(
             $validated['organization_id'] ?? null,
             $validated['organization_name'] ?? null
@@ -68,6 +81,16 @@ new class extends Component
         }
 
         $user->save();
+
+        $profile = $user->profile()->firstOrCreate();
+        $profile->fill([
+            'discord_handle' => $validated['discord_handle'] ?: null,
+            'timezone' => $validated['timezone'] ?: null,
+            'avatar_bg_color' => $validated['avatar_bg_color'],
+            'avatar_text_color' => $validated['avatar_text_color'],
+        ]);
+        $profile->save();
+        $user->setRelation('profile', $profile);
 
         $this->dispatch('profile-updated', name: $user->nickname);
     }
@@ -228,6 +251,30 @@ new class extends Component
                 role="listbox"></div>
             <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
             <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-colorpicker
+                wire:model.live="avatar_bg_color"
+                label="{{ __('Avatar background color') }}"
+                name="avatar_bg_color"
+                error-field="avatar_bg_color"
+                required
+                class="ui-field ui-field-avatar-bg-color"
+                data-ui="profile-avatar-bg-color"
+            />
+        </div>
+
+        <div>
+            <x-colorpicker
+                wire:model.live="avatar_text_color"
+                label="{{ __('Avatar text color') }}"
+                name="avatar_text_color"
+                error-field="avatar_text_color"
+                required
+                class="ui-field ui-field-avatar-text-color"
+                data-ui="profile-avatar-text-color"
+            />
         </div>
 
         <div>

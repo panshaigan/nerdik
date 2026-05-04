@@ -23,21 +23,29 @@ class GoogleAuthController extends Controller
         $googleUser = Socialite::driver('google')->user();
         $googleEmailVerified = $this->isGoogleEmailMarkedVerified($googleUser);
 
-        $user = User::where('google_id', $googleUser->getId())->first();
+        $user = User::whereHas('profile', function ($query) use ($googleUser): void {
+            $query->where('google_id', $googleUser->getId());
+        })->first();
 
         if (! $user) {
             $user = User::where('email', $googleUser->getEmail())->first();
             if ($user) {
-                $user->update(['google_id' => $googleUser->getId()]);
+                $profile = $user->profile()->firstOrCreate();
+                $profile->google_id = $googleUser->getId();
+                $profile->save();
+                $user->setRelation('profile', $profile);
                 $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);
             } else {
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'nickname' => User::generateUniqueNicknameFromEmail((string) $googleUser->getEmail()),
                     'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
                     'password' => Hash::make(uniqid('', true)),
                 ]);
+                $profile = $user->profile()->firstOrCreate();
+                $profile->google_id = $googleUser->getId();
+                $profile->save();
+                $user->setRelation('profile', $profile);
                 $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);
             }
         }

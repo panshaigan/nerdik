@@ -44,11 +44,13 @@ new class extends Component
             ];
         }
 
-        Auth::user()->forceFill([
-            'notification_preferences' => $clean,
-        ])->save();
+        $user = Auth::user();
+        $profile = $user->profile()->firstOrCreate();
+        $profile->notification_preferences = $clean;
+        $profile->save();
+        $user->setRelation('profile', $profile);
 
-        $this->preferences = Auth::user()->resolvedNotificationPreferences();
+        $this->preferences = $user->resolvedNotificationPreferences();
         $this->dispatch('saved');
     }
 }; ?>

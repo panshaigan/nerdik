@@ -23,7 +23,8 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         config()->set('scheduled_notifications.daily_send_time', '09:00');
         $this->travelTo('2026-06-01 09:00:00');
 
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'timezone' => 'UTC',
         ]);
         $organizer = User::factory()->create();
@@ -73,7 +74,8 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         config()->set('scheduled_notifications.daily_send_time', '09:00');
         $this->travelTo('2026-06-02 09:00:00'); // Tuesday
 
-        $organizer = User::factory()->create([
+        $organizer = User::factory()->create();
+        $organizer->profile()->update([
             'timezone' => 'UTC',
         ]);
         $proposer = User::factory()->create();
