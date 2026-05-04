@@ -2,6 +2,7 @@ import Croppie from 'croppie';
 import 'croppie/croppie.css';
 
 let avatarCropperAbort;
+let cropperInstance = null;
 
 function findLivewireUploadComponent(form) {
     const root = form?.closest('[wire\\:id]');
@@ -24,38 +25,46 @@ export function bootProfileAvatarCropper() {
     avatarCropperAbort = new AbortController();
     const { signal } = avatarCropperAbort;
 
-    const form = document.getElementById('ui-profile-avatar-form');
-    const fileInput = document.querySelector('[data-profile-avatar-file]');
     const modal = document.getElementById('ui-profile-avatar-crop-modal');
     const viewport = document.querySelector('[data-profile-avatar-croppie]');
     const applyBtn = document.querySelector('[data-profile-avatar-crop-apply]');
     const cancelBtn = document.querySelector('[data-profile-avatar-crop-cancel]');
 
-    if (!form || !fileInput || !modal || !viewport || !applyBtn || !cancelBtn) {
+    if (!modal || !viewport || !applyBtn || !cancelBtn) {
         return;
     }
 
-    let croppie = null;
+    let currentForm = null;
+    let currentFileInput = null;
 
     function closeModal() {
         if (typeof modal.close === 'function') {
             modal.close();
         }
-        destroyCroppieInstance(croppie);
-        croppie = null;
-        fileInput.value = '';
+        destroyCroppieInstance(cropperInstance);
+        cropperInstance = null;
+        currentForm = null;
+        currentFileInput = null;
     }
 
-    fileInput.addEventListener(
+    document.addEventListener(
         'change',
-        () => {
-            const file = fileInput.files?.[0];
-            if (!file) {
+        (event) => {
+            const fileInput = event.target?.closest('[data-profile-avatar-file]');
+            if (!fileInput) {
                 return;
             }
 
-            destroyCroppieInstance(croppie);
-            croppie = null;
+            const form = fileInput.closest('#ui-profile-avatar-form');
+            const file = fileInput.files?.[0];
+            if (!file || !form) {
+                return;
+            }
+
+            currentForm = form;
+            currentFileInput = fileInput;
+            destroyCroppieInstance(cropperInstance);
+            cropperInstance = null;
 
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -64,12 +73,12 @@ export function bootProfileAvatarCropper() {
                     return;
                 }
 
-                croppie = new Croppie(viewport, {
+                cropperInstance = new Croppie(viewport, {
                     viewport: { width: 220, height: 220, type: 'circle' },
                     boundary: { width: 320, height: 320 },
                     enableOrientation: true,
                 });
-                croppie.bind({ url });
+                cropperInstance.bind({ url });
 
                 if (typeof modal.showModal === 'function') {
                     modal.showModal();
@@ -85,18 +94,20 @@ export function bootProfileAvatarCropper() {
     applyBtn.addEventListener(
         'click',
         () => {
-            if (!croppie) {
+            if (!cropperInstance || !currentForm) {
                 return;
             }
 
-            const component = findLivewireUploadComponent(form);
-            if (!component || typeof component.upload !== 'function') {
+            const livewireWire = findLivewireUploadComponent(currentForm);
+            const livewireUpload = livewireWire?.$upload;
+
+            if (typeof livewireUpload !== 'function') {
                 closeModal();
 
                 return;
             }
 
-            croppie
+            cropperInstance
                 .result({
                     type: 'blob',
                     size: { width: 512, height: 512 },
@@ -112,7 +123,7 @@ export function bootProfileAvatarCropper() {
                     }
 
                     const file = new File([blob], 'avatar.webp', { type: 'image/webp' });
-                    component.upload(
+                    livewireUpload(
                         'croppedAvatar',
                         file,
                         () => closeModal(),
