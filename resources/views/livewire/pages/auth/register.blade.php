@@ -220,6 +220,25 @@ new #[Layout('layouts.guest')] class extends Component
             timezoneInput.value = timezone;
             timezoneInput.dispatchEvent(new Event('input', { bubbles: true }));
             timezoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const enhanceLink = (selector) => {
+                const button = document.querySelector(selector);
+                if (!button) {
+                    return;
+                }
+                const href = button.getAttribute('href');
+                if (!href) {
+                    return;
+                }
+                const url = new URL(href, window.location.origin);
+                if (!url.searchParams.has('tz')) {
+                    url.searchParams.set('tz', timezone);
+                    button.setAttribute('href', url.pathname + url.search);
+                }
+            };
+
+            enhanceLink('[data-ui="auth-register-google"]');
+            enhanceLink('[data-ui="auth-register-facebook"]');
         }
     }
 

@@ -99,3 +99,52 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+(() => {
+    let authLoginTimezoneAbort;
+    function initAuthLoginTimezone() {
+        authLoginTimezoneAbort?.abort();
+        authLoginTimezoneAbort = new AbortController();
+        const signal = authLoginTimezoneAbort.signal;
+
+        const timezone = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone || '';
+        if (timezone === '') {
+            return;
+        }
+
+        document.cookie = `browser_timezone=${encodeURIComponent(timezone)}; path=/; max-age=31536000; samesite=lax`;
+
+        const enhanceLink = (selector) => {
+            const button = document.querySelector(selector);
+            if (!button) {
+                return;
+            }
+            button.addEventListener('click', () => {
+                const href = button.getAttribute('href');
+                if (!href) {
+                    return;
+                }
+                const url = new URL(href, window.location.origin);
+                if (!url.searchParams.has('tz')) {
+                    url.searchParams.set('tz', timezone);
+                    button.setAttribute('href', url.pathname + url.search);
+                }
+            }, { signal });
+        };
+
+        enhanceLink('[data-ui="auth-login-google"]');
+        enhanceLink('[data-ui="auth-login-facebook"]');
+    }
+
+    document.addEventListener('livewire:navigating', () => authLoginTimezoneAbort?.abort());
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAuthLoginTimezone, { once: true });
+    } else {
+        initAuthLoginTimezone();
+    }
+    document.addEventListener('livewire:navigated', initAuthLoginTimezone);
+})();
+</script>
+@endpush

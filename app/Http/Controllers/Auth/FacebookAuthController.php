@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
@@ -15,6 +16,8 @@ class FacebookAuthController extends Controller
 {
     public function redirect(): SymfonyRedirectResponse
     {
+        $this->captureBrowserTimezoneFromRequest();
+
         return Socialite::driver('facebook')->scopes(['email'])->redirect();
     }
 
@@ -86,11 +89,24 @@ class FacebookAuthController extends Controller
 
     private function resolveBrowserTimezone(): ?string
     {
-        $raw = request()->cookie('browser_timezone');
+        $raw = request()->query('tz');
+        if (! is_string($raw) || $raw === '') {
+            $raw = request()->cookie('browser_timezone');
+        }
         if (! is_string($raw) || $raw === '') {
             return null;
         }
 
         return in_array($raw, timezone_identifiers_list(), true) ? $raw : null;
+    }
+
+    private function captureBrowserTimezoneFromRequest(): void
+    {
+        $timezone = request()->query('tz');
+        if (! is_string($timezone) || ! in_array($timezone, timezone_identifiers_list(), true)) {
+            return;
+        }
+
+        Cookie::queue('browser_timezone', $timezone, 60 * 24 * 365, null, null, false, false, false, 'lax');
     }
 }
