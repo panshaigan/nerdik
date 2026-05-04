@@ -27,18 +27,18 @@ class UsersTable
                 TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('google_id')
-                    ->searchable(),
-                TextColumn::make('facebook_id')
-                    ->searchable(),
-                TextColumn::make('avatar_path')
-                    ->searchable(),
-                TextColumn::make('discord_handle')
-                    ->searchable(),
-                TextColumn::make('current_location')
-                    ->searchable(),
-                TextColumn::make('timezone')
-                    ->searchable(),
+                TextColumn::make('profile.google_id')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('profile.facebook_id')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('profile.avatar_path')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('profile.discord_handle')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('profile.current_location')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('profile.timezone')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -1,13 +1,9 @@
-
-
-
-
-- user lacking avatars. introduce colors/gradients
 - avatars sources
     - gravatar
     - google
     - facebook
     - file upload
-- refinements/performance
 - colors
+- refinements/performance
+
 

@@ -27,7 +27,8 @@ class ScheduledDigestPreferenceTest extends TestCase
 
     public function test_digest_via_is_mail_only_when_in_app_disabled_for_items(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'notification_preferences' => [
                 'scheduled_interested_enrollment_window' => [
                     'in_app' => false,
@@ -44,7 +45,8 @@ class ScheduledDigestPreferenceTest extends TestCase
 
     public function test_digest_via_is_database_only_when_email_disabled_for_items(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'notification_preferences' => [
                 'scheduled_interested_enrollment_window' => [
                     'in_app' => true,
@@ -67,7 +69,8 @@ class ScheduledDigestPreferenceTest extends TestCase
 
     public function test_digest_returns_empty_via_when_user_disables_both_channels_for_all_items(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create();
+        $user->profile()->update([
             'notification_preferences' => [
                 'scheduled_interested_enrollment_window' => [
                     'in_app' => false,

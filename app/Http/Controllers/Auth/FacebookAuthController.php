@@ -30,21 +30,29 @@ class FacebookAuthController extends Controller
             );
         }
 
-        $user = User::where('facebook_id', $facebookUser->getId())->first();
+        $user = User::whereHas('profile', function ($query) use ($facebookUser): void {
+            $query->where('facebook_id', $facebookUser->getId());
+        })->first();
 
         if (! $user) {
             $user = User::where('email', $facebookEmail)->first();
             if ($user) {
-                $user->update(['facebook_id' => $facebookUser->getId()]);
+                $profile = $user->profile()->firstOrCreate();
+                $profile->facebook_id = $facebookUser->getId();
+                $profile->save();
+                $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);
             } else {
                 $user = User::create([
                     'name' => $facebookUser->getName(),
                     'nickname' => User::generateUniqueNicknameFromEmail($facebookEmail),
                     'email' => $facebookEmail,
-                    'facebook_id' => $facebookUser->getId(),
                     'password' => Hash::make(uniqid('', true)),
                 ]);
+                $profile = $user->profile()->firstOrCreate();
+                $profile->facebook_id = $facebookUser->getId();
+                $profile->save();
+                $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);
             }
         }

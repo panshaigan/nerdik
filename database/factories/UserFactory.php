@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -34,19 +35,21 @@ final class UserFactory extends Factory
             'nickname' => fake()->unique()->userName,
             'email' => fake()->safeEmail,
             'password' => Hash::make(self::SAMPLE_PASSWORD),
-            'google_id' => null,
-            'facebook_id' => null,
-            'avatar_path' => null,
-            'discord_handle' => null,
-            'current_location' => null,
-            'timezone' => null,
             'is_admin' => 0,
             'is_event_organizer' => 0,
-            'languages' => null,
-            'notification_preferences' => null,
             'remember_token' => Str::random(10),
             'email_verified_at' => fake()->dateTime(),
         ];
+    }
+
+    #[\Override]
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            UserProfile::factory()->create([
+                'user_id' => $user->id,
+            ]);
+        });
     }
 
     public function admin(): self

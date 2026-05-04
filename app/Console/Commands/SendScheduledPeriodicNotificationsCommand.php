@@ -31,11 +31,12 @@ class SendScheduledPeriodicNotificationsCommand extends Command
         $now = CarbonImmutable::now('UTC');
 
         User::query()
-            ->select(['id', 'timezone', 'email', 'notification_preferences'])
+            ->select(['id', 'email'])
+            ->with('profile:user_id,timezone,notification_preferences')
             ->orderBy('id')
             ->cursor()
             ->each(function (User $user) use ($now, $sendTime): void {
-                $timezone = $this->timezoneForUser((string) $user->timezone);
+                $timezone = $this->timezoneForUser((string) ($user->profile?->timezone ?? ''));
                 $localNow = $now->setTimezone($timezone);
                 if ($localNow->format('H:i') !== $sendTime) {
                     return;

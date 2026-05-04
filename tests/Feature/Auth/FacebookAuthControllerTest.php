@@ -53,7 +53,7 @@ class FacebookAuthControllerTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
 
         $user = User::where('email', 'newuser@example.com')->firstOrFail();
-        $this->assertSame('999000111', $user->facebook_id);
+        $this->assertSame('999000111', $user->profile?->facebook_id);
         $this->assertSame('newuser', $user->nickname);
         $this->assertNotNull($user->email_verified_at);
         $this->assertAuthenticatedAs($user);
@@ -90,7 +90,6 @@ class FacebookAuthControllerTest extends TestCase
 
         $existing = User::factory()->unverified()->create([
             'email' => 'linked@example.com',
-            'facebook_id' => null,
         ]);
 
         $this->mockSocialiteWith($this->fakeFacebookUser(
@@ -103,7 +102,7 @@ class FacebookAuthControllerTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
 
         $existing->refresh();
-        $this->assertSame('555444333', $existing->facebook_id);
+        $this->assertSame('555444333', $existing->profile?->facebook_id);
         $this->assertNotNull($existing->email_verified_at);
         $this->assertAuthenticatedAs($existing);
         Event::assertDispatched(Verified::class);
@@ -114,6 +113,8 @@ class FacebookAuthControllerTest extends TestCase
     {
         $existing = User::factory()->create([
             'email' => 'returning@example.com',
+        ]);
+        $existing->profile()->update([
             'facebook_id' => '777888999',
         ]);
 
@@ -127,7 +128,7 @@ class FacebookAuthControllerTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
         $this->assertAuthenticatedAs($existing);
 
-        $this->assertSame(1, User::where('facebook_id', '777888999')->count());
+        $this->assertSame(1, User::whereHas('profile', fn ($query) => $query->where('facebook_id', '777888999'))->count());
     }
 
     #[Test]
@@ -143,6 +144,6 @@ class FacebookAuthControllerTest extends TestCase
         $response->assertRedirect(route('login'));
         $response->assertSessionHas('status');
         $this->assertGuest();
-        $this->assertSame(0, User::where('facebook_id', '111222333')->count());
+        $this->assertSame(0, User::whereHas('profile', fn ($query) => $query->where('facebook_id', '111222333'))->count());
     }
 }

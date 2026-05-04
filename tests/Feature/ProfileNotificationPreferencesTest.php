@@ -13,9 +13,7 @@ class ProfileNotificationPreferencesTest extends TestCase
 
     public function test_notification_preferences_can_be_saved(): void
     {
-        $user = User::factory()->create([
-            'notification_preferences' => null,
-        ]);
+        $user = User::factory()->create();
 
         $this->actingAs($user);
 
@@ -44,6 +42,9 @@ class ProfileNotificationPreferencesTest extends TestCase
         ];
 
         $userKeeps = User::factory()->create([
+            'name' => 'Keeps',
+        ]);
+        $userKeeps->profile()->update([
             'notification_preferences' => [
                 'scheduled_interested_enrollment_window' => [
                     'in_app' => false,
@@ -55,6 +56,9 @@ class ProfileNotificationPreferencesTest extends TestCase
         $this->assertTrue($userKeeps->retainsScheduledDigestItem($item));
 
         $userDrops = User::factory()->create([
+            'name' => 'Drops',
+        ]);
+        $userDrops->profile()->update([
             'notification_preferences' => [
                 'scheduled_interested_enrollment_window' => [
                     'in_app' => false,

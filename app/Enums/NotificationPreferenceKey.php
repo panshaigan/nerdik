@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Enums;
 
 use App\Models\User;
+use App\Models\UserProfile;
 
 /**
- * Notification preference keys stored on {@see User::$notification_preferences}.
+ * Notification preference keys stored in {@see UserProfile::$notification_preferences}.
  */
 enum NotificationPreferenceKey: string
 {
