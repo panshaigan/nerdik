@@ -25,7 +25,9 @@ class GoogleAuthController extends Controller
 
         $this->captureBrowserTimezoneFromRequest();
 
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->scopes(['openid', 'profile', 'email'])
+            ->redirect();
     }
 
     public function callback()
@@ -43,7 +45,7 @@ class GoogleAuthController extends Controller
             if ($user) {
                 $profile = $user->profile()->firstOrCreate();
                 $profile->google_id = $googleUser->getId();
-                $this->syncGoogleAvatarUrl($profile, $googleUser->getAvatar());
+                $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 if ($profile->timezone === null && $browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -59,7 +61,7 @@ class GoogleAuthController extends Controller
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->google_id = $googleUser->getId();
-                $this->syncGoogleAvatarUrl($profile, $googleUser->getAvatar());
+                $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 if ($browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -69,7 +71,7 @@ class GoogleAuthController extends Controller
             }
         } else {
             $profile = $user->profile()->firstOrCreate();
-            $this->syncGoogleAvatarUrl($profile, $googleUser->getAvatar());
+            $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
             $profile->save();
             $user->setRelation('profile', $profile);
         }
@@ -99,6 +101,28 @@ class GoogleAuthController extends Controller
         }
 
         $profile->google_avatar_url = $avatarUrl;
+    }
+
+    private function resolveGoogleAvatarUrl(AbstractUser $googleUser): ?string
+    {
+        $avatarUrl = $googleUser->getAvatar();
+        if (is_string($avatarUrl) && $avatarUrl !== '') {
+            return $avatarUrl;
+        }
+
+        $raw = $googleUser->user;
+        if (! is_array($raw)) {
+            return null;
+        }
+
+        foreach (['picture', 'avatar', 'image.url', 'photos.0.value'] as $key) {
+            $candidate = Arr::get($raw, $key);
+            if (is_string($candidate) && $candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     private function isGoogleEmailMarkedVerified(AbstractUser $googleUser): bool

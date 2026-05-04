@@ -39,6 +39,20 @@ final class ResolveAvatarUrl
             return Storage::disk('public')->url($path);
         }
 
+        if ($source === AvatarSource::Google && is_string($profile?->google_avatar_url) && $profile->google_avatar_url !== '') {
+            return $profile->google_avatar_url;
+        }
+
+        if ($source === AvatarSource::Facebook && is_string($profile?->facebook_avatar_url) && $profile->facebook_avatar_url !== '') {
+            return $profile->facebook_avatar_url;
+        }
+
+        if ($source === AvatarSource::Gravatar) {
+            $hash = md5(strtolower(trim((string) $user->email)));
+
+            return 'https://www.gravatar.com/avatar/'.$hash.'?s=512&d=mp';
+        }
+
         return $generated;
     }
 }
