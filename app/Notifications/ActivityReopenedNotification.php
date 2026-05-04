@@ -36,7 +36,7 @@ class ActivityReopenedNotification extends Notification implements ShouldQueue, 
 
         /** @var Event|null $event */
         $event = $this->activity->slot?->event;
-        $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
+        $reopenedByName = $this->reopenedBy->displayName();
         $message = (new MailMessage)
             ->subject(__('ui.notifications.activity_reopened_email_subject', ['activity' => $this->activity->name]))
             ->line(__('ui.notifications.activity_reopened_email_intro', [
@@ -62,7 +62,7 @@ class ActivityReopenedNotification extends Notification implements ShouldQueue, 
         $this->activity->loadMissing(['slot.event']);
 
         $event = $this->activity->slot?->event;
-        $reopenedByName = $this->reopenedBy->nickname ?? $this->reopenedBy->email ?? __('ui.common.unknown_user');
+        $reopenedByName = $this->reopenedBy->displayName();
 
         return [
             'type' => 'activity_reopened',

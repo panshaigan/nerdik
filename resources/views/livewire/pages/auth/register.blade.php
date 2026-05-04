@@ -15,8 +15,6 @@ new #[Layout('layouts.guest')] class extends Component
 {
     use EnsuresRecaptchaVerifiedWhenEnabled;
 
-    public string $name = '';
-
     public string $nickname = '';
 
     public string $email = '';
@@ -36,8 +34,7 @@ new #[Layout('layouts.guest')] class extends Component
     public function register(): void
     {
         $validated = $this->validate($this->rulesIncludingRecaptchaIfEnabled([
-            'name' => ['nullable', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:255'],
+            'nickname' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]));
@@ -134,17 +131,6 @@ new #[Layout('layouts.guest')] class extends Component
             autocomplete="nickname"
             class="ui-field ui-field-nickname"
             data-ui="auth-register-nickname"
-        />
-
-        <x-input
-            wire:model="name"
-            label="{{ __('Name (optional)') }}"
-            type="text"
-            name="name"
-            error-field="name"
-            autocomplete="name"
-            class="ui-field ui-field-name"
-            data-ui="auth-register-name"
         />
 
         <x-input

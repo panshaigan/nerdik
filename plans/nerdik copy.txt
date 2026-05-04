@@ -5,8 +5,6 @@
 - search everything on top
 - should we allow users to delete their own tags?: no, it will be auto deletion of not used tags
 - places
-- add avatars/logos
-- participation screen must be live
 - activity languages
 - feedback system
 - losowanie uczestników, jeśli jest więcej
@@ -28,9 +26,6 @@ tag extraction:
 
 Features:
 	- (anyone) Sign up / Sign in:
-        - email+password [MVP]
-        - Google [MVP]
-        - FB [FUTURE]
         - Apple [FUTURE]
 	- Activity proposal/approval
         - should be possible to add links for external resources. [MVP]
@@ -48,13 +43,8 @@ Features:
 		- (guest) Browse (list) public events (read-only)
 		- (guest) Browse (list) public activities (accepted ones in public events) (read-only)
 	- User Dashboard
-		- new activities/events [FUTURE]
-		- soon starting events [FUTURE]
-		- activities/events in or close to your place/coordinates if set [FUTURE]
-		- your stats [FUTURE]
 		- friends activity [FUTURE]
 		- your location stats [FUTURE]
-		- activities/events with chosen tags [FUTURE]
 		- calendar [FUTURE]
 	- User Profile
 		- (logged in) external ways to communicate (like whatsapp, phone, fb, insta) [MVP]
@@ -63,11 +53,8 @@ Features:
 		- (owner/logged in) points. you receive points for good behavior, and loose for bad (e.g. not appearing at the activity without rolling out before) [FUTURE]
 		- (owner/logged in) description, experience [FUTURE]
 		- (owner) stats and view/hiding modules (like events, organisation cruds) [FUTURE]
-		- (owner) not everyone is interested in creating events, so it should be possible to hide some possibilities like hide event creation for an user who is interested only in participating [FUTURE]
-		- (owner) maybe lets allow users to choose between: full functionality, event organizer, host, player [FUTURE]
 		- (owner/logged in) friends [FUTURE]
 		- (owner) a feature which would allow to sign friends for activities. like someone sees a perfect activity and enroll himself and his 2 friends. [FUTURE]
-		- (owner) external (email for the start) notifications settings [MVP]
 
 	- Administration
 		- (admin) CRUDding and choosing global tags. meaning the ones which are being suggested to everyone [MVP]
@@ -91,7 +78,6 @@ Features:
 		- organization [MVP]
 		- activity [MVP]
 		- place [FUTURE]
-
 
 DB:
 	- Table for extended ownership. Like you can add owners to given entity [FUTURE]
@@ -128,16 +114,3 @@ Privacy/data: [FUTURE]
 	- DB audit logs on critical entities: event, organization, activity, activity_proposal, user profile changes, tags.
 	- Only a small set of admin users can access detailed logs and user data; every admin action on user data (viewing profile, changing status, banning, editing content) should be recorded with timestamp and admin id.
 	- Log retention is limited (e.g. 12 months) unless needed for legal reasons.
-
-Hosting notes
-	- For dev:
-		- Local Docker / Laravel Sail.
-	- For first public deploy:
-		- One small VPS (Hetzner/Contabo/etc):
-		- Nginx + PHP‑FPM + MariaDB (same VM) or docker
-		- Supervisor for queue workers / schedulers.
-		- Let’s Encrypt for HTTPS.
-		- CI/CD via GitHub Actions & SSH.
-	- Once the app grows, you can:
-		- Split DB to a managed MariaDB.
-		- Add another VPS for queues or for future mobile/API scaling.

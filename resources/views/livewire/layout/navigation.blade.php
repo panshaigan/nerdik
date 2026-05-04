@@ -88,17 +88,12 @@ new class extends Component
                 </a>
 
                 <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar border border-base-300">
-                        <div class="w-9 rounded-full">
-                            <img
-                                src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name ?? 'User') }}&background=334155&color=ffffff&bold=true"
-                                alt=""
-                            />
-                        </div>
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle border border-base-300 p-0">
+                        <x-user-badge :user="auth()->user()" size="sm" avatar-only />
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-50 mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2">
-                            <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
+                            <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                             <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
                         </li>
                         <li>
@@ -148,7 +143,7 @@ new class extends Component
         <div class="border-t border-base-300 pb-1 pt-4">
             @auth
             <div class="px-4">
-                <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
                 <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
             </div>
             @endauth

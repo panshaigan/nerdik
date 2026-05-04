@@ -154,7 +154,7 @@ class Event extends Model
     /**
      * Human-friendly owner/host label:
      * - if an organization is attached, show organization name
-     * - otherwise show the creator user nickname/email
+     * - otherwise show the creator user's canonical display name (nickname)
      */
     public function hostDisplayName(): string
     {
@@ -163,7 +163,7 @@ class Event extends Model
         }
 
         if ($this->creator) {
-            return $this->creator->nickname ?? $this->creator->email;
+            return $this->creator->displayName();
         }
 
         return '';

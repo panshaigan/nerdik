@@ -8,7 +8,6 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
@@ -40,8 +39,8 @@ class FacebookAuthController extends Controller
                 $this->verifyUserFromFacebookIfApplicable($user);
             } else {
                 $user = User::create([
-                    'name' => $facebookUser->getName() ?? $facebookEmail,
-                    'nickname' => Str::slug(explode('@', $facebookEmail)[0], '_'),
+                    'name' => $facebookUser->getName(),
+                    'nickname' => User::generateUniqueNicknameFromEmail($facebookEmail),
                     'email' => $facebookEmail,
                     'facebook_id' => $facebookUser->getId(),
                     'password' => Hash::make(uniqid('', true)),

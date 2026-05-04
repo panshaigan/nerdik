@@ -119,6 +119,6 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
 
     protected function joinerDisplayName(): string
     {
-        return $this->joiner->nickname ?? $this->joiner->email ?? __('ui.common.unknown_user');
+        return $this->joiner->displayName();
     }
 }

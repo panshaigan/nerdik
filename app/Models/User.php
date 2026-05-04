@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -65,6 +66,46 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_admin' => 'boolean',
             'is_event_organizer' => 'boolean',
         ];
+    }
+
+    /**
+     * Canonical user identity. The single source of truth for how a user is rendered anywhere in the app.
+     */
+    public function displayName(): string
+    {
+        return (string) $this->nickname;
+    }
+
+    /**
+     * Filament uses this to label the authenticated user in the admin UI (topbar, menus).
+     */
+    public function getFilamentName(): string
+    {
+        return $this->displayName();
+    }
+
+    /**
+     * Build a unique nickname from an email's local-part, appending a numeric suffix on collision.
+     */
+    public static function generateUniqueNicknameFromEmail(string $email): string
+    {
+        $localPart = explode('@', $email)[0] ?? '';
+        $base = Str::slug($localPart, '_');
+
+        if ($base === '') {
+            $base = 'user';
+        }
+
+        if (! self::where('nickname', $base)->exists()) {
+            return $base;
+        }
+
+        $suffix = 2;
+        while (self::where('nickname', $base.'_'.$suffix)->exists()) {
+            $suffix++;
+        }
+
+        return $base.'_'.$suffix;
     }
 
     public function canCreateEvents(): bool

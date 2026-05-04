@@ -49,7 +49,7 @@
                         @endif
                         <p class="opacity-80">
                             {{ __('ui.activities.cancelled_meta', [
-                                'who' => $editingActivity->canceller?->nickname ?? $editingActivity->canceller?->email ?? __('ui.common.unknown_user'),
+                                'who' => $editingActivity->canceller?->displayName() ?? __('ui.common.unknown_user'),
                                 'when' => $editingActivity->cancelled_at ? format_datetime_in_user_tz($editingActivity->cancelled_at) : '—',
                             ]) }}
                         </p>

@@ -21,7 +21,7 @@
                                     –
                                     {{ format_date_in_user_tz($proposal->event->starts_at) }}
                                 </td>
-                                <td class="opacity-80">{{ $proposal->creator->nickname ?? $proposal->creator->email }}</td>
+                                <td class="opacity-80">{{ $proposal->creator?->displayName() }}</td>
                                 <td class="opacity-80">{{ ucfirst($proposal->status->value) }}</td>
                                 <td class="text-end">
                                     @if ($proposal->acceptedSlot)

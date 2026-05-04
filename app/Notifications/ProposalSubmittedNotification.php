@@ -42,7 +42,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue,
             ->subject(__('ui.notifications.proposal_submitted_subject', ['event' => $event->name]))
             ->line(__('ui.notifications.proposal_submitted_line_1'))
             ->line(__('ui.notifications.activity_label', ['name' => $activity->name]))
-            ->line(__('ui.notifications.proposal_submitted_line_2', ['name' => $proposer?->nickname ?? $proposer?->email ?? __('ui.common.unknown_user')]))
+            ->line(__('ui.notifications.proposal_submitted_line_2', ['name' => $proposer?->displayName() ?? __('ui.common.unknown_user')]))
             ->action(__('ui.notifications.review_proposal'), route('events.show', $event));
     }
 
