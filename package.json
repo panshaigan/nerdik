@@ -19,6 +19,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "croppie": "^2.6.5",
         "flatpickr": "^4.6.13"
     }
 }

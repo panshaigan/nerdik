@@ -1,4 +1,5 @@
 import './bootstrap';
+import './avatar-cropper';
 import './notifications-echo';
 import './activities-echo';
 import './maps-init';

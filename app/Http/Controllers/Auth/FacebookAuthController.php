@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Avatars\RefreshCachedAvatar;
+use App\Enums\AvatarSource;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +19,10 @@ class FacebookAuthController extends Controller
 {
     public function redirect(): SymfonyRedirectResponse
     {
+        if (request()->query('return_tab') === 'avatar') {
+            session(['socialite.return_tab' => 'avatar']);
+        }
+
         $this->captureBrowserTimezoneFromRequest();
 
         return Socialite::driver('facebook')->scopes(['email'])->redirect();
@@ -43,6 +50,7 @@ class FacebookAuthController extends Controller
             if ($user) {
                 $profile = $user->profile()->firstOrCreate();
                 $profile->facebook_id = $facebookUser->getId();
+                $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 if ($profile->timezone === null && $browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -58,6 +66,7 @@ class FacebookAuthController extends Controller
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->facebook_id = $facebookUser->getId();
+                $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 if ($browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -65,11 +74,38 @@ class FacebookAuthController extends Controller
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);
             }
+        } else {
+            $profile = $user->profile()->firstOrCreate();
+            $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
+            $profile->save();
+            $user->setRelation('profile', $profile);
         }
 
         Auth::login($user, true);
 
+        $user->refresh();
+        $user->load('profile');
+        if ($user->profile?->avatar_source === AvatarSource::Facebook) {
+            try {
+                app(RefreshCachedAvatar::class)($user, AvatarSource::Facebook);
+            } catch (\Throwable) {
+            }
+        }
+
+        if (session()->pull('socialite.return_tab') === 'avatar') {
+            return redirect()->to(route('profile', absolute: false).'?tab=avatar');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    private function syncFacebookAvatarUrl(UserProfile $profile, mixed $avatarUrl): void
+    {
+        if (! is_string($avatarUrl) || $avatarUrl === '') {
+            return;
+        }
+
+        $profile->facebook_avatar_url = $avatarUrl;
     }
 
     /**

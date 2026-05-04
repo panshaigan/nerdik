@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\LogNotificationEmail;
+use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Event;
@@ -10,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Place;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -21,6 +23,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        $this->app->singleton(ImageManager::class, function (): ImageManager {
+            return new ImageManager(new Driver);
+        });
 
         parent::register();
     }
@@ -69,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         EventFacade::listen(NotificationSent::class, LogNotificationEmail::class);
+        EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
 
         RateLimiter::for('registration', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());

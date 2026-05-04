@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\AvatarSource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,10 @@ class UserProfile extends Model
         'google_id',
         'facebook_id',
         'avatar_path',
+        'avatar_source',
+        'avatar_cache_signature',
+        'google_avatar_url',
+        'facebook_avatar_url',
         'avatar_bg_color',
         'avatar_text_color',
         'discord_handle',
@@ -35,6 +40,7 @@ class UserProfile extends Model
     protected function casts(): array
     {
         return [
+            'avatar_source' => AvatarSource::class,
             'languages' => 'array',
             'notification_preferences' => 'array',
         ];

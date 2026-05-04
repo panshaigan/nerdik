@@ -36,6 +36,16 @@ class UserForm
                     ->default(null),
                 TextInput::make('profile.avatar_path')
                     ->default(null),
+                TextInput::make('profile.avatar_source')
+                    ->default('generated'),
+                TextInput::make('profile.avatar_cache_signature')
+                    ->default(null),
+                TextInput::make('profile.google_avatar_url')
+                    ->default(null)
+                    ->columnSpanFull(),
+                TextInput::make('profile.facebook_avatar_url')
+                    ->default(null)
+                    ->columnSpanFull(),
                 TextInput::make('profile.avatar_bg_color')
                     ->default('#1d4ed8'),
                 TextInput::make('profile.avatar_text_color')

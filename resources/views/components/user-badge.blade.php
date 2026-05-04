@@ -12,12 +12,14 @@
     $resolvedName = trim((string) ($name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
     $avatarBackgroundColor = ltrim((string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8'), '#');
     $avatarTextColor = ltrim((string) ($user?->profile?->avatar_text_color ?? '#ffffff'), '#');
-    $avatarUrl = sprintf(
-        'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
-        rawurlencode($resolvedName),
-        rawurlencode($avatarBackgroundColor),
-        rawurlencode($avatarTextColor),
-    );
+    $avatarUrl = $user !== null
+        ? $user->avatarUrl()
+        : sprintf(
+            'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
+            rawurlencode($resolvedName),
+            rawurlencode($avatarBackgroundColor),
+            rawurlencode($avatarTextColor),
+        );
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',
