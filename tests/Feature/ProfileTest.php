@@ -6,6 +6,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -72,13 +73,14 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
     }
 
-    public function test_avatar_information_can_be_updated(): void
+    public function test_generated_avatar_colors_can_be_saved(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'generated')
             ->set('avatar_bg_color', '#112233')
             ->set('avatar_text_color', '#ddeeff')
             ->call('updateAvatar');
@@ -211,6 +213,26 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('name=Color%20User', $html);
         $this->assertStringContainsString('background=112233', $html);
         $this->assertStringContainsString('color=ddeeff', $html);
+    }
+
+    public function test_user_badge_uses_storage_url_for_uploaded_source(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create([
+            'nickname' => 'Disk User',
+        ]);
+        $path = 'avatars/'.$user->id.'.webp';
+        Storage::disk('public')->put($path, 'fake-webp-bytes');
+        $user->profile()->update([
+            'avatar_source' => 'uploaded',
+            'avatar_path' => $path,
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" avatar-only />', [
+            'user' => $user->fresh('profile'),
+        ]);
+
+        $this->assertStringContainsString('/storage/'.$path, $html);
     }
 
     public function test_profile_page_has_tab_query_parameter(): void

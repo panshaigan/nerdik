@@ -104,6 +104,10 @@ return new class extends Migration
             $table->string('google_id')->nullable();
             $table->string('facebook_id')->nullable();
             $table->string('avatar_path')->nullable();
+            $table->enum('avatar_source', ['generated', 'uploaded', 'gravatar', 'google', 'facebook'])->default('generated');
+            $table->string('avatar_cache_signature', 64)->nullable();
+            $table->text('google_avatar_url')->nullable();
+            $table->text('facebook_avatar_url')->nullable();
             $table->string('avatar_bg_color', 7)->nullable();
             $table->string('avatar_text_color', 7)->nullable();
             $table->string('discord_handle')->nullable();

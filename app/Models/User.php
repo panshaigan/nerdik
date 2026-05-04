@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Avatars\ResolveAvatarUrl;
 use App\Enums\NotificationPreferenceKey;
 use Database\Factories\UserFactory;
 use Filament\Panel;
@@ -70,6 +71,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function displayName(): string
     {
         return (string) $this->nickname;
+    }
+
+    public function avatarUrl(): string
+    {
+        return app(ResolveAvatarUrl::class)($this);
     }
 
     /**
