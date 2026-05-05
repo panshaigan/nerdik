@@ -22,45 +22,40 @@
 /* ─── Shared brand tokens (theme-independent) ─────────────────────── */
 @layer base {
     :root {
-        --brand-primary:           oklch(62% 0.22 303); /* violet — unchanged */
+        --brand-primary:           oklch(52% 0.22 240);
         --brand-primary-dark:      oklch(from var(--brand-primary) calc(l - 0.12) c h);
-        --brand-primary-content:   oklch(98%  0.01  305);
+        --brand-primary-content:   oklch(98% 0.01 240);
 
-        --brand-secondary:         oklch(66.6% 0.105 205); /* sky-blue — unchanged */
-        --brand-secondary-content: oklch(98%  0.01  205);
+        --brand-secondary:         oklch(67% 0.20 182);
+        --brand-secondary-content: oklch(98% 0.01 182);
 
-        /* CHANGED: hue 166→195, chroma 0.119→0.110
-           Brings accent into the blue-teal family (between secondary at 205
-           and pure teal at 185), so all three brand colors form a tight
-           analogous cluster: 195–205–305 */
-        --brand-accent: oklch(0.655 0.128 168.298);
-        --brand-accent-content:    oklch(98%  0.01  205);
+        --brand-accent:            oklch(62% 0.26 292);
+        --brand-accent-content:    oklch(98% 0.01 292);
 
-        --brand-info:              oklch(70%  0.16  220);
-        --brand-info-content:      oklch(98%  0.01  220);
-        --brand-success:           oklch(65%  0.18  150);
-        --brand-success-content:   oklch(98%  0.01  150);
-        --brand-warning:           oklch(75%  0.18  80);
-        /* CHANGED: 20%→22% + chroma bump for better contrast on yellow bg */
-        --brand-warning-content:   oklch(22%  0.06  80);
-        --brand-error:             oklch(60%  0.22  25);
-        --brand-error-content:     oklch(98%  0.01  25);
+        --brand-info:              oklch(62% 0.19 228);
+        --brand-info-content:      oklch(98% 0.01 228);
+        --brand-success:           oklch(64% 0.19 162);
+        --brand-success-content:   oklch(98% 0.01 162);
+        --brand-warning:           oklch(75% 0.18 80);
+        --brand-warning-content:   oklch(22% 0.06 80);
+        --brand-error:             oklch(58% 0.23 25);
+        --brand-error-content:     oklch(98% 0.01 25);
 
         /* Neutrals (Light) */
-        --brand-neutral-light:          oklch(25% 0.02 250);
-        --brand-neutral-content-light:  oklch(95% 0.01 250);
-        --brand-base-100-light:         oklch(100% 0   0);
-        --brand-base-200-light:         oklch(96%  0.01 250);
-        --brand-base-300-light:         oklch(90%  0.02 250);
-        --brand-base-content-light:     oklch(20%  0.02 250);
+        --brand-neutral-light:          oklch(30%  0.04  242);
+        --brand-neutral-content-light:  oklch(95%  0.01  242);
+        --brand-base-100-light:         oklch(97%  0.015 242);
+        --brand-base-200-light:         oklch(92%  0.025 242);
+        --brand-base-300-light:         oklch(86%  0.035 242);
+        --brand-base-content-light:     oklch(18%  0.04  242);
 
         /* Neutrals (Dark) */
-        --brand-neutral-dark:           oklch(80%  0.02 248);
-        --brand-neutral-content-dark:   oklch(15%  0.01 248);
-        --brand-base-100-dark:          oklch(18%  0.05 248);
-        --brand-base-200-dark:          oklch(22%  0.05 248);
-        --brand-base-300-dark:          oklch(27%  0.05 248);
-        --brand-base-content-dark:      oklch(90%  0.01 248);
+        --brand-neutral-dark:           oklch(78%  0.03  242);
+        --brand-neutral-content-dark:   oklch(16%  0.05  242);
+        --brand-base-100-dark:          oklch(16%  0.08  242); /* deep ocean, not black */
+        --brand-base-200-dark:          oklch(20%  0.08  242);
+        --brand-base-300-dark:          oklch(25%  0.08  242);
+        --brand-base-content-dark:      oklch(88%  0.02  242);
 
         --brand-animation-btn:   0.15s;
         --brand-border:          1px;

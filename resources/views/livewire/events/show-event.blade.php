@@ -1,80 +1,93 @@
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        @php
-            $title = $event->name;
-        @endphp
+@php
+    $title = $event->name;
+@endphp
+<div>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <x-header
+            title="{{ $title }}"
+            class=""
+            separator
+            use-h1
+        >
+            <x-slot:title>
+                <div class="flex items-center gap-2">
+                    <span>{{ $title }}</span>
+                </div>
+            </x-slot:title>
+            <x-slot:subtitle>
 
-        <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
-            <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/40 via-primary-dark-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
-                @if ($event->isCancelled())
-                    <div role="alert" class="alert alert-warning mb-4 text-sm">
-                        <div class="space-y-1">
-                            <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
-                            @if ($event->cancel_reason)
-                                <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $event->cancel_reason }}</p>
-                            @endif
-                            <p class="opacity-80">
-                                {{ __('ui.events.cancelled_meta', [
-                                    'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
-                                    'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
-                                ]) }}
-                            </p>
-                        </div>
-                    </div>
+            </x-slot:subtitle>
+            <x-slot:actions>
+                @if ($event->creator)
+                    <x-user-badge
+                        :user="$event->creator"
+                        size="md"
+                        name-class="truncate text-end font-semibold"
+                        data-ui="activity-show-host"
+                        title="Creator"
+                    />
                 @endif
-                <x-header
-                    title="{{ $title }}"
-                    class=""
-                    separator
-                    use-h1
-                >
-                    <x-slot:title>
-                        <div class="flex items-center gap-2">
-                            <span>{{ $title }}</span>
-                        </div>
-                    </x-slot:title>
-                    <x-slot:subtitle>
-                        {{__('Placeholder')}}
-                    </x-slot:subtitle>
-                    <x-slot:actions>
-                        @if ($event->creator)
-                            <x-user-badge
-                                :user="$event->creator"
-                                size="md"
-                                name-class="truncate text-end font-semibold"
-                                data-ui="activity-show-host"
-                                title="Creator"
-                            />
+            </x-slot:actions>
+        </x-header>
+    </div>
+
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="p-6 sm:p-8">
+            @if ($event->isCancelled())
+                <div role="alert" class="alert alert-warning alert-outline  mb-4 text-sm">
+                    <div class="space-y-1">
+                        <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
+                        @if ($event->cancel_reason)
+                            <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $event->cancel_reason }}</p>
                         @endif
-                    </x-slot:actions>
-                </x-header>
-                <div class="mb-4 rounded-lg border border-base-300 bg-base-100/70 px-3 py-2">
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-base-content/80">
-                    <span class="inline-flex items-center gap-1.5">
-                        <x-icon name="o-check-badge" class="h-4 w-4 text-success" />
-                        <span>{{ __('ui.events.confirmed_activities') }}:</span>
-                        <span class="font-semibold text-base-content">{{ (int) $confirmedActivitiesCount }}</span>
-                    </span>
-                                <span class="inline-flex items-center gap-1.5">
-                        <x-icon name="o-users" class="h-4 w-4 text-primary" />
-                        <span>{{ __('ui.events.confirmed_participants') }}:</span>
-                        <span class="font-semibold text-base-content">{{ (int) $confirmedParticipantsCount }}</span>
-                    </span>
-                                <span class="inline-flex items-center gap-1.5">
-                        <x-icon name="o-star" class="h-4 w-4 text-warning" />
-                        <span>{{ __('ui.events.interested_people_count') }}:</span>
-                        <span class="font-semibold text-base-content">{{ (int) $interestedPeopleCount }}</span>
-                    </span>
+                        <p class="opacity-80">
+                            {{ __('ui.events.cancelled_meta', [
+                                'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
+                                'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
+                            ]) }}
+                        </p>
                     </div>
                 </div>
+            @endif
+
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <x-stat
+                    title="{{ __('ui.events.confirmed_activities') }}"
+                    value="{{ $confirmedActivitiesCount }}"
+                    icon="o-envelope"
+                    color="text-primary"
+                    class="bg-primary/15"
+                />
+
+                <x-stat
+                    title="{{ __('ui.events.confirmed_participants') }}"
+                    value="{{ $confirmedParticipantsCount }}"
+                    icon="o-users"
+                    color="text-primary"
+                    class="bg-primary/15"
+                />
+
+                <x-stat
+                    title="{{ __('ui.events.interested_people_count') }}"
+                    value="{{ $interestedPeopleCount }}"
+                    icon="o-star"
+                    color="text-primary"
+                    class="bg-primary/15"
+                />
             </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
+
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+                label-div-class="flex gap-5 overflow-x-auto px-3"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
-                toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 pb-2 pt-2 sm:px-3"
+                toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
             >
                 <x-slot:toolbar>
