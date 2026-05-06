@@ -97,7 +97,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6 mt-4">
-        <div id="ui-event-show-hero" class="ui-event-show-hero ui-glow-board overflow-hidden rounded-2xl" data-ui="event-show-hero">
+        <div id="ui-event-show-hero" class="ui-event-show-hero ui-glow-board rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
@@ -116,7 +116,7 @@
                                     <x-button
                                         id="ui-event-show-create-slots"
                                         type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary ui-action ui-action-create-slots"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success ui-action ui-action-create-slots"
                                         onclick="document.getElementById('event-slots-create-modal')?.showModal()"
                                         :tooltip="__('ui.slots.create_slots')"
                                         :aria-label="__('ui.slots.create_slots')"
@@ -125,7 +125,7 @@
                                     />
                                 <x-button
                                     :link="route('events.edit', $event)"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
                                     :tooltip="__('Edit')"
                                     :aria-label="__('Edit').': '.$event->name"
                                     data-ui="event-show-edit-open"
@@ -134,7 +134,7 @@
                                 @if (auth()->user()?->canCreateEvents())
                                     <x-button
                                         :link="route('events.create', ['duplicate' => $event->slug])"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-accent"
                                         :tooltip="__('ui.events.duplicate_action')"
                                         :aria-label="__('ui.events.duplicate_action').': '.$event->name"
                                         data-ui="event-show-duplicate-open"
@@ -145,7 +145,7 @@
                                     @if (($eventSignupPressureBlocksDelete ?? false))
                                         <x-button
                                             type="button"
-                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                             wire:click="confirmCancelEvent"
                                             :tooltip="__('ui.events.cancel_action')"
                                             :aria-label="__('ui.events.cancel_action').': '.$event->name"
@@ -166,7 +166,7 @@
                                 @else
                                     <x-button
                                         type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-info"
                                         wire:click="confirmReopenEvent"
                                         :tooltip="__('ui.events.reopen_action')"
                                         :aria-label="__('ui.events.reopen_action')"
