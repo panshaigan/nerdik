@@ -352,17 +352,12 @@
 }
 
 .ui-glow-panel-alert {
-    border: 1px solid color-mix(in oklab, var(--brand-warning) 58%, transparent);
     background: linear-gradient(
         180deg,
         color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-100-light)),
         color-mix(in oklab, var(--brand-warning) 52%, var(--brand-base-200-light))
     );
     color: color-mix(in oklab, var(--brand-warning-content) 78%, var(--brand-warning-content));
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-warning) 30%, transparent),
-        inset 0 18px 30px -24px color-mix(in oklab, var(--brand-warning) 45%, transparent),
-        0 0 20px -12px color-mix(in oklab, var(--brand-warning) 65%, transparent);
 }
 
 [data-theme="dark"] .ui-glow-panel-alert {
