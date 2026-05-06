@@ -26,9 +26,8 @@
         }
     }"
 >
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3">
-        <h3 class="text-lg font-semibold text-base-content"></h3>
-        <div class="flex flex-wrap items-center justify-end gap-2">
+    <div class="mb-4 flex flex-wrap items-center mx-auto gap-3 pb-3">
+        <div class="flex flex-wrap items-center gap-2">
             @auth
                 @php
                     $proposeActivityUrl = ! empty($proposalSlotIds)
@@ -38,9 +37,19 @@
                         ])
                         : route('activities.create', ['proposal_event_id' => $event->id]);
                 @endphp
-                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
-                    {{ __('ui.events.propose_activity') }}
-                </x-button>
+                <div class="hero bg-base-200">
+                    <div class="hero-content text-center p-6">
+                        <div class="max-w-md">
+                            <h1 class="text-5xl font-bold">{{__('Hello there')}}</h1>
+                            <p class="py-6">
+                                {{__('Description')}}
+                            </p>
+                            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
+                                {{ __('ui.events.propose_activity') }}
+                            </x-button>
+                        </div>
+                    </div>
+                </div>
             @endauth
         </div>
     </div>
