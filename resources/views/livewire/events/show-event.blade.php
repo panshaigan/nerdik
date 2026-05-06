@@ -3,7 +3,7 @@
 @endphp
 <div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" progress-indicator use-h1>
+        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-2xl sm:text-4xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">
                     <span>{{ $title }}</span>
             </x-slot:title>
@@ -30,7 +30,7 @@
         @if ($event->isCancelled())
             <x-alert class="ui-glow-panel-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
                 <div class="space-y-1">
-                    <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
+                    <p class="text-xl">{{ __('ui.events.cancelled_badge') }}</p>
                     @if ($event->cancel_reason)
                         <p><strong>{{ __('ui.activities.cancel_reason_label') }}:</strong> {{ $event->cancel_reason }}</p>
                     @endif
