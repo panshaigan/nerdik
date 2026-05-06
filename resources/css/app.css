@@ -227,19 +227,11 @@
 
 
 .bg-sample5 {
-    background:
-    radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
-    radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
-    var(--brand-base-100-light);
 
-    background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat;
 }
 
 [data-theme="dark"] .bg-sample5 {
-    background:
-        radial-gradient(circle at 30% 70%, var(--brand-primary), transparent 60%),
-        radial-gradient(circle at 70% 30%, var(--brand-primary-dark), transparent 60%)
-        var(--brand-base-100-dark);
+
 }
 
 .bg-sample6 {
