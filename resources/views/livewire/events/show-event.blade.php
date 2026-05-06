@@ -1,5 +1,7 @@
 @php
     $title = $event->name;
+    $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
+    $eventPlaceSummary = $event->compactPlaceSummary();
 @endphp
 <div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -27,6 +29,28 @@
 
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
+
+        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div class="ui-glow-stat rounded-xl px-4 py-3">
+                <x-stat
+                    title="{{ 'Date' }}"
+                    value="{{ $eventDateSummary }}"
+                    icon="o-calendar"
+                    class="!bg-transparent !p-0 !shadow-none"
+                />
+            </div>
+            <div class="ui-glow-stat rounded-xl px-4 py-3">
+                @if (filled($eventPlaceSummary))
+                <x-stat
+                    title="{{ 'Location' }}"
+                    value="{{ $eventPlaceSummary }}"
+                    icon="o-map-pin"
+                    class="!bg-transparent !p-0 !shadow-none"
+                />
+                @endif
+            </div>
+        </div>
+
         @if ($event->isCancelled())
             <x-alert class="ui-glow-panel-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
                 <div class="space-y-1">

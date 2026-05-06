@@ -173,4 +173,51 @@ class Event extends Model
     {
         return format_date_range_compact($this->starts_at, $this->ends_at);
     }
+
+    public function compactPlaceSummary(): string
+    {
+        $this->loadMissing('places.city');
+
+        $venues = $this->places
+            ->filter(fn ($place) => $place !== null && $place->type === Place::TYPE_VENUE && filled($place->name))
+            ->unique('id')
+            ->values();
+
+        if ($venues->isEmpty()) {
+            return '';
+        }
+
+        $venueNames = $venues
+            ->map(fn ($place) => trim((string) $place->name))
+            ->filter()
+            ->values();
+
+        $cityNames = $venues
+            ->map(fn ($place) => $place->city?->name(app()->getLocale()))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($cityNames->count() === 1 && $venueNames->count() > 1) {
+            $cityName = (string) $cityNames->first();
+
+            return $cityName !== ''
+                ? sprintf('%s (%s)', $venueNames->implode(', '), $cityName)
+                : $venueNames->implode(', ');
+        }
+
+        return $venues
+            ->map(function ($place): string {
+                $venueName = trim((string) $place->name);
+                $cityName = trim((string) ($place->city?->name(app()->getLocale()) ?? ''));
+
+                if ($cityName === '') {
+                    return $venueName;
+                }
+
+                return sprintf('%s (%s)', $venueName, $cityName);
+            })
+            ->filter()
+            ->implode(', ');
+    }
 }
