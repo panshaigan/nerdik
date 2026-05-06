@@ -1,11 +1,11 @@
 @php
     $title = $event->name;
 @endphp
-<div>
+<div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <x-header
             title="{{ $title }}"
-            class=""
+            class="px-4 py-3 sm:px-6"
             separator
             use-h1
         >
@@ -22,7 +22,6 @@
                     <x-user-badge
                         :user="$event->creator"
                         size="md"
-                        name-class="truncate text-end font-semibold"
                         data-ui="activity-show-host"
                         title="Creator"
                     />
@@ -31,61 +30,60 @@
         </x-header>
     </div>
 
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        <div class="p-6 sm:p-8">
-            @if ($event->isCancelled())
-                <div role="alert" class="alert alert-warning alert-outline  mb-4 text-sm">
-                    <div class="space-y-1">
-                        <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
-                        @if ($event->cancel_reason)
-                            <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $event->cancel_reason }}</p>
-                        @endif
-                        <p class="opacity-80">
-                            {{ __('ui.events.cancelled_meta', [
-                                'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
-                                'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
-                            ]) }}
-                        </p>
-                    </div>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
+        @if ($event->isCancelled())
+            <x-alert class="event-neon-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
+                <div class="space-y-1">
+                    <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
+                    @if ($event->cancel_reason)
+                        <p><strong>{{ __('ui.activities.cancel_reason_label') }}:</strong> {{ $event->cancel_reason }}</p>
+                    @endif
+                    <p class="opacity-80">
+                        {{ __('ui.events.cancelled_meta', [
+                            'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
+                            'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
+                        ]) }}
+                    </p>
                 </div>
-            @endif
+            </x-alert>
+        @endif
 
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div class="event-neon-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
                     value="{{ $confirmedActivitiesCount }}"
                     icon="o-envelope"
-                    color="text-primary"
-                    class="bg-primary/15"
+                    class="!bg-transparent !p-0 !shadow-none"
                 />
-
+            </div>
+            <div class="event-neon-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_participants') }}"
                     value="{{ $confirmedParticipantsCount }}"
                     icon="o-users"
-                    color="text-primary"
-                    class="bg-primary/15"
+                    class="!bg-transparent !p-0 !shadow-none"
                 />
-
+            </div>
+            <div class="event-neon-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.interested_people_count') }}"
                     value="{{ $interestedPeopleCount }}"
                     icon="o-star"
-                    color="text-primary"
-                    class="bg-primary/15"
+                    class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        <div id="ui-event-show-hero" class="ui-event-show-hero overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow" data-ui="event-show-hero">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6 mt-4">
+        <div id="ui-event-show-hero" class="ui-event-show-hero event-neon-board overflow-hidden rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3"
-                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
-                active-class="!text-base-content border-b border-primary text-primary"
+                label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
+                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-sky-100/70 hover:text-sky-100"
+                active-class="!text-sky-100 border-b border-sky-400 text-sky-200"
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
