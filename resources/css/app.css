@@ -170,6 +170,14 @@
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
 }
 
+@utility line-glow-* {
+    --_glow-base: --value(--color-*);
+    border-color: var(--_glow-base);
+    box-shadow:
+        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
+        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+}
+
 .bg-sample1 {
     background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-light) 40%, var(--brand-secondary) 100%);
 }
