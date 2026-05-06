@@ -31,7 +31,7 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
 
         <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div class="ui-glow-stat rounded-xl px-4 py-3">
+            <div class="ui-glow-stat ui-info-tile ui-info-tile--secondary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ 'Date' }}"
                     value="{{ $eventDateSummary }}"
@@ -39,7 +39,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="ui-glow-stat rounded-xl px-4 py-3">
+            <div class="ui-glow-stat ui-info-tile ui-info-tile--accent rounded-xl px-4 py-3">
                 @if (filled($eventPlaceSummary))
                 <x-stat
                     title="{{ 'Location' }}"
@@ -68,7 +68,7 @@
             </x-alert>
         @endif
 
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
             <div class="ui-glow-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
