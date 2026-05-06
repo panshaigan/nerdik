@@ -19,14 +19,14 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body
-        class="bg-sample5 font-sans antialiased text-base-content"
+        class="font-sans antialiased text-base-content"
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
-            <div class="flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
+            <div class="bg-sample1 flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
                 <x-main full-width with-nav>
                     <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0">
                         {{ $slot }}
