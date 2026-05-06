@@ -1,6 +1,8 @@
 @props([
     'icon' => 'o-sparkles',
     'iconClass' => 'size-4',
+    'text' => null,
+    'centerTextClass' => 'text-xs font-semibold tracking-tight whitespace-nowrap max-w-[14rem] truncate',
     'leftEdgeIcon' => 'o-star',
     'rightEdgeIcon' => 'o-star',
     'edgeIconClass' => 'size-3 text-primary/80',
@@ -16,12 +18,14 @@
     'doubleGapClass' => 'space-y-1',
     'centerClass' => 'grid place-items-center rounded-full border border-primary/50 bg-base-100/70 text-primary shadow-[0_0_12px_theme(colors.primary/.80)]',
     'centerSizeClass' => 'size-8',
+    'centerTextWrapClass' => 'min-h-8 min-w-0 px-3 flex items-center justify-center text-center',
 ])
 
 <div {{ $attributes->class([$wrapperClass]) }}>
     @php
         $showDoubleLine = filter_var($double, FILTER_VALIDATE_BOOLEAN);
         $lineCount = $showDoubleLine ? 2 : 1;
+        $centerShowsText = filled($text);
     @endphp
 
     <div class="{{ $lineWrapClass }}">
@@ -37,8 +41,12 @@
         <x-icon :name="$leftEdgeIcon" :class="trim($edgeIconClass.' '.$leftEdgeIconClass)" />
     @endif
 
-    <div class="{{ $centerClass }} {{ $centerSizeClass }}">
-        <x-icon :name="$icon" :class="$iconClass" />
+    <div class="{{ $centerClass }} {{ $centerShowsText ? $centerTextWrapClass : $centerSizeClass }}">
+        @if ($centerShowsText)
+            <span class="{{ $centerTextClass }}">{{ $text }}</span>
+        @else
+            <x-icon :name="$icon" :class="$iconClass" />
+        @endif
     </div>
     @if (filled((string) $rightEdgeIcon))
         <x-icon :name="$rightEdgeIcon" :class="trim($edgeIconClass.' '.$rightEdgeIconClass)" />

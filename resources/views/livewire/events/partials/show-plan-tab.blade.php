@@ -15,8 +15,8 @@
         }
     }"
 >
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-primary/25 pb-3">
-        <h3 class="text-lg font-semibold text-base-content">{{ __('ui.events.event_plan') }}</h3>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3">
+        <h3 class="text-lg font-semibold text-base-content"></h3>
         <div class="flex flex-wrap items-center justify-end gap-2">
             @auth
                 @php
@@ -40,7 +40,7 @@
                     {{ $group['label'] }}
                 </p>
                 @if ($group['slots']->isNotEmpty())
-                    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($group['slots'] as $slot)
                             @php
                                 $activity = $slot->activity;
@@ -70,14 +70,14 @@
                             <li
                                 @class([
                                     'slot-browser-card ui-glow-card w-full group relative rounded-xl',
-                                    'activity-attached transition hover:border-primary/60' => $activity,
+                                    'activity-attached transition border-primary hover:border-primary/60' => $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity,
-                                    'indicator' => !$activity,
+                                    'indicator indicator-top indicator-center' => !$activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity)
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
-                                    :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ring-2 ring-primary/50 bg-primary/5' : ''"
+                                    :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-glow-card-marked' : ''"
                                 @endif
                             >
                                 @if (!$activity)
@@ -267,12 +267,24 @@
                     </ul>
                 @elseif (! empty($group['boundary']))
                     <ul class="grid grid-cols-1 gap-3">
-                        <li class="rounded-xl border border-primary/25 bg-base-200/40 p-4">
+                        <li class="p-4">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/70">
                                 @if ($group['boundary'] === 'event_start')
-                                    {{ __('ui.events.event_boundary_starts') }}
+                                    <x-ui.hr
+                                        text="{{ __('ui.events.event_boundary_starts') }}"
+                                        left-edge-icon="s-star"
+                                        right-edge-icon="s-star"
+                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-primary/80"
+                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-primary/80"
+                                    />
                                 @else
-                                    {{ __('ui.events.event_boundary_ends') }}
+                                    <x-ui.hr
+                                        text="{{ __('ui.events.event_boundary_ends') }}"
+                                        left-edge-icon="s-star"
+                                        right-edge-icon="s-star"
+                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-primary/80"
+                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-primary/80"
+                                    />
                                 @endif
                             </p>
                         </li>

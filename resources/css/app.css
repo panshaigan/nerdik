@@ -424,23 +424,44 @@
 }
 
 .ui-glow-card-alert {
-    border: 1px solid color-mix(in oklab, var(--brand-error) 55%, transparent);
+    border: 1px solid color-mix(in oklab, var(--brand-warning) 55%, transparent);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-error) 28%, var(--brand-base-200-light)),
-        color-mix(in oklab, var(--brand-error) 48%, var(--brand-base-100-light))
+        color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-200-light)),
+        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-light))
     );
     box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-error) 22%, transparent),
-        inset 0 16px 28px -24px color-mix(in oklab, var(--brand-error) 48%, transparent),
-        0 0 22px -16px color-mix(in oklab, var(--brand-error) 72%, transparent);
+        inset 0 0 0 1px color-mix(in oklab, var(--brand-warning) 22%, transparent),
+        inset 0 16px 28px -24px color-mix(in oklab, var(--brand-warning) 48%, transparent),
+        0 0 22px -16px color-mix(in oklab, var(--brand-warning) 72%, transparent);
 }
 
 [data-theme="dark"] .ui-glow-card-alert {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-error) 30%, var(--brand-base-200-dark)),
-        color-mix(in oklab, var(--brand-error) 48%, var(--brand-base-100-dark))
+        color-mix(in oklab, var(--brand-warning) 30%, var(--brand-base-200-dark)),
+        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-dark))
+    );
+}
+
+.ui-glow-card-marked {
+    border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--brand-secondary) 28%, var(--brand-base-200-light)),
+        color-mix(in oklab, var(--brand-secondary) 48%, var(--brand-base-100-light))
+    );
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
+        inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
+        0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
+}
+
+[data-theme="dark"] .ui-glow-card-alert-marked {
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--brand-secondary) 30%, var(--brand-base-200-dark)),
+        color-mix(in oklab, var(--brand-secondary) 48%, var(--brand-base-100-dark))
     );
 }
 
