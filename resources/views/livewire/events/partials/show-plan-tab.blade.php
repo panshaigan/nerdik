@@ -70,7 +70,7 @@
                             <li
                                 @class([
                                     'slot-browser-card ui-glow-card w-full group relative rounded-xl',
-                                    'activity-attached transition border-primary hover:border-primary/60' => $activity,
+                                    'activity-attached transition !border-primary/80 hover:border-primary/60' => $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity,
                                     'indicator indicator-top indicator-center' => !$activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
