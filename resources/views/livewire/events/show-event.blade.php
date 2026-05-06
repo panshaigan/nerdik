@@ -3,7 +3,7 @@
 @endphp
 <div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <x-header title="{{ $title }}" class="mb-4 px-4 py-3 sm:px-6" progress-indicator use-h1>
+        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" progress-indicator use-h1>
             <x-slot:title class="text-primary text-glow-primary">
                     <span>{{ $title }}</span>
             </x-slot:title>

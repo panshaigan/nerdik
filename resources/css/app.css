@@ -37,7 +37,7 @@
         --brand-success:           oklch(64% 0.19 162);
         --brand-success-content:   oklch(98% 0.01 162);
         --brand-warning:           oklch(75% 0.18 80);
-        --brand-warning-content:   oklch(22% 0.06 80);
+        --brand-warning-content:   oklch(0.91 0.006 84.567);
         --brand-error:             oklch(58% 0.23 25);
         --brand-error-content:     oklch(98% 0.01 25);
 
@@ -173,6 +173,13 @@
 @utility line-glow-* {
     --_glow-base: --value(--color-*);
     border-color: var(--_glow-base);
+    box-shadow:
+        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
+        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+}
+
+@utility box-glow-* {
+    --_glow-base: --value(--color-*);
     box-shadow:
         0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
@@ -345,26 +352,26 @@
 }
 
 .ui-glow-panel-alert {
-    border: 1px solid color-mix(in oklab, var(--brand-error) 58%, transparent);
+    border: 1px solid color-mix(in oklab, var(--brand-warning) 58%, transparent);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-error) 28%, var(--brand-base-100-light)),
-        color-mix(in oklab, var(--brand-error) 52%, var(--brand-base-200-light))
+        color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-100-light)),
+        color-mix(in oklab, var(--brand-warning) 52%, var(--brand-base-200-light))
     );
-    color: color-mix(in oklab, var(--brand-error-content) 78%, var(--brand-base-content-light));
+    color: color-mix(in oklab, var(--brand-warning-content) 78%, var(--brand-warning-content));
     box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-error) 30%, transparent),
-        inset 0 18px 30px -24px color-mix(in oklab, var(--brand-error) 45%, transparent),
-        0 0 20px -12px color-mix(in oklab, var(--brand-error) 65%, transparent);
+        inset 0 0 0 1px color-mix(in oklab, var(--brand-warning) 30%, transparent),
+        inset 0 18px 30px -24px color-mix(in oklab, var(--brand-warning) 45%, transparent),
+        0 0 20px -12px color-mix(in oklab, var(--brand-warning) 65%, transparent);
 }
 
 [data-theme="dark"] .ui-glow-panel-alert {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-error) 26%, var(--brand-base-100-dark)),
-        color-mix(in oklab, var(--brand-error) 45%, var(--brand-base-200-dark))
+        color-mix(in oklab, var(--brand-warning) 26%, var(--brand-base-100-dark)),
+        color-mix(in oklab, var(--brand-warning) 45%, var(--brand-base-200-dark))
     );
-    color: color-mix(in oklab, var(--brand-error-content) 90%, var(--brand-base-content-dark));
+    color: color-mix(in oklab, var(--brand-warning-content) 90%, var(--brand-base-content-dark));
 }
 
 .ui-glow-stat {
