@@ -15,8 +15,8 @@
         }
     }"
 >
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-sky-300/20 pb-3">
-        <h3 class="text-lg font-semibold text-sky-100">{{ __('ui.events.event_plan') }}</h3>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-primary/25 pb-3">
+        <h3 class="text-lg font-semibold text-base-content">{{ __('ui.events.event_plan') }}</h3>
         <div class="flex flex-wrap items-center justify-end gap-2">
             @auth
                 @php
@@ -27,7 +27,7 @@
                         ])
                         : route('activities.create', ['proposal_event_id' => $event->id]);
                 @endphp
-                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose !border-sky-200/30 !bg-sky-500/80 !text-slate-950 hover:!bg-sky-300" data-ui="event-show-propose" wire:navigate>
+                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
                     {{ __('ui.events.propose_activity') }}
                 </x-button>
             @endauth
@@ -36,7 +36,7 @@
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             <li class="list-none">
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/55">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
                     {{ $group['label'] }}
                 </p>
                 @if ($group['slots']->isNotEmpty())
@@ -69,11 +69,11 @@
                             @endphp
                             <li
                                 @class([
-                                    'slot-browser-card event-neon-slot w-full group relative rounded-xl',
-                                    'activity-attached transition hover:border-sky-300/60' => $activity,
+                                    'slot-browser-card ui-glow-card w-full group relative rounded-xl',
+                                    'activity-attached transition hover:border-primary/60' => $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity,
                                     'indicator' => !$activity,
-                                    'event-neon-slot-cancelled' => $activity?->isCancelled(),
+                                    'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity)
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
@@ -81,7 +81,7 @@
                                 @endif
                             >
                                 @if (!$activity)
-                                    <span class="indicator-item badge event-neon-pill">Free</span>
+                                    <span class="indicator-item badge ui-glow-pill">Free</span>
                                 @endif
                                 <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
@@ -182,7 +182,7 @@
                                     <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
                                         <div class="min-w-0 flex-1 space-y-1.5">
                                             @if ($activity)
-                                                <h4 class="text-base font-semibold leading-snug text-sky-100">{{ $activity->name }}</h4>
+                                                <h4 class="text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
                                                 @if ($activity->isCancelled())
                                                     <div class="mt-1">
                                                         <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>
@@ -190,15 +190,15 @@
                                                 @endif
                                             @endif
                                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-                                                <span @class(['font-medium text-sky-100' => ! $activity, 'font-medium text-sky-100/85' => $activity])>{{ $slot->name }}</span>
+                                                <span @class(['font-medium text-base-content' => ! $activity, 'font-medium text-base-content/85' => $activity])>{{ $slot->name }}</span>
                                                 @if ($slot->starts_at || $slot->ends_at)
-                                                    <span class="inline-flex items-center gap-1.5 tabular-nums text-sky-100/75">
-                                                        <svg class="h-4 w-4 shrink-0 text-sky-100/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <span class="inline-flex items-center gap-1.5 tabular-nums text-base-content/75">
+                                                        <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                         </svg>
                                                         <span>
                                                             @if ($slot->starts_at && $slot->ends_at)
-                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-sky-100/45"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
+                                                                {{ format_in_user_tz($slot->starts_at, 'H:i') }}<span class="text-base-content/45"> – </span>{{ format_in_user_tz($slot->ends_at, 'H:i') }}
                                                             @elseif ($slot->starts_at)
                                                                 {{ format_in_user_tz($slot->starts_at, 'H:i') }}
                                                             @else
@@ -212,7 +212,7 @@
                                                         {{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}
                                                     </span>
                                                 @elseif ($participantsCount !== null)
-                                                    <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-sky-100/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">
+                                                    <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">
                                                         <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                                                         </svg>
@@ -222,7 +222,7 @@
                                             </div>
                                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
                                                 @if ($slot->place)
-                                                    <span class="inline-flex shrink-0 items-center gap-1.5 text-sky-100/60">
+                                                    <span class="inline-flex shrink-0 items-center gap-1.5 text-base-content/60">
                                                         <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
@@ -232,7 +232,7 @@
                                                 @endif
                                             </div>
                                             @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
-                                                <p class="text-xs text-sky-100/70">
+                                                <p class="text-xs text-base-content/70">
                                                     {{ __('ui.events.enrollment_window_activity_spots_remaining', [
                                                         'remaining' => $activeWindowRemainingByActivityId[(int) $activity->id],
                                                         'max' => $activeEnrollmentWindow?->maxAllowedParticipantsPerActivityEffective(),
@@ -241,7 +241,7 @@
                                             @endif
                                             @if ($activity)
                                                 @if ($activity->isCancelled() && $activity->cancel_reason)
-                                                    <p class="mt-2 text-xs text-red-200">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
+                                                    <p class="mt-2 text-xs text-error">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
                                                 @endif
                                             @endif
                                         </div>
@@ -267,8 +267,8 @@
                     </ul>
                 @elseif (! empty($group['boundary']))
                     <ul class="grid grid-cols-1 gap-3">
-                        <li class="rounded-xl border border-sky-300/25 bg-sky-950/35 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-sky-100/70">
+                        <li class="rounded-xl border border-primary/25 bg-base-200/40 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/70">
                                 @if ($group['boundary'] === 'event_start')
                                     {{ __('ui.events.event_boundary_starts') }}
                                 @else
@@ -280,12 +280,12 @@
                 @endif
             </li>
         @empty
-            <li class="py-2 text-sm text-sky-100/70">{{ __('ui.events.no_slots_yet') }}</li>
+            <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
         @endforelse
     </ul>
     <div class="flex flex-wrap items-center justify-end gap-2 mt-6">
         @auth
-            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose !border-sky-200/30 !bg-sky-500/80 !text-slate-950 hover:!bg-sky-300" data-ui="event-show-propose" wire:navigate>
+            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
                 {{ __('ui.events.propose_activity') }}
             </x-button>
         @endauth
