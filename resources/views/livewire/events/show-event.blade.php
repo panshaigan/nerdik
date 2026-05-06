@@ -3,12 +3,7 @@
 @endphp
 <div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <x-header
-            title="{{ $title }}"
-            class="px-4 py-3 sm:px-6"
-            separator
-            use-h1
-        >
+        <x-header title="{{ $title }}" class="ui-glow-panel rounded-2xl px-4 py-3 sm:px-6" separator use-h1>
             <x-slot:title>
                 <div class="flex items-center gap-2">
                     <span>{{ $title }}</span>
@@ -32,7 +27,7 @@
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
         @if ($event->isCancelled())
-            <x-alert class="event-neon-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
+            <x-alert class="ui-glow-panel-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
                 <div class="space-y-1">
                     <p class="font-medium">{{ __('ui.events.cancelled_badge') }}</p>
                     @if ($event->cancel_reason)
@@ -49,7 +44,7 @@
         @endif
 
         <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div class="event-neon-stat rounded-xl px-4 py-3">
+            <div class="ui-glow-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
                     value="{{ $confirmedActivitiesCount }}"
@@ -57,7 +52,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="event-neon-stat rounded-xl px-4 py-3">
+            <div class="ui-glow-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_participants') }}"
                     value="{{ $confirmedParticipantsCount }}"
@@ -65,7 +60,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="event-neon-stat rounded-xl px-4 py-3">
+            <div class="ui-glow-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.interested_people_count') }}"
                     value="{{ $interestedPeopleCount }}"
@@ -77,13 +72,13 @@
     </div>
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6 mt-4">
-        <div id="ui-event-show-hero" class="ui-event-show-hero event-neon-board overflow-hidden rounded-2xl" data-ui="event-show-hero">
+        <div id="ui-event-show-hero" class="ui-event-show-hero ui-glow-board overflow-hidden rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
                 label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
-                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-sky-100/70 hover:text-sky-100"
-                active-class="!text-sky-100 border-b border-sky-400 text-sky-200"
+                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+                active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
