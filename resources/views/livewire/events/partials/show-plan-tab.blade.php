@@ -27,7 +27,7 @@
                         ])
                         : route('activities.create', ['proposal_event_id' => $event->id]);
                 @endphp
-                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
                     {{ __('ui.events.propose_activity') }}
                 </x-button>
             @endauth
