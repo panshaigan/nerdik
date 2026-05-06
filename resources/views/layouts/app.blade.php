@@ -32,7 +32,7 @@
                         {{ $slot }}
                     </x-slot:content>
 
-                    <x-slot:footer class="mt-10 border-t border-base-300 bg-base-100/90">
+                    <x-slot:footer class="border-t border-base-300 bg-base-100/90">
                         <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                             <p class="opacity-70">Copyright {{ date('Y') }} Nerdik. All rights reserved.</p>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
