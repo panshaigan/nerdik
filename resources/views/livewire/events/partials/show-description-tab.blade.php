@@ -15,12 +15,11 @@
             'lng' => (float) $place->longitude,
         ])->all(),
     ];
-    $eventPlaceNames = $eventPlaces->pluck('name')->filter()->implode(', ');
     $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
 @endphp
 <div class="space-y-6 p-4 sm:p-6">
     @if ($hasEventDescription)
-        <div class="rich-text-content rounded-xl border border-primary/25 bg-base-200/40 p-4 text-sm text-base-content/80">
+        <div class="rich-text-content text-justify rounded-xl border border-primary/25 bg-base-200/40 p-6 text-sm text-base-content/80">
             {!! rich_text($event->description) !!}
         </div>
     @endif
@@ -103,7 +102,7 @@
     <div class="absolute inset-x-0 bottom-0 z-50 bg-base-100/75 px-4 py-3 text-base-content backdrop-blur-[1px]">
         <div class="flex items-start justify-between gap-3">
             <div>
-                <p class="text-sm font-medium">{{ $eventPlaceNames !== '' ? $eventPlaceNames : __('No mapped places yet') }}</p>
+                <p class="text-sm font-medium">{{ $eventPlaceSummary }}</p>
                 <p class="text-xs text-white/90">{{ $eventDateSummary }}</p>
             </div>
             <div class="text-right">
