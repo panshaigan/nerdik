@@ -26,33 +26,18 @@
         }
     }"
 >
-    <div class="mb-4 flex flex-wrap items-center mx-auto gap-3 pb-3">
-        <div class="flex flex-wrap items-center gap-2">
-            @auth
-                @php
-                    $proposeActivityUrl = ! empty($proposalSlotIds)
-                        ? route('activities.create').'?'.http_build_query([
-                            'proposal_event_id' => $event->id,
-                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
-                        ])
-                        : route('activities.create', ['proposal_event_id' => $event->id]);
-                @endphp
-                <div class="hero bg-base-200">
-                    <div class="hero-content text-center p-6">
-                        <div class="max-w-md">
-                            <h1 class="text-5xl font-bold">{{__('Hello there')}}</h1>
-                            <p class="py-6">
-                                {{__('Description')}}
-                            </p>
-                            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
-                                {{ __('ui.events.propose_activity') }}
-                            </x-button>
-                        </div>
-                    </div>
-                </div>
-            @endauth
-        </div>
-    </div>
+    @auth
+        @if ($canShowPlanActivityProposalUi ?? false)
+            @php
+                $proposeActivityUrl = ! empty($proposalSlotIds)
+                    ? route('activities.create').'?'.http_build_query([
+                        'proposal_event_id' => $event->id,
+                        'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                    ])
+                    : route('activities.create', ['proposal_event_id' => $event->id]);
+            @endphp
+        @endif
+    @endauth
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             <li class="list-none">
@@ -89,13 +74,14 @@
                             @endphp
                             <li
                                 @class([
-                                    'slot-browser-card ui-glow-card w-full group relative rounded-xl',
-                                    'activity-attached transition !border-primary/80 hover:border-primary/60' => $activity,
-                                    'cursor-pointer' => auth()->check() && ! $activity,
-                                    'indicator indicator-top indicator-center' => !$activity,
+                                    'slot-browser-card ui-glow-card group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                    'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
+                                    'cursor-pointer transition-all duration-200 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
+                                    'transition-all duration-200 hover:bg-base-200/50 hover:shadow-md' => ! $activity && (! auth()->check() || ! ($canShowPlanActivityProposalUi ?? false)),
+                                    'indicator indicator-center indicator-top' => ! $activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
-                                @if (auth()->check() && ! $activity)
+                                @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
                                     :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-glow-card-marked' : ''"
                                 @endif
@@ -194,7 +180,7 @@
                                         <a
                                             href="{{ route('activities.show', $activity) }}"
                                             wire:navigate
-                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg ring-inset ring-primary/0 transition group-hover:ring-2 group-hover:ring-primary/15"
+                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 motion-reduce:transition-none"
                                             aria-label="{{ $activity->name }}"
                                         >
                                         </a>
@@ -315,11 +301,42 @@
             <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
         @endforelse
     </ul>
-    <div class="flex flex-wrap items-center justify-end gap-2 mt-6">
-        @auth
-            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
-                {{ __('ui.events.propose_activity') }}
-            </x-button>
-        @endauth
-    </div>
+    @auth
+        @if ($canShowPlanActivityProposalUi ?? false)
+            @php
+                $proposeActivityUrl = ! empty($proposalSlotIds)
+                    ? route('activities.create').'?'.http_build_query([
+                        'proposal_event_id' => $event->id,
+                        'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                    ])
+                    : route('activities.create', ['proposal_event_id' => $event->id]);
+            @endphp
+            <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
+                <div class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
+                    <div class="hero bg-base-200 w-full max-w-2xl rounded-2xl">
+                        <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
+                            <div class="max-w-xl px-2">
+                                <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
+                                    {{ __('ui.events.plan_propose_hero_title') }}
+                                </h2>
+                                <p class="py-5 text-base leading-relaxed text-base-content/80">
+                                    {{ __('ui.events.plan_propose_hero_description') }}
+                                </p>
+                                <x-button
+                                    id="ui-event-show-propose-primary"
+                                    :link="$proposeActivityUrl"
+                                    class="btn-primary btn-md ui-action ui-action-propose"
+                                    data-ui="event-show-propose"
+                                    x-bind:href="proposeActivityHref()"
+                                    wire:navigate
+                                >
+                                    {{ __('ui.events.propose_activity') }}
+                                </x-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endauth
 </div>

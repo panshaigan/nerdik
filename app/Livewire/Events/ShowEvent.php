@@ -628,6 +628,10 @@ class ShowEvent extends Component
             ->get();
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
+        $canShowPlanActivityProposalUi = $user !== null
+            && ! $event->isCancelled()
+            && ($event->starts_at === null || now()->lt($event->starts_at))
+            && $activeEnrollmentWindow === null;
         $hasInterest = $user !== null
             ? $user->interestedEvents()->whereKey($event->id)->exists()
             : false;
@@ -682,6 +686,7 @@ class ShowEvent extends Component
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
+            'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
             'hasInterest' => $hasInterest,
             'interestedActivityIds' => $interestedActivityIds,
             'confirmedActivitiesCount' => $confirmedActivitiesCount,
