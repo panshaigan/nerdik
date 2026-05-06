@@ -3,7 +3,9 @@
     class="ui-event-show-slots p-4 sm:p-6"
     data-ui="event-show-slots"
     x-data="{
-        selectedProposalSlotIds: $wire.entangle('proposalSlotIds').live,
+        selectedProposalSlotIds: $wire.entangle('proposalSlotIds'),
+        proposeActivityBaseUrl: @js(route('activities.create')),
+        proposalEventId: {{ (int) $event->id }},
         toggleProposalSlot(slotId) {
             const normalizedIds = this.selectedProposalSlotIds.map((id) => Number(id));
 
@@ -12,6 +14,15 @@
             } else {
                 this.selectedProposalSlotIds = [...normalizedIds, slotId];
             }
+        },
+        proposeActivityHref() {
+            const params = new URLSearchParams();
+            params.set('proposal_event_id', String(this.proposalEventId));
+            for (const id of this.selectedProposalSlotIds.map((id) => Number(id))) {
+                params.append('proposal_slot_ids[]', String(id));
+            }
+
+            return this.proposeActivityBaseUrl + '?' + params.toString();
         }
     }"
 >
@@ -27,7 +38,7 @@
                         ])
                         : route('activities.create', ['proposal_event_id' => $event->id]);
                 @endphp
-                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+                <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-primary btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
                     {{ __('ui.events.propose_activity') }}
                 </x-button>
             @endauth
@@ -297,7 +308,7 @@
     </ul>
     <div class="flex flex-wrap items-center justify-end gap-2 mt-6">
         @auth
-            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" wire:navigate>
+            <x-button id="ui-event-show-propose" :link="$proposeActivityUrl" class="btn-info btn-sm ui-action ui-action-propose" data-ui="event-show-propose" x-bind:href="proposeActivityHref()" wire:navigate>
                 {{ __('ui.events.propose_activity') }}
             </x-button>
         @endauth
