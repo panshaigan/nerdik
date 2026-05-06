@@ -256,6 +256,8 @@ return [
         'tags' => 'Tagi',
         'edit' => 'Edytuj',
         'propose_activity' => 'Zaproponuj aktywnosc',
+        'plan_propose_hero_title' => 'Zaproponuj swoja gre na tym evencie',
+        'plan_propose_hero_description' => 'Stworz aktywnosc (np. sesje RPG, demo lub warsztaty) i zaproponuj je jako prowadzaca osoba. Kliknij ponizej wolne sloty — organizator zobaczy przy propozycji, kiedy wolisz prowadzic.',
         'copy_event' => 'Skopiuj wydarzenie',
         'duplicate_action' => 'Duplikuj jako nowe wydarzenie',
         'duplicate_name_suffix' => ' (kopia)',
