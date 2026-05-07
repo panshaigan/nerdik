@@ -258,6 +258,7 @@ return [
         'edit_event' => 'Edit event',
         'create' => 'Create Event',
         'propose_activity' => 'Propose an activity',
+        'want_to_propose_activity' => 'Want to propose an activity?',
         'plan_propose_hero_title' => 'Bring your game to this event',
         'plan_propose_hero_description' => 'Create an activity (for example a tabletop RPG session, a demo, or a workshop) and offer to host it at this event. Tap free slots below to highlight when you prefer to run—you will attach those hints for the organizer when you submit.',
         'copy_event' => 'Copy event',

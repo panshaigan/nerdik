@@ -461,6 +461,75 @@
     color: color-mix(in oklab, var(--brand-primary-content) 88%, white);
 }
 
+.ui-action-propose-magic {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--brand-primary) 35%, transparent);
+    color: var(--brand-primary-content);
+    background: linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--brand-primary) 100%, transparent),
+        color-mix(in oklab, var(--brand-primary) 80%, var(--brand-secondary))
+    );
+    box-shadow: 0 0 0 rgba(0 0 0 / 0);
+    transition:
+        transform 500ms ease-out,
+        box-shadow 500ms ease-out,
+        border-color 500ms ease-out,
+        filter 500ms ease-out;
+}
+
+.ui-action-propose-magic::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms ease-out;
+    background:
+        radial-gradient(circle at 20% 25%, color-mix(in oklab, var(--brand-accent) 45%, transparent), transparent 48%),
+        radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--brand-secondary) 45%, transparent), transparent 52%);
+}
+
+.ui-action-propose-magic > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (hover: hover) {
+    .ui-action-propose-magic:hover {
+        transform: translateY(-0.25rem) scale(1.03);
+        border-color: color-mix(in oklab, var(--brand-primary) 55%, transparent);
+        box-shadow:
+            0 0 24px color-mix(in oklab, var(--brand-primary) 55%, transparent),
+            0 0 64px color-mix(in oklab, var(--brand-secondary) 35%, transparent);
+    }
+
+    .ui-action-propose-magic:hover::before {
+        opacity: 1;
+    }
+}
+
+.ui-action-propose-magic:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--brand-primary) 70%, transparent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-action-propose-magic {
+        transition: none;
+    }
+
+    .ui-action-propose-magic:hover {
+        transform: none;
+    }
+
+    .ui-action-propose-magic::before {
+        transition: none;
+    }
+}
+
 /* Reusable glass info tile (date/location/metadata blocks). */
 .ui-info-tile {
     --_tile-accent: var(--brand-info);
