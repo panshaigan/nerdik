@@ -1,5 +1,6 @@
 @props([
     'user' => null,
+    'organization' => null,
     'name' => null,
     'avatarPath' => null,
     'size' => 'md',
@@ -9,10 +10,11 @@
 ])
 
 @php
-    $resolvedName = trim((string) ($name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
+    $usesOrganization = $organization !== null;
+    $resolvedName = trim((string) ($name ?? $organization?->name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
     $avatarBackgroundColor = ltrim((string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8'), '#');
     $avatarTextColor = ltrim((string) ($user?->profile?->avatar_text_color ?? '#ffffff'), '#');
-    $avatarUrl = $user !== null
+    $avatarUrl = ! $usesOrganization && $user !== null
         ? $user->avatarUrl()
         : sprintf(
             'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',

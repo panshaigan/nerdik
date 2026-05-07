@@ -235,6 +235,26 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('/storage/'.$path, $html);
     }
 
+    public function test_user_badge_prefers_organization_when_provided(): void
+    {
+        $organization = Organization::factory()->create([
+            'name' => 'Org Display Name',
+        ]);
+        $user = User::factory()->create([
+            'nickname' => 'User Display Name',
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" :organization="$organization" avatar-only />', [
+            'user' => $user,
+            'organization' => $organization,
+        ]);
+
+        $this->assertStringContainsString('ui-avatars.com/api/', $html);
+        $this->assertStringContainsString('name=Org%20Display%20Name', $html);
+        $this->assertStringNotContainsString('name=User%20Display%20Name', $html);
+        $this->assertStringContainsString('alt="Org Display Name"', $html);
+    }
+
     public function test_profile_page_has_tab_query_parameter(): void
     {
         $user = User::factory()->create();
