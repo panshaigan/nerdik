@@ -284,6 +284,8 @@ return [
         'edit_slot' => 'Edit slot',
         'detach_activity_from_slot' => 'Remove activity from this slot',
         'detach_activity_from_slot_confirm' => 'Remove this activity from the slot? It will return to pending proposals.',
+        'show_empty_slots' => 'Show empty slots',
+        'hide_empty_slots' => 'Hide empty slots',
         'no_slots_yet' => 'No slots yet.',
         'slots_group_no_time' => 'No start time',
         'pending_proposals' => 'Pending proposals',

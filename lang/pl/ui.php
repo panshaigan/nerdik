@@ -282,6 +282,8 @@ return [
         'edit_slot' => 'Edytuj slot',
         'detach_activity_from_slot' => 'Odłącz aktywność od tego slotu',
         'detach_activity_from_slot_confirm' => 'Odłączyć tę aktywność od slotu? Wróci do listy oczekujących propozycji.',
+        'show_empty_slots' => 'Pokaz puste sloty',
+        'hide_empty_slots' => 'Ukryj puste sloty',
         'no_slots_yet' => 'Brak slotow.',
         'slots_group_no_time' => 'Bez godziny startu',
         'pending_proposals' => 'Oczekujace propozycje',

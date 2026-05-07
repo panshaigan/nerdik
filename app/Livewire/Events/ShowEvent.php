@@ -47,6 +47,12 @@ class ShowEvent extends Component
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];
 
+    /** Controls whether slots without attached activity are visible on the plan tab. */
+    public ?bool $showEmptySlots = null;
+
+    /** Tracks whether empty-slot auto-hide rule is currently active for this viewer. */
+    public bool $emptySlotsRestricted = false;
+
     /**
      * Pending proposal accept: slot id per proposal (empty string = auto-assign). Keys are proposal ids.
      *
@@ -632,6 +638,15 @@ class ShowEvent extends Component
             && ! $event->isCancelled()
             && ($event->starts_at === null || now()->lt($event->starts_at))
             && $activeEnrollmentWindow === null;
+        $shouldRestrictEmptySlots = ! $canManageEvent
+            && (
+                ($event->starts_at !== null && now()->gte($event->starts_at))
+                || $activeEnrollmentWindow !== null
+            );
+        if ($this->showEmptySlots === null || $this->emptySlotsRestricted !== $shouldRestrictEmptySlots) {
+            $this->showEmptySlots = ! $shouldRestrictEmptySlots;
+            $this->emptySlotsRestricted = $shouldRestrictEmptySlots;
+        }
         $hasInterest = $user !== null
             ? $user->interestedEvents()->whereKey($event->id)->exists()
             : false;
@@ -687,6 +702,8 @@ class ShowEvent extends Component
             'pendingProposals' => $pendingProposals,
             'canManageEvent' => $canManageEvent,
             'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
+            'showEmptySlots' => (bool) $this->showEmptySlots,
+            'emptySlotsRestricted' => $shouldRestrictEmptySlots,
             'hasInterest' => $hasInterest,
             'interestedActivityIds' => $interestedActivityIds,
             'confirmedActivitiesCount' => $confirmedActivitiesCount,
