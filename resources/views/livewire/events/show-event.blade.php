@@ -5,7 +5,7 @@
 @endphp
 <div class="pb-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-2xl sm:text-4xl" use-h1>
+        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-2xl sm:text-5xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">
                     <span>{{ $title }}</span>
             </x-slot:title>
@@ -30,7 +30,7 @@
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
 
-        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 px-3 sm:px-0">
             <div class="ui-glow-stat ui-info-tile ui-info-tile--secondary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ 'Date' }}"
@@ -53,7 +53,7 @@
 
         @if ($event->isCancelled())
             <x-alert class="ui-glow-panel-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
-                <div class="space-y-1">
+                <div class="space-y-1 text-neutral">
                     <p class="text-xl">{{ __('ui.events.cancelled_badge') }}</p>
                     @if ($event->cancel_reason)
                         <p><strong>{{ __('ui.activities.cancel_reason_label') }}:</strong> {{ $event->cancel_reason }}</p>
@@ -68,7 +68,7 @@
             </x-alert>
         @endif
 
-        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
             <div class="ui-glow-stat rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6 mt-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
         <div id="ui-event-show-hero" class="ui-event-show-hero ui-glow-board rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
