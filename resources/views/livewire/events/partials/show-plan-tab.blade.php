@@ -43,11 +43,23 @@
             @endphp
         @endif
     @endauth
-    <div class="mb-4 flex items-center justify-end">
+    <div class="mb-4 flex items-center justify-end gap-2">
+        @auth
+            @if ($canShowPlanActivityProposalUi ?? false)
+                <x-button
+                    type="button"
+                    class="btn-outline btn-sm btn-primary"
+                    x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                    data-ui="event-show-scroll-to-propose-hero"
+                >
+                    {{ __('ui.events.want_to_propose_activity') }}
+                </x-button>
+            @endif
+        @endauth
         <x-button
             type="button"
             wire:click="$toggle('showEmptySlots')"
-            class="btn-ghost btn-sm btn-secondary"
+            class="btn-outline btn-sm btn-neutral"
             :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
             data-ui="event-show-toggle-empty-slots"
         >
@@ -120,7 +132,7 @@
                                     'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
-                                    'indicator ui-glow-card-empty' => ! $activity,
+                                    'ui-glow-card-empty' => ! $activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
@@ -128,9 +140,6 @@
                                     :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-glow-card-marked' : ''"
                                 @endif
                             >
-                                @if (!$activity)
-                                    <span class="indicator-item badge badge-secondary ui-glow-pill">{{ __('ui.events.free') }}</span>
-                                @endif
                                 <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
                                     @auth
@@ -356,7 +365,7 @@
                     : route('activities.create', ['proposal_event_id' => $event->id]);
             @endphp
             <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
-                <div class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
+                <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
                     <div class="hero bg-base-200 w-full max-w-2xl rounded-2xl line-glow-primary">
                         <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
                             <div class="max-w-xl px-2">
@@ -369,7 +378,7 @@
                                 <x-button
                                     id="ui-event-show-propose-primary"
                                     :link="$proposeActivityUrl"
-                                    class="btn-primary btn-md ui-action ui-action-propose"
+                                    class="btn-primary btn-md ui-action ui-action-propose ui-action-propose-magic"
                                     data-ui="event-show-propose"
                                     x-bind:href="proposeActivityHref()"
                                     wire:navigate
