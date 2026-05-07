@@ -117,4 +117,34 @@ class ShowActivityActionsTest extends TestCase
 
         $this->assertFalse($user->fresh()->interestedActivities()->whereKey($activity->id)->exists());
     }
+
+    public function test_join_leave_buttons_render_with_spinner_attributes(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'requires_approval' => false,
+            'max_participants' => 5,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertSeeHtml('wire:target="join"')
+            ->assertSeeHtml('wire:loading.attr="disabled"');
+
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertSeeHtml('wire:target="confirmRemoveParticipant('.$participant->id.')"')
+            ->assertSeeHtml('wire:loading.attr="disabled"');
+    }
 }

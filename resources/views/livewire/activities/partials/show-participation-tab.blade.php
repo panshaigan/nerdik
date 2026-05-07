@@ -83,6 +83,7 @@
                                     :title="__('ui.activities.unmark_absent')"
                                     :aria-label="__('ui.activities.unmark_absent')"
                                     wire:click="unmarkParticipantAbsent({{ $p->id }})"
+                                    :spinner="'unmarkParticipantAbsent('.$p->id.')'"
                                 >{{ __('ui.activities.unmark_absent') }}</x-button>
                             @else
                                 @if ($canMarkAbsentNow)
@@ -92,6 +93,7 @@
                                         :title="__('ui.activities.mark_absent')"
                                         :aria-label="__('ui.activities.mark_absent')"
                                         wire:click="markParticipantAbsent({{ $p->id }})"
+                                        :spinner="'markParticipantAbsent('.$p->id.')'"
                                     >{{ __('ui.activities.mark_absent') }}</x-button>
                                 @endif
                             @endif
@@ -101,6 +103,7 @@
                                 :title="__('ui.activities.remove_participant')"
                                 :aria-label="__('ui.activities.remove_participant')"
                                 wire:click="confirmRemoveParticipant({{ $p->id }})"
+                                :spinner="'confirmRemoveParticipant('.$p->id.')'"
                                 icon="o-trash"
                             />
                             @if ($activity->requires_approval)
@@ -111,6 +114,7 @@
                                 :title="__('ui.activities.move_to_waitlist')"
                                 :aria-label="__('ui.activities.move_to_waitlist')"
                                 wire:click="confirmMoveParticipantToWaitlist({{ $p->id }})"
+                                :spinner="'confirmMoveParticipantToWaitlist('.$p->id.')'"
                             />
                             @endif
                         </x-slot:actions>
@@ -123,9 +127,9 @@
                 @if (($isParticipant || $canJoin) && ! filled($stateBlockedMessage ?? null))
                     <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-participants-actions">
                         @if ($isParticipant)
-                            <x-button type="button" class="btn-error" wire:click="leave">{{ __('ui.activities.leave') }}</x-button>
+                            <x-button type="button" class="btn-error" wire:click="leave" spinner="leave">{{ __('ui.activities.leave') }}</x-button>
                         @elseif ($canJoin && ! $activity->requires_approval && ! $isFull)
-                            <x-button type="button" class="btn-primary" wire:click="join">{{ __('ui.activities.join') }}</x-button>
+                            <x-button type="button" class="btn-primary" wire:click="join" spinner="join">{{ __('ui.activities.join') }}</x-button>
                         @endif
                     </div>
                 @endif
@@ -149,6 +153,7 @@
                                             :title="__('ui.activities.approve_from_waitlist')"
                                             :aria-label="__('ui.activities.approve_from_waitlist')"
                                             wire:click="approveWaitlist({{ $entry->id }})"
+                                            :spinner="'approveWaitlist('.$entry->id.')'"
                                             data-ui="activity-show-waitlist-approve"
                                         />
                                     @endif
@@ -168,9 +173,9 @@
                 @if (($onWaitlist || $canJoin) && ! filled($stateBlockedMessage ?? null))
                     <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-waitlist-actions">
                         @if ($onWaitlist)
-                            <x-button type="button" class="btn-neutral" wire:click="leaveWaitlist">{{ __('ui.activities.leave_waitlist') }}</x-button>
+                            <x-button type="button" class="btn-neutral" wire:click="leaveWaitlist" spinner="leaveWaitlist">{{ __('ui.activities.leave_waitlist') }}</x-button>
                         @elseif ($canJoin && ($activity->requires_approval || $isFull))
-                            <x-button type="button" class="btn-primary" wire:click="joinWaitlist">{{ __('ui.activities.join_waitlist') }}</x-button>
+                            <x-button type="button" class="btn-primary" wire:click="joinWaitlist" spinner="joinWaitlist">{{ __('ui.activities.join_waitlist') }}</x-button>
                         @endif
                     </div>
                 @endif
