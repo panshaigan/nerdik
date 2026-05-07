@@ -245,6 +245,7 @@
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
         ])
         @include('slots.partials.edit-modal-shell')
+        @include('livewire.events.partials.activity-preview-modal')
 
         <x-ui.confirm-modal
             wire:model="confirmModalOpen"

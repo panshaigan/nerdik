@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Events;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
@@ -10,12 +12,17 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Services\ActivityHostingModeService;
+use App\Services\ActivityParticipationService;
+use App\Services\ActivityParticipationViewService;
 use App\Services\ActivityProposalDecisionService;
 use App\Services\CancellationNotificationDispatcher;
+use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -46,6 +53,15 @@ class ShowEvent extends Component
 
     /** Bumped when activity roster changes should refresh plan tab counters. */
     public int $planCounterRefreshTick = 0;
+
+    public bool $activityPreviewModalOpen = false;
+
+    public ?int $previewActivityId = null;
+
+    public string $activityPreviewTab = 'info';
+
+    /** Bumped when the selected activity preview receives a roster broadcast. */
+    public int $activityPreviewRefreshTick = 0;
 
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];
@@ -79,6 +95,34 @@ class ShowEvent extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+    }
+
+    public function updatedActivityPreviewTab(string $value): void
+    {
+        $this->activityPreviewTab = $this->normalizeActivityPreviewTab($value);
+    }
+
+    public function updatedActivityPreviewModalOpen(bool $value): void
+    {
+        if (! $value) {
+            $this->closeActivityPreview();
+        }
+    }
+
+    public function openActivityPreview(int $activityId): void
+    {
+        $activity = $this->previewActivityQuery($activityId)->firstOrFail();
+
+        $this->previewActivityId = (int) $activity->id;
+        $this->activityPreviewTab = 'info';
+        $this->activityPreviewModalOpen = true;
+    }
+
+    public function closeActivityPreview(): void
+    {
+        $this->activityPreviewModalOpen = false;
+        $this->previewActivityId = null;
+        $this->activityPreviewTab = 'info';
     }
 
     public function toggleProposalSlot(int $slotId): void
@@ -159,6 +203,50 @@ class ShowEvent extends Component
         $this->warning(__('ui.interests.removed_activity'));
     }
 
+    public function joinPreviewActivity(ActivityParticipationService $participation): void
+    {
+        $activity = $this->selectedPreviewActivityOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $participation->join($activity, $user);
+        $this->showPreviewParticipationTab();
+        $this->toastFromSessionStatus();
+    }
+
+    public function leavePreviewActivity(ActivityParticipationService $participation): void
+    {
+        $activity = $this->selectedPreviewActivityOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $participation->leave($activity, $user);
+        $this->showPreviewParticipationTab();
+        $this->toastFromSessionStatus();
+    }
+
+    public function joinPreviewWaitlist(ActivityParticipationService $participation): void
+    {
+        $activity = $this->selectedPreviewActivityOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $participation->joinWaitlist($activity, $user);
+        $this->showPreviewParticipationTab();
+        $this->toastFromSessionStatus();
+    }
+
+    public function leavePreviewWaitlist(ActivityParticipationService $participation): void
+    {
+        $activity = $this->selectedPreviewActivityOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $participation->leaveWaitlist($activity, $user);
+        $this->showPreviewParticipationTab();
+        $this->toastFromSessionStatus();
+    }
+
     #[On('event-proposal-submitted-broadcast')]
     public function refreshOrganizerForIncomingProposal(int|string $eventId): void
     {
@@ -199,12 +287,13 @@ class ShowEvent extends Component
     #[On('event-plan-activity-participation-updated')]
     public function refreshPlanCountersFromBroadcast(int|string|null $activityId = null): void
     {
-        if ($activityId === null || $this->tab !== 'plan') {
+        if ($activityId === null) {
             return;
         }
 
+        $activityId = (int) $activityId;
         $belongsToThisEvent = Activity::query()
-            ->whereKey((int) $activityId)
+            ->whereKey($activityId)
             ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId))
             ->exists();
 
@@ -212,7 +301,13 @@ class ShowEvent extends Component
             return;
         }
 
-        $this->planCounterRefreshTick++;
+        if ($this->tab === 'plan') {
+            $this->planCounterRefreshTick++;
+        }
+
+        if ($this->activityPreviewModalOpen && (int) $this->previewActivityId === $activityId) {
+            $this->activityPreviewRefreshTick++;
+        }
     }
 
     public function deleteEvent(): void
@@ -619,8 +714,12 @@ class ShowEvent extends Component
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
     }
 
-    public function render(EventSlotPresentationService $slotPresentation)
-    {
+    public function render(
+        EventSlotPresentationService $slotPresentation,
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+    ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
         $event->load([
@@ -689,6 +788,41 @@ class ShowEvent extends Component
             fn ($activity) => (int) ($activity->participants_count ?? 0)
         );
         $interestedPeopleCount = (int) $event->interestedUsers()->count();
+        $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
+            ? $this->previewActivityQuery($this->previewActivityId)->first()
+            : null;
+        $previewActivityBadgeItems = [];
+        $previewActivityParticipation = null;
+        $previewActivityHasActiveEnrollmentWindow = false;
+        if ($previewActivity !== null) {
+            $previewActivity->load([
+                'creator',
+                'canceller',
+                'activityType',
+                'tags.translations',
+                'tags.tagCategory',
+                'participants.user',
+                'waitlist.user',
+                'slot.event.enrollmentWindows',
+                'slot.place.parent.city',
+                'slot.place.city',
+                'place.parent.city',
+                'place.city',
+            ]);
+            $previewActivityBadgeItems = $badgeGroupBuilder->build(
+                $previewActivity,
+                ActivityBadgeGroupConfig::activityHero(),
+            );
+            $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
+            $previewActivityEvent = $previewActivity->slot?->event;
+            $previewActivityHasActiveEnrollmentWindow = $previewActivityEvent !== null
+                && $signupService->firstPeriodContaining($previewActivityEvent, now()) !== null;
+            if (! $previewActivityHasActiveEnrollmentWindow && $this->activityPreviewTab === 'participation') {
+                $this->activityPreviewTab = 'info';
+            }
+        } elseif ($this->activityPreviewModalOpen) {
+            $this->closeActivityPreview();
+        }
 
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
@@ -731,6 +865,10 @@ class ShowEvent extends Component
             'confirmedActivitiesCount' => $confirmedActivitiesCount,
             'confirmedParticipantsCount' => $confirmedParticipantsCount,
             'interestedPeopleCount' => $interestedPeopleCount,
+            'previewActivity' => $previewActivity,
+            'previewActivityBadgeItems' => $previewActivityBadgeItems,
+            'previewActivityParticipation' => $previewActivityParticipation,
+            'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
@@ -742,5 +880,39 @@ class ShowEvent extends Component
     private function normalizeTab(?string $value): string
     {
         return in_array($value, ['description', 'plan', 'proposals'], true) ? $value : 'description';
+    }
+
+    private function normalizeActivityPreviewTab(?string $value): string
+    {
+        return in_array($value, ['info', 'participation'], true) ? $value : 'info';
+    }
+
+    private function previewActivityQuery(int $activityId): Builder
+    {
+        return Activity::query()
+            ->whereKey($activityId)
+            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId));
+    }
+
+    private function selectedPreviewActivityOrFail(): Activity
+    {
+        abort_unless($this->previewActivityId !== null, 404);
+
+        return $this->previewActivityQuery($this->previewActivityId)->firstOrFail();
+    }
+
+    private function showPreviewParticipationTab(): void
+    {
+        $this->activityPreviewTab = 'participation';
+        $this->activityPreviewRefreshTick++;
+        $this->planCounterRefreshTick++;
+    }
+
+    private function toastFromSessionStatus(): void
+    {
+        $status = session()->pull('status');
+        if (is_string($status) && $status !== '') {
+            $this->info($status);
+        }
     }
 }

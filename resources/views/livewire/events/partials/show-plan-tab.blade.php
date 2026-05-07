@@ -218,13 +218,13 @@
                                 </div>
                                 <div class="px-4 pb-6">
                                     @if ($activity)
-                                        <a
-                                            href="{{ route('activities.show', $activity) }}"
-                                            wire:navigate
+                                        <button
+                                            type="button"
+                                            wire:click="openActivityPreview({{ (int) $activity->id }})"
                                             class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 motion-reduce:transition-none"
                                             aria-label="{{ $activity->name }}"
                                         >
-                                        </a>
+                                        </button>
                                     @endif
                                     <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
                                         <div class="min-w-0 flex-1 space-y-1.5">
