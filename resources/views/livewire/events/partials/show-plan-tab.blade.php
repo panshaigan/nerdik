@@ -39,15 +39,31 @@
             @endphp
         @endif
     @endauth
+    <div class="mb-4 flex items-center justify-end">
+        <x-button
+            type="button"
+            wire:click="$toggle('showEmptySlots')"
+            class="btn-ghost btn-sm"
+            :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
+            data-ui="event-show-toggle-empty-slots"
+        >
+            {{ $showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots') }}
+        </x-button>
+    </div>
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
+            @php
+                $visibleSlots = $showEmptySlots
+                    ? $group['slots']
+                    : $group['slots']->filter(fn ($slot) => $slot->activity !== null)->values();
+            @endphp
             <li class="list-none">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
                     {{ $group['label'] }}
                 </p>
-                @if ($group['slots']->isNotEmpty())
+                @if ($visibleSlots->isNotEmpty())
                     <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach ($group['slots'] as $slot)
+                        @foreach ($visibleSlots as $slot)
                             @php
                                 $activity = $slot->activity;
                                 $participantsCount = $activity
@@ -77,8 +93,8 @@
                                 @class([
                                     'slot-browser-card ui-glow-card group relative w-full overflow-hidden rounded-xl border border-transparent',
                                     'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
-                                    'cursor-pointer transition-all duration-200 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
-                                    'transition-all duration-200 hover:bg-base-200/50 hover:shadow-md' => ! $activity && (! auth()->check() || ! ($canShowPlanActivityProposalUi ?? false)),
+                                    'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
+                                    'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
                                     'indicator indicator-center indicator-top' => ! $activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
@@ -88,7 +104,7 @@
                                 @endif
                             >
                                 @if (!$activity)
-                                    <span class="indicator-item badge ui-glow-pill">Free</span>
+                                    <span class="indicator-item badge ui-glow-pill">{{ __('ui.events.free') }}</span>
                                 @endif
                                 <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
