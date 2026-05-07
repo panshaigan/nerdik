@@ -27,6 +27,10 @@
         }
     }"
 >
+    @php
+        $now = now();
+        $autoOpenDone = false;
+    @endphp
     @auth
         @if ($canShowPlanActivityProposalUi ?? false)
             @php
@@ -59,7 +63,20 @@
             @endphp
             <li class="list-none">
                 @if ($visibleSlots->isNotEmpty())
-                    <x-collapse separator>
+                    @php
+                        $groupStartsAt = $group['starts_at'] ?? null;
+                        $shouldAutoOpen = ! $autoOpenDone
+                            && $groupStartsAt !== null
+                            && $groupStartsAt->gte($now);
+                        if ($shouldAutoOpen) {
+                            $autoOpenDone = true;
+                        }
+                    @endphp
+                    <x-collapse
+                        :data-ui="$groupStartsAt ? 'event-slot-group-'.$groupStartsAt->getTimestamp() : null"
+                        separator
+                        :open="$shouldAutoOpen"
+                    >
                         <x-slot:heading>
                             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
                                 {{ $group['label'] }}
