@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 class EventSlotPresentationService
 {
     /**
-     * @return list<array{label: string, slots: Collection<int, Slot>, boundary?: string}>
+     * @return list<array{label: string, slots: Collection<int, Slot>, starts_at: ?Carbon, boundary?: string}>
      */
     public function slotHourGroupsForEvent(Event $event): array
     {
@@ -37,25 +37,29 @@ class EventSlotPresentationService
                     ? __('ui.events.slots_group_no_time')
                     : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:00'),
                 'slots' => $groupSlots,
+                'starts_at' => $key === '__no_time__'
+                    ? null
+                    : $groupSlots->first()->starts_at,
             ];
         }
 
         $sorted->first(fn (Slot $s) => $s->starts_at !== null);
         $prependEventStart = true;
-//        if ($event->starts_at) {
-//            if ($firstTimedSlot === null) {
-//                $prependEventStart = true;
-//            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
-//                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
-//                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
-//                $prependEventStart = $eventHour !== $firstHour;
-//            }
-//        }
+        //        if ($event->starts_at) {
+        //            if ($firstTimedSlot === null) {
+        //                $prependEventStart = true;
+        //            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
+        //                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
+        //                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
+        //                $prependEventStart = $eventHour !== $firstHour;
+        //            }
+        //        }
 
         if ($prependEventStart) {
             array_unshift($out, [
                 'label' => format_datetime_in_user_tz($event->starts_at, 'ddd, D MMM · HH:00'),
                 'slots' => collect(),
+                'starts_at' => $event->starts_at,
                 'boundary' => 'event_start',
             ]);
         }
@@ -69,6 +73,7 @@ class EventSlotPresentationService
             $out[] = [
                 'label' => format_datetime_in_user_tz($event->ends_at, 'ddd, D MMM · HH:00'),
                 'slots' => collect(),
+                'starts_at' => $event->ends_at,
                 'boundary' => 'event_end',
             ];
         }
