@@ -47,7 +47,7 @@
         <x-button
             type="button"
             wire:click="$toggle('showEmptySlots')"
-            class="btn-ghost btn-sm"
+            class="btn-ghost btn-sm btn-secondary"
             :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
             data-ui="event-show-toggle-empty-slots"
         >
@@ -115,11 +115,12 @@
                             @endphp
                             <li
                                 @class([
-                                    'slot-browser-card ui-glow-card group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                    'slot-browser-card group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                    'ui-glow-card' => $activity,
                                     'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
-                                    'indicator indicator-center indicator-top' => ! $activity,
+                                    'indicator ui-glow-card-empty' => ! $activity,
                                     'ui-glow-card-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
@@ -128,7 +129,7 @@
                                 @endif
                             >
                                 @if (!$activity)
-                                    <span class="indicator-item badge ui-glow-pill">{{ __('ui.events.free') }}</span>
+                                    <span class="indicator-item badge badge-secondary ui-glow-pill">{{ __('ui.events.free') }}</span>
                                 @endif
                                 <div class="slot-browser-card-toolbar flex items-center">
                                     <div class="flex-1"></div>
@@ -356,7 +357,7 @@
             @endphp
             <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
                 <div class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
-                    <div class="hero bg-base-200 w-full max-w-2xl rounded-2xl">
+                    <div class="hero bg-base-200 w-full max-w-2xl rounded-2xl line-glow-primary">
                         <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
                             <div class="max-w-xl px-2">
                                 <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
