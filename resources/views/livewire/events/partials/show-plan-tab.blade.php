@@ -58,11 +58,15 @@
                     : $group['slots']->filter(fn ($slot) => $slot->activity !== null)->values();
             @endphp
             <li class="list-none">
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
-                    {{ $group['label'] }}
-                </p>
                 @if ($visibleSlots->isNotEmpty())
-                    <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <x-collapse separator>
+                        <x-slot:heading>
+                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                                {{ $group['label'] }}
+                            </p>
+                        </x-slot:heading>
+                        <x-slot:content>
+                            <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($visibleSlots as $slot)
                             @php
                                 $activity = $slot->activity;
@@ -288,6 +292,8 @@
                             </li>
                         @endforeach
                     </ul>
+                        </x-slot:content>
+                    </x-collapse>
                 @elseif (! empty($group['boundary']))
                     <ul class="grid grid-cols-1 gap-3">
                         <li class="p-4">
