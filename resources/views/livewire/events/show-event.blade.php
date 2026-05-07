@@ -28,6 +28,7 @@
                 @if ($event->creator)
                     <x-user-badge
                         :user="$event->creator"
+                        :organization="$event?->organization"
                         size="md"
                         data-ui="activity-show-host"
                         title="Creator"
