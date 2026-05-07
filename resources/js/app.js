@@ -2,6 +2,7 @@ import './bootstrap';
 import './avatar-cropper';
 import './notifications-echo';
 import './activities-echo';
+import './events-plan-counters-echo';
 import './maps-init';
 import './tags-init';
 import { bootActivityTagPickers } from './activity-tag-picker';
