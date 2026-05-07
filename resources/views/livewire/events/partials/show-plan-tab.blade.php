@@ -231,10 +231,25 @@
                                         <button
                                             type="button"
                                             wire:click="openActivityPreview({{ (int) $activity->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="openActivityPreview({{ (int) $activity->id }})"
+                                            wire:loading.class.delay="cursor-wait"
                                             class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 motion-reduce:transition-none"
                                             aria-label="{{ $activity->name }}"
+                                            data-ui="event-show-slot-open-activity-preview"
                                         >
                                         </button>
+                                        <div
+                                            wire:loading.delay
+                                            wire:target="openActivityPreview({{ (int) $activity->id }})"
+                                            class="pointer-events-auto absolute inset-0 z-[15] flex items-center justify-center rounded-xl bg-base-100/60 backdrop-blur-[1px]"
+                                            aria-live="polite"
+                                            role="status"
+                                            data-ui="event-show-slot-activity-preview-loading"
+                                        >
+                                            <span class="sr-only">{{ __('ui.common.loading') }}</span>
+                                            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+                                        </div>
                                     @endif
                                     <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
                                         <div class="min-w-0 flex-1 space-y-1.5">
