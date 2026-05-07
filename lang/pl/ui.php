@@ -23,6 +23,7 @@ return [
         'update' => 'Aktualizuj',
         'save' => 'Zapisz',
         'saving' => 'Zapisywanie...',
+        'loading' => 'Ładowanie...',
         'none' => 'Brak',
         'by' => 'przez',
         'unknown_user' => 'Nieznany uzytkownik',

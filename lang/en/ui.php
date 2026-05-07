@@ -23,6 +23,7 @@ return [
         'update' => 'Update',
         'save' => 'Save',
         'saving' => 'Saving...',
+        'loading' => 'Loading...',
         'none' => 'None',
         'by' => 'by',
         'unknown_user' => 'Unknown user',
