@@ -65,8 +65,11 @@
                 @if ($visibleSlots->isNotEmpty())
                     @php
                         $groupStartsAt = $group['starts_at'] ?? null;
+                        $groupHasAttachedActivities = $groupStartsAt !== null
+                            && ($group['slots'] ?? collect())->contains(fn ($slot) => $slot->activity !== null);
                         $shouldAutoOpen = ! $autoOpenDone
                             && $groupStartsAt !== null
+                            && $groupHasAttachedActivities
                             && $groupStartsAt->gte($now);
                         if ($shouldAutoOpen) {
                             $autoOpenDone = true;
