@@ -16,7 +16,7 @@
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-2xl sm:text-5xl" use-h1>
+        <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-3xl sm:text-4xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">
                     <span>{{ $title }}</span>
             </x-slot:title>
@@ -32,11 +32,12 @@
                         size="md"
                         data-ui="activity-show-host"
                         title="Creator"
+                        class="rounded-xl line-glow-primary p-1"
                     />
                 @endif
             </x-slot:actions>
         </x-header>
-        <x-ui.hr icon="o-academic-cap" double/>
+        <x-ui.hr icon="o-academic-cap" class="mt-1" double/>
     </div>
 
 
@@ -57,7 +58,7 @@
                     title="{{ 'Location' }}"
                     value="{{ $eventPlaceSummary }}"
                     icon="o-map-pin"
-                    class="!bg-transparent !p-0 !shadow-none"
+                    class="!bg-transparent !p-0 !shadow-none text-accent text-glow-accent"
                 />
                 @endif
             </div>
@@ -119,6 +120,7 @@
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
+                class="bg-sample4 rounded-2xl"
             >
                 <x-slot:toolbar>
                     @auth

@@ -194,15 +194,14 @@
 }
 
 .bg-sample2 {
-    background-image:
-        radial-gradient(circle at 30% 70%, var(--brand-primary-dark), transparent 60%),
-        radial-gradient(circle at 70% 30%, var(--brand-base-100-light), transparent 60%);
+
 }
 
 [data-theme="dark"] .bg-sample2 {
-    background-image:
-        radial-gradient(circle at 30% 70%, var(--brand-primary-dark), transparent 60%),
-        radial-gradient(circle at 70% 30%, var(--brand-base-100-dark), transparent 60%);
+    background:
+        radial-gradient(circle, rgba(139, 92, 246, 0.6) 1px, transparent 1px) 0px 0px / 20px 20px,
+        radial-gradient(circle, rgba(59, 130, 246, 0.4) 1px, transparent 1px) 10px 10px / 40px 40px,
+        radial-gradient(circle, rgba(236, 72, 153, 0.5) 1px, transparent 1px) 30px 30px / 60px 60px;
 }
 
 .bg-sample3 {
@@ -210,7 +209,9 @@
 }
 
 [data-theme="dark"] .bg-sample3 {
-    background: linear-gradient(315deg, var(--brand-accent) 0%, var(--brand-base-100-dark) 20%, var(--brand-primary) 40%, var(--brand-base-200-dark) 60%, var(--brand-secondary) 80%, var(--brand-base-300-dark) 100%);
+    background:
+        repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px)
 }
 
 .bg-sample4 {
@@ -221,13 +222,17 @@
 
 [data-theme="dark"] .bg-sample4 {
     background:
-        repeating-linear-gradient(45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-dark)
+        repeating-linear-gradient(45deg,var(--brand-base-300-dark) 0px,var(--brand-base-300-dark) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg,var(--brand-base-200-dark) 5px,var(--brand-base-200-dark) 1px,transparent 1px,transparent 35px)
+;
 }
 
 
 .bg-sample5 {
-
+    background: repeating-linear-gradient(22.5deg, transparent, transparent 2px, rgba(16, 185, 129, 0.18) 2px, rgba(16, 185, 129, 0.18) 3px, transparent 3px, transparent 8px),
+    repeating-linear-gradient(67.5deg, transparent, transparent 2px, rgba(245, 101, 101, 0.1) 2px, rgba(245, 101, 101, 0.1) 3px, transparent 3px, transparent 8px),
+    repeating-linear-gradient(112.5deg, transparent, transparent 2px, rgba(234, 179, 8, 0.08) 2px, rgba(234, 179, 8, 0.08) 3px, transparent 3px, transparent 8px),
+    repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(249, 115, 22, 0.06) 2px, rgba(249, 115, 22, 0.06) 3px, transparent 3px, transparent 8px);
 }
 
 [data-theme="dark"] .bg-sample5 {
@@ -236,20 +241,14 @@
 
 .bg-sample6 {
     background:
-        radial-gradient(120% 80% at 70% 20%, rgba(255, 20, 147, 0.15), transparent 50%),
-        radial-gradient(100% 60% at 30% 10%, rgba(0, 255, 255, 0.12), transparent 60%),
-        radial-gradient(90% 70% at 50% 0%, rgba(138, 43, 226, 0.18), transparent 65%),
-        radial-gradient(110% 50% at 80% 30%, rgba(255, 215, 0, 0.08), transparent 40%),
-        rgb(255, 255, 255);
+        repeating-linear-gradient(45deg, rgba(0, 255, 65, 0.08) 0px, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(0, 255, 65, 0.08) 0px, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(90deg, rgba(0, 255, 65, 0.03) 0px, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 4px);
 }
 
 [data-theme="dark"] .bg-sample6 {
-    background:
-        radial-gradient(120% 80% at 70% 20%, rgba(255, 20, 147, 0.15), transparent 50%),
-        radial-gradient(100% 60% at 30% 10%, rgba(0, 255, 255, 0.12), transparent 60%),
-        radial-gradient(90% 70% at 50% 0%, rgba(138, 43, 226, 0.18), transparent 65%),
-        radial-gradient(110% 50% at 80% 30%, rgba(255, 215, 0, 0.08), transparent 40%),
-        rgb(0, 0, 0);
+
+
 }
 
 .ui-atmosphere-sky {
@@ -403,24 +402,25 @@
 }
 
 .ui-glow-card {
+    background: color-mix(in oklab, var(--brand-info) 6%, rgba(255 255 255 / 0.06));
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
     border: 1px solid color-mix(in oklab, var(--brand-info) 34%, transparent);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-base-200-light) 82%, var(--brand-info)),
-        color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
-    );
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 12%, transparent),
         inset 0 18px 30px -26px color-mix(in oklab, var(--brand-info) 30%, transparent),
         0 0 22px -18px color-mix(in oklab, var(--brand-info) 65%, transparent);
 }
 
-[data-theme="dark"] .ui-glow-card {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-base-200-dark) 86%, var(--brand-primary-dark)),
-        color-mix(in oklab, var(--brand-base-100-dark) 92%, black)
-    );
+.ui-glow-card-empty {
+    background: color-mix(in oklab, var(--brand-base-100-dark) 6%, rgba(255 255 255 / 0.06));
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid color-mix(in oklab, var(--brand-base-100-dark) 34%, transparent);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--brand-base-100-dark) 12%, transparent),
+        inset 0 18px 30px -26px color-mix(in oklab, var(--brand-base-100-dark) 30%, transparent),
+        0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
 }
 
 .ui-glow-card-alert {
@@ -446,11 +446,7 @@
 
 .ui-glow-card-marked {
     border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-secondary) 28%, var(--brand-base-200-light)),
-        color-mix(in oklab, var(--brand-secondary) 48%, var(--brand-base-100-light))
-    );
+
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
         inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
@@ -458,16 +454,12 @@
 }
 
 [data-theme="dark"] .ui-glow-card-alert-marked {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-secondary) 30%, var(--brand-base-200-dark)),
-        color-mix(in oklab, var(--brand-secondary) 48%, var(--brand-base-100-dark))
-    );
+
 }
 
 .ui-glow-pill {
-    border: 1px solid color-mix(in oklab, var(--brand-info) 35%, transparent);
-    background: color-mix(in oklab, var(--brand-primary) 22%, transparent);
+    border: 1px solid color-mix(in oklab, var(--brand-secondary) 35%, transparent);
+    background: color-mix(in oklab, var(--brand-secondary) 22%, transparent);
     color: color-mix(in oklab, var(--brand-primary-content) 88%, white);
 }
 
@@ -729,7 +721,6 @@ input[type="range"].thumb-only::-moz-range-thumb {
     width: 0.6em;
     height: 0.6em;
     border-radius: 9999px;
-    background: var(--brand-neutral-dark);
     box-shadow:
         1.4em 0 var(--brand-neutral-dark),
         2.8em 0 var(--brand-neutral-dark),
@@ -738,7 +729,6 @@ input[type="range"].thumb-only::-moz-range-thumb {
 }
 
 .activity-attached.slot-browser-card .slot-browser-card-toolbar:before {
-    background: var(--brand-primary);
     box-shadow:
         1.4em 0 var(--brand-primary),
         2.8em 0 var(--brand-primary),
