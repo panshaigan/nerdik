@@ -146,6 +146,11 @@ class ShowEvent extends Component
         }
     }
 
+    public function toggleShowEmptySlots(): void
+    {
+        $this->showEmptySlots = ! ((bool) $this->showEmptySlots);
+    }
+
     public function addInterest(): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();

@@ -53,19 +53,19 @@
             <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="event-activity-preview-actions">
                 @auth
                     @if ($previewActivityParticipation?->isParticipant)
-                        <x-button type="button" class="btn-error" wire:click="leavePreviewActivity">
+                        <x-button type="button" class="btn-error" wire:click="leavePreviewActivity" spinner="leavePreviewActivity">
                             {{ __('ui.activities.leave') }}
                         </x-button>
                     @elseif ($previewActivityParticipation?->onWaitlist)
-                        <x-button type="button" class="btn-neutral" wire:click="leavePreviewWaitlist">
+                        <x-button type="button" class="btn-neutral" wire:click="leavePreviewWaitlist" spinner="leavePreviewWaitlist">
                             {{ __('ui.activities.leave_waitlist') }}
                         </x-button>
                     @elseif ($previewCanJoinWaitlist)
-                        <x-button type="button" class="btn-primary" wire:click="joinPreviewWaitlist">
+                        <x-button type="button" class="btn-primary" wire:click="joinPreviewWaitlist" spinner="joinPreviewWaitlist">
                             {{ __('ui.activities.join_waitlist') }}
                         </x-button>
                     @elseif ($previewCanJoinDirectly)
-                        <x-button type="button" class="btn-primary" wire:click="joinPreviewActivity">
+                        <x-button type="button" class="btn-primary" wire:click="joinPreviewActivity" spinner="joinPreviewActivity">
                             {{ __('ui.activities.join') }}
                         </x-button>
                     @else

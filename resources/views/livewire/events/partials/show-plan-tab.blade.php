@@ -58,12 +58,20 @@
         @endauth
         <x-button
             type="button"
-            wire:click="$toggle('showEmptySlots')"
+            wire:click="toggleShowEmptySlots"
+            wire:loading.attr="disabled"
+            wire:target="toggleShowEmptySlots"
             class="btn-outline btn-sm btn-neutral"
             :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
             data-ui="event-show-toggle-empty-slots"
         >
-            {{ $showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots') }}
+            <span wire:loading.remove wire:target="toggleShowEmptySlots">
+                {{ $showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots') }}
+            </span>
+            <span wire:loading wire:target="toggleShowEmptySlots" class="inline-flex items-center gap-2">
+                <span class="loading loading-spinner loading-xs" aria-hidden="true"></span>
+                {{ __('ui.common.loading') }}
+            </span>
         </x-button>
     </div>
     <ul class="space-y-6">
