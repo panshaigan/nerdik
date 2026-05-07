@@ -37,7 +37,7 @@
         --brand-success:           oklch(64% 0.19 162);
         --brand-success-content:   oklch(98% 0.01 162);
         --brand-warning:           oklch(75% 0.18 80);
-        --brand-warning-content:   oklch(0.91 0.006 84.567);
+        --brand-warning-content: oklch(0.1 0.017 20.546);
         --brand-error:             oklch(58% 0.23 25);
         --brand-error-content:     oklch(98% 0.01 25);
 

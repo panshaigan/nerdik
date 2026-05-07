@@ -1,3 +1,4 @@
+@php use App\Enums\BadgeSemantic; @endphp
 <div
     id="ui-event-show-slots"
     class="ui-event-show-slots p-4 sm:p-6"
@@ -68,7 +69,7 @@
 
                                     if ($slotActivityTypes->isNotEmpty()) {
                                         $slotTypeBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)
-                                            ->buildActivityTypeChips($slotActivityTypes);
+                                            ->buildActivityTypeChips($slotActivityTypes, BadgeSemantic::Info);
                                     }
                                 }
                             @endphp
