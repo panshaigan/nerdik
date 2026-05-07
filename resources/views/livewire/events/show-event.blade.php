@@ -2,8 +2,19 @@
     $title = $event->name;
     $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
     $eventPlaceSummary = $event->compactPlaceSummary();
+    $attachedActivityIds = $event->slots
+        ->pluck('activity_id')
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->unique()
+        ->values()
+        ->all();
 @endphp
-<div class="pb-6">
+<div
+    class="pb-6"
+    data-show-event-id="{{ $event->id }}"
+    data-show-event-activity-ids='@json($attachedActivityIds)'
+>
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <x-header title="{{ $title }}" class="!mb-0 px-4 py-3 sm:px-6" size="text-2xl sm:text-5xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">

@@ -44,6 +44,9 @@ class ShowEvent extends Component
     /** Bumped when the organizer receives a live proposal submission for this event. */
     public int $organizerProposalRefreshTick = 0;
 
+    /** Bumped when activity roster changes should refresh plan tab counters. */
+    public int $planCounterRefreshTick = 0;
+
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];
 
@@ -191,6 +194,25 @@ class ShowEvent extends Component
                 $freeIds
             ));
         }
+    }
+
+    #[On('event-plan-activity-participation-updated')]
+    public function refreshPlanCountersFromBroadcast(int|string|null $activityId = null): void
+    {
+        if ($activityId === null || $this->tab !== 'plan') {
+            return;
+        }
+
+        $belongsToThisEvent = Activity::query()
+            ->whereKey((int) $activityId)
+            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId))
+            ->exists();
+
+        if (! $belongsToThisEvent) {
+            return;
+        }
+
+        $this->planCounterRefreshTick++;
     }
 
     public function deleteEvent(): void
