@@ -29,7 +29,7 @@
                     <div class="min-w-0 flex-1">
                         <p class="font-medium text-base-content">{{ $organization->name }}</p>
                         @if (filled(rich_text_excerpt($organization->description)))
-                            <div class="rich-text-content mt-2 text-sm text-base-content/80">
+                            <div class="rich-text-content mt-2 text-base-content/80">
                                 {!! rich_text($organization->description) !!}
                             </div>
                         @endif

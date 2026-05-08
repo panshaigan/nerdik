@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@plugin "@tailwindcss/typography";
+
 @theme {
     --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
@@ -308,21 +310,25 @@
 }
 
 .ui-action-propose-magic {
+    --magic-p: var(--brand-primary);
+    --magic-s: var(--brand-secondary);
+    --magic-a: var(--brand-accent);
+
     position: relative;
+    isolation: isolate;
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--brand-primary) 35%, transparent);
+    border: 1px solid color-mix(in oklab, var(--magic-p) 35%, transparent);
     color: var(--brand-primary-content);
     background: linear-gradient(
         90deg,
-        color-mix(in oklab, var(--brand-primary) 100%, transparent),
-        color-mix(in oklab, var(--brand-primary) 80%, var(--brand-secondary))
+        color-mix(in oklab, var(--magic-p) 100%, transparent),
+        color-mix(in oklab, var(--magic-p) 80%, var(--magic-s))
     );
     box-shadow: 0 0 0 rgba(0 0 0 / 0);
     transition:
         transform 500ms ease-out,
         box-shadow 500ms ease-out,
-        border-color 500ms ease-out,
-        filter 500ms ease-out;
+        border-color 500ms ease-out;
 }
 
 .ui-action-propose-magic::before {
@@ -334,8 +340,8 @@
     opacity: 0;
     transition: opacity 500ms ease-out;
     background:
-        radial-gradient(circle at 20% 25%, color-mix(in oklab, var(--brand-accent) 45%, transparent), transparent 48%),
-        radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--brand-secondary) 45%, transparent), transparent 52%);
+        radial-gradient(circle at 20% 25%, color-mix(in oklab, var(--magic-a) 45%, transparent), transparent 48%),
+        radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--magic-s) 45%, transparent), transparent 52%);
 }
 
 .ui-action-propose-magic > * {
@@ -346,10 +352,10 @@
 @media (hover: hover) {
     .ui-action-propose-magic:hover {
         transform: translateY(-0.25rem) scale(1.03);
-        border-color: color-mix(in oklab, var(--brand-primary) 55%, transparent);
+        border-color: color-mix(in oklab, var(--magic-p) 55%, transparent);
         box-shadow:
-            0 0 24px color-mix(in oklab, var(--brand-primary) 55%, transparent),
-            0 0 64px color-mix(in oklab, var(--brand-secondary) 35%, transparent);
+            0 0 24px color-mix(in oklab, var(--magic-p) 55%, transparent),
+            0 0 64px color-mix(in oklab, var(--magic-s) 35%, transparent);
     }
 
     .ui-action-propose-magic:hover::before {
@@ -358,7 +364,7 @@
 }
 
 .ui-action-propose-magic:focus-visible {
-    outline: 2px solid color-mix(in oklab, var(--brand-primary) 70%, transparent);
+    outline: 2px solid color-mix(in oklab, var(--magic-p) 70%, transparent);
     outline-offset: 2px;
 }
 
@@ -376,7 +382,11 @@
     }
 }
 
-/* Reusable glass info tile (date/location/metadata blocks). */
+/*
+ * Glass info tile (date/location/metadata). Child typography targets Mary <x-stat>
+ * markup (w-9 h-9 icon, text-xs text-base-content/50 label, font-black text-xl value);
+ * upgrading Mary may require updating those selectors.
+ */
 .ui-info-tile {
     --_tile-accent: var(--brand-info);
     --_tile-border: color-mix(in oklab, var(--_tile-accent) 48%, transparent);
@@ -488,50 +498,18 @@
     color: var(--color-primary, #7c3aed);
 }
 
-/* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) */
+/* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) — Typography plugin */
 .rich-text-content {
-    line-height: 1.6;
-}
-
-.rich-text-content :where(p, ul, ol, blockquote, pre, table) {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.rich-text-content :where(h1, h2, h3, h4, h5, h6) {
-    margin-top: 0.9rem;
-    margin-bottom: 0.35rem;
-    line-height: 1.35;
-    font-weight: 600;
-}
-
-.rich-text-content :where(h1) { font-size: 1.25rem; }
-.rich-text-content :where(h2) { font-size: 1.15rem; }
-.rich-text-content :where(h3) { font-size: 1.05rem; }
-.rich-text-content :where(h4, h5, h6) { font-size: 1rem; }
-
-.rich-text-content :where(ul, ol) {
-    padding-left: 1.25rem;
-}
-
-.rich-text-content :where(a) {
-    @apply link link-primary underline-offset-2;
-}
-
-.rich-text-content :where(img) {
-    max-width: 100%;
-    height: auto;
-}
-
-.rich-text-content :where(table) {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-}
-
-.rich-text-content :where(th, td) {
-    border: 1px solid color-mix(in oklab, currentColor 18%, transparent);
-    padding: 0.35rem 0.5rem;
+    @apply prose prose-sm max-w-none text-base-content;
+    @apply prose-headings:text-base-content prose-p:text-base-content/90;
+    @apply prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary;
+    @apply prose-strong:text-base-content prose-blockquote:text-base-content/80;
+    @apply prose-code:text-base-content prose-pre:bg-base-200/80 prose-pre:text-base-content;
+    @apply prose-li:marker:text-base-content/60;
+    @apply prose-hr:border-base-300;
+    @apply prose-table:text-base-content;
+    @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
+    @apply prose-img:max-w-full prose-img:h-auto;
 }
 
 .tox .tox-edit-area::before {
