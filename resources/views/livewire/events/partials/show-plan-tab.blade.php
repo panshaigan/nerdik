@@ -348,6 +348,9 @@
                         </x-slot:content>
                     </x-collapse>
                 @elseif (! empty($group['boundary']))
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                        {{ $group['label'] }}
+                    </p>
                     <ul class="grid grid-cols-1 gap-3">
                         <li class="p-4">
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/70">

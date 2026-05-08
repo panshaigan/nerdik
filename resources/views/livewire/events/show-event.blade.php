@@ -54,8 +54,8 @@
                 </span>
             </x-slot:title>
             <x-slot:subtitle>
-                <x-icon name="o-calendar" />{{$eventDateSummary}}
-                <x-icon name="o-map-pin" />{{$eventPlaceSummary}}
+                <div class="mb-1"><x-icon name="o-map-pin" />{{$eventPlaceSummary}}</div>
+                <div><x-icon name="o-calendar" />{{$eventDateSummary}}</div>
             </x-slot:subtitle>
 
             <x-slot:actions>
@@ -66,7 +66,7 @@
                         size="md"
                         data-ui="activity-show-host"
                         title="Creator"
-                        class="rounded-xl box-glow-primary p-1"
+                        class=""
                     />
                 @endif
             </x-slot:actions>
@@ -77,7 +77,7 @@
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
         <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
-            <div class="box-glow-primary rounded-xl px-4 py-3">
+            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
                     value="{{ $confirmedActivitiesCount }}"
