@@ -19,7 +19,7 @@
 @endphp
 <div class="space-y-6 p-4 sm:p-6">
     @if ($hasEventDescription)
-        <div class="rich-text-content text-justify rounded-xl border border-primary/25 bg-base-200/40 p-6 text-sm text-base-content/80">
+        <div class="rich-text-content text-justify rounded-xl border border-primary/25 bg-base-200/40 p-6 text-base-content/80">
             {!! rich_text($event->description) !!}
         </div>
     @endif

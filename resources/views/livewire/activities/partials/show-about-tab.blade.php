@@ -1,7 +1,7 @@
 <div class="flex flex-col" data-ui="activity-show-info">
     <div class="mb-2 px-6 pb-6 pt-6 sm:px-8 sm:pt-8">
         @if (filled(rich_text_excerpt($activity->description)))
-            <div class="rich-text-content text-sm leading-relaxed text-base-content/90">
+            <div class="rich-text-content text-base-content/90">
                 {!! rich_text($activity->description) !!}
             </div>
         @else
