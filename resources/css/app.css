@@ -76,7 +76,6 @@
 /* ─── Light theme ──────────────────────────────────────────────────── */
 @plugin "daisyui/theme" {
     name: "light";
-    default: true;
     color-scheme: light;
 
     --color-primary:           var(--brand-primary);
@@ -121,6 +120,7 @@
 @plugin "daisyui/theme" {
     name: "dark";
     prefersdark: true;
+    default: true;
     color-scheme: dark;
 
     --color-primary:           var(--brand-primary);
@@ -170,7 +170,7 @@
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
 }
 
-@utility line-glow-* {
+@utility box-glow-* {
     --_glow-base: --value(--color-*);
     border-color: var(--_glow-base);
     box-shadow:
@@ -178,204 +178,62 @@
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
 }
 
-@utility box-glow-* {
+@utility box-glow-dark-* {
     --_glow-base: --value(--color-*);
+    border: 1px solid color-mix(in oklab, var(--_glow-base) 35%, transparent);
     box-shadow:
-        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
-        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 15%, transparent),
+        inset 0 16px 28px -28px color-mix(in oklab, var(--_glow-base) 60%, transparent),
+        0 0 24px -10px color-mix(in oklab, var(--_glow-base) 72%, transparent),
+        0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
 }
 
-.bg-sample1 {
-    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-light) 40%, var(--brand-secondary) 100%);
+@utility bg-gradial-* {
+    --_glow-base: --value(--color-*);
+
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--_glow-base) 28%, var(--brand-base-100-light)),
+        color-mix(in oklab, var(--_glow-base) 52%, var(--brand-base-200-light))
+    );
+
+    &:where(.dark, [data-theme="dark"]) {
+        background: linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--_glow-base) 26%, var(--brand-base-100-dark)),
+            color-mix(in oklab, var(--_glow-base) 45%, var(--brand-base-200-dark))
+        );
+    }
 }
 
-[data-theme="dark"] .bg-sample1 {
+.bg-global {
+    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
+}
+
+[data-theme="dark"] .bg-global {
     background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
 }
 
-.bg-sample2 {
-
-}
-
-[data-theme="dark"] .bg-sample2 {
-    background:
-        radial-gradient(circle, rgba(139, 92, 246, 0.6) 1px, transparent 1px) 0px 0px / 20px 20px,
-        radial-gradient(circle, rgba(59, 130, 246, 0.4) 1px, transparent 1px) 10px 10px / 40px 40px,
-        radial-gradient(circle, rgba(236, 72, 153, 0.5) 1px, transparent 1px) 30px 30px / 60px 60px;
-}
-
-.bg-sample3 {
+.bg-spoiled-glass {
     background: linear-gradient(315deg, var(--brand-accent) 0%, var(--brand-base-100-light) 20%, var(--brand-primary) 40%, var(--brand-base-200-light) 60%, var(--brand-secondary) 80%, var(--brand-base-300-light) 100%);
 }
 
-[data-theme="dark"] .bg-sample3 {
+[data-theme="dark"] .bg-spoiled-glass {
     background:
         repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px)
+        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px);
 }
 
-.bg-sample4 {
+.bg-scratches {
     background:
         repeating-linear-gradient(45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-light)
+        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-light);
 }
 
-[data-theme="dark"] .bg-sample4 {
+[data-theme="dark"] .bg-scratches {
     background:
         repeating-linear-gradient(45deg,var(--brand-base-300-dark) 0px,var(--brand-base-300-dark) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg,var(--brand-base-200-dark) 5px,var(--brand-base-200-dark) 1px,transparent 1px,transparent 35px)
-;
-}
-
-
-.bg-sample5 {
-    background: repeating-linear-gradient(22.5deg, transparent, transparent 2px, rgba(16, 185, 129, 0.18) 2px, rgba(16, 185, 129, 0.18) 3px, transparent 3px, transparent 8px),
-    repeating-linear-gradient(67.5deg, transparent, transparent 2px, rgba(245, 101, 101, 0.1) 2px, rgba(245, 101, 101, 0.1) 3px, transparent 3px, transparent 8px),
-    repeating-linear-gradient(112.5deg, transparent, transparent 2px, rgba(234, 179, 8, 0.08) 2px, rgba(234, 179, 8, 0.08) 3px, transparent 3px, transparent 8px),
-    repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(249, 115, 22, 0.06) 2px, rgba(249, 115, 22, 0.06) 3px, transparent 3px, transparent 8px);
-}
-
-[data-theme="dark"] .bg-sample5 {
-
-}
-
-.bg-sample6 {
-    background:
-        repeating-linear-gradient(45deg, rgba(0, 255, 65, 0.08) 0px, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
-        repeating-linear-gradient(-45deg, rgba(0, 255, 65, 0.08) 0px, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
-        repeating-linear-gradient(90deg, rgba(0, 255, 65, 0.03) 0px, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 4px);
-}
-
-[data-theme="dark"] .bg-sample6 {
-
-
-}
-
-.ui-atmosphere-sky {
-    position: relative;
-    isolation: isolate;
-}
-
-.ui-atmosphere-sky::before,
-.ui-atmosphere-sky::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-}
-
-.ui-atmosphere-sky::before {
-    background:
-        radial-gradient(135% 95% at 10% -10%, color-mix(in oklab, var(--brand-info) 24%, transparent), transparent 48%),
-        radial-gradient(120% 80% at 90% 5%, color-mix(in oklab, var(--brand-primary) 20%, transparent), transparent 46%),
-        radial-gradient(90% 90% at 50% 120%, color-mix(in oklab, var(--brand-secondary) 26%, transparent), transparent 48%),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-base-100-light) 92%, white) 0%,
-            color-mix(in oklab, var(--brand-base-200-light) 94%, var(--brand-info)) 38%,
-            color-mix(in oklab, var(--brand-base-300-light) 88%, var(--brand-primary)) 100%
-        );
-}
-
-.ui-atmosphere-sky::after {
-    background-image:
-        radial-gradient(1px 1px at 10% 20%, color-mix(in oklab, white 82%, var(--brand-info)), transparent),
-        radial-gradient(1px 1px at 25% 35%, color-mix(in oklab, white 90%, var(--brand-primary)), transparent),
-        radial-gradient(1.2px 1.2px at 42% 17%, color-mix(in oklab, white 82%, var(--brand-secondary)), transparent),
-        radial-gradient(1px 1px at 58% 28%, color-mix(in oklab, white 87%, var(--brand-primary)), transparent),
-        radial-gradient(1px 1px at 72% 44%, color-mix(in oklab, white 82%, var(--brand-info)), transparent),
-        radial-gradient(1.3px 1.3px at 82% 22%, color-mix(in oklab, white 92%, var(--brand-secondary)), transparent),
-        radial-gradient(1px 1px at 90% 38%, color-mix(in oklab, white 78%, var(--brand-info)), transparent),
-        radial-gradient(1px 1px at 18% 62%, color-mix(in oklab, white 84%, var(--brand-primary)), transparent),
-        radial-gradient(1.2px 1.2px at 34% 76%, color-mix(in oklab, white 84%, var(--brand-secondary)), transparent),
-        radial-gradient(1px 1px at 52% 68%, color-mix(in oklab, white 84%, var(--brand-info)), transparent),
-        radial-gradient(1.4px 1.4px at 67% 82%, color-mix(in oklab, white 92%, var(--brand-primary)), transparent),
-        radial-gradient(1px 1px at 88% 73%, color-mix(in oklab, white 75%, var(--brand-secondary)), transparent);
-    opacity: 0.45;
-    animation: ui-atmosphere-twinkle 9s ease-in-out infinite alternate;
-}
-
-[data-theme="dark"] .ui-atmosphere-sky::before {
-    background:
-        radial-gradient(140% 90% at 10% -10%, color-mix(in oklab, var(--brand-info) 26%, transparent), transparent 45%),
-        radial-gradient(120% 70% at 85% 5%, color-mix(in oklab, var(--brand-primary) 20%, transparent), transparent 42%),
-        radial-gradient(80% 90% at 50% 120%, color-mix(in oklab, var(--brand-secondary) 24%, transparent), transparent 45%),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-base-100-dark) 96%, black) 0%,
-            color-mix(in oklab, var(--brand-base-200-dark) 96%, var(--brand-primary-dark)) 40%,
-            color-mix(in oklab, var(--brand-base-100-dark) 98%, black) 100%
-        );
-}
-
-[data-theme="dark"] .ui-atmosphere-sky::after {
-    opacity: 0.8;
-}
-
-.ui-glow-panel {
-    border: 1px solid color-mix(in oklab, var(--brand-info) 45%, transparent);
-    background:
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-base-100-light) 90%, white),
-            color-mix(in oklab, var(--brand-base-200-light) 88%, var(--brand-info))
-        );
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 18%, transparent),
-        inset 0 20px 40px -24px color-mix(in oklab, var(--brand-info) 38%, transparent),
-        0 0 20px -10px color-mix(in oklab, var(--brand-primary) 58%, transparent),
-        0 10px 28px -20px color-mix(in oklab, var(--brand-primary-dark) 42%, transparent);
-}
-
-[data-theme="dark"] .ui-glow-panel {
-    background:
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-base-100-dark) 93%, transparent),
-            color-mix(in oklab, var(--brand-base-200-dark) 90%, transparent)
-        );
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 20%, transparent),
-        inset 0 20px 40px -28px color-mix(in oklab, var(--brand-info) 40%, transparent),
-        0 0 18px -12px color-mix(in oklab, var(--brand-secondary) 65%, transparent),
-        0 10px 24px -20px color-mix(in oklab, var(--brand-primary) 45%, transparent);
-}
-
-.ui-glow-panel-alert {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-100-light)),
-        color-mix(in oklab, var(--brand-warning) 52%, var(--brand-base-200-light))
-    );
-    color: color-mix(in oklab, var(--brand-warning-content) 78%, var(--brand-warning-content));
-}
-
-[data-theme="dark"] .ui-glow-panel-alert {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-warning) 26%, var(--brand-base-100-dark)),
-        color-mix(in oklab, var(--brand-warning) 45%, var(--brand-base-200-dark))
-    );
-    color: color-mix(in oklab, var(--brand-warning-content) 90%, var(--brand-base-content-dark));
-}
-
-.ui-glow-stat {
-    border: 1px solid color-mix(in oklab, var(--brand-info) 35%, transparent);
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 15%, transparent),
-        inset 0 16px 28px -28px color-mix(in oklab, var(--brand-primary) 60%, transparent),
-        0 0 24px -10px color-mix(in oklab, var(--brand-primary) 72%, transparent),
-        0 10px 22px -18px color-mix(in oklab, var(--brand-primary) 60%, transparent);
-}
-
-[data-theme="dark"] .ui-glow-stat {
-    border: 1px solid color-mix(in oklab, var(--brand-info) 35%, transparent);
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 15%, transparent),
-        inset 0 16px 28px -28px color-mix(in oklab, var(--brand-primary) 60%, transparent),
-        0 0 28px -10px color-mix(in oklab, var(--brand-primary) 78%, transparent),
-        0 12px 26px -18px color-mix(in oklab, var(--brand-primary) 68%, transparent);
+        repeating-linear-gradient(-45deg,var(--brand-base-200-dark) 5px,var(--brand-base-200-dark) 1px,transparent 1px,transparent 35px);
 }
 
 .ui-glow-board {
@@ -802,6 +660,4 @@ input[type="range"].thumb-only::-moz-range-thumb {
         4.2em 0 var(--brand-primary);
     opacity: 0.85;
 }
-li.indicator {
-    display: list-item;
-}
+
