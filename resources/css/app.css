@@ -195,7 +195,7 @@
         color-mix(in oklab, var(--_glow-base) 45%, var(--brand-base-200-dark))
     );
 
-    &:where([data-theme="light"]) {
+    :where([data-theme="light"]) & {
         background: linear-gradient(
             180deg,
             color-mix(in oklab, var(--_glow-base) 28%, var(--brand-base-100-light)),
@@ -219,7 +219,7 @@
 }
 
 [data-theme="light"] .bg-spoiled-glass {
-    background: linear-gradient(315deg, var(--brand-accent) 0%, var(--brand-base-100-light) 20%, var(--brand-primary) 40%, var(--brand-base-200-light) 60%, var(--brand-secondary) 80%, var(--brand-base-300-light) 100%);
+    background: none;
 }
 
 .bg-scratches {
@@ -230,11 +230,11 @@
 
 [data-theme="light"] .bg-scratches {
     background:
-        repeating-linear-gradient(45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-light);
+        repeating-linear-gradient(45deg,var(--brand-base-300-light) 0px,var(--brand-base-300-light) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg,var(--brand-base-200-light) 5px,var(--brand-base-200-light) 1px,transparent 1px,transparent 35px);
 }
 
-.ui-glow-board {
+.main-board {
     border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
     background: linear-gradient(
         180deg,
@@ -247,7 +247,7 @@
         0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
 }
 
-[data-theme="light"] .ui-glow-board {
+[data-theme="light"] .main-board {
     background: linear-gradient(
         180deg,
         color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
@@ -305,16 +305,6 @@
         inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
         inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
         0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
-}
-
-[data-theme="light"] .ui-glow-card-alert-marked {
-
-}
-
-.ui-glow-pill {
-    border: 1px solid color-mix(in oklab, var(--brand-secondary) 35%, transparent);
-    background: color-mix(in oklab, var(--brand-secondary) 22%, transparent);
-    color: color-mix(in oklab, var(--brand-primary-content) 88%, white);
 }
 
 .ui-action-propose-magic {
@@ -475,22 +465,6 @@
 
 [data-theme="light"] .ui-info-tile .font-black.text-xl {
     color: color-mix(in oklab, var(--brand-base-content-light) 85%, white);
-}
-
-@keyframes ui-atmosphere-twinkle {
-    0% {
-        opacity: 0.6;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0.92;
-        transform: translateY(-3px);
-    }
-}
-
-p {
-    /*line-height: 1.75;*/
-     line-height: 1.8;
 }
 
 /*
