@@ -32,7 +32,7 @@
                         size="md"
                         data-ui="activity-show-host"
                         title="Creator"
-                        class="rounded-xl line-glow-primary p-1"
+                        class="rounded-xl box-glow-primary p-1"
                     />
                 @endif
             </x-slot:actions>
@@ -44,7 +44,7 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
 
         <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 px-3 sm:px-0">
-            <div class="ui-glow-stat ui-info-tile ui-info-tile--secondary rounded-xl px-4 py-3">
+            <div class="box-glow-dark-primary ui-info-tile ui-info-tile--secondary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ 'Date' }}"
                     value="{{ $eventDateSummary }}"
@@ -52,7 +52,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="ui-glow-stat ui-info-tile ui-info-tile--accent rounded-xl px-4 py-3">
+            <div class="box-glow-dark-primary ui-info-tile ui-info-tile--accent rounded-xl px-4 py-3">
                 @if (filled($eventPlaceSummary))
                 <x-stat
                     title="{{ 'Location' }}"
@@ -65,7 +65,7 @@
         </div>
 
         @if ($event->isCancelled())
-            <x-alert class="ui-glow-panel-alert mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
+            <x-alert class="ui-glow-panel-warning mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
                 <div class="space-y-1 text-neutral">
                     <p class="text-xl">{{ __('ui.events.cancelled_badge') }}</p>
                     @if ($event->cancel_reason)
@@ -82,7 +82,7 @@
         @endif
 
         <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
-            <div class="ui-glow-stat rounded-xl px-4 py-3">
+            <div class="box-glow-primary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_activities') }}"
                     value="{{ $confirmedActivitiesCount }}"
@@ -90,7 +90,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="ui-glow-stat rounded-xl px-4 py-3">
+            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.confirmed_participants') }}"
                     value="{{ $confirmedParticipantsCount }}"
@@ -98,7 +98,7 @@
                     class="!bg-transparent !p-0 !shadow-none"
                 />
             </div>
-            <div class="ui-glow-stat rounded-xl px-4 py-3">
+            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.events.interested_people_count') }}"
                     value="{{ $interestedPeopleCount }}"
@@ -120,7 +120,7 @@
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
-                class="bg-sample4 rounded-2xl"
+                class="bg-scratches rounded-2xl"
             >
                 <x-slot:toolbar>
                     @auth
