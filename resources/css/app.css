@@ -172,7 +172,6 @@
 
 @utility box-glow-* {
     --_glow-base: --value(--color-*);
-    border-color: var(--_glow-base);
     box-shadow:
         0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
@@ -180,7 +179,6 @@
 
 @utility box-glow-dark-* {
     --_glow-base: --value(--color-*);
-    border: 1px solid color-mix(in oklab, var(--_glow-base) 35%, transparent);
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 15%, transparent),
         inset 0 16px 28px -28px color-mix(in oklab, var(--_glow-base) 60%, transparent),
@@ -193,55 +191,55 @@
 
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--_glow-base) 28%, var(--brand-base-100-light)),
-        color-mix(in oklab, var(--_glow-base) 52%, var(--brand-base-200-light))
+        color-mix(in oklab, var(--_glow-base) 26%, var(--brand-base-100-dark)),
+        color-mix(in oklab, var(--_glow-base) 45%, var(--brand-base-200-dark))
     );
 
-    &:where(.dark, [data-theme="dark"]) {
+    &:where([data-theme="light"]) {
         background: linear-gradient(
             180deg,
-            color-mix(in oklab, var(--_glow-base) 26%, var(--brand-base-100-dark)),
-            color-mix(in oklab, var(--_glow-base) 45%, var(--brand-base-200-dark))
+            color-mix(in oklab, var(--_glow-base) 28%, var(--brand-base-100-light)),
+            color-mix(in oklab, var(--_glow-base) 52%, var(--brand-base-200-light))
         );
     }
 }
 
 .bg-global {
-    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
-}
-
-[data-theme="dark"] .bg-global {
     background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
 }
 
-.bg-spoiled-glass {
-    background: linear-gradient(315deg, var(--brand-accent) 0%, var(--brand-base-100-light) 20%, var(--brand-primary) 40%, var(--brand-base-200-light) 60%, var(--brand-secondary) 80%, var(--brand-base-300-light) 100%);
+[data-theme="light"] .bg-global {
+    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
 }
 
-[data-theme="dark"] .bg-spoiled-glass {
+.bg-spoiled-glass {
     background:
         repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
         repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px);
 }
 
-.bg-scratches {
-    background:
-        repeating-linear-gradient(45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-light);
+[data-theme="light"] .bg-spoiled-glass {
+    background: linear-gradient(315deg, var(--brand-accent) 0%, var(--brand-base-100-light) 20%, var(--brand-primary) 40%, var(--brand-base-200-light) 60%, var(--brand-secondary) 80%, var(--brand-base-300-light) 100%);
 }
 
-[data-theme="dark"] .bg-scratches {
+.bg-scratches {
     background:
         repeating-linear-gradient(45deg,var(--brand-base-300-dark) 0px,var(--brand-base-300-dark) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
         repeating-linear-gradient(-45deg,var(--brand-base-200-dark) 5px,var(--brand-base-200-dark) 1px,transparent 1px,transparent 35px);
+}
+
+[data-theme="light"] .bg-scratches {
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, rgba(255, 0, 100, 0.1) 0px, rgba(255, 0, 100, 0.1) 1px, transparent 1px, transparent 20px) var(--brand-base-100-light);
 }
 
 .ui-glow-board {
     border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
-        color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
+        color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
+        color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
     );
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 16%, transparent),
@@ -249,11 +247,11 @@
         0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
 }
 
-[data-theme="dark"] .ui-glow-board {
+[data-theme="light"] .ui-glow-board {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
-        color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
+        color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
+        color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
     );
 }
 
@@ -283,8 +281,8 @@
     border: 1px solid color-mix(in oklab, var(--brand-warning) 55%, transparent);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-200-light)),
-        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-light))
+        color-mix(in oklab, var(--brand-warning) 30%, var(--brand-base-200-dark)),
+        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-dark))
     );
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-warning) 22%, transparent),
@@ -292,11 +290,11 @@
         0 0 22px -16px color-mix(in oklab, var(--brand-warning) 72%, transparent);
 }
 
-[data-theme="dark"] .ui-glow-card-alert {
+[data-theme="light"] .ui-glow-card-alert {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--brand-warning) 30%, var(--brand-base-200-dark)),
-        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-dark))
+        color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-200-light)),
+        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-light))
     );
 }
 
@@ -309,7 +307,7 @@
         0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
 }
 
-[data-theme="dark"] .ui-glow-card-alert-marked {
+[data-theme="light"] .ui-glow-card-alert-marked {
 
 }
 
@@ -397,16 +395,16 @@
     border: 1px solid var(--_tile-border);
     border-radius: 1rem;
     background:
-        radial-gradient(110% 70% at 10% 0%, color-mix(in oklab, var(--_tile-accent) 24%, transparent), transparent 52%),
+        radial-gradient(120% 80% at 12% -2%, color-mix(in oklab, var(--_tile-accent) 28%, transparent), transparent 54%),
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--brand-base-100-light) 94%, white),
-            color-mix(in oklab, var(--brand-base-200-light) 88%, var(--_tile-accent))
+            color-mix(in oklab, var(--brand-base-100-dark) 92%, transparent),
+            color-mix(in oklab, var(--brand-base-200-dark) 90%, var(--_tile-accent))
         );
     box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--_tile-accent) 16%, transparent),
-        inset 0 20px 34px -30px color-mix(in oklab, var(--_tile-accent) 46%, transparent),
-        0 0 24px -13px color-mix(in oklab, var(--_tile-accent) 80%, transparent);
+        inset 0 0 0 1px color-mix(in oklab, var(--_tile-accent) 20%, transparent),
+        inset 0 24px 38px -32px color-mix(in oklab, var(--_tile-accent) 48%, transparent),
+        0 0 30px -12px color-mix(in oklab, var(--_tile-accent) 74%, transparent);
 }
 
 .ui-info-tile::after {
@@ -437,14 +435,14 @@
 .ui-info-tile .text-xs.text-base-content\/50 {
     letter-spacing: 0.035em;
     font-weight: 600;
-    color: color-mix(in oklab, var(--_tile-accent) 30%, var(--brand-base-content-light));
+    color: color-mix(in oklab, var(--_tile-accent) 44%, var(--brand-base-content-dark));
 }
 
 .ui-info-tile .font-black.text-xl {
     font-weight: 700;
     line-height: 1.3;
     font-size: clamp(1.15rem, 1rem + 0.35vw, 1.45rem);
-    color: color-mix(in oklab, var(--brand-base-content-light) 85%, white);
+    color: color-mix(in oklab, var(--brand-base-content-dark) 90%, white);
     text-shadow: 0 0 14px color-mix(in oklab, var(--_tile-accent) 48%, transparent);
 }
 
@@ -456,27 +454,27 @@
     --_tile-accent: var(--brand-secondary);
 }
 
-[data-theme="dark"] .ui-info-tile {
+[data-theme="light"] .ui-info-tile {
     border-color: color-mix(in oklab, var(--_tile-accent) 54%, transparent);
     background:
-        radial-gradient(120% 80% at 12% -2%, color-mix(in oklab, var(--_tile-accent) 28%, transparent), transparent 54%),
+        radial-gradient(110% 70% at 10% 0%, color-mix(in oklab, var(--_tile-accent) 24%, transparent), transparent 52%),
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--brand-base-100-dark) 92%, transparent),
-            color-mix(in oklab, var(--brand-base-200-dark) 90%, var(--_tile-accent))
+            color-mix(in oklab, var(--brand-base-100-light) 94%, white),
+            color-mix(in oklab, var(--brand-base-200-light) 88%, var(--_tile-accent))
         );
     box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--_tile-accent) 20%, transparent),
-        inset 0 24px 38px -32px color-mix(in oklab, var(--_tile-accent) 48%, transparent),
-        0 0 30px -12px color-mix(in oklab, var(--_tile-accent) 74%, transparent);
+        inset 0 0 0 1px color-mix(in oklab, var(--_tile-accent) 16%, transparent),
+        inset 0 20px 34px -30px color-mix(in oklab, var(--_tile-accent) 46%, transparent),
+        0 0 24px -13px color-mix(in oklab, var(--_tile-accent) 80%, transparent);
 }
 
-[data-theme="dark"] .ui-info-tile .text-xs.text-base-content\/50 {
-    color: color-mix(in oklab, var(--_tile-accent) 44%, var(--brand-base-content-dark));
+[data-theme="light"] .ui-info-tile .text-xs.text-base-content\/50 {
+    color: color-mix(in oklab, var(--_tile-accent) 30%, var(--brand-base-content-light));
 }
 
-[data-theme="dark"] .ui-info-tile .font-black.text-xl {
-    color: color-mix(in oklab, var(--brand-base-content-dark) 90%, white);
+[data-theme="light"] .ui-info-tile .font-black.text-xl {
+    color: color-mix(in oklab, var(--brand-base-content-light) 85%, white);
 }
 
 @keyframes ui-atmosphere-twinkle {
@@ -563,10 +561,10 @@ p {
 }
 
 .tox .tox-edit-area::before {
-    border-color: #000 !important;
-}
-[data-theme="dark"] .tox .tox-edit-area::before {
     border-color: #fff !important;
+}
+[data-theme="light"] .tox .tox-edit-area::before {
+    border-color: #000 !important;
 }
 
 /* Re-enable pointer events on thumbs only.
@@ -622,10 +620,10 @@ input[type="range"].thumb-only::-moz-range-thumb {
     transform: translateY(-50%);
     border-radius: calc(var(--range-thumb-size) / 3);
     /* Same face color as Daisy range thumb (--range-thumb: base-100). */
-    background-color: var(--brand-base-content-light);
-}
-[data-theme="dark"] .participants-dual-range-fill {
     background-color: var(--brand-base-content-dark);
+}
+[data-theme="light"] .participants-dual-range-fill {
+    background-color: var(--brand-base-content-light);
 }
 
 .slot-browser-card {
@@ -660,4 +658,3 @@ input[type="range"].thumb-only::-moz-range-thumb {
         4.2em 0 var(--brand-primary);
     opacity: 0.85;
 }
-
