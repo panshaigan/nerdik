@@ -18,10 +18,44 @@
     <div class="max-w-7xl mx-auto sm:px-4 lg:px-6">
         <x-header title="{{ $title }}" class="!mb-0 px-6 py-3 sm:px-10" size="text-3xl sm:text-4xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">
+                <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span>{{ $title }}</span>
+                    @if ($event->isCancelled())
+                        <x-popover class="inline-flex transition-none" position="bottom" offset="8">
+                            <x-slot:trigger>
+                                <x-badge
+                                    :value="__('ui.events.cancelled_short')"
+                                    icon="o-x-circle"
+                                    class="badge-warning badge-sm shrink-0 font-semibold normal-case"
+                                    data-ui="event-show-cancelled-badge"
+                                    :title="__('ui.events.cancelled_badge')"
+                                />
+                            </x-slot:trigger>
+                            <x-slot:content class="max-w-sm text-sm text-base-content">
+                                <div class="space-y-2">
+                                    @if (filled($event->cancel_reason))
+                                        <p>
+                                            <span class="font-semibold">{{ __('ui.activities.cancel_reason_label') }}:</span>
+                                            <span class="mt-0.5 block">{{ $event->cancel_reason }}</span>
+                                        </p>
+                                    @endif
+                                    <p>
+                                        <span class="font-semibold">{{ __('ui.events.cancellation_popover_who') }}:</span>
+                                        <span class="mt-0.5 block">{{ $event->canceller?->displayName() ?? __('ui.common.unknown_user') }}</span>
+                                    </p>
+                                    <p>
+                                        <span class="font-semibold">{{ __('ui.events.cancellation_popover_when') }}:</span>
+                                        <span class="mt-0.5 block">{{ $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—' }}</span>
+                                    </p>
+                                </div>
+                            </x-slot:content>
+                        </x-popover>
+                    @endif
+                </span>
             </x-slot:title>
             <x-slot:subtitle>
-
+                <x-icon name="o-calendar" />{{$eventDateSummary}}
+                <x-icon name="o-map-pin" />{{$eventPlaceSummary}}
             </x-slot:subtitle>
 
             <x-slot:actions>
@@ -42,45 +76,6 @@
 
 
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
-
-        <div class="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 px-3 sm:px-0">
-            <div class="box-glow-dark-primary ui-info-tile ui-info-tile--secondary rounded-xl px-4 py-3">
-                <x-stat
-                    title="{{ 'Date' }}"
-                    value="{{ $eventDateSummary }}"
-                    icon="o-calendar"
-                    class="!bg-transparent !p-0 !shadow-none"
-                />
-            </div>
-            <div class="box-glow-dark-primary ui-info-tile ui-info-tile--accent rounded-xl px-4 py-3">
-                @if (filled($eventPlaceSummary))
-                <x-stat
-                    title="{{ 'Location' }}"
-                    value="{{ $eventPlaceSummary }}"
-                    icon="o-map-pin"
-                    class="!bg-transparent !p-0 !shadow-none text-accent text-glow-accent"
-                />
-                @endif
-            </div>
-        </div>
-
-        @if ($event->isCancelled())
-            <x-alert class="bg-gradial-warning mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
-                <div class="space-y-1 text-neutral">
-                    <p class="text-xl">{{ __('ui.events.cancelled_badge') }}</p>
-                    @if ($event->cancel_reason)
-                        <p><strong>{{ __('ui.activities.cancel_reason_label') }}:</strong> {{ $event->cancel_reason }}</p>
-                    @endif
-                    <p class="opacity-80">
-                        {{ __('ui.events.cancelled_meta', [
-                            'who' => $event->canceller?->displayName() ?? __('ui.common.unknown_user'),
-                            'when' => $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—',
-                        ]) }}
-                    </p>
-                </div>
-            </x-alert>
-        @endif
-
         <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
             <div class="box-glow-primary rounded-xl px-4 py-3">
                 <x-stat
