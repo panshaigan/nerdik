@@ -65,7 +65,7 @@
         </div>
 
         @if ($event->isCancelled())
-            <x-alert class="ui-glow-panel-warning mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
+            <x-alert class="bg-gradial-warning mb-4 rounded-xl px-4 py-3" icon="o-exclamation-triangle">
                 <div class="space-y-1 text-neutral">
                     <p class="text-xl">{{ __('ui.events.cancelled_badge') }}</p>
                     @if ($event->cancel_reason)
@@ -110,7 +110,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
-        <div id="ui-event-show-hero" class="ui-event-show-hero ui-glow-board rounded-2xl" data-ui="event-show-hero">
+        <div id="ui-event-show-hero" class="ui-event-show-hero main-board rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
