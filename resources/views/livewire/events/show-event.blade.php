@@ -105,7 +105,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
-        <div class="ui-main-board rounded-2xl">
+        <div class="ui-content-card rounded-2xl">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
