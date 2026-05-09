@@ -406,67 +406,6 @@
     border-color: #000 !important;
 }
 
-/* Re-enable pointer events on thumbs only.
-   Dual sliders: DaisyUI paints fill from track start → thumb via --range-fill + thumb shadows.
-   We draw the segment in Blade, so disable native track/fill while keeping thumbs. */
-input[type="range"].thumb-only {
-    pointer-events: none;
-    --range-fill: 0;
-    --range-bg: transparent;
-}
-input[type="range"].thumb-only::-webkit-slider-runnable-track {
-    background-color: transparent;
-}
-input[type="range"].thumb-only::-moz-range-track {
-    background-color: transparent;
-}
-input[type="range"].thumb-only::-webkit-slider-thumb {
-    pointer-events: all;
-}
-input[type="range"].thumb-only::-moz-range-thumb {
-    pointer-events: all;
-}
-
-/* Dual-thumb participants slider: align track + fill with Mary <x-range> / Daisy .range (default md thumb). */
-.range-dual {
-    --range-thumb-size: calc(var(--size-selector, 0.25rem) * 4);
-    position: relative;
-    width: 100%;
-    min-height: var(--range-thumb-size);
-}
-
-.range-dual-track {
-    pointer-events: none;
-    position: absolute;
-    top: 50%;
-    left: 0;
-    z-index: 0;
-    width: 100%;
-    height: calc(var(--range-thumb-size) * 0.5);
-    transform: translateY(-50%);
-    border-radius: var(--radius-selector, 0.25rem);
-    background: color-mix(in oklab, currentColor 10%, transparent);
-}
-
-.range-dual-fill {
-    pointer-events: none;
-    position: absolute;
-    top: 50%;
-    left: 0;
-    z-index: 1;
-    /* Same height as thumb diameter — matches Mary <x-range> filled “pill” next to the handle. */
-    height: var(--range-thumb-size);
-    transform: translateY(-50%);
-    border-radius: calc(var(--range-thumb-size) / 3);
-    /* Same face color as Daisy range thumb (--range-thumb: base-100). */
-    background-color: var(--brand-base-content-dark);
-}
-[data-theme="light"] .range-dual-fill {
-    background-color: var(--brand-base-content-light);
-}
-
-/* end dual */
-
 .slot-browser-card {
     overflow: visible;
 }

@@ -42,88 +42,15 @@
 
         <div class="card border border-base-300 p-4 bg-spoiled-glass">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div
-                    x-data="{
-                        min: @entangle('min_participants'),
-                        max: @entangle('max_participants'),
-                        minLimit: 1,
-                        maxLimit: 20,
-
-                        get minPercent() {
-                            const val = Number(this.min ?? this.minLimit);
-                            const lo = this.minLimit;
-                            const hi = this.maxLimit;
-                            if (!Number.isFinite(val)) {
-                                return 0;
-                            }
-
-                            return ((val - lo) / (hi - lo)) * 100;
-                        },
-                        get maxPercent() {
-                            const val = Number(this.max ?? this.maxLimit);
-                            const lo = this.minLimit;
-                            const hi = this.maxLimit;
-                            if (!Number.isFinite(val)) {
-                                return 100;
-                            }
-
-                            return ((val - lo) / (hi - lo)) * 100;
-                        },
-
-                        init() {
-                            this.min = this.min ?? this.minLimit;
-                            this.max = this.max ?? this.maxLimit;
-
-                            this.$watch('min', v => {
-                                const val = Number(v);
-                                const maxVal = Number(this.max);
-                                if (val > maxVal) this.min = maxVal;
-                            });
-
-                            this.$watch('max', v => {
-                                const val = Number(v);
-                                const minVal = Number(this.min);
-                                if (val < minVal) this.max = minVal;
-                            });
-                        }
-                    }"
-                    class="space-y-1"
-                >
-                    <!-- Label -->
-                    <label class="text-sm font-medium flex justify-between">
-                        <span>{{ __('ui.activities.participants') }}</span>
-                        <span class="font-semibold" x-text="`${min}–${max}`"></span>
-                    </label>
-
-                    {{-- Dual range: Daisy .range / Mary <x-range> sizing; native fill off (.thumb-only); see .range-dual in app.css --}}
-                    <div class="range-dual text-base-content">
-                        <div class="range-dual-track" aria-hidden="true"></div>
-                        <div
-                            class="range-dual-fill"
-                            aria-hidden="true"
-                            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent + 2) + '%' }"
-                        ></div>
-
-                        <input
-                            type="range"
-                            x-model.number="min"
-                            :min="minLimit"
-                            :max="maxLimit"
-                            step="1"
-                            class="thumb-only range range-xs absolute top-1/2 left-0 z-20 w-full -translate-y-1/2"
-                            :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
-                        >
-                        <input
-                            type="range"
-                            x-model.number="max"
-                            :min="minLimit"
-                            :max="maxLimit"
-                            step="1"
-                            class="thumb-only range range-xs absolute top-1/2 left-0 z-10 w-full -translate-y-1/2"
-                            :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
-                        >
-                    </div>
-                </div>
+                <x-range-dual
+                    :label="__('ui.activities.participants')"
+                    min-wire-model="min_participants"
+                    max-wire-model="max_participants"
+                    :min-limit="1"
+                    :max-limit="20"
+                    :step="1"
+                    range-class="range-xs"
+                />
 
                 <div
                     x-data="{ value: @entangle('minimum_age') }"
