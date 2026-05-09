@@ -167,59 +167,6 @@
 
 }
 
-@utility text-glow-* {
-    --_glow-base: --value(--color-*);
-    text-shadow:
-        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
-        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
-}
-
-@utility box-glow-* {
-    --_glow-base: --value(--color-*);
-    box-shadow:
-        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
-        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
-}
-
-@utility box-glow-dark-* {
-    --_glow-base: --value(--color-*);
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 15%, transparent),
-        inset 0 16px 28px -28px color-mix(in oklab, var(--_glow-base) 60%, transparent),
-        0 0 24px -10px color-mix(in oklab, var(--_glow-base) 72%, transparent),
-        0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
-}
-
-@layer utilities {
-    /* ====================== CUSTOM BACKGROUNDS ====================== */
-    .bg-gradient {
-        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
-
-        @variant light {
-            background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
-        }
-    }
-
-    .bg-texture-glass {
-        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px);
-
-        @variant light {
-            background: none;
-        }
-    }
-
-    .bg-texture-scratches {
-        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 5px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 35px);
-
-        @variant light {
-            background: repeating-linear-gradient(45deg, var(--brand-base-300-light) 0px, var(--brand-base-300-light) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-            repeating-linear-gradient(-45deg, var(--brand-base-200-light) 5px, var(--brand-base-200-light) 1px, transparent 1px, transparent 35px);
-        }
-    }
-}
-
 @layer components {
     /* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) — Typography plugin */
     .rich-text-content {
@@ -255,74 +202,141 @@
             );
         }
     }
+
+    .ui-tile-active {
+        background: color-mix(in oklab, var(--brand-primary) 6%, rgba(255 255 255 / 0.06));
+        backdrop-filter: blur(16px) saturate(1.4);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+
+        border: 1px solid color-mix(in oklab, var(--brand-primary) 34%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 12%, transparent),
+            inset 0 18px 30px -26px color-mix(in oklab, var(--brand-primary) 30%, transparent),
+            0 0 22px -18px color-mix(in oklab, var(--brand-primary) 65%, transparent);
+    }
+
+    .ui-tile-empty {
+        background: color-mix(in oklab, var(--brand-base-100-dark) 6%, rgba(255 255 255 / 0.06));
+        backdrop-filter: blur(16px) saturate(1.4);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+
+        border: 1px solid color-mix(in oklab, var(--brand-base-100-dark) 34%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-base-100-dark) 12%, transparent),
+            inset 0 18px 30px -26px color-mix(in oklab, var(--brand-base-100-dark) 30%, transparent),
+            0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
+    }
+
+    .status-dots {
+        overflow: visible;
+
+        .status-dots-toolbar {
+            position: relative;
+            min-height: 2rem;
+            padding: 0.5rem 1rem 0.35rem;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0.8rem;
+                left: 0;
+                width: 0.6em;
+                height: 0.6em;
+                border-radius: 9999px;
+                box-shadow:
+                    1.4em 0 var(--brand-neutral-dark),
+                    2.8em 0 var(--brand-neutral-dark),
+                    4.2em 0 var(--brand-neutral-dark);
+                opacity: 0.45;
+            }
+        }
+
+        /* Active state */
+        &.status-dots-active .status-dots-toolbar::before {
+            box-shadow:
+                1.4em 0 var(--brand-primary),
+                2.8em 0 var(--brand-primary),
+                4.2em 0 var(--brand-primary);
+            opacity: 0.85;
+        }
+    }
 }
 
-.ui-tile {
-    background: color-mix(in oklab, var(--brand-info) 6%, rgba(255 255 255 / 0.06));
+@utility text-glow-* {
+    --_glow-base: --value(--color-*);
+    text-shadow:
+        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
+        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+}
+
+@utility box-glow-* {
+    --_glow-base: --value(--color-*);
+    box-shadow:
+        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
+        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+}
+
+@utility box-glow-dark-* {
+    --_glow-base: --value(--color-*);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 15%, transparent),
+        inset 0 16px 28px -28px color-mix(in oklab, var(--_glow-base) 60%, transparent),
+        0 0 24px -10px color-mix(in oklab, var(--_glow-base) 72%, transparent),
+        0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
+}
+
+@utility tile-* {
+    --_glow-base: --value(--color-*);
+
+    background: color-mix(in oklab, var(--_glow-base) 6%, rgba(255 255 255 / 0.06));
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
 
-    border: 1px solid color-mix(in oklab, var(--brand-info) 34%, transparent);
+    border: 1px solid color-mix(in oklab, var(--_glow-base) 34%, transparent);
     box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 12%, transparent),
-        inset 0 18px 30px -26px color-mix(in oklab, var(--brand-info) 30%, transparent),
-        0 0 22px -18px color-mix(in oklab, var(--brand-info) 65%, transparent);
+        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 12%, transparent),
+        inset 0 18px 30px -26px color-mix(in oklab, var(--_glow-base) 30%, transparent),
+        0 0 22px -18px color-mix(in oklab, var(--_glow-base) 65%, transparent);
 }
 
-.ui-tile-empty {
-    background: color-mix(in oklab, var(--brand-base-100-dark) 6%, rgba(255 255 255 / 0.06));
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+@layer utilities {
+    /* ====================== CUSTOM BACKGROUNDS ====================== */
+    .bg-gradient {
+        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
 
-    border: 1px solid color-mix(in oklab, var(--brand-base-100-dark) 34%, transparent);
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-base-100-dark) 12%, transparent),
-        inset 0 18px 30px -26px color-mix(in oklab, var(--brand-base-100-dark) 30%, transparent),
-        0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
+        @variant light {
+            background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
+        }
+    }
+
+    .bg-texture-glass {
+        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px);
+
+        @variant light {
+            background: none;
+        }
+    }
+
+    .bg-texture-scratches {
+        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 5px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 35px);
+
+        @variant light {
+            background: repeating-linear-gradient(45deg, var(--brand-base-300-light) 0px, var(--brand-base-300-light) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+            repeating-linear-gradient(-45deg, var(--brand-base-200-light) 5px, var(--brand-base-200-light) 1px, transparent 1px, transparent 35px);
+        }
+    }
+
+    .ui-tile-marked {
+        border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
+
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
+            inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
+            0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
+    }
 }
-
-.ui-tile-marked {
-    border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
-
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
-        inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
-        0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
-}
-
-.slot-browser-card {
-    overflow: visible;
-}
-
-.slot-browser-card .slot-browser-card-toolbar {
-    position: relative;
-    min-height: 2rem;
-    padding: 0.5rem 1rem 0.35rem;
-}
-
-.slot-browser-card .slot-browser-card-toolbar:before {
-    content: "";
-    position: absolute;
-    top: 0.8rem;
-    left: 1rem;
-    width: 0.6em;
-    height: 0.6em;
-    border-radius: 9999px;
-    box-shadow:
-        1.4em 0 var(--brand-neutral-dark),
-        2.8em 0 var(--brand-neutral-dark),
-        4.2em 0 var(--brand-neutral-dark);
-    opacity: 0.45;
-}
-
-.activity-attached.slot-browser-card .slot-browser-card-toolbar:before {
-    box-shadow:
-        1.4em 0 var(--brand-primary),
-        2.8em 0 var(--brand-primary),
-        4.2em 0 var(--brand-primary);
-    opacity: 0.85;
-}
-
 
 /* ====================== MAP TWEAKS ====================== */
 /*

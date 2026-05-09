@@ -135,10 +135,10 @@
                             @endphp
                             <li
                                 @class([
-                                    'ui-tile' => $activity && !$activity?->isCancelled(),
+                                    'ui-tile-active' => $activity && !$activity?->isCancelled(),
                                     'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
-                                    'slot-browser-card group relative w-full overflow-hidden rounded-xl border border-transparent',
-                                    'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
+                                    'status-dots group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                    'status-dots-active !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
                                 ])
@@ -147,7 +147,7 @@
                                     :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-tile-marked' : ''"
                                 @endif
                             >
-                                <div class="slot-browser-card-toolbar flex items-center">
+                                <div class="status-dots-toolbar flex items-center">
                                     <div class="flex-1"></div>
                                     @auth
                                         @php
