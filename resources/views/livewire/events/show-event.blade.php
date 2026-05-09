@@ -118,16 +118,6 @@
                                 data-ui="event-show-edit-open"
                                 icon="o-pencil"
                             />
-                            @if (auth()->user()?->canCreateEvents())
-                                <x-button
-                                    :link="route('events.create', ['duplicate' => $event->slug])"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-accent"
-                                    :tooltip="__('ui.events.duplicate_action')"
-                                    :aria-label="__('ui.events.duplicate_action').': '.$event->name"
-                                    data-ui="event-show-duplicate-open"
-                                    icon="o-square-2-stack"
-                                />
-                            @endif
                             @if (! $event->isCancelled())
                                 @if (($eventSignupPressureBlocksDelete ?? false))
                                     <x-button
@@ -160,15 +150,17 @@
                                     data-ui="event-show-reopen-event"
                                     icon="o-arrow-uturn-left"
                                 />
-                                <x-button
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    wire:click="confirmDeleteEvent"
-                                    :tooltip="__('Delete')"
-                                    :aria-label="__('Delete').': '.$event->name"
-                                    data-ui="event-show-delete-after-cancel"
-                                    icon="o-trash"
-                                />
+                                @if (($eventSignupPressureBlocksDelete ?? false))
+                                    <x-button
+                                        type="button"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                        wire:click="confirmDeleteEvent"
+                                        :tooltip="__('Delete')"
+                                        :aria-label="__('Delete').': '.$event->name"
+                                        data-ui="event-show-delete-after-cancel"
+                                        icon="o-trash"
+                                    />
+                                @endif
                             @endif
                             </div>
                         @endif
