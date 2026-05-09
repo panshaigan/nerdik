@@ -5,12 +5,15 @@ namespace App\Livewire\Events;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Enums\ActivityProposalStatus;
+use App\Enums\BadgeSemantic;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
@@ -86,20 +89,39 @@ class ShowEvent extends Component
 
     public function mount(Event $event): void
     {
+        $event->loadMissing('enrollmentWindows');
         $this->eventId = $event->id;
         $this->tab = $this->normalizeTab($this->tab);
-        $event->load(['slots.activity']);
-        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
+        $user = auth()->user();
+        if ($this->tab === 'proposals' && ($user === null || ! $user->canModifyEntity($event))) {
+            $this->tab = 'description';
+        }
+        $this->applyShowEmptySlotsPolicy($event, $user);
     }
 
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+        $event = Event::query()->whereKey($this->eventId)->with('enrollmentWindows')->first();
+        if ($event !== null) {
+            $this->applyShowEmptySlotsPolicy($event, auth()->user());
+        }
     }
 
     public function updatedActivityPreviewTab(string $value): void
     {
         $this->activityPreviewTab = $this->normalizeActivityPreviewTab($value);
+        if ($this->activityPreviewTab !== 'participation' || $this->previewActivityId === null) {
+            return;
+        }
+
+        $activity = Activity::query()
+            ->with('slot.event.enrollmentWindows')
+            ->whereKey($this->previewActivityId)
+            ->first();
+        if ($activity === null || ! $this->activityHasActiveEnrollmentWindow($activity, app(EventActivitySignupService::class))) {
+            $this->activityPreviewTab = 'info';
+        }
     }
 
     public function updatedActivityPreviewModalOpen(bool $value): void
@@ -380,6 +402,7 @@ class ShowEvent extends Component
 
         app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event->fresh(), $user);
         $this->success(__('ui.events.cancelled_status'));
+        $this->applyShowEmptySlotsPolicy($event->fresh(['enrollmentWindows']), auth()->user());
     }
 
     public function reopenEvent(): void
@@ -406,6 +429,7 @@ class ShowEvent extends Component
 
         app(CancellationNotificationDispatcher::class)->notifyEventReopened($event->fresh(), $user);
         $this->success(__('ui.events.reopened_status'));
+        $this->applyShowEmptySlotsPolicy($event->fresh(['enrollmentWindows']), auth()->user());
     }
 
     public function confirmDeleteEvent(): void
@@ -733,98 +757,154 @@ class ShowEvent extends Component
             'organization',
             'places',
             'enrollmentWindows',
-            'slots' => fn ($q) => $q->with([
-                'place.parent',
-                'activity' => fn ($aq) => $aq->with([
-                    'tags.translations',
-                    'tags.tagCategory',
-                    'activityType',
-                    'canceller',
-                ])->withCount([
-                    'participants',
-                    'interestedUsers',
-                ]),
-                'activityTypes',
-            ])->orderBy('starts_at'),
         ]);
 
         $enrollment = $slotPresentation->enrollmentPresentation($event, now());
         $activeEnrollmentWindow = $enrollment->activeWindow;
         $activeWindowRemainingByActivityId = $enrollment->remainingByActivityId;
 
-        $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
-        $pendingProposals = $event->proposals()
-            ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
-            ->where('status', ActivityProposalStatus::Pending)
-            ->orderBy('created_at')
-            ->get();
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
         $canShowPlanActivityProposalUi = $user !== null
             && ! $event->isCancelled()
             && ($event->starts_at === null || now()->lt($event->starts_at))
             && $activeEnrollmentWindow === null;
-        $shouldRestrictEmptySlots = ! $canManageEvent
-            && (
-                ($event->starts_at !== null && now()->gte($event->starts_at))
-                || $activeEnrollmentWindow !== null
-            );
-        if ($this->showEmptySlots === null || $this->emptySlotsRestricted !== $shouldRestrictEmptySlots) {
-            $this->showEmptySlots = ! $shouldRestrictEmptySlots;
-            $this->emptySlotsRestricted = $shouldRestrictEmptySlots;
+        $shouldRestrictEmptySlots = $this->shouldRestrictEmptySlots($event, $user);
+        $this->applyShowEmptySlotsPolicy($event, $user);
+
+        $eventActivityIds = $this->slotAttachmentActivityIdsForEvent($event->id);
+        [$confirmedActivitiesCount, $confirmedParticipantsCount] = $this->confirmedProgrammeStats($event->id);
+
+        $hasPendingProposals = $canManageEvent && ActivityProposal::query()
+            ->where('event_id', $event->id)
+            ->where('status', ActivityProposalStatus::Pending)
+            ->exists();
+
+        if ($this->tab === 'proposals' && (! $canManageEvent || ! $hasPendingProposals)) {
+            $this->tab = 'description';
         }
+
         $hasInterest = $user !== null
             ? $user->interestedEvents()->whereKey($event->id)->exists()
             : false;
-        $interestedActivityIds = $user !== null
+        $interestedActivityIds = $user !== null && $eventActivityIds !== []
             ? $user->interestedActivities()
-                ->whereIn('activities.id', $event->slots->pluck('activity_id')->filter()->all())
+                ->whereIn('activities.id', $eventActivityIds)
                 ->pluck('activities.id')
                 ->map(fn ($id) => (int) $id)
                 ->all()
             : [];
 
-        $confirmedActivities = $event->slots
-            ->pluck('activity')
-            ->filter(fn ($activity) => $activity !== null && ! $activity->isCancelled())
-            ->values();
-        $confirmedActivitiesCount = $confirmedActivities->count();
-        $confirmedParticipantsCount = (int) $confirmedActivities->sum(
-            fn ($activity) => (int) ($activity->participants_count ?? 0)
-        );
         $interestedPeopleCount = (int) $event->interestedUsers()->count();
+
+        $slotHourGroups = [];
+        $pendingProposals = collect();
+        $slotCardBadgeItemsByActivityId = [];
+        $slotTypeBadgeItemsBySlotId = [];
+        $proposalBadgeItemsByProposalId = [];
+        $freeSlotsAllForProposals = collect();
+
+        if ($this->tab === 'plan') {
+            $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
+            $syncEvent->load(['slots.activity']);
+            app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
+
+            $event->load([
+                'slots' => fn ($q) => $q->with([
+                    'place.parent',
+                    'activity' => fn ($aq) => $aq->with([
+                        'tags.translations',
+                        'tags.tagCategory',
+                        'activityType',
+                        'canceller',
+                    ])->withCount([
+                        'participants',
+                        'interestedUsers',
+                    ]),
+                    'activityTypes',
+                ])->orderBy('starts_at'),
+            ]);
+
+            $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
+
+            foreach ($event->slots as $slot) {
+                $activity = $slot->activity;
+                if ($activity !== null) {
+                    $slotCardBadgeItemsByActivityId[(int) $activity->id] = $badgeGroupBuilder->build(
+                        $activity,
+                        ActivityBadgeGroupConfig::eventSlotCard(),
+                    );
+                } else {
+                    $slotActivityTypes = collect($slot->activityTypes)
+                        ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                        ->filter()
+                        ->unique()
+                        ->values();
+                    if ($slotActivityTypes->isNotEmpty()) {
+                        $slotTypeBadgeItemsBySlotId[(int) $slot->id] = $badgeGroupBuilder->buildActivityTypeChips(
+                            $slotActivityTypes,
+                            BadgeSemantic::Info,
+                        );
+                    }
+                }
+            }
+        } elseif ($this->tab === 'proposals' && $canManageEvent && $hasPendingProposals) {
+            $event->load([
+                'slots' => fn ($q) => $q->with('activityTypes')->orderBy('starts_at'),
+            ]);
+            $freeSlotsAllForProposals = $event->slots->whereNull('activity_id')->values();
+
+            $pendingProposals = $event->proposals()
+                ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
+                ->where('status', ActivityProposalStatus::Pending)
+                ->orderBy('created_at')
+                ->get();
+
+            foreach ($pendingProposals as $proposal) {
+                $pa = $proposal->activity;
+                if ($pa !== null) {
+                    $proposalBadgeItemsByProposalId[(int) $proposal->id] = $badgeGroupBuilder->build(
+                        $pa,
+                        ActivityBadgeGroupConfig::eventProposal(),
+                    );
+                }
+            }
+        }
+
         $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
-            ? $this->previewActivityQuery($this->previewActivityId)->first()
+            ? $this->previewActivityQuery($this->previewActivityId)
+                ->withCount(['participants', 'waitlist'])
+                ->first()
             : null;
         $previewActivityBadgeItems = [];
         $previewActivityParticipation = null;
         $previewActivityHasActiveEnrollmentWindow = false;
         if ($previewActivity !== null) {
-            $previewActivity->load([
-                'creator',
-                'canceller',
-                'activityType',
-                'tags.translations',
-                'tags.tagCategory',
-                'participants.user',
-                'waitlist.user',
+            $previewActivity->loadMissing([
                 'slot.event.enrollmentWindows',
                 'slot.place.parent.city',
                 'slot.place.city',
                 'place.parent.city',
                 'place.city',
+                'creator',
+                'canceller',
+                'activityType',
+                'tags.translations',
+                'tags.tagCategory',
             ]);
+            $previewActivityHasActiveEnrollmentWindow = $this->activityHasActiveEnrollmentWindow($previewActivity, $signupService);
+            if ($this->normalizeActivityPreviewTab($this->activityPreviewTab) === 'participation'
+                && $previewActivityHasActiveEnrollmentWindow) {
+                $previewActivity->loadMissing([
+                    'participants.user',
+                    'waitlist.user',
+                ]);
+            }
             $previewActivityBadgeItems = $badgeGroupBuilder->build(
                 $previewActivity,
                 ActivityBadgeGroupConfig::activityHero(),
             );
             $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
-            $previewActivityEvent = $previewActivity->slot?->event;
-            $previewActivityHasActiveEnrollmentWindow = $previewActivityEvent !== null
-                && $signupService->firstPeriodContaining($previewActivityEvent, now()) !== null;
-            if (! $previewActivityHasActiveEnrollmentWindow && $this->activityPreviewTab === 'participation') {
-                $this->activityPreviewTab = 'info';
-            }
         } elseif ($this->activityPreviewModalOpen) {
             $this->closeActivityPreview();
         }
@@ -855,12 +935,24 @@ class ShowEvent extends Component
             }
         }
 
+        $attachedActivityIds = $event->relationLoaded('slots')
+            ? $event->slots
+                ->pluck('activity_id')
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all()
+            : $eventActivityIds;
+
         return view('livewire.events.show-event', [
             'event' => $event,
+            'attachedActivityIds' => $attachedActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'pendingProposals' => $pendingProposals,
+            'hasPendingProposals' => $hasPendingProposals,
             'canManageEvent' => $canManageEvent,
             'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
             'showEmptySlots' => (bool) $this->showEmptySlots,
@@ -879,7 +971,83 @@ class ShowEvent extends Component
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
             'slotHourGroups' => $slotHourGroups,
+            'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
+            'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
+            'proposalBadgeItemsByProposalId' => $proposalBadgeItemsByProposalId,
+            'freeSlotsAllForProposals' => $freeSlotsAllForProposals,
         ]);
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function confirmedProgrammeStats(int $eventId): array
+    {
+        $activitiesBase = Activity::query()
+            ->whereHas('slot', fn ($q) => $q->where('event_id', $eventId))
+            ->whereNull('cancelled_at');
+
+        $confirmedActivitiesCount = (clone $activitiesBase)->count();
+
+        $confirmedParticipantsCount = (int) ActivityUser::query()
+            ->whereNull('activity_user.deleted_at')
+            ->whereIn('activity_id', $activitiesBase->clone()->select('activities.id'))
+            ->count();
+
+        return [$confirmedActivitiesCount, $confirmedParticipantsCount];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function slotAttachmentActivityIdsForEvent(int $eventId): array
+    {
+        return Slot::query()
+            ->where('event_id', $eventId)
+            ->whereNotNull('activity_id')
+            ->pluck('activity_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function shouldRestrictEmptySlots(Event $event, ?User $user): bool
+    {
+        $canManageEvent = $user !== null && $user->canModifyEntity($event);
+
+        return ! $canManageEvent
+            && (
+                ($event->starts_at !== null && now()->gte($event->starts_at))
+                || $event->enrollmentWindows->first(function ($w) {
+                    return $w->starts_at !== null
+                        && $w->ends_at !== null
+                        && now()->between($w->starts_at, $w->ends_at);
+                }) !== null
+            );
+    }
+
+    private function applyShowEmptySlotsPolicy(Event $event, ?User $user): void
+    {
+        $shouldRestrict = $this->shouldRestrictEmptySlots($event, $user);
+        if ($this->showEmptySlots === null || $this->emptySlotsRestricted !== $shouldRestrict) {
+            $this->showEmptySlots = ! $shouldRestrict;
+            $this->emptySlotsRestricted = $shouldRestrict;
+        }
+    }
+
+    private function activityHasActiveEnrollmentWindow(Activity $activity, EventActivitySignupService $signupService): bool
+    {
+        if (! $activity->relationLoaded('slot')) {
+            $activity->loadMissing('slot.event.enrollmentWindows');
+        } elseif ($activity->slot !== null && ! $activity->slot->relationLoaded('event')) {
+            $activity->slot->loadMissing('event.enrollmentWindows');
+        }
+
+        $previewActivityEvent = $activity->slot?->event;
+
+        return $previewActivityEvent !== null
+            && $signupService->firstPeriodContaining($previewActivityEvent, now()) !== null;
     }
 
     private function normalizeTab(?string $value): string

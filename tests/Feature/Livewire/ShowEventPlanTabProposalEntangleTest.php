@@ -22,6 +22,7 @@ class ShowEventPlanTabProposalEntangleTest extends TestCase
 
         $html = Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->html();
 
         $this->assertStringContainsString('$wire.entangle(\'proposalSlotIds\')', $html);

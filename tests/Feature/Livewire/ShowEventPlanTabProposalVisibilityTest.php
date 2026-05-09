@@ -38,6 +38,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertViewHas('canShowPlanActivityProposalUi', true)
             ->assertSee(__('ui.events.propose_activity'))
             ->assertSee(__('ui.events.plan_propose_hero_title'));
@@ -55,6 +56,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertViewHas('canShowPlanActivityProposalUi', false)
             ->assertDontSee(__('ui.events.propose_activity'))
             ->assertDontSee(__('ui.events.plan_propose_hero_title'));
@@ -82,6 +84,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertViewHas('canShowPlanActivityProposalUi', false)
             ->assertDontSee(__('ui.events.propose_activity'));
     }
@@ -104,6 +107,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertSet('showEmptySlots', true)
             ->assertSee($emptySlot->name);
     }
@@ -135,6 +139,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertSet('showEmptySlots', false)
             ->assertDontSee($emptySlot->name)
             ->set('showEmptySlots', true)
@@ -179,6 +184,7 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->assertSet('showEmptySlots', false)
             ->assertSee($activity->name)
             ->assertDontSee('Always Hidden Empty Slot');

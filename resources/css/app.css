@@ -336,6 +336,13 @@
             inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
             0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
     }
+
+    /** Stat card embedded in a glow box (no inner padding/background). */
+    .ui-stat-embed {
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
 }
 
 /* ====================== MAP TWEAKS ====================== */

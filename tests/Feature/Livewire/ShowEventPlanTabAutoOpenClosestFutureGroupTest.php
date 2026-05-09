@@ -61,6 +61,7 @@ class ShowEventPlanTabAutoOpenClosestFutureGroupTest extends TestCase
 
         $html = Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
             ->html();
 
         $futureWithoutActivityGroupId = 'event-slot-group-'.$futureWithoutActivity->getTimestamp();

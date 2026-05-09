@@ -2,13 +2,6 @@
     $title = $event->name;
     $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
     $eventPlaceSummary = $event->compactPlaceSummary();
-    $attachedActivityIds = $event->slots
-        ->pluck('activity_id')
-        ->filter()
-        ->map(fn ($id) => (int) $id)
-        ->unique()
-        ->values()
-        ->all();
 @endphp
 <div
     class="space-y-2 sm:space-y-6"
@@ -62,7 +55,7 @@
                 title="{{ __('ui.events.confirmed_activities') }}"
                 value="{{ $confirmedActivitiesCount }}"
                 icon="o-envelope"
-                class="!bg-transparent !p-0 !shadow-none"
+                class="ui-stat-embed"
             />
         </div>
         <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
@@ -70,7 +63,7 @@
                 title="{{ __('ui.events.confirmed_participants') }}"
                 value="{{ $confirmedParticipantsCount }}"
                 icon="o-users"
-                class="!bg-transparent !p-0 !shadow-none"
+                class="ui-stat-embed"
             />
         </div>
         <div
@@ -87,7 +80,7 @@
                 value="{{ $interestedPeopleCount }}"
                 icon="{{ $hasInterest ? 's-star' : 'o-star' }}"
                 color="{{ auth()->check() ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '' }}"
-                class="!bg-transparent !p-0 !shadow-none"
+                class="ui-stat-embed"
             />
             @auth
                 <div
@@ -188,16 +181,22 @@
             </x-slot:toolbar>
 
             <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">
-                @include('livewire.events.partials.show-description-tab')
+                @if ($tab === 'description')
+                    @include('livewire.events.partials.show-description-tab')
+                @endif
             </x-tab>
 
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
-                @include('livewire.events.partials.show-plan-tab')
+                @if ($tab === 'plan')
+                    @include('livewire.events.partials.show-plan-tab')
+                @endif
             </x-tab>
 
-            @if ($canManageEvent && $pendingProposals->isNotEmpty())
+            @if ($canManageEvent && $hasPendingProposals)
                 <x-tab name="proposals" :label="__('ui.events.show_proposals')" class="!p-0" data-ui="event-show-tab-proposals" icon="o-clipboard-document-list">
-                    @include('livewire.events.partials.show-proposals-tab')
+                    @if ($tab === 'proposals')
+                        @include('livewire.events.partials.show-proposals-tab')
+                    @endif
                 </x-tab>
             @endif
 

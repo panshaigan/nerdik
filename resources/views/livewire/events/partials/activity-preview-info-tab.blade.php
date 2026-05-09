@@ -40,7 +40,7 @@
                 @endif
 
                 <span class="badge badge-primary badge-sm">
-                    {{ (int) $activity->participants->count() }}/{{ $activity->max_participants ?? '∞' }}
+                    {{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}
                 </span>
             </div>
 

@@ -11,15 +11,11 @@
             @php
                 $pa = $proposal->activity;
                 $durationLabel = format_activity_duration_compact($pa->duration_in_minutes);
-                $proposalBadgeItems = app(\App\Domain\ActivityBadges\ActivityBadgeGroupBuilder::class)->build(
-                    $pa,
-                    \App\Domain\ActivityBadges\ActivityBadgeGroupConfig::eventProposal(),
-                );
+                $proposalBadgeItems = $proposalBadgeItemsByProposalId[(int) $proposal->id] ?? [];
             @endphp
             <li class="mb-3 space-y-3 rounded-xl border border-primary/25 bg-base-200/40 p-6">
                 @php
-                    $freeSlotsAll = $event->slots->whereNull('activity_id')->values();
-                    $freeSlots = $freeSlotsAll->filter(fn ($s) => $s->fitsProposalActivity($pa))->values();
+                    $freeSlots = $freeSlotsAllForProposals->filter(fn ($s) => $s->fitsProposalActivity($pa))->values();
                 @endphp
                 <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
@@ -52,7 +48,7 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap justify-end gap-2">
-                        @if ($freeSlotsAll->isEmpty())
+                        @if ($freeSlotsAllForProposals->isEmpty())
                             <span class="text-sm text-base-content/55">{{ __('ui.events.no_free_slots') }}</span>
                         @elseif ($freeSlots->isEmpty())
                             <span class="text-sm text-base-content/55">{{ __('ui.events.no_compatible_slots') }}</span>
@@ -65,7 +61,7 @@
                             @endphp
                             <div class="inline-flex max-w-full flex-wrap items-center gap-1" wire:key="proposal-accept-{{ $proposal->id }}">
                                 <x-select
-                                    wire:model.live="proposalAcceptSlotId.{{ $proposal->id }}"
+                                    wire:model="proposalAcceptSlotId.{{ $proposal->id }}"
                                     :options="$acceptSlotSelectOptions"
                                     :placeholder="__('ui.events.choose_slot_or_auto')"
                                     placeholder-value=""
@@ -80,9 +76,7 @@
                                     wire:loading.attr="disabled"
                                 >
                                     <span class="sr-only">{{ __('ui.events.accept') }}</span>
-                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
+                                    <x-icon name="o-check" class="h-5 w-5" />
                                 </x-button>
                             </div>
                         @endif
@@ -94,9 +88,7 @@
                             wire:loading.attr="disabled"
                         >
                             <span class="sr-only">{{ __('ui.events.reject') }}</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                            </svg>
+                            <x-icon name="o-x-mark" class="h-5 w-5" />
                         </x-button>
                     </div>
                 </div>
@@ -110,17 +102,13 @@
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
                             @if ($durationLabel !== null)
                                 <span class="inline-flex shrink-0 items-center gap-1.5 text-base-content/70" title="{{ __('ui.activities.show_duration') }}">
-                                    <svg class="h-4 w-4 shrink-0 text-base-content/50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
+                                    <x-icon name="o-clock" class="h-4 w-4 shrink-0 text-base-content/50" />
                                     <span class="tabular-nums">{{ $durationLabel }}</span>
                                 </span>
                             @endif
                             @if (filled($pa->max_participants))
                                 <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ __('ui.activities.max_participants') }}">
-                                    <svg class="h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                                    </svg>
+                                    <x-icon name="o-users" class="h-4 w-4 shrink-0" />
                                     <span>{{ $pa->max_participants }}</span>
                                 </span>
                             @endif
