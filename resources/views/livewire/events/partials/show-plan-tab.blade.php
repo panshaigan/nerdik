@@ -136,16 +136,16 @@
                             <li
                                 @class([
                                     'slot-browser-card group relative w-full overflow-hidden rounded-xl border border-transparent',
-                                    'ui-glow-card' => $activity && !$activity?->isCancelled(),
+                                    'ui-tile' => $activity && !$activity?->isCancelled(),
                                     'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
-                                    'ui-glow-card-empty' => ! $activity,
-                                    'ui-glow-card-alert' => $activity?->isCancelled(),
+                                    'ui-tile-empty' => ! $activity,
+                                    'ui-tile-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
-                                    :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-glow-card-marked' : ''"
+                                    :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-tile-marked' : ''"
                                 @endif
                             >
                                 <div class="slot-browser-card-toolbar flex items-center">

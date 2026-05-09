@@ -234,33 +234,34 @@
         @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
         @apply prose-img:max-w-full prose-img:h-auto;
     }
-}
 
-.ui-main-board {
-    border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
-        color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
-    );
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 16%, transparent),
-        inset 0 36px 54px -46px color-mix(in oklab, var(--brand-info) 32%, transparent),
-        0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
-
-    @variant light {
+    .ui-content-card {
+        border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
         background: linear-gradient(
             180deg,
-            color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
-            color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
+            color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
+            color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
         );
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 16%, transparent),
+            inset 0 36px 54px -46px color-mix(in oklab, var(--brand-info) 32%, transparent),
+            0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
+
+        @variant light {
+            background: linear-gradient(
+                180deg,
+                color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
+                color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
+            );
+        }
     }
 }
 
-.ui-glow-card {
+.ui-tile {
     background: color-mix(in oklab, var(--brand-info) 6%, rgba(255 255 255 / 0.06));
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
+
     border: 1px solid color-mix(in oklab, var(--brand-info) 34%, transparent);
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 12%, transparent),
@@ -268,10 +269,11 @@
         0 0 22px -18px color-mix(in oklab, var(--brand-info) 65%, transparent);
 }
 
-.ui-glow-card-empty {
+.ui-tile-empty {
     background: color-mix(in oklab, var(--brand-base-100-dark) 6%, rgba(255 255 255 / 0.06));
     backdrop-filter: blur(16px) saturate(1.4);
     -webkit-backdrop-filter: blur(16px) saturate(1.4);
+
     border: 1px solid color-mix(in oklab, var(--brand-base-100-dark) 34%, transparent);
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-base-100-dark) 12%, transparent),
@@ -279,7 +281,7 @@
         0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
 }
 
-.ui-glow-card-alert {
+.ui-tile-alert {
     border: 1px solid color-mix(in oklab, var(--brand-warning) 55%, transparent);
     background: linear-gradient(
         180deg,
@@ -300,41 +302,13 @@
     }
 }
 
-.ui-glow-card-marked {
+.ui-tile-marked {
     border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
 
     box-shadow:
         inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
         inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
         0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
-}
-
-/*
- * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
- * (tiles shrink / fail to align → blank gray map).
- */
-.leaflet-container img {
-    max-width: none !important;
-}
-
-/* Browse bbox toolbar (custom draw control, not leaflet-draw). */
-.browse-bbox-toolbar a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 2.125rem;
-    min-height: 2.125rem;
-}
-.browse-bbox-toolbar a.browse-bbox-draw-armed {
-    background-color: color-mix(in oklab, var(--color-primary, #7c3aed) 18%, transparent);
-    color: var(--color-primary, #7c3aed);
-}
-
-.tox .tox-edit-area::before {
-    border-color: #fff !important;
-}
-[data-theme="light"] .tox .tox-edit-area::before {
-    border-color: #000 !important;
 }
 
 .slot-browser-card {
@@ -368,4 +342,39 @@
         2.8em 0 var(--brand-primary),
         4.2em 0 var(--brand-primary);
     opacity: 0.85;
+}
+
+
+/* ====================== MAP TWEAKS ====================== */
+/*
+ * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
+ * (tiles shrink / fail to align → blank gray map).
+ */
+.leaflet-container img {
+    max-width: none !important;
+}
+
+/* Browse bbox toolbar (custom draw control, not leaflet-draw). */
+.browse-bbox-toolbar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.125rem;
+    min-height: 2.125rem;
+}
+.browse-bbox-toolbar a.browse-bbox-draw-armed {
+    background-color: color-mix(in oklab, var(--color-primary, #7c3aed) 18%, transparent);
+    color: var(--color-primary, #7c3aed);
+}
+
+/* ====================== TINY MCE TWEAKS ====================== */
+.tox .tox-edit-area {
+    @variant before {
+        border-color: #fff !important;
+    }
+    @variant light {
+        @variant before {
+            border-color: #000 !important;
+        }
+    }
 }
