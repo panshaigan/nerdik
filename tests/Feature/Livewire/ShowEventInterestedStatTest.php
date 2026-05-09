@@ -49,6 +49,10 @@ class ShowEventInterestedStatTest extends TestCase
         $opening = $this->interestedStatOpeningTag($html);
         $this->assertNotNull($opening);
         $this->assertStringContainsString('wire:click="addInterest"', $opening);
+        $this->assertStringContainsString('wire:target="addInterest, removeInterest"', $opening);
+        $this->assertStringContainsString('wire:loading.class.delay="pointer-events-none cursor-wait"', $opening);
+
+        $this->assertStringContainsString('loading loading-spinner loading-sm', $html);
 
         $htmlAfterAdd = Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
@@ -58,6 +62,7 @@ class ShowEventInterestedStatTest extends TestCase
         $openingAfter = $this->interestedStatOpeningTag($htmlAfterAdd);
         $this->assertNotNull($openingAfter);
         $this->assertStringContainsString('wire:click="removeInterest"', $openingAfter);
+        $this->assertStringContainsString('wire:target="addInterest, removeInterest"', $openingAfter);
     }
 
     public function test_interested_stat_has_no_wire_click_for_guest(): void
@@ -69,6 +74,7 @@ class ShowEventInterestedStatTest extends TestCase
         $opening = $this->interestedStatOpeningTag($html);
         $this->assertNotNull($opening);
         $this->assertStringNotContainsString('wire:click', $opening);
+        $this->assertStringNotContainsString('wire:target', $opening);
     }
 
     /**
