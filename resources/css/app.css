@@ -188,24 +188,6 @@
         0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
 }
 
-@utility bg-gradial-* {
-    --_glow-base: --value(--color-*);
-
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--_glow-base) 26%, var(--brand-base-100-dark)),
-        color-mix(in oklab, var(--_glow-base) 45%, var(--brand-base-200-dark))
-    );
-
-    :where([data-theme="light"]) & {
-        background: linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--_glow-base) 28%, var(--brand-base-100-light)),
-            color-mix(in oklab, var(--_glow-base) 52%, var(--brand-base-200-light))
-        );
-    }
-}
-
 .bg-global {
     background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
 }
@@ -446,14 +428,14 @@ input[type="range"].thumb-only::-moz-range-thumb {
 }
 
 /* Dual-thumb participants slider: align track + fill with Mary <x-range> / Daisy .range (default md thumb). */
-.participants-dual-range {
+.range-dual {
     --range-thumb-size: calc(var(--size-selector, 0.25rem) * 4);
     position: relative;
     width: 100%;
     min-height: var(--range-thumb-size);
 }
 
-.participants-dual-range-track {
+.range-dual-track {
     pointer-events: none;
     position: absolute;
     top: 50%;
@@ -466,7 +448,7 @@ input[type="range"].thumb-only::-moz-range-thumb {
     background: color-mix(in oklab, currentColor 10%, transparent);
 }
 
-.participants-dual-range-fill {
+.range-dual-fill {
     pointer-events: none;
     position: absolute;
     top: 50%;
@@ -479,9 +461,11 @@ input[type="range"].thumb-only::-moz-range-thumb {
     /* Same face color as Daisy range thumb (--range-thumb: base-100). */
     background-color: var(--brand-base-content-dark);
 }
-[data-theme="light"] .participants-dual-range-fill {
+[data-theme="light"] .range-dual-fill {
     background-color: var(--brand-base-content-light);
 }
+
+/* end dual */
 
 .slot-browser-card {
     overflow: visible;

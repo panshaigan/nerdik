@@ -95,13 +95,13 @@
                         <span class="font-semibold" x-text="`${min}–${max}`"></span>
                     </label>
 
-                    {{-- Dual range: Daisy .range / Mary <x-range> sizing; native fill off (.thumb-only); see .participants-dual-range in app.css --}}
-                    <div class="participants-dual-range text-base-content">
-                        <div class="participants-dual-range-track" aria-hidden="true"></div>
+                    {{-- Dual range: Daisy .range / Mary <x-range> sizing; native fill off (.thumb-only); see .range-dual in app.css --}}
+                    <div class="range-dual text-base-content">
+                        <div class="range-dual-track" aria-hidden="true"></div>
                         <div
-                            class="participants-dual-range-fill"
+                            class="range-dual-fill"
                             aria-hidden="true"
-                            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent) + '%' }"
+                            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent + 2) + '%' }"
                         ></div>
 
                         <input
