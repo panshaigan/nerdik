@@ -6,7 +6,7 @@
 @endphp
 
 <div class="space-y-5 pt-2" data-ui="event-activity-preview-info">
-    <div class="rounded-xl border border-base-300 bg-base-100/70 p-4">
+    <div class="bg-texture-scratches pt-4">
         <div class="space-y-2">
             <h3 class="text-lg font-semibold leading-snug text-base-content">{{ $activity->name }}</h3>
 
@@ -53,12 +53,7 @@
         </div>
     </div>
 
-    <x-ui.activity-badge-group
-        :items="$badgeItems"
-        data-ui="event-activity-preview-badge-group"
-    />
-
-    <div class="rounded-xl border border-base-300 bg-base-100/70 p-4">
+    <div class="rounded-xl border border-base-300 bg-base-300/70 p-4">
         @if (filled(rich_text_excerpt($activity->description)))
             <div class="rich-text-content text-base-content/90">
                 {!! rich_text($activity->description) !!}
@@ -67,4 +62,9 @@
             <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>
         @endif
     </div>
+
+    <x-ui.activity-badge-group
+        :items="$badgeItems"
+        data-ui="event-activity-preview-badge-group"
+    />
 </div>
