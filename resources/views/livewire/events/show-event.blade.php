@@ -11,11 +11,11 @@
         ->all();
 @endphp
 <div
-    class="max-w-7xl mx-auto"
+    class="space-y-2 sm:space-y-6"
     data-show-event-id="{{ $event->id }}"
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
-    <x-event-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
+    <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
         <x-slot:subtitle>
             <div class="mb-1"><x-icon name="o-map-pin" />{{ $eventPlaceSummary }}</div>
             <div><x-icon name="o-calendar" />{{ $eventDateSummary }}</div>
@@ -54,38 +54,36 @@
                 </x-popover>
             @endif
         </x-slot:titleSuffix>
-    </x-event-page-header>
+    </x-page-header>
 
-    <div class="sm:px-6 lg:px-8 mt-4">
-        <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
-            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
-                <x-stat
-                    title="{{ __('ui.events.confirmed_activities') }}"
-                    value="{{ $confirmedActivitiesCount }}"
-                    icon="o-envelope"
-                    class="!bg-transparent !p-0 !shadow-none"
-                />
-            </div>
-            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
-                <x-stat
-                    title="{{ __('ui.events.confirmed_participants') }}"
-                    value="{{ $confirmedParticipantsCount }}"
-                    icon="o-users"
-                    class="!bg-transparent !p-0 !shadow-none"
-                />
-            </div>
-            <div class="box-glow-dark-primary rounded-xl px-4 py-3">
-                <x-stat
-                    title="{{ __('ui.events.interested_people_count') }}"
-                    value="{{ $interestedPeopleCount }}"
-                    icon="o-star"
-                    class="!bg-transparent !p-0 !shadow-none"
-                />
-            </div>
+    <div class="grid grid-cols-3 gap-3 pb-5 px-3 sm:px-0 sm:pb-6">
+        <div class="box-glow-dark-primary rounded-xl px-4 py-3">
+            <x-stat
+                title="{{ __('ui.events.confirmed_activities') }}"
+                value="{{ $confirmedActivitiesCount }}"
+                icon="o-envelope"
+                class="!bg-transparent !p-0 !shadow-none"
+            />
+        </div>
+        <div class="box-glow-dark-primary rounded-xl px-4 py-3">
+            <x-stat
+                title="{{ __('ui.events.confirmed_participants') }}"
+                value="{{ $confirmedParticipantsCount }}"
+                icon="o-users"
+                class="!bg-transparent !p-0 !shadow-none"
+            />
+        </div>
+        <div class="box-glow-dark-primary rounded-xl px-4 py-3">
+            <x-stat
+                title="{{ __('ui.events.interested_people_count') }}"
+                value="{{ $interestedPeopleCount }}"
+                icon="o-star"
+                class="!bg-transparent !p-0 !shadow-none"
+            />
         </div>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
+    <div class=" ">
         <div id="ui-event-show-hero" class="ui-event-show-hero ui-content-card rounded-2xl">
 
             <x-ui.tabs-with-toolbar
