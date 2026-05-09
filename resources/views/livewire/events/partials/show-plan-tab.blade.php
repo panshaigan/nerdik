@@ -43,7 +43,7 @@
             @endphp
         @endif
     @endauth
-    <div class="mb-4 flex items-center justify-end gap-2">
+    <div class="flex items-center justify-end gap-2">
         @auth
             @if ($canShowPlanActivityProposalUi ?? false)
                 <x-button
@@ -347,7 +347,7 @@
                         </x-slot:content>
                     </x-collapse>
                 @elseif (! empty($group['boundary']))
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55 px-4">
                         {{ $group['label'] }}
                     </p>
                     <ul class="grid grid-cols-1 gap-3">
@@ -391,7 +391,7 @@
             @endphp
             <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
                 <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
-                    <div class="hero bg-base-200 w-full max-w-2xl rounded-2xl box-glow-primary">
+                    <div class="hero w-full max-w-2xl rounded-2xl box-glow-primary">
                         <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
                             <div class="max-w-xl px-2">
                                 <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
