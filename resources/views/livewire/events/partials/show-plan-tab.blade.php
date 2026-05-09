@@ -401,16 +401,16 @@
                                 <p class="py-5 text-base leading-relaxed text-base-content/80">
                                     {{ __('ui.events.plan_propose_hero_description') }}
                                 </p>
-                                <x-button
+                                <x-ui.magic-button
                                     id="ui-event-show-propose-primary"
                                     :link="$proposeActivityUrl"
-                                    class="btn-primary btn-md ui-action ui-action-propose ui-action-propose-magic"
+                                    class="ui-action ui-action-propose"
                                     data-ui="event-show-propose"
                                     x-bind:href="proposeActivityHref()"
                                     wire:navigate
                                 >
                                     {{ __('ui.events.propose_activity') }}
-                                </x-button>
+                                </x-ui.magic-button>
                             </div>
                         </div>
                     </div>
