@@ -135,13 +135,12 @@
                             @endphp
                             <li
                                 @class([
-                                    'slot-browser-card group relative w-full overflow-hidden rounded-xl border border-transparent',
                                     'ui-tile' => $activity && !$activity?->isCancelled(),
+                                    'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
+                                    'slot-browser-card group relative w-full overflow-hidden rounded-xl border border-transparent',
                                     'activity-attached !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
-                                    'ui-tile-empty' => ! $activity,
-                                    'ui-tile-alert' => $activity?->isCancelled(),
                                 ])
                                 @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
