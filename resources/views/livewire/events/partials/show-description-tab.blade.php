@@ -90,7 +90,11 @@
         </div>
     @endif
 </div>
-<div class="relative isolate" data-event-show-map-root wire:ignore>
+<div
+    class="relative isolate overflow-hidden rounded-b-xl border border-primary/25"
+    data-event-show-map-root
+    wire:ignore
+>
     <script type="application/json" data-event-show-map-config>@json($eventPlacesMapConfig)</script>
     <div
         id="ui-event-show-map"
