@@ -896,7 +896,14 @@ class ShowEvent extends Component
     {
         return Activity::query()
             ->whereKey($activityId)
-            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId));
+            ->where(function (Builder $query) {
+                $query->whereHas('slot', fn ($q) => $q->where('event_id', $this->eventId))
+                    ->orWhereHas(
+                        'proposals',
+                        fn ($q) => $q->where('event_id', $this->eventId)
+                            ->where('status', ActivityProposalStatus::Pending),
+                    );
+            });
     }
 
     private function selectedPreviewActivityOrFail(): Activity

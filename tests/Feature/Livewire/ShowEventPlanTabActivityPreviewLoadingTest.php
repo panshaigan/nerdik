@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Enums\ActivityProposalStatus;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Slot;
@@ -36,6 +38,35 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')
             ->assertSeeHtml('loading loading-spinner loading-lg');
+    }
+
+    public function test_proposals_tab_renders_activity_preview_loading_markers(): void
+    {
+        $owner = User::factory()->create();
+        $proposer = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create([
+            'created_by' => $proposer->id,
+            'updated_by' => $proposer->id,
+        ]);
+
+        ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $proposer->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        $activityId = (int) $activity->id;
+
+        Livewire::actingAs($owner)
+            ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'proposals')
+            ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
+            ->assertSeeHtml('wire:loading.attr="disabled"')
+            ->assertSeeHtml('wire:loading.delay')
+            ->assertSeeHtml('loading loading-spinner loading-lg')
+            ->assertSeeHtml('data-ui="event-show-proposal-open-activity-preview"');
     }
 
     public function test_plan_tab_toggle_empty_slots_button_has_loading_indicator(): void
