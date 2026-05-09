@@ -28,7 +28,7 @@
 
             <div class="bg-gradient flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
                 <x-main full-width with-nav>
-                    <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0">
+                    <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0 max-w-7xl mx-auto mb-4 sm:mb-6">
                         {{ $slot }}
                     </x-slot:content>
 
