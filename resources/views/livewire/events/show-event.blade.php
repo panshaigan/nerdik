@@ -15,7 +15,7 @@
     data-show-event-id="{{ $event->id }}"
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
-    <x-event-page-header class="sm:px-4 lg:px-6" :title="$title" :user="$event->creator" :organization="$event?->organization" hr-icon="o-academic-cap">
+    <x-event-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
         <x-slot:subtitle>
             <div class="mb-1"><x-icon name="o-map-pin" />{{ $eventPlaceSummary }}</div>
             <div><x-icon name="o-calendar" />{{ $eventDateSummary }}</div>
