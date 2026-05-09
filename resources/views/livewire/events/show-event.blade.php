@@ -73,12 +73,20 @@
                 class="!bg-transparent !p-0 !shadow-none"
             />
         </div>
-        <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
+        <div
+            class="box-glow-dark-primary rounded-2xl px-4 py-3 {{ auth()->check() ? 'cursor-pointer select-none hover:box-glow-primary' : '' }}"
+            @if (auth()->check())
+                wire:click="{{ $hasInterest ? 'removeInterest' : 'addInterest' }}"
+            @endif
+            data-ui="event-show-interested-stat"
+        >
             <x-stat
                 title="{{ __('ui.events.interested_people_count') }}"
                 value="{{ $interestedPeopleCount }}"
-                icon="o-star"
+                icon="{{ $hasInterest ? 's-star' : 'o-star' }}"
+                color="{{ auth()->check() ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '' }}"
                 class="!bg-transparent !p-0 !shadow-none"
+                tooltip="{{ auth()->check() ? ($hasInterest ? __('ui.interests.remove_from_interests') : __('ui.interests.add_to_interests')) : '' }}"
             />
         </div>
     </div>
@@ -163,26 +171,6 @@
                                 @endif
                             @endif
                             </div>
-                        @endif
-
-                        @if ($hasInterest)
-                            <x-button
-                                type="button"
-                                wire:click="removeInterest"
-                                class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                :tooltip="__('ui.interests.remove_from_interests')"
-                                data-ui="event-show-interest-remove"
-                                icon="s-star"
-                            />
-                        @else
-                            <x-button
-                                type="button"
-                                wire:click="addInterest"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                :tooltip="__('ui.interests.add_to_interests')"
-                                data-ui="event-show-interest-add"
-                                icon="o-star"
-                            />
                         @endif
                     </div>
                 @endauth
