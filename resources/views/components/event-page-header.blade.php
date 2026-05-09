@@ -8,7 +8,7 @@
     'userBadgeSize' => 'md',
     'userBadgeTitle' => 'Organizer',
 ])
-<div class="">
+<div {{ $attributes->class([]) }}>
     <x-header :title="$title" :class="$headerClass" size="text-3xl sm:text-4xl" use-h1>
         <x-slot:title class="text-primary text-glow-primary">
             <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
