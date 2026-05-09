@@ -24,9 +24,30 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <a href="{{ route('activities.show', $pa) }}" class="link link-primary min-w-0 break-words text-lg font-medium">
-                                {{ $pa->name }}
-                            </a>
+                            <span class="relative inline-block min-w-0 max-w-full">
+                                <button
+                                    type="button"
+                                    wire:click="openActivityPreview({{ (int) $pa->id }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="openActivityPreview({{ (int) $pa->id }})"
+                                    wire:loading.class.delay="cursor-wait"
+                                    class="link link-primary min-w-0 break-words text-left text-lg font-medium"
+                                    data-ui="event-show-proposal-open-activity-preview"
+                                >
+                                    {{ $pa->name }}
+                                </button>
+                                <div
+                                    wire:loading.delay
+                                    wire:target="openActivityPreview({{ (int) $pa->id }})"
+                                    class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded bg-base-100/55 backdrop-blur-[1px]"
+                                    aria-live="polite"
+                                    role="status"
+                                    data-ui="event-show-proposal-activity-preview-loading"
+                                >
+                                    <span class="sr-only">{{ __('ui.common.loading') }}</span>
+                                    <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+                                </div>
+                            </span>
                             <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator?->displayName() }}</span>
                         </div>
                     </div>
