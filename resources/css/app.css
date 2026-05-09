@@ -281,27 +281,6 @@
         0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
 }
 
-.ui-tile-alert {
-    border: 1px solid color-mix(in oklab, var(--brand-warning) 55%, transparent);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--brand-warning) 30%, var(--brand-base-200-dark)),
-        color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-dark))
-    );
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--brand-warning) 22%, transparent),
-        inset 0 16px 28px -24px color-mix(in oklab, var(--brand-warning) 48%, transparent),
-        0 0 22px -16px color-mix(in oklab, var(--brand-warning) 72%, transparent);
-
-    @variant light {
-        background: linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-warning) 28%, var(--brand-base-200-light)),
-            color-mix(in oklab, var(--brand-warning) 48%, var(--brand-base-100-light))
-        );
-    }
-}
-
 .ui-tile-marked {
     border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
 
