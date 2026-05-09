@@ -105,7 +105,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
-        <div id="ui-event-show-hero" class="ui-event-show-hero main-board rounded-2xl" data-ui="event-show-hero">
+        <div id="ui-event-show-hero" class="ui-event-show-hero ui-main-board rounded-2xl" data-ui="event-show-hero">
 
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
@@ -115,7 +115,7 @@
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-show-tabs"
-                class="bg-scratches rounded-2xl"
+                class="bg-texture-scratches rounded-2xl"
             >
                 <x-slot:toolbar>
                     @auth
