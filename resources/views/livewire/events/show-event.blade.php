@@ -11,11 +11,11 @@
         ->all();
 @endphp
 <div
-    class="pb-6"
+    class="max-w-7xl mx-auto"
     data-show-event-id="{{ $event->id }}"
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
-    <div class="max-w-7xl mx-auto sm:px-4 lg:px-6">
+    <div class="sm:px-4 lg:px-6">
         <x-header title="{{ $title }}" class="!mb-0 px-6 py-3 sm:px-10" size="text-3xl sm:text-4xl" use-h1>
             <x-slot:title class="text-primary text-glow-primary">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -74,8 +74,7 @@
         <x-ui.hr icon="o-academic-cap" class="mt-1" double/>
     </div>
 
-
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
+    <div class="sm:px-6 lg:px-8 mt-4">
         <div class="mb-6 grid gap-3 grid-cols-3 px-3 sm:px-0">
             <div class="box-glow-dark-primary rounded-xl px-4 py-3">
                 <x-stat
@@ -104,7 +103,7 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
+    <div class="px-4 sm:px-6 lg:px-8 space-y-6 mt-4 ">
         <div id="ui-event-show-hero" class="ui-event-show-hero ui-content-card rounded-2xl">
 
             <x-ui.tabs-with-toolbar
