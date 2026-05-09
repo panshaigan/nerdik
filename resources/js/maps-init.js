@@ -50,6 +50,7 @@ function registerLivewireMapsMorphHook() {
     window.Livewire.hook('morphed', () => {
         requestAnimationFrame(() => {
             bootEventPlacesUnified();
+            bootMaps();
             import('./maps/event-show-map.js')
                 .then((m) => m.invalidateAllEventShowMaps())
                 .catch(() => {});

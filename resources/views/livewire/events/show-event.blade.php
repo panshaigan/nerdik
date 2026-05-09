@@ -95,7 +95,21 @@
         </div>
     </div>
 
-    <div id="ui-event-show-hero" class="ui-event-show-hero ui-content-card rounded-2xl">
+    <div
+        id="ui-event-show-hero"
+        class="ui-event-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl"
+    >
+        <div
+            wire:loading.delay.shortest
+            wire:target="tab"
+            class="absolute inset-0 z-30 flex cursor-wait items-center justify-center rounded-2xl bg-base-100/65 backdrop-blur-[2px]"
+            aria-live="polite"
+            role="status"
+            data-ui="event-show-tab-loading"
+        >
+            <span class="sr-only">{{ __('ui.common.loading') }}</span>
+            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+        </div>
 
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"
@@ -181,15 +195,11 @@
             </x-slot:toolbar>
 
             <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">
-                @if ($tab === 'description')
-                    @include('livewire.events.partials.show-description-tab')
-                @endif
+                @include('livewire.events.partials.show-description-tab')
             </x-tab>
 
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
-                @if ($tab === 'plan')
-                    @include('livewire.events.partials.show-plan-tab')
-                @endif
+                @include('livewire.events.partials.show-plan-tab')
             </x-tab>
 
             @if ($canManageEvent && $hasPendingProposals)

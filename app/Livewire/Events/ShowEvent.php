@@ -797,7 +797,6 @@ class ShowEvent extends Component
 
         $interestedPeopleCount = (int) $event->interestedUsers()->count();
 
-        $slotHourGroups = [];
         $pendingProposals = collect();
         $slotCardBadgeItemsByActivityId = [];
         $slotTypeBadgeItemsBySlotId = [];
@@ -808,50 +807,49 @@ class ShowEvent extends Component
             $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
             $syncEvent->load(['slots.activity']);
             app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
+        }
 
-            $event->load([
-                'slots' => fn ($q) => $q->with([
-                    'place.parent',
-                    'activity' => fn ($aq) => $aq->with([
-                        'tags.translations',
-                        'tags.tagCategory',
-                        'activityType',
-                        'canceller',
-                    ])->withCount([
-                        'participants',
-                        'interestedUsers',
-                    ]),
-                    'activityTypes',
-                ])->orderBy('starts_at'),
-            ]);
+        $event->load([
+            'slots' => fn ($q) => $q->with([
+                'place.parent',
+                'activity' => fn ($aq) => $aq->with([
+                    'tags.translations',
+                    'tags.tagCategory',
+                    'activityType',
+                    'canceller',
+                ])->withCount([
+                    'participants',
+                    'interestedUsers',
+                ]),
+                'activityTypes',
+            ])->orderBy('starts_at'),
+        ]);
 
-            $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
+        $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
 
-            foreach ($event->slots as $slot) {
-                $activity = $slot->activity;
-                if ($activity !== null) {
-                    $slotCardBadgeItemsByActivityId[(int) $activity->id] = $badgeGroupBuilder->build(
-                        $activity,
-                        ActivityBadgeGroupConfig::eventSlotCard(),
+        foreach ($event->slots as $slot) {
+            $activity = $slot->activity;
+            if ($activity !== null) {
+                $slotCardBadgeItemsByActivityId[(int) $activity->id] = $badgeGroupBuilder->build(
+                    $activity,
+                    ActivityBadgeGroupConfig::eventSlotCard(),
+                );
+            } else {
+                $slotActivityTypes = collect($slot->activityTypes)
+                    ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                    ->filter()
+                    ->unique()
+                    ->values();
+                if ($slotActivityTypes->isNotEmpty()) {
+                    $slotTypeBadgeItemsBySlotId[(int) $slot->id] = $badgeGroupBuilder->buildActivityTypeChips(
+                        $slotActivityTypes,
+                        BadgeSemantic::Info,
                     );
-                } else {
-                    $slotActivityTypes = collect($slot->activityTypes)
-                        ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
-                        ->filter()
-                        ->unique()
-                        ->values();
-                    if ($slotActivityTypes->isNotEmpty()) {
-                        $slotTypeBadgeItemsBySlotId[(int) $slot->id] = $badgeGroupBuilder->buildActivityTypeChips(
-                            $slotActivityTypes,
-                            BadgeSemantic::Info,
-                        );
-                    }
                 }
             }
-        } elseif ($this->tab === 'proposals' && $canManageEvent && $hasPendingProposals) {
-            $event->load([
-                'slots' => fn ($q) => $q->with('activityTypes')->orderBy('starts_at'),
-            ]);
+        }
+
+        if ($this->tab === 'proposals' && $canManageEvent && $hasPendingProposals) {
             $freeSlotsAllForProposals = $event->slots->whereNull('activity_id')->values();
 
             $pendingProposals = $event->proposals()
