@@ -93,12 +93,20 @@ class EventSlotPresentationService
         if ($activeEnrollmentWindow !== null) {
             $perActivityMax = $activeEnrollmentWindow->maxAllowedParticipantsPerActivityEffective();
             if ($perActivityMax !== null) {
-                $activityIds = $event->slots
-                    ->pluck('activity_id')
-                    ->filter(fn ($id) => $id !== null)
-                    ->map(fn ($id) => (int) $id)
-                    ->unique()
-                    ->values();
+                $activityIds = $event->relationLoaded('slots')
+                    ? $event->slots
+                        ->pluck('activity_id')
+                        ->filter(fn ($id) => $id !== null)
+                        ->map(fn ($id) => (int) $id)
+                        ->unique()
+                        ->values()
+                    : Slot::query()
+                        ->where('event_id', $event->id)
+                        ->whereNotNull('activity_id')
+                        ->pluck('activity_id')
+                        ->map(fn ($id) => (int) $id)
+                        ->unique()
+                        ->values();
 
                 if ($activityIds->isNotEmpty()) {
                     $taken = ActivityUser::query()

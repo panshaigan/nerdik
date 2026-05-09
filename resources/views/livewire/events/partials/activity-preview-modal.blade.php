@@ -1,6 +1,6 @@
 @if ($previewActivity)
     @php
-        $previewParticipantCount = (int) $previewActivity->participants->count();
+        $previewParticipantCount = (int) ($previewActivity->participants_count ?? 0);
         $previewParticipationLabel = __('ui.activities.show_participation_section')
             .' <span class="badge badge-primary badge-sm ml-2">'
             .$previewParticipantCount.'/'.($previewActivity->max_participants ?? '∞')
