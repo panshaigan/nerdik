@@ -188,37 +188,53 @@
         0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
 }
 
-.bg-global {
-    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
-}
+@layer utilities {
+    /* ====================== CUSTOM BACKGROUNDS ====================== */
+    .bg-gradient {
+        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
+    }
 
-[data-theme="light"] .bg-global {
-    background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
-}
+    [data-theme="light"] .bg-gradient {
+        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
+    }
 
-.bg-spoiled-glass {
-    background:
-        repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+    .bg-texture-glass {
+        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
         repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 0px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 20px);
+    }
+
+    [data-theme="light"] .bg-texture-glass {
+        background: none;
+    }
+
+    .bg-texture-scratches {
+        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 5px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 35px);
+    }
+
+    [data-theme="light"] .bg-texture-scratches {
+        background: repeating-linear-gradient(45deg, var(--brand-base-300-light) 0px, var(--brand-base-300-light) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
+        repeating-linear-gradient(-45deg, var(--brand-base-200-light) 5px, var(--brand-base-200-light) 1px, transparent 1px, transparent 35px);
+    }
 }
 
-[data-theme="light"] .bg-spoiled-glass {
-    background: none;
+@layer components {
+    /* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) — Typography plugin */
+    .rich-text-content {
+        @apply prose prose-sm max-w-none text-base-content;
+        @apply prose-headings:text-base-content prose-p:text-base-content/90;
+        @apply prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary;
+        @apply prose-strong:text-base-content prose-blockquote:text-base-content/80;
+        @apply prose-code:text-base-content prose-pre:bg-base-200/80 prose-pre:text-base-content;
+        @apply prose-li:marker:text-base-content/60;
+        @apply prose-hr:border-base-300;
+        @apply prose-table:text-base-content;
+        @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
+        @apply prose-img:max-w-full prose-img:h-auto;
+    }
 }
 
-.bg-scratches {
-    background:
-        repeating-linear-gradient(45deg,var(--brand-base-300-dark) 0px,var(--brand-base-300-dark) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg,var(--brand-base-200-dark) 5px,var(--brand-base-200-dark) 1px,transparent 1px,transparent 35px);
-}
-
-[data-theme="light"] .bg-scratches {
-    background:
-        repeating-linear-gradient(45deg,var(--brand-base-300-light) 0px,var(--brand-base-300-light) 1px,transparent 1px,transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg,var(--brand-base-200-light) 5px,var(--brand-base-200-light) 1px,transparent 1px,transparent 35px);
-}
-
-.main-board {
+.ui-main-board {
     border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
     background: linear-gradient(
         180deg,
@@ -231,7 +247,7 @@
         0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
 }
 
-[data-theme="light"] .main-board {
+[data-theme="light"] .ui-main-board {
     background: linear-gradient(
         180deg,
         color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
@@ -383,20 +399,6 @@
 .browse-bbox-toolbar a.browse-bbox-draw-armed {
     background-color: color-mix(in oklab, var(--color-primary, #7c3aed) 18%, transparent);
     color: var(--color-primary, #7c3aed);
-}
-
-/* Sanitized rich text (TinyMCE / Mary editor / HTML Purifier output) — Typography plugin */
-.rich-text-content {
-    @apply prose prose-sm max-w-none text-base-content;
-    @apply prose-headings:text-base-content prose-p:text-base-content/90;
-    @apply prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary;
-    @apply prose-strong:text-base-content prose-blockquote:text-base-content/80;
-    @apply prose-code:text-base-content prose-pre:bg-base-200/80 prose-pre:text-base-content;
-    @apply prose-li:marker:text-base-content/60;
-    @apply prose-hr:border-base-300;
-    @apply prose-table:text-base-content;
-    @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
-    @apply prose-img:max-w-full prose-img:h-auto;
 }
 
 .tox .tox-edit-area::before {
