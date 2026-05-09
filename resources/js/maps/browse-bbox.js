@@ -1,4 +1,5 @@
 import L from './leaflet-setup.js';
+import './browse-bbox.css';
 
 /**
  * Push bbox hidden field values into the wrapping Livewire component (browse events).
