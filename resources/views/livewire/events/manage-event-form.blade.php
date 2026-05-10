@@ -62,6 +62,7 @@
                     active-class="!text-base-content border-b border-primary text-primary"
                     tabs-class="w-full"
                     data-ui="event-manage-tabs"
+                    class="bg-texture-scratches rounded-2xl"
                 >
 
                     <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
