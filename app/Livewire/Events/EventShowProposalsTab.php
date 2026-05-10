@@ -20,6 +20,10 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
+/**
+ * Pending proposals panel for {@see ShowEvent}. Mounted only when the shell `tab` is `proposals`.
+ * Tab selection and `?tab=` live on the parent; do not bind `tab` to the query string here.
+ */
 #[Lazy]
 class EventShowProposalsTab extends Component
 {
@@ -27,6 +31,11 @@ class EventShowProposalsTab extends Component
     use Toast;
 
     public int $eventId;
+
+    /**
+     * Mirrors {@see ShowEvent::$tab} from the shell; for debugging/contracts — not read from the request URL.
+     */
+    public string $activeTab = 'proposals';
 
     /** Bumped when the organizer receives a live proposal submission for this event. */
     public int $organizerProposalRefreshTick = 0;
