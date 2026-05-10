@@ -130,7 +130,9 @@
                                     id="ui-event-show-create-slots"
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success ui-action ui-action-create-slots"
-                                    onclick="document.getElementById('event-slots-create-modal')?.showModal()"
+                                    wire:click="openSlotCreateModal"
+                                    wire:loading.attr="disabled"
+                                    wire:target="openSlotCreateModal"
                                     :tooltip="__('ui.slots.create_slots')"
                                     :aria-label="__('ui.slots.create_slots')"
                                     data-ui="event-show-create-slots"
@@ -211,6 +213,8 @@
                         lazy
                         :event-id="$eventId"
                         :active-tab="$tab"
+                        :attached-activity-ids="$attachedActivityIds"
+                        :shell-interested-activity-ids="$interestedActivityIds"
                         wire:key="event-plan-{{ $eventId }}"
                     />
                 @endif
@@ -232,12 +236,15 @@
         </x-ui.tabs-with-toolbar>
     </div>
 
-    @include('slots.partials.create-modal-shell', [
-        'event' => $event,
-        'slotMassVenues' => $slotMassVenues,
-        'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
-        'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
-    ])
+    @if ($slotCreateModalReady ?? false)
+        @include('slots.partials.create-modal-shell', [
+            'event' => $event,
+            'slotMassVenues' => $slotMassVenues,
+            'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
+            'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+            'slotNameSuggestions' => $slotNameSuggestions ?? [],
+        ])
+    @endif
     @include('slots.partials.edit-modal-shell')
     @include('livewire.events.partials.activity-preview-modal')
 

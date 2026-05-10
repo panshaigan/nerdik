@@ -46,4 +46,25 @@ class EventShowReadCacheTest extends TestCase
 
         $this->assertFalse(Cache::has('event_show.programme_stats.v1.'.$event->id));
     }
+
+    public function test_event_interested_count_cache_invalidates_after_forget(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $user->id]);
+
+        $cache = app(EventShowReadCache::class);
+
+        $this->assertSame(0, $cache->eventInterestedCount((int) $event->id));
+        $this->assertTrue(Cache::has('event_show.interested_count.v1.'.$event->id));
+
+        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+
+        $this->assertSame(0, $cache->eventInterestedCount((int) $event->id));
+
+        $cache->forgetEventInterestedCount((int) $event->id);
+
+        $this->assertSame(1, $cache->eventInterestedCount((int) $event->id));
+    }
 }
