@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Services\EventShowReadCache;
 use Illuminate\Support\Facades\Auth;
 
 class InterestController extends Controller
@@ -11,6 +12,7 @@ class InterestController extends Controller
     public function addEvent(Event $event)
     {
         Auth::user()->interestedEvents()->syncWithoutDetaching([$event->id]);
+        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
 
         return redirect()->back()->with('status', __('ui.interests.added_event'));
     }
@@ -18,6 +20,7 @@ class InterestController extends Controller
     public function removeEvent(Event $event)
     {
         Auth::user()->interestedEvents()->detach($event->id);
+        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
 
         return redirect()->back()->with('status', __('ui.interests.removed_event'));
     }

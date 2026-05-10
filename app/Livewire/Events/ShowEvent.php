@@ -63,6 +63,22 @@ class ShowEvent extends Component
 
     public ?string $eventCancelReason = null;
 
+    /** True after the organizer hydrates the mass-create slots modal (data loaded once). */
+    public bool $slotCreateModalReady = false;
+
+    /** @var list<string> */
+    public array $slotModalNameSuggestions = [];
+
+    /** @var list<string> */
+    public array $slotModalBaseNameSuggestions = [];
+
+    /**
+     * Room rows grouped by venue place id for the mass-create modal.
+     *
+     * @var array<int, list<array{id: int, name: string}>>
+     */
+    public array $slotModalRoomsByVenueId = [];
+
     public function mount(Event $event): void
     {
         $event->loadMissing('enrollmentWindows');
@@ -183,6 +199,7 @@ class ShowEvent extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
         $this->success(__('ui.interests.added_event'));
     }
 
@@ -192,7 +209,45 @@ class ShowEvent extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedEvents()->detach($event->id);
+        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
         $this->warning(__('ui.interests.removed_event'));
+    }
+
+    /**
+     * Loads mass-create modal data once and opens the dialog (organizers only).
+     */
+    public function openSlotCreateModal(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->with('places')->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null && $user->canModifyEntity($event), 403);
+
+        if (! $this->slotCreateModalReady) {
+            $this->slotModalNameSuggestions = Slot::distinctNameSuggestionsForUser($user->id);
+            $this->slotModalBaseNameSuggestions = Slot::baseNameSuggestionsForUser($user->id);
+
+            $slotMassVenues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
+            $venueIds = $slotMassVenues->pluck('id');
+            $this->slotModalRoomsByVenueId = [];
+            if ($venueIds->isNotEmpty()) {
+                $children = Place::query()
+                    ->whereIn('parent_id', $venueIds)
+                    ->where('type', 'room')
+                    ->orderBy('name')
+                    ->get()
+                    ->groupBy('parent_id');
+                foreach ($slotMassVenues as $v) {
+                    $this->slotModalRoomsByVenueId[$v->id] = ($children[$v->id] ?? collect())
+                        ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
+                        ->values()
+                        ->all();
+                }
+            }
+
+            $this->slotCreateModalReady = true;
+        }
+
+        $this->js('document.getElementById("event-slots-create-modal")?.showModal()');
     }
 
     public function joinPreviewActivity(ActivityParticipationService $participation): void
@@ -422,7 +477,7 @@ class ShowEvent extends Component
                 ->all()
             : [];
 
-        $interestedPeopleCount = (int) $event->interestedUsers()->count();
+        $interestedPeopleCount = $eventShowReadCache->eventInterestedCount((int) $event->id);
 
         $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
             ? $this->previewActivityQuery($this->previewActivityId)
@@ -466,26 +521,11 @@ class ShowEvent extends Component
         $slotMassVenues = collect();
         $slotMassRoomsByVenueId = [];
         $slotBaseNameSuggestions = [];
-        if ($canManageEvent) {
-            $slotNameSuggestions = Slot::distinctNameSuggestionsForUser(auth()->id());
-            $slotBaseNameSuggestions = Slot::baseNameSuggestionsForUser(auth()->id());
-
+        if ($canManageEvent && $this->slotCreateModalReady) {
+            $slotNameSuggestions = $this->slotModalNameSuggestions;
+            $slotBaseNameSuggestions = $this->slotModalBaseNameSuggestions;
             $slotMassVenues = $event->places->filter(fn ($p) => $p->type === 'venue')->values();
-            $venueIds = $slotMassVenues->pluck('id');
-            if ($venueIds->isNotEmpty()) {
-                $children = Place::query()
-                    ->whereIn('parent_id', $venueIds)
-                    ->where('type', 'room')
-                    ->orderBy('name')
-                    ->get()
-                    ->groupBy('parent_id');
-                foreach ($slotMassVenues as $v) {
-                    $slotMassRoomsByVenueId[$v->id] = ($children[$v->id] ?? collect())
-                        ->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])
-                        ->values()
-                        ->all();
-                }
-            }
+            $slotMassRoomsByVenueId = $this->slotModalRoomsByVenueId;
         }
 
         return view('livewire.events.show-event', [
@@ -507,6 +547,7 @@ class ShowEvent extends Component
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
+            'slotCreateModalReady' => $this->slotCreateModalReady,
         ]);
     }
 

@@ -60,6 +60,20 @@ class EventShowPlanTab extends Component
     /** @var array<int|string, string> */
     public array $slotCancelReason = [];
 
+    /**
+     * When set by the parent shell, skips a duplicate Slot attachment query.
+     *
+     * @var list<int>|null
+     */
+    public ?array $attachedActivityIds = null;
+
+    /**
+     * When set by the parent shell, skips a duplicate interestedActivities query.
+     *
+     * @var list<int>|null
+     */
+    public ?array $shellInterestedActivityIds = null;
+
     public function placeholder(): string
     {
         return <<<'HTML'
@@ -74,6 +88,10 @@ class EventShowPlanTab extends Component
         $this->eventId = $eventId;
         $event = Event::query()->whereKey($this->eventId)->with('enrollmentWindows')->firstOrFail();
         $this->applyShowEmptySlotsPolicy($event, auth()->user());
+
+        $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $syncEvent->load(['slots.activity']);
+        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
     }
 
     /**
@@ -412,7 +430,7 @@ class EventShowPlanTab extends Component
 
         $this->applyShowEmptySlotsPolicy($event, $user);
 
-        $eventActivityIds = Slot::query()
+        $eventActivityIds = $this->attachedActivityIds ?? Slot::query()
             ->where('event_id', $event->id)
             ->whereNotNull('activity_id')
             ->pluck('activity_id')
@@ -421,17 +439,20 @@ class EventShowPlanTab extends Component
             ->values()
             ->all();
 
-        $interestedActivityIds = $user !== null && $eventActivityIds !== []
-            ? $user->interestedActivities()
+        if ($this->shellInterestedActivityIds !== null) {
+            $interestedActivityIds = array_values(array_map(
+                static fn ($id) => (int) $id,
+                $this->shellInterestedActivityIds,
+            ));
+        } elseif ($user !== null && $eventActivityIds !== []) {
+            $interestedActivityIds = $user->interestedActivities()
                 ->whereIn('activities.id', $eventActivityIds)
                 ->pluck('activities.id')
                 ->map(fn ($id) => (int) $id)
-                ->all()
-            : [];
-
-        $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $syncEvent->load(['slots.activity']);
-        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
+                ->all();
+        } else {
+            $interestedActivityIds = [];
+        }
 
         $event->load([
             'slots' => fn ($q) => $q->with([

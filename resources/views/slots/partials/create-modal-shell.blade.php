@@ -8,6 +8,7 @@
                 'slotMassVenues' => $slotMassVenues ?? collect(),
                 'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId ?? [],
                 'slotBaseNameSuggestions' => $slotBaseNameSuggestions ?? [],
+                'slotNameSuggestions' => $slotNameSuggestions ?? [],
                 'massFormAction' => route('events.slots.mass', $event),
             ])
         </div>
