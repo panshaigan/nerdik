@@ -99,18 +99,6 @@
         id="ui-event-show-hero"
         class="ui-event-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl"
     >
-        <div
-            wire:loading.delay.shortest
-            wire:target="tab"
-            class="absolute inset-0 z-30 flex cursor-wait items-center justify-center rounded-2xl bg-base-100/65 backdrop-blur-[2px]"
-            aria-live="polite"
-            role="status"
-            data-ui="event-show-tab-loading"
-        >
-            <span class="sr-only">{{ __('ui.common.loading') }}</span>
-            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
-        </div>
-
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"
             label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
@@ -121,6 +109,20 @@
             data-ui="event-show-tabs"
             class="bg-texture-scratches rounded-2xl"
         >
+            <x-slot:panelOverlay>
+                <div
+                    wire:loading.delay.shortest
+                    wire:target="tab"
+                    class="absolute inset-0 z-20 flex cursor-wait items-center justify-center rounded-b-2xl bg-base-100/45 backdrop-blur-[2px]"
+                    aria-live="polite"
+                    role="status"
+                    data-ui="event-show-tab-loading"
+                >
+                    <span class="sr-only">{{ __('ui.common.loading') }}</span>
+                    <span class="loading loading-spinner loading-md text-primary" aria-hidden="true"></span>
+                </div>
+            </x-slot:panelOverlay>
+
             <x-slot:toolbar>
                 @auth
                     <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
@@ -197,7 +199,7 @@
             </x-slot:toolbar>
 
             <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">
-                @if ($tab === 'description')
+                @if (in_array('description', $mountedTabs, true))
                     <livewire:events.event-show-description-tab
                         defer
                         :event-id="$eventId"
@@ -208,7 +210,7 @@
             </x-tab>
 
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
-                @if ($tab === 'plan')
+                @if (in_array('plan', $mountedTabs, true))
                     <livewire:events.event-show-plan-tab
                         lazy
                         :event-id="$eventId"
@@ -222,7 +224,7 @@
 
             @if ($canManageEvent && $hasPendingProposals)
                 <x-tab name="proposals" :label="__('ui.events.show_proposals')" class="!p-0" data-ui="event-show-tab-proposals" icon="o-clipboard-document-list">
-                    @if ($tab === 'proposals')
+                    @if (in_array('proposals', $mountedTabs, true))
                         <livewire:events.event-show-proposals-tab
                             lazy
                             :event-id="$eventId"

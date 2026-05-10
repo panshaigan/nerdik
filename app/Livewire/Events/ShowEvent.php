@@ -43,6 +43,13 @@ class ShowEvent extends Component
      */
     public string $tab = 'description';
 
+    /**
+     * Tab keys whose panel Livewire children stay mounted so switching tabs does not wipe rendered content during requests.
+     *
+     * @var list<string>
+     */
+    public array $mountedTabs = [];
+
     /** Query string binding for {@see ShowEvent::$tab}. Nested tab Livewire children do not declare their own `tab` URL binding. */
     protected array $queryString = [
         'tab' => ['except' => 'description'],
@@ -83,6 +90,7 @@ class ShowEvent extends Component
         $event->loadMissing('enrollmentWindows');
         $this->eventId = $event->id;
         $this->tab = $this->normalizeTab($this->tab);
+        $this->mountedTabs = [$this->tab];
         $user = auth()->user();
         if ($this->tab === 'proposals' && ($user === null || ! $user->canModifyEntity($event))) {
             $this->tab = 'description';
@@ -92,6 +100,9 @@ class ShowEvent extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+        if (! in_array($this->tab, $this->mountedTabs, true)) {
+            $this->mountedTabs[] = $this->tab;
+        }
     }
 
     public function updatedActivityPreviewTab(string $value): void
