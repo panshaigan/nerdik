@@ -39,6 +39,8 @@ class ManageEventForm extends Component
 
     public string $ends_at = '';
 
+    public string $isCancelled = '';
+
     /** @var list<int> */
     public array $place_ids = [];
 
@@ -198,6 +200,7 @@ class ManageEventForm extends Component
         }
         $this->slug = $event->slug;
         $this->name = $name;
+        $this->isCancelled = $event->isCancelled();
         $this->description = (string) ($event->description ?? '');
         $this->organization_id = $event->organization_id;
         $this->organization_name = (string) (optional($event->organization)->name ?? '');

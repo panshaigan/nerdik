@@ -1,9 +1,9 @@
 <div class="" data-ui="event-enrollment-windows-section">
-    <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
+    <p class="mb-6 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
 
     <div class="space-y-3">
         @foreach ($enrollment_windows as $index => $row)
-            <div wire:key="enrollment-window-{{ $index }}" class="relative rounded-lg border border-base-300 bg-base-100/80 p-3 sm:p-4">
+            <div wire:key="enrollment-window-{{ $index }}" class="relative rounded-xl ui-tile-empty p-4 sm:p-6">
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <div class="min-w-0">
                         <x-input

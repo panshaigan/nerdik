@@ -7,89 +7,94 @@
     $title = $editingEvent ? (__('ui.events.edit_event').': '.$this->name) : __('ui.events.create');
 @endphp
 <div>
-    <div
-        class="overflow-hidden rounded border border-base-300 bg-base-100 shadow"
-    >
-        <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
-            <x-header
-                title="{{ $title }}"
-                class=""
-                separator
-                use-h1
-            >
-                <x-slot:title>
-                    <div class="flex items-center gap-2">
-                        <a href="/events/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
-                        <span>{{ $title }}</span>
-                    </div>
-                </x-slot:title>
-                <x-slot:subtitle>
-                    {{__('Placeholder')}}
-                </x-slot:subtitle>
-                <x-slot:actions>
-                    @if ($creator)
-                        <x-user-badge
-                            :user="$creator"
-                            size="md"
-                            name-class="truncate text-end font-semibold"
-                            data-ui="activity-show-host"
-                            title="Creator"
+    <x-page-header :title="$title" :user="$creator">
+        <x-slot:titleSuffix>
+            @if ($this->isCancelled)
+                <x-popover class="inline-flex transition-none" position="bottom" offset="8">
+                    <x-slot:trigger>
+                        <x-badge
+                            :value="__('ui.events.cancelled_short')"
+                            icon="o-x-circle"
+                            class="badge-warning badge-sm shrink-0 font-semibold normal-case"
+                            data-ui="event-show-cancelled-badge"
+                            :title="__('ui.events.cancelled_badge')"
                         />
-                    @endif
-                </x-slot:actions>
-            </x-header>
-            <div class="flex justify-end">
-                <x-toggle
-                    id="is_public"
-                    wire:model="is_public"
-                    :label="__('Public event')"
-                    :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
-                />
-            </div>
+                    </x-slot:trigger>
+                    <x-slot:content class="max-w-sm text-sm text-base-content">
+                        <div class="space-y-2">
+                            @if (filled($this->cancel_reason))
+                                <p>
+                                    <span class="font-semibold">{{ __('ui.activities.cancel_reason_label') }}:</span>
+                                    <span class="mt-0.5 block">{{ $this->cancel_reason }}</span>
+                                </p>
+                            @endif
+                            <p>
+                                <span class="font-semibold">{{ __('ui.events.cancellation_popover_who') }}:</span>
+                                <span class="mt-0.5 block">{{ $this->canceller?->displayName() ?? __('ui.common.unknown_user') }}</span>
+                            </p>
+                            <p>
+                                <span class="font-semibold">{{ __('ui.events.cancellation_popover_when') }}:</span>
+                                <span class="mt-0.5 block">{{ $this->cancelled_at ? format_datetime_in_user_tz($this->cancelled_at) : '—' }}</span>
+                            </p>
+                        </div>
+                    </x-slot:content>
+                </x-popover>
+            @endif
+        </x-slot:titleSuffix>
+    </x-page-header>
+        <div class="flex justify-end mb-6">
+            <x-toggle
+                id="is_public"
+                wire:model="is_public"
+                :label="__('Public event')"
+                :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
+            />
         </div>
-        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
-    </div>
-    <x-form wire:submit.prevent="save" data-event-form>
-        <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
-            <x-ui.tabs-with-toolbar
-                wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
-                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
-                active-class="!text-base-content border-b border-primary text-primary"
-                tabs-class="w-full"
-                data-ui="event-manage-tabs"
-            >
+    <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
-                <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
-                    @include('livewire.events.partials.manage-main-details-tab')
-                </x-tab>
-
-                <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
-                    @include('livewire.events.partials.manage-location-tab')
-                </x-tab>
-
-                <x-tab
-                    name="enrollment-windows"
-                    :label="__('Enrollment windows')"
-                    :disabled="$enrollmentWindowsTabDisabled"
-                    class="px-6 pt-6"
-                    data-ui="event-manage-tab-enrollment-windows"
-                    icon="o-calendar"
+    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
+        <x-form wire:submit.prevent="save" data-event-form>
+            <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
+                <x-ui.tabs-with-toolbar
+                    wire:model.live="tab"
+                    label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+                    label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+                    active-class="!text-base-content border-b border-primary text-primary"
+                    tabs-class="w-full"
+                    data-ui="event-manage-tabs"
                 >
-                    @include('livewire.events.partials.manage-enrollment-windows-tab')
-                </x-tab>
-            </x-ui.tabs-with-toolbar>
-        </div>
 
-        <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
-            <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+                    <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
+                        @include('livewire.events.partials.manage-main-details-tab')
+                    </x-tab>
 
-            <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
-                <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
-                <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
-            </x-button>
-        </x-slot:actions>
-    </x-form>
+                    <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
+                        @include('livewire.events.partials.manage-location-tab')
+                    </x-tab>
+
+                    <x-tab
+                        name="enrollment-windows"
+                        :label="__('Enrollment windows')"
+                        :disabled="$enrollmentWindowsTabDisabled"
+                        class="px-6 pt-6"
+                        data-ui="event-manage-tab-enrollment-windows"
+                        icon="o-calendar"
+                    >
+                        @include('livewire.events.partials.manage-enrollment-windows-tab')
+                    </x-tab>
+                </x-ui.tabs-with-toolbar>
+            </div>
+
+            <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
+                <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+
+                <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
+                    <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+                </x-button>
+            </x-slot:actions>
+        </x-form>
+    </div>
 
 </div>
 @push('scripts')

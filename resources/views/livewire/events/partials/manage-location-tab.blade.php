@@ -1,5 +1,5 @@
 <div class="">
-    <p class="mb-3 text-sm text-base-content/80">
+    <p class="mb-6 text-sm text-base-content/80">
         {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
     </p>
 
