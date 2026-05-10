@@ -3,6 +3,8 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\ActivityProposalStatus;
+use App\Livewire\Events\EventShowPlanTab;
+use App\Livewire\Events\EventShowProposalsTab;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -31,9 +33,9 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 
         $activityId = (int) $activity->id;
 
-        Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')
@@ -59,9 +61,9 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 
         $activityId = (int) $activity->id;
 
-        Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'proposals')
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowProposalsTab::class, ['eventId' => $event->id])
             ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')
@@ -74,9 +76,9 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
 
-        Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertSeeHtml('wire:target="toggleShowEmptySlots"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
     }
@@ -114,7 +116,8 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             'created_by' => $owner->id,
         ]);
 
-        Livewire::actingAs($viewer)
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
             ->set('tab', 'plan')
             ->call('openActivityPreview', $activity->id)

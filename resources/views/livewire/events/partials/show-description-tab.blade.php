@@ -16,6 +16,7 @@
         ])->all(),
     ];
     $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
+    $eventPlaceSummary = $event->compactPlaceSummary();
 @endphp
 <div class="space-y-6 p-4 sm:p-6">
     @if ($hasEventDescription)

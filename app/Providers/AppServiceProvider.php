@@ -5,11 +5,18 @@ namespace App\Providers;
 use App\Listeners\LogNotificationEmail;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\ActivityType;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\User;
+use App\Observers\ActivityObserver;
+use App\Observers\ActivityProposalObserver;
+use App\Observers\ActivityUserObserver;
+use App\Observers\SlotObserver;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -66,6 +73,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Ensure Carbon uses the current app locale for translated month/day names.
         Carbon::setLocale(app()->getLocale());
+
+        Activity::observe(ActivityObserver::class);
+        ActivityProposal::observe(ActivityProposalObserver::class);
+        ActivityUser::observe(ActivityUserObserver::class);
+        Slot::observe(SlotObserver::class);
 
         Blade::if('canModifyEntity', static function (mixed $entity): bool {
             if (! $entity instanceof Model) {

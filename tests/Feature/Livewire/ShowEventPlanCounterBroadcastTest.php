@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Livewire\Events\EventShowPlanTab;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -18,7 +19,7 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_plan_counter_refresh_tick_increments_for_matching_activity_when_plan_tab_is_open(): void
+    public function test_plan_counter_refresh_tick_increments_for_matching_activity(): void
     {
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
@@ -29,9 +30,9 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
             'activity_id' => $activity->id,
         ]);
 
-        $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan');
+        $component = Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
 
         $component->assertSet('planCounterRefreshTick', 0);
         $component->call('refreshPlanCountersFromBroadcast', $activity->id);
@@ -50,32 +51,12 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
             'activity_id' => $otherActivity->id,
         ]);
 
-        $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan');
+        $component = Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
 
         $component->assertSet('planCounterRefreshTick', 0);
         $component->call('refreshPlanCountersFromBroadcast', $otherActivity->id);
-        $component->assertSet('planCounterRefreshTick', 0);
-    }
-
-    public function test_plan_counter_refresh_is_ignored_when_plan_tab_is_not_active(): void
-    {
-        $owner = User::factory()->create();
-        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
-        $activity = Activity::factory()->create(['created_by' => $owner->id, 'updated_by' => $owner->id]);
-
-        Slot::factory()->create([
-            'event_id' => $event->id,
-            'activity_id' => $activity->id,
-        ]);
-
-        $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'description');
-
-        $component->assertSet('planCounterRefreshTick', 0);
-        $component->call('refreshPlanCountersFromBroadcast', $activity->id);
         $component->assertSet('planCounterRefreshTick', 0);
     }
 
@@ -139,13 +120,34 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
 
         $component = Livewire::actingAs($owner)
             ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
             ->call('openActivityPreview', $activity->id)
             ->set('activityPreviewTab', 'participation');
 
         $component->assertSet('activityPreviewRefreshTick', 0);
-        $component->call('refreshPlanCountersFromBroadcast', $activity->id);
+        $component->call('refreshPreviewFromParticipationBroadcast', $activity->id);
         $component->assertSet('activityPreviewRefreshTick', 1);
+    }
+
+    public function test_preview_broadcast_does_not_increment_when_modal_closed(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        $component = Livewire::actingAs($owner)
+            ->test(ShowEvent::class, ['event' => $event]);
+
+        $component->assertSet('activityPreviewRefreshTick', 0);
+        $component->call('refreshPreviewFromParticipationBroadcast', $activity->id);
+        $component->assertSet('activityPreviewRefreshTick', 0);
     }
 
     public function test_preview_join_action_switches_to_participation_and_adds_participant(): void

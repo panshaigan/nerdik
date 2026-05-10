@@ -195,17 +195,33 @@
             </x-slot:toolbar>
 
             <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">
-                @include('livewire.events.partials.show-description-tab')
+                @if ($tab === 'description')
+                    <livewire:events.event-show-description-tab
+                        defer
+                        :event-id="$eventId"
+                        wire:key="event-desc-{{ $eventId }}"
+                    />
+                @endif
             </x-tab>
 
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
-                @include('livewire.events.partials.show-plan-tab')
+                @if ($tab === 'plan')
+                    <livewire:events.event-show-plan-tab
+                        lazy
+                        :event-id="$eventId"
+                        wire:key="event-plan-{{ $eventId }}"
+                    />
+                @endif
             </x-tab>
 
             @if ($canManageEvent && $hasPendingProposals)
                 <x-tab name="proposals" :label="__('ui.events.show_proposals')" class="!p-0" data-ui="event-show-tab-proposals" icon="o-clipboard-document-list">
                     @if ($tab === 'proposals')
-                        @include('livewire.events.partials.show-proposals-tab')
+                        <livewire:events.event-show-proposals-tab
+                            lazy
+                            :event-id="$eventId"
+                            wire:key="event-proposals-{{ $eventId }}"
+                        />
                     @endif
                 </x-tab>
             @endif
@@ -228,21 +244,6 @@
         :message="$confirmModalMessage"
         confirm-action="runConfirmedAction"
     >
-        @if ($pendingAction === 'cancel_slot_activity' && $pendingContextId !== null)
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">{{ __('ui.activities.cancel_reason_label') }}</span>
-                </label>
-                <textarea
-                    class="textarea textarea-bordered w-full"
-                    rows="4"
-                    wire:model.defer="slotCancelReason.{{ (int) $pendingContextId }}"
-                ></textarea>
-                @error('slotCancelReason.'.$pendingContextId)
-                    <div class="mt-2 text-xs text-error">{{ $message }}</div>
-                @enderror
-            </div>
-        @endif
         @if ($pendingAction === 'cancel_event')
             <div class="form-control">
                 <label class="label">
