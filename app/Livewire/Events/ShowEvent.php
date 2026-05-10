@@ -22,9 +22,15 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
+/**
+ * Event show shell: owns `tab` and the `?tab=` query string ({@see self::$tab}, {@see self::normalizeTab()}).
+ * Nested tab components receive {@see ShowEvent::$tab} via the `active-tab` Blade prop only; they must not use
+ * {@see Url} or read `tab` from the request for routing UI state.
+ */
 class ShowEvent extends Component
 {
     use AuthorizesOwnership;
@@ -33,8 +39,12 @@ class ShowEvent extends Component
 
     public int $eventId;
 
+    /**
+     * Active main panel tab; synchronized with `?tab=` on this component only (see {@see ShowEvent::$queryString}).
+     */
     public string $tab = 'description';
 
+    /** Query string binding for {@see ShowEvent::$tab}. Nested tab Livewire children do not declare their own `tab` URL binding. */
     protected array $queryString = [
         'tab' => ['except' => 'description'],
     ];

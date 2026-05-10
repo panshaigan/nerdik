@@ -24,6 +24,10 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
+/**
+ * Programme / slots panel for {@see ShowEvent}. Mounted only when the shell `tab` is `plan`.
+ * Tab selection and `?tab=` live on the parent; do not bind `tab` to the query string here.
+ */
 #[Lazy]
 class EventShowPlanTab extends Component
 {
@@ -32,6 +36,11 @@ class EventShowPlanTab extends Component
     use WithUiConfirmModal;
 
     public int $eventId;
+
+    /**
+     * Mirrors {@see ShowEvent::$tab} from the shell; for debugging/contracts — not read from the request URL.
+     */
+    public string $activeTab = 'plan';
 
     /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
     public array $proposalSlotIds = [];

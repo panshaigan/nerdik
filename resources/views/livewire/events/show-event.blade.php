@@ -199,6 +199,7 @@
                     <livewire:events.event-show-description-tab
                         defer
                         :event-id="$eventId"
+                        :active-tab="$tab"
                         wire:key="event-desc-{{ $eventId }}"
                     />
                 @endif
@@ -209,6 +210,7 @@
                     <livewire:events.event-show-plan-tab
                         lazy
                         :event-id="$eventId"
+                        :active-tab="$tab"
                         wire:key="event-plan-{{ $eventId }}"
                     />
                 @endif
@@ -220,6 +222,7 @@
                         <livewire:events.event-show-proposals-tab
                             lazy
                             :event-id="$eventId"
+                            :active-tab="$tab"
                             wire:key="event-proposals-{{ $eventId }}"
                         />
                     @endif

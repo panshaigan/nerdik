@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Slot;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Cache;
  * PostgreSQL-backed read-through cache for expensive aggregates on the event show page.
  *
  * Uses Laravel's default cache store ({@see config/cache.php}, typically `database` → `cache` table).
+ *
+ * Performance: {@see self::programmeStats()} avoids recounting confirmed programme metrics on repeat {@see ShowEvent}
+ * renders when the fingerprint is unchanged. The plan tab still performs a full slot eager-load on first mount when the user switches
+ * to “plan”; this cache does not replace that cost.
  */
 class EventShowReadCache
 {
@@ -19,6 +24,8 @@ class EventShowReadCache
     private const TTL_SECONDS = 120;
 
     /**
+     * Cached confirmed programme counts for the shell stats row (invalidated via observers + TTL/fingerprint).
+     *
      * @return array{0: int, 1: int} [confirmedActivitiesCount, confirmedParticipantsCount]
      */
     public function programmeStats(int $eventId): array
