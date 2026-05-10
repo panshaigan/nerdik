@@ -38,7 +38,10 @@
         @endif
     </div>
 
-    <div role="tablist" {{ $tabListAttributes->class(['block']) }}>
+    <div role="tablist" {{ $tabListAttributes->class(['relative block']) }}>
+        @isset($panelOverlay)
+            {{ $panelOverlay }}
+        @endisset
         {{ $slot }}
     </div>
 </div>
