@@ -454,17 +454,23 @@ class EventShowPlanTab extends Component
             $interestedActivityIds = [];
         }
 
+        /** @var list<string>|null $slotSurfaceTagKeys */
+        $slotSurfaceTagKeys = config('activity-badges.surfaces.event_slot.tag_category_keys');
+
         $event->load([
             'slots' => fn ($q) => $q->with([
                 'place.parent',
                 'activity' => fn ($aq) => $aq->with([
-                    'tags.translations',
-                    'tags.tagCategory',
+                    'tags' => function ($query) use ($slotSurfaceTagKeys) {
+                        $query->with(['translations', 'tagCategory']);
+                        if (is_array($slotSurfaceTagKeys) && $slotSurfaceTagKeys !== []) {
+                            $query->whereHas('tagCategory', fn ($qc) => $qc->whereIn('key', $slotSurfaceTagKeys));
+                        }
+                    },
                     'activityType',
                     'canceller',
                 ])->withCount([
                     'participants',
-                    'interestedUsers',
                 ]),
                 'activityTypes',
             ])->orderBy('starts_at'),
