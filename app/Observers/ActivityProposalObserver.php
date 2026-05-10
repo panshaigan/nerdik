@@ -9,11 +9,15 @@ class ActivityProposalObserver
 {
     public function saved(ActivityProposal $activityProposal): void
     {
-        app(EventShowReadCache::class)->forgetProgrammeStats((int) $activityProposal->event_id);
+        $cache = app(EventShowReadCache::class);
+        $cache->forgetProgrammeStats((int) $activityProposal->event_id);
+        $cache->forgetPendingProposalsFlag((int) $activityProposal->event_id);
     }
 
     public function deleted(ActivityProposal $activityProposal): void
     {
-        app(EventShowReadCache::class)->forgetProgrammeStats((int) $activityProposal->event_id);
+        $cache = app(EventShowReadCache::class);
+        $cache->forgetProgrammeStats((int) $activityProposal->event_id);
+        $cache->forgetPendingProposalsFlag((int) $activityProposal->event_id);
     }
 }

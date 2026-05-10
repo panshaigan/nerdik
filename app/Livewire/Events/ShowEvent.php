@@ -7,7 +7,6 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
-use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -457,10 +456,7 @@ class ShowEvent extends Component
         $eventActivityIds = $this->slotAttachmentActivityIdsForEvent($event->id);
         [$confirmedActivitiesCount, $confirmedParticipantsCount] = $eventShowReadCache->programmeStats($event->id);
 
-        $hasPendingProposals = $canManageEvent && ActivityProposal::query()
-            ->where('event_id', $event->id)
-            ->where('status', ActivityProposalStatus::Pending)
-            ->exists();
+        $hasPendingProposals = $canManageEvent && $eventShowReadCache->hasPendingProposals((int) $event->id);
 
         if ($this->tab === 'proposals' && (! $canManageEvent || ! $hasPendingProposals)) {
             $this->tab = 'description';

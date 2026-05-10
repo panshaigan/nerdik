@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -14,15 +16,17 @@ use Illuminate\Support\Facades\DB;
  *
  * Uses Laravel's default cache store ({@see config/cache.php}, typically `database` → `cache` table).
  *
- * Performance: {@see self::programmeStats()} avoids recounting confirmed programme metrics on repeat renders when the cache
- * entry exists (invalidated via observers + TTL). The plan tab still performs a full slot eager-load on first mount when the user switches
- * to “plan”; this cache does not replace that cost.
+ * Performance: {@see self::programmeStats()}, {@see self::eventInterestedCount()}, and {@see self::hasPendingProposals()}
+ * avoid repeat queries on shell renders when entries exist (invalidated via observers + TTL).
+ * The plan tab still performs a full slot eager-load on first mount when the user switches to “plan”; this cache does not replace that cost.
  */
 class EventShowReadCache
 {
     private const STATS_VERSION = 'v1';
 
     private const INTERESTED_COUNT_VERSION = 'v1';
+
+    private const PENDING_PROPOSALS_VERSION = 'v1';
 
     private const TTL_SECONDS = 120;
 
@@ -92,6 +96,35 @@ class EventShowReadCache
         Cache::forget($this->interestedCountKey($eventId));
     }
 
+    /**
+     * Whether the event has at least one pending activity proposal (organizer shell tab visibility).
+     * Invalidated when proposals change + TTL.
+     */
+    public function hasPendingProposals(int $eventId): bool
+    {
+        $key = $this->pendingProposalsKey($eventId);
+
+        /** @var array{value: bool}|null $cached */
+        $cached = Cache::get($key);
+        if (is_array($cached) && array_key_exists('value', $cached)) {
+            return (bool) $cached['value'];
+        }
+
+        $has = ActivityProposal::query()
+            ->where('event_id', $eventId)
+            ->where('status', ActivityProposalStatus::Pending)
+            ->exists();
+
+        Cache::put($key, ['value' => $has], now()->addSeconds(self::TTL_SECONDS));
+
+        return $has;
+    }
+
+    public function forgetPendingProposalsFlag(int $eventId): void
+    {
+        Cache::forget($this->pendingProposalsKey($eventId));
+    }
+
     private function statsKey(int $eventId): string
     {
         return 'event_show.programme_stats.'.self::STATS_VERSION.'.'.$eventId;
@@ -100,6 +133,11 @@ class EventShowReadCache
     private function interestedCountKey(int $eventId): string
     {
         return 'event_show.interested_count.'.self::INTERESTED_COUNT_VERSION.'.'.$eventId;
+    }
+
+    private function pendingProposalsKey(int $eventId): string
+    {
+        return 'event_show.pending_proposals.'.self::PENDING_PROPOSALS_VERSION.'.'.$eventId;
     }
 
     /**

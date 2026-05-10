@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
@@ -66,5 +68,34 @@ class EventShowReadCacheTest extends TestCase
         $cache->forgetEventInterestedCount((int) $event->id);
 
         $this->assertSame(1, $cache->eventInterestedCount((int) $event->id));
+    }
+
+    public function test_pending_proposals_flag_invalidates_when_proposal_saved(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_PROPOSED_TO_EVENT,
+        ]);
+
+        $cache = app(EventShowReadCache::class);
+
+        $this->assertFalse($cache->hasPendingProposals((int) $event->id));
+        $this->assertTrue(Cache::has('event_show.pending_proposals.v1.'.$event->id));
+
+        ActivityProposal::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $owner->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        $this->assertFalse(Cache::has('event_show.pending_proposals.v1.'.$event->id));
+
+        $this->assertTrue($cache->hasPendingProposals((int) $event->id));
     }
 }
