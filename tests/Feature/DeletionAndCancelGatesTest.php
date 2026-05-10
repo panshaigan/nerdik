@@ -142,7 +142,9 @@ class DeletionAndCancelGatesTest extends TestCase
         ]);
 
         $this->actingAs($organizer);
-        Livewire::test(ShowEvent::class, ['event' => $event])->call('cancelEvent');
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('cancelEvent')
+            ->assertDispatched('slot-mutations-refresh');
 
         $event->refresh();
         $activity->refresh();
@@ -182,7 +184,8 @@ class DeletionAndCancelGatesTest extends TestCase
         $this->actingAs($organizer);
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->set('eventCancelReason', 'Weather closure')
-            ->call('cancelEvent');
+            ->call('cancelEvent')
+            ->assertDispatched('slot-mutations-refresh');
 
         $event->refresh();
         $activity->refresh();
@@ -194,7 +197,8 @@ class DeletionAndCancelGatesTest extends TestCase
 
         $this->actingAs($organizer);
         Livewire::test(ShowEvent::class, ['event' => $event])
-            ->call('reopenEvent');
+            ->call('reopenEvent')
+            ->assertDispatched('slot-mutations-refresh');
 
         $event->refresh();
         $activity->refresh();

@@ -33,7 +33,8 @@ class ShowEventProposalsTabActivityPreviewTest extends TestCase
             'status' => ActivityProposalStatus::Pending,
         ]);
 
-        Livewire::actingAs($owner)
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
             ->test(ShowEvent::class, ['event' => $event])
             ->set('tab', 'proposals')
             ->call('openActivityPreview', (int) $activity->id)

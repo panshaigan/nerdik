@@ -5,31 +5,22 @@ namespace App\Livewire\Events;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Enums\ActivityProposalStatus;
-use App\Enums\BadgeSemantic;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
-use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
-use App\Models\User;
-use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
-use App\Services\ActivityProposalDecisionService;
 use App\Services\CancellationNotificationDispatcher;
 use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
-use App\Services\EventSlotPresentationService;
-use App\Services\SlotScheduleSyncService;
+use App\Services\EventShowReadCache;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -48,14 +39,8 @@ class ShowEvent extends Component
         'tab' => ['except' => 'description'],
     ];
 
-    /** Bumped when slots change via async JS so the component re-renders. */
-    public int $slotListVersion = 0;
-
-    /** Bumped when the organizer receives a live proposal submission for this event. */
-    public int $organizerProposalRefreshTick = 0;
-
-    /** Bumped when activity roster changes should refresh plan tab counters. */
-    public int $planCounterRefreshTick = 0;
+    /** Bumped when nested tabs mutate programme shell meta (e.g. proposals cleared). */
+    public int $shellRefreshTick = 0;
 
     public bool $activityPreviewModalOpen = false;
 
@@ -65,25 +50,6 @@ class ShowEvent extends Component
 
     /** Bumped when the selected activity preview receives a roster broadcast. */
     public int $activityPreviewRefreshTick = 0;
-
-    /** Free slots marked for “Propose an activity” preferred slots (slot ids). */
-    public array $proposalSlotIds = [];
-
-    /** Controls whether slots without attached activity are visible on the plan tab. */
-    public ?bool $showEmptySlots = null;
-
-    /** Tracks whether empty-slot auto-hide rule is currently active for this viewer. */
-    public bool $emptySlotsRestricted = false;
-
-    /**
-     * Pending proposal accept: slot id per proposal (empty string = auto-assign). Keys are proposal ids.
-     *
-     * @var array<int|string, int|string>
-     */
-    public array $proposalAcceptSlotId = [];
-
-    /** @var array<int|string, string> */
-    public array $slotCancelReason = [];
 
     public ?string $eventCancelReason = null;
 
@@ -96,16 +62,11 @@ class ShowEvent extends Component
         if ($this->tab === 'proposals' && ($user === null || ! $user->canModifyEntity($event))) {
             $this->tab = 'description';
         }
-        $this->applyShowEmptySlotsPolicy($event, $user);
     }
 
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
-        $event = Event::query()->whereKey($this->eventId)->with('enrollmentWindows')->first();
-        if ($event !== null) {
-            $this->applyShowEmptySlotsPolicy($event, auth()->user());
-        }
     }
 
     public function updatedActivityPreviewTab(string $value): void
@@ -131,6 +92,60 @@ class ShowEvent extends Component
         }
     }
 
+    #[On('open-event-activity-preview')]
+    public function handleOpenEventActivityPreview(int $activityId): void
+    {
+        $this->openActivityPreview($activityId);
+    }
+
+    #[On('event-show-shell-refresh')]
+    public function refreshShellFromNestedTabs(): void
+    {
+        $this->shellRefreshTick++;
+    }
+
+    #[On('event-proposal-submitted-broadcast')]
+    public function refreshShellForIncomingProposalBroadcast(int|string $eventId): void
+    {
+        if ((int) $eventId !== (int) $this->eventId) {
+            return;
+        }
+
+        $event = Event::query()->whereKey($this->eventId)->first();
+        if ($event === null) {
+            return;
+        }
+
+        $user = auth()->user();
+        if ($user === null || ! $user->canModifyEntity($event)) {
+            return;
+        }
+
+        $this->shellRefreshTick++;
+    }
+
+    #[On('event-plan-activity-participation-updated')]
+    public function refreshPreviewFromParticipationBroadcast(int|string|null $activityId = null): void
+    {
+        if ($activityId === null) {
+            return;
+        }
+
+        $activityId = (int) $activityId;
+        $belongsToThisEvent = Activity::query()
+            ->whereKey($activityId)
+            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId))
+            ->exists();
+
+        if (! $belongsToThisEvent) {
+            return;
+        }
+
+        if ($this->activityPreviewModalOpen && (int) $this->previewActivityId === $activityId) {
+            $this->activityPreviewRefreshTick++;
+        }
+    }
+
     public function openActivityPreview(int $activityId): void
     {
         $activity = $this->previewActivityQuery($activityId)->firstOrFail();
@@ -145,32 +160,6 @@ class ShowEvent extends Component
         $this->activityPreviewModalOpen = false;
         $this->previewActivityId = null;
         $this->activityPreviewTab = 'info';
-    }
-
-    public function toggleProposalSlot(int $slotId): void
-    {
-        $slot = Slot::query()
-            ->whereKey($slotId)
-            ->where('event_id', $this->eventId)
-            ->whereNull('activity_id')
-            ->first();
-        if ($slot === null) {
-            return;
-        }
-
-        $ids = array_map('intval', $this->proposalSlotIds);
-        $key = array_search($slotId, $ids, true);
-        if ($key !== false) {
-            unset($ids[$key]);
-            $this->proposalSlotIds = array_values($ids);
-        } else {
-            $this->proposalSlotIds = [...$ids, $slotId];
-        }
-    }
-
-    public function toggleShowEmptySlots(): void
-    {
-        $this->showEmptySlots = ! ((bool) $this->showEmptySlots);
     }
 
     public function addInterest(): void
@@ -194,40 +183,6 @@ class ShowEvent extends Component
         abort_unless($user !== null, 403);
         $user->interestedEvents()->detach($event->id);
         $this->warning(__('ui.interests.removed_event'));
-    }
-
-    public function addActivityInterest(int $activityId): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        if ($event->isCancelled()) {
-            $this->warning(__('ui.events.signup_blocked_cancelled'));
-
-            return;
-        }
-        $activity = Activity::query()
-            ->whereKey($activityId)
-            ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
-            ->firstOrFail();
-
-        $user = auth()->user();
-        abort_unless($user !== null, 403);
-        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
-        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
-        $this->success(__('ui.interests.added_activity'));
-    }
-
-    public function removeActivityInterest(int $activityId): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $activity = Activity::query()
-            ->whereKey($activityId)
-            ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
-            ->firstOrFail();
-
-        $user = auth()->user();
-        abort_unless($user !== null, 403);
-        $user->interestedActivities()->detach($activity->id);
-        $this->warning(__('ui.interests.removed_activity'));
     }
 
     public function joinPreviewActivity(ActivityParticipationService $participation): void
@@ -272,69 +227,6 @@ class ShowEvent extends Component
         $participation->leaveWaitlist($activity, $user);
         $this->showPreviewParticipationTab();
         $this->toastFromSessionStatus();
-    }
-
-    #[On('event-proposal-submitted-broadcast')]
-    public function refreshOrganizerForIncomingProposal(int|string $eventId): void
-    {
-        if ((int) $eventId !== (int) $this->eventId) {
-            return;
-        }
-
-        $event = Event::query()->whereKey($this->eventId)->first();
-        if ($event === null) {
-            return;
-        }
-
-        $user = auth()->user();
-        if ($user === null || ! $user->canModifyEntity($event)) {
-            return;
-        }
-
-        $this->organizerProposalRefreshTick++;
-    }
-
-    #[On('slot-mutations-refresh')]
-    public function refreshAfterSlotMutation(): void
-    {
-        $this->slotListVersion++;
-        $event = Event::query()->whereKey($this->eventId)->first();
-        if ($event !== null) {
-            $event->loadMissing(['slots.activity']);
-            app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
-            $event->loadMissing('slots');
-            $freeIds = $event->slots->whereNull('activity_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
-            $this->proposalSlotIds = array_values(array_intersect(
-                array_map('intval', $this->proposalSlotIds),
-                $freeIds
-            ));
-        }
-    }
-
-    #[On('event-plan-activity-participation-updated')]
-    public function refreshPlanCountersFromBroadcast(int|string|null $activityId = null): void
-    {
-        if ($activityId === null) {
-            return;
-        }
-
-        $activityId = (int) $activityId;
-        $belongsToThisEvent = Activity::query()
-            ->whereKey($activityId)
-            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId))
-            ->exists();
-
-        if (! $belongsToThisEvent) {
-            return;
-        }
-
-        if ($this->tab === 'plan') {
-            $this->planCounterRefreshTick++;
-        }
-
-        if ($this->activityPreviewModalOpen && (int) $this->previewActivityId === $activityId) {
-            $this->activityPreviewRefreshTick++;
-        }
     }
 
     public function deleteEvent(): void
@@ -402,7 +294,8 @@ class ShowEvent extends Component
 
         app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event->fresh(), $user);
         $this->success(__('ui.events.cancelled_status'));
-        $this->applyShowEmptySlotsPolicy($event->fresh(['enrollmentWindows']), auth()->user());
+
+        $this->dispatch('slot-mutations-refresh');
     }
 
     public function reopenEvent(): void
@@ -429,7 +322,8 @@ class ShowEvent extends Component
 
         app(CancellationNotificationDispatcher::class)->notifyEventReopened($event->fresh(), $user);
         $this->success(__('ui.events.reopened_status'));
-        $this->applyShowEmptySlotsPolicy($event->fresh(['enrollmentWindows']), auth()->user());
+
+        $this->dispatch('slot-mutations-refresh');
     }
 
     public function confirmDeleteEvent(): void
@@ -459,56 +353,9 @@ class ShowEvent extends Component
         );
     }
 
-    public function confirmDeleteSlot(int $slotId): void
+    public function runConfirmedAction(): void
     {
-        $this->openConfirm(
-            'delete_slot',
-            __('Delete'),
-            __('Are you sure?'),
-            null,
-            $slotId,
-        );
-    }
-
-    public function confirmDetachActivityFromSlot(int $slotId): void
-    {
-        $this->openConfirm(
-            'detach_activity_from_slot',
-            __('ui.events.detach_activity_from_slot'),
-            __('ui.events.detach_activity_from_slot_confirm'),
-            null,
-            $slotId,
-        );
-    }
-
-    public function confirmCancelSlotActivity(int $slotId): void
-    {
-        $this->openConfirm(
-            'cancel_slot_activity',
-            __('ui.activities.cancel_action'),
-            __('ui.activities.cancel_confirm'),
-            null,
-            $slotId,
-        );
-    }
-
-    public function confirmReopenSlotActivity(int $slotId): void
-    {
-        $this->openConfirm(
-            'reopen_slot_activity',
-            __('ui.activities.reopen_action'),
-            __('ui.activities.reopen_confirm'),
-            null,
-            $slotId,
-        );
-    }
-
-    public function runConfirmedAction(
-        ActivityProposalDecisionService $decisions,
-        ActivityHostingModeService $hostingModes
-    ): void {
         $action = $this->pendingAction;
-        $slotId = $this->pendingContextId;
         $this->closeConfirm();
 
         if ($action === null) {
@@ -519,235 +366,15 @@ class ShowEvent extends Component
             'delete_event' => $this->deleteEvent(),
             'cancel_event' => $this->cancelEvent(),
             'reopen_event' => $this->reopenEvent(),
-            'delete_slot' => $slotId !== null ? $this->deleteSlot($slotId) : null,
-            'detach_activity_from_slot' => $slotId !== null ? $this->detachActivityFromSlot($slotId, $decisions) : null,
-            'cancel_slot_activity' => $slotId !== null ? $this->cancelSlotActivity($slotId, $hostingModes) : null,
-            'reopen_slot_activity' => $slotId !== null ? $this->reopenSlotActivity($slotId, $hostingModes) : null,
             default => null,
         };
     }
 
-    public function deleteSlot(int $slotId): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $slot = Slot::query()->whereKey($slotId)->firstOrFail();
-
-        if ((int) $slot->event_id !== (int) $event->id) {
-            abort(404);
-        }
-
-        $this->authorizeCreatedBy($slot);
-        $slot->delete();
-        $this->proposalSlotIds = array_values(array_filter(
-            $this->proposalSlotIds,
-            fn ($id) => (int) $id !== (int) $slotId
-        ));
-        $this->syncSlotEndsForThisEvent();
-        $this->success(__('Slot deleted.'));
-    }
-
-    public function detachActivityFromSlot(int $slotId, ActivityProposalDecisionService $decisions): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $this->authorizeCreatedBy($event);
-
-        $slot = Slot::query()
-            ->whereKey($slotId)
-            ->where('event_id', $event->id)
-            ->firstOrFail();
-
-        if ($slot->activity_id === null) {
-            return;
-        }
-
-        try {
-            $decisions->detachActivityFromSlot($event, $slot);
-        } catch (ValidationException $e) {
-            $messages = collect($e->errors())->flatten()->filter()->values();
-            if ($messages->isNotEmpty()) {
-                $this->warning((string) $messages->first());
-            } else {
-                $this->warning(__('ui.status.oops'));
-            }
-
-            foreach ($e->errors() as $messages) {
-                foreach ($messages as $message) {
-                    // Keep the errors available for inline consumers, but show feedback as toast.
-                    $this->addError('detachActivityFromSlot', $message);
-                }
-            }
-
-            return;
-        }
-
-        $this->refreshAfterSlotMutation();
-        $this->success(__('ui.status.activity_detached_from_slot'));
-    }
-
-    public function cancelSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $slot = Slot::query()
-            ->with('activity')
-            ->whereKey($slotId)
-            ->where('event_id', $event->id)
-            ->firstOrFail();
-
-        $activity = $slot->activity;
-        if ($activity === null) {
-            return;
-        }
-
-        $user = auth()->user();
-        abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
-
-        $rawReason = $this->slotCancelReason[$slotId]
-            ?? $this->slotCancelReason[(string) $slotId]
-            ?? null;
-        $reason = is_string($rawReason) ? trim($rawReason) : null;
-        if ($reason === '') {
-            $reason = null;
-        }
-        $reasonValidation = Validator::make(
-            ['reason' => $reason],
-            ['reason' => ['nullable', 'string', 'max:1000']]
-        );
-        if ($reasonValidation->fails()) {
-            foreach ($reasonValidation->errors()->all() as $message) {
-                $this->addError('slotCancelReason.'.$slotId, $message);
-            }
-
-            return;
-        }
-        $reason = $reasonValidation->validated()['reason'] ?? null;
-
-        $hostingModes->cancel($activity, $user, $reason);
-        unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
-        $this->slotListVersion++;
-        $this->syncSlotEndsForThisEvent();
-        $this->success(__('ui.activities.cancelled_status'));
-    }
-
-    public function reopenSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        $slot = Slot::query()
-            ->with('activity')
-            ->whereKey($slotId)
-            ->where('event_id', $event->id)
-            ->firstOrFail();
-
-        $activity = $slot->activity;
-        if ($activity === null) {
-            return;
-        }
-
-        $user = auth()->user();
-        abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
-
-        $hostingModes->reopen($activity, $user);
-        $this->slotListVersion++;
-        $this->syncSlotEndsForThisEvent();
-        $this->success(__('ui.activities.reopened_status'));
-    }
-
-    public function acceptPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        abort_unless(auth()->user()?->canModifyEntity($event), 403);
-
-        $proposal = ActivityProposal::query()
-            ->whereKey($proposalId)
-            ->where('event_id', $this->eventId)
-            ->firstOrFail();
-
-        if ($proposal->status !== ActivityProposalStatus::Pending) {
-            $this->warning(__('ui.status.proposal_not_pending'));
-
-            return;
-        }
-
-        $rawSlotId = $this->proposalAcceptSlotId[$proposalId]
-            ?? $this->proposalAcceptSlotId[(string) $proposalId]
-            ?? '';
-        $normalizedSlotId = ($rawSlotId === '' || $rawSlotId === null) ? null : $rawSlotId;
-        $slotValidation = Validator::make(
-            ['slot_id' => $normalizedSlotId],
-            [
-                'slot_id' => [
-                    'nullable',
-                    'integer',
-                    Rule::exists('slots', 'id')->where(
-                        fn ($query) => $query
-                            ->where('event_id', $event->id)
-                            ->whereNull('activity_id')
-                    ),
-                ],
-            ]
-        );
-        if ($slotValidation->fails()) {
-            foreach ($slotValidation->errors()->all() as $message) {
-                $this->addError('proposalAcceptSlot.'.$proposalId, $message);
-            }
-
-            return;
-        }
-        $validatedSlotId = $slotValidation->validated()['slot_id'] ?? null;
-
-        try {
-            $decisions->accept($proposal, $validatedSlotId ?? '');
-        } catch (ValidationException $e) {
-            foreach ($e->errors() as $messages) {
-                foreach ($messages as $message) {
-                    $this->addError('proposalAcceptSlot.'.$proposalId, $message);
-                }
-            }
-
-            return;
-        }
-
-        unset($this->proposalAcceptSlotId[$proposalId], $this->proposalAcceptSlotId[(string) $proposalId]);
-        $this->slotListVersion++;
-        $this->syncSlotEndsForThisEvent();
-        $this->success(__('ui.status.proposal_accepted'));
-    }
-
-    public function rejectPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
-        abort_unless(auth()->user()?->canModifyEntity($event), 403);
-
-        $proposal = ActivityProposal::query()
-            ->whereKey($proposalId)
-            ->where('event_id', $this->eventId)
-            ->firstOrFail();
-
-        if ($proposal->status !== ActivityProposalStatus::Pending) {
-            $this->warning(__('ui.status.proposal_not_pending'));
-
-            return;
-        }
-
-        $decisions->reject($proposal);
-        $this->slotListVersion++;
-        $this->success(__('ui.status.proposal_rejected'));
-    }
-
-    protected function syncSlotEndsForThisEvent(): void
-    {
-        $event = Event::query()->whereKey($this->eventId)->first();
-        if ($event === null) {
-            return;
-        }
-        $event->load(['slots.activity']);
-        app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
-    }
-
     public function render(
-        EventSlotPresentationService $slotPresentation,
         ActivityParticipationViewService $participationView,
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
+        EventShowReadCache $eventShowReadCache,
     ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -759,21 +386,11 @@ class ShowEvent extends Component
             'enrollmentWindows',
         ]);
 
-        $enrollment = $slotPresentation->enrollmentPresentation($event, now());
-        $activeEnrollmentWindow = $enrollment->activeWindow;
-        $activeWindowRemainingByActivityId = $enrollment->remainingByActivityId;
-
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
-        $canShowPlanActivityProposalUi = $user !== null
-            && ! $event->isCancelled()
-            && ($event->starts_at === null || now()->lt($event->starts_at))
-            && $activeEnrollmentWindow === null;
-        $shouldRestrictEmptySlots = $this->shouldRestrictEmptySlots($event, $user);
-        $this->applyShowEmptySlotsPolicy($event, $user);
 
         $eventActivityIds = $this->slotAttachmentActivityIdsForEvent($event->id);
-        [$confirmedActivitiesCount, $confirmedParticipantsCount] = $this->confirmedProgrammeStats($event->id);
+        [$confirmedActivitiesCount, $confirmedParticipantsCount] = $eventShowReadCache->programmeStats($event->id);
 
         $hasPendingProposals = $canManageEvent && ActivityProposal::query()
             ->where('event_id', $event->id)
@@ -796,78 +413,6 @@ class ShowEvent extends Component
             : [];
 
         $interestedPeopleCount = (int) $event->interestedUsers()->count();
-
-        $pendingProposals = collect();
-        $slotCardBadgeItemsByActivityId = [];
-        $slotTypeBadgeItemsBySlotId = [];
-        $proposalBadgeItemsByProposalId = [];
-        $freeSlotsAllForProposals = collect();
-
-        if ($this->tab === 'plan') {
-            $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
-            $syncEvent->load(['slots.activity']);
-            app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
-        }
-
-        $event->load([
-            'slots' => fn ($q) => $q->with([
-                'place.parent',
-                'activity' => fn ($aq) => $aq->with([
-                    'tags.translations',
-                    'tags.tagCategory',
-                    'activityType',
-                    'canceller',
-                ])->withCount([
-                    'participants',
-                    'interestedUsers',
-                ]),
-                'activityTypes',
-            ])->orderBy('starts_at'),
-        ]);
-
-        $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
-
-        foreach ($event->slots as $slot) {
-            $activity = $slot->activity;
-            if ($activity !== null) {
-                $slotCardBadgeItemsByActivityId[(int) $activity->id] = $badgeGroupBuilder->build(
-                    $activity,
-                    ActivityBadgeGroupConfig::eventSlotCard(),
-                );
-            } else {
-                $slotActivityTypes = collect($slot->activityTypes)
-                    ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
-                    ->filter()
-                    ->unique()
-                    ->values();
-                if ($slotActivityTypes->isNotEmpty()) {
-                    $slotTypeBadgeItemsBySlotId[(int) $slot->id] = $badgeGroupBuilder->buildActivityTypeChips(
-                        $slotActivityTypes,
-                        BadgeSemantic::Info,
-                    );
-                }
-            }
-        }
-
-        if ($this->tab === 'proposals' && $canManageEvent && $hasPendingProposals) {
-            $freeSlotsAllForProposals = $event->slots->whereNull('activity_id')->values();
-
-            $pendingProposals = $event->proposals()
-                ->with(['activity.tags.translations', 'activity.tags.tagCategory', 'activity.activityType', 'creator', 'proposedSlots'])
-                ->where('status', ActivityProposalStatus::Pending)
-                ->orderBy('created_at')
-                ->get();
-
-            foreach ($pendingProposals as $proposal) {
-                $pa = $proposal->activity;
-                if ($pa !== null) {
-                    $proposalBadgeItemsByProposalId[(int) $proposal->id] = $badgeGroupBuilder->build(
-                        $pa,
-                        ActivityBadgeGroupConfig::eventProposal(),
-                    );
-                }
-            }
-        }
 
         $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
             ? $this->previewActivityQuery($this->previewActivityId)
@@ -933,28 +478,12 @@ class ShowEvent extends Component
             }
         }
 
-        $attachedActivityIds = $event->relationLoaded('slots')
-            ? $event->slots
-                ->pluck('activity_id')
-                ->filter()
-                ->map(fn ($id) => (int) $id)
-                ->unique()
-                ->values()
-                ->all()
-            : $eventActivityIds;
-
         return view('livewire.events.show-event', [
             'event' => $event,
-            'attachedActivityIds' => $attachedActivityIds,
+            'attachedActivityIds' => $eventActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
-            'activeEnrollmentWindow' => $activeEnrollmentWindow,
-            'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
-            'pendingProposals' => $pendingProposals,
             'hasPendingProposals' => $hasPendingProposals,
             'canManageEvent' => $canManageEvent,
-            'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
-            'showEmptySlots' => (bool) $this->showEmptySlots,
-            'emptySlotsRestricted' => $shouldRestrictEmptySlots,
             'hasInterest' => $hasInterest,
             'interestedActivityIds' => $interestedActivityIds,
             'confirmedActivitiesCount' => $confirmedActivitiesCount,
@@ -968,31 +497,7 @@ class ShowEvent extends Component
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
-            'slotHourGroups' => $slotHourGroups,
-            'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
-            'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
-            'proposalBadgeItemsByProposalId' => $proposalBadgeItemsByProposalId,
-            'freeSlotsAllForProposals' => $freeSlotsAllForProposals,
         ]);
-    }
-
-    /**
-     * @return array{0: int, 1: int}
-     */
-    private function confirmedProgrammeStats(int $eventId): array
-    {
-        $activitiesBase = Activity::query()
-            ->whereHas('slot', fn ($q) => $q->where('event_id', $eventId))
-            ->whereNull('cancelled_at');
-
-        $confirmedActivitiesCount = (clone $activitiesBase)->count();
-
-        $confirmedParticipantsCount = (int) ActivityUser::query()
-            ->whereNull('activity_user.deleted_at')
-            ->whereIn('activity_id', $activitiesBase->clone()->select('activities.id'))
-            ->count();
-
-        return [$confirmedActivitiesCount, $confirmedParticipantsCount];
     }
 
     /**
@@ -1008,30 +513,6 @@ class ShowEvent extends Component
             ->unique()
             ->values()
             ->all();
-    }
-
-    private function shouldRestrictEmptySlots(Event $event, ?User $user): bool
-    {
-        $canManageEvent = $user !== null && $user->canModifyEntity($event);
-
-        return ! $canManageEvent
-            && (
-                ($event->starts_at !== null && now()->gte($event->starts_at))
-                || $event->enrollmentWindows->first(function ($w) {
-                    return $w->starts_at !== null
-                        && $w->ends_at !== null
-                        && now()->between($w->starts_at, $w->ends_at);
-                }) !== null
-            );
-    }
-
-    private function applyShowEmptySlotsPolicy(Event $event, ?User $user): void
-    {
-        $shouldRestrict = $this->shouldRestrictEmptySlots($event, $user);
-        if ($this->showEmptySlots === null || $this->emptySlotsRestricted !== $shouldRestrict) {
-            $this->showEmptySlots = ! $shouldRestrict;
-            $this->emptySlotsRestricted = $shouldRestrict;
-        }
     }
 
     private function activityHasActiveEnrollmentWindow(Activity $activity, EventActivitySignupService $signupService): bool
@@ -1083,7 +564,7 @@ class ShowEvent extends Component
     {
         $this->activityPreviewTab = 'participation';
         $this->activityPreviewRefreshTick++;
-        $this->planCounterRefreshTick++;
+        $this->dispatch('event-show-plan-counter-bump');
     }
 
     private function toastFromSessionStatus(): void

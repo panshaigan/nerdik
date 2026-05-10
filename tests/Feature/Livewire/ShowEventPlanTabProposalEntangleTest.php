@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowPlanTab;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,9 +20,9 @@ class ShowEventPlanTabProposalEntangleTest extends TestCase
         $user = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $user->id]);
 
-        $html = Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        $html = Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->html();
 
         $this->assertStringContainsString('$wire.entangle(\'proposalSlotIds\')', $html);

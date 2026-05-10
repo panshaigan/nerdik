@@ -39,7 +39,7 @@ class ShowEventOrganizerProposalBroadcastTest extends TestCase
         ]);
 
         $component->assertSee(__('ui.events.show_proposals'))
-            ->assertSet('organizerProposalRefreshTick', 1);
+            ->assertSet('shellRefreshTick', 1);
     }
 
     public function test_incoming_proposal_broadcast_ignored_when_event_id_does_not_match(): void
@@ -51,9 +51,9 @@ class ShowEventOrganizerProposalBroadcastTest extends TestCase
         $component = Livewire::actingAs($owner)
             ->test(ShowEvent::class, ['event' => $eventMounted]);
 
-        $component->assertSet('organizerProposalRefreshTick', 0);
-        $component->call('refreshOrganizerForIncomingProposal', $otherEvent->id);
-        $component->assertSet('organizerProposalRefreshTick', 0);
+        $component->assertSet('shellRefreshTick', 0);
+        $component->call('refreshShellForIncomingProposalBroadcast', $otherEvent->id);
+        $component->assertSet('shellRefreshTick', 0);
     }
 
     public function test_incoming_proposal_broadcast_ignored_when_user_cannot_manage_event(): void
@@ -65,11 +65,11 @@ class ShowEventOrganizerProposalBroadcastTest extends TestCase
         $component = Livewire::actingAs($guest)->test(ShowEvent::class, ['event' => $event]);
 
         $component->assertDontSee(__('ui.events.show_proposals'))
-            ->assertSet('organizerProposalRefreshTick', 0);
+            ->assertSet('shellRefreshTick', 0);
 
-        $component->call('refreshOrganizerForIncomingProposal', $event->id);
+        $component->call('refreshShellForIncomingProposalBroadcast', $event->id);
 
         $component->assertDontSee(__('ui.events.show_proposals'))
-            ->assertSet('organizerProposalRefreshTick', 0);
+            ->assertSet('shellRefreshTick', 0);
     }
 }

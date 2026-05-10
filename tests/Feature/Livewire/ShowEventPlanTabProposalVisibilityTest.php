@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowPlanTab;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
@@ -36,9 +36,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
         ]);
 
-        Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', true)
             ->assertSee(__('ui.events.propose_activity'))
             ->assertSee(__('ui.events.plan_propose_hero_title'));
@@ -54,9 +54,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
         ]);
 
-        Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
             ->assertDontSee(__('ui.events.propose_activity'))
             ->assertDontSee(__('ui.events.plan_propose_hero_title'));
@@ -82,9 +82,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
-        Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
             ->assertDontSee(__('ui.events.propose_activity'));
     }
@@ -105,9 +105,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'name' => 'Plan Visibility Empty Slot',
         ]);
 
-        Livewire::actingAs($viewer)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertSet('showEmptySlots', true)
             ->assertSee($emptySlot->name);
     }
@@ -137,9 +137,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
-        Livewire::actingAs($viewer)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertSet('showEmptySlots', false)
             ->assertDontSee($emptySlot->name)
             ->set('showEmptySlots', true)
@@ -182,9 +182,9 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'name' => 'Attached Slot Name',
         ]);
 
-        Livewire::actingAs($viewer)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertSet('showEmptySlots', false)
             ->assertSee($activity->name)
             ->assertDontSee('Always Hidden Empty Slot');

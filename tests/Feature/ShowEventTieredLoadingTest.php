@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\ActivityProposalStatus;
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowPlanTab;
+use App\Livewire\Events\EventShowProposalsTab;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -40,13 +41,12 @@ class ShowEventTieredLoadingTest extends TestCase
             'created_by' => $user->id,
         ]);
 
-        $component = Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event]);
-
         $slot->refresh();
         $this->assertNull($slot->ends_at);
 
-        $component->set('tab', 'plan');
+        Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
 
         $slot->refresh();
         $this->assertNotNull($slot->ends_at);
@@ -55,7 +55,7 @@ class ShowEventTieredLoadingTest extends TestCase
         Carbon::setTestNow();
     }
 
-    public function test_pending_proposals_collection_is_empty_on_description_tab_and_loaded_on_proposals_tab(): void
+    public function test_pending_proposals_are_empty_on_shell_and_loaded_in_proposals_tab_component(): void
     {
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
@@ -71,13 +71,9 @@ class ShowEventTieredLoadingTest extends TestCase
             'status' => ActivityProposalStatus::Pending,
         ]);
 
-        $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event]);
-
-        $component->assertViewHas('pendingProposals', fn ($c) => $c->isEmpty());
-
-        $component->set('tab', 'proposals');
-
-        $component->assertViewHas('pendingProposals', fn ($c) => $c->isNotEmpty());
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowProposalsTab::class, ['eventId' => $event->id])
+            ->assertViewHas('pendingProposals', fn ($c) => $c->isNotEmpty());
     }
 }
