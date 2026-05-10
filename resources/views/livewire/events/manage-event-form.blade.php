@@ -4,7 +4,7 @@
 
 @php
     $datetimeMinuteStepSeconds = max(1, (int) config('ui-datetime.minute_step', 5)) * 60;
-    $title = $editingEvent ? (__('ui.events.edit_event').': '.$this->name) : __('ui.events.create');
+    $title = $editingEvent ? $this->name : __('ui.events.create');
 @endphp
 <div>
     <x-page-header :title="$title" :user="$creator">
@@ -42,7 +42,11 @@
             @endif
         </x-slot:titleSuffix>
     </x-page-header>
-        <div class="flex justify-end mb-6">
+    <div class="flex justify-between items-center pb-6">
+        <div class="">
+            <a href="/events/{{$this->slug}}" class="btn btn-outline btn-secondary"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
+        </div>
+        <div class="">
             <x-toggle
                 id="is_public"
                 wire:model="is_public"
@@ -50,6 +54,7 @@
                 :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
             />
         </div>
+    </div>
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
