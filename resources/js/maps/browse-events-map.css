@@ -1,0 +1,23 @@
+.browse-events-map-toolbar a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.125rem;
+    min-height: 2.125rem;
+}
+
+.browse-map-cluster-icon {
+    background: color-mix(in oklab, var(--color-primary, #6366f1) 85%, transparent);
+    border: 2px solid #fff;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.22);
+}
+
+.browse-map-cluster-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
