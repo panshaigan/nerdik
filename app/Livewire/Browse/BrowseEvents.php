@@ -8,8 +8,11 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Tag;
+use App\Support\Browse\BrowseListingFilterBag;
+use App\Support\Browse\BrowseListingQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as ConcreteLengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -51,6 +54,9 @@ class BrowseEvents extends Component
     /** Mutually exclusive with {@see $only_events}. */
     #[Url]
     public bool $only_activities = false;
+
+    #[Url]
+    public bool $map_view = false;
 
     public function updatedOnlyEvents(bool $value): void
     {
@@ -103,10 +109,23 @@ class BrowseEvents extends Component
         $this->resetPage();
     }
 
+    public function updatedMapView(): void
+    {
+        $this->resetPage();
+        if ($this->map_view) {
+            $this->js('window.dispatchEvent(new CustomEvent("browse-events-map:visible"))');
+        }
+    }
+
+    public function toggleMapView(): void
+    {
+        $this->map_view = ! $this->map_view;
+    }
+
     public function clearFilters()
     {
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'map_view']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('search.index');
@@ -126,31 +145,7 @@ class BrowseEvents extends Component
 
     public function hasBBox(): bool
     {
-        if (! filled($this->min_lat) || ! filled($this->max_lat)
-            || ! filled($this->min_lng) || ! filled($this->max_lng)) {
-            return false;
-        }
-
-        foreach ([$this->min_lat, $this->max_lat, $this->min_lng, $this->max_lng] as $v) {
-            if (! is_numeric($v)) {
-                return false;
-            }
-        }
-
-        $minLat = (float) $this->min_lat;
-        $maxLat = (float) $this->max_lat;
-        $minLng = (float) $this->min_lng;
-        $maxLng = (float) $this->max_lng;
-
-        if (! is_finite($minLat) || ! is_finite($maxLat) || ! is_finite($minLng) || ! is_finite($maxLng)) {
-            return false;
-        }
-
-        if ($minLat < -90.0 || $maxLat > 90.0 || $minLng < -180.0 || $maxLng > 180.0) {
-            return false;
-        }
-
-        return true;
+        return $this->browseFilterBag()->hasBBox();
     }
 
     public function toggleEventInterest(int $eventId): void
@@ -198,34 +193,7 @@ class BrowseEvents extends Component
      */
     protected function baseEventQuery(): Builder
     {
-        $query = Event::query()
-            ->where('is_public', true)
-            ->whereNull('events.cancelled_at');
-
-        if (! $this->include_past_events) {
-            $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
-        }
-
-        if ($this->q !== '') {
-            $term = '%'.mb_strtolower($this->q).'%';
-            $query->where(fn (Builder $q) => $q
-                ->whereRaw('LOWER(events.name) LIKE ?', [$term])
-                ->orWhereRaw('LOWER(events.description) LIKE ?', [$term]));
-        }
-
-        $this->applyBrowseTagFilter($query, 'slots.activity.tags');
-
-        if ($this->hasBBox()) {
-            [$minLat, $maxLat, $minLng, $maxLng] = $this->normalizedBBox();
-            $query->whereHas('places', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng) {
-                $q->whereNotNull('latitude')
-                    ->whereNotNull('longitude')
-                    ->whereBetween('latitude', [$minLat, $maxLat])
-                    ->whereBetween('longitude', [$minLng, $maxLng]);
-            });
-        }
-
-        return $query;
+        return BrowseListingQuery::baseEventQuery($this->browseFilterBag());
     }
 
     /**
@@ -235,41 +203,7 @@ class BrowseEvents extends Component
      */
     protected function baseActivityQuery(): Builder
     {
-        $query = Activity::query()->attachedToPublicEvent(! $this->include_past_events);
-
-        if ($this->q !== '') {
-            $term = '%'.mb_strtolower($this->q).'%';
-            $query->where(fn (Builder $q) => $q
-                ->whereRaw('LOWER(activities.name) LIKE ?', [$term])
-                ->orWhereRaw('LOWER(activities.description) LIKE ?', [$term]));
-        }
-
-        $this->applyBrowseTagFilter($query, 'tags');
-
-        if ($this->hasBBox()) {
-            [$minLat, $maxLat, $minLng, $maxLng] = $this->normalizedBBox();
-            $query->where(function (Builder $outer) use ($minLat, $maxLat, $minLng, $maxLng): void {
-                $outer->where(function (Builder $selfHosted) use ($minLat, $maxLat, $minLng, $maxLng): void {
-                    $selfHosted->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
-                        ->whereHas('place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng): void {
-                            $q->whereNotNull('latitude')
-                                ->whereNotNull('longitude')
-                                ->whereBetween('latitude', [$minLat, $maxLat])
-                                ->whereBetween('longitude', [$minLng, $maxLng]);
-                        });
-                })->orWhere(function (Builder $scheduled) use ($minLat, $maxLat, $minLng, $maxLng): void {
-                    $scheduled->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
-                        ->whereHas('slot.place', function (Builder $q) use ($minLat, $maxLat, $minLng, $maxLng): void {
-                            $q->whereNotNull('latitude')
-                                ->whereNotNull('longitude')
-                                ->whereBetween('latitude', [$minLat, $maxLat])
-                                ->whereBetween('longitude', [$minLng, $maxLng]);
-                        });
-                });
-            });
-        }
-
-        return $query;
+        return BrowseListingQuery::baseActivityQuery($this->browseFilterBag());
     }
 
     /**
@@ -277,18 +211,40 @@ class BrowseEvents extends Component
      */
     protected function normalizedBBox(): array
     {
-        $minLat = (float) $this->min_lat;
-        $maxLat = (float) $this->max_lat;
-        $minLng = (float) $this->min_lng;
-        $maxLng = (float) $this->max_lng;
-        if ($minLat > $maxLat) {
-            [$minLat, $maxLat] = [$maxLat, $minLat];
-        }
-        if ($minLng > $maxLng) {
-            [$minLng, $maxLng] = [$maxLng, $minLng];
-        }
+        return $this->browseFilterBag()->normalizedBBox();
+    }
 
-        return [$minLat, $maxLat, $minLng, $maxLng];
+    public function browseFilterBag(): BrowseListingFilterBag
+    {
+        return new BrowseListingFilterBag(
+            q: $this->q,
+            tagIds: array_values(array_unique(array_filter(
+                array_map(static fn ($id) => (int) $id, $this->tag_ids),
+                static fn (int $id) => $id > 0
+            ))),
+            tagsMatchAll: $this->tags_match_all,
+            includePastEvents: $this->include_past_events,
+            onlyEvents: $this->only_events,
+            onlyActivities: $this->only_activities,
+            minLat: $this->min_lat !== null && $this->min_lat !== '' ? (string) $this->min_lat : null,
+            maxLat: $this->max_lat !== null && $this->max_lat !== '' ? (string) $this->max_lat : null,
+            minLng: $this->min_lng !== null && $this->min_lng !== '' ? (string) $this->min_lng : null,
+            maxLng: $this->max_lng !== null && $this->max_lng !== '' ? (string) $this->max_lng : null,
+        );
+    }
+
+    /**
+     * @return ConcreteLengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
+     */
+    protected function emptyBrowsePaginator(): ConcreteLengthAwarePaginator
+    {
+        return new ConcreteLengthAwarePaginator(
+            collect(),
+            0,
+            self::PER_PAGE,
+            1,
+            ['path' => request()->url(), 'pageName' => 'page']
+        );
     }
 
     /**
@@ -430,7 +386,9 @@ class BrowseEvents extends Component
 
     public function render()
     {
-        $paginator = $this->paginateBrowseListings();
+        $paginator = $this->map_view
+            ? $this->emptyBrowsePaginator()
+            : $this->paginateBrowseListings();
 
         $interestedEventIds = auth()->check()
             ? auth()->user()->interestedEvents()->pluck('events.id')->toArray()
@@ -462,6 +420,7 @@ class BrowseEvents extends Component
 
         return view('livewire.browse.browse-events', [
             'browseListings' => $paginator,
+            'mapFeaturesUrl' => route('search.map-features'),
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,

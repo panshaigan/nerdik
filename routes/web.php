@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivityProposalController;
+use App\Http\Controllers\Browse\BrowseMapFeaturesController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\InterestController;
@@ -23,7 +24,7 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
     session(['locale' => $locale]);
 
     $redirectTo = (string) $request->query('redirect', '');
-    if (!str_starts_with($redirectTo, '/') || str_starts_with($redirectTo, '//')) {
+    if (! str_starts_with($redirectTo, '/') || str_starts_with($redirectTo, '//')) {
         $redirectTo = route('dashboard');
     }
 
@@ -35,6 +36,10 @@ Route::get('locale/{locale}', function (Request $request, string $locale) {
 | Organizations are listed only for the signed-in owner (see authenticated `organizations.index`).
 */
 Route::view('search', 'browse.events')->name('search.index');
+
+Route::get('search/map-features', BrowseMapFeaturesController::class)
+    ->middleware('throttle:90,1')
+    ->name('search.map-features');
 
 Route::redirect('events', '/search', 301);
 Route::redirect('activities', '/search', 301);

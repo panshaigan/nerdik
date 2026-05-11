@@ -24,12 +24,7 @@
         <button
             type="button"
             class="btn btn-sm btn-accent rounded-2xl"
-            x-on:click="
-                filtersOpen = !filtersOpen;
-                if (filtersOpen) {
-                    $nextTick(() => window.dispatchEvent(new CustomEvent('browse-bbox:panel-open')));
-                }
-            "
+            x-on:click="filtersOpen = !filtersOpen"
             x-bind:class="{ 'btn-accent': filtersOpen, 'btn-outline btn-neutral hover:btn-accent': !filtersOpen }"
             x-bind:aria-pressed="filtersOpen ? 'true' : 'false'"
         >

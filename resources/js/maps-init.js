@@ -15,8 +15,8 @@ function bootMaps() {
         root.dataset.eventShowMapLoadStarted = '1';
         import('./maps/event-show-map.js').then((m) => m.initEventShowMap(root));
     });
-    if (document.querySelector('[data-browse-bbox-map]')) {
-        import('./maps/browse-bbox.js').then((m) => m.initBrowseBboxMap().catch(() => {}));
+    if (document.querySelector('[data-browse-events-map]')) {
+        import('./maps/browse-events-map.js').then((m) => m.initBrowseEventsMap().catch(() => {}));
     }
 }
 
