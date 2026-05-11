@@ -36,100 +36,86 @@
     $venues = $event?->places->map(
         fn ($place) => (string) $place->name.', '.$place->city->name(app()->getLocale())
     )->join('; ');
+    $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
-<div class="py-10 sm:py-12">
-    <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-        {{-- Hero --}}
-        <div
-            class="ui-activity-show-hero overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow"
+<div class="space-y-2 sm:space-y-6 " data-show-activity-id="{{ $activity->id }}">
+    <x-page-header :title="$activity->name" :user="$activity->creator">
+        @if ($showHeroHost)
+            <x-slot:subtitle>
+                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                    {{ $activityTypeLabel }}
+                    @if ($event)
+                        @
+                        <a
+                            href="{{ route('events.show', $event) }}"
+                            wire:navigate
+                            class="link link-primary break-words"
+                            data-ui="activity-show-hero-event-link"
+                        >{{ $event->name }}</a>
+                    @endif
+                    @if ($activity->duration_in_minutes)
+                        <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
+                    @endif
+                </p>
+            </x-slot:subtitle>
+        @endif
+
+        <x-slot:titleSuffix>
+            @if ($activity->isCancelled())
+                <x-popover class="inline-flex transition-none" position="bottom" offset="8">
+                    <x-slot:trigger>
+                        <x-badge
+                            :value="__('ui.events.cancelled_short')"
+                            icon="o-x-circle"
+                            class="badge-warning badge-sm shrink-0 font-semibold normal-case"
+                            data-ui="event-show-cancelled-badge"
+                            :title="__('ui.events.cancelled_badge')"
+                        />
+                    </x-slot:trigger>
+                    <x-slot:content class="max-w-sm text-sm text-base-content">
+                        <div class="space-y-2">
+                            @if (filled($activity->cancel_reason))
+                                <p>
+                                    <span class="font-semibold">{{ __('ui.activities.cancel_reason_label') }}:</span>
+                                    <span class="mt-0.5 block">{{ $activity->cancel_reason }}</span>
+                                </p>
+                            @endif
+                            <p>
+                                <span class="font-semibold">{{ __('ui.events.cancellation_popover_who') }}:</span>
+                                <span class="mt-0.5 block">{{ $activity->canceller?->displayName() ?? __('ui.common.unknown_user') }}</span>
+                            </p>
+                            <p>
+                                <span class="font-semibold">{{ __('ui.events.cancellation_popover_when') }}:</span>
+                                <span class="mt-0.5 block">{{ $activity->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—' }}</span>
+                            </p>
+                        </div>
+                    </x-slot:content>
+                </x-popover>
+            @endif
+        </x-slot:titleSuffix>
+    </x-page-header>
+
+    <x-ui.activity-badge-group
+        :items="$badgeItems"
+        class="bg-texture-glass box-glow-primary !rounded-2xl p-6"
+        data-ui="activity-show-badge-group"
+    />
+
+    {{-- Hero --}}
+    <div
+            class="ui-activity-show-hero rounded-xl ui-content-card mt-6"
             data-ui="activity-show-hero"
         >
-            <div class="relative min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px]">
-                @if ($logoUrl)
-                    <div class="absolute inset-0 opacity-30">
-                        <img src="{{ $logoUrl }}" alt="" class="h-full w-full object-cover" />
-                    </div>
-                @endif
-                <div class="relative z-10 p-6 sm:p-8">
-                    @php
-                        $showHeroHost = ! $activity->is_host_passive && $hostUser;
-                    @endphp
-                    {{-- Host: absolutely positioned at inline-end (no flex column — badge row can use full width below). Reserve end-padding only on title stack so it does not run under the host. --}}
-                    <div class="relative min-w-0" dir="ltr">
-                        <div class="min-w-0 space-y-2">
-
-                            <x-header
-                                title="{{ $activity->name }}"
-                                class=""
-                                separator
-                                use-h1
-                            >
-                            @if ($showHeroHost)
-                                <x-slot:subtitle>
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                        {{ $activityTypeLabel }}
-                                        @if ($event)
-                                            @
-                                            <a
-                                                href="{{ route('events.show', $event) }}"
-                                                wire:navigate
-                                                class="link link-primary break-words"
-                                                data-ui="activity-show-hero-event-link"
-                                            >{{ $event->name }}</a>
-                                        @endif
-                                        @if ($activity->duration_in_minutes)
-                                            <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
-                                        @endif
-                                    </p>
-                                </x-slot:subtitle>
-                                <x-slot:actions>
-                                        <x-user-badge
-                                            :user="$hostUser"
-                                            size="md"
-                                            name-class="truncate text-end font-semibold"
-                                            data-ui="activity-show-host"
-                                            :title="$hostRoleLabel"
-                                        />
-                                </x-slot:actions>
-                            @endif
-                            </x-header>
-                        </div>
-
-                        @if ($isCancelled)
-                            <div role="alert" class="alert text-sm mb-6">
-                                <div class="space-y-1">
-                                    <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
-                                    @if ($activity->cancel_reason)
-                                        <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
-                                    @endif
-                                    <p class="opacity-80">
-                                        {{ __('ui.activities.cancelled_meta', [
-                                            'who' => $activity->canceller?->displayName() ?? __('ui.common.unknown_user'),
-                                            'when' => $activity->cancelled_at ? format_datetime_in_user_tz($activity->cancelled_at) : '—',
-                                        ]) }}
-                                    </p>
-                                </div>
-                            </div>
-                        @endif
-
-                        <x-ui.activity-badge-group
-                            :items="$badgeItems"
-                            class="pt-0.5"
-                            data-ui="activity-show-badge-group"
-                        />
-                    </div>
-                </div>
-            </div>
-
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
+                label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
-                toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 pb-2 pt-2 sm:px-3"
+                toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="activity-show-tabs"
+                class="bg-texture-scratches rounded-2xl"
             >
                 <x-slot:toolbar>
                     @auth
@@ -230,13 +216,12 @@
                     ])
                 </x-tab>
             </x-ui.tabs-with-toolbar>
-        </div>
+</div>
 
-        <x-ui.confirm-modal
-            wire:model="confirmModalOpen"
-            :title="$confirmModalTitle"
-            :message="$confirmModalMessage"
-            confirm-action="runConfirmedAction"
-        />
-    </div>
+    <x-ui.confirm-modal
+        wire:model="confirmModalOpen"
+        :title="$confirmModalTitle"
+        :message="$confirmModalMessage"
+        confirm-action="runConfirmedAction"
+    />
 </div>
