@@ -66,33 +66,12 @@
                 class="ui-stat-embed"
             />
         </div>
-        <div
-            class="box-glow-dark-primary rounded-2xl px-4 py-3 {{ auth()->check() ? 'relative overflow-hidden cursor-pointer select-none transition-transform duration-150 ease-out hover:box-glow-primary active:scale-[0.98]' : '' }}"
-            @if (auth()->check())
-                wire:click="{{ $hasInterest ? 'removeInterest' : 'addInterest' }}"
-                wire:loading.class.delay="pointer-events-none cursor-wait"
-                wire:target="addInterest, removeInterest"
-            @endif
+        <x-ui.interested-stat-card
+            :title="__('ui.events.interested_people_count')"
+            :value="$interestedPeopleCount"
+            :has-interest="$hasInterest"
             data-ui="event-show-interested-stat"
-        >
-            <x-stat
-                title="{{ __('ui.events.interested_people_count') }}"
-                value="{{ $interestedPeopleCount }}"
-                icon="{{ $hasInterest ? 's-star' : 'o-star' }}"
-                color="{{ auth()->check() ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '' }}"
-                class="ui-stat-embed"
-            />
-            @auth
-                <div
-                    wire:loading.delay
-                    wire:target="addInterest, removeInterest"
-                    class="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-base-100/40"
-                    aria-live="polite"
-                >
-                    <span class="loading loading-spinner loading-sm text-primary" aria-hidden="true"></span>
-                </div>
-            @endauth
-        </div>
+        />
     </div>
 
     <div

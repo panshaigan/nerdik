@@ -118,6 +118,63 @@ class ShowActivityActionsTest extends TestCase
         $this->assertFalse($user->fresh()->interestedActivities()->whereKey($activity->id)->exists());
     }
 
+    public function test_interested_stat_includes_wire_click_when_authenticated(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->html();
+
+        $opening = $this->interestedStatOpeningTag($html);
+        $this->assertNotNull($opening);
+        $this->assertStringContainsString('wire:click="addInterest"', $opening);
+        $this->assertStringContainsString('wire:target="addInterest, removeInterest"', $opening);
+        $this->assertStringContainsString('wire:loading.class.delay="pointer-events-none cursor-wait"', $opening);
+        $this->assertStringContainsString('loading loading-spinner loading-sm', $html);
+    }
+
+    public function test_interested_stat_has_no_wire_click_for_guest(): void
+    {
+        $activity = Activity::factory()->create();
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
+
+        $opening = $this->interestedStatOpeningTag($html);
+        $this->assertNotNull($opening);
+        $this->assertStringNotContainsString('wire:click', $opening);
+        $this->assertStringNotContainsString('wire:target', $opening);
+    }
+
+    public function test_toolbar_interest_buttons_are_not_rendered(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertDontSeeHtml('data-ui="activity-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="activity-show-interest-remove"');
+    }
+
+    public function test_interested_stat_count_updates_after_interest_toggle(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $activity]);
+
+        $component->assertSee('0');
+
+        $component->call('addInterest');
+        $component->assertSee('1');
+
+        $component->call('removeInterest');
+        $component->assertSee('0');
+    }
+
     public function test_join_leave_buttons_render_with_spinner_attributes(): void
     {
         $host = User::factory()->create();
@@ -146,5 +203,18 @@ class ShowActivityActionsTest extends TestCase
             ->set('tab', 'participation')
             ->assertSeeHtml('wire:target="confirmRemoveParticipant('.$participant->id.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    private function interestedStatOpeningTag(string $html): ?string
+    {
+        if (preg_match('/<div\b[^>]*\bdata-ui="activity-show-interested-stat"[^>]*>/', $html, $matches) !== 1) {
+            return null;
+        }
+
+        /** @var non-empty-string */
+        return $matches[0];
     }
 }
