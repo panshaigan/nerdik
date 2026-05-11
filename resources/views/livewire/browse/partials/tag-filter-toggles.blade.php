@@ -14,6 +14,13 @@
             >
             </x-group>
         </div>
+        <x-button
+            type="button"
+            label="{{ __('Reset') }}"
+            class="btn-outline btn-sm btn-neutral rounded-2xl"
+            wire:click="clearFilters"
+            wire:loading.attr="disabled"
+        />
         <button
             type="button"
             class="btn btn-sm btn-accent rounded-2xl"
@@ -29,12 +36,5 @@
             <x-icon name="o-funnel" />
             {{ __('Filters') }}
         </button>
-        <x-button
-            type="button"
-            label="{{ __('Reset') }}"
-            class="btn-outline btn-sm btn-neutral rounded-2xl"
-            wire:click="clearFilters"
-            wire:loading.attr="disabled"
-        />
     </div>
 </div>

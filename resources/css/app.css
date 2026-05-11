@@ -227,6 +227,105 @@
             0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
     }
 
+    /**
+     * Browse /search (events) filter shell: gradient frame using brand primary → accent; controls use primary borders and base surfaces.
+     */
+    .ui-filter-form-events.ui-browse-events-filter-shell {
+        border: 2px solid transparent;
+        border-radius: var(--rounded-box, 1rem);
+        background-image:
+            linear-gradient(var(--color-base-100), var(--color-base-100)),
+            linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        box-shadow:
+            0 0 10px color-mix(in oklch, var(--brand-primary) 45%, transparent),
+            0 0 26px color-mix(in oklch, var(--brand-accent) 38%, transparent),
+            0 0 42px -8px color-mix(in oklch, var(--brand-primary) 22%, transparent);
+    }
+
+    .ui-filter-form-events label[data-ts-field].input {
+        border-color: var(--color-primary-dark);
+        background-color: var(--color-base-100);
+    }
+
+    .ui-filter-form-events label[data-ts-field] label.input {
+        border-width: 0;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .ui-filter-form-events label[data-ts-field] label.input .pointer-events-none.w-4.h-4 {
+        color: var(--color-primary-dark);
+        opacity: 1;
+    }
+
+    .ui-filter-form-events .browse-events-filter-toolbar button.btn,
+    .ui-filter-form-events .browse-events-filter-toolbar .join .join-item.btn {
+        border: 1px solid var(--color-primary-dark) !important;
+        background-color: var(--color-base-200) !important;
+        color: var(--color-base-content) !important;
+    }
+
+    .ui-filter-form-events .browse-events-filter-toolbar .join .join-item.btn:checked {
+        background-color: color-mix(in oklab, var(--color-accent) 38%, var(--color-base-200));
+        border-color: var(--color-primary-dark);
+        color: var(--color-base-content);
+    }
+
+    .ui-filter-form-events .ui-tile-empty {
+        background: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
+        border-color: color-mix(in oklab, var(--brand-primary-dark) 32%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary-dark) 14%, transparent),
+            0 0 18px -12px color-mix(in oklch, var(--brand-accent) 35%, transparent);
+    }
+
+    /**
+     * Browse listing cards (events + activities): neon gradient hairline + inner dark panel.
+     */
+    .ui-browse-listing-card-frame {
+        border-radius: var(--rounded-box, 1rem);
+        background-image: linear-gradient(
+            125deg,
+            color-mix(in oklch, var(--brand-info) 85%, white),
+            color-mix(in oklch, var(--brand-accent) 75%, white),
+            color-mix(in oklch, var(--brand-primary) 80%, white)
+        );
+        box-shadow:
+            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
+            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+    }
+
+    .ui-browse-listing-card-inner {
+        border-radius: calc(var(--rounded-box, 1rem) - 1px);
+        background-color: color-mix(in oklab, var(--brand-base-100-dark) 96%, black);
+        color: var(--color-base-content);
+
+        @variant light {
+            background-color: color-mix(in oklab, var(--brand-base-100-light) 8%, black);
+            color: var(--color-base-content);
+        }
+    }
+
+    .ui-browse-listing-card-tags .badge {
+        border-width: 1px;
+        border-color: color-mix(in oklch, var(--brand-info) 45%, transparent);
+        background-color: color-mix(in oklab, var(--brand-base-100-dark) 88%, black);
+        color: color-mix(in oklab, var(--color-base-content) 88%, white);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0.01em;
+
+        @variant light {
+            border-color: color-mix(in oklch, var(--brand-primary) 40%, transparent);
+            background-color: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
+            color: var(--color-base-content);
+        }
+    }
+
     .status-dots {
         overflow: visible;
 
