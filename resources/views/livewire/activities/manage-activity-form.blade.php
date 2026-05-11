@@ -6,61 +6,14 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 <div>
-    <div
-        class="ui-activity-show-hero overflow-hidden rounded border border-base-300 bg-base-100 shadow"
-        data-ui="activity-show-hero"
-    >
-        <div class="relative rounded min-h-[140px] bg-gradient-to-br from-primary/20 via-base-200/50 to-base-100 sm:min-h-[180px] p-6 sm:p-8">
-            <x-header
-                title="{{ $title }}"
-                class=""
-                separator
-                use-h1
-            >
-                <x-slot:title>
-                    @if ($this->slug)
-                        <div class="flex items-center gap-2">
-                            <a href="/activities/{{$this->slug}}"><x-icon name="o-chevron-left" class="cursor-pointer" /></a>
-                            <span>{{ $title }}</span>
-                        </div>
-                    @endif
-                </x-slot:title>
-                    <x-slot:subtitle>
-                        {{__('Placeholder')}}
-                    </x-slot:subtitle>
-                    <x-slot:actions>
-                        @if ($creator)
-                        <x-user-badge
-                            :user="$creator"
-                            size="md"
-                            name-class="truncate text-end font-semibold"
-                            data-ui="activity-show-host"
-                            title="Creator"
-                        />
-                        @endif
-                    </x-slot:actions>
-            </x-header>
-            @if ($isCancelled)
-                <div role="alert" class="alert text-sm mb-6">
-                    <div class="space-y-1">
-                        <p class="font-medium">{{ __('ui.activities.cancelled_badge') }}</p>
-                        @if ($editingActivity->cancel_reason)
-                            <p>{{ __('ui.activities.cancel_reason_label') }}: {{ $editingActivity->cancel_reason }}</p>
-                        @endif
-                        <p class="opacity-80">
-                            {{ __('ui.activities.cancelled_meta', [
-                                'who' => $editingActivity->canceller?->displayName() ?? __('ui.common.unknown_user'),
-                                'when' => $editingActivity->cancelled_at ? format_datetime_in_user_tz($editingActivity->cancelled_at) : '—',
-                            ]) }}
-                        </p>
-                    </div>
-                </div>
-            @endif
-        </div>
-        <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
-    </div>
-    <x-form wire:submit.prevent="save" class="" data-activity-form>
-        <div id="ui-activity-form-fields" class="ui-form ui-form-activity space-y-4" data-ui="activity-form-fields">
+    <x-page-header :title="$this->name" :user="$creator">
+    </x-page-header>
+
+    <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+
+    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
+        <x-form wire:submit.prevent="save" class="" data-activity-form>
+        <div id="ui-activity-form-fields" class="ui-form ui-form-activity" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
                 label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
@@ -105,6 +58,7 @@
             </x-button>
         </x-slot:actions>
     </x-form>
+    </div>
 
     <x-ui.confirm-modal
         wire:model="confirmModalOpen"
