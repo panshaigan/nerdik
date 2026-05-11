@@ -1,8 +1,13 @@
 <div class="py-12">
-    <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="ui-filter-form ui-filter-form-events ui-tile-active box-glow-secondary rounded-2xl p-6" data-ui="browse-events-form" x-data="{ filtersOpen: @js($this->hasBBox()) }">
+    <div class="mx-auto max-w-xl sm:px-6 lg:px-8">
+        <div class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell rounded-2xl p-6" data-ui="browse-events-form" x-data="{ filtersOpen: @js($this->hasBBox()) }">
             <div class="" data-ui="browse-events-filters-card">
-                <div class="mb-6">
+                <div class="flex items-center gap-4 w-full">
+                    <div class="flex-1 min-w-0">
+                        @include('livewire.browse.partials.tag-filter')
+                    </div>
+                </div>
+                <div class="flex justify-end browse-events-filter-toolbar mb-6">
                     @include('livewire.browse.partials.tag-filter-toggles')
                 </div>
                 <div x-show="filtersOpen" x-cloak class="ui-tile-empty p-6 rounded-2xl shadow-sm mb-6">
@@ -22,17 +27,15 @@
                         ></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 w-full">
-                    <div class="flex-1 min-w-0">
-                        @include('livewire.browse.partials.tag-filter')
-                    </div>
-                </div>
             </div>
         </div>
+
+    </div>
+    <div class="sm:px-6 lg:px-8">
         <div class="flex justify-end mt-6">
             @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
         </div>
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
             @forelse ($browseListings as $row)
                 @if ($row['kind'] === 'event')
                     <x-cards.event-card
