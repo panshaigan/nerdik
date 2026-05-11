@@ -9,6 +9,14 @@
     <x-page-header :title="$this->name" :user="$creator">
     </x-page-header>
 
+    <div class="flex justify-between items-center pb-6">
+        @if ($this->slug)
+            <div class="">
+                <a href="/activities/{{$this->slug}}" class="btn btn-outline btn-secondary"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
+            </div>
+        @endif
+    </div>
+
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
@@ -21,6 +29,7 @@
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
                 data-ui="activity-manage-tabs"
+                class="bg-texture-scratches rounded-2xl"
             >
                 <x-tab name="main-details" :label="__('Main details')" class="px-6 py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
                     @include('livewire.activities.partials.manage-main-details-tab')
