@@ -39,18 +39,18 @@
 @endphp
 
 <article class="ui-card ui-card-activity card relative flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
-    <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="activity-card-body">
+    <div class="bg-gradient-to-br from-primary-900 via-secondary-900 to-accent-900 p-5" data-ui="activity-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
-                <span class="badge badge-sm border-0 bg-base-100/20 text-base-100">
+                <span class="badge badge-sm border-0 bg-base-100/20">
                     {{ $showListingKind ? __('ui.browse.listing_kind_activity') : __('Activity') }}
                 </span>
                 @if ($hostingMode === Activity::HOSTING_MODE_DRAFT)
-                    <span class="badge badge-sm border-0 bg-base-100/15 text-base-100/90">
+                    <span class="badge badge-sm border-0 bg-base-100/15">
                         {{ __('ui.activities.hosting_modes.draft') }}
                     </span>
                 @elseif ($hostingMode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT)
-                    <span class="badge badge-sm border-0 bg-base-100/15 text-base-100/90">
+                    <span class="badge badge-sm border-0 bg-base-100/15">
                         {{ __('ui.activities.hosting_modes.proposed_to_event') }}
                     </span>
                     @if ($proposalEvent)

@@ -55,10 +55,10 @@
 @endphp
 
 <article class="ui-card ui-card-event card relative flex h-full flex-col overflow-hidden rounded-2xl bg-base-100 shadow-sm" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
-    <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5 text-base-100" data-ui="event-card-body">
+    <div class="bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 p-5" data-ui="event-card-body">
         <div class="mb-3 flex items-start justify-between gap-3">
             <div>
-                <span class="badge badge-sm border-0 bg-base-100/20 text-base-100">
+                <span class="badge badge-sm border-0 bg-base-100/20">
                     {{ $showListingKind ? __('ui.browse.listing_kind_event') : __('Event') }}
                 </span>
             </div>
