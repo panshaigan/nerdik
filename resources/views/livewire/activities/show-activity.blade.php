@@ -32,7 +32,8 @@
             ]]
             : [],
     ];
-    $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞').'</span>';
+    $participantsCounterValue = ((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞');
+    $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.$participantsCounterValue.'</span>';
     $venues = $event?->places->map(
         fn ($place) => (string) $place->name.', '.$place->city->name(app()->getLocale())
     )->join('; ');
@@ -96,18 +97,29 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-3 gap-3 px-3 pb-5 sm:px-0 sm:pb-6">
+    <div class="grid grid-cols-3 gap-3 px-3 pb-5 sm:px-3 sm:pb-6">
         <x-ui.activity-badge-group
             :items="$badgeItems"
             class="col-span-2 bg-texture-glass box-glow-primary !rounded-2xl p-6"
             data-ui="activity-show-badge-group"
         />
-        <x-ui.interested-stat-card
-            :title="__('ui.events.interested_people_count')"
-            :value="$interestedPeopleCount"
-            :has-interest="$hasInterest"
-            data-ui="activity-show-interested-stat"
-        />
+        <div class="space-y-3">
+            <x-ui.interested-stat-card
+                :title="__('ui.events.interested_people_count')"
+                :value="$interestedPeopleCount"
+                :has-interest="$hasInterest"
+                data-ui="activity-show-interested-stat"
+            />
+            <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
+                <x-stat
+                    title="{{ __('ui.activities.show_participation_section') }}"
+                    value="{{ $participantsCounterValue }}"
+                    icon="o-users"
+                    class="ui-stat-embed"
+                    data-ui="activity-show-participants-stat"
+                />
+            </div>
+        </div>
     </div>
 
     <div
