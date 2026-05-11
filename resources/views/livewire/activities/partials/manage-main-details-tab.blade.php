@@ -40,7 +40,7 @@
             />
         </div>
 
-        <div class="card border border-base-300 p-4 bg-texture-glass">
+        <div class="ui-tile-empty rounded-2xl p-6">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-range-dual
                     :label="__('ui.activities.participants')"
@@ -121,12 +121,13 @@
             </div>
         </div>
 
-        <div class="card border border-base-300 p-6 gap-y-3 bg-texture-glass">
+        <div class="ui-tile-empty rounded-2xl p-6">
             <x-toggle
                 id="requires_approval"
                 :label="__('ui.activities.requires_approval_badge')"
                 wire:model="requires_approval"
                 :hint="__('ui.activities.requires_approval')"
+                class="mb-3"
                 right
             />
             <x-toggle
