@@ -104,11 +104,11 @@
         </label>
         <div
             data-ts-results
-            class="absolute left-0 right-0 top-full z-[1001] mt-1 hidden max-h-60 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+            class="absolute left-0 right-0 top-full z-[100] mt-1 hidden max-h-60 overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg"
         ></div>
     </div>
 
-    <div data-ts-new-wrap class="hidden space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+    <div data-ts-new-wrap class="hidden space-y-2 rounded-2xl border border-primary/30 bg-primary/5 p-3">
         <p class="text-xs font-medium text-base-content">{{ __('New tags to create') }}</p>
         <div data-ts-new class="space-y-2"></div>
     </div>
