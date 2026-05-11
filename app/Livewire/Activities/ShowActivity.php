@@ -291,6 +291,7 @@ class ShowActivity extends Component
         ]);
 
         $vm = $participationView->forShow($activity, auth()->user());
+        $interestedPeopleCount = (int) $activity->interestedUsers()->count();
 
         $badgeItems = $badgeGroupBuilder->build($activity, ActivityBadgeGroupConfig::activityHero());
 
@@ -303,6 +304,7 @@ class ShowActivity extends Component
             'canJoin' => $vm->canJoin,
             'isFull' => $vm->isFull,
             'hasInterest' => $vm->hasInterest,
+            'interestedPeopleCount' => $interestedPeopleCount,
             'canManageActivity' => $vm->canManageActivity,
             'signupBlockedMessage' => $vm->signupBlockedMessage,
             'stateBlockedMessage' => $vm->stateBlockedMessage,

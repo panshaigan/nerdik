@@ -96,13 +96,20 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <x-ui.activity-badge-group
-        :items="$badgeItems"
-        class="bg-texture-glass box-glow-primary !rounded-2xl p-6"
-        data-ui="activity-show-badge-group"
-    />
+    <div class="grid grid-cols-3 gap-3 px-3 pb-5 sm:px-0 sm:pb-6">
+        <x-ui.activity-badge-group
+            :items="$badgeItems"
+            class="col-span-2 bg-texture-glass box-glow-primary !rounded-2xl p-6"
+            data-ui="activity-show-badge-group"
+        />
+        <x-ui.interested-stat-card
+            :title="__('ui.events.interested_people_count')"
+            :value="$interestedPeopleCount"
+            :has-interest="$hasInterest"
+            data-ui="activity-show-interested-stat"
+        />
+    </div>
 
-    {{-- Hero --}}
     <div
             class="ui-activity-show-hero rounded-xl ui-content-card mt-6"
             data-ui="activity-show-hero"
@@ -167,25 +174,6 @@
                                         icon="o-x-circle"
                                     />
                                 @endif
-                            @endif
-                            @if ($hasInterest)
-                                <x-button
-                                    type="button"
-                                    wire:click="removeInterest"
-                                    class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                    :tooltip="__('ui.interests.remove_from_interests')"
-                                    data-ui="activity-show-interest-remove"
-                                    icon="s-star"
-                                />
-                            @else
-                                <x-button
-                                    type="button"
-                                    wire:click="addInterest"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                    :tooltip="__('ui.interests.add_to_interests')"
-                                    data-ui="activity-show-interest-add"
-                                    icon="o-star"
-                                />
                             @endif
                         </div>
                     @endauth
