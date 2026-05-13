@@ -34,6 +34,7 @@
             document.documentElement.setAttribute('class', cls);
 
             localStorage.setItem('theme', saved);
+            window.dispatchEvent(new CustomEvent('nerdik:theme-applied'));
         };
 
         window.toggleTheme = () => {
