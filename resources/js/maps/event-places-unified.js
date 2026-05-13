@@ -1,5 +1,6 @@
 import axios from 'axios';
 import L from './leaflet-setup.js';
+import { addThemedBasemapToMap } from './themed-basemap.js';
 
 function iconPlace(selected) {
     const BASE_ICON_SIZE = 18;
@@ -224,9 +225,9 @@ export function initEventPlacesUnified(root) {
     const MIN_FOCUS_ZOOM = 14;
     const map = L.map(mapEl, { scrollWheelZoom: true }).setView(INITIAL_CENTER, INITIAL_ZOOM);
     map.doubleClickZoom.disable();
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap',
-    }).addTo(map);
+    addThemedBasemapToMap(map, {
+        osmAttribution: '&copy; OpenStreetMap',
+    });
 
     const markersLayer = L.layerGroup().addTo(map);
     const newVenuesLayer = L.layerGroup().addTo(map);

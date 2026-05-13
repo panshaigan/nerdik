@@ -1,4 +1,5 @@
 import L from './leaflet-setup.js';
+import { addThemedBasemapToMap } from './themed-basemap.js';
 
 function scheduleInvalidateSize(map) {
     requestAnimationFrame(() => map.invalidateSize());
@@ -29,10 +30,9 @@ export function initEventShowMap(root) {
 
     const places = Array.isArray(cfg.places) ? cfg.places : [];
     const map = L.map(mapEl, { scrollWheelZoom: true }).setView(INITIAL_CENTER, INITIAL_ZOOM);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
+    addThemedBasemapToMap(map, {
+        osmAttribution: '&copy; OpenStreetMap contributors',
+    });
 
     /** @type {import('leaflet').Map} */
     root._leafletEventShowMap = map;

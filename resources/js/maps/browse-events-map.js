@@ -1,4 +1,5 @@
 import L from './leaflet-setup.js';
+import { addThemedBasemapToMap } from './themed-basemap.js';
 import './browse-events-map.css';
 
 const DEBOUNCE_MS = 320;
@@ -312,10 +313,7 @@ function startBrowseEventsMap(root) {
 
         invalidateMapSize(map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(map);
+        addThemedBasemapToMap(map);
 
         const markersLayer = L.layerGroup().addTo(map);
 
