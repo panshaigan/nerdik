@@ -4,7 +4,8 @@ namespace Tests\Feature\Livewire;
 
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\ActivityProposals\ProposalIndex;
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowPlanTab;
+use App\Livewire\Events\EventShowProposalsTab;
 use App\Livewire\Notifications\NotificationList;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -81,8 +82,9 @@ class LivewireSecurityHardeningTest extends TestCase
             'activity_id' => null,
         ]);
 
-        Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowProposalsTab::class, ['eventId' => $event->id])
             ->set("proposalAcceptSlotId.{$proposal->id}", $foreignSlot->id)
             ->call('acceptPendingProposal', $proposal->id)
             ->assertHasErrors("proposalAcceptSlot.{$proposal->id}");
@@ -100,8 +102,9 @@ class LivewireSecurityHardeningTest extends TestCase
             'activity_id' => $activity->id,
         ]);
 
-        Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->set("slotCancelReason.{$slot->id}", str_repeat('a', 1001))
             ->call('cancelSlotActivity', $slot->id)
             ->assertHasErrors("slotCancelReason.{$slot->id}");

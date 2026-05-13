@@ -1,6 +1,6 @@
 <div class="py-12">
     <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
-        <div class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell rounded-2xl p-6" data-ui="browse-events-form" x-data="{ filtersOpen: false }">
+        <div class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell ui-gradient-frame-brand-bold rounded-2xl p-6" data-ui="browse-events-form" x-data="{ filtersOpen: false }">
             <div class="" data-ui="browse-events-filters-card">
                 <div class="flex items-center gap-4 w-full">
                     <div class="flex-1 min-w-0">
@@ -45,17 +45,19 @@
         </div>
 
         @if ($map_view)
-            <div
-                id="ui-browse-events-map"
-                data-browse-events-map
-                data-map-features-url="{{ $mapFeaturesUrl }}"
-                data-str-clear="{{ __('ui.browse.map_clear_area') }}"
-                data-map-country-listings="{{ __('ui.browse.map_country_listings') }}"
-                wire:ignore
-                x-init="$nextTick(() => window.dispatchEvent(new CustomEvent('browse-events-map:visible')))"
-                class="leaflet-container z-0 mt-6 min-h-[min(70vh,640px)] h-[min(70vh,640px)] w-full rounded-xl border border-base-300"
-                data-ui="browse-events-map"
-            ></div>
+            <div class="ui-gradient-frame-brand-bold mt-6 w-full overflow-hidden rounded-xl" data-ui="browse-events-map-frame">
+                <div
+                    id="ui-browse-events-map"
+                    data-browse-events-map
+                    data-map-features-url="{{ $mapFeaturesUrl }}"
+                    data-str-clear="{{ __('ui.browse.map_clear_area') }}"
+                    data-map-country-listings="{{ __('ui.browse.map_country_listings') }}"
+                    wire:ignore
+                    x-init="$nextTick(() => window.dispatchEvent(new CustomEvent('browse-events-map:visible')))"
+                    class="leaflet-container z-0 min-h-[min(70vh,640px)] h-[min(70vh,640px)] w-full"
+                    data-ui="browse-events-map"
+                ></div>
+            </div>
         @else
             <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
                 @forelse ($browseListings as $row)
@@ -91,7 +93,7 @@
             </div>
 
             @if ($browseListings->hasPages())
-                <div class="mt-6 rounded-xl border border-base-300 bg-base-100 p-4">{{ $browseListings->links() }}</div>
+                <div class="ui-gradient-frame-brand-bold mt-6 rounded-xl p-4">{{ $browseListings->links() }}</div>
             @endif
         @endif
     </div>
