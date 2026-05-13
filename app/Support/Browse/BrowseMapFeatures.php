@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Support\Browse;
 
 use App\Models\Activity;
+use App\Models\Country;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * GeoJSON map payloads for /search (events + activities) with server-side clustering.
@@ -14,6 +16,9 @@ final class BrowseMapFeatures
 {
     public const CLUSTER_ZOOM_THRESHOLD = 11;
 
+    /** At or below this zoom, show one marker per country (centroid of matching places). */
+    public const COUNTRY_ROLLUP_MAX_ZOOM = 5;
+
     public const MAX_LAT_SPAN = 28.0;
 
     public const MAX_LNG_SPAN = 45.0;
@@ -21,10 +26,212 @@ final class BrowseMapFeatures
     public const MAX_ROWS_PER_KIND = 3500;
 
     /**
+     * @param  array<string, mixed>  $extraMeta
+     * @return array{type: string, features: list<array<string, mixed>>, meta: array<string, mixed>}
+     */
+    public static function countryRollupResponse(BrowseListingFilterBag $bag, array $extraMeta = []): array
+    {
+        $merged = self::mergeCountryAggregates($bag);
+        if ($merged === []) {
+            return [
+                'type' => 'FeatureCollection',
+                'features' => [],
+                'meta' => array_merge([
+                    'aggregate' => 'country',
+                    'clustered' => false,
+                    'count' => 0,
+                ], $extraMeta),
+            ];
+        }
+
+        $countryIds = array_keys($merged);
+        $countries = Country::query()
+            ->with('translations')
+            ->whereIn('id', $countryIds)
+            ->get()
+            ->keyBy('id');
+
+        $features = [];
+        $total = 0;
+        foreach ($merged as $countryId => $row) {
+            $total += $row['count'];
+            $lat = $row['lat_sum'] / $row['count'];
+            $lng = $row['lng_sum'] / $row['count'];
+            if (! is_finite($lat) || ! is_finite($lng)) {
+                continue;
+            }
+            /** @var Country|null $country */
+            $country = $countries->get($countryId);
+            $label = $country !== null ? (string) $country->iso_alpha2 : '';
+            $name = $country !== null ? (string) ($country->name() ?? $label) : '';
+
+            $features[] = [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [$lng, $lat],
+                ],
+                'properties' => [
+                    'countrySummary' => true,
+                    'country_id' => $countryId,
+                    'country_iso' => $label,
+                    'country_name' => $name,
+                    'count' => $row['count'],
+                ],
+            ];
+        }
+
+        return [
+            'type' => 'FeatureCollection',
+            'features' => $features,
+            'meta' => array_merge([
+                'aggregate' => 'country',
+                'clustered' => false,
+                'count' => $total,
+            ], $extraMeta),
+        ];
+    }
+
+    /**
+     * @return array<int, array{count: int, lat_sum: float, lng_sum: float}>
+     */
+    private static function mergeCountryAggregates(BrowseListingFilterBag $bag): array
+    {
+        $byCountry = [];
+
+        if (! $bag->onlyActivities) {
+            foreach (self::eventCountryAggregateRows($bag) as $r) {
+                $cid = (int) $r->country_id;
+                $c = (int) $r->listing_count;
+                if ($cid <= 0 || $c <= 0) {
+                    continue;
+                }
+                if (! isset($byCountry[$cid])) {
+                    $byCountry[$cid] = ['count' => 0, 'lat_sum' => 0.0, 'lng_sum' => 0.0];
+                }
+                $lat = (float) $r->rep_lat;
+                $lng = (float) $r->rep_lng;
+                if (! is_finite($lat) || ! is_finite($lng)) {
+                    continue;
+                }
+                $byCountry[$cid]['count'] += $c;
+                $byCountry[$cid]['lat_sum'] += $lat * $c;
+                $byCountry[$cid]['lng_sum'] += $lng * $c;
+            }
+        }
+
+        if (! $bag->onlyEvents) {
+            foreach (self::activityCountryAggregateRowsSelfHosted($bag) as $r) {
+                self::accumulateCountryRow($byCountry, $r);
+            }
+            foreach (self::activityCountryAggregateRowsScheduled($bag) as $r) {
+                self::accumulateCountryRow($byCountry, $r);
+            }
+        }
+
+        return $byCountry;
+    }
+
+    /**
+     * @param  array<int, array{count: int, lat_sum: float, lng_sum: float}>  $byCountry
+     */
+    private static function accumulateCountryRow(array &$byCountry, object $r): void
+    {
+        $cid = (int) $r->country_id;
+        $c = (int) $r->listing_count;
+        if ($cid <= 0 || $c <= 0) {
+            return;
+        }
+        $lat = (float) $r->rep_lat;
+        $lng = (float) $r->rep_lng;
+        if (! is_finite($lat) || ! is_finite($lng)) {
+            return;
+        }
+        if (! isset($byCountry[$cid])) {
+            $byCountry[$cid] = ['count' => 0, 'lat_sum' => 0.0, 'lng_sum' => 0.0];
+        }
+        $byCountry[$cid]['count'] += $c;
+        $byCountry[$cid]['lat_sum'] += $lat * $c;
+        $byCountry[$cid]['lng_sum'] += $lng * $c;
+    }
+
+    /**
+     * @return Collection<int, object{country_id: mixed, listing_count: int|string, rep_lat: mixed, rep_lng: mixed}>
+     */
+    private static function eventCountryAggregateRows(BrowseListingFilterBag $bag): Collection
+    {
+        $q = BrowseListingQuery::baseEventQuery($bag);
+        $q->join('event_place', 'event_place.event_id', '=', 'events.id')
+            ->join('places', 'places.id', '=', 'event_place.place_id')
+            ->whereNotNull('places.country_id')
+            ->whereNotNull('places.latitude')
+            ->whereNotNull('places.longitude')
+            ->selectRaw('places.country_id as country_id')
+            ->selectRaw('COUNT(DISTINCT events.id) as listing_count')
+            ->selectRaw('AVG(places.latitude) as rep_lat')
+            ->selectRaw('AVG(places.longitude) as rep_lng')
+            ->groupBy('places.country_id');
+
+        return $q->get();
+    }
+
+    /**
+     * @return Collection<int, object{country_id: mixed, listing_count: int|string, rep_lat: mixed, rep_lng: mixed}>
+     */
+    private static function activityCountryAggregateRowsSelfHosted(BrowseListingFilterBag $bag): Collection
+    {
+        $q = BrowseListingQuery::baseActivityQuery($bag);
+        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+            ->join('places', 'places.id', '=', 'activities.place_id')
+            ->whereNotNull('places.country_id')
+            ->whereNotNull('places.latitude')
+            ->whereNotNull('places.longitude')
+            ->selectRaw('places.country_id as country_id')
+            ->selectRaw('COUNT(DISTINCT activities.id) as listing_count')
+            ->selectRaw('AVG(places.latitude) as rep_lat')
+            ->selectRaw('AVG(places.longitude) as rep_lng')
+            ->groupBy('places.country_id');
+
+        return $q->get();
+    }
+
+    /**
+     * @return Collection<int, object{country_id: mixed, listing_count: int|string, rep_lat: mixed, rep_lng: mixed}>
+     */
+    private static function activityCountryAggregateRowsScheduled(BrowseListingFilterBag $bag): Collection
+    {
+        $firstSlot = DB::table('slots')
+            ->selectRaw('activity_id')
+            ->selectRaw('MIN(id) as sid')
+            ->whereNotNull('event_id')
+            ->groupBy('activity_id');
+
+        $q = BrowseListingQuery::baseActivityQuery($bag);
+        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+            ->joinSub($firstSlot, 'fs', 'fs.activity_id', '=', 'activities.id')
+            ->join('slots as slot_pick', 'slot_pick.id', '=', 'fs.sid')
+            ->join('places', 'places.id', '=', 'slot_pick.place_id')
+            ->whereNotNull('places.country_id')
+            ->whereNotNull('places.latitude')
+            ->whereNotNull('places.longitude')
+            ->selectRaw('places.country_id as country_id')
+            ->selectRaw('COUNT(DISTINCT activities.id) as listing_count')
+            ->selectRaw('AVG(places.latitude) as rep_lat')
+            ->selectRaw('AVG(places.longitude) as rep_lng')
+            ->groupBy('places.country_id');
+
+        return $q->get();
+    }
+
+    /**
      * @return array{type: string, features: list<array<string, mixed>>, meta: array<string, mixed>}
      */
     public static function geoJson(BrowseListingFilterBag $bag, int $zoom): array
     {
+        if ($zoom <= self::COUNTRY_ROLLUP_MAX_ZOOM) {
+            return self::countryRollupResponse($bag);
+        }
+
         $rows = self::listingRows($bag);
 
         if ($rows->isEmpty()) {
@@ -32,6 +239,7 @@ final class BrowseMapFeatures
                 'type' => 'FeatureCollection',
                 'features' => [],
                 'meta' => [
+                    'aggregate' => 'none',
                     'clustered' => false,
                     'count' => 0,
                 ],
@@ -43,6 +251,7 @@ final class BrowseMapFeatures
                 'type' => 'FeatureCollection',
                 'features' => $rows->map(fn (object $r) => self::pointFeature($r))->values()->all(),
                 'meta' => [
+                    'aggregate' => 'points',
                     'clustered' => false,
                     'count' => $rows->count(),
                 ],
@@ -91,6 +300,7 @@ final class BrowseMapFeatures
             'type' => 'FeatureCollection',
             'features' => $features,
             'meta' => [
+                'aggregate' => 'grid',
                 'clustered' => true,
                 'count' => $rows->count(),
                 'grid_factor' => $factor,

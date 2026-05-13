@@ -30,15 +30,13 @@ class BrowseMapFeaturesController extends Controller
 
         $span = $bag->bboxSpan();
         if ($span['latSpan'] > BrowseMapFeatures::MAX_LAT_SPAN || $span['lngSpan'] > BrowseMapFeatures::MAX_LNG_SPAN) {
-            return response()->json([
-                'type' => 'FeatureCollection',
-                'features' => [],
-                'meta' => [
-                    'bboxTooLarge' => true,
-                    'latSpan' => $span['latSpan'],
-                    'lngSpan' => $span['lngSpan'],
-                ],
+            $payload = BrowseMapFeatures::countryRollupResponse($bag->withoutBBox(), [
+                'bboxTooLarge' => true,
+                'latSpan' => $span['latSpan'],
+                'lngSpan' => $span['lngSpan'],
             ]);
+
+            return response()->json($payload);
         }
 
         $payload = BrowseMapFeatures::geoJson($bag, $zoom);

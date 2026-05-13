@@ -6,6 +6,8 @@ namespace Tests\Feature;
 
 use App\Livewire\Browse\BrowseEvents;
 use App\Models\Activity;
+use App\Models\Country;
+use App\Models\CountryTranslation;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\User;
@@ -63,6 +65,7 @@ class BrowseMapFeaturesTest extends TestCase
         ]));
         $res->assertOk();
         $res->assertJsonPath('meta.clustered', false);
+        $res->assertJsonPath('meta.aggregate', 'points');
         $features = $res->json('features');
         $this->assertIsArray($features);
         $this->assertGreaterThanOrEqual(2, count($features));
@@ -79,7 +82,14 @@ class BrowseMapFeaturesTest extends TestCase
         $user = User::factory()->create();
         $startsAt = now()->addDays(14)->setSecond(0);
         $endsAt = (clone $startsAt)->addHours(5);
+        $country = Country::factory()->create(['iso_alpha2' => 'PL']);
+        CountryTranslation::query()->create([
+            'country_id' => $country->id,
+            'locale' => 'en',
+            'name' => 'Poland',
+        ]);
         $place = Place::factory()->venue()->create([
+            'country_id' => $country->id,
             'latitude' => 51.11,
             'longitude' => 17.03,
         ]);
@@ -99,12 +109,71 @@ class BrowseMapFeaturesTest extends TestCase
         ]));
         $res->assertOk();
         $res->assertJsonPath('meta.clustered', true);
+        $res->assertJsonPath('meta.aggregate', 'grid');
         $this->assertNotEmpty($res->json('features'));
         $this->assertTrue((bool) ($res->json('features.0.properties.cluster') ?? false));
     }
 
-    public function test_map_features_rejects_oversized_bbox(): void
+    public function test_map_features_returns_country_rollup_at_world_zoom(): void
     {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+        $country = Country::factory()->create(['iso_alpha2' => 'PL']);
+        CountryTranslation::query()->create([
+            'country_id' => $country->id,
+            'locale' => 'en',
+            'name' => 'Poland',
+        ]);
+        $place = Place::factory()->venue()->create([
+            'country_id' => $country->id,
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
+        $res = $this->getJson(route('search.map-features', [
+            'min_lat' => 51.0,
+            'max_lat' => 51.2,
+            'min_lng' => 16.9,
+            'max_lng' => 17.2,
+            'zoom' => 4,
+        ]));
+        $res->assertOk();
+        $res->assertJsonPath('meta.aggregate', 'country');
+        $this->assertNotEmpty($res->json('features'));
+        $this->assertTrue((bool) ($res->json('features.0.properties.countrySummary') ?? false));
+        $this->assertSame(1, (int) ($res->json('features.0.properties.count') ?? 0));
+    }
+
+    public function test_map_features_oversized_bbox_returns_country_rollup(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+        $country = Country::factory()->create(['iso_alpha2' => 'PL']);
+        CountryTranslation::query()->create([
+            'country_id' => $country->id,
+            'locale' => 'en',
+            'name' => 'Poland',
+        ]);
+        $place = Place::factory()->venue()->create([
+            'country_id' => $country->id,
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
         $res = $this->getJson(route('search.map-features', [
             'min_lat' => -60,
             'max_lat' => 60,
@@ -114,7 +183,9 @@ class BrowseMapFeaturesTest extends TestCase
         ]));
         $res->assertOk();
         $res->assertJsonPath('meta.bboxTooLarge', true);
-        $this->assertSame([], $res->json('features'));
+        $res->assertJsonPath('meta.aggregate', 'country');
+        $this->assertNotEmpty($res->json('features'));
+        $this->assertTrue((bool) ($res->json('features.0.properties.countrySummary') ?? false));
     }
 
     public function test_browse_events_map_view_toggle_renders_map_root(): void

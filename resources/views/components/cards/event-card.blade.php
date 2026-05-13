@@ -118,12 +118,12 @@
                 </div>
             </div>
 
-            <div class="relative flex min-h-0 flex-1 flex-col p-4 pt-3">
+            <div class="ui-content-card relative flex min-h-0 flex-1 flex-col p-4 pt-3">
                 <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
                     <span class="ui-link ui-link-title" data-ui="event-card-title-link">{{ $event->name }}</span>
                 </h3>
 
-                <dl class="mt-3 min-h-0 flex-1 space-y-2.5 text-sm">
+                <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                     @if ($dateSummary !== '')
                         <div class="flex gap-2">
                             <dt class="sr-only">{{ __('Date') }}</dt>

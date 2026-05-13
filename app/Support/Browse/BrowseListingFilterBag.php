@@ -120,6 +120,25 @@ final class BrowseListingFilterBag
         ];
     }
 
+    /**
+     * Same filters without geographic bounds (used for map summaries when the viewport is too large).
+     */
+    public function withoutBBox(): self
+    {
+        return new self(
+            q: $this->q,
+            tagIds: $this->tagIds,
+            tagsMatchAll: $this->tagsMatchAll,
+            includePastEvents: $this->includePastEvents,
+            onlyEvents: $this->onlyEvents,
+            onlyActivities: $this->onlyActivities,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+        );
+    }
+
     private static function nullableString(mixed $v): ?string
     {
         if ($v === null || $v === '') {

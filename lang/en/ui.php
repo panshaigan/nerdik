@@ -70,6 +70,7 @@ return [
         'map_view_toggle' => 'Show on map',
         'map_clear_area' => 'Clear map area filter',
         'map_bbox_too_large' => 'Zoom in closer to load markers for this area.',
+        'map_country_listings' => ':count listings',
         'sort_by' => 'Sort by',
         'sort_name' => 'Name',
         'sort_date' => 'Date',
