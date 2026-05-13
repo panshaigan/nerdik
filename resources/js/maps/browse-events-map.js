@@ -152,11 +152,32 @@ function clusterDivIcon(count) {
     });
 }
 
-function renderFeatures(map, layer, data) {
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function countrySummaryDivIcon(iso, count) {
+    const code = escapeHtml(iso || '?');
+    const n = escapeHtml(String(count));
+
+    return L.divIcon({
+        className: 'browse-map-country-icon',
+        html: `<div class="browse-map-country-inner"><span class="browse-map-country-code">${code}</span><span class="browse-map-country-count">${n}</span></div>`,
+        iconSize: [52, 44],
+        iconAnchor: [26, 22],
+    });
+}
+
+function renderFeatures(map, layer, data, root) {
     layer.clearLayers();
     if (!data || !Array.isArray(data.features)) {
         return;
     }
+    const listingsTpl = root?.dataset?.mapCountryListings || ':count listings';
     for (const f of data.features) {
         if (!f.geometry || f.geometry.type !== 'Point' || !Array.isArray(f.geometry.coordinates)) {
             continue;
@@ -166,6 +187,20 @@ function renderFeatures(map, layer, data) {
             continue;
         }
         const props = f.properties || {};
+        if (props.countrySummary) {
+            const iso = props.country_iso ? String(props.country_iso) : '';
+            const cname = props.country_name ? String(props.country_name) : iso;
+            const n = Number(props.count) || 0;
+            const m = L.marker([lat, lng], { icon: countrySummaryDivIcon(iso, n) });
+            m.on('click', () => {
+                map.setView([lat, lng], Math.min(map.getZoom() + 2, 18), { animate: true });
+            });
+            m.bindPopup(
+                `<div class="text-sm font-medium">${escapeHtml(cname)}</div><div class="text-xs opacity-80">${escapeHtml(listingsTpl.replace(':count', String(n)))}</div>`,
+            );
+            layer.addLayer(m);
+            continue;
+        }
         if (props.cluster) {
             const n = Number(props.count) || 0;
             const m = L.marker([lat, lng], { icon: clusterDivIcon(n) });
@@ -187,6 +222,21 @@ function renderFeatures(map, layer, data) {
     }
 }
 
+function appendMapViewportToSearchParams(u, map) {
+    const b = map.getBounds();
+    const south = b.getSouth();
+    const north = b.getNorth();
+    const west = b.getWest();
+    const east = b.getEast();
+    if (!Number.isFinite(south) || !Number.isFinite(north) || !Number.isFinite(west) || !Number.isFinite(east)) {
+        return;
+    }
+    u.searchParams.set('min_lat', south.toFixed(5));
+    u.searchParams.set('max_lat', north.toFixed(5));
+    u.searchParams.set('min_lng', west.toFixed(5));
+    u.searchParams.set('max_lng', east.toFixed(5));
+}
+
 async function loadMapFeatures(map, layer, root) {
     const baseUrl = root.dataset.mapFeaturesUrl;
     if (!baseUrl) {
@@ -195,11 +245,12 @@ async function loadMapFeatures(map, layer, root) {
     const u = new URL(baseUrl, window.location.origin);
     const params = new URLSearchParams(window.location.search);
     for (const [k, v] of params.entries()) {
-        if (k === 'zoom') {
+        if (k === 'zoom' || k === 'min_lat' || k === 'max_lat' || k === 'min_lng' || k === 'max_lng') {
             continue;
         }
         u.searchParams.set(k, v);
     }
+    appendMapViewportToSearchParams(u, map);
     u.searchParams.set('zoom', String(map.getZoom()));
     try {
         const res = await fetch(u.toString(), {
@@ -212,7 +263,7 @@ async function loadMapFeatures(map, layer, root) {
 
             return;
         }
-        renderFeatures(map, layer, json);
+        renderFeatures(map, layer, json, root);
     } catch {
         /* ignore */
     }
@@ -304,8 +355,10 @@ function startBrowseEventsMap(root) {
 
         invalidateMapSize(map);
 
-        const runFeatures = () => loadMapFeatures(map, markersLayer, root);
-        runFeatures();
+        map.whenReady(() => {
+            applyBoundsToInputs(map.getBounds(), root);
+            loadMapFeatures(map, markersLayer, root);
+        });
 
         root._leafletBrowseMap = map;
         root._browseMarkersLayer = markersLayer;

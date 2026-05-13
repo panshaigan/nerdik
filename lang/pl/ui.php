@@ -70,6 +70,7 @@ return [
         'map_view_toggle' => 'Pokaz na mapie',
         'map_clear_area' => 'Wyczysc filtr obszaru mapy',
         'map_bbox_too_large' => 'Przybliz mape, aby zaladowac znaczniki dla tego obszaru.',
+        'map_country_listings' => ':count wyników',
         'sort_by' => 'Sortuj wedlug',
         'sort_name' => 'Nazwa',
         'sort_date' => 'Data',
