@@ -228,11 +228,11 @@
     }
 
     /**
-     * Browse /search (events) filter shell: gradient frame using brand primary → accent; controls use primary borders and base surfaces.
+     * Reusable brand gradient frames (primary → accent bold ring + glow; hairline neon ring + inner panel).
+     * Use Tailwind rounded-* on the element for corner radius (bold omits radius here).
      */
-    .ui-filter-form-events.ui-browse-events-filter-shell {
+    .ui-gradient-frame-brand-bold {
         border: 2px solid transparent;
-        border-radius: var(--rounded-box, 1rem);
         background-image:
             linear-gradient(var(--color-base-100), var(--color-base-100)),
             linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
@@ -244,6 +244,35 @@
             0 0 42px -8px color-mix(in oklch, var(--brand-primary) 22%, transparent);
     }
 
+    .ui-gradient-frame-brand-hairline {
+        padding: 1px;
+        border-radius: var(--rounded-box, 1rem);
+        background-image: linear-gradient(
+            125deg,
+            color-mix(in oklch, var(--brand-info) 85%, white),
+            color-mix(in oklch, var(--brand-accent) 75%, white),
+            color-mix(in oklch, var(--brand-primary) 80%, white)
+        );
+        box-shadow:
+            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
+            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+    }
+
+    .ui-gradient-frame-brand-hairline-inner {
+        border-radius: calc(var(--rounded-box, 1rem) - 1px);
+        background-color: color-mix(in oklab, var(--brand-base-100-dark) 96%, black);
+        color: var(--color-base-content);
+
+        @variant light {
+            background-color: color-mix(in oklab, var(--brand-base-100-light) 8%, black);
+            color: var(--color-base-content);
+        }
+    }
+
+    /**
+     * Browse /search (events) filter shell: form-specific controls; frame uses .ui-gradient-frame-brand-bold on the element.
+     */
     .ui-filter-form-events label[data-ts-field].input {
         border-color: var(--color-primary-dark);
         background-color: var(--color-base-100);
@@ -279,34 +308,6 @@
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--brand-primary-dark) 14%, transparent),
             0 0 18px -12px color-mix(in oklch, var(--brand-accent) 35%, transparent);
-    }
-
-    /**
-     * Browse listing cards (events + activities): neon gradient hairline + inner dark panel.
-     */
-    .ui-browse-listing-card-frame {
-        border-radius: var(--rounded-box, 1rem);
-        background-image: linear-gradient(
-            125deg,
-            color-mix(in oklch, var(--brand-info) 85%, white),
-            color-mix(in oklch, var(--brand-accent) 75%, white),
-            color-mix(in oklch, var(--brand-primary) 80%, white)
-        );
-        box-shadow:
-            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
-            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
-    }
-
-    .ui-browse-listing-card-inner {
-        border-radius: calc(var(--rounded-box, 1rem) - 1px);
-        background-color: color-mix(in oklab, var(--brand-base-100-dark) 96%, black);
-        color: var(--color-base-content);
-
-        @variant light {
-            background-color: color-mix(in oklab, var(--brand-base-100-light) 8%, black);
-            color: var(--color-base-content);
-        }
     }
 
     .ui-browse-listing-card-tags .badge {

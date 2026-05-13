@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowPlanTab;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
@@ -11,6 +11,7 @@ use App\Models\Slot;
 use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -65,11 +66,13 @@ class ActivityCancellationTest extends TestCase
             'updated_by' => $organizer->id,
         ]);
 
-        $this->actingAs($organizer);
-        $component = app(ShowEvent::class);
-        $component->mount($event);
-        $component->slotCancelReason[$slot->id] = 'Venue emergency';
-        $component->cancelSlotActivity($slot->id, app(ActivityHostingModeService::class));
+        $component = Livewire::withoutLazyLoading()
+            ->actingAs($organizer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
+
+        $component
+            ->set('slotCancelReason.'.$slot->id, 'Venue emergency')
+            ->call('cancelSlotActivity', $slot->id);
 
         $activity->refresh();
         $this->assertNotNull($activity->cancelled_at);
@@ -77,7 +80,7 @@ class ActivityCancellationTest extends TestCase
         $this->assertSame('Venue emergency', $activity->cancel_reason);
         $this->assertSame($activity->id, $slot->fresh()->activity_id, 'Cancelled activity should remain attached to the slot.');
 
-        $component->reopenSlotActivity($slot->id, app(ActivityHostingModeService::class));
+        $component->call('reopenSlotActivity', $slot->id);
         $activity->refresh();
         $this->assertNull($activity->cancelled_at);
     }
@@ -104,12 +107,12 @@ class ActivityCancellationTest extends TestCase
             'updated_by' => $organizer->id,
         ]);
 
-        $this->actingAs($intruder);
-        $component = app(ShowEvent::class);
-        $component->mount($event);
+        $component = Livewire::withoutLazyLoading()
+            ->actingAs($intruder)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
 
         $this->expectException(HttpException::class);
-        $component->cancelSlotActivity($slot->id, app(ActivityHostingModeService::class));
+        $component->instance()->cancelSlotActivity($slot->id, app(ActivityHostingModeService::class));
     }
 
     public function test_participation_endpoints_block_cancelled_and_non_joinable_modes(): void

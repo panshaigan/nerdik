@@ -22,6 +22,7 @@ class BrowseSearchPageTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-ui="browse-events-form"', false);
         $response->assertSee('ui-browse-events-filter-shell', false);
+        $response->assertSee('ui-gradient-frame-brand-bold', false);
     }
 
     public function test_search_page_lists_public_event_and_self_hosted_activity_cards(): void

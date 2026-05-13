@@ -41,8 +41,8 @@
 @endphp
 
 <article class="ui-card ui-card-activity card group relative flex h-full flex-col" data-ui="activity-card" id="ui-activity-card-{{ $activity->id }}">
-    <div class="ui-browse-listing-card-frame flex min-h-0 flex-1 flex-col p-px">
-        <div class="ui-browse-listing-card-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
+    <div class="ui-gradient-frame-brand-hairline flex min-h-0 flex-1 flex-col">
+        <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
             <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900">
                 @if ($logoUrl)
                     <img
