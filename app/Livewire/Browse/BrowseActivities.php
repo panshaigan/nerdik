@@ -171,7 +171,7 @@ class BrowseActivities extends Component
             'places' => $places,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
-            'tags' => Tag::orderedForSelector()->get(),
+            'tags' => Tag::query()->orderedForSelector()->get(),
         ]);
     }
 }

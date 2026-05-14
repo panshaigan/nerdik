@@ -23,7 +23,7 @@ class SlotFormServiceTest extends TestCase
 
     private function makeService(): SlotFormService
     {
-        return new SlotFormService(app(TagSelectionService::class));
+        return new SlotFormService();
     }
 
     #[Test]

@@ -425,7 +425,7 @@ class BrowseEvents extends Component
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,
-            'tags' => Tag::orderedForSelector()->get(),
+            'tags' => Tag::query()->orderedForSelector()->get(),
         ]);
     }
 }

@@ -81,7 +81,7 @@ final class TagSelectionServiceActivityContextTest extends TestCase
 
         $service = new TagSelectionService;
         $payload = $service->tagsPayloadForActivityPicker(
-            Tag::forActivityFormPicker()->whereKey($tag->id)->get(),
+            Tag::query()->forActivityFormPicker()->whereKey($tag->id)->get(),
             'en'
         );
 
