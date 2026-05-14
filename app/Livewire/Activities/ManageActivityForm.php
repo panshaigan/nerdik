@@ -997,7 +997,7 @@ class ManageActivityForm extends Component
                 ->values()
                 ->all(),
             'tags' => $tagSelection->tagsPayloadForActivityPicker(
-                Tag::forActivityFormPicker()->get(),
+                Tag::query()->forActivityFormPicker()->get(),
                 $locale
             ),
             'initialSelectedIds' => $this->tag_ids,

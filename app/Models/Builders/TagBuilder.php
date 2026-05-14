@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Additional scope methods for {@see Tag}.
+ * @extends Builder<Tag>
  */
 class TagBuilder extends Builder
 {
