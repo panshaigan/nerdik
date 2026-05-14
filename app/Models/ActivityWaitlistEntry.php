@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityWaitlistEntry extends Model
 {
@@ -15,12 +16,12 @@ class ActivityWaitlistEntry extends Model
         'position',
     ];
 
-    public function activity()
+    public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

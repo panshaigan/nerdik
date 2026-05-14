@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityTypeSlot extends Model
 {
@@ -15,12 +16,12 @@ class ActivityTypeSlot extends Model
 
     public $timestamps = false;
 
-    public function slot()
+    public function slot(): BelongsTo
     {
         return $this->belongsTo(Slot::class);
     }
 
-    public function activityType()
+    public function activityType(): BelongsTo
     {
         return $this->belongsTo(ActivityType::class);
     }

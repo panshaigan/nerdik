@@ -7,6 +7,9 @@ use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Place extends Model
@@ -40,12 +43,12 @@ class Place extends Model
         'updated_by',
     ];
 
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    public function children()
+    public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
     }
@@ -73,22 +76,22 @@ class Place extends Model
         return $query->where('type', 'venue');
     }
 
-    public function events()
+    public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'event_place');
     }
 
-    public function slots()
+    public function slots(): HasMany
     {
         return $this->hasMany(Slot::class);
     }
 
-    public function country()
+    public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
     }
 
-    public function city()
+    public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }

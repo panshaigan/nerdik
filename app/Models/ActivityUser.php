@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityUser extends Model
 {
@@ -23,12 +24,12 @@ class ActivityUser extends Model
         'deleted_at' => 'datetime',
     ];
 
-    public function activity()
+    public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

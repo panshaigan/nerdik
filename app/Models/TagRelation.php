@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TagRelation extends Model
 {
@@ -13,12 +14,12 @@ class TagRelation extends Model
         'related_tag_id',
     ];
 
-    public function tag()
+    public function tag(): BelongsTo
     {
         return $this->belongsTo(Tag::class, 'tag_id');
     }
 
-    public function relatedTag()
+    public function relatedTag(): BelongsTo
     {
         return $this->belongsTo(Tag::class, 'related_tag_id');
     }
