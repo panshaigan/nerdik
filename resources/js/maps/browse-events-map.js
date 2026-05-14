@@ -318,12 +318,14 @@ function startBrowseEventsMap(root) {
         const markersLayer = L.layerGroup().addTo(map);
 
         if (bbox) {
+            // No padding: bbox values come from prior `getBounds()` sync. Padding would
+            // shrink the fit area and force an extra zoom-out on every hide/show cycle.
             map.fitBounds(
                 [
                     [bbox.south, bbox.west],
                     [bbox.north, bbox.east],
                 ],
-                { padding: [24, 24] },
+                { padding: [0, 0], animate: false },
             );
             invalidateMapSize(map);
         }
