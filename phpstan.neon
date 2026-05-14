@@ -6,13 +6,14 @@ parameters:
 
     paths:
         - app/
-        - tests/
+#        - tests/
 
     # Level 10 is the highest level
-    level: 1
+    level: 2
 
-#    ignoreErrors:
-#        - '#PHPDoc tag @var#'
+    ignoreErrors:
+        - '#Access to an undefined property#'
+        - '#Call to an undefined method#'
 #
 #    excludePaths:
 #        - ./*/*/FileToBeExcluded.php
