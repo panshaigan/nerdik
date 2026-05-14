@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
@@ -66,52 +70,52 @@ class Activity extends Model
         'is_host_passive' => 'boolean',
     ];
 
-    public function proposals()
+    public function proposals(): HasMany
     {
         return $this->hasMany(ActivityProposal::class);
     }
 
-    public function participants()
+    public function participants(): HasMany
     {
         return $this->hasMany(ActivityUser::class);
     }
 
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'activity_user');
     }
 
-    public function interestedUsers()
+    public function interestedUsers(): MorphToMany
     {
         return $this->morphToMany(User::class, 'interest', 'user_interests');
     }
 
-    public function waitlist()
+    public function waitlist(): HasMany
     {
         return $this->hasMany(ActivityWaitlistEntry::class)->orderBy('position');
     }
 
-    public function tags()
+    public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
-    public function slot()
+    public function slot(): HasOne
     {
         return $this->hasOne(Slot::class);
     }
 
-    public function activityType()
+    public function activityType(): BelongsTo
     {
         return $this->belongsTo(ActivityType::class);
     }
 
-    public function place()
+    public function place(): BelongsTo
     {
         return $this->belongsTo(Place::class);
     }
 
-    public function canceller()
+    public function canceller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
     }

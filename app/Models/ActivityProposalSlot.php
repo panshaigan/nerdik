@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityProposalSlot extends Model
 {
@@ -14,12 +15,12 @@ class ActivityProposalSlot extends Model
         'slot_id',
     ];
 
-    public function proposal()
+    public function proposal(): BelongsTo
     {
         return $this->belongsTo(ActivityProposal::class, 'activity_proposal_id');
     }
 
-    public function slot()
+    public function slot(): BelongsTo
     {
         return $this->belongsTo(Slot::class);
     }

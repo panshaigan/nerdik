@@ -9,7 +9,9 @@ use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -138,17 +140,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $ownerId !== null && (int) $ownerId === (int) $this->id;
     }
 
-    public function interestedEvents()
+    public function interestedEvents(): MorphToMany
     {
         return $this->morphedByMany(Event::class, 'interest', 'user_interests');
     }
 
-    public function organization()
+    public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function interestedActivities()
+    public function interestedActivities(): MorphToMany
     {
         return $this->morphedByMany(Activity::class, 'interest', 'user_interests');
     }

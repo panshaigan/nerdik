@@ -6,6 +6,9 @@ use App\Enums\ActivityProposalStatus;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ActivityProposal extends Model
@@ -27,33 +30,33 @@ class ActivityProposal extends Model
         'preferred_start_time' => 'datetime',
     ];
 
-    public function activity()
+    public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
     }
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function acceptedSlot()
+    public function acceptedSlot(): BelongsTo
     {
         return $this->belongsTo(Slot::class, 'accepted_slot_id');
     }
 
-    public function slots()
+    public function slots(): HasMany
     {
         return $this->hasMany(ActivityProposalSlot::class);
     }
 
     /** Slots the proposer targeted (for accept: pick one of these or any free slot in the instance). */
-    public function proposedSlots()
+    public function proposedSlots(): BelongsToMany
     {
         return $this->belongsToMany(Slot::class, 'activity_proposal_slot', 'activity_proposal_id', 'slot_id');
     }

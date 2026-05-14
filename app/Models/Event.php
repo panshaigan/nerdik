@@ -7,6 +7,9 @@ use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
@@ -111,42 +114,42 @@ class Event extends Model
         return $this->hasScheduledSlotActivities() || $this->hasSignupPressure();
     }
 
-    public function organization()
+    public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function slots()
+    public function slots(): HasMany
     {
         return $this->hasMany(Slot::class);
     }
 
-    public function proposals()
+    public function proposals(): HasMany
     {
         return $this->hasMany(ActivityProposal::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function interestedUsers()
+    public function interestedUsers(): MorphToMany
     {
         return $this->morphToMany(User::class, 'interest', 'user_interests');
     }
 
-    public function places()
+    public function places(): BelongsToMany
     {
         return $this->belongsToMany(Place::class, 'event_place');
     }
 
-    public function enrollmentWindows()
+    public function enrollmentWindows(): HasMany
     {
         return $this->hasMany(EventEnrollmentWindow::class)->orderBy('starts_at');
     }
 
-    public function eventEnrollmentWindows()
+    public function eventEnrollmentWindows(): HasMany
     {
         return $this->hasMany(EventEnrollmentWindow::class)->orderBy('starts_at');
     }
