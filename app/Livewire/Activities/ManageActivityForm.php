@@ -815,7 +815,7 @@ class ManageActivityForm extends Component
 
                 return $slot->starts_at->diffInMinutes($slot->ends_at);
             })
-            ->filter(fn (?int $minutes): bool => $minutes !== null && $minutes > 0)
+            ->filter(fn ($minutes) => $minutes > 0)
             ->min();
         if (is_int($prefilledDuration)) {
             $this->duration_in_minutes = $prefilledDuration;

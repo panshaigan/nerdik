@@ -86,7 +86,7 @@ class ShowEventInterestedStatTest extends TestCase
             return null;
         }
 
-        /** @var non-empty-string */
+        /** @var non-falsy-string */
         return $matches[0];
     }
 }
