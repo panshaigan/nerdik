@@ -63,6 +63,7 @@
                     data-map-features-url="{{ $mapFeaturesUrl }}"
                     data-str-clear="{{ __('ui.browse.map_clear_area') }}"
                     data-map-country-listings="{{ __('ui.browse.map_country_listings') }}"
+                    data-map-popup-details="{{ __('ui.browse.map_popup_details') }}"
                     wire:ignore
                     x-init="$nextTick(() => window.dispatchEvent(new CustomEvent('browse-events-map:visible')))"
                     class="leaflet-container z-0 min-h-[min(70vh,640px)] h-[min(70vh,640px)] w-full"

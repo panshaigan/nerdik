@@ -161,6 +161,44 @@ function escapeHtml(s) {
         .replace(/"/g, '&quot;');
 }
 
+/**
+ * Minimal escaping for use inside an HTML attribute (e.g. href).
+ */
+function escapeHtmlAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function listingPinDivIcon(kind) {
+    const variant = kind === 'activity' ? 'activity' : 'event';
+
+    const pinSvg = `<svg class="browse-map-listing-pin__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 36" width="28" height="36" aria-hidden="true"><path fill="currentColor" d="M14 0C8.48 0 4 4.35 4 9.72c0 7.28 10 18.28 10 26.28 0-8 10-19 10-26.28C24 4.35 19.52 0 14 0Zm0 13.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Z"/></svg>`;
+
+    return L.divIcon({
+        className: `browse-map-listing-pin-root browse-map-listing-pin-root--${variant}`,
+        html: `<div class="browse-map-listing-pin browse-map-listing-pin--${variant}" role="presentation">${pinSvg}</div>`,
+        iconSize: [28, 36],
+        iconAnchor: [14, 36],
+        popupAnchor: [0, -32],
+    });
+}
+
+/**
+ * @param {Record<string, unknown>} props
+ * @param {string} detailsLabel
+ */
+function buildListingPopupHtml(props, detailsLabel) {
+    const title = escapeHtml(props.name ? String(props.name) : '');
+    const urlRaw = props.url ? String(props.url).trim() : '';
+    const label = escapeHtml(detailsLabel);
+
+    const actions =
+        urlRaw !== ''
+            ? `<a href="${escapeHtmlAttr(urlRaw)}" class="browse-map-popup-details">${label}</a>`
+            : `<span class="browse-map-popup-details browse-map-popup-details--muted">${label}</span>`;
+
+    return `<div class="browse-map-popup-inner"><div class="browse-map-popup-title">${title}</div><div class="browse-map-popup-actions">${actions}</div></div>`;
+}
+
 function countrySummaryDivIcon(iso, count) {
     const code = escapeHtml(iso || '?');
     const n = escapeHtml(String(count));
@@ -179,6 +217,7 @@ function renderFeatures(map, layer, data, root) {
         return;
     }
     const listingsTpl = root?.dataset?.mapCountryListings || ':count listings';
+    const popupDetailsLabel = root?.dataset?.mapPopupDetails || 'Details';
     for (const f of data.features) {
         if (!f.geometry || f.geometry.type !== 'Point' || !Array.isArray(f.geometry.coordinates)) {
             continue;
@@ -211,14 +250,16 @@ function renderFeatures(map, layer, data, root) {
             m.bindPopup(`<strong>${n}</strong>`);
             layer.addLayer(m);
         } else {
-            const name = props.name ? String(props.name) : '';
-            const url = props.url ? String(props.url) : '';
-            const kind = props.kind ? String(props.kind) : '';
-            const body =
-                url !== ''
-                    ? `<a href="${url.replace(/"/g, '&quot;')}" class="link link-primary">${name.replace(/</g, '')}</a>`
-                    : name.replace(/</g, '');
-            L.marker([lat, lng]).addTo(layer).bindPopup(`<div class="text-sm">${body}</div><div class="text-xs opacity-70">${kind}</div>`);
+            const kind = props.kind ? String(props.kind) : 'event';
+            const popupHtml = buildListingPopupHtml(props, popupDetailsLabel);
+            L.marker([lat, lng], { icon: listingPinDivIcon(kind) })
+                .addTo(layer)
+                .bindPopup(popupHtml, {
+                    className: 'browse-map-listing-popup',
+                    maxWidth: 280,
+                    autoPanPaddingTopLeft: [16, 16],
+                    autoPanPaddingBottomRight: [16, 16],
+                });
         }
     }
 }
