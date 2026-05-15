@@ -14,6 +14,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.22);
+    filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-accent, #a855f7) 45%, transparent));
 }
 
 .browse-map-cluster-count {
@@ -40,6 +41,7 @@
     color: #fff;
     text-align: center;
     line-height: 1.1;
+    filter: drop-shadow(0 0 5px color-mix(in oklab, var(--color-accent, #a855f7) 38%, transparent));
 }
 
 .browse-map-country-code {
@@ -52,4 +54,110 @@
     font-size: 14px;
     font-weight: 700;
     margin-top: 2px;
+}
+
+/* Listing pins (events vs activities) */
+#ui-browse-events-map .browse-map-listing-pin-root.leaflet-div-icon {
+    background: transparent;
+    border: none;
+}
+
+#ui-browse-events-map .browse-map-listing-pin {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#ui-browse-events-map .browse-map-listing-pin--event {
+    color: var(--color-primary, #6366f1);
+}
+
+#ui-browse-events-map .browse-map-listing-pin--activity {
+    color: var(--color-secondary, #22c55e);
+}
+
+#ui-browse-events-map .browse-map-listing-pin__svg {
+    display: block;
+    filter: drop-shadow(0 0 7px color-mix(in oklab, var(--color-accent, #a855f7) 52%, transparent))
+        drop-shadow(0 0 2px color-mix(in oklab, var(--color-accent, #a855f7) 35%, transparent));
+}
+
+/* Listing popup (Leaflet) */
+#ui-browse-events-map .browse-map-listing-popup {
+    --browse-map-popup-bg: color-mix(in oklab, var(--color-base-200, #27272a) 92%, var(--color-base-content, #fafafa) 8%);
+}
+
+#ui-browse-events-map .browse-map-listing-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid var(--color-accent, #a855f7);
+    background: var(--browse-map-popup-bg);
+    box-shadow:
+        0 0 14px color-mix(in oklab, var(--color-accent, #a855f7) 42%, transparent),
+        0 4px 18px rgb(0 0 0 / 35%);
+}
+
+#ui-browse-events-map .browse-map-listing-popup .leaflet-popup-content {
+    margin: 0;
+    min-width: 11rem;
+}
+
+#ui-browse-events-map .browse-map-listing-popup .leaflet-popup-tip {
+    background: var(--browse-map-popup-bg);
+    box-shadow: none;
+}
+
+#ui-browse-events-map .browse-map-listing-popup .leaflet-popup-close-button {
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 22px;
+    color: color-mix(in oklab, var(--color-base-content, #fafafa) 88%, transparent);
+}
+
+#ui-browse-events-map .browse-map-listing-popup .leaflet-popup-close-button:hover {
+    color: var(--color-base-content, #fafafa);
+}
+
+.browse-map-popup-inner {
+    padding: 14px 38px 14px 16px;
+}
+
+.browse-map-popup-title {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    color: var(--color-base-content, #fafafa);
+}
+
+.browse-map-popup-actions {
+    margin-top: 12px;
+}
+
+.browse-map-popup-details {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--color-accent, #a855f7);
+    background: transparent;
+    color: var(--color-accent, #a855f7);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.browse-map-popup-details:hover {
+    background: color-mix(in oklab, var(--color-accent, #a855f7) 16%, transparent);
+    color: var(--color-accent, #a855f7);
+}
+
+.browse-map-popup-details--muted {
+    cursor: default;
+    opacity: 0.55;
+    pointer-events: none;
 }
