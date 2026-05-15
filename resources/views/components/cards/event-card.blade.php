@@ -61,7 +61,7 @@
 <article class="ui-card ui-card-event card group relative flex h-full flex-col" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
     <div class="ui-gradient-frame-brand-hairline flex min-h-0 flex-1 flex-col">
         <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
-            <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900">
+            <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 p-2">
                 @if ($logoUrl)
                     <img
                         src="{{ $logoUrl }}"
@@ -70,7 +70,7 @@
                         loading="lazy"
                     />
                 @else
-                    <div class="flex h-full w-full items-center justify-center bg-linear-to-tl from-slate-800/80 via-slate-900 to-indigo-950/90" aria-hidden="true">
+                    <div class="flex h-full w-full items-center justify-center bg-linear-to-tl from-slate-800/80 via-slate-900 to-indigo-950/90 rounded-xl" aria-hidden="true">
                         <x-icon name="o-square-2-stack" class="h-14 w-14 text-slate-500/80" />
                     </div>
                 @endif
@@ -118,7 +118,7 @@
                 </div>
             </div>
 
-            <div class="ui-content-card relative flex min-h-0 flex-1 flex-col p-4 pt-3">
+            <div class="ui-content-card relative flex min-h-0 flex-1 flex-col p-4 pt-3 rounded-xl">
                 <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
                     <span class="ui-link ui-link-title" data-ui="event-card-title-link">{{ $event->name }}</span>
                 </h3>
