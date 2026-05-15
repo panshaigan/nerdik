@@ -271,11 +271,25 @@
     }
 
     /**
-     * Browse /search (events) filter shell: form-specific controls; frame uses .ui-gradient-frame-brand-bold on the element.
+     * Browse /search (events) filter shell: glow on search field via .ui-gradient-frame-brand-bold on label[data-ts-field].
      */
-    .ui-filter-form-events label[data-ts-field].input {
-        border-color: var(--color-primary-dark);
-        background-color: var(--color-base-100);
+    .ui-filter-form-events label[data-ts-field].input.ui-gradient-frame-brand-bold {
+        border-width: 2px;
+    }
+
+    .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+    }
+
+    .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+    }
+
+    @variant light {
+        .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::placeholder,
+        .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
+            color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+        }
     }
 
     .ui-filter-form-events label[data-ts-field] label.input {

@@ -1,5 +1,5 @@
 {{-- Tag match mode selector; search and listing filters are rendered in sibling partials. --}}
-<div class="ml-auto" data-ui="browse-tag-filter-toggles">
+<div data-ui="browse-tag-filter-toggles">
     <div class="flex items-center gap-4">
         <button
             type="button"
