@@ -61,24 +61,19 @@
 <article class="ui-card ui-card-event card group relative flex h-full flex-col" data-ui="event-card" id="ui-event-card-{{ $event->id }}">
     <div class="ui-gradient-frame-brand-hairline flex min-h-0 flex-1 flex-col">
         <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
-            <div class="ui-tile-active p-1 pl-3">
-                <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
-                    <span class="ui-link ui-link-title" data-ui="activity-card-title-link">{{ $event->name }}</span>
-                </h3>
-            </div>
-            <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 p-2">
+            <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900">
                 @if ($logoUrl)
                     <img
                         src="{{ $logoUrl }}"
                         alt=""
-                        class="h-full w-full rounded-xl object-cover"
+                        class="h-full w-full object-cover"
                         loading="lazy"
                     />
                 @else
                     <img
                         src="{{ asset('images/tag-game/warhammer.jpg') }}"
                         alt=""
-                        class="h-full w-full rounded-xl object-cover"
+                        class="h-full w-full object-cover"
                         loading="lazy"
                     />
                 @endif
@@ -125,8 +120,10 @@
                     </div>
                 </div>
             </div>
-
-            <div class="ui-content-card relative flex min-h-0 flex-1 flex-col p-4 pt-3 rounded-xl">
+            <div class="ui-content-card relative flex min-h-0 flex-1 flex-col px-2 pb-2">
+                <h3 class="text-lg font-bold leading-snug text-white py-2 sm:text-xl">
+                    <span class="ui-link ui-link-title" data-ui="activity-card-title-link">{{ $event->name }}</span>
+                </h3>
                 @if ($slotTypeBadgeItems !== [])
                     <div class="mt-auto border-b pb-4 border-white/5">
                         <x-ui.activity-badge-group

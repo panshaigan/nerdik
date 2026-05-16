@@ -71,7 +71,7 @@
                 ></div>
             </div>
         @else
-            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
+            <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6">
                 @forelse ($browseListings as $row)
                     @if ($row['kind'] === 'event')
                         <x-cards.event-card
