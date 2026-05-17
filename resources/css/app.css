@@ -277,6 +277,34 @@
     }
 
     /**
+     * Browse listing cards: strong lift + brand glow. Default Tailwind box-shadows are
+     * nearly invisible on the dark radial page background.
+     */
+    .ui-listing-card {
+        filter:
+            drop-shadow(0 32px 48px color-mix(in oklch, black 88%, transparent))
+            drop-shadow(0 14px 28px color-mix(in oklch, black 72%, transparent))
+            drop-shadow(0 0 56px color-mix(in oklch, var(--brand-neutral-content-dark) 50%, transparent))
+            drop-shadow(0 0 36px color-mix(in oklch, var(--brand-neutral-content-dark) 40%, transparent));
+
+        @variant light {
+            filter:
+                drop-shadow(0 28px 40px color-mix(in oklch, var(--brand-neutral-content-dark) 38%, transparent))
+                drop-shadow(0 12px 24px color-mix(in oklch, var(--brand-neutral-content-dark) 30%, transparent))
+                drop-shadow(0 0 44px color-mix(in oklch, var(--brand-neutral-content-dark) 32%, transparent));
+        }
+    }
+
+    .ui-listing-card .ui-gradient-frame-brand-hairline {
+        box-shadow:
+            0 0 24px color-mix(in oklch, var(--brand-info) 62%, transparent),
+            0 0 48px color-mix(in oklch, var(--brand-accent) 50%, transparent),
+            0 0 80px -4px color-mix(in oklch, var(--brand-primary) 45%, transparent),
+            0 36px 72px -28px color-mix(in oklch, black 92%, transparent),
+            0 12px 32px -16px color-mix(in oklch, black 78%, transparent);
+    }
+
+    /**
      * Browse /search (events): colorful gradient border + hover/focus glow (override DaisyUI .input:focus outline).
      */
     .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold {
