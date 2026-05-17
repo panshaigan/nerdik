@@ -276,6 +276,8 @@ return [
         'share' => 'Share',
         'link_copied' => 'Link copied!',
         'show_about' => 'Description',
+        'show_details' => 'Details',
+        'show_no_description' => 'No description yet.',
         'show_plan' => 'Plan',
         'show_proposals' => 'Proposals',
         'slots' => 'Slots',

@@ -2,12 +2,16 @@
 
 namespace App\Livewire\Browse;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Place;
 use App\Models\Tag;
+use App\Services\ActivityParticipationViewService;
+use App\Services\EventActivitySignupService;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,6 +20,7 @@ use Mary\Traits\Toast;
 class BrowseActivities extends Component
 {
     use Toast;
+    use WithActivityPreviewModal;
     use WithBrowseListingSort;
     use WithBrowseTagFilter;
     use WithPagination;
@@ -99,8 +104,11 @@ class BrowseActivities extends Component
         $this->success(__('ui.interests.added_activity'));
     }
 
-    public function render()
-    {
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+    ) {
         $query = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
             ->attachedToPublicEvent();
 
@@ -172,6 +180,8 @@ class BrowseActivities extends Component
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
             'tags' => Tag::query()->orderedForSelector()->get(),
+            ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
+            'includeEventPreviewModal' => false,
         ]);
     }
 }

@@ -2,14 +2,20 @@
 
 namespace App\Livewire\Browse;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Livewire\Concerns\WithBrowseTagFilter;
+use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Tag;
+use App\Services\ActivityParticipationViewService;
+use App\Services\EventActivitySignupService;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseListingQuery;
+use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator as ConcreteLengthAwarePaginator;
@@ -22,8 +28,10 @@ use Mary\Traits\Toast;
 class BrowseEvents extends Component
 {
     use Toast;
+    use WithActivityPreviewModal;
     use WithBrowseListingSort;
     use WithBrowseTagFilter;
+    use WithEventPreviewModal;
     use WithPagination;
 
     private const PER_PAGE = 12;
@@ -384,8 +392,12 @@ class BrowseEvents extends Component
         return $paginator;
     }
 
-    public function render()
-    {
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+        BrowseListingCardPresenter $listingCardPresenter,
+    ) {
         $paginator = $this->map_view
             ? $this->emptyBrowsePaginator()
             : $this->paginateBrowseListings();
@@ -426,6 +438,9 @@ class BrowseEvents extends Component
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,
             'tags' => Tag::query()->orderedForSelector()->get(),
+            ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
+            ...$this->resolveEventPreviewViewData($listingCardPresenter),
+            'includeEventPreviewModal' => true,
         ]);
     }
 }

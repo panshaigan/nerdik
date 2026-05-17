@@ -2,9 +2,13 @@
 
 namespace App\Livewire\Me;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithBrowseListingSort;
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Services\ActivityParticipationViewService;
+use App\Services\EventActivitySignupService;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -13,6 +17,7 @@ use Mary\Traits\Toast;
 class MyActivities extends Component
 {
     use Toast;
+    use WithActivityPreviewModal;
     use WithBrowseListingSort;
     use WithPagination;
 
@@ -48,8 +53,11 @@ class MyActivities extends Component
         $this->success(__('ui.interests.added_activity'));
     }
 
-    public function render()
-    {
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+    ) {
         $userId = auth()->id();
         $query = Activity::query()
             ->where('created_by', $userId)
@@ -78,6 +86,8 @@ class MyActivities extends Component
             'activities' => $activities,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
+            ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
+            'includeEventPreviewModal' => false,
         ]);
     }
 }

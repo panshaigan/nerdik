@@ -227,7 +227,14 @@
         ])
     @endif
     @include('slots.partials.edit-modal-shell')
-    @include('livewire.events.partials.activity-preview-modal')
+    @include('livewire.events.partials.activity-preview-modal', [
+        'previewActivity' => $previewActivity ?? null,
+        'previewActivityBadgeItems' => $previewActivityBadgeItems ?? [],
+        'previewActivityParticipation' => $previewActivityParticipation ?? null,
+        'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
+        'showPreviewParticipationActions' => $showPreviewParticipationActions ?? false,
+        'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
+    ])
 
     <x-ui.confirm-modal
         wire:model="confirmModalOpen"
