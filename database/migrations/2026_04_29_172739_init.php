@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -18,6 +19,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
+        $this->ensurePolishTextSearchCatalog();
+
         // ------------------------------------------------------------------ //
         // 1. COUNTRIES
         // ------------------------------------------------------------------ //
@@ -178,6 +185,16 @@ return new class extends Migration
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
         });
 
+        DB::statement("
+            ALTER TABLE events
+            ADD COLUMN search_vector tsvector
+            GENERATED ALWAYS AS (
+                setweight(to_tsvector('polish', coalesce(name, '')), 'A') ||
+                setweight(to_tsvector('polish', coalesce(description, '')), 'B')
+            ) STORED
+        ");
+        DB::statement('CREATE INDEX events_search_vector_idx ON events USING gin(search_vector)');
+
         // ------------------------------------------------------------------ //
         // 11. EVENT_PLACE  (pivot)
         // ------------------------------------------------------------------ //
@@ -250,6 +267,16 @@ return new class extends Migration
             $table->index('cancelled_at');
             $table->index('hosting_mode');
         });
+
+        DB::statement("
+            ALTER TABLE activities
+            ADD COLUMN search_vector tsvector
+            GENERATED ALWAYS AS (
+                setweight(to_tsvector('polish', coalesce(name, '')), 'A') ||
+                setweight(to_tsvector('polish', coalesce(description, '')), 'B')
+            ) STORED
+        ");
+        DB::statement('CREATE INDEX activities_search_vector_idx ON activities USING gin(search_vector)');
 
         // ------------------------------------------------------------------ //
         // 15. SLOTS
@@ -644,11 +671,17 @@ return new class extends Migration
         Schema::dropIfExists('activity_waitlist_entries');
         Schema::dropIfExists('activity_user');
         Schema::dropIfExists('slots');
+
+        DB::statement('DROP INDEX IF EXISTS activities_search_vector_idx');
         Schema::dropIfExists('activities');
+
         Schema::dropIfExists('activity_types');
         Schema::dropIfExists('event_enrollment_windows');
         Schema::dropIfExists('event_place');
+
+        DB::statement('DROP INDEX IF EXISTS events_search_vector_idx');
         Schema::dropIfExists('events');
+
         Schema::dropIfExists('places');
 
         // Remove user FKs from organizations before dropping users
@@ -665,5 +698,55 @@ return new class extends Migration
         Schema::dropIfExists('cities');
         Schema::dropIfExists('country_translations');
         Schema::dropIfExists('countries');
+    }
+
+    private function ensurePolishTextSearchCatalog(): void
+    {
+        DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent');
+
+        if (! $this->polishTextSearchDictionaryExists('polish_ispell')) {
+            DB::statement('
+                CREATE TEXT SEARCH DICTIONARY polish_ispell (
+                    TEMPLATE = ispell,
+                    DictFile = polish,
+                    AffFile = polish
+                )
+            ');
+        }
+
+        if (! $this->polishTextSearchDictionaryExists('polish_unaccent')) {
+            DB::statement('
+                CREATE TEXT SEARCH DICTIONARY polish_unaccent (
+                    TEMPLATE = unaccent,
+                    Rules = unaccent
+                )
+            ');
+        }
+
+        if (! $this->polishTextSearchConfigurationExists()) {
+            DB::statement('CREATE TEXT SEARCH CONFIGURATION polish (COPY = simple)');
+        }
+
+        DB::statement('
+            ALTER TEXT SEARCH CONFIGURATION polish
+                ALTER MAPPING FOR asciiword, asciihword, hword_asciipart,
+                                  word, hword, hword_part
+                WITH polish_ispell, polish_unaccent, simple
+        ');
+    }
+
+    private function polishTextSearchDictionaryExists(string $name): bool
+    {
+        return (bool) DB::selectOne(
+            'SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_ts_dict WHERE dictname = ?) AS exists',
+            [$name]
+        )->exists;
+    }
+
+    private function polishTextSearchConfigurationExists(): bool
+    {
+        return (bool) DB::selectOne(
+            "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_ts_config WHERE cfgname = 'polish') AS exists"
+        )->exists;
     }
 };
