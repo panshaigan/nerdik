@@ -2,10 +2,16 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Livewire\Concerns\WithActivityPreviewModal;
+use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
+use App\Services\ActivityParticipationViewService;
 use App\Services\Dashboard\UpcomingFeedQueryService;
+use App\Services\EventActivitySignupService;
+use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +22,8 @@ use Mary\Traits\Toast;
 class Dashboard extends Component
 {
     use Toast;
+    use WithActivityPreviewModal;
+    use WithEventPreviewModal;
     use WithPagination;
 
     private const PER_PAGE = 15;
@@ -60,8 +68,12 @@ class Dashboard extends Component
         $this->success(__('ui.interests.added_activity'));
     }
 
-    public function render()
-    {
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+        BrowseListingCardPresenter $listingCardPresenter,
+    ) {
         $user = Auth::user();
         $this->toastFromSessionStatus();
 
@@ -164,6 +176,9 @@ class Dashboard extends Component
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,
+            ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
+            ...$this->resolveEventPreviewViewData($listingCardPresenter),
+            'includeEventPreviewModal' => true,
         ]);
     }
 

@@ -60,6 +60,7 @@ final class BrowseListingCardPresenter
             listingKindTitle: __('ui.browse.listing_kind_activity'),
             editTitle: __('ui.activities.edit_activity'),
             openAriaLabel: __('Open activity').': '.$activity->name,
+            previewWireMethod: 'openListingActivityPreview',
         );
     }
 
@@ -95,6 +96,7 @@ final class BrowseListingCardPresenter
             listingKindTitle: __('ui.browse.listing_kind_event'),
             editTitle: __('ui.events.edit_event'),
             openAriaLabel: __('Open event').': '.$event->name,
+            previewWireMethod: 'openListingEventPreview',
         );
     }
 

@@ -3,7 +3,9 @@
 namespace App\Livewire\Me;
 
 use App\Livewire\Concerns\WithBrowseListingSort;
+use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Event;
+use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -14,6 +16,7 @@ class MyEvents extends Component
 {
     use Toast;
     use WithBrowseListingSort;
+    use WithEventPreviewModal;
     use WithPagination;
 
     private const PER_PAGE = 12;
@@ -44,7 +47,7 @@ class MyEvents extends Component
         $this->success(__('ui.interests.added_event'));
     }
 
-    public function render()
+    public function render(BrowseListingCardPresenter $listingCardPresenter): mixed
     {
         $userId = auth()->id();
         $query = Event::query()
@@ -82,6 +85,9 @@ class MyEvents extends Component
             'events' => $events,
             'interestedEventIds' => $interestedEventIds,
             'participatingEventIds' => $participatingEventIds,
+            ...$this->resolveEventPreviewViewData($listingCardPresenter),
+            'includeEventPreviewModal' => true,
+            'includeActivityPreviewModal' => false,
         ]);
     }
 }

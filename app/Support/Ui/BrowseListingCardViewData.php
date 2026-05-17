@@ -35,5 +35,6 @@ final readonly class BrowseListingCardViewData
         public string $listingKindTitle,
         public string $editTitle,
         public string $openAriaLabel,
+        public string $previewWireMethod,
     ) {}
 }

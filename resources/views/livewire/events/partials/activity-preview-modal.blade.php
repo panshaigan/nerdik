@@ -52,7 +52,7 @@
 
             <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="event-activity-preview-actions">
                 @auth
-                    @if ((int) ($previewActivity->slot?->event_id) === (int) $event->id)
+                    @if ($showPreviewParticipationActions ?? false)
                         @if ($previewActivityParticipation?->isParticipant)
                             <x-button type="button" class="btn-error" wire:click="leavePreviewActivity" spinner="leavePreviewActivity">
                                 {{ __('ui.activities.leave') }}

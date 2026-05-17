@@ -132,11 +132,25 @@
         @endif
     </div>
 
-    <a
-        href="{{ $d->detailsUrl }}"
-        wire:navigate
-        class="absolute inset-0 z-10 rounded-2xl"
+    <button
+        type="button"
+        wire:click="{{ $d->previewWireMethod }}({{ $d->id }})"
+        wire:loading.attr="disabled"
+        wire:target="{{ $d->previewWireMethod }}({{ $d->id }})"
+        wire:loading.class.delay="cursor-wait"
+        class="absolute inset-0 z-10 block cursor-pointer rounded-2xl bg-transparent"
         aria-label="{{ $d->openAriaLabel }}"
-        data-ui="{{ $d->dataUiPrefix }}-link"
-    ></a>
+        data-ui="{{ $d->dataUiPrefix }}-open-preview"
+    ></button>
+    <div
+        wire:loading.delay
+        wire:target="{{ $d->previewWireMethod }}({{ $d->id }})"
+        class="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center rounded-2xl bg-base-100/50 backdrop-blur-[1px]"
+        aria-live="polite"
+        role="status"
+        data-ui="{{ $d->dataUiPrefix }}-preview-loading"
+    >
+        <span class="sr-only">{{ __('ui.common.loading') }}</span>
+        <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+    </div>
 </article>

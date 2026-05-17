@@ -32,4 +32,6 @@
             <div class="rounded-xl border border-base-300 bg-base-100 p-4">{{ $events->links() }}</div>
         @endif
     </div>
+
+    @include('livewire.partials.listing-preview-modals')
 </div>

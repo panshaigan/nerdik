@@ -104,4 +104,6 @@
             @endif
         @endif
     </div>
+
+    @include('livewire.partials.listing-preview-modals')
 </div>

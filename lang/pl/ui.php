@@ -274,6 +274,8 @@ return [
         'share' => 'Udostepnij',
         'link_copied' => 'Link skopiowany!',
         'show_about' => 'Opis',
+        'show_details' => 'Szczegoly',
+        'show_no_description' => 'Brak opisu.',
         'show_plan' => 'Plan',
         'show_proposals' => 'Propozycje',
         'slots' => 'Sloty',

@@ -51,4 +51,6 @@
             @endif
         </section>
     </div>
+
+    @include('livewire.partials.listing-preview-modals')
 </div>
