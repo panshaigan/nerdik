@@ -36,19 +36,10 @@
             @else
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
                     @foreach ($feed as $row)
-                        @if ($row['kind'] === 'event')
-                            <x-cards.event-card
-                                :event="$row['event']"
-                                :interested-event-ids="$interestedEventIds ?? []"
-                                :participating-event-ids="$participatingEventIds ?? []"
-                            />
-                        @else
-                            <x-cards.activity-card
-                                :activity="$row['activity']"
-                                :interested-activity-ids="$interestedActivityIds ?? []"
-                                :participating-activity-ids="$participatingActivityIds ?? []"
-                            />
-                        @endif
+                        <x-cards.listing-card
+                            :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
+                            :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
+                        />
                     @endforeach
                 </div>
 
