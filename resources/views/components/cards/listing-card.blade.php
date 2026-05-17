@@ -7,9 +7,9 @@
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
 >
-    <div class="ui-gradient-frame-brand-hairline flex min-h-0 flex-1 flex-col">
+    <div class="ui-gradient-frame-brand-hairline ui-content-card flex min-h-0 flex-1 flex-col">
         <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
-            <div class="ui-content-card">
+            <div class="">
                 <div class="relative aspect-video w-full shrink-0 bg-transparent">
                     @if ($d->logoUrl)
                         <img
@@ -125,7 +125,7 @@
                 </div>
             </div>
             @if ($d->badgeItems !== [])
-                <div class="p-2">
+                <div class="p-4">
                     <x-ui.activity-badge-group
                         :items="$d->badgeItems"
                         class="ui-browse-listing-card-tags !my-0 gap-2"
