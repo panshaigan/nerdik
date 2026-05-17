@@ -44,23 +44,22 @@
     <div class="ui-gradient-frame-brand-hairline flex min-h-0 flex-1 flex-col">
         <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
             <div class="ui-content-card">
-                <div class="relative aspect-video w-full shrink-0 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900">
+                <div class="relative aspect-video w-full shrink-0 bg-transparent">
                     @if ($logoUrl)
                         <img
                             src="{{ $logoUrl }}"
                             alt=""
-                            class="h-full w-full object-cover"
+                            class="ui-card-media-fade h-full w-full object-cover"
                             loading="lazy"
                         />
                     @else
                         <img
                             src="{{ asset('images/tag-game/warhammer.jpg') }}"
                             alt=""
-                            class="h-full w-full object-cover"
+                            class="ui-card-media-fade h-full w-full object-cover"
                             loading="lazy"
                         />
                     @endif
-                    <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/55 to-transparent opacity-90"></div>
                     <div class="absolute right-2 top-2 z-20 flex max-w-[min(100%,12rem)] flex-col items-end gap-1.5">
                         @auth
                             <div class="pointer-events-auto flex shrink-0 items-center gap-1">
@@ -108,20 +107,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="relative flex min-h-0 flex-1 flex-col px-2 pb-2">
-                    <h3 class="text-lg font-bold leading-snug text-white py-2 sm:text-xl">
+                <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
+                    <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
                         <span class="ui-link ui-link-title" data-ui="activity-card-title-link">{{ $activity->name }}</span>
                     </h3>
-
-                    @if ($activityBadgeItems !== [])
-                        <div class="mt-auto border-b pb-4 border-white/5">
-                            <x-ui.activity-badge-group
-                                :items="$activityBadgeItems"
-                                class="ui-browse-listing-card-tags !my-0 gap-2"
-                                data-ui="activity-card-badge-group"
-                            />
-                        </div>
-                    @endif
                     <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                         @if ($timeSummary !== '')
                             <div class="flex gap-2">
@@ -164,6 +153,15 @@
                     </dl>
                 </div>
             </div>
+            @if ($activityBadgeItems !== [])
+                <div class="p-2">
+                    <x-ui.activity-badge-group
+                        :items="$activityBadgeItems"
+                        class="ui-browse-listing-card-tags !my-0 gap-2"
+                        data-ui="activity-card-badge-group"
+                    />
+                </div>
+            @endif
         </div>
     </div>
 
