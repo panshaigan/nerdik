@@ -277,10 +277,55 @@
     }
 
     /**
-     * Browse /search (events) filter shell: glow on search field via .ui-gradient-frame-brand-bold on label[data-ts-field].
+     * Browse /search (events): colorful gradient border + hover/focus glow (override DaisyUI .input:focus outline).
      */
-    .ui-filter-form-events label[data-ts-field].input.ui-gradient-frame-brand-bold {
-        border-width: 2px;
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold {
+        border-width: 2px !important;
+        outline: none !important;
+        transition:
+            box-shadow 0.2s ease,
+            filter 0.2s ease;
+    }
+
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:hover,
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:has(input:hover),
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:has([data-ts-chips]:hover) {
+        --input-color: transparent !important;
+        outline: none !important;
+        box-shadow:
+            0 0 18px color-mix(in oklch, var(--brand-primary) 58%, transparent),
+            0 0 40px color-mix(in oklch, var(--brand-accent) 50%, transparent),
+            0 0 64px -8px color-mix(in oklch, var(--brand-primary) 35%, transparent) !important;
+        filter: drop-shadow(0 6px 20px color-mix(in oklch, var(--brand-accent) 45%, transparent));
+    }
+
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:focus,
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:focus-within {
+        --input-color: transparent !important;
+        outline: none !important;
+        outline-offset: 0 !important;
+        border: 2px solid transparent !important;
+        background-image:
+            linear-gradient(var(--color-base-100), var(--color-base-100)),
+            linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
+        background-origin: border-box !important;
+        background-clip: padding-box, border-box !important;
+        box-shadow:
+            0 0 22px color-mix(in oklch, var(--brand-primary) 72%, transparent),
+            0 0 52px color-mix(in oklch, var(--brand-accent) 62%, transparent),
+            0 0 80px -6px color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
+        filter: drop-shadow(0 10px 32px color-mix(in oklch, var(--brand-accent) 55%, transparent));
+    }
+
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input,
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within input[data-ts-input],
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus,
+    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus-within {
+        outline: none !important;
+        box-shadow: none !important;
+        border-color: transparent !important;
+        --input-color: transparent !important;
+        --tw-ring-shadow: 0 0 #0000 !important;
     }
 
     .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::placeholder {
@@ -345,6 +390,100 @@
             background-color: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
             color: var(--color-base-content);
         }
+    }
+
+    /**
+     * Browse events listings: gradient hairline on hover/active only.
+     */
+    .ui-browse-events-listings .group .ui-gradient-frame-brand-hairline {
+        padding: 1px;
+        border-radius: var(--rounded-box, 1rem);
+        border: 1px solid color-mix(in oklab, var(--color-base-300) 42%, transparent);
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        transition:
+            box-shadow 0.18s ease,
+            background 0.18s ease,
+            border-color 0.18s ease;
+    }
+
+    .ui-browse-events-listings .group:hover .ui-gradient-frame-brand-hairline,
+    .ui-browse-events-listings .group:focus-within .ui-gradient-frame-brand-hairline {
+        border-color: transparent;
+        background-image: linear-gradient(
+            125deg,
+            color-mix(in oklch, var(--brand-info) 85%, white),
+            color-mix(in oklch, var(--brand-accent) 75%, white),
+            color-mix(in oklch, var(--brand-primary) 80%, white)
+        );
+        box-shadow:
+            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
+            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+    }
+
+    .ui-browse-events-listings .group:active .ui-gradient-frame-brand-hairline {
+        box-shadow:
+            0 0 20px color-mix(in oklch, var(--brand-info) 58%, transparent),
+            0 0 40px color-mix(in oklch, var(--brand-accent) 48%, transparent),
+            0 0 56px -8px color-mix(in oklch, var(--brand-primary) 42%, transparent);
+    }
+
+    /**
+     * Browse events pagination: almost transparent bar, no glow borders.
+     */
+    .ui-browse-events-pagination {
+        background: color-mix(in oklab, var(--color-base-100) 8%, transparent);
+        backdrop-filter: blur(10px) saturate(1.2);
+        -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    }
+
+    .ui-browse-events-pagination .join {
+        border-color: color-mix(in oklab, var(--color-base-300) 18%, transparent) !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn,
+    .ui-browse-events-pagination .join .join-item.btn.bg-base-100 {
+        border-color: color-mix(in oklab, var(--color-base-300) 10%, transparent) !important;
+        background-color: transparent !important;
+        color: color-mix(in oklab, var(--color-base-content) 85%, transparent) !important;
+        --btn-bg: transparent !important;
+        --btn-border: color-mix(in oklab, var(--color-base-300) 12%, transparent) !important;
+        box-shadow: none !important;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn:hover:not(.btn-disabled):not(.btn-active),
+    .ui-browse-events-pagination .join .join-item.btn.bg-base-100:hover:not(.btn-disabled):not(.btn-active) {
+        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
+        border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
+        color: var(--color-base-content) !important;
+        box-shadow:
+            0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent),
+            0 0 28px -8px color-mix(in oklch, var(--brand-accent) 36%, transparent) !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn-active {
+        background-color: color-mix(in oklab, var(--color-primary) 18%, transparent) !important;
+        border-color: color-mix(in oklch, var(--brand-accent) 45%, transparent) !important;
+        color: var(--color-base-content) !important;
+        box-shadow:
+            0 0 10px color-mix(in oklch, var(--brand-primary) 28%, transparent),
+            inset 0 0 0 1px color-mix(in oklch, var(--brand-accent) 22%, transparent) !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn-disabled {
+        background-color: transparent !important;
+        border-color: color-mix(in oklab, var(--color-base-300) 6%, transparent) !important;
+        box-shadow: none !important;
+        opacity: 0.4;
     }
 
     .status-dots {

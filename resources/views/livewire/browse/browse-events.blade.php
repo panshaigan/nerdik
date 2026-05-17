@@ -9,7 +9,7 @@
                 <div class="flex items-start gap-4">
                     <div class="flex-1 min-w-0 space-y-3">
                         @include('livewire.browse.partials.tag-filter', [
-                            'fieldShellClass' => 'ui-gradient-frame-brand-bold rounded-2xl',
+                            'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
                         ])
                         <div
                             x-show="filtersOpen"
@@ -71,7 +71,10 @@
                 ></div>
             </div>
         @else
-            <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6">
+            <div
+                class="ui-browse-events-listings mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6"
+                data-ui="browse-events-listings"
+            >
                 @forelse ($browseListings as $row)
                     <x-cards.listing-card
                         :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
@@ -95,7 +98,9 @@
             </div>
 
             @if ($browseListings->hasPages())
-                <div class="ui-gradient-frame-brand-bold mt-6 rounded-xl p-4">{{ $browseListings->links() }}</div>
+                <div class="ui-browse-events-pagination mt-6 rounded-xl p-4" data-ui="browse-events-pagination">
+                    {{ $browseListings->links() }}
+                </div>
             @endif
         @endif
     </div>
