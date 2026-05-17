@@ -5,24 +5,24 @@
             data-ui="browse-events-form"
             x-data="{ filtersOpen: false }"
         >
-            <div data-ui="browse-events-filters-card" class="space-y-3">
-                <div class="flex items-center gap-4">
-                    <div class="flex-1 min-w-0">
+            <div data-ui="browse-events-filters-card">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1 min-w-0 space-y-3">
                         @include('livewire.browse.partials.tag-filter', [
                             'fieldShellClass' => 'ui-gradient-frame-brand-bold rounded-2xl',
                         ])
+                        <div
+                            x-show="filtersOpen"
+                            x-cloak
+                            class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
+                            data-ui="browse-events-filters-panel"
+                        >
+                            @include('livewire.browse.partials.listing-type-filter')
+                        </div>
                     </div>
-                    <div class="browse-events-filter-toolbar shrink-0">
+                    <div class="browse-events-filter-toolbar shrink-0 self-start">
                         @include('livewire.browse.partials.tag-filter-toggles')
                     </div>
-                </div>
-                <div
-                    x-show="filtersOpen"
-                    x-cloak
-                    class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
-                    data-ui="browse-events-filters-panel"
-                >
-                    @include('livewire.browse.partials.listing-type-filter')
                 </div>
             </div>
         </div>
