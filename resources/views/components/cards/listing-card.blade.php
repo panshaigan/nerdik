@@ -3,12 +3,12 @@
 @endphp
 
 <article
-    class="ui-card {{ $d->cardModifierClass }} card group relative flex h-full flex-col"
+    class="ui-card ui-listing-card {{ $d->cardModifierClass }} card group relative flex h-full flex-col"
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
 >
     <div class="ui-gradient-frame-brand-hairline ui-content-card flex min-h-0 flex-1 flex-col">
-        <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden shadow-lg">
+        <div class="ui-gradient-frame-brand-hairline-inner flex min-h-0 flex-1 flex-col overflow-hidden">
             <div class="">
                 <div class="relative aspect-video w-full shrink-0 bg-transparent">
                     @if ($d->logoUrl)
