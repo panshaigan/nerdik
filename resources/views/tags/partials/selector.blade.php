@@ -86,7 +86,7 @@
     <script type="application/json" data-ts-config>
         @json($tagSelectorConfig)
     </script>
-    <div class="relative z-[1000]">
+    <div class="relative z-[50]">
         {{-- Unified shell: selected tag chips + input inside one bordered field, matching manage tags UX. --}}
         <label
             data-ts-field
