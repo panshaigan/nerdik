@@ -284,8 +284,7 @@
         filter:
             drop-shadow(0 32px 48px color-mix(in oklch, black 88%, transparent))
             drop-shadow(0 14px 28px color-mix(in oklch, black 72%, transparent))
-            drop-shadow(0 0 56px color-mix(in oklch, var(--brand-neutral-content-dark) 50%, transparent))
-            drop-shadow(0 0 36px color-mix(in oklch, var(--brand-neutral-content-dark) 40%, transparent));
+    ;
 
         @variant light {
             filter:
