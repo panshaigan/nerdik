@@ -1,0 +1,175 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support\Ui;
+
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
+use App\Domain\ActivityBadges\ActivityBadgeItem;
+use App\Enums\BadgeSemantic;
+use App\Models\Activity;
+use App\Models\Event;
+use Illuminate\Support\Facades\Storage;
+
+final class BrowseListingCardPresenter
+{
+    public function __construct(
+        private ActivityBadgeGroupBuilder $badgeGroupBuilder,
+    ) {}
+
+    /**
+     * @param  list<int>  $interestedIds
+     */
+    public function fromActivity(Activity $activity, array $interestedIds): BrowseListingCardViewData
+    {
+        $currentUser = auth()->user();
+        $isOwner = $currentUser !== null && (int) ($activity->created_by ?? 0) === (int) $currentUser->id;
+        $hostingMode = (int) ($activity->hosting_mode ?? 0);
+        $participantsFilled = isset($activity->participants_count)
+            ? (int) $activity->participants_count
+            : (int) $activity->participants()->where('is_absent', false)->count();
+        $timeSourceStartsAt = $activity->slot?->starts_at ?? $activity->starts_at;
+        $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
+        $venueName = $activity->slot?->place?->name ?? $activity->place?->name;
+
+        return new BrowseListingCardViewData(
+            kind: 'activity',
+            id: (int) $activity->id,
+            name: (string) $activity->name,
+            logoUrl: $this->logoUrl($activity->logo_path),
+            detailsUrl: route('activities.show', $activity),
+            editUrl: route('activities.edit', $activity),
+            isOwner: $isOwner,
+            isInterested: in_array((int) $activity->id, $interestedIds, true),
+            interestWireMethod: 'toggleActivityInterest',
+            timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
+            locationSummary: filled($venueName) ? (string) $venueName : '',
+            hostingCornerLabel: $this->activityHostingCornerLabel($hostingMode),
+            showParticipants: true,
+            participantsFilled: $participantsFilled,
+            participantsMax: $activity->max_participants !== null ? (int) $activity->max_participants : null,
+            badgeItems: $this->badgeGroupBuilder->build(
+                $activity,
+                ActivityBadgeGroupConfig::browseCard(),
+            ),
+            cardModifierClass: 'ui-card-activity',
+            dataUiPrefix: 'activity-card',
+            badgeGroupDataUi: 'activity-card-badge-group',
+            listingKindIcon: 'o-squares-2x2',
+            listingKindTitle: __('ui.browse.listing_kind_activity'),
+            editTitle: __('ui.activities.edit_activity'),
+            openAriaLabel: __('Open activity').': '.$activity->name,
+        );
+    }
+
+    /**
+     * @param  list<int>  $interestedIds
+     */
+    public function fromEvent(Event $event, array $interestedIds): BrowseListingCardViewData
+    {
+        $currentUser = auth()->user();
+        $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
+
+        return new BrowseListingCardViewData(
+            kind: 'event',
+            id: (int) $event->id,
+            name: (string) $event->name,
+            logoUrl: $this->logoUrl($event->logo_path),
+            detailsUrl: route('events.show', $event),
+            editUrl: route('events.edit', $event),
+            isOwner: $isOwner,
+            isInterested: in_array((int) $event->id, $interestedIds, true),
+            interestWireMethod: 'toggleEventInterest',
+            timeSummary: format_date_range_compact($event->starts_at, $event->ends_at),
+            locationSummary: $this->eventLocationSummary($event),
+            hostingCornerLabel: null,
+            showParticipants: false,
+            participantsFilled: 0,
+            participantsMax: null,
+            badgeItems: $this->eventSlotTypeBadgeItems($event),
+            cardModifierClass: 'ui-card-event',
+            dataUiPrefix: 'event-card',
+            badgeGroupDataUi: 'event-card-slot-type-badges',
+            listingKindIcon: 'o-calendar-days',
+            listingKindTitle: __('ui.browse.listing_kind_event'),
+            editTitle: __('ui.events.edit_event'),
+            openAriaLabel: __('Open event').': '.$event->name,
+        );
+    }
+
+    private function logoUrl(?string $logoPath): ?string
+    {
+        if (! filled($logoPath)) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($logoPath);
+    }
+
+    private function activityHostingCornerLabel(int $hostingMode): ?string
+    {
+        return match ($hostingMode) {
+            Activity::HOSTING_MODE_DRAFT => __('ui.activities.hosting_modes.draft'),
+            Activity::HOSTING_MODE_PROPOSED_TO_EVENT => __('ui.activities.hosting_modes.proposed_to_event'),
+            default => null,
+        };
+    }
+
+    private function eventLocationSummary(Event $event): string
+    {
+        $venueSummary = $event->compactPlaceSummary();
+        if ($venueSummary !== '') {
+            return $venueSummary;
+        }
+
+        $locale = app()->getLocale();
+        $locationLabels = [];
+        foreach ($event->places as $place) {
+            $city = $place->city?->name($locale);
+            $country = $place->country?->name($locale);
+            $c = $city ? trim($city) : null;
+            $co = $country ? trim($country) : null;
+            if ($c !== null && $co !== null && mb_strtolower($c) === mb_strtolower($co)) {
+                $label = $c;
+            } else {
+                $label = implode(', ', array_filter([$c, $co]));
+            }
+            if ($label !== '') {
+                $locationLabels[mb_strtolower($label)] = $label;
+            }
+        }
+
+        return implode(' · ', array_values($locationLabels));
+    }
+
+    /**
+     * @return array<int, ActivityBadgeItem>
+     */
+    private function eventSlotTypeBadgeItems(Event $event): array
+    {
+        $slotTypeLabels = collect($event->slots ?? [])
+            ->flatMap(function ($slot) {
+                $activityTypeFromActivity = $slot->activity?->activityType?->slug
+                    ? [__('ui.activities.types.'.$slot->activity->activityType->slug)]
+                    : [];
+
+                $allowedTypesFromSlot = collect($slot->activityTypes ?? [])
+                    ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return array_merge($activityTypeFromActivity, $allowedTypesFromSlot);
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($slotTypeLabels->isEmpty()) {
+            return [];
+        }
+
+        return $this->badgeGroupBuilder->buildActivityTypeChips($slotTypeLabels, BadgeSemantic::Info);
+    }
+}

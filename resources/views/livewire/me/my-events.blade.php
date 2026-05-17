@@ -17,10 +17,9 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             @forelse ($events as $event)
-                <x-cards.event-card
-                    :event="$event"
-                    :interested-event-ids="$interestedEventIds ?? []"
-                    :participating-event-ids="$participatingEventIds ?? []"
+                <x-cards.listing-card
+                    :listing="$event"
+                    :interested-ids="$interestedEventIds ?? []"
                 />
             @empty
                 <div class="col-span-full rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">

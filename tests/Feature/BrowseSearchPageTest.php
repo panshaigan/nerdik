@@ -57,6 +57,8 @@ class BrowseSearchPageTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-ui="event-card"', false);
         $response->assertSee('data-ui="activity-card"', false);
+        $response->assertSee('ui-card-media-fade', false);
+        $response->assertDontSee('from-black/55', false);
         $response->assertSee($event->name, false);
         $response->assertSee($activity->name, false);
         $this->assertSame(1, substr_count($response->getContent(), 'data-ui="browse-card-participants"'));

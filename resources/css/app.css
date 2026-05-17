@@ -203,6 +203,12 @@
         }
     }
 
+    .ui-card-media-fade {
+        -webkit-mask-image: linear-gradient(to top, transparent 0%, black 42%);
+        mask-image: linear-gradient(to top, transparent 0%, black 42%);
+        mask-size: 100% 100%;
+    }
+
     .ui-tile-active {
         background: color-mix(in oklab, var(--brand-primary) 6%, rgba(255 255 255 / 0.06));
         backdrop-filter: blur(16px) saturate(1.4);

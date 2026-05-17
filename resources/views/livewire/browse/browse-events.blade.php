@@ -73,21 +73,11 @@
         @else
             <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6">
                 @forelse ($browseListings as $row)
-                    @if ($row['kind'] === 'event')
-                        <x-cards.event-card
-                            :event="$row['event']"
-                            :interested-event-ids="$interestedEventIds ?? []"
-                            :participating-event-ids="$participatingEventIds ?? []"
-                            :show-listing-kind="true"
-                        />
-                    @else
-                        <x-cards.activity-card
-                            :activity="$row['activity']"
-                            :interested-activity-ids="$interestedActivityIds ?? []"
-                            :participating-activity-ids="$participatingActivityIds ?? []"
-                            :show-listing-kind="true"
-                        />
-                    @endif
+                    <x-cards.listing-card
+                        :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
+                        :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
+                        :show-listing-kind="true"
+                    />
                 @empty
                     <div class="col-span-full">
                         <div class="rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
