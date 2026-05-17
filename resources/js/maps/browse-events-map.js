@@ -10,6 +10,33 @@ const BBOX_ZOOM = 6;
 /**
  * Push bbox hidden field values into the wrapping Livewire component (browse events).
  */
+function bboxValuesFromRoot(root) {
+    const minLatEl = document.getElementById('bbox_min_lat');
+    const maxLatEl = document.getElementById('bbox_max_lat');
+    const minLngEl = document.getElementById('bbox_min_lng');
+    const maxLngEl = document.getElementById('bbox_max_lng');
+
+    if (minLatEl && maxLatEl && minLngEl && maxLngEl) {
+        return {
+            min_lat: minLatEl.value,
+            max_lat: maxLatEl.value,
+            min_lng: minLngEl.value,
+            max_lng: maxLngEl.value,
+        };
+    }
+
+    if (!root?.dataset) {
+        return null;
+    }
+
+    return {
+        min_lat: root.dataset.bboxMinLat ?? '',
+        max_lat: root.dataset.bboxMaxLat ?? '',
+        min_lng: root.dataset.bboxMinLng ?? '',
+        max_lng: root.dataset.bboxMaxLng ?? '',
+    };
+}
+
 function syncLivewireBrowseMap(root) {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
         return;
@@ -40,20 +67,17 @@ function syncLivewireBrowseMap(root) {
         return;
     }
 
-    const minLatEl = document.getElementById('bbox_min_lat');
-    const maxLatEl = document.getElementById('bbox_max_lat');
-    const minLngEl = document.getElementById('bbox_min_lng');
-    const maxLngEl = document.getElementById('bbox_max_lng');
-    if (!minLatEl || !maxLatEl || !minLngEl || !maxLngEl) {
+    const values = bboxValuesFromRoot(root);
+    if (!values) {
         return;
     }
 
     const toNull = (v) => (v === '' || v === undefined || v === null ? null : v);
 
-    setProp('min_lat', toNull(minLatEl.value));
-    setProp('max_lat', toNull(maxLatEl.value));
-    setProp('min_lng', toNull(minLngEl.value));
-    setProp('max_lng', toNull(maxLngEl.value));
+    setProp('min_lat', toNull(values.min_lat));
+    setProp('max_lat', toNull(values.max_lat));
+    setProp('min_lng', toNull(values.min_lng));
+    setProp('max_lng', toNull(values.max_lng));
 }
 
 function invalidateMapSize(map) {
@@ -70,46 +94,46 @@ function containerIsMeasurable(root) {
     return root.offsetWidth >= 2 && root.offsetHeight >= 2;
 }
 
-function readBBoxFromInputs() {
-    const minLatEl = document.getElementById('bbox_min_lat');
-    const maxLatEl = document.getElementById('bbox_max_lat');
-    const minLngEl = document.getElementById('bbox_min_lng');
-    const maxLngEl = document.getElementById('bbox_max_lng');
-    if (!minLatEl || !maxLatEl || !minLngEl || !maxLngEl) {
-        return null;
-    }
-    const swLat = parseFloat(minLatEl.value);
-    const neLat = parseFloat(maxLatEl.value);
-    const swLng = parseFloat(minLngEl.value);
-    const neLng = parseFloat(maxLngEl.value);
+function parseBBoxValues(minLatRaw, maxLatRaw, minLngRaw, maxLngRaw) {
     const hasBbox =
-        minLatEl.value !== '' &&
-        maxLatEl.value !== '' &&
-        minLngEl.value !== '' &&
-        maxLngEl.value !== '' &&
-        !Number.isNaN(swLat) &&
-        !Number.isNaN(neLat) &&
-        !Number.isNaN(swLng) &&
-        !Number.isNaN(neLng);
+        minLatRaw !== '' &&
+        maxLatRaw !== '' &&
+        minLngRaw !== '' &&
+        maxLngRaw !== '' &&
+        minLatRaw !== undefined &&
+        maxLatRaw !== undefined &&
+        minLngRaw !== undefined &&
+        maxLngRaw !== undefined;
     if (!hasBbox) {
         return null;
     }
-    const south = Math.min(swLat, neLat);
-    const north = Math.max(swLat, neLat);
-    const west = Math.min(swLng, neLng);
-    const east = Math.max(swLng, neLng);
 
-    return { south, north, west, east };
+    const swLat = parseFloat(String(minLatRaw));
+    const neLat = parseFloat(String(maxLatRaw));
+    const swLng = parseFloat(String(minLngRaw));
+    const neLng = parseFloat(String(maxLngRaw));
+    if (Number.isNaN(swLat) || Number.isNaN(neLat) || Number.isNaN(swLng) || Number.isNaN(neLng)) {
+        return null;
+    }
+
+    return {
+        south: Math.min(swLat, neLat),
+        north: Math.max(swLat, neLat),
+        west: Math.min(swLng, neLng),
+        east: Math.max(swLng, neLng),
+    };
+}
+
+function readBBoxFromInputs(root) {
+    const values = bboxValuesFromRoot(root);
+    if (!values) {
+        return null;
+    }
+
+    return parseBBoxValues(values.min_lat, values.max_lat, values.min_lng, values.max_lng);
 }
 
 function applyBoundsToInputs(bounds, root) {
-    const mMinLat = document.getElementById('bbox_min_lat');
-    const mMaxLat = document.getElementById('bbox_max_lat');
-    const mMinLng = document.getElementById('bbox_min_lng');
-    const mMaxLng = document.getElementById('bbox_max_lng');
-    if (!mMinLat || !mMaxLat || !mMinLng || !mMaxLng) {
-        return;
-    }
     const south = bounds.getSouth();
     const north = bounds.getNorth();
     const west = bounds.getWest();
@@ -117,10 +141,30 @@ function applyBoundsToInputs(bounds, root) {
     if (!Number.isFinite(south) || !Number.isFinite(north) || !Number.isFinite(west) || !Number.isFinite(east)) {
         return;
     }
-    mMinLat.value = south.toFixed(5);
-    mMaxLat.value = north.toFixed(5);
-    mMinLng.value = west.toFixed(5);
-    mMaxLng.value = east.toFixed(5);
+
+    const minLat = south.toFixed(5);
+    const maxLat = north.toFixed(5);
+    const minLng = west.toFixed(5);
+    const maxLng = east.toFixed(5);
+
+    const mMinLat = document.getElementById('bbox_min_lat');
+    const mMaxLat = document.getElementById('bbox_max_lat');
+    const mMinLng = document.getElementById('bbox_min_lng');
+    const mMaxLng = document.getElementById('bbox_max_lng');
+    if (mMinLat && mMaxLat && mMinLng && mMaxLng) {
+        mMinLat.value = minLat;
+        mMaxLat.value = maxLat;
+        mMinLng.value = minLng;
+        mMaxLng.value = maxLng;
+    }
+
+    if (root?.dataset) {
+        root.dataset.bboxMinLat = minLat;
+        root.dataset.bboxMaxLat = maxLat;
+        root.dataset.bboxMinLng = minLng;
+        root.dataset.bboxMaxLng = maxLng;
+    }
+
     syncLivewireBrowseMap(root);
 }
 
@@ -141,6 +185,14 @@ function clearInputsAndSync(root) {
     if (mMaxLng) {
         mMaxLng.value = '';
     }
+
+    if (root?.dataset) {
+        root.dataset.bboxMinLat = '';
+        root.dataset.bboxMaxLat = '';
+        root.dataset.bboxMinLng = '';
+        root.dataset.bboxMaxLng = '';
+    }
+
     syncLivewireBrowseMap(root);
 }
 
@@ -346,7 +398,7 @@ function startBrowseEventsMap(root) {
     root.dataset.leafletBrowseMapInit = '1';
 
     try {
-        const bbox = readBBoxFromInputs();
+        const bbox = readBBoxFromInputs(root);
         const center = bbox ? [(bbox.south + bbox.north) / 2, (bbox.west + bbox.east) / 2] : DEFAULT_CENTER;
         const zoom = bbox ? BBOX_ZOOM : DEFAULT_ZOOM;
 
