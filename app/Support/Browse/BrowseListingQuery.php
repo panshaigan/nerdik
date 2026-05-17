@@ -24,12 +24,7 @@ final class BrowseListingQuery
             $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
         }
 
-        if ($filters->q !== '') {
-            $term = '%'.mb_strtolower($filters->q).'%';
-            $query->where(fn (Builder $q) => $q
-                ->whereRaw('LOWER(events.name) LIKE ?', [$term])
-                ->orWhereRaw('LOWER(events.description) LIKE ?', [$term]));
-        }
+        BrowseFullTextSearch::apply($query, $filters->q, 'events.search_vector');
 
         BrowseTagFilter::apply($query, $filters->tagIds, $filters->tagsMatchAll, 'slots.activity.tags');
 
@@ -53,12 +48,7 @@ final class BrowseListingQuery
     {
         $query = Activity::query()->attachedToPublicEvent(! $filters->includePastEvents);
 
-        if ($filters->q !== '') {
-            $term = '%'.mb_strtolower($filters->q).'%';
-            $query->where(fn (Builder $q) => $q
-                ->whereRaw('LOWER(activities.name) LIKE ?', [$term])
-                ->orWhereRaw('LOWER(activities.description) LIKE ?', [$term]));
-        }
+        BrowseFullTextSearch::apply($query, $filters->q, 'activities.search_vector');
 
         BrowseTagFilter::apply($query, $filters->tagIds, $filters->tagsMatchAll, 'tags');
 

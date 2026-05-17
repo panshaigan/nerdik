@@ -9,6 +9,7 @@ A system for organizing and participating in nerd events (RPG sessions, board ga
 - **Start:** `make up` then open http://localhost (or your Sail URL)
 - **Artisan:** run via Sail, e.g. `./vendor/bin/sail artisan migrate` or use Makefile: `make migrate`, `make seed`, `make test`, `make queue`
 - **Assets:** after `git pull` or dependency changes, run `make npm-install` then `make npm-build` (or `make npm-dev` while developing). Production builds use `npm run build` (Vite); the admin panel (Filament) ships its own compiled CSS separately from this bundle.
+- **Polish full-text search:** On first Postgres volume init, Sail runs [`docker/pgsql/init-polish-fts.sql`](docker/pgsql/init-polish-fts.sql) (dictionaries and `polish` text search config). Migrations also apply the same catalog idempotently (needed for the `testing` database and existing volumes). After pulling this setup on an old volume, run `make migrate`, or reset the DB volume with `./vendor/bin/sail down -v`, `./vendor/bin/sail up -d`, and `make migrate`.
 
 ## Seeding sample data
 

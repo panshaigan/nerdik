@@ -12,6 +12,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
+use App\Support\Browse\BrowseFullTextSearch;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -148,12 +149,7 @@ class BrowseActivities extends Component
 
         $this->applyBrowseTagFilter($query, 'tags');
 
-        if ($this->q !== '') {
-            $term = '%'.mb_strtolower($this->q).'%';
-            $query->where(fn ($q) => $q
-                ->whereRaw('LOWER(name) LIKE ?', [$term])
-                ->orWhereRaw('LOWER(description) LIKE ?', [$term]));
-        }
+        BrowseFullTextSearch::apply($query, $this->q, 'activities.search_vector');
 
         $this->applyBrowseActivitySort($query);
 
