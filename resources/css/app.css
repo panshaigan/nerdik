@@ -28,10 +28,10 @@
         --brand-primary-dark:      oklch(from var(--brand-primary) calc(l - 0.12) c h);
         --brand-primary-content:   oklch(98% 0.01 240);
 
-        --brand-secondary: oklch(0.803 0.147 133.745);
+        --brand-secondary: oklch(62% 0.26 292);
         --brand-secondary-content: oklch(98% 0.01 182);
 
-        --brand-accent:            oklch(62% 0.26 292);
+        --brand-accent:            oklch(0.803 0.147 133.745);
         --brand-accent-content:    oklch(98% 0.01 292);
 
         --brand-info:              oklch(62% 0.19 228);
