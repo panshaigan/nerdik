@@ -175,7 +175,7 @@ class BrowseActivities extends Component
             'places' => $places,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
-            'tags' => Tag::query()->orderedForSelector()->get(),
+            'tags' => Tag::query()->forBrowseSelector($this->tag_ids),
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
             'includeEventPreviewModal' => false,
         ]);

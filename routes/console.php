@@ -10,5 +10,6 @@ Artisan::command('inspire', function () {
 
 Schedule::command('telescope:prune')->daily();
 Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
+Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
 
 // Schedule::command('model:prune')->daily();

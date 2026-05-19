@@ -392,11 +392,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tag_category_id')->nullable()->constrained('tag_categories')->nullOnDelete();
             $table->string('logo_path')->nullable();
+            $table->unsignedInteger('popularity_score')->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index(['popularity_score']);
         });
 
         // ------------------------------------------------------------------ //

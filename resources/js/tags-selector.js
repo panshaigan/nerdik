@@ -20,6 +20,66 @@ function sameNewTagsPayload(a, b) {
     return JSON.stringify(a || []) === JSON.stringify(b || []);
 }
 
+function sortByPopularity(tags) {
+    return [...tags].sort((a, b) => {
+        const scoreDiff = (Number(b.popularity_score) || 0) - (Number(a.popularity_score) || 0);
+        if (scoreDiff !== 0) {
+            return scoreDiff;
+        }
+        return Number(a.id) - Number(b.id);
+    });
+}
+
+function tagCategoryKey(tag) {
+    return String(tag?.category_key || '').trim();
+}
+
+function orderedCategoryKeysForDisplay(categoryOrder, groupedKeys) {
+    const seen = new Set();
+    const ordered = [];
+    (categoryOrder || []).forEach((key) => {
+        const normalized = String(key || '').trim();
+        if (!normalized || seen.has(normalized) || !groupedKeys.has(normalized)) {
+            return;
+        }
+        seen.add(normalized);
+        ordered.push(normalized);
+    });
+    [...groupedKeys].sort().forEach((key) => {
+        if (!seen.has(key)) {
+            ordered.push(key);
+        }
+    });
+    return ordered;
+}
+
+function fillTagsByCategoryOrder(pool, categoryOrder, maxResults) {
+    const byKey = new Map();
+    pool.forEach((tag) => {
+        const key = tagCategoryKey(tag) || 'other';
+        if (!byKey.has(key)) {
+            byKey.set(key, []);
+        }
+        byKey.get(key).push(tag);
+    });
+    byKey.forEach((tags, key) => {
+        byKey.set(key, sortByPopularity(tags));
+    });
+
+    const keys = orderedCategoryKeysForDisplay(categoryOrder, new Set(byKey.keys()));
+    const result = [];
+    for (const key of keys) {
+        const tags = byKey.get(key) || [];
+        for (const tag of tags) {
+            if (result.length >= maxResults) {
+                return result;
+            }
+            result.push(tag);
+        }
+    }
+    return result;
+}
+
 /**
  * Sync tag state into the nearest Livewire component that wraps this selector.
  * Window-level Alpine listeners using $wire can attach to the wrong component when multiple Livewire roots exist (e.g. nav + form).
@@ -84,6 +144,14 @@ export function initTagSelector(root) {
     const allTags = Array.isArray(cfg.tags) ? cfg.tags : [];
     const categories = Array.isArray(cfg.categories) ? cfg.categories : [];
     const categoryNameById = new Map(categories.map((c) => [Number(c.id), String(c.name || '')]));
+    const categoryNameByKey = new Map(categories.map((c) => [String(c.key || ''), String(c.name || '')]));
+    const browseSuggestions = cfg.browseSuggestions || null;
+    const browseCategoryOrder = Array.isArray(browseSuggestions?.categoryOrder) ? browseSuggestions.categoryOrder : [];
+    const browseHiddenOnEmpty = new Set(
+        Array.isArray(browseSuggestions?.hiddenCategoryKeysOnEmptySearch)
+            ? browseSuggestions.hiddenCategoryKeysOnEmptySearch.map((k) => String(k || '').trim()).filter(Boolean)
+            : []
+    );
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
     const selected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
     const explicitSelected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
@@ -371,20 +439,30 @@ export function initTagSelector(root) {
         activeIndex = -1;
         const qn = norm(q);
 
+        let pool = allTags;
+        if (!qn && browseHiddenOnEmpty.size > 0) {
+            pool = pool.filter((tag) => !browseHiddenOnEmpty.has(tagCategoryKey(tag)));
+        }
+
         let found;
         if (!qn) {
-            found = allTags.slice(0, MAX_RESULTS);
+            found = fillTagsByCategoryOrder(pool, browseCategoryOrder, MAX_RESULTS);
         } else {
-            found = allTags
-                .map((tag) => {
-                    const labels = Object.values(tag.labels || {}).map(norm);
-                    const aliases = (tag.aliases || []).map((a) => norm(a));
-                    const hay = [...labels, ...aliases, norm(tag.slug)];
-                    const matched = hay.some((h) => h.includes(qn));
-                    return matched ? tag : null;
-                })
-                .filter(Boolean)
-                .slice(0, MAX_RESULTS);
+            found = fillTagsByCategoryOrder(
+                sortByPopularity(
+                    pool
+                        .map((tag) => {
+                            const labels = Object.values(tag.labels || {}).map(norm);
+                            const aliases = (tag.aliases || []).map((a) => norm(a));
+                            const hay = [...labels, ...aliases, norm(tag.slug)];
+                            const matched = hay.some((h) => h.includes(qn));
+                            return matched ? tag : null;
+                        })
+                        .filter(Boolean)
+                ),
+                browseCategoryOrder,
+                MAX_RESULTS
+            );
         }
 
         if (!found.length) {
@@ -394,9 +472,16 @@ export function initTagSelector(root) {
 
         const grouped = new Map();
         found.forEach((tag) => {
-            const cat = tag.category_name || categoryNameById.get(Number(tag.category_id || 0)) || 'other';
-            if (!grouped.has(cat)) grouped.set(cat, []);
-            grouped.get(cat).push(tag);
+            const key = tagCategoryKey(tag) || 'other';
+            if (!grouped.has(key)) {
+                const displayName =
+                    tag.category_name ||
+                    categoryNameByKey.get(key) ||
+                    categoryNameById.get(Number(tag.category_id || 0)) ||
+                    key;
+                grouped.set(key, { displayName, tags: [] });
+            }
+            grouped.get(key).tags.push(tag);
         });
 
         const exact = qn
@@ -408,12 +493,21 @@ export function initTagSelector(root) {
             : false;
 
         const frag = document.createDocumentFragment();
-        grouped.forEach((rows, cat) => {
+        const groupKeys =
+            browseCategoryOrder.length > 0
+                ? orderedCategoryKeysForDisplay(browseCategoryOrder, new Set(grouped.keys()))
+                : [...grouped.keys()];
+
+        groupKeys.forEach((key) => {
+            const group = grouped.get(key);
+            if (!group) {
+                return;
+            }
             const head = document.createElement('div');
             head.className = 'px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-base-content/50';
-            head.textContent = cat;
+            head.textContent = group.displayName;
             frag.appendChild(head);
-            rows.forEach((t) => {
+            group.tags.forEach((t) => {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.dataset.tsItem = '1';

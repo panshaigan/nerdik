@@ -437,7 +437,7 @@ class BrowseEvents extends Component
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,
-            'tags' => Tag::query()->orderedForSelector()->get(),
+            'tags' => Tag::query()->forBrowseSelector($this->tag_ids),
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
             ...$this->resolveEventPreviewViewData($listingCardPresenter),
             'includeEventPreviewModal' => true,
