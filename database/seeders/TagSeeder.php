@@ -55,8 +55,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
-                'en' => 'Foreign language stuff',
-                'pl' => 'Materiały w języku obcym',
+                'pl' => 'Po angielsku',
+                'en' => 'In english',
             ],
             [
                 'category' => TagCategory::KEY_OTHER,
@@ -275,122 +275,52 @@ class TagSeeder extends Seeder
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Forgotten Realms',
+                'relations' => [$this->tagIds['High Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Middle-earth',
                 'pl' => 'Śródziemie',
+                'relations' => [$this->tagIds['High Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Warhammer Fantasy',
+                'relations' => [$this->tagIds['Dark Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Warhammer 40k',
+                'relations' => [$this->tagIds['Science Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Cthulhu Mythos',
                 'pl' => 'Mitologia Cthulhu',
                 'aliases' => ['en' => 'Lovecraftian Mythos'],
+                'relations' => [$this->tagIds['Horror']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'World of Darkness',
+                'aliases' => ['en' => 'WoD'],
+                'relations' => [$this->tagIds['Urban Fantasy'], $this->tagIds['Horror']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Star Wars',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Star Trek',
+                'relations' => [$this->tagIds['Space Opera']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Harry Potter',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Dune',
-                'pl' => 'Diuna',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'The Witcher',
-                'pl' => 'Wiedźmin',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Elder Scrolls',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Shadowrun',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Cyberpunk RED / 2077',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Aliens',
-                'pl' => 'Obcy',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Marvel Universe',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'DC Universe',
+                'relations' => [$this->tagIds['Urban Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_SETTING,
                 'en' => 'Game of Thrones',
                 'pl' => 'Gra o Tron',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Fallout',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Mass Effect',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Dragonlance',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Eberron',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Ravenloft',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Planescape',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Battletech',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Halo',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'The Expanse',
-            ],
-            [
-                'category' => TagCategory::KEY_SETTING,
-                'en' => 'Middle-earth',
-                'pl' => 'Śródziemie',
+                'relations' => [$this->tagIds['Low Fantasy']],
             ],
         ];
 
@@ -415,7 +345,12 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
+                'en' => 'Superhero',
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
                 'en' => 'Alternate History',
+                'pl' => 'Historia alternatywna',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
@@ -429,22 +364,12 @@ class TagSeeder extends Seeder
         $tags = [
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Heroic fantasy',
-                'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
                 'en' => 'High Fantasy',
                 'relations' => [$this->tagIds['Fantasy']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Low Fantasy',
-                'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Sword & Sorcery',
                 'relations' => [$this->tagIds['Fantasy']],
             ],
             [
@@ -459,25 +384,9 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Weird Fiction',
+                'en' => 'Sword & Sorcery',
+                'aliases' => ['en' => 'Heroic Fantasy'],
                 'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Superhero',
-                'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Science Fantasy',
-                'aliases' => ['en' => 'Grimdark'],
-                'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Hard Science Fiction',
-                'aliases' => ['en' => 'Hard SF'],
-                'relations' => [$this->tagIds['Science Fiction']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
@@ -491,78 +400,18 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Cosmic Horror',
-                'relations' => [$this->tagIds['Horror']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Psychological Horror',
-                'relations' => [$this->tagIds['Horror']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Supernatural Horror',
-                'aliases' => ['en' => 'Paranormal Horror'],
-                'relations' => [$this->tagIds['Horror']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Survival Horror',
-                'relations' => [$this->tagIds['Horror']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Weird West',
-                'relations' => [$this->tagIds['Fantasy']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
                 'en' => 'Steampunk',
                 'relations' => [$this->tagIds['Science Fiction']],
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Dieselpunk',
+                'en' => 'Post-Apocalyptic',
                 'relations' => [$this->tagIds['Science Fiction']],
             ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Tech Noir',
-                'relations' => [$this->tagIds['Science Fiction']],
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Noir',
-            ],
+
             [
                 'category' => TagCategory::KEY_GENRE,
                 'en' => 'Western',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Wild West',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Pulp',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Swashbuckling',
-                'pl' => 'Przygodowa',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Mecha',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Military',
-                'pl' => 'Wojenna',
-            ],
-            [
-                'category' => TagCategory::KEY_GENRE,
-                'en' => 'Wuxia',
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
@@ -570,8 +419,12 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_GENRE,
-                'en' => 'Post-Apocalyptic',
-                'relations' => [$this->tagIds['Science Fiction']],
+                'en' => 'Weird Fiction',
+            ],
+            [
+                'category' => TagCategory::KEY_GENRE,
+                'en' => 'Science Fantasy',
+                'aliases' => ['en' => 'Grimdark'],
             ],
         ];
 
@@ -850,14 +703,21 @@ class TagSeeder extends Seeder
                 'category' => 'game',
                 'en' => 'Dungeons & Dragons 5E',
                 'aliases' => ['en' => 'D&D'],
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['5E'], $this->tagIds['Forgotten Realms']],
+                'relations' => [$this->tagIds['5E'], $this->tagIds['Forgotten Realms']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Warhammer Fantasy Roleplay 4E',
-                'aliases' => ['en' => 'WFRP4'],
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d100'], $this->tagIds['Warhammer Fantasy']],
+                'aliases' => ['en' => 'WFRP 4ed'],
+                'relations' => [$this->tagIds['d100'], $this->tagIds['Warhammer Fantasy']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Warhammer Fantasy Roleplay 2E',
+                'aliases' => ['en' => 'WFRP 2ed'],
+                'relations' => [$this->tagIds['d100'], $this->tagIds['Warhammer Fantasy']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -869,15 +729,73 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => 'game',
-                'en' => 'Call of Cthulhu',
-                'pl' => 'Zew Cthulhu',
-                'relations' => [$this->tagIds['Horror'], $this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
+                'en' => 'Tales from the Loop',
+                'pl' => 'Tajemnice Pętli',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Year Zero Engine']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'Neuroshima',
-                'relations' => [$this->tagIds['Science Fiction']],
+                'en' => 'Blade Runner',
+                'relations' => [$this->tagIds['Cyberpunk'], $this->tagIds['Year Zero Engine']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Trophy Dark',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Fantasy'], $this->tagIds['OSR']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Mothership',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Science Fiction'], $this->tagIds['OSR']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Liminal Horror',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['OSR']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Warlock',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['OSR']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Maze Rats',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['OSR']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Call of Cthulhu',
+                'pl' => 'Zew Cthulhu',
+                'relations' => [$this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Trail of Cthulhu',
+                'pl' => 'Na tropie Cthulhu',
+                'relations' => [$this->tagIds['Gumshoe'], $this->tagIds['Cthulhu Mythos']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Kids on Bikes',
+                'pl' => 'Dzieciaki na rowerach',
+                'relations' => [$this->tagIds['Mystery'], $this->tagIds['Gumshoe']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Kids on Brooms',
+                'pl' => 'Dzieciaki na miotłach',
+                'relations' => [$this->tagIds['Urban Fantasy'], $this->tagIds['Gumshoe']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -889,7 +807,19 @@ class TagSeeder extends Seeder
             [
                 'category' => 'game',
                 'en' => 'Cyberpunk RED',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool']],
+                'relations' => [$this->tagIds['Cyberpunk'], $this->tagIds['Dice Pool']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Star Trek Adventures',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['2d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Never Going Home',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Dice Pool']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -901,29 +831,52 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => 'game',
+                'en' => 'The One Ring',
+                'pl' => 'Jedyny Pierścień',
+                'aliases' => ['en' => 'LotR'],
+                'relations' => [$this->tagIds['Middle-earth'], $this->tagIds['Dice Pool']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Shadow of the Demon Lord',
+                'pl' => 'Cień władcy demonów',
+                'aliases' => ['en' => 'PF2E'],
+                'relations' => [$this->tagIds['Dark Fantasy'], $this->tagIds['d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
                 'en' => 'Blades in the Dark',
                 'pl' => 'Ostrza w mroku',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Forged in the Dark']],
+                'relations' => [$this->tagIds['Steampunk'], $this->tagIds['Forged in the Dark']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'Vampire: The Masquerade 5E',
-                'pl' => 'Wampir: Maskarada 5E',
-                'relations' => [$this->tagIds['Horror'], $this->tagIds['Dice Pool'], $this->tagIds['World of Darkness']],
+                'en' => 'Vampire: The Masquerade',
+                'pl' => 'Wampir: Maskarada',
+                'relations' => [$this->tagIds['Dice Pool'], $this->tagIds['World of Darkness']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'The One Ring',
-                'pl' => 'Władca Pierścieni',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Middle-earth']],
+                'en' => 'Werewolf: The Apocalipse',
+                'pl' => 'Wilkołak: Apokalipsa',
+                'relations' => [$this->tagIds['Dice Pool'], $this->tagIds['World of Darkness']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'Deadlands: Martwe Ziemie',
-                'relations' => [$this->tagIds['Savage Worlds'], $this->tagIds['Weird West']],
+                'en' => 'Hunter: The Reckoning',
+                'pl' => 'Łowca: Porachunek',
+                'relations' => [$this->tagIds['Dice Pool'], $this->tagIds['World of Darkness']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Deadlands',
+                'relations' => [$this->tagIds['Savage Worlds'], $this->tagIds['Weird Fiction']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -935,49 +888,63 @@ class TagSeeder extends Seeder
             [
                 'category' => 'game',
                 'en' => 'Mörk Borg',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Mörk Borg TPL']],
+                'relations' => [$this->tagIds['Dark Fantasy'], $this->tagIds['Mörk Borg TPL']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Pirat Borg',
+                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Historical'], $this->tagIds['Mörk Borg TPL']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Alien',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool']],
+                'pl' => 'Obcy RPG',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Horror'], $this->tagIds['Dice Pool']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'Coriolis',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Year Zero Engine']],
-                'contexts' => [ActivityType::SLUG_RPG],
-            ],
-            [
-                'category' => 'game',
-                'en' => 'Wolsung',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d20'], $this->tagIds['Steampunk']],
+                'en' => 'The Walking Dead',
+                'relations' => [$this->tagIds['Post-Apocalyptic'], $this->tagIds['Year Zero Engine']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Conan: Adventures in an Age Undreamed Of',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['2d20']],
+                'relations' => [$this->tagIds['Sword & Sorcery'], $this->tagIds['2d20']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
-                'en' => 'Star Wars: Edge of the Empire',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['Genesys'], $this->tagIds['Star Wars']],
+                'en' => 'Dune',
+                'pl' => 'Diuna',
+                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['2d20']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Achtung Cthulhu',
+                'relations' => [$this->tagIds['2d20'], $this->tagIds['Cthulhu Mythos']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Star Wars (FF)',
+                'relations' => [$this->tagIds['Genesys'], $this->tagIds['Star Wars']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Delta Green',
-                'relations' => [$this->tagIds['Horror'], $this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
+                'relations' => [$this->tagIds['Basic Role-Playing'], $this->tagIds['Cthulhu Mythos']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Monster of the Week',
-                'relations' => [$this->tagIds['Horror'], $this->tagIds['Powered by the Apocalypse']],
+                'relations' => [$this->tagIds['Urban Fantasy'], $this->tagIds['Powered by the Apocalypse']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -988,20 +955,7 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => 'game',
-                'en' => 'Shadowrun 6E',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['Dice Pool'], $this->tagIds['Shadowrun']],
-                'contexts' => [ActivityType::SLUG_RPG],
-            ],
-            [
-                'category' => 'game',
-                'en' => 'Starfinder',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['d20']],
-                'contexts' => [ActivityType::SLUG_RPG],
-            ],
-            [
-                'category' => 'game',
                 'en' => 'Fate Core',
-                'relations' => [],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -1012,20 +966,14 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => 'game',
-                'en' => 'Monastyr',
-                'relations' => [$this->tagIds['Fantasy']],
-                'contexts' => [ActivityType::SLUG_RPG],
-            ],
-            [
-                'category' => 'game',
-                'en' => 'Kryształy Czasu',
-                'relations' => [$this->tagIds['Fantasy'], $this->tagIds['d100']],
-                'contexts' => [ActivityType::SLUG_RPG],
-            ],
-            [
-                'category' => 'game',
                 'en' => 'Vaesen',
                 'relations' => [$this->tagIds['Horror'], $this->tagIds['Year Zero Engine']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Brindlewood Bay',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Carved from Brindlewood']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
@@ -1037,13 +985,20 @@ class TagSeeder extends Seeder
             [
                 'category' => 'game',
                 'en' => 'Fallout',
-                'relations' => [$this->tagIds['Science Fiction'], $this->tagIds['2d20']],
+                'relations' => [$this->tagIds['Post-Apocalyptic'], $this->tagIds['2d20']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [
                 'category' => 'game',
                 'en' => 'Kult: Divinity Lost',
+                'pl' => 'Kult: Boskość Utracona',
                 'relations' => [$this->tagIds['Horror'], $this->tagIds['Powered by the Apocalypse']],
+                'contexts' => [ActivityType::SLUG_RPG],
+            ],
+            [
+                'category' => 'game',
+                'en' => 'Ten Candles',
+                'relations' => [$this->tagIds['Horror'], $this->tagIds['Dice Pool']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],
             [

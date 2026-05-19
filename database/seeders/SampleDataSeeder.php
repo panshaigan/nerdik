@@ -84,7 +84,7 @@ class SampleDataSeeder extends Seeder
         $this->callWith(UserSeeder::class, ['dataset' => $dataset]);
         $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
 
-        $activityTypes = ActivityType::all();
+        $activityTypes = ActivityType::where('slug', ActivityType::SLUG_RPG)->get();
         $organizers    = User::where('is_event_organizer', 1)->get();
         $allUsers      = User::all();
         $venues        = Place::where('type', Place::TYPE_VENUE)->get();
