@@ -32,6 +32,16 @@ class Tag extends Model
         'category',
     ];
 
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'popularity_score' => 'integer',
+        ];
+    }
+
     public function translations(): HasMany
     {
         return $this->hasMany(TagTranslation::class);

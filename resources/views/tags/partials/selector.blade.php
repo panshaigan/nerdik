@@ -22,28 +22,37 @@
         ->get()
         ->map(fn (TagCategory $cat) => [
             'id' => (int) $cat->id,
+            'key' => (string) $cat->key,
             'name' => (string) $cat->name($locale),
         ])
         ->values()
         ->all();
     $categoryNamesById = collect($categories)->mapWithKeys(fn ($c) => [(int) $c['id'] => (string) $c['name']])->all();
-    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale, $categoryNamesById) {
+    $categoryKeysById = collect($categories)->mapWithKeys(fn ($c) => [(int) $c['id'] => (string) $c['key']])->all();
+    $browseTagSelector = ($browseTagSelector ?? false) === true;
+    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale, $categoryNamesById, $categoryKeysById, $browseTagSelector) {
         $localeTranslation = collect($tag->translations ?? [])->firstWhere('locale', $locale);
         $fallbackTranslation = $localeTranslation ?: collect($tag->translations ?? [])->firstWhere('locale', 'en');
         $categoryId = (int) ($tag->tag_category_id ?? 0);
         $categoryName = (string) (($tag->tagCategory?->name($locale) ?? '') ?: ($categoryNamesById[$categoryId] ?? ''));
-        return [
+        $categoryKey = (string) (($tag->tagCategory?->key ?? '') ?: ($categoryKeysById[$categoryId] ?? ''));
+        $payload = [
             'id' => (int) $tag->id,
             'category_id' => $categoryId,
+            'category_key' => $categoryKey,
             'category_name' => $categoryName,
             'slug' => (string) ($fallbackTranslation?->slug ?? ''),
             'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
             'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
-            'related_ids' => collect($tag->tagRelations ?? [])->pluck('related_tag_id')->map(fn ($id) => (int) $id)->values()->all(),
+            'popularity_score' => (int) ($tag->popularity_score ?? 0),
         ];
+        if (! $browseTagSelector) {
+            $payload['related_ids'] = collect($tag->tagRelations ?? [])->pluck('related_tag_id')->map(fn ($id) => (int) $id)->values()->all();
+        }
+
+        return $payload;
     })->values()->all();
     $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
-    $browseTagSelector = ($browseTagSelector ?? false) === true;
     $allowCreate = ($allowCreate ?? true) !== false;
     $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
     $browseTextSearch = ($browseTextSearch ?? false) === true;
@@ -69,6 +78,12 @@
             'enabled' => true,
             'property' => 'q',
             'value' => (string) ($browseTextValue ?? ''),
+        ];
+    }
+    if ($browseTagSelector) {
+        $tagSelectorConfig['browseSuggestions'] = [
+            'categoryOrder' => config('browse.tag_suggestions.category_order', []),
+            'hiddenCategoryKeysOnEmptySearch' => config('browse.tag_suggestions.hidden_category_keys_on_empty_search', []),
         ];
     }
 @endphp

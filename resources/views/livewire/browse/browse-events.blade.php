@@ -4,7 +4,7 @@
             class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell"
             data-ui="browse-events-form"
         >
-            <div class="space-y-3">
+            <div class="mx-auto space-y-3 max-w-5xl">
                 @include('livewire.browse.partials.tag-filter', [
                     'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
                 ])
