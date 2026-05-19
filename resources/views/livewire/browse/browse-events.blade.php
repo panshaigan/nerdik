@@ -1,45 +1,42 @@
 <div class="py-12">
-    <div class="mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
         <div
             class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell"
             data-ui="browse-events-form"
-            x-data="{ filtersOpen: false }"
         >
-            <div class="flex items-start gap-4">
-                <div class="min-w-0 flex-1 space-y-3">
-                    @include('livewire.browse.partials.tag-filter', [
-                        'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
-                    ])
-                    <div
-                        x-show="filtersOpen"
-                        x-cloak
-                        class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
-                        data-ui="browse-events-filters-panel"
-                    >
-                        @include('livewire.browse.partials.listing-type-filter')
-                    </div>
-                </div>
-                <div class="browse-events-filter-toolbar shrink-0 self-start">
-                    @include('livewire.browse.partials.tag-filter-toggles')
+            <div class="space-y-3">
+                @include('livewire.browse.partials.tag-filter', [
+                    'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
+                ])
+                <div
+                    x-show="filtersOpen"
+                    x-cloak
+                    class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
+                    data-ui="browse-events-filters-panel"
+                >
+                    @include('livewire.browse.partials.listing-type-filter')
                 </div>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-4">
             @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
-            <x-button
-                type="button"
-                wire:click="toggleMapView"
-                wire:key="browse-events-map-view-toggle"
-                class="btn btn-sm rounded-xl {{ $map_view ? 'btn-accent' : 'btn-outline btn-neutral' }}"
-                :title="__('ui.browse.map_view_toggle')"
-                :aria-label="__('ui.browse.map_view_toggle')"
-                aria-pressed="{{ $map_view ? 'true' : 'false' }}"
-                data-ui="browse-events-map-toggle"
-            >
-                <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                {{ __('ui.browse.map_view_toggle') }}
-            </x-button>
+            <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0">
+                @include('livewire.browse.partials.tag-filter-toggles')
+                <x-button
+                    type="button"
+                    wire:click="toggleMapView"
+                    wire:key="browse-events-map-view-toggle"
+                    class="btn btn-sm rounded-xl {{ $map_view ? 'btn-accent' : 'btn-outline btn-neutral' }}"
+                    :title="__('ui.browse.map_view_toggle')"
+                    :aria-label="__('ui.browse.map_view_toggle')"
+                    aria-pressed="{{ $map_view ? 'true' : 'false' }}"
+                    data-ui="browse-events-map-toggle"
+                >
+                    <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
+                    {{ __('ui.browse.map_view_toggle') }}
+                </x-button>
+            </div>
         </div>
 
         @if ($map_view)
