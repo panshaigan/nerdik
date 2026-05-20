@@ -68,7 +68,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee(__('ui.activities.show_details'));
     }
 
-    public function test_listing_activity_preview_shows_participation_tab_but_not_join_actions(): void
+    public function test_listing_activity_preview_hides_participation_tab_and_join_actions(): void
     {
         $owner = User::factory()->create();
         $viewer = User::factory()->create();
@@ -105,7 +105,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->actingAs($viewer)
             ->test(BrowseActivities::class)
             ->call('openListingActivityPreview', $activity->id)
-            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertDontSeeHtml('data-ui="event-activity-preview-tab-participation"')
             ->assertDontSeeHtml('wire:target="joinPreviewActivity"')
             ->assertDontSeeHtml('wire:target="leavePreviewActivity"');
     }

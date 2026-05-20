@@ -31,7 +31,8 @@ final class BrowseListingCardPresenter
             : (int) $activity->participants()->where('is_absent', false)->count();
         $timeSourceStartsAt = $activity->slot?->starts_at ?? $activity->starts_at;
         $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
-        $venueName = $activity->slot?->place?->name ?? $activity->place?->name;
+        $place = $activity->slot?->place ?? $activity->place;
+        $venueName = $place?->venueName() ?? '';
 
         return new BrowseListingCardViewData(
             kind: 'activity',

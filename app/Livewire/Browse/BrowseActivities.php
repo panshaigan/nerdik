@@ -110,7 +110,7 @@ class BrowseActivities extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
     ) {
-        $query = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
+        $query = Activity::with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place.parent', 'place.parent'])
             ->attachedToPublicEvent();
 
         if (filled($this->from_date)) {

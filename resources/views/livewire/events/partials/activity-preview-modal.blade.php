@@ -40,7 +40,7 @@
                     ])
                 </x-tab>
 
-                @if ($previewActivityHasActiveEnrollmentWindow)
+                @if ($showPreviewParticipationActions && $previewActivityHasActiveEnrollmentWindow)
                     <x-tab name="participation" :label="$previewParticipationLabel" class="!p-0" data-ui="event-activity-preview-tab-participation" icon="o-users">
                         @include('livewire.events.partials.activity-preview-participation-tab', [
                             'activity' => $previewActivity,

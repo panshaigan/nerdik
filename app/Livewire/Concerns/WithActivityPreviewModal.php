@@ -55,7 +55,9 @@ trait WithActivityPreviewModal
             ->with('slot.event.enrollmentWindows')
             ->whereKey($this->previewActivityId)
             ->first();
-        if ($activity === null || ! $this->activityHasActiveEnrollmentWindow($activity, app(EventActivitySignupService::class))) {
+        if ($activity === null
+            || ! $this->showPreviewParticipationActions($activity)
+            || ! $this->activityHasActiveEnrollmentWindow($activity, app(EventActivitySignupService::class))) {
             $this->activityPreviewTab = 'info';
         }
     }

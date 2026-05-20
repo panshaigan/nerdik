@@ -125,7 +125,7 @@ class Dashboard extends Component
         $activitiesById = $activityIds === []
             ? collect()
             : Activity::query()
-                ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
+                ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place.parent', 'place.parent'])
                 ->withCount(['participants as participants_count' => fn ($q) => $q->where('is_absent', false)])
                 ->whereIn('id', $activityIds)
                 ->get()

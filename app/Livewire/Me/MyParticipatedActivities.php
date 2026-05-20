@@ -61,7 +61,7 @@ class MyParticipatedActivities extends Component
         $userId = auth()->id();
         $query = Activity::query()
             ->whereHas('participants', fn ($q) => $q->where('user_id', $userId)->where('is_absent', false))
-            ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place', 'place'])
+            ->with(['creator', 'activityType', 'tags.translations', 'tags.tagCategory', 'slot.event', 'slot.place.parent', 'place.parent'])
             ->withCount(['participants as participants_count' => fn ($q) => $q->where('is_absent', false)]);
 
         $term = trim($this->q);

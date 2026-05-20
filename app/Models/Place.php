@@ -14,9 +14,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Place extends Model
 {
-    use HasFactory, HasAutoSlug, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
 
     public const TYPE_ROOM = 'room';
+
     public const TYPE_VENUE = 'venue';
 
     #[\Override]
@@ -108,6 +109,19 @@ class Place extends Model
         ]);
 
         return implode(', ', $parts);
+    }
+
+    /**
+     * Venue name for compact UIs: parent venue when this place is a room; otherwise this place name.
+     */
+    public function venueName(): string
+    {
+        $this->loadMissing('parent');
+        if ($this->parent_id && $this->parent) {
+            return (string) $this->parent->name;
+        }
+
+        return (string) $this->name;
     }
 
     /**
