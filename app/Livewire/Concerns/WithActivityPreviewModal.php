@@ -10,6 +10,8 @@ use App\Models\Activity;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
+use App\Support\Ui\ActivityPreviewAboutPresenter;
+use App\Support\Ui\ActivityPreviewAboutViewData;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
 
@@ -138,6 +140,7 @@ trait WithActivityPreviewModal
      *     previewActivityParticipation: mixed,
      *     previewActivityHasActiveEnrollmentWindow: bool,
      *     showPreviewParticipationActions: bool,
+     *     previewAbout: ?ActivityPreviewAboutViewData,
      * }
      */
     protected function resolveActivityPreviewViewData(
@@ -145,6 +148,7 @@ trait WithActivityPreviewModal
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
     ): array {
+        $aboutPresenter = app(ActivityPreviewAboutPresenter::class);
         $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
             ? $this->previewActivityQuery($this->previewActivityId)
                 ->withCount(['participants', 'waitlist'])
@@ -154,6 +158,7 @@ trait WithActivityPreviewModal
         $previewActivityParticipation = null;
         $previewActivityHasActiveEnrollmentWindow = false;
         $showPreviewParticipationActions = false;
+        $previewAbout = null;
 
         if ($previewActivity !== null) {
             $previewActivity->loadMissing([
@@ -183,6 +188,7 @@ trait WithActivityPreviewModal
             $user = auth()->user();
             $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
             $showPreviewParticipationActions = $this->showPreviewParticipationActions($previewActivity);
+            $previewAbout = $aboutPresenter->build($previewActivity);
         } elseif ($this->activityPreviewModalOpen) {
             $this->closeActivityPreview();
         }
@@ -193,12 +199,15 @@ trait WithActivityPreviewModal
             'previewActivityParticipation' => $previewActivityParticipation,
             'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow,
             'showPreviewParticipationActions' => $showPreviewParticipationActions,
+            'previewAbout' => $previewAbout,
         ];
     }
 
     protected function previewActivityQuery(int $activityId): Builder
     {
-        return Activity::query()->whereKey($activityId);
+        return Activity::query()
+            ->whereKey($activityId)
+            ->with(['slot.place.parent', 'place.parent']);
     }
 
     protected function showPreviewParticipationActions(?Activity $activity): bool

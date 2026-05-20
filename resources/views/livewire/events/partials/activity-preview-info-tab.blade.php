@@ -1,15 +1,10 @@
 @php
-    $slot = $activity->slot;
-    $slotPlace = $slot?->place;
-    $startsAt = $slot?->starts_at;
-    $endsAt = $slot?->ends_at;
+    $about = $previewAbout;
 @endphp
 
 <div class="space-y-5 pt-2" data-ui="event-activity-preview-info">
     <div class="bg-texture-scratches pt-4">
         <div class="space-y-2">
-            <h3 class="text-lg font-semibold leading-snug text-base-content">{{ $activity->name }}</h3>
-
             @if ($activity->isCancelled())
                 <div class="space-y-1">
                     <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>
@@ -20,22 +15,14 @@
             @endif
 
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-                @if ($slot?->name)
-                    <span class="font-medium text-base-content/85">{{ $slot->name }}</span>
+                @if ($about->slotName)
+                    <span class="font-medium text-base-content/85">{{ $about->slotName }}</span>
                 @endif
 
-                @if ($startsAt || $endsAt)
+                @if ($about->timeLabel !== '')
                     <span class="inline-flex items-center gap-1.5 tabular-nums text-base-content/75">
                         <x-icon name="o-clock" class="h-4 w-4 shrink-0 text-base-content/50" />
-                        <span>
-                            @if ($startsAt && $endsAt)
-                                {{ format_in_user_tz($startsAt, 'H:i') }}<span class="text-base-content/45"> – </span>{{ format_in_user_tz($endsAt, 'H:i') }}
-                            @elseif ($startsAt)
-                                {{ format_in_user_tz($startsAt, 'H:i') }}
-                            @else
-                                {{ format_in_user_tz($endsAt, 'H:i') }}
-                            @endif
-                        </span>
+                        <span>{{ $about->timeLabel }}</span>
                     </span>
                 @endif
 
@@ -44,10 +31,10 @@
                 </span>
             </div>
 
-            @if ($slotPlace)
+            @if ($about->locationLabel !== '')
                 <p class="inline-flex items-center gap-1.5 text-sm text-base-content/60">
                     <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                    <span>{{ $slotPlace->venueRoomLabel() }}</span>
+                    <span>{{ $about->locationLabel }}</span>
                 </p>
             @endif
         </div>

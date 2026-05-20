@@ -36,6 +36,7 @@
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="event-activity-preview-tab-info" icon="o-light-bulb">
                     @include('livewire.events.partials.activity-preview-info-tab', [
                         'activity' => $previewActivity,
+                        'previewAbout' => $previewAbout,
                         'badgeItems' => $previewActivityBadgeItems,
                     ])
                 </x-tab>

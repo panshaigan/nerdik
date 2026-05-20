@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\Dashboard;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
+use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,6 +47,10 @@ class ListingCardActivityPreviewTest extends TestCase
     {
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $venue = Place::factory()->venue()->create(['name' => 'Preview Venue']);
+        $room = Place::factory()->room($venue)->create(['name' => 'Room B']);
+        $startsAt = now()->addDay()->setTime(10, 0);
+        $endsAt = (clone $startsAt)->setTime(12, 0);
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
@@ -55,6 +60,10 @@ class ListingCardActivityPreviewTest extends TestCase
         Slot::factory()->create([
             'event_id' => $event->id,
             'activity_id' => $activity->id,
+            'place_id' => $room->id,
+            'name' => 'Slot Alpha',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
         ]);
 
         Livewire::withoutLazyLoading()
@@ -64,6 +73,9 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSee('Unique preview body for listing modal')
+            ->assertSee('Slot Alpha')
+            ->assertSee('Preview Venue · Room B')
+            ->assertSee('10:00')
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
             ->assertSee(__('ui.activities.show_details'));
     }

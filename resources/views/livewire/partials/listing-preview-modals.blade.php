@@ -1,11 +1,12 @@
 @if ($includeActivityPreviewModal ?? true)
     @include('livewire.events.partials.activity-preview-modal', [
-    'previewActivity' => $previewActivity ?? null,
-    'previewActivityBadgeItems' => $previewActivityBadgeItems ?? [],
-    'previewActivityParticipation' => $previewActivityParticipation ?? null,
-    'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
-    'showPreviewParticipationActions' => $showPreviewParticipationActions ?? false,
-    'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
+        'previewActivity' => $previewActivity ?? null,
+        'previewAbout' => $previewAbout ?? null,
+        'previewActivityBadgeItems' => $previewActivityBadgeItems ?? [],
+        'previewActivityParticipation' => $previewActivityParticipation ?? null,
+        'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
+        'showPreviewParticipationActions' => $showPreviewParticipationActions ?? false,
+        'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
     ])
 @endif
 

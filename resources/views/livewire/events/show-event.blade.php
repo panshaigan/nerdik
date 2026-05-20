@@ -229,6 +229,7 @@
     @include('slots.partials.edit-modal-shell')
     @include('livewire.events.partials.activity-preview-modal', [
         'previewActivity' => $previewActivity ?? null,
+        'previewAbout' => $previewAbout ?? null,
         'previewActivityBadgeItems' => $previewActivityBadgeItems ?? [],
         'previewActivityParticipation' => $previewActivityParticipation ?? null,
         'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
