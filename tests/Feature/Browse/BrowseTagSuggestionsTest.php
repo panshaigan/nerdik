@@ -62,4 +62,14 @@ class BrowseTagSuggestionsTest extends TestCase
         $this->assertCount(51, $tags);
         $this->assertTrue($tags->contains(fn (Tag $tag) => (int) $tag->id === (int) $selected->id));
     }
+
+    public function test_browse_events_renders_tag_selector_with_max_per_category_config(): void
+    {
+        $html = Livewire::withoutLazyLoading()
+            ->test(BrowseEvents::class)
+            ->html();
+
+        $this->assertStringContainsString('data-ts-config', $html);
+        $this->assertStringContainsString('"maxPerCategory":7', preg_replace('/\s+/', '', $html) ?? $html);
+    }
 }
