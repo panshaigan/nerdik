@@ -8,14 +8,6 @@
                 @include('livewire.browse.partials.tag-filter', [
                     'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
                 ])
-                <div
-                    x-show="filtersOpen"
-                    x-cloak
-                    class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
-                    data-ui="browse-events-filters-panel"
-                >
-                    @include('livewire.browse.partials.listing-type-filter')
-                </div>
             </div>
         </div>
 
@@ -36,6 +28,15 @@
                     <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
                     {{ __('ui.browse.map_view_toggle') }}
                 </x-button>
+            </div>
+
+            <div
+                x-show="filtersOpen"
+                x-cloak
+                class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
+                data-ui="browse-events-filters-panel"
+            >
+                @include('livewire.browse.partials.listing-type-filter')
             </div>
         </div>
 
