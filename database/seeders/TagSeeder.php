@@ -912,7 +912,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => 'game',
-                'en' => 'Conan: Adventures in an Age Undreamed Of',
+                'en' => 'Conan (Modiphius)',
+                'aliases' => ['en' => 'Conan: Adventures in an Age Undreamed Of'],
                 'relations' => [$this->tagIds['Sword & Sorcery'], $this->tagIds['2d20']],
                 'contexts' => [ActivityType::SLUG_RPG],
             ],

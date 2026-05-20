@@ -9,6 +9,9 @@ use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\Tag;
+use App\Models\TagCategory;
+use App\Models\TagTranslation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -17,6 +20,37 @@ use Tests\TestCase;
 class ListingCardActivityPreviewTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_listing_card_badge_area_allows_pointer_events_above_preview_overlay(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $game = TagCategory::factory()->create(['key' => 'game']);
+        $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
+        TagTranslation::factory()->create([
+            'tag_id' => $tag->id,
+            'locale' => 'en',
+            'label' => 'Sword & Sorcery',
+        ]);
+        $activity->tags()->attach([$tag->id]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(BrowseActivities::class)
+            ->assertSee('Sword & Sorcery')
+            ->assertDontSee('Sword &amp; Sorcery')
+            ->assertSeeHtml('class="relative z-20 p-4 pointer-events-auto"');
+    }
 
     public function test_listing_card_uses_preview_button_instead_of_navigate_link(): void
     {

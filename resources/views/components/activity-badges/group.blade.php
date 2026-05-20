@@ -5,22 +5,24 @@
     >
         @foreach ($items as $item)
             <div
-            @if($item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag)
-                class="tooltip tooltip-primary"
-                data-tip="{{ $item->title }}"
-            @endif
+                @class([
+                    'tooltip tooltip-primary' => $item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag && filled($item->title),
+                ])
+                @if ($item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag && filled($item->title))
+                    data-tip="{{ $item->title }}"
+                @endif
             >
                 <x-badge
-                    value="{{ $item->label }}"
-                    icon="{{ $item->icon }}"
+                    :icon="$item->icon"
                     @class([
                         $item->semantic->badgeClasses($item->outline),
                         'whitespace-normal text-left' => $item->normalWrap,
                         'gap-1' => filled($item->icon),
                     ])
-                    data-ui="{{ $item->dataUi }}"
-                    title="{{ $item->title }}"
-                />
+                    :data-ui="$item->dataUi"
+                >
+                    {{ $item->label }}
+                </x-badge>
             </div>
         @endforeach
     </div>
