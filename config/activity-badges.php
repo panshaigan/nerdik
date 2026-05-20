@@ -68,7 +68,7 @@ return [
             ],
             'requires_approval' => false,
             'allows_observers' => false,
-            'minimum_age' => true,
+            'minimum_age' => false,
         ],
         'event_proposal' => [
             'activity_type' => true,

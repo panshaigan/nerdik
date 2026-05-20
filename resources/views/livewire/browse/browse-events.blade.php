@@ -1,5 +1,5 @@
 <div class="py-12">
-    <div class="mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
+    <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
         <div
             class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell"
             data-ui="browse-events-form"
@@ -14,12 +14,14 @@
         <div class="flex flex-wrap items-center justify-between gap-4">
             @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
             <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0">
-                @include('livewire.browse.partials.tag-filter-toggles')
+                @include('livewire.browse.partials.tag-filter-toggles', [
+                    'buttonClass' => 'btn btn-sm rounded-2xl ui-browse-filter-toggle',
+                ])
                 <x-button
                     type="button"
                     wire:click="toggleMapView"
                     wire:key="browse-events-map-view-toggle"
-                    class="btn btn-sm rounded-xl {{ $map_view ? 'btn-accent' : 'btn-outline btn-neutral' }}"
+                    class="btn btn-sm rounded-2xl ui-browse-filter-toggle {{ $map_view ? 'is-active' : '' }}"
                     :title="__('ui.browse.map_view_toggle')"
                     :aria-label="__('ui.browse.map_view_toggle')"
                     aria-pressed="{{ $map_view ? 'true' : 'false' }}"
