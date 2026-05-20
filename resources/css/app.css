@@ -406,14 +406,14 @@
     /**
      * Browse /search (events): colorful gradient border + hover/focus glow (override DaisyUI .input:focus outline).
      */
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold {
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold {
         border-width: 2px !important;
         outline: none !important;
         transition: box-shadow 0.2s ease;
     }
 
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:hover,
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:focus-within {
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:hover,
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:focus-within {
         --input-color: transparent !important;
         outline: none !important;
         outline-offset: 0 !important;
@@ -430,10 +430,10 @@
             0 10px 32px -8px color-mix(in oklch, var(--brand-accent) 55%, transparent) !important;
     }
 
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input,
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within input[data-ts-input],
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus,
-    .ui-filter-form-events label[data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus-within {
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell:focus-within label.input,
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell:focus-within input[data-ts-input],
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus,
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell:focus-within label.input:focus-within {
         outline: none !important;
         box-shadow: none !important;
         border-color: transparent !important;
@@ -441,28 +441,33 @@
         --tw-ring-shadow: 0 0 #0000 !important;
     }
 
-    .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::placeholder {
+    .ui-filter-form-events [data-ts-field].input input[data-ts-input]::placeholder {
         color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
     }
 
-    .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
+    .ui-filter-form-events [data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
         color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+    }
+
+    .ui-filter-form-events [data-ts-field].input.ts-has-selection input[data-ts-input]::placeholder,
+    .ui-filter-form-events [data-ts-field].input.ts-has-selection input[data-ts-input]::-webkit-input-placeholder {
+        opacity: 0;
     }
 
     @variant light {
-        .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::placeholder,
-        .ui-filter-form-events label[data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
+        .ui-filter-form-events [data-ts-field].input input[data-ts-input]::placeholder,
+        .ui-filter-form-events [data-ts-field].input input[data-ts-input]::-webkit-input-placeholder {
             color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
         }
     }
 
-    .ui-filter-form-events label[data-ts-field] label.input {
+    .ui-filter-form-events [data-ts-field] label.input {
         border-width: 0;
         box-shadow: none;
         background-color: transparent;
     }
 
-    .ui-filter-form-events label[data-ts-field] label.input .pointer-events-none.w-4.h-4 {
+    .ui-filter-form-events [data-ts-field] label.input .pointer-events-none.w-4.h-4 {
         color: var(--color-primary-dark);
         opacity: 1;
     }

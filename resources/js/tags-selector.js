@@ -137,6 +137,8 @@ export function initTagSelector(root) {
     const newTags = root.querySelector('[data-ts-new]');
     if (!cfgEl || !input || !results || !chips || !hiddenIds || !newTagsWrap || !newTags) return;
 
+    const fieldShell = input.closest('[data-ts-field]');
+
     let cfg = {};
     try {
         cfg = JSON.parse(cfgEl.textContent || '{}');
@@ -184,7 +186,7 @@ export function initTagSelector(root) {
         const chip = document.createElement('span');
         chip.dataset.tsBrowseTextChip = '1';
         chip.className =
-            'inline-flex max-w-full items-center gap-1 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 mt-2 text-xs text-base-content';
+            'inline-flex max-w-full items-center gap-1 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 mt-3 text-xs text-base-content';
         chip.title = cfg.strings?.browseTextSearchHint || 'Text search';
 
         const label = document.createElement('span');
@@ -207,6 +209,7 @@ export function initTagSelector(root) {
 
         chip.append(label, value, remove);
         chips.appendChild(chip);
+        updateInputPlaceholder();
     }
 
     /** Browse only: set Livewire name/description query (`q`) and keep inline text chip in sync. */
@@ -243,6 +246,23 @@ export function initTagSelector(root) {
 
     if (browseTextSearch?.enabled) {
         input.value = '';
+    }
+
+    const defaultPlaceholder =
+        input.dataset.tsPlaceholder || input.getAttribute('placeholder') || '';
+
+    function hasVisibleChips() {
+        return (
+            selected.size > 0 ||
+            pendingNew.length > 0 ||
+            (browseTextSearch?.enabled && browseTextQuery.length > 0)
+        );
+    }
+
+    function updateInputPlaceholder() {
+        const showPlaceholder = !hasVisibleChips();
+        input.placeholder = showPlaceholder ? defaultPlaceholder : '';
+        fieldShell?.classList.toggle('ts-has-selection', !showPlaceholder);
     }
 
     function emitTagsChange() {
@@ -339,6 +359,7 @@ export function initTagSelector(root) {
         });
 
         newTagsWrap.classList.toggle('hidden', pendingNew.length === 0);
+        updateInputPlaceholder();
         emitTagsChange();
     }
 
@@ -395,12 +416,17 @@ export function initTagSelector(root) {
                     ? ` <span class="rounded bg-base-300 px-1 py-0.5 text-[10px] uppercase">${cfg.strings?.auto || 'auto'}</span>`
                     : '';
                 const chip = document.createElement('span');
-                chip.className = 'inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 mt-3 text-xs';
-                chip.innerHTML = `${label}${cat}${autoBadge} <button type="button" class="opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
-                chip.querySelector('button')?.addEventListener('click', () => removeTag(id));
+                chip.className =
+                    'pointer-events-none inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 mt-3 text-xs';
+                chip.innerHTML = `${label}${cat}${autoBadge} <button type="button" class="pointer-events-auto opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
+                chip.querySelector('button')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeTag(id);
+                });
                 chips.appendChild(chip);
             });
         renderBrowseTextChip();
+        updateInputPlaceholder();
         updateHiddenInputs();
         emitTagsChange();
     }
@@ -570,19 +596,21 @@ export function initTagSelector(root) {
         results.classList.remove('hidden');
     }
 
-    const fieldShell = input.closest('[data-ts-field]');
     if (fieldShell && fieldShell.dataset.tsShellClickBound !== '1') {
         fieldShell.dataset.tsShellClickBound = '1';
         fieldShell.addEventListener('click', (e) => {
             const t = e.target;
-            if (t === input) {
+            if (t.closest?.('[data-ts-chips] button')) {
                 return;
             }
-            if (t.closest?.('button')) {
+            if (t === input || t.closest?.('[data-ts-input]')) {
+                return;
+            }
+            if (t.closest?.('[data-ts-chips]')) {
+                input.focus();
                 return;
             }
             input.focus();
-            buildResults(input.value);
         });
     }
 
@@ -606,6 +634,10 @@ export function initTagSelector(root) {
             e.preventDefault();
             activeIndex = (activeIndex - 1 + items.length) % items.length;
             paintActive();
+            return;
+        }
+        if ((e.key === 'Backspace' || e.key === 'Delete') && input.value === '') {
+            e.preventDefault();
             return;
         }
         if (e.key === 'Enter' || e.key === ',') {
@@ -649,6 +681,7 @@ export function initTagSelector(root) {
 
     renderSelected();
     renderPendingNew();
+    updateInputPlaceholder();
     root.dataset.tsInitialized = '1';
 }
 
