@@ -395,7 +395,7 @@ export function initTagSelector(root) {
                     ? ` <span class="rounded bg-base-300 px-1 py-0.5 text-[10px] uppercase">${cfg.strings?.auto || 'auto'}</span>`
                     : '';
                 const chip = document.createElement('span');
-                chip.className = 'inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 mt-2 text-xs';
+                chip.className = 'inline-flex items-center gap-1 rounded-full border border-base-300 bg-base-200 px-3 py-1 mt-3 text-xs';
                 chip.innerHTML = `${label}${cat}${autoBadge} <button type="button" class="opacity-60 hover:opacity-100" data-rm="${id}">×</button>`;
                 chip.querySelector('button')?.addEventListener('click', () => removeTag(id));
                 chips.appendChild(chip);
