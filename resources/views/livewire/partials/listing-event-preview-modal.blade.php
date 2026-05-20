@@ -11,23 +11,6 @@
             class="space-y-5"
             data-ui="listing-event-preview-modal"
         >
-            <div class="relative aspect-video w-full overflow-hidden rounded-xl bg-base-300">
-                @if ($previewEventLogoUrl)
-                    <img
-                        src="{{ $previewEventLogoUrl }}"
-                        alt=""
-                        class="h-full w-full object-cover"
-                        loading="lazy"
-                    />
-                @else
-                    <img
-                        src="{{ asset('images/tag-game/warhammer.jpg') }}"
-                        alt=""
-                        class="h-full w-full object-cover"
-                        loading="lazy"
-                    />
-                @endif
-            </div>
 
             <div class="space-y-3">
                 @if ($previewEvent->isCancelled())

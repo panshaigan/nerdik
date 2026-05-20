@@ -8,6 +8,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\User;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,6 +58,32 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertSame(__('ui.activities.hosting_modes.draft'), $viewData->hostingCornerLabel);
         $this->assertSame('toggleActivityInterest', $viewData->interestWireMethod);
         $this->assertFalse($viewData->isInterested);
+    }
+
+    #[Test]
+    public function from_activity_uses_venue_name_when_slot_place_is_a_room(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create(['name' => 'Convention Center']);
+        $room = Place::factory()->room($venue)->create(['name' => 'Hall A']);
+        $event = Event::factory()->create(['created_by' => $user->id]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $slot = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'place_id' => $room->id,
+        ]);
+        $slot->setRelation('place', $room->load('parent'));
+        $activity->setRelation('slot', $slot);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertSame('Convention Center', $viewData->locationSummary);
+        $this->assertNotSame('Hall A', $viewData->locationSummary);
     }
 
     #[Test]
