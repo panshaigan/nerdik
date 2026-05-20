@@ -95,7 +95,7 @@
 
 <div
     data-tag-selector
-    class="space-y-3"
+    class=""
     @if ($skipLivewireSync) data-ts-skip-livewire-sync="1" @endif
     @if ($browseTagSelector) data-browse-tag-selector @endif
 >
@@ -107,7 +107,7 @@
         <label
             data-ts-field
             @class([
-                'input rounded-xl flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5 py-2',
+                'input rounded-xl flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5',
                 'input-bordered' => ! $fieldShellUsesBrandFrame,
                 $fieldShellClass => $fieldShellClass !== '',
             ])
@@ -128,7 +128,7 @@
             data-ts-results
             @class([
                 'absolute left-0 right-0 top-full z-[100] mt-1 hidden overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg',
-                'max-h-[min(70vh,28rem)] py-1' => $browseTagSelector,
+                'max-h-[min(80vh,28rem)] py-1' => $browseTagSelector,
                 'max-h-60 py-1' => ! $browseTagSelector,
             ])
         ></div>
