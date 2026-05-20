@@ -67,7 +67,7 @@ final class ActivityFactory extends Factory
             'requires_approval' => fake()->boolean(0.3),
             'price' => null,
             'slug' => Str::slug($name),
-            'description' => fake()->optional()->text,
+            'description' => fake()->text(2000),
             'created_by' => User::factory(),
         ];
     }
