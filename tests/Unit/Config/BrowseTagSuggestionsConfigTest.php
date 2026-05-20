@@ -31,4 +31,9 @@ class BrowseTagSuggestionsConfigTest extends TestCase
 
         $this->assertSame([TagCategory::KEY_TRIGGER], $hidden);
     }
+
+    public function test_max_per_category_is_seven(): void
+    {
+        $this->assertSame(7, config('browse.tag_suggestions.max_per_category'));
+    }
 }

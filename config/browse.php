@@ -11,6 +11,7 @@ return [
     |
     | category_order: display order for tag groups in the browse search dropdown.
     | hidden_category_keys_on_empty_search: category keys omitted until the user types.
+    | max_per_category: maximum tag suggestions shown per category in the dropdown.
     |
     */
     'tag_suggestions' => [
@@ -28,6 +29,8 @@ return [
         'hidden_category_keys_on_empty_search' => [
             TagCategory::KEY_TRIGGER,
         ],
+
+        'max_per_category' => 7,
     ],
 
 ];

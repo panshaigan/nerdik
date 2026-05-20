@@ -53,7 +53,8 @@ function orderedCategoryKeysForDisplay(categoryOrder, groupedKeys) {
     return ordered;
 }
 
-function fillTagsByCategoryOrder(pool, categoryOrder, maxResults) {
+function fillTagsByCategoryOrder(pool, categoryOrder, limits = {}) {
+    const { maxPerCategory, maxTotal } = limits;
     const byKey = new Map();
     pool.forEach((tag) => {
         const key = tagCategoryKey(tag) || 'other';
@@ -63,7 +64,12 @@ function fillTagsByCategoryOrder(pool, categoryOrder, maxResults) {
         byKey.get(key).push(tag);
     });
     byKey.forEach((tags, key) => {
-        byKey.set(key, sortByPopularity(tags));
+        const sorted = sortByPopularity(tags);
+        if (maxPerCategory != null) {
+            byKey.set(key, sorted.slice(0, maxPerCategory));
+        } else {
+            byKey.set(key, sorted);
+        }
     });
 
     const keys = orderedCategoryKeysForDisplay(categoryOrder, new Set(byKey.keys()));
@@ -71,7 +77,7 @@ function fillTagsByCategoryOrder(pool, categoryOrder, maxResults) {
     for (const key of keys) {
         const tags = byKey.get(key) || [];
         for (const tag of tags) {
-            if (result.length >= maxResults) {
+            if (maxTotal != null && result.length >= maxTotal) {
                 return result;
             }
             result.push(tag);
@@ -120,7 +126,6 @@ function syncLivewireTagState(root, tagIds, newTagsPayload) {
 export function initTagSelector(root) {
     if (root.dataset.tsInitialized) return;
 
-    const MAX_SUGGESTIONS = 8;
     const MAX_RESULTS = 18;
 
     const cfgEl = root.querySelector('script[type="application/json"][data-ts-config]');
@@ -152,6 +157,9 @@ export function initTagSelector(root) {
             ? browseSuggestions.hiddenCategoryKeysOnEmptySearch.map((k) => String(k || '').trim()).filter(Boolean)
             : []
     );
+    const isBrowseSelector = root.hasAttribute('data-browse-tag-selector');
+    const browseMaxPerCategory = Number(browseSuggestions?.maxPerCategory) || 7;
+    const fillLimits = isBrowseSelector ? { maxPerCategory: browseMaxPerCategory } : { maxTotal: MAX_RESULTS };
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
     const selected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
     const explicitSelected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
@@ -446,7 +454,7 @@ export function initTagSelector(root) {
 
         let found;
         if (!qn) {
-            found = fillTagsByCategoryOrder(pool, browseCategoryOrder, MAX_RESULTS);
+            found = fillTagsByCategoryOrder(pool, browseCategoryOrder, fillLimits);
         } else {
             found = fillTagsByCategoryOrder(
                 sortByPopularity(
@@ -461,7 +469,7 @@ export function initTagSelector(root) {
                         .filter(Boolean)
                 ),
                 browseCategoryOrder,
-                MAX_RESULTS
+                fillLimits
             );
         }
 
@@ -498,31 +506,51 @@ export function initTagSelector(root) {
                 ? orderedCategoryKeysForDisplay(browseCategoryOrder, new Set(grouped.keys()))
                 : [...grouped.keys()];
 
-        groupKeys.forEach((key) => {
+        const appendTagButton = (parent, t) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.tsItem = '1';
+            b.className = 'block w-full px-2 py-1.5 text-left text-sm hover:bg-base-200 rounded-md';
+            const local = displayLabel(t, locale);
+            const en = t.labels?.en && norm(t.labels.en) !== norm(local) ? ` / ${t.labels.en}` : '';
+            b.textContent = `${local}${en}`;
+            b.addEventListener('click', () => {
+                addWithAttached(t.id);
+                clearTagSearchInput();
+                closeResults();
+            });
+            parent.appendChild(b);
+        };
+
+        const appendCategoryGroup = (parent, key) => {
             const group = grouped.get(key);
             if (!group) {
                 return;
             }
             const head = document.createElement('div');
-            head.className = 'px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-base-content/50';
+            head.className = 'px-1 py-1 text-[10px] font-semibold uppercase tracking-wide text-base-content/50';
             head.textContent = group.displayName;
-            frag.appendChild(head);
-            group.tags.forEach((t) => {
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.dataset.tsItem = '1';
-                b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
-                const local = displayLabel(t, locale);
-                const en = t.labels?.en && norm(t.labels.en) !== norm(local) ? ` / ${t.labels.en}` : '';
-                b.textContent = `${local}${en}`;
-                b.addEventListener('click', () => {
-                    addWithAttached(t.id);
-                    clearTagSearchInput();
-                    closeResults();
-                });
-                frag.appendChild(b);
+            parent.appendChild(head);
+            group.tags.forEach((t) => appendTagButton(parent, t));
+        };
+
+        if (isBrowseSelector) {
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 gap-x-4 gap-y-2 px-2 py-1 sm:grid-cols-2 lg:grid-cols-3';
+            groupKeys.forEach((key) => {
+                const column = document.createElement('div');
+                column.className = 'min-w-0 flex flex-col';
+                appendCategoryGroup(column, key);
+                if (column.childElementCount > 0) {
+                    grid.appendChild(column);
+                }
             });
-        });
+            frag.appendChild(grid);
+        } else {
+            groupKeys.forEach((key) => {
+                appendCategoryGroup(frag, key);
+            });
+        }
 
         if (allowCreate && qn && !exact) {
             const make = document.createElement('button');

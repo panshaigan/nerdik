@@ -84,6 +84,7 @@
         $tagSelectorConfig['browseSuggestions'] = [
             'categoryOrder' => config('browse.tag_suggestions.category_order', []),
             'hiddenCategoryKeysOnEmptySearch' => config('browse.tag_suggestions.hidden_category_keys_on_empty_search', []),
+            'maxPerCategory' => (int) config('browse.tag_suggestions.max_per_category', 7),
         ];
     }
 @endphp
@@ -125,7 +126,11 @@
         </label>
         <div
             data-ts-results
-            class="absolute left-0 right-0 top-full z-[100] mt-1 hidden max-h-60 overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg"
+            @class([
+                'absolute left-0 right-0 top-full z-[100] mt-1 hidden overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg',
+                'max-h-[min(70vh,28rem)] py-1' => $browseTagSelector,
+                'max-h-60 py-1' => ! $browseTagSelector,
+            ])
         ></div>
     </div>
 
