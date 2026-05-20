@@ -122,7 +122,7 @@
             </dl>
         </div>
         @if ($d->badgeItems !== [])
-            <div class="p-4">
+            <div class="relative z-20 p-4 pointer-events-auto">
                 <x-ui.activity-badge-group
                     :items="$d->badgeItems"
                     class="ui-browse-listing-card-tags !my-0 gap-2"
