@@ -104,7 +104,7 @@
     </script>
     <div class="relative z-[50]">
         {{-- Unified shell: selected tag chips + input inside one bordered field, matching manage tags UX. --}}
-        <label
+        <div
             data-ts-field
             @class([
                 'input rounded-xl flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5',
@@ -118,12 +118,13 @@
                 inputmode="search"
                 enterkeyhint="search"
                 data-ts-input
+                data-ts-placeholder="{{ $tagInputPlaceholder }}"
                 class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
                 placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
                 icon="o-magnifying-glass"
             />
-        </label>
+        </div>
         <div
             data-ts-results
             @class([
