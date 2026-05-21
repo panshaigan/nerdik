@@ -25,7 +25,7 @@ final class AttachGameTagChainUntilGenreTest extends TestCase
     }
 
     #[Test]
-    public function it_attaches_related_tags_until_a_genre_tag_is_reached(): void
+    public function it_attaches_all_related_tags_of_the_current_tag_before_stopping_at_genre(): void
     {
         $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $settingCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_SETTING]);
@@ -33,12 +33,13 @@ final class AttachGameTagChainUntilGenreTest extends TestCase
 
         $game = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
         $setting = Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
-        $genre = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
+        $urbanFantasy = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
+        $horror = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
         $beyondGenre = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
 
         $game->relatedTags()->attach($setting);
-        $setting->relatedTags()->attach($genre);
-        $genre->relatedTags()->attach($beyondGenre);
+        $setting->relatedTags()->attach([$urbanFantasy->id, $horror->id]);
+        $urbanFantasy->relatedTags()->attach($beyondGenre);
 
         $activity = Activity::factory()->create();
 
@@ -46,8 +47,34 @@ final class AttachGameTagChainUntilGenreTest extends TestCase
 
         $attachedIds = $activity->tags()->pluck('tags.id')->all();
 
-        $this->assertEqualsCanonicalizing([$game->id, $setting->id, $genre->id], $attachedIds);
+        $this->assertEqualsCanonicalizing(
+            [$game->id, $setting->id, $urbanFantasy->id, $horror->id],
+            $attachedIds,
+        );
         $this->assertNotContains($beyondGenre->id, $attachedIds);
+    }
+
+    #[Test]
+    public function it_attaches_all_related_tags_when_the_current_tag_is_genre(): void
+    {
+        $genreCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GENRE]);
+        $settingCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_SETTING]);
+
+        $genre = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
+        $setting = Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
+        $deeper = Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
+
+        $genre->relatedTags()->attach($setting);
+        $setting->relatedTags()->attach($deeper);
+
+        $activity = Activity::factory()->create();
+
+        ($this->action)($activity, $genre);
+
+        $attachedIds = $activity->tags()->pluck('tags.id')->all();
+
+        $this->assertEqualsCanonicalizing([$genre->id, $setting->id], $attachedIds);
+        $this->assertNotContains($deeper->id, $attachedIds);
     }
 
     #[Test]
@@ -65,7 +92,10 @@ final class AttachGameTagChainUntilGenreTest extends TestCase
 
         ($this->action)($activity, $game);
 
-        $this->assertEqualsCanonicalizing([$game->id, $mechanic->id], $activity->tags()->pluck('tags.id')->all());
+        $this->assertEqualsCanonicalizing(
+            [$game->id, $mechanic->id],
+            $activity->tags()->pluck('tags.id')->all(),
+        );
     }
 
     #[Test]
