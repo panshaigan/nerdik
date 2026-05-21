@@ -1,5 +1,5 @@
 @php
-    use App\Models\TagCategory;
+    use App\Support\Browse\BrowseTagSelectorPayload;
 
     $locale = app()->getLocale();
     $selected = collect(old('tag_ids', $selectedIds ?? []))
@@ -16,42 +16,16 @@
         ])
         ->values()
         ->all();
-    $categories = TagCategory::query()
-        ->with('translations')
-        ->orderBy('key')
-        ->get()
-        ->map(fn (TagCategory $cat) => [
-            'id' => (int) $cat->id,
-            'key' => (string) $cat->key,
-            'name' => (string) $cat->name($locale),
-        ])
-        ->values()
-        ->all();
-    $categoryNamesById = collect($categories)->mapWithKeys(fn ($c) => [(int) $c['id'] => (string) $c['name']])->all();
-    $categoryKeysById = collect($categories)->mapWithKeys(fn ($c) => [(int) $c['id'] => (string) $c['key']])->all();
+    $categories = BrowseTagSelectorPayload::categoriesForLocale($locale);
+    $categoryMaps = BrowseTagSelectorPayload::categoryMapsFromConfig($categories);
     $browseTagSelector = ($browseTagSelector ?? false) === true;
-    $tagsForJs = collect($tags ?? [])->map(function ($tag) use ($locale, $categoryNamesById, $categoryKeysById, $browseTagSelector) {
-        $localeTranslation = collect($tag->translations ?? [])->firstWhere('locale', $locale);
-        $fallbackTranslation = $localeTranslation ?: collect($tag->translations ?? [])->firstWhere('locale', 'en');
-        $categoryId = (int) ($tag->tag_category_id ?? 0);
-        $categoryName = (string) (($tag->tagCategory?->name($locale) ?? '') ?: ($categoryNamesById[$categoryId] ?? ''));
-        $categoryKey = (string) (($tag->tagCategory?->key ?? '') ?: ($categoryKeysById[$categoryId] ?? ''));
-        $payload = [
-            'id' => (int) $tag->id,
-            'category_id' => $categoryId,
-            'category_key' => $categoryKey,
-            'category_name' => $categoryName,
-            'slug' => (string) ($fallbackTranslation?->slug ?? ''),
-            'labels' => collect($tag->translations ?? [])->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
-            'aliases' => collect($tag->aliases ?? [])->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
-            'popularity_score' => (int) ($tag->popularity_score ?? 0),
-        ];
-        if (! $browseTagSelector) {
-            $payload['related_ids'] = collect($tag->tagRelations ?? [])->pluck('related_tag_id')->map(fn ($id) => (int) $id)->values()->all();
-        }
-
-        return $payload;
-    })->values()->all();
+    $tagsForJs = BrowseTagSelectorPayload::fromCollection(
+        $tags ?? [],
+        $locale,
+        $categoryMaps['namesById'],
+        $categoryMaps['keysById'],
+        includeRelatedIds: ! $browseTagSelector,
+    );
     $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
     $allowCreate = ($allowCreate ?? true) !== false;
     $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
@@ -85,6 +59,7 @@
             'categoryOrder' => config('browse.tag_suggestions.category_order', []),
             'hiddenCategoryKeysOnEmptySearch' => config('browse.tag_suggestions.hidden_category_keys_on_empty_search', []),
             'maxPerCategory' => (int) config('browse.tag_suggestions.max_per_category', 7),
+            'searchLimit' => (int) config('browse.tag_suggestions.search_limit', 30),
         ];
     }
 @endphp

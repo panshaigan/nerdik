@@ -36,4 +36,18 @@ class BrowseTagSuggestionsConfigTest extends TestCase
     {
         $this->assertSame(7, config('browse.tag_suggestions.max_per_category'));
     }
+
+    public function test_trigger_is_excluded_from_preload(): void
+    {
+        $this->assertSame(
+            [TagCategory::KEY_TRIGGER],
+            config('browse.tag_suggestions.exclude_category_keys_from_preload')
+        );
+    }
+
+    public function test_preload_per_category_and_search_limit(): void
+    {
+        $this->assertSame(7, config('browse.tag_suggestions.preload_per_category'));
+        $this->assertSame(30, config('browse.tag_suggestions.search_limit'));
+    }
 }

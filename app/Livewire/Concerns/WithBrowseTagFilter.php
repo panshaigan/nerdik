@@ -3,6 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Models\Tag;
+use App\Support\Browse\BrowseTagSelectorPayload;
 use App\Support\BrowseTagFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,35 @@ trait WithBrowseTagFilter
      * @param  list<int|string>  $tag_ids
      * @param  list<array{label: string, category_id: int|string}>  $new_tags
      */
+    /**
+     * Server search for browse tag selector while typing ({@see resources/js/tags-selector.js}).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function searchBrowseTags(string $q): array
+    {
+        $trimmed = trim($q);
+        if ($trimmed === '') {
+            return [];
+        }
+
+        $includePast = property_exists($this, 'include_past_events') && $this->include_past_events;
+        $limit = (int) config('browse.tag_suggestions.search_limit', 30);
+        $locale = app()->getLocale();
+        $categories = BrowseTagSelectorPayload::categoriesForLocale($locale);
+        $maps = BrowseTagSelectorPayload::categoryMapsFromConfig($categories);
+
+        $tags = Tag::query()->searchForBrowseSelector($trimmed, $includePast, $limit);
+
+        return BrowseTagSelectorPayload::fromCollection(
+            $tags,
+            $locale,
+            $maps['namesById'],
+            $maps['keysById'],
+            includeRelatedIds: false,
+        );
+    }
+
     public function syncBrowseTagsFromSelector(array $tag_ids, array $new_tags = []): void
     {
         $this->tag_ids = array_values(array_unique(array_filter(

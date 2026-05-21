@@ -2,6 +2,7 @@
 
 namespace App\Models\Builders;
 
+use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use Illuminate\Database\Eloquent\Builder;
@@ -66,13 +67,105 @@ class TagBuilder extends Builder
         return $this->orderByDesc('popularity_score')->orderBy('id');
     }
 
-    public function forBrowseSuggestions(int $limit = 50): self
+    public function usedOnBrowseVisibleActivities(bool $upcomingOnly = true): self
     {
-        return $this
+        $activityMorph = (new Activity)->getMorphClass();
+
+        return $this->whereIn($this->getModel()->getQualifiedKeyName(), function ($query) use ($activityMorph, $upcomingOnly): void {
+            $query->select('tag_id')
+                ->from('taggables')
+                ->where('taggable_type', $activityMorph)
+                ->whereIn('taggable_id', Activity::query()->attachedToPublicEvent($upcomingOnly)->select('activities.id'));
+        });
+    }
+
+    /**
+     * @param  list<string>  $categoryKeys
+     */
+    public function excludingCategories(array $categoryKeys): self
+    {
+        $ids = array_values(array_filter(array_map(
+            static fn (string $key): ?int => TagCategory::idByKey($key),
+            $categoryKeys
+        )));
+
+        if ($ids === []) {
+            return $this;
+        }
+
+        return $this->whereNotIn('tag_category_id', $ids);
+    }
+
+    /**
+     * @param  list<string>  $excludeCategoryKeys
+     * @param  list<string>  $categoryOrder
+     * @return Collection<int, Tag>
+     */
+    public function forBrowsePreloadSuggestions(
+        int $perCategory,
+        array $excludeCategoryKeys = [],
+        array $categoryOrder = [],
+    ): Collection {
+        if ($categoryOrder === []) {
+            $categoryOrder = config('browse.tag_suggestions.category_order', []);
+        }
+
+        $eager = ['translations', 'aliases', 'tagCategory.translations'];
+        $tags = collect();
+
+        foreach ($categoryOrder as $categoryKey) {
+            if (in_array($categoryKey, $excludeCategoryKeys, true)) {
+                continue;
+            }
+
+            $categoryId = TagCategory::idByKey($categoryKey);
+            if ($categoryId === null) {
+                continue;
+            }
+
+            $chunk = $this->getModel()->newQuery()
+                ->with($eager)
+                ->usedOnBrowseVisibleActivities(true)
+                ->where('popularity_score', '>', 0)
+                ->where('tag_category_id', $categoryId)
+                ->orderedByPopularity()
+                ->limit($perCategory)
+                ->get();
+
+            $tags = $tags->merge($chunk);
+        }
+
+        return $tags->unique('id')->values();
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function searchForBrowseSelector(string $query, bool $includePast, int $limit): Collection
+    {
+        $normalized = mb_strtolower(trim($query));
+        if ($normalized === '') {
+            return collect();
+        }
+
+        $like = '%'.$normalized.'%';
+
+        return $this->getModel()->newQuery()
             ->with(['translations', 'aliases', 'tagCategory.translations'])
-            ->where('popularity_score', '>', 0)
+            ->usedOnBrowseVisibleActivities(! $includePast)
+            ->where(function (Builder $outer) use ($like): void {
+                $outer->whereHas('translations', function (Builder $q) use ($like): void {
+                    $q->where(function (Builder $inner) use ($like): void {
+                        $inner->whereRaw('LOWER(label) LIKE ?', [$like])
+                            ->orWhereRaw('LOWER(slug) LIKE ?', [$like]);
+                    });
+                })->orWhereHas('aliases', function (Builder $q) use ($like): void {
+                    $q->whereRaw('LOWER(alias) LIKE ?', [$like]);
+                });
+            })
             ->orderedByPopularity()
-            ->limit($limit);
+            ->limit($limit)
+            ->get();
     }
 
     /**
@@ -81,14 +174,17 @@ class TagBuilder extends Builder
      * @param  list<int|string>  $selectedIds
      * @return Collection<int, Tag>
      */
-    public function forBrowseSelector(array $selectedIds, int $limit = 50): Collection
+    public function forBrowseSelector(array $selectedIds): Collection
     {
         $normalized = array_values(array_unique(array_filter(
             array_map(static fn ($id) => (int) $id, $selectedIds),
             static fn (int $id) => $id > 0
         )));
 
-        $popular = $this->getModel()->newQuery()->forBrowseSuggestions($limit)->get();
+        $perCategory = (int) config('browse.tag_suggestions.preload_per_category', 7);
+        $excludeKeys = config('browse.tag_suggestions.exclude_category_keys_from_preload', []);
+
+        $popular = $this->getModel()->newQuery()->forBrowsePreloadSuggestions($perCategory, $excludeKeys);
 
         $missing = array_values(array_diff($normalized, $popular->pluck('id')->map(fn ($id) => (int) $id)->all()));
         if ($missing === []) {
