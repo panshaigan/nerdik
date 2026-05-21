@@ -261,7 +261,8 @@ class TagSeeder extends Seeder
             ],
             [
                 'category' => TagCategory::KEY_FORMAT,
-                'en' => 'Sesja nagrywana',
+                'en' => 'Recorder session',
+                'pl' => 'Sesja nagrywana',
                 'contexts' => [ActivityType::SLUG_RPG, ActivityType::SLUG_WARGAME],
             ],
         ];
