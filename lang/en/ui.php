@@ -5,8 +5,8 @@ return [
         'search' => 'Search',
     ],
     'me' => [
-        'menu_events' => 'All my events',
-        'menu_activities' => 'All my activities',
+        'menu_events' => 'My events',
+        'menu_activities' => 'My activities',
         'menu_participated' => 'Activities I participate in',
         'page_title_events' => 'All my events',
         'page_title_activities' => 'All my activities',
