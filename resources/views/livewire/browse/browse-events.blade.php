@@ -97,7 +97,7 @@
             </div>
 
             @if ($browseListings->hasPages())
-                <div class="ui-browse-events-pagination mx-auto rounded-xl max-w-5xl p-4" data-ui="browse-events-pagination">
+                <div class="ui-browse-events-pagination mx-auto rounded-xl max-w-5xl p-4 mt-10" data-ui="browse-events-pagination">
                     {{ $browseListings->links() }}
                 </div>
             @endif

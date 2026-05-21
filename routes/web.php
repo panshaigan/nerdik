@@ -59,16 +59,6 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::view('me/events', 'me.events')
-    ->middleware(['auth', 'verified'])
-    ->name('me.events');
-Route::view('me/activities', 'me.activities')
-    ->middleware(['auth', 'verified'])
-    ->name('me.activities');
-Route::view('me/participated-activities', 'me.participated-activities')
-    ->middleware(['auth', 'verified'])
-    ->name('me.participated-activities');
-
 Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');

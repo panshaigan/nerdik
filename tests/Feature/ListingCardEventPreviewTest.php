@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Livewire\Browse\BrowseEvents;
-use App\Livewire\Me\MyEvents;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,7 +46,7 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSee(__('ui.events.show_details'));
     }
 
-    public function test_my_events_page_opens_event_preview_modal(): void
+    public function test_my_events_browse_opens_event_preview_modal(): void
     {
         $owner = User::factory()->create();
         $event = Event::factory()->create([
@@ -57,7 +56,11 @@ class ListingCardEventPreviewTest extends TestCase
 
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
-            ->test(MyEvents::class)
+            ->test(BrowseEvents::class, [
+                'include_past_events' => true,
+                'only_events' => true,
+                'only_mine' => true,
+            ])
             ->call('openListingEventPreview', $event->id)
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSee('My events preview description')
