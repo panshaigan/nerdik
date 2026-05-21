@@ -161,15 +161,101 @@ export function initTagSelector(root) {
     );
     const isBrowseSelector = root.hasAttribute('data-browse-tag-selector');
     const browseMaxPerCategory = Number(browseSuggestions?.maxPerCategory) || 7;
-    const fillLimits = isBrowseSelector ? { maxPerCategory: browseMaxPerCategory } : { maxTotal: MAX_RESULTS };
+    const browseSearchLimit = Number(browseSuggestions?.searchLimit) || 30;
+    const emptyFillLimits = isBrowseSelector ? { maxPerCategory: browseMaxPerCategory } : { maxTotal: MAX_RESULTS };
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
     const selected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
     const explicitSelected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
     const autoSelected = new Set();
     let pendingNew = Array.isArray(cfg.initialNewTags) ? [...cfg.initialNewTags] : [];
     let activeIndex = -1;
+    let browseSearchDebounce = null;
+    let browseSearchRequestId = 0;
+    let browseSearchLoading = false;
+    let browseSearchResults = null;
+    /** @type {string|null} */
+    let browseSearchQuery = null;
 
     const browseTextSearch = cfg.browseTextSearch;
+
+    function findBrowseWire() {
+        if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+            return null;
+        }
+        const host = root.closest('[wire\\:id]');
+        const id = host?.getAttribute('wire:id');
+        if (!id) {
+            return null;
+        }
+        const wire = window.Livewire.find(id);
+        if (!wire || typeof wire.call !== 'function') {
+            return null;
+        }
+        return wire;
+    }
+
+    function mergeTagsIntoById(tags) {
+        (tags || []).forEach((tag) => {
+            const id = Number(tag.id);
+            if (id > 0) {
+                byId.set(id, tag);
+            }
+        });
+    }
+
+    function setBrowseSearchLoading(loading) {
+        browseSearchLoading = loading;
+        results.classList.toggle('opacity-60', loading && isBrowseSelector);
+    }
+
+    function scheduleBrowseTagSearch(q) {
+        if (!isBrowseSelector) {
+            return;
+        }
+        const trimmed = String(q || '').trim();
+        if (browseSearchDebounce) {
+            clearTimeout(browseSearchDebounce);
+            browseSearchDebounce = null;
+        }
+        if (!trimmed) {
+            browseSearchResults = null;
+            browseSearchQuery = null;
+            setBrowseSearchLoading(false);
+            buildResults('');
+            return;
+        }
+        const requestId = ++browseSearchRequestId;
+        browseSearchQuery = trimmed;
+        setBrowseSearchLoading(true);
+        browseSearchDebounce = setTimeout(() => {
+            browseSearchDebounce = null;
+            const wire = findBrowseWire();
+            if (!wire) {
+                setBrowseSearchLoading(false);
+                buildResults(trimmed);
+                return;
+            }
+            wire
+                .call('searchBrowseTags', trimmed)
+                .then((payload) => {
+                    if (requestId !== browseSearchRequestId || browseSearchQuery !== trimmed) {
+                        return;
+                    }
+                    browseSearchResults = Array.isArray(payload) ? payload : [];
+                    mergeTagsIntoById(browseSearchResults);
+                    setBrowseSearchLoading(false);
+                    buildResults(trimmed);
+                })
+                .catch(() => {
+                    if (requestId !== browseSearchRequestId) {
+                        return;
+                    }
+                    browseSearchResults = null;
+                    setBrowseSearchLoading(false);
+                    buildResults(trimmed);
+                });
+        }, 300);
+    }
 
     let browseTextQuery = String(browseTextSearch?.value || '').trim();
 
@@ -468,6 +554,20 @@ export function initTagSelector(root) {
         );
     }
 
+    function filterTagsByQuery(pool, qn) {
+        return sortByPopularity(
+            pool
+                .map((tag) => {
+                    const labels = Object.values(tag.labels || {}).map(norm);
+                    const aliases = (tag.aliases || []).map((a) => norm(a));
+                    const hay = [...labels, ...aliases, norm(tag.slug)];
+                    const matched = hay.some((h) => h.includes(qn));
+                    return matched ? tag : null;
+                })
+                .filter(Boolean)
+        );
+    }
+
     function buildResults(q) {
         results.innerHTML = '';
         activeIndex = -1;
@@ -480,22 +580,22 @@ export function initTagSelector(root) {
 
         let found;
         if (!qn) {
-            found = fillTagsByCategoryOrder(pool, browseCategoryOrder, fillLimits);
+            found = fillTagsByCategoryOrder(pool, browseCategoryOrder, emptyFillLimits);
+        } else if (isBrowseSelector && browseSearchQuery === String(q || '').trim() && browseSearchResults !== null) {
+            found = fillTagsByCategoryOrder(browseSearchResults, browseCategoryOrder, {
+                maxTotal: browseSearchLimit,
+            });
+        } else if (isBrowseSelector && browseSearchLoading && browseSearchQuery === String(q || '').trim()) {
+            closeResults();
+            return;
         } else {
+            const typedFillLimits = isBrowseSelector
+                ? { maxTotal: browseSearchLimit }
+                : emptyFillLimits;
             found = fillTagsByCategoryOrder(
-                sortByPopularity(
-                    pool
-                        .map((tag) => {
-                            const labels = Object.values(tag.labels || {}).map(norm);
-                            const aliases = (tag.aliases || []).map((a) => norm(a));
-                            const hay = [...labels, ...aliases, norm(tag.slug)];
-                            const matched = hay.some((h) => h.includes(qn));
-                            return matched ? tag : null;
-                        })
-                        .filter(Boolean)
-                ),
+                filterTagsByQuery(pool, qn),
                 browseCategoryOrder,
-                fillLimits
+                typedFillLimits
             );
         }
 
@@ -615,9 +715,21 @@ export function initTagSelector(root) {
     }
 
     input.addEventListener('input', () => {
-        buildResults(input.value);
+        const value = input.value;
+        if (isBrowseSelector && norm(value)) {
+            scheduleBrowseTagSearch(value);
+        } else if (isBrowseSelector) {
+            scheduleBrowseTagSearch('');
+        }
+        buildResults(value);
     });
-    input.addEventListener('focus', () => buildResults(input.value));
+    input.addEventListener('focus', () => {
+        const value = input.value;
+        if (isBrowseSelector && norm(value)) {
+            scheduleBrowseTagSearch(value);
+        }
+        buildResults(value);
+    });
     input.addEventListener('keydown', (e) => {
         const items = resultButtons();
         const dropdownOpen = !results.classList.contains('hidden') && items.length > 0;
