@@ -29,7 +29,7 @@
                 data-ui="{{ $d->dataUiPrefix }}-kind-label"
             >{{ $d->kindCornerLabel }}</span>
             @auth
-                <div class="pointer-events-auto absolute right-2 top-2 z-20 flex shrink-0 items-center gap-1">
+                <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-20 flex shrink-0 items-center gap-1">
                     @if ($d->isOwner)
                         <a
                             href="{{ $d->editUrl }}"
@@ -62,11 +62,11 @@
             @endauth
         </div>
         <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
-            <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
+            <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">
                 <span class="ui-link ui-link-title" data-ui="{{ $d->dataUiPrefix }}-title-link">{{ $d->name }}</span>
             </h3>
             @if ($d->hostUser)
-                <div class="mt-1">
+                <div class="mt-1 pb-2 mb-3">
                     <x-user-badge
                         :user="$d->hostUser"
                         :organization="$d->hostOrganization"
@@ -76,6 +76,7 @@
                     />
                 </div>
             @endif
+            <x-ui.hr />
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">

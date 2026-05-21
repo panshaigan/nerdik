@@ -298,8 +298,8 @@
         }
     }
 
-    .ui-listing-card:hover,
-    .ui-listing-card:focus-within {
+    .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)),
+    .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) {
         z-index: 10;
         transform: translateY(-5px) scale(1.018);
         box-shadow:
@@ -316,9 +316,19 @@
         }
     }
 
-    .ui-listing-card:active {
+    .ui-listing-card:active:not(:has(.ui-listing-card__toolbar :active)) {
         transform: translateY(-2px) scale(1.008);
         transition-duration: 0.1s;
+    }
+
+    .ui-listing-card__toolbar .btn:active {
+        transform: scale(0.94);
+    }
+
+    .ui-listing-card__toolbar .btn:focus-visible,
+    .ui-listing-card__toolbar a:focus-visible {
+        outline: 2px solid color-mix(in oklch, var(--color-primary) 55%, transparent);
+        outline-offset: 2px;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -326,9 +336,13 @@
             transition: none;
         }
 
-        .ui-listing-card:hover,
-        .ui-listing-card:focus-within,
-        .ui-listing-card:active {
+        .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)),
+        .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible),
+        .ui-listing-card:active:not(:has(.ui-listing-card__toolbar :active)) {
+            transform: none;
+        }
+
+        .ui-listing-card__toolbar .btn:active {
             transform: none;
         }
     }
@@ -336,7 +350,11 @@
     .ui-listing-card__surface {
         border-radius: var(--rounded-box, 1rem);
         border: 1px solid color-mix(in oklab, var(--color-base-300) 42%, transparent);
-        background-color: color-mix(in oklab, var(--brand-base-100-dark) 96%, black);
+        background: linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
+            color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
+        );
         color: var(--color-base-content);
         box-shadow: none;
         transition:
@@ -345,17 +363,21 @@
             background 0.18s ease;
 
         @variant light {
-            background-color: color-mix(in oklab, var(--brand-base-100-light) 8%, black);
+            background: linear-gradient(
+                180deg,
+                color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
+                color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
+            );
         }
     }
 
-    .ui-listing-card:hover .ui-listing-card__surface,
-    .ui-listing-card:focus-within .ui-listing-card__surface {
+    .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)) .ui-listing-card__surface,
+    .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) .ui-listing-card__surface {
         border-color: transparent;
         background-image:
             linear-gradient(
-                color-mix(in oklab, var(--brand-base-100-dark) 96%, black),
-                color-mix(in oklab, var(--brand-base-100-dark) 96%, black)
+                color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
+                color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
             ),
             linear-gradient(
                 125deg,
@@ -373,8 +395,8 @@
         @variant light {
             background-image:
                 linear-gradient(
-                    color-mix(in oklab, var(--brand-base-100-light) 8%, black),
-                    color-mix(in oklab, var(--brand-base-100-light) 8%, black)
+                    color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
+                    color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
                 ),
                 linear-gradient(
                     125deg,
@@ -385,11 +407,16 @@
         }
     }
 
-    .ui-listing-card:active .ui-listing-card__surface {
+    .ui-listing-card:active:not(:has(.ui-listing-card__toolbar :active)) .ui-listing-card__surface {
         box-shadow:
             0 0 20px color-mix(in oklch, var(--brand-info) 58%, transparent),
             0 0 40px color-mix(in oklch, var(--brand-accent) 48%, transparent),
             0 0 56px -8px color-mix(in oklch, var(--brand-primary) 42%, transparent);
+    }
+
+    .ui-activity-badge-tooltip {
+        --tt-off: calc(100% + 0.2rem);
+        --tt-tail: calc(100% + 1px + 0.1rem);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -686,6 +713,26 @@
 
         @variant light {
             background: none;
+        }
+    }
+
+    .ui-modal-surface {
+        background: linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--brand-base-300-dark) 78%, transparent),
+            color-mix(in oklab, var(--brand-base-100-dark) 88%, transparent)
+        );
+        border: 1px solid color-mix(in oklab, var(--color-base-300) 35%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 12%, transparent),
+            0 0 32px -16px color-mix(in oklab, var(--brand-primary) 45%, transparent);
+
+        @variant light {
+            background: linear-gradient(
+                180deg,
+                color-mix(in oklab, var(--brand-base-300-light) 76%, transparent),
+                color-mix(in oklab, var(--brand-base-100-light) 86%, transparent)
+            );
         }
     }
 
