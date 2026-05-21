@@ -7,6 +7,7 @@ namespace Tests\Unit\Support\Ui;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
@@ -28,7 +29,7 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
-    public function from_activity_exposes_participants_and_hosting_corner_label(): void
+    public function from_activity_exposes_participants_and_kind_corner_label(): void
     {
         $user = User::factory()->create();
         $place = Place::factory()->venue()->create(['name' => 'Tavern Hall']);
@@ -46,6 +47,7 @@ final class BrowseListingCardPresenterTest extends TestCase
             'max_participants' => 6,
         ]);
         $activity->setRelation('place', $place);
+        $activity->setRelation('creator', $user);
 
         $viewData = $this->presenter->fromActivity($activity, []);
 
@@ -55,7 +57,11 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertTrue($viewData->showParticipants);
         $this->assertSame(6, $viewData->participantsMax);
         $this->assertSame('Tavern Hall', $viewData->locationSummary);
-        $this->assertSame(__('ui.activities.hosting_modes.draft'), $viewData->hostingCornerLabel);
+        $this->assertSame(__('ui.browse.listing_kind_activity'), $viewData->kindCornerLabel);
+        $this->assertSame($user->id, $viewData->hostUser?->id);
+        $this->assertNull($viewData->hostOrganization);
+        $this->assertNull($viewData->parentEventName);
+        $this->assertNull($viewData->parentEventUrl);
         $this->assertSame('toggleActivityInterest', $viewData->interestWireMethod);
         $this->assertFalse($viewData->isInterested);
     }
@@ -66,7 +72,7 @@ final class BrowseListingCardPresenterTest extends TestCase
         $user = User::factory()->create();
         $venue = Place::factory()->venue()->create(['name' => 'Convention Center']);
         $room = Place::factory()->room($venue)->create(['name' => 'Hall A']);
-        $event = Event::factory()->create(['created_by' => $user->id]);
+        $event = Event::factory()->create(['created_by' => $user->id, 'name' => 'Mega Con']);
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
@@ -78,12 +84,28 @@ final class BrowseListingCardPresenterTest extends TestCase
             'place_id' => $room->id,
         ]);
         $slot->setRelation('place', $room->load('parent'));
+        $slot->setRelation('event', $event);
         $activity->setRelation('slot', $slot);
 
         $viewData = $this->presenter->fromActivity($activity, []);
 
         $this->assertSame('Convention Center', $viewData->locationSummary);
         $this->assertNotSame('Hall A', $viewData->locationSummary);
+        $this->assertSame('Mega Con', $viewData->parentEventName);
+        $this->assertSame(route('events.show', $event), $viewData->parentEventUrl);
+    }
+
+    #[Test]
+    public function from_self_hosted_activity_has_no_parent_event(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertNull($viewData->parentEventName);
+        $this->assertNull($viewData->parentEventUrl);
     }
 
     #[Test]
@@ -108,12 +130,14 @@ final class BrowseListingCardPresenterTest extends TestCase
 
         $event = Event::factory()->create([
             'created_by' => $user->id,
+            'organization_id' => null,
             'name' => 'Mega Con',
             'starts_at' => $startsAt,
             'ends_at' => $endsAt,
         ]);
         $event->places()->attach($place->id);
         $event->load('places.city');
+        $event->setRelation('creator', $user);
 
         $viewData = $this->presenter->fromEvent($event, [(int) $event->id]);
 
@@ -121,9 +145,30 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertSame('ui-card-event', $viewData->cardModifierClass);
         $this->assertSame('event-card', $viewData->dataUiPrefix);
         $this->assertFalse($viewData->showParticipants);
-        $this->assertNull($viewData->hostingCornerLabel);
+        $this->assertSame(__('ui.browse.listing_kind_event'), $viewData->kindCornerLabel);
+        $this->assertSame($user->id, $viewData->hostUser?->id);
+        $this->assertNull($viewData->hostOrganization);
+        $this->assertNull($viewData->parentEventName);
         $this->assertSame('Convention Center', $viewData->locationSummary);
         $this->assertSame('toggleEventInterest', $viewData->interestWireMethod);
         $this->assertTrue($viewData->isInterested);
+    }
+
+    #[Test]
+    public function from_event_exposes_host_organization_when_set(): void
+    {
+        $user = User::factory()->create();
+        $organization = Organization::factory()->create(['name' => 'Guild HQ']);
+        $event = Event::factory()->create([
+            'created_by' => $user->id,
+            'organization_id' => $organization->id,
+        ]);
+        $event->setRelation('creator', $user);
+        $event->setRelation('organization', $organization);
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertSame($organization->id, $viewData->hostOrganization?->id);
+        $this->assertSame($user->id, $viewData->hostUser?->id);
     }
 }

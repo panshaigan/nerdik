@@ -80,7 +80,6 @@
                         <x-cards.listing-card
                             :listing="$listing"
                             :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
-                            :show-listing-kind="true"
                         />
                     </div>
                 @empty

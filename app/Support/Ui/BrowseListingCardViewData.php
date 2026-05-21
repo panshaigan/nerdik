@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Ui;
 
 use App\Domain\ActivityBadges\ActivityBadgeItem;
+use App\Models\Organization;
+use App\Models\User;
 
 final readonly class BrowseListingCardViewData
 {
@@ -23,7 +25,11 @@ final readonly class BrowseListingCardViewData
         public string $interestWireMethod,
         public string $timeSummary,
         public string $locationSummary,
-        public ?string $hostingCornerLabel,
+        public string $kindCornerLabel,
+        public ?User $hostUser,
+        public ?Organization $hostOrganization,
+        public ?string $parentEventName,
+        public ?string $parentEventUrl,
         public bool $showParticipants,
         public int $participantsFilled,
         public ?int $participantsMax,
@@ -31,8 +37,6 @@ final readonly class BrowseListingCardViewData
         public string $cardModifierClass,
         public string $dataUiPrefix,
         public string $badgeGroupDataUi,
-        public string $listingKindIcon,
-        public string $listingKindTitle,
         public string $editTitle,
         public string $openAriaLabel,
         public string $previewWireMethod,

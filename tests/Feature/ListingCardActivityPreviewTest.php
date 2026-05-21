@@ -52,6 +52,37 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSeeHtml('class="relative z-20 p-4 pointer-events-auto"');
     }
 
+    public function test_listing_card_shows_kind_label_host_badge_and_parent_event_link(): void
+    {
+        $owner = User::factory()->create(['nickname' => 'Card Host Nick']);
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'name' => 'Parent Event For Card',
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'name' => 'Scheduled Card Activity',
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(BrowseActivities::class)
+            ->assertSee(__('ui.browse.listing_kind_activity'))
+            ->assertSeeHtml('data-ui="activity-card-kind-label"')
+            ->assertSee('Card Host Nick')
+            ->assertSeeHtml('data-ui="activity-card-host"')
+            ->assertSee('Parent Event For Card')
+            ->assertSeeHtml('data-ui="activity-card-parent-event-link"')
+            ->assertSeeHtml(route('events.show', $event))
+            ->assertDontSeeHtml('border-fuchsia-400/30');
+    }
+
     public function test_listing_card_uses_preview_button_instead_of_navigate_link(): void
     {
         $owner = User::factory()->create();

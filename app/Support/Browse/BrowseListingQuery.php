@@ -8,17 +8,30 @@ use App\Models\Activity;
 use App\Models\Event;
 use App\Support\BrowseTagFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 final class BrowseListingQuery
 {
     /**
      * @return Builder<Event>
      */
-    public static function baseEventQuery(BrowseListingFilterBag $filters): Builder
+    public static function baseEventQuery(BrowseListingFilterBag $filters, ?int $userId = null): Builder
     {
-        $query = Event::query()
-            ->where('is_public', true)
-            ->whereNull('events.cancelled_at');
+        $query = Event::query()->whereNull('events.cancelled_at');
+
+        if ($filters->onlyMine && $userId !== null) {
+            $query->where(function (Builder $outer) use ($userId): void {
+                $outer->where('events.created_by', $userId)
+                    ->orWhere(function (Builder $publicParticipation) use ($userId): void {
+                        $publicParticipation
+                            ->where('events.is_public', true)
+                            ->whereExists(self::eventParticipationSubquery($userId));
+                    });
+            });
+        } else {
+            $query->where('events.is_public', true);
+        }
 
         if (! $filters->includePastEvents) {
             $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
@@ -44,9 +57,22 @@ final class BrowseListingQuery
     /**
      * @return Builder<Activity>
      */
-    public static function baseActivityQuery(BrowseListingFilterBag $filters): Builder
+    public static function baseActivityQuery(BrowseListingFilterBag $filters, ?int $userId = null): Builder
     {
-        $query = Activity::query()->attachedToPublicEvent(! $filters->includePastEvents);
+        if ($filters->onlyMine && $userId !== null) {
+            $query = Activity::query()
+                ->whereNull('activities.cancelled_at')
+                ->where(function (Builder $outer) use ($filters, $userId): void {
+                    $outer->where('activities.created_by', $userId)
+                        ->orWhere(function (Builder $browseable) use ($filters, $userId): void {
+                            $browseable
+                                ->attachedToPublicEvent(! $filters->includePastEvents)
+                                ->whereHas('participants', self::activeParticipantConstraint($userId));
+                        });
+                });
+        } else {
+            $query = Activity::query()->attachedToPublicEvent(! $filters->includePastEvents);
+        }
 
         BrowseFullTextSearch::apply($query, $filters->q, 'activities.search_vector');
 
@@ -76,5 +102,31 @@ final class BrowseListingQuery
         }
 
         return $query;
+    }
+
+    /**
+     * @return \Closure(QueryBuilder): void
+     */
+    private static function eventParticipationSubquery(int $userId): \Closure
+    {
+        return function (QueryBuilder $query) use ($userId): void {
+            $query->select(DB::raw(1))
+                ->from('activity_user')
+                ->join('slots', 'slots.activity_id', '=', 'activity_user.activity_id')
+                ->whereColumn('slots.event_id', 'events.id')
+                ->whereNotNull('slots.event_id')
+                ->where('activity_user.user_id', $userId)
+                ->where('activity_user.is_absent', false);
+        };
+    }
+
+    /**
+     * @return \Closure(Builder): void
+     */
+    private static function activeParticipantConstraint(int $userId): \Closure
+    {
+        return function (Builder $query) use ($userId): void {
+            $query->where('user_id', $userId)->where('is_absent', false);
+        };
     }
 }
