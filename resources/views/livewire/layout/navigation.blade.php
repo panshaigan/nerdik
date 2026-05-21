@@ -31,13 +31,13 @@ new class extends Component
     };
 @endphp
 
-<div x-data="{ open: false }" class="relative border-b border-base-300">
+<div x-data="{ open: false }" class="ui-app-navigation relative z-40 border-b border-base-300">
     <x-nav
         sticky
         full-width
         role="navigation"
         aria-label="{{ __('Main navigation') }}"
-        class="relative z-20 !border-b-0 bg-base-100/90 backdrop-blur !z-20 [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
+        class="relative z-40 !border-b-0 bg-base-100/90 backdrop-blur [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
             <div class="flex">
@@ -87,11 +87,11 @@ new class extends Component
                     @endif
                 </a>
 
-                <div class="dropdown dropdown-end">
+                <div class="dropdown dropdown-end relative z-50">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle border border-base-300 p-0">
                         <x-user-badge :user="auth()->user()" size="sm" avatar-only />
                     </div>
-                    <ul tabindex="0" class="menu dropdown-content z-50 mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
+                    <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2">
                             <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                             <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>

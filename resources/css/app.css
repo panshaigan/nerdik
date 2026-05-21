@@ -354,6 +354,24 @@
         opacity: 1;
     }
 
+    /**
+     * Browse events tag suggestions: grow with content (no inner scroll) and stay under the nav profile menu.
+     */
+    .ui-browse-events-filter-shell,
+    .ui-browse-events-filter-shell [data-tag-selector],
+    .ui-browse-events-filter-shell [data-tag-selector] > .relative {
+        overflow: visible;
+    }
+
+    .ui-filter-form-events [data-browse-tag-selector] [data-ts-results] {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .ui-app-navigation .dropdown-content {
+        z-index: 100;
+    }
+
     .ui-filter-form-events .ui-browse-filter-toggle.btn,
     .ui-filter-form-events .join .ui-browse-filter-toggle.join-item.btn {
         border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
@@ -438,6 +456,11 @@
     }
 
     .ui-browse-events-pagination .join {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
         border-color: color-mix(in oklab, var(--color-base-300) 18%, transparent) !important;
         background-color: transparent !important;
         box-shadow: none !important;
@@ -445,6 +468,12 @@
 
     .ui-browse-events-pagination .join .join-item.btn,
     .ui-browse-events-pagination .join .join-item.btn.bg-base-100 {
+        --join-ss: var(--radius-field);
+        --join-se: var(--radius-field);
+        --join-es: var(--radius-field);
+        --join-ee: var(--radius-field);
+        margin-inline-start: 0 !important;
+        border-inline-start-width: var(--border, 1px) !important;
         border-color: color-mix(in oklab, var(--color-base-300) 10%, transparent) !important;
         background-color: transparent !important;
         color: color-mix(in oklab, var(--color-base-content) 85%, transparent) !important;
