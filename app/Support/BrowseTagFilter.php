@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\TagSelectionService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,19 +16,27 @@ class BrowseTagFilter
      */
     public static function apply(Builder $query, array $tagIds, bool $matchAll, string $relation = 'tags'): void
     {
-        $ids = array_values(array_unique(array_filter(array_map('intval', $tagIds), fn (int $id) => $id > 0)));
-        if ($ids === []) {
+        $selected = array_values(array_unique(array_filter(
+            array_map('intval', $tagIds),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if ($selected === []) {
             return;
         }
 
+        $expander = app(TagSelectionService::class);
+
         if ($matchAll) {
-            foreach ($ids as $id) {
-                $query->whereHas($relation, fn (Builder $q) => $q->where('tags.id', $id));
+            foreach ($selected as $id) {
+                $expanded = $expander->expandTagIdsToDescendants([$id]);
+                $query->whereHas($relation, fn (Builder $q) => $q->whereIn('tags.id', $expanded));
             }
 
             return;
         }
 
-        $query->whereHas($relation, fn (Builder $q) => $q->whereIn('tags.id', $ids));
+        $expanded = $expander->expandTagIdsToDescendants($selected);
+        $query->whereHas($relation, fn (Builder $q) => $q->whereIn('tags.id', $expanded));
     }
 }
