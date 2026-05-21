@@ -1,7 +1,7 @@
 <div class="py-12">
     <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
         <div
-            class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell"
+            class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell mb-10"
             data-ui="browse-events-form"
         >
             <div class="mx-auto space-y-3 max-w-5xl">

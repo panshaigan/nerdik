@@ -287,11 +287,36 @@
 
     /**
      * Browse /search (events): colorful gradient border + hover/focus glow (override DaisyUI .input:focus outline).
+     * Glow uses ::after opacity (not box-shadow tween) — color-mix shadows do not interpolate and snap at the end.
      */
     .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold {
+        --ui-browse-events-search-glow-duration: 0.55s;
+        --ui-browse-events-search-glow-ease: cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        isolation: isolate;
         border-width: 2px !important;
         outline: none !important;
-        transition: box-shadow 0.2s ease;
+    }
+
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        box-shadow:
+            0 0 22px color-mix(in oklch, var(--brand-primary) 72%, transparent),
+            0 0 52px color-mix(in oklch, var(--brand-accent) 62%, transparent),
+            0 0 80px -6px color-mix(in oklch, var(--brand-primary) 48%, transparent),
+            0 10px 32px -8px color-mix(in oklch, var(--brand-accent) 55%, transparent);
+        transition: opacity var(--ui-browse-events-search-glow-duration) var(--ui-browse-events-search-glow-ease);
+    }
+
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:hover::after,
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:focus-within::after {
+        opacity: 1;
     }
 
     .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold:hover,
@@ -305,11 +330,12 @@
             linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
         background-origin: border-box !important;
         background-clip: padding-box, border-box !important;
-        box-shadow:
-            0 0 22px color-mix(in oklch, var(--brand-primary) 72%, transparent),
-            0 0 52px color-mix(in oklch, var(--brand-accent) 62%, transparent),
-            0 0 80px -6px color-mix(in oklch, var(--brand-primary) 48%, transparent),
-            0 10px 32px -8px color-mix(in oklch, var(--brand-accent) 55%, transparent) !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold::after {
+            transition: none;
+        }
     }
 
     .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell:focus-within label.input,
