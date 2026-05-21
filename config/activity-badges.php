@@ -99,7 +99,7 @@ return [
 
     'semantic_by_kind' => [
         'taxonomy_tag'       => 'neutral',   // was primary
-        'activity_type'      => 'info',    // was info → teal is more distinctive
+        'activity_type'      => 'secondary',    // was info → teal is more distinctive
         'minimum_age'        => 'warning',   // keep
         'requires_approval'  => 'neutral',   // was accent → needs more attention
         'allows_observers'   => 'neutral',   // was accent → it's just a property

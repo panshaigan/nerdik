@@ -29,7 +29,22 @@ final class AttachGameTagChainUntilGenre
 
             $tag->loadMissing(['tagCategory', 'relatedTags.tagCategory']);
 
-            if ($tag->category === TagCategory::KEY_GENRE) {
+            $hasGenre = $tag->category === TagCategory::KEY_GENRE;
+            $relatedIds = [];
+
+            foreach ($tag->relatedTags as $relatedTag) {
+                $relatedIds[] = $relatedTag->id;
+
+                if ($relatedTag->category === TagCategory::KEY_GENRE) {
+                    $hasGenre = true;
+                }
+            }
+
+            if ($relatedIds !== []) {
+                $activity->tags()->syncWithoutDetaching($relatedIds);
+            }
+
+            if ($hasGenre) {
                 return;
             }
 
