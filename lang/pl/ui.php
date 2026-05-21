@@ -84,6 +84,7 @@ return [
         'tags_remove' => 'Usun tag',
         'listing_kind_event' => 'Wydarzenie',
         'listing_kind_activity' => 'Aktywnosc',
+        'parent_event' => 'Wydarzenie',
         'no_events_or_activities' => 'Brak pasujacych wydarzen lub aktywnosci.',
         'activity_type' => [
             'rpg' => 'Sesja RPG',
@@ -104,6 +105,7 @@ return [
         'participants_filled_no_cap' => ':filled (bez limitu)',
         'only_events' => 'Tylko wydarzenia',
         'only_activities' => 'Tylko aktywnosci',
+        'only_mine' => 'Tylko moje',
     ],
     'activities' => [
         'name' => 'Nazwa',

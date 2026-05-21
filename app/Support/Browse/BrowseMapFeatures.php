@@ -160,7 +160,7 @@ final class BrowseMapFeatures
      */
     private static function eventCountryAggregateRows(BrowseListingFilterBag $bag): Collection
     {
-        $q = BrowseListingQuery::baseEventQuery($bag);
+        $q = BrowseListingQuery::baseEventQuery($bag, self::browseUserId());
         $q->join('event_place', 'event_place.event_id', '=', 'events.id')
             ->join('places', 'places.id', '=', 'event_place.place_id')
             ->whereNotNull('places.country_id')
@@ -180,7 +180,7 @@ final class BrowseMapFeatures
      */
     private static function activityCountryAggregateRowsSelfHosted(BrowseListingFilterBag $bag): Collection
     {
-        $q = BrowseListingQuery::baseActivityQuery($bag);
+        $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
         $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->join('places', 'places.id', '=', 'activities.place_id')
             ->whereNotNull('places.country_id')
@@ -206,7 +206,7 @@ final class BrowseMapFeatures
             ->whereNotNull('event_id')
             ->groupBy('activity_id');
 
-        $q = BrowseListingQuery::baseActivityQuery($bag);
+        $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
         $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
             ->joinSub($firstSlot, 'fs', 'fs.activity_id', '=', 'activities.id')
             ->join('slots as slot_pick', 'slot_pick.id', '=', 'fs.sid')
@@ -316,7 +316,7 @@ final class BrowseMapFeatures
         $out = collect();
 
         if (! $bag->onlyActivities) {
-            $q = BrowseListingQuery::baseEventQuery($bag);
+            $q = BrowseListingQuery::baseEventQuery($bag, self::browseUserId());
             $q->select('events.id', 'events.name', 'events.slug');
             $q->selectRaw('(SELECT AVG(places.latitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lat');
             $q->selectRaw('(SELECT AVG(places.longitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lng');
@@ -336,7 +336,7 @@ final class BrowseMapFeatures
         if (! $bag->onlyEvents) {
             $sh = Activity::HOSTING_MODE_SELF_HOSTED;
             $se = Activity::HOSTING_MODE_SCHEDULED_ON_EVENT;
-            $q = BrowseListingQuery::baseActivityQuery($bag);
+            $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
             $q->select('activities.id', 'activities.name', 'activities.slug');
             $q->selectRaw("(CASE WHEN activities.hosting_mode = {$sh} THEN (SELECT places.latitude FROM places WHERE places.id = activities.place_id) WHEN activities.hosting_mode = {$se} THEN (SELECT places.latitude FROM slots INNER JOIN places ON places.id = slots.place_id WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1) END) as rep_lat");
             $q->selectRaw("(CASE WHEN activities.hosting_mode = {$sh} THEN (SELECT places.longitude FROM places WHERE places.id = activities.place_id) WHEN activities.hosting_mode = {$se} THEN (SELECT places.longitude FROM slots INNER JOIN places ON places.id = slots.place_id WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1) END) as rep_lng");
@@ -399,5 +399,12 @@ final class BrowseMapFeatures
                 'url' => $url,
             ],
         ];
+    }
+
+    private static function browseUserId(): ?int
+    {
+        $id = auth()->id();
+
+        return $id !== null ? (int) $id : null;
     }
 }

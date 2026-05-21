@@ -25,7 +25,9 @@ final class BrowseListingCardPresenter
     {
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($activity->created_by ?? 0) === (int) $currentUser->id;
-        $hostingMode = (int) ($activity->hosting_mode ?? 0);
+        $parentEvent = (int) ($activity->hosting_mode ?? 0) === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT
+            ? $activity->slot?->event
+            : null;
         $participantsFilled = isset($activity->participants_count)
             ? (int) $activity->participants_count
             : (int) $activity->participants()->where('is_absent', false)->count();
@@ -46,7 +48,11 @@ final class BrowseListingCardPresenter
             interestWireMethod: 'toggleActivityInterest',
             timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
             locationSummary: filled($venueName) ? (string) $venueName : '',
-            hostingCornerLabel: $this->activityHostingCornerLabel($hostingMode),
+            kindCornerLabel: __('ui.browse.listing_kind_activity'),
+            hostUser: $activity->creator,
+            hostOrganization: null,
+            parentEventName: $parentEvent !== null ? (string) $parentEvent->name : null,
+            parentEventUrl: $parentEvent !== null ? route('events.show', $parentEvent) : null,
             showParticipants: true,
             participantsFilled: $participantsFilled,
             participantsMax: $activity->max_participants !== null ? (int) $activity->max_participants : null,
@@ -57,8 +63,6 @@ final class BrowseListingCardPresenter
             cardModifierClass: 'ui-card-activity',
             dataUiPrefix: 'activity-card',
             badgeGroupDataUi: 'activity-card-badge-group',
-            listingKindIcon: 'o-squares-2x2',
-            listingKindTitle: __('ui.browse.listing_kind_activity'),
             editTitle: __('ui.activities.edit_activity'),
             openAriaLabel: __('Open activity').': '.$activity->name,
             previewWireMethod: 'openListingActivityPreview',
@@ -85,7 +89,11 @@ final class BrowseListingCardPresenter
             interestWireMethod: 'toggleEventInterest',
             timeSummary: format_date_range_compact($event->starts_at, $event->ends_at),
             locationSummary: $this->eventLocationSummary($event),
-            hostingCornerLabel: null,
+            kindCornerLabel: __('ui.browse.listing_kind_event'),
+            hostUser: $event->creator,
+            hostOrganization: $event->organization,
+            parentEventName: null,
+            parentEventUrl: null,
             showParticipants: false,
             participantsFilled: 0,
             participantsMax: null,
@@ -93,8 +101,6 @@ final class BrowseListingCardPresenter
             cardModifierClass: 'ui-card-event',
             dataUiPrefix: 'event-card',
             badgeGroupDataUi: 'event-card-slot-type-badges',
-            listingKindIcon: 'o-calendar-days',
-            listingKindTitle: __('ui.browse.listing_kind_event'),
             editTitle: __('ui.events.edit_event'),
             openAriaLabel: __('Open event').': '.$event->name,
             previewWireMethod: 'openListingEventPreview',
@@ -108,15 +114,6 @@ final class BrowseListingCardPresenter
         }
 
         return Storage::disk('public')->url($logoPath);
-    }
-
-    private function activityHostingCornerLabel(int $hostingMode): ?string
-    {
-        return match ($hostingMode) {
-            Activity::HOSTING_MODE_DRAFT => __('ui.activities.hosting_modes.draft'),
-            Activity::HOSTING_MODE_PROPOSED_TO_EVENT => __('ui.activities.hosting_modes.proposed_to_event'),
-            default => null,
-        };
     }
 
     private function eventLocationSummary(Event $event): string

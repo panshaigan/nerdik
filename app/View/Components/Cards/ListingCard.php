@@ -22,7 +22,6 @@ class ListingCard extends Component
     public function __construct(
         public Activity|Event $listing,
         public array $interestedIds = [],
-        public bool $showListingKind = false,
     ) {
         $presenter = app(BrowseListingCardPresenter::class);
         $this->viewData = $listing instanceof Event

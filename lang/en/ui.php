@@ -84,6 +84,7 @@ return [
         'tags_remove' => 'Remove tag',
         'listing_kind_event' => 'Event',
         'listing_kind_activity' => 'Activity',
+        'parent_event' => 'Event',
         'no_events_or_activities' => 'No matching events or activities found.',
         'activity_type' => [
             'rpg' => 'RPG Session',
@@ -104,6 +105,7 @@ return [
         'participants_filled_no_cap' => ':filled (no limit)',
         'only_events' => 'Only events',
         'only_activities' => 'Only activities',
+        'only_mine' => 'Only mine',
     ],
     'activities' => [
         'name' => 'Name',

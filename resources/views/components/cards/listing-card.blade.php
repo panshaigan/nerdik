@@ -24,60 +24,58 @@
                     loading="lazy"
                 />
             @endif
-            <div class="absolute right-2 top-2 z-20 flex max-w-[min(100%,12rem)] flex-col items-end gap-1.5">
-                @auth
-                    <div class="pointer-events-auto flex shrink-0 items-center gap-1">
-                        @if ($d->isOwner)
-                            <a
-                                href="{{ $d->editUrl }}"
-                                wire:navigate
-                                class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
-                                title="{{ $d->editTitle }}"
-                                data-ui="{{ $d->dataUiPrefix }}-edit"
-                            >
-                                <x-icon name="o-pencil" class="h-3.5 w-3.5" />
-                            </a>
-                        @endif
-                        @if ($d->isInterested)
-                            <x-button
-                                type="button"
-                                wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                                class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
-                                :title="__('ui.interests.remove_from_interests')"
-                                data-ui="{{ $d->dataUiPrefix }}-interest-remove"
-                            >★</x-button>
-                        @else
-                            <x-button
-                                type="button"
-                                wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                                class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
-                                :title="__('ui.interests.add_to_interests')"
-                                data-ui="{{ $d->dataUiPrefix }}-interest-add"
-                            >☆</x-button>
-                        @endif
-                    </div>
-                @endauth
-                <div class="flex flex-wrap justify-end gap-1">
-                    @if ($d->hostingCornerLabel !== null)
-                        <span class="max-w-full truncate rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95">
-                            {{ $d->hostingCornerLabel }}
-                        </span>
-                    @endif
-                    @if ($showListingKind)
-                        <span
-                            class="inline-flex items-center justify-center rounded-md border border-fuchsia-400/30 bg-black/70 p-1.5 text-fuchsia-200/95"
-                            title="{{ $d->listingKindTitle }}"
+            <span
+                class="absolute left-2 top-2 z-20 max-w-[min(100%,12rem)] truncate rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
+                data-ui="{{ $d->dataUiPrefix }}-kind-label"
+            >{{ $d->kindCornerLabel }}</span>
+            @auth
+                <div class="pointer-events-auto absolute right-2 top-2 z-20 flex shrink-0 items-center gap-1">
+                    @if ($d->isOwner)
+                        <a
+                            href="{{ $d->editUrl }}"
+                            wire:navigate
+                            class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
+                            title="{{ $d->editTitle }}"
+                            data-ui="{{ $d->dataUiPrefix }}-edit"
                         >
-                            <x-icon :name="$d->listingKindIcon" class="h-4 w-4" />
-                        </span>
+                            <x-icon name="o-pencil" class="h-3.5 w-3.5" />
+                        </a>
+                    @endif
+                    @if ($d->isInterested)
+                        <x-button
+                            type="button"
+                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                            class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
+                            :title="__('ui.interests.remove_from_interests')"
+                            data-ui="{{ $d->dataUiPrefix }}-interest-remove"
+                        >★</x-button>
+                    @else
+                        <x-button
+                            type="button"
+                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                            class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
+                            :title="__('ui.interests.add_to_interests')"
+                            data-ui="{{ $d->dataUiPrefix }}-interest-add"
+                        >☆</x-button>
                     @endif
                 </div>
-            </div>
+            @endauth
         </div>
         <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
             <h3 class="text-lg font-bold leading-snug text-white sm:text-xl">
                 <span class="ui-link ui-link-title" data-ui="{{ $d->dataUiPrefix }}-title-link">{{ $d->name }}</span>
             </h3>
+            @if ($d->hostUser)
+                <div class="mt-1">
+                    <x-user-badge
+                        :user="$d->hostUser"
+                        :organization="$d->hostOrganization"
+                        size="sm"
+                        nameClass="truncate text-xs font-medium text-slate-400"
+                        data-ui="{{ $d->dataUiPrefix }}-host"
+                    />
+                </div>
+            @endif
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">
@@ -115,6 +113,23 @@
                                 @else
                                     {{ __('ui.browse.participants_filled_no_cap', ['filled' => $d->participantsFilled]) }}
                                 @endif
+                            </span>
+                        </dd>
+                    </div>
+                @endif
+                @if ($d->parentEventName !== null && $d->parentEventUrl !== null)
+                    <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event">
+                        <dt class="sr-only">{{ __('ui.browse.parent_event') }}</dt>
+                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                            <x-icon name="o-calendar-days" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <span class="min-w-0 leading-snug">
+                                <span class="font-medium text-slate-500">{{ __('ui.browse.parent_event') }}:</span>
+                                <a
+                                    href="{{ $d->parentEventUrl }}"
+                                    wire:navigate
+                                    class="link link-primary break-words"
+                                    data-ui="activity-card-parent-event-link"
+                                >{{ $d->parentEventName }}</a>
                             </span>
                         </dd>
                     </div>

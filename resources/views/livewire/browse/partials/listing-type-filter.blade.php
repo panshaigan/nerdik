@@ -30,6 +30,13 @@
                 :label="__('ui.browse.only_activities')"
                 data-ui="browse-only-activities"
             />
+            @auth
+                <x-checkbox
+                    wire:model.live="only_mine"
+                    :label="__('ui.browse.only_mine')"
+                    data-ui="browse-only-mine"
+                />
+            @endauth
         </div>
         <x-button
             type="button"
