@@ -100,7 +100,7 @@ class EventController extends Controller
 
         $event->loadMissing(['slots']);
 
-        $newEvent = $event->replicate();
+        $newEvent = $event->replicate(['search_vector']);
         $newEvent->name = $event->name.' (copy)';
         $newEvent->slug = null; // force auto-generation from name
         $newEvent->created_by = null; // let HasMetaColumns fill current user
