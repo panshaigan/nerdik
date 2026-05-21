@@ -116,6 +116,40 @@ class TagSelectionService
         return $all;
     }
 
+    /**
+     * Include tag IDs that list the given IDs as their related parent (inverse of {@see expandTagIdsViaRelations}).
+     *
+     * @param  list<int>  $tagIds
+     * @return list<int>
+     */
+    public function expandTagIdsToDescendants(array $tagIds): array
+    {
+        $all = array_values(array_unique($tagIds));
+        $queue = $all;
+
+        while (! empty($queue)) {
+            $chunk = $queue;
+            $queue = [];
+
+            $linkedIds = DB::table('tag_relations')
+                ->whereIn('related_tag_id', $chunk)
+                ->pluck('tag_id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            foreach ($linkedIds as $id) {
+                if (! in_array($id, $all, true)) {
+                    $all[] = $id;
+                    $queue[] = $id;
+                }
+            }
+        }
+
+        sort($all);
+
+        return $all;
+    }
+
     public function syncActivityTypeContexts(Tag $tag, array $types): void
     {
         $tag->contexts()->where('context_type', TagContext::CONTEXT_TYPE_ACTIVITY_TYPE)->delete();
