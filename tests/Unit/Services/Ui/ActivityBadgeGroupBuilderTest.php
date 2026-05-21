@@ -118,7 +118,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
     }
 
     #[Test]
-    public function browse_card_shows_type_allowed_tags_and_minimum_age(): void
+    public function browse_card_shows_type_allowed_tags(): void
     {
         $activity = Activity::factory()->create([
             'requires_approval' => true,
@@ -132,11 +132,9 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
 
         $items = $this->builder->build($activity, ActivityBadgeGroupConfig::browseCard());
 
-        $this->assertCount(2, $items);
-        $this->assertSame(ActivityBadgeKind::MinimumAge, $items[0]->kind);
-        $this->assertSame('18+', $items[0]->label);
-        $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[1]->kind);
-        $this->assertSame('Solo', $items[1]->label);
+        $this->assertCount(1, $items);
+        $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[0]->kind);
+        $this->assertSame('Solo', $items[0]->label);
     }
 
     #[Test]

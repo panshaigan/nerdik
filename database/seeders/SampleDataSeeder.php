@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Seeders\AttachGameTagChainUntilGenre;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
@@ -22,7 +23,9 @@ use function fake;
 class SampleDataSeeder extends Seeder
 {
     public const DATASET_MINIMAL = 1;
+
     public const DATASET_STANDARD = 2;
+
     public const DATASET_MAXIMAL = 3;
 
     public const DATASETS = [
@@ -76,6 +79,7 @@ class SampleDataSeeder extends Seeder
     /**
      * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
      * All entities get created_by set. Safe to run multiple times (use firstOrCreate by slug/email).
+     *
      * @throws RandomException
      */
     public function run(int $chosenDataset = self::DATASET_MINIMAL): void
@@ -85,13 +89,13 @@ class SampleDataSeeder extends Seeder
         $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
 
         $activityTypes = ActivityType::where('slug', ActivityType::SLUG_RPG)->get();
-        $organizers    = User::where('is_event_organizer', 1)->get();
-        $allUsers      = User::all();
-        $venues        = Place::where('type', Place::TYPE_VENUE)->get();
-        $gameTags      = Tag::query()->games()->with('relatedTags')->get();
-        $formatTags    = Tag::query()->formats()->get();
-        $otherTags     = Tag::query()->others()->get();
-        $triggerTags   = Tag::query()->triggers()->get();
+        $organizers = User::where('is_event_organizer', 1)->get();
+        $allUsers = User::all();
+        $venues = Place::where('type', Place::TYPE_VENUE)->get();
+        $gameTags = Tag::query()->games()->get();
+        $formatTags = Tag::query()->formats()->get();
+        $otherTags = Tag::query()->others()->get();
+        $triggerTags = Tag::query()->triggers()->get();
 
         $organizations = Organization::factory($dataset['organizations'])
             ->recycle($allUsers)
@@ -147,12 +151,7 @@ class SampleDataSeeder extends Seeder
             $activity->tags()->attach($formatTags->random(1));
             $activity->tags()->attach($triggerTags->random(fake()->numberBetween(1, 3)));
 
-            $randomGameTag = $gameTags->random(1)->first();
-            $activity->tags()->attach($randomGameTag);
-
-            foreach ($randomGameTag->relatedTags as $relatedTag) {
-                $activity->tags()->attach($relatedTag);
-            }
+            app(AttachGameTagChainUntilGenre::class)($activity, $gameTags->random());
         }
 
         foreach ($allUsers as $user) {
