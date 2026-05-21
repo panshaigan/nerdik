@@ -135,9 +135,10 @@ class ActivityBadgeGroupBuilder
      */
     public function buildActivityTypeChips(
         iterable $typeLabels,
-        BadgeSemantic $semantic = BadgeSemantic::Info,
+        ?BadgeSemantic $semantic = null,
         ?string $icon = null
     ): array {
+        $resolvedSemantic = $semantic ?? ActivityBadgeDefaults::semanticForKind(ActivityBadgeKind::ActivityType);
         $resolvedIcon = $icon ?? ActivityBadgeDefaults::iconForKind(ActivityBadgeKind::ActivityType);
         $items = [];
         $i = 0;
@@ -150,7 +151,7 @@ class ActivityBadgeGroupBuilder
                 ActivityBadgeKind::ActivityType,
                 'activity_type:slot:'.$i,
                 $label,
-                $semantic,
+                $resolvedSemantic,
                 $resolvedIcon,
             );
             $i++;
