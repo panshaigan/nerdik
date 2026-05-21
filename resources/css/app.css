@@ -350,11 +350,7 @@
     .ui-listing-card__surface {
         border-radius: var(--rounded-box, 1rem);
         border: 1px solid color-mix(in oklab, var(--color-base-300) 42%, transparent);
-        background: linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--brand-base-300-dark) 84%, var(--brand-primary-dark)),
-            color-mix(in oklab, var(--brand-base-100-dark) 92%, var(--brand-primary-dark))
-        );
+
         color: var(--color-base-content);
         box-shadow: none;
         transition:
@@ -365,7 +361,7 @@
         @variant light {
             background: linear-gradient(
                 180deg,
-                color-mix(in oklab, var(--brand-base-300-light) 82%, var(--brand-info)),
+                color-mix(in oklab, var(--brand-base-100-light) 82%, var(--brand-info)),
                 color-mix(in oklab, var(--brand-base-100-light) 90%, var(--brand-primary))
             );
         }
