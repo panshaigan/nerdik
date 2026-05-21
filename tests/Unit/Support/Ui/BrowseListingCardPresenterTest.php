@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Support\Ui;
 
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Domain\ActivityBadges\ActivityBadgeKind;
+use App\Enums\BadgeSemantic;
 use App\Models\Activity;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
@@ -170,5 +173,23 @@ final class BrowseListingCardPresenterTest extends TestCase
 
         $this->assertSame($organization->id, $viewData->hostOrganization?->id);
         $this->assertSame($user->id, $viewData->hostUser?->id);
+    }
+
+    #[Test]
+    public function from_event_slot_type_badges_use_config_activity_type_semantic(): void
+    {
+        $activityType = ActivityType::query()->where('slug', ActivityType::SLUG_RPG)->first()
+            ?? ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $event = Event::factory()->create();
+        $slot = Slot::factory()->create(['event_id' => $event->id]);
+        $slot->activityTypes()->attach($activityType->id);
+        $slot->load('activityTypes');
+        $event->setRelation('slots', collect([$slot]));
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertCount(1, $viewData->badgeItems);
+        $this->assertSame(ActivityBadgeKind::ActivityType, $viewData->badgeItems[0]->kind);
+        $this->assertSame(BadgeSemantic::Secondary, $viewData->badgeItems[0]->semantic);
     }
 }

@@ -167,6 +167,16 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
     }
 
     #[Test]
+    public function build_activity_type_chips_uses_config_semantic_by_default(): void
+    {
+        Config::set('activity-badges.semantic_by_kind.activity_type', 'secondary');
+
+        $items = $this->builder->buildActivityTypeChips(['RPG']);
+
+        $this->assertSame(BadgeSemantic::Secondary, $items[0]->semantic);
+    }
+
+    #[Test]
     public function taxonomy_semantic_uses_config_file_per_category(): void
     {
         Config::set('activity-badges.semantic_by_tag_category.game', 'warning');

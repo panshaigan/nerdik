@@ -7,7 +7,6 @@ namespace App\Support\Ui;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Domain\ActivityBadges\ActivityBadgeItem;
-use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\Event;
 use Illuminate\Support\Facades\Storage;
@@ -170,6 +169,6 @@ final class BrowseListingCardPresenter
             return [];
         }
 
-        return $this->badgeGroupBuilder->buildActivityTypeChips($slotTypeLabels, BadgeSemantic::Info);
+        return $this->badgeGroupBuilder->buildActivityTypeChips($slotTypeLabels);
     }
 }

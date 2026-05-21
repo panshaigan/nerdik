@@ -4,7 +4,6 @@ namespace App\Livewire\Events;
 
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
-use App\Enums\BadgeSemantic;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\Event;
@@ -496,7 +495,6 @@ class EventShowPlanTab extends Component
                 if ($slotActivityTypes->isNotEmpty()) {
                     $slotTypeBadgeItemsBySlotId[(int) $slot->id] = $badgeGroupBuilder->buildActivityTypeChips(
                         $slotActivityTypes,
-                        BadgeSemantic::Info,
                     );
                 }
             }
