@@ -461,14 +461,12 @@
     .ui-browse-events-pagination .join .join-item.btn:hover:not(.btn-disabled):not(.btn-active),
     .ui-browse-events-pagination .join .join-item.btn.bg-base-100:hover:not(.btn-disabled):not(.btn-active) {
         background-color: color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
-        border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
         color: var(--color-base-content) !important;
         box-shadow: 0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent) !important;
     }
 
     .ui-browse-events-pagination .join .join-item.btn-active {
         background-color: color-mix(in oklab, var(--color-primary) 18%, transparent) !important;
-        border-color: color-mix(in oklch, var(--brand-accent) 45%, transparent) !important;
         color: var(--color-base-content) !important;
         box-shadow: 0 0 10px color-mix(in oklch, var(--brand-primary) 28%, transparent) !important;
     }
