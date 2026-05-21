@@ -3,6 +3,8 @@
 return [
     'nav' => [
         'search' => 'Szukaj',
+        'create_event' => 'Utwórz wydarzenie',
+        'create_activity' => 'Utwórz aktywność',
     ],
     'me' => [
         'menu_events' => 'Wszystkie moje wydarzenia',

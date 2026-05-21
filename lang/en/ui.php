@@ -4,6 +4,7 @@ return [
     'nav' => [
         'search' => 'Search',
         'create_event' => 'Create Event',
+        'create_activity' => 'Create Activity',
     ],
     'me' => [
         'menu_events' => 'My events',
