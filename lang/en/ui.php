@@ -510,6 +510,6 @@ return [
         'empty_events' => 'No events in your interests list.',
         'empty_activities' => 'No activities in your interests list.',
         'add_to_interests' => 'Save',
-        'remove_from_interests' => 'Remove from interests',
+        'remove_from_interests' => 'Remove',
     ],
 ];
