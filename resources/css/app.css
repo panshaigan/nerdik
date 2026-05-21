@@ -336,6 +336,30 @@
         z-index: 40;
     }
 
+    .ui-listing-card__toolbar .btn:is(.tooltip, .lg\:tooltip) {
+        --tt-off: calc(100% + 0.35rem);
+        --tt-tail: calc(100% + 1px + 0.2rem);
+    }
+
+    .ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
+        .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::before,
+    .ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
+        .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::after {
+        opacity: 1;
+        --tt-pos: 0rem;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
+            .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::before,
+        .ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
+            .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::after {
+            transition:
+                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1) 90ms,
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) 90ms;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .ui-listing-card {
             transition: none;
