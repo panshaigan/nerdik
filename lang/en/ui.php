@@ -3,6 +3,7 @@
 return [
     'nav' => [
         'search' => 'Search',
+        'create_event' => 'Create Event',
     ],
     'me' => [
         'menu_events' => 'My events',

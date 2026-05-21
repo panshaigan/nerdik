@@ -197,10 +197,6 @@ new class extends Component
                    class="{{ $navLink(BrowseSearchUrl::isMyActivities(request())) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                     {{ __('ui.me.menu_activities') }}
                 </a>
-                <a href="{{ route('me.participated-activities') }}" wire:navigate
-                   class="{{ $navLink(request()->routeIs('me.participated-activities')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
-                    {{ __('ui.me.menu_participated') }}
-                </a>
                 <button type="button" wire:click="logout"
                         class="block w-full border-l-4 border-transparent py-2 ps-3 pe-4 text-start text-base font-medium text-base-content/80">
                     {{ __('Log Out') }}
