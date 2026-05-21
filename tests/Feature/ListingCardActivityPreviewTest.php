@@ -79,6 +79,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSeeHtml('data-ui="activity-card-host"')
             ->assertSee('Parent Event For Card')
             ->assertSeeHtml('data-ui="activity-card-parent-event-link"')
+            ->assertSeeHtml('class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event"')
             ->assertSeeHtml(route('events.show', $event))
             ->assertDontSeeHtml('border-fuchsia-400/30');
     }
