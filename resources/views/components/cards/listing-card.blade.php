@@ -13,7 +13,6 @@
                 <x-button
                     :link="$d->editUrl"
                     class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
-                    :tooltip="$d->editTitle"
                     :aria-label="$d->editTitle"
                     icon="o-pencil"
                     data-ui="{{ $d->dataUiPrefix }}-edit"
@@ -24,7 +23,6 @@
                     type="button"
                     wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
                     class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
-                    :tooltip="__('ui.interests.remove_from_interests')"
                     :aria-label="__('ui.interests.remove_from_interests')"
                     data-ui="{{ $d->dataUiPrefix }}-interest-remove"
                 >★</x-button>
@@ -33,7 +31,6 @@
                     type="button"
                     wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
                     class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
-                    :tooltip="__('ui.interests.add_to_interests')"
                     :aria-label="__('ui.interests.add_to_interests')"
                     data-ui="{{ $d->dataUiPrefix }}-interest-add"
                 >☆</x-button>
