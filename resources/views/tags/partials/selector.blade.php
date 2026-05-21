@@ -77,7 +77,7 @@
     <script type="application/json" data-ts-config>
         @json($tagSelectorConfig)
     </script>
-    <div class="relative z-[50]">
+    <div @class(['relative', 'z-[50]' => ! $browseTagSelector])>
         {{-- Unified shell: selected tag chips + input inside one bordered field, matching manage tags UX. --}}
         <div
             data-ts-field
@@ -103,9 +103,9 @@
         <div
             data-ts-results
             @class([
-                'absolute left-0 right-0 top-full z-[100] mt-1 hidden overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg',
-                'max-h-[min(100vh,28rem)] py-1' => $browseTagSelector,
-                'max-h-60 py-1' => ! $browseTagSelector,
+                'absolute left-0 right-0 top-full mt-1 hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg',
+                'z-30 overflow-visible py-1' => $browseTagSelector,
+                'z-[100] max-h-60 overflow-y-auto py-1' => ! $browseTagSelector,
             ])
         ></div>
     </div>
