@@ -15,7 +15,7 @@
     <x-modal
         wire:model="activityPreviewModalOpen"
         :title="$previewActivity->name"
-        box-class="max-w-4xl bg-texture-glass"
+        box-class="max-w-4xl ui-modal-surface"
         class="backdrop-blur"
         separator
     >

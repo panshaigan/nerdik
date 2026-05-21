@@ -4,7 +4,7 @@
     'confirmAction' => 'runConfirmedAction',
 ])
 
-<x-modal {{ $attributes }} :title="$title" class="backdrop-blur" box-class="bg-texture-glass" persistent separator>
+<x-modal {{ $attributes }} :title="$title" class="backdrop-blur" box-class="ui-modal-surface" persistent separator>
     <p class="text-sm text-base-content/80 whitespace-pre-line">{{ $message }}</p>
 
     @if (trim((string) $slot) !== '')

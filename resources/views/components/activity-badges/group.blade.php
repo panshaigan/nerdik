@@ -4,26 +4,22 @@
         @if (filled($dataUi)) data-ui="{{ $dataUi }}" @endif
     >
         @foreach ($items as $item)
-            <div
+            @php
+                $hasTooltip = $item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag && filled($item->title);
+            @endphp
+            <x-badge
+                :icon="$item->icon"
+                :data-tip="$hasTooltip ? $item->title : null"
                 @class([
-                    'tooltip tooltip-primary' => $item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag && filled($item->title),
+                    $item->semantic->badgeClasses($item->outline),
+                    'whitespace-normal text-left' => $item->normalWrap,
+                    'gap-1' => filled($item->icon),
+                    'tooltip tooltip-primary ui-activity-badge-tooltip' => $hasTooltip,
                 ])
-                @if ($item->kind === App\Domain\ActivityBadges\ActivityBadgeKind::TaxonomyTag && filled($item->title))
-                    data-tip="{{ $item->title }}"
-                @endif
+                :data-ui="$item->dataUi"
             >
-                <x-badge
-                    :icon="$item->icon"
-                    @class([
-                        $item->semantic->badgeClasses($item->outline),
-                        'whitespace-normal text-left' => $item->normalWrap,
-                        'gap-1' => filled($item->icon),
-                    ])
-                    :data-ui="$item->dataUi"
-                >
-                    {{ $item->label }}
-                </x-badge>
-            </div>
+                {{ $item->label }}
+            </x-badge>
         @endforeach
     </div>
 @endif

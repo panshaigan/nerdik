@@ -2,7 +2,7 @@
     <x-modal
         wire:model="eventPreviewModalOpen"
         :title="$previewEvent->name"
-        box-class="max-w-4xl bg-texture-glass"
+        box-class="max-w-4xl ui-modal-surface"
         class="backdrop-blur"
         separator
     >
