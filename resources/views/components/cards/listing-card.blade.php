@@ -7,8 +7,41 @@
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
 >
-    <div class="ui-listing-card__surface ui-content-card flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div class="relative aspect-video w-full shrink-0 bg-transparent">
+    @auth
+        <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-30 flex shrink-0 items-center gap-1">
+            @if ($d->isOwner)
+                <x-button
+                    :link="$d->editUrl"
+                    class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
+                    :tooltip="$d->editTitle"
+                    :aria-label="$d->editTitle"
+                    icon="o-pencil"
+                    data-ui="{{ $d->dataUiPrefix }}-edit"
+                />
+            @endif
+            @if ($d->isInterested)
+                <x-button
+                    type="button"
+                    wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                    class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
+                    :tooltip="__('ui.interests.remove_from_interests')"
+                    :aria-label="__('ui.interests.remove_from_interests')"
+                    data-ui="{{ $d->dataUiPrefix }}-interest-remove"
+                >★</x-button>
+            @else
+                <x-button
+                    type="button"
+                    wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                    class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
+                    :tooltip="__('ui.interests.add_to_interests')"
+                    :aria-label="__('ui.interests.add_to_interests')"
+                    data-ui="{{ $d->dataUiPrefix }}-interest-add"
+                >☆</x-button>
+            @endif
+        </div>
+    @endauth
+    <div class="ui-listing-card__surface ui-content-card flex min-h-0 flex-1 flex-col overflow-visible">
+        <div class="ui-listing-card__media relative aspect-video w-full shrink-0 overflow-visible bg-transparent">
             @if ($d->logoUrl)
                 <img
                     src="{{ $d->logoUrl }}"
@@ -28,38 +61,6 @@
                 class="absolute left-2 top-2 z-20 max-w-[min(100%,12rem)] truncate rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
                 data-ui="{{ $d->dataUiPrefix }}-kind-label"
             >{{ $d->kindCornerLabel }}</span>
-            @auth
-                <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-20 flex shrink-0 items-center gap-1">
-                    @if ($d->isOwner)
-                        <a
-                            href="{{ $d->editUrl }}"
-                            wire:navigate
-                            class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
-                            title="{{ $d->editTitle }}"
-                            data-ui="{{ $d->dataUiPrefix }}-edit"
-                        >
-                            <x-icon name="o-pencil" class="h-3.5 w-3.5" />
-                        </a>
-                    @endif
-                    @if ($d->isInterested)
-                        <x-button
-                            type="button"
-                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                            class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
-                            :title="__('ui.interests.remove_from_interests')"
-                            data-ui="{{ $d->dataUiPrefix }}-interest-remove"
-                        >★</x-button>
-                    @else
-                        <x-button
-                            type="button"
-                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                            class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
-                            :title="__('ui.interests.add_to_interests')"
-                            data-ui="{{ $d->dataUiPrefix }}-interest-add"
-                        >☆</x-button>
-                    @endif
-                </div>
-            @endauth
         </div>
         <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
             <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">

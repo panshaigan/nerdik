@@ -282,6 +282,7 @@
     .ui-listing-card {
         position: relative;
         z-index: 0;
+        overflow: visible;
         box-shadow:
             0 32px 48px color-mix(in oklch, black 88%, transparent),
             0 14px 28px color-mix(in oklch, black 72%, transparent);
@@ -298,7 +299,7 @@
         }
     }
 
-    .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)),
+    .ui-listing-card:is(:hover, :focus-within),
     .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) {
         z-index: 10;
         transform: translateY(-5px) scale(1.018);
@@ -331,12 +332,17 @@
         outline-offset: 2px;
     }
 
+    .ui-listing-card__toolbar .btn:is(.lg\:tooltip, .tooltip)::before,
+    .ui-listing-card__toolbar .btn:is(.lg\:tooltip, .tooltip)::after {
+        z-index: 40;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .ui-listing-card {
             transition: none;
         }
 
-        .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)),
+        .ui-listing-card:is(:hover, :focus-within),
         .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible),
         .ui-listing-card:active:not(:has(.ui-listing-card__toolbar :active)) {
             transform: none;
@@ -348,6 +354,7 @@
     }
 
     .ui-listing-card__surface {
+        overflow: visible;
         border-radius: var(--rounded-box, 1rem);
         border: 1px solid color-mix(in oklab, var(--color-base-300) 42%, transparent);
 
@@ -367,7 +374,7 @@
         }
     }
 
-    .ui-listing-card:hover:not(:has(.ui-listing-card__toolbar:hover)) .ui-listing-card__surface,
+    .ui-listing-card:is(:hover, :focus-within) .ui-listing-card__surface,
     .ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) .ui-listing-card__surface {
         border-color: transparent;
         background-image:
@@ -424,6 +431,10 @@
     .ui-browse-events-listings .ui-listing-card {
         content-visibility: auto;
         contain-intrinsic-size: auto 320px;
+    }
+
+    .ui-browse-events-listings .ui-listing-card:is(:hover, :focus-within) {
+        content-visibility: visible;
     }
 
     /**
