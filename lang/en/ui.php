@@ -61,7 +61,7 @@ return [
         'text_search_chip_hint' => 'Matches event or activity name and description',
         'text_search_remove' => 'Remove text search',
         'map_hint_viewport' => 'Pan and zoom the map; listing results match the visible area.',
-        'map_view_toggle' => 'Show on map',
+        'map_view_toggle' => 'Map Filter',
         'map_clear_area' => 'Clear map area filter',
         'map_bbox_too_large' => 'Zoom in closer to load markers for this area.',
         'map_country_listings' => ':count listings',

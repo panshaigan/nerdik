@@ -12,7 +12,7 @@
             @if ($d->isOwner)
                 <x-button
                     :link="$d->editUrl"
-                    class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/95 hover:bg-black/85"
+                    class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs rounded-lg"
                     :aria-label="$d->editTitle"
                     icon="o-pencil"
                     data-ui="{{ $d->dataUiPrefix }}-edit"
@@ -22,7 +22,7 @@
                 <x-button
                     type="button"
                     wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                    class="btn btn-xs rounded-lg border border-amber-400/40 bg-black/70 text-amber-200 hover:bg-black/85 ui-action ui-action-interest-remove"
+                    class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs rounded-lg ui-action ui-action-interest-remove"
                     :aria-label="__('ui.interests.remove_from_interests')"
                     data-ui="{{ $d->dataUiPrefix }}-interest-remove"
                 >★</x-button>
@@ -30,7 +30,7 @@
                 <x-button
                     type="button"
                     wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                    class="btn btn-xs rounded-lg border border-cyan-400/35 bg-black/70 text-cyan-100/90 hover:bg-black/85 ui-action ui-action-interest-add"
+                    class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs rounded-lg ui-action ui-action-interest-add"
                     :aria-label="__('ui.interests.add_to_interests')"
                     data-ui="{{ $d->dataUiPrefix }}-interest-add"
                 >☆</x-button>
