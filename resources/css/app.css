@@ -743,7 +743,59 @@
         transition-duration: 0.2s;
     }
 
-    .card.ui-listing-card .ui-listing-card__toolbar .btn:active {
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool {
+        border-width: 1px;
+        border-style: solid;
+        background-color: color-mix(in oklch, var(--color-base-100) 70%, transparent);
+        transition:
+            background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--accent {
+        border-color: color-mix(in oklch, var(--color-accent) 35%, transparent);
+        color: var(--color-accent);
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--accent:hover {
+        border-color: color-mix(in oklch, var(--color-accent) 58%, transparent);
+        background-color: color-mix(in oklch, var(--color-base-100) 72%, var(--color-accent) 18%);
+        color: color-mix(in oklch, var(--color-accent) 92%, var(--color-accent-content));
+        box-shadow:
+            0 0 16px color-mix(in oklch, var(--color-accent) 38%, transparent),
+            inset 0 0 0 1px color-mix(in oklch, var(--color-accent) 22%, transparent);
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--interest {
+        border-color: color-mix(in oklch, var(--color-neutral) 40%, transparent);
+        color: color-mix(in oklch, var(--color-neutral) 88%, var(--color-neutral-content));
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--interest.ui-listing-card__tool--interested {
+        border-color: color-mix(in oklch, var(--color-warning) 40%, transparent);
+        color: var(--color-warning);
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--interest:hover,
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--interest.ui-listing-card__tool--interested:hover {
+        border-color: color-mix(in oklch, var(--color-warning) 62%, transparent);
+        background-color: color-mix(in oklch, var(--color-base-100) 72%, var(--color-warning) 16%);
+        color: color-mix(in oklch, var(--color-warning) 88%, var(--color-warning-content));
+        box-shadow:
+            0 0 16px color-mix(in oklch, var(--color-warning) 36%, transparent),
+            inset 0 0 0 1px color-mix(in oklch, var(--color-warning) 24%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool:hover {
+            transform: scale(1.08);
+        }
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool:active {
         transform: scale(0.94);
     }
 
@@ -799,7 +851,8 @@
             opacity: 0;
         }
 
-        .card.ui-listing-card .ui-listing-card__toolbar .btn:active {
+        .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool:active,
+        .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool:hover {
             transform: none;
         }
 
