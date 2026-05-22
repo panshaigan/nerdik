@@ -74,7 +74,6 @@
                     />
                 </div>
             @endif
-            <x-ui.hr />
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">
