@@ -12,11 +12,15 @@
     $defaultEventId = ($editMode && $slot) ? $slot->event_id : null;
     $countDefault = $countDefault ?? 5;
     $activityTypes = \App\Models\ActivityType::query()->orderBy('id')->get(['id', 'slug']);
+    $rpgActivityTypeId = (int) (\App\Models\ActivityType::findBySlug(\App\Models\ActivityType::SLUG_RPG)?->id ?? 0);
     $oldActivityTypeIds = old('activity_types_ids', $editMode && $slot ? $slot->activity_types_ids : []);
     if (! is_array($oldActivityTypeIds)) {
         $oldActivityTypeIds = [];
     }
     $oldActivityTypeIds = array_values(array_filter(array_map('intval', $oldActivityTypeIds), fn ($id) => $id > 0));
+    if (! $editMode && $oldActivityTypeIds === [] && $rpgActivityTypeId > 0) {
+        $oldActivityTypeIds = [$rpgActivityTypeId];
+    }
     $slotBaseNameSuggestions = $slotBaseNameSuggestions ?? [];
     $slotNameSuggestions = $slotNameSuggestions ?? [];
     $slotMassRoomsByVenueId = $slotMassRoomsByVenueId ?? [];
@@ -28,6 +32,7 @@
         'oldVenuePlaceId' => $defaultVenuePlaceId !== null && $defaultVenuePlaceId !== '' ? (int) $defaultVenuePlaceId : null,
         'isEdit' => $editMode,
         'initialActivityTypes' => $oldActivityTypeIds,
+        'allowedActivityTypeIds' => $rpgActivityTypeId > 0 ? [$rpgActivityTypeId] : [],
         'activityTypeLabels' => $activityTypes->mapWithKeys(fn ($type) => [$type->id => __('ui.activities.types.'.$type->slug)])->all(),
         'strings' => [
             'none' => __('ui.common.none'),
@@ -254,7 +259,11 @@
                     <x-select
                         :label="__('ui.slots.activity_types')"
                         :placeholder="__('ui.slots.activity_types')"
-                        :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
+                        :options="$activityTypes->map(fn ($type) => [
+                            'id' => $type->id,
+                            'name' => __('ui.activities.types.'.$type->slug),
+                            'disabled' => $type->slug !== \App\Models\ActivityType::SLUG_RPG,
+                        ])->values()->all()"
                         placeholder-value=""
                         icon="o-squares-2x2"
                         inline

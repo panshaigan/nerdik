@@ -23,6 +23,8 @@
             id="hosting_mode"
             wire:model.live="hosting_mode"
             error-field="hosting_mode"
+            class="ui-field ui-field-hosting-mode"
+            data-ui="activity-hosting-mode"
             :options="[
                 ['id' => \App\Models\Activity::HOSTING_MODE_DRAFT, 'name' => __('ui.activities.hosting_modes.draft')],
                 ['id' => \App\Models\Activity::HOSTING_MODE_SELF_HOSTED, 'name' => __('ui.activities.hosting_modes.self_hosted')],
@@ -112,7 +114,7 @@
                         :label="__('ui.activities.proposal_event')"
                         wire:model.live.debounce.250ms="proposal_event_search"
                         error-field="proposal_event_id"
-                        type="search"
+                        type="text"
                         autocomplete="off"
                         data-proposal-event-input
                         aria-autocomplete="list"
@@ -122,6 +124,7 @@
                         data-ui="proposal-event-search"
                         :readonly="$proposalFieldsReadonly"
                         :disabled="$proposalFieldsReadonly"
+                        :clearable="! $proposalFieldsReadonly"
                         inline
                     />
                     <input type="hidden" wire:model.live="proposal_event_id" data-proposal-event-id />

@@ -87,5 +87,7 @@ final class TagSelectionServiceActivityContextTest extends TestCase
 
         $this->assertCount(1, $payload);
         $this->assertSame([(int) $type->id], $payload[0]['context_activity_type_ids']);
+        $this->assertArrayHasKey('popularity_score', $payload[0]);
+        $this->assertSame((int) ($tag->popularity_score ?? 0), $payload[0]['popularity_score']);
     }
 }

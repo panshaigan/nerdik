@@ -72,6 +72,13 @@
         --brand-size-selector:   0.3125rem;
         --brand-size-field:      0.3125rem;
         --brand-depth:           1;
+
+        /* Field chrome (.input, .select, .textarea, .file-input) — adjust appearance in one place */
+        --ui-field-bg: var(--color-base-300);
+        --ui-field-border-color: var(--color-base-100);
+        --ui-field-focus-border-color: var(--color-primary);
+        --ui-field-focus-ring-width: 2px;
+        --ui-field-focus-ring-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
     }
 }
 
@@ -240,7 +247,7 @@
     .ui-gradient-frame-brand-bold {
         border: 2px solid transparent;
         background-image:
-            linear-gradient(var(--color-base-100), var(--color-base-100)),
+            linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
             linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
         background-origin: border-box;
         background-clip: padding-box, border-box;
@@ -296,6 +303,12 @@
         isolation: isolate;
         border-width: 2px !important;
         outline: none !important;
+        background-color: var(--ui-field-bg) !important;
+        background-image:
+            linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
+            linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
+        background-origin: border-box !important;
+        background-clip: padding-box, border-box !important;
     }
 
     .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell.ui-gradient-frame-brand-bold::after {
@@ -325,8 +338,9 @@
         outline: none !important;
         outline-offset: 0 !important;
         border: 2px solid transparent !important;
+        background-color: var(--ui-field-bg) !important;
         background-image:
-            linear-gradient(var(--color-base-100), var(--color-base-100)),
+            linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
             linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
         background-origin: border-box !important;
         background-clip: padding-box, border-box !important;
@@ -345,6 +359,8 @@
         outline: none !important;
         box-shadow: none !important;
         border-color: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
         --input-color: transparent !important;
         --tw-ring-shadow: 0 0 #0000 !important;
     }
@@ -369,10 +385,29 @@
         }
     }
 
+    .ui-filter-form-events [data-ts-field] > div:has([data-ts-input]) {
+        flex: 1 1 auto;
+        min-width: 0;
+        align-self: stretch;
+        display: flex;
+    }
+
+    .ui-filter-form-events [data-ts-field] fieldset,
+    .ui-filter-form-events [data-ts-field] fieldset > .w-full {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+        display: flex;
+    }
+
     .ui-filter-form-events [data-ts-field] label.input {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: 100% !important;
         border-width: 0;
-        box-shadow: none;
-        background-color: transparent;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
     }
 
     .ui-filter-form-events [data-ts-field] label.input .pointer-events-none.w-4.h-4 {
@@ -446,6 +481,29 @@
         border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
         color: var(--color-base-content) !important;
         box-shadow: 0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent) !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn {
+        border-color: var(--ui-field-border-color) !important;
+        background-color: var(--ui-field-bg) !important;
+        color: var(--color-base-content) !important;
+        --btn-bg: var(--ui-field-bg) !important;
+        --btn-border: var(--ui-field-border-color) !important;
+        box-shadow: none !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn:hover:not(:disabled):not(:checked) {
+        background-color: color-mix(in oklab, var(--color-primary) 12%, var(--ui-field-bg)) !important;
+        border-color: var(--ui-field-focus-border-color) !important;
+        color: var(--color-base-content) !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn:checked {
+        background-color: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+        border-color: var(--ui-field-focus-border-color) !important;
+        color: var(--color-base-content) !important;
+        --btn-bg: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+        --btn-border: var(--ui-field-focus-border-color) !important;
     }
 
     .ui-filter-form-events .ui-tile-empty {
@@ -874,6 +932,60 @@
             inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 16%, transparent),
             inset 0 36px 54px -46px color-mix(in oklab, var(--brand-info) 32%, transparent);
     }
+
+    /**
+     * Default field chrome (.input, .select, .textarea, .file-input). Tokens: --ui-field-* in :root.
+     * Excludes tag-selector shells, browse gradient search, and brand gradient frames.
+     */
+    .ui-field-shell {
+        position: relative;
+        border-radius: 0.5rem;
+        border: var(--border) solid var(--ui-field-border-color);
+        background-color: var(--ui-field-bg);
+    }
+
+    .ui-field-shell:focus-within {
+        border-color: var(--ui-field-focus-border-color);
+        outline: none;
+        outline-offset: 0;
+        box-shadow: 0 0 0 var(--ui-field-focus-ring-width) var(--ui-field-focus-ring-color);
+    }
+
+    .ui-field-shell__legend {
+        background-color: var(--ui-field-bg);
+    }
+
+    :where(
+        .input:not(.ui-gradient-frame-brand-bold):not([data-ts-field].input):not(
+            .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell
+        ):not(.ui-filter-form-events [data-ts-field] label.input),
+        .select:not(.ui-gradient-frame-brand-bold),
+        .textarea:not(.ui-gradient-frame-brand-bold),
+        .file-input:not(.ui-gradient-frame-brand-bold)
+    ):not(.input-error) {
+        background-color: var(--ui-field-bg);
+        --input-color: var(--ui-field-border-color);
+        box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset;
+    }
+
+    :where(
+        .input:not(.ui-gradient-frame-brand-bold):not([data-ts-field].input):not(
+            .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell
+        ):not(.ui-filter-form-events [data-ts-field] label.input),
+        .select:not(.ui-gradient-frame-brand-bold),
+        .textarea:not(.ui-gradient-frame-brand-bold),
+        .file-input:not(.ui-gradient-frame-brand-bold)
+    ):is(:focus, :focus-within):not(.input-error) {
+        --input-color: var(--ui-field-focus-border-color);
+        outline: none !important;
+        outline-offset: 0 !important;
+        border-color: var(--ui-field-focus-border-color);
+        box-shadow: 0 0 0 var(--ui-field-focus-ring-width) var(--ui-field-focus-ring-color);
+    }
+
+    .floating-label > span {
+        background-color: var(--ui-field-bg);
+    }
 }
 
 /* ====================== MAP TWEAKS ====================== */
@@ -886,13 +998,98 @@
 }
 
 /* ====================== TINY MCE TWEAKS ====================== */
+/* Tokens: --ui-field-bg, --ui-field-border-color, --color-base-content */
+.tox.tox-tinymce {
+    border: var(--border) solid var(--ui-field-border-color) !important;
+    border-radius: var(--radius-field, 0.5rem) !important;
+    overflow: hidden;
+}
+
+.tox .tox-editor-header,
+.tox .tox-toolbar,
+.tox .tox-toolbar-overlord,
+.tox .tox-toolbar__primary,
+.tox .tox-toolbar__overflow,
+.tox .tox-anchorbar,
+.tox .tox-menubar,
+.tox .tox-statusbar,
+.tox .tox-sidebar-wrap,
+.tox .tox-editor-container,
 .tox .tox-edit-area {
-    @variant before {
-        border-color: #fff !important;
-    }
-    @variant light {
-        @variant before {
-            border-color: #000 !important;
-        }
-    }
+    background-color: var(--ui-field-bg) !important;
+    background-image: none !important;
+}
+
+.tox .tox-statusbar {
+    border-top: 1px solid var(--ui-field-border-color) !important;
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent) !important;
+}
+
+.tox .tox-statusbar__path-item,
+.tox .tox-statusbar__wordcount,
+.tox .tox-statusbar__branding a {
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent) !important;
+}
+
+.tox .tox-tbtn,
+.tox .tox-tbtn--enabled,
+.tox .tox-tbtn--select,
+.tox .tox-split-button {
+    background-color: transparent !important;
+    color: var(--color-base-content) !important;
+}
+
+.tox .tox-tbtn:hover:not(.tox-tbtn--disabled),
+.tox .tox-tbtn--enabled:hover:not(.tox-tbtn--disabled),
+.tox .tox-tbtn:focus-visible:not(.tox-tbtn--disabled) {
+    background-color: color-mix(in oklab, var(--color-base-content) 12%, var(--ui-field-bg)) !important;
+    color: var(--color-base-content) !important;
+}
+
+.tox .tox-tbtn--enabled,
+.tox .tox-tbtn--enabled:hover {
+    background-color: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+}
+
+.tox .tox-tbtn svg,
+.tox .tox-tbtn svg *,
+.tox .tox-split-button__chevron svg,
+.tox .tox-split-button__chevron svg * {
+    fill: currentColor !important;
+}
+
+.tox .tox-tbtn--disabled,
+.tox .tox-tbtn--disabled svg {
+    opacity: 0.38;
+}
+
+.tox .tox-toolbar__group:not(:last-of-type) {
+    border-right: 1px solid color-mix(in oklab, var(--ui-field-border-color) 85%, transparent) !important;
+}
+
+.tox .tox-edit-area__iframe,
+.tox .tox-edit-area iframe {
+    background-color: var(--ui-field-bg) !important;
+}
+
+.tox .tox-edit-area::before {
+    border-color: var(--ui-field-focus-border-color) !important;
+}
+
+.tox.tox-tinymce:focus-within .tox-edit-area::before {
+    opacity: 1;
+}
+
+/**
+ * Suggestion dropdowns: override Tailwind `bg-base-100` utilities (same tokens as fields).
+ */
+:is(
+    [data-ts-results],
+    [data-atp-results],
+    [data-ep-results],
+    [data-profile-org-popup],
+    [id$='-suggestions-popup']
+) {
+    background-color: var(--ui-field-bg) !important;
+    border-color: var(--ui-field-border-color) !important;
 }

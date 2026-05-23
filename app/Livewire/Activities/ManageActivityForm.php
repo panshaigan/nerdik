@@ -196,6 +196,10 @@ class ManageActivityForm extends Component
 
         $this->applyProposalContextPrefill();
 
+        if ($this->editingActivityId === null && $this->activity_type_id === null) {
+            $this->activity_type_id = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        }
+
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
         $this->hostingModeBeforeChange = $this->hosting_mode;
@@ -283,6 +287,18 @@ class ManageActivityForm extends Component
 
         $this->proposal_event_search = $this->proposalEventLabel($selected);
         $this->applyProposalContextPrefill();
+    }
+
+    public function updatedProposalEventSearch(string $value): void
+    {
+        if (trim($value) !== '') {
+            return;
+        }
+
+        $this->proposal_event_id = null;
+        $this->proposal_preferred_start_time = null;
+        $this->proposal_slot_ids = [];
+        $this->proposal_allowed_activity_type_ids = null;
     }
 
     public function updatedProposalSlotIds(): void
@@ -578,6 +594,11 @@ class ManageActivityForm extends Component
         $activityTypeRules = ['required', 'integer', 'exists:activity_types,id'];
         if ($this->proposal_allowed_activity_type_ids !== null) {
             $activityTypeRules[] = Rule::in($this->proposal_allowed_activity_type_ids);
+        } else {
+            $rpgTypeId = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+            if ($rpgTypeId !== null) {
+                $activityTypeRules[] = Rule::in([(int) $rpgTypeId]);
+            }
         }
 
         return [
@@ -971,12 +992,6 @@ class ManageActivityForm extends Component
             ],
         ];
         $roomsFetchUrlTemplate = url('/places/__PLACE__/rooms');
-        if ($this->proposal_event_id && $this->proposal_event_search === '') {
-            $selected = $this->proposalEligibleEventsQuery()
-                ->whereKey($this->proposal_event_id)
-                ->first();
-            $this->proposal_event_search = $selected ? $this->proposalEventLabel($selected) : '';
-        }
         $proposalEventSuggestions = $this->searchProposalEvents();
 
         $locale = app()->getLocale();

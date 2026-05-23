@@ -90,6 +90,13 @@ export function initSlotMassForm(form) {
         const activityTypeLabels = config.activityTypeLabels && typeof config.activityTypeLabels === 'object'
             ? config.activityTypeLabels
             : {};
+        const allowedActivityTypeIds = new Set(
+            Array.isArray(config.allowedActivityTypeIds)
+                ? config.allowedActivityTypeIds
+                      .map((x) => Number.parseInt(String(x), 10))
+                      .filter((x) => Number.isInteger(x) && x > 0)
+                : [],
+        );
 
         const selected = new Set(initial);
 
@@ -126,6 +133,9 @@ export function initSlotMassForm(form) {
         addSelect?.addEventListener('change', () => {
             const v = Number.parseInt(addSelect.value, 10);
             if (!Number.isInteger(v) || v <= 0) {
+                return;
+            }
+            if (allowedActivityTypeIds.size > 0 && !allowedActivityTypeIds.has(v)) {
                 return;
             }
             selected.add(v);

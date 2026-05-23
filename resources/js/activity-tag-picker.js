@@ -27,6 +27,17 @@ function sameNewTagsPayload(a, b) {
     return JSON.stringify(a || []) === JSON.stringify(b || []);
 }
 
+function sortByPopularity(tags) {
+    return [...tags].sort((a, b) => {
+        const scoreDiff = (Number(b.popularity_score) || 0) - (Number(a.popularity_score) || 0);
+        if (scoreDiff !== 0) {
+            return scoreDiff;
+        }
+
+        return Number(a.id) - Number(b.id);
+    });
+}
+
 /** Semantic tone class suffixes; aligned with `config/activity-badges.php` and `BadgeSemantic::badgeClasses()`. */
 const BADGE_TONE_CLASS = {
     primary: 'badge-primary',
@@ -275,29 +286,73 @@ export function initActivityTagPicker(root) {
         renderAllRows();
     }
 
+    function isGenreCategoryId(catId) {
+        return categoryIdToKey.get(Number(catId)) === 'genre';
+    }
+
+    function isGenreTag(tag) {
+        return tag != null && isGenreCategoryId(tag.category_id);
+    }
+
+    function hasGenreAmongSelected() {
+        for (const id of selected) {
+            if (isGenreTag(byId.get(id))) {
+                return true;
+            }
+        }
+
+        return pendingNew.some((t) => isGenreCategoryId(t.category_id));
+    }
+
     function addWithAttached(id) {
         const rootId = Number(id);
-        const stack = [{ id: rootId, isAuto: false }];
-        while (stack.length) {
-            const curMeta = stack.pop();
-            const cur = curMeta?.id;
-            if (!cur || selected.has(cur)) {
+        if (!rootId) {
+            return;
+        }
+
+        if (!selected.has(rootId)) {
+            selected.add(rootId);
+            explicitSelected.add(rootId);
+            autoSelected.delete(rootId);
+        }
+
+        if (hasGenreAmongSelected()) {
+            renderAllRows();
+
+            return;
+        }
+
+        const rootTag = byId.get(rootId);
+        const queue = [];
+        const queued = new Set();
+        (rootTag?.related_ids || []).forEach((aid) => {
+            const relatedId = Number(aid);
+            if (relatedId > 0 && !selected.has(relatedId) && !queued.has(relatedId)) {
+                queued.add(relatedId);
+                queue.push(relatedId);
+            }
+        });
+
+        while (queue.length > 0 && !hasGenreAmongSelected()) {
+            const curId = queue.shift();
+            queued.delete(curId);
+            if (!curId || selected.has(curId)) {
                 continue;
             }
-            selected.add(cur);
-            if (curMeta?.isAuto) {
-                autoSelected.add(cur);
-            } else {
-                explicitSelected.add(cur);
-                autoSelected.delete(cur);
-            }
-            const t = byId.get(cur);
-            (t?.related_ids || []).forEach((aid) => {
-                if (!selected.has(Number(aid))) {
-                    stack.push({ id: Number(aid), isAuto: true });
+
+            selected.add(curId);
+            autoSelected.add(curId);
+
+            const tag = byId.get(curId);
+            (tag?.related_ids || []).forEach((aid) => {
+                const relatedId = Number(aid);
+                if (relatedId > 0 && !selected.has(relatedId) && !queued.has(relatedId)) {
+                    queued.add(relatedId);
+                    queue.push(relatedId);
                 }
             });
         }
+
         renderAllRows();
     }
 
@@ -342,18 +397,20 @@ export function initActivityTagPicker(root) {
         let pool = allTags.filter((t) => Number(t.category_id) === Number(categoryId) && isSuggestible(t, activityTypeId));
 
         if (!qn) {
-            return pool.slice(0, MAX_RESULTS);
+            return sortByPopularity(pool).slice(0, MAX_RESULTS);
         }
-        return pool
-            .map((tag) => {
-                const labels = Object.values(tag.labels || {}).map(norm);
-                const aliases = (tag.aliases || []).map((a) => norm(a));
-                const hay = [...labels, ...aliases, norm(tag.slug)];
-                const matched = hay.some((h) => h.includes(qn));
-                return matched ? tag : null;
-            })
-            .filter(Boolean)
-            .slice(0, MAX_RESULTS);
+
+        return sortByPopularity(
+            pool
+                .map((tag) => {
+                    const labels = Object.values(tag.labels || {}).map(norm);
+                    const aliases = (tag.aliases || []).map((a) => norm(a));
+                    const hay = [...labels, ...aliases, norm(tag.slug)];
+                    const matched = hay.some((h) => h.includes(qn));
+                    return matched ? tag : null;
+                })
+                .filter(Boolean),
+        ).slice(0, MAX_RESULTS);
     }
 
     function buildResults(catId, q) {
