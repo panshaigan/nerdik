@@ -77,12 +77,10 @@
                 >
                     @if ($inlineLegend)
                         <div class="relative w-full min-w-0 max-w-full">
-                            <div
-                                class="relative rounded-lg border border-base-300 bg-base-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
-                            >
+                            <div class="ui-field-shell">
                                 <span
                                     id="{{ $legendId }}"
-                                    class="absolute start-3 top-0 z-[1] inline-block -translate-y-1/2 bg-base-100 px-1 text-xs font-semibold leading-none text-base-content"
+                                    class="ui-field-shell__legend absolute start-3 top-0 z-[1] inline-block -translate-y-1/2 px-1 text-xs font-semibold leading-none text-base-content"
                                 >
                                     {{ $cname }}
                                 </span>

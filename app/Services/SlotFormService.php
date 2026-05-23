@@ -268,7 +268,7 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => ['integer', 'exists:activity_types,id'],
+            'activity_types.*' => $this->activityTypeItemRules(),
         ];
     }
 
@@ -287,8 +287,29 @@ class SlotFormService
             'requires_approval' => ['nullable', 'boolean'],
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
-            'activity_types.*' => ['integer', 'exists:activity_types,id'],
+            'activity_types.*' => $this->activityTypeItemRules(),
         ];
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    private function activityTypeItemRules(): array
+    {
+        $rpgTypeId = $this->rpgActivityTypeId();
+        $rules = ['integer', 'exists:activity_types,id'];
+        if ($rpgTypeId !== null) {
+            $rules[] = Rule::in([$rpgTypeId]);
+        }
+
+        return $rules;
+    }
+
+    private function rpgActivityTypeId(): ?int
+    {
+        $id = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        return $id !== null ? (int) $id : null;
     }
 
     private function normalizeMaxCapacity(mixed $maxCapacity): ?int

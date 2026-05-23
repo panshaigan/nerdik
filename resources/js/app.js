@@ -1,4 +1,5 @@
 import './bootstrap';
+import './tinymce-field-chrome';
 import './avatar-cropper';
 import './notifications-echo';
 import './activities-echo';

@@ -1,3 +1,6 @@
+@php
+    use App\Models\ActivityType;
+@endphp
 <div>
     <div class="grid gap-4 sm:grid-cols-2">
         <div class="relative">
@@ -32,7 +35,11 @@
                 :label="__('ui.activities.type')"
                 error-field="activity_type_id"
                 required
-                :options="$activityTypes->map(fn ($type) => ['id' => $type->id, 'name' => __('ui.activities.types.'.$type->slug)])->values()->all()"
+                :options="$activityTypes->map(fn ($type) => [
+                    'id' => $type->id,
+                    'name' => __('ui.activities.types.'.$type->slug),
+                    'disabled' => $type->slug !== ActivityType::SLUG_RPG,
+                ])->values()->all()"
                 :placeholder="__('ui.activities.choose_type')"
                 placeholder-value=""
                 icon="o-squares-2x2"

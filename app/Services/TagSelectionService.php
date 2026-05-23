@@ -227,6 +227,7 @@ class TagSelectionService
                 'id' => (int) $tag->id,
                 'category_id' => $categoryId,
                 'category_name' => $categoryName,
+                'popularity_score' => (int) ($tag->popularity_score ?? 0),
                 'slug' => (string) ($fallbackTranslation?->slug ?? ''),
                 'labels' => $tag->translations->mapWithKeys(fn ($t) => [(string) $t->locale => (string) $t->label])->all(),
                 'aliases' => $tag->aliases->pluck('alias')->filter()->map(fn ($a) => (string) $a)->values()->all(),
