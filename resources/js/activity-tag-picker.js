@@ -458,7 +458,7 @@ export function initActivityTagPicker(root) {
             const b = document.createElement('button');
             b.type = 'button';
             b.dataset.atpItem = '1';
-            b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+            b.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
             const local = displayLabel(t, locale);
             const en = t.labels?.en && norm(t.labels.en) !== norm(local) ? ` / ${t.labels.en}` : '';
             b.textContent = `${local}${en}`;

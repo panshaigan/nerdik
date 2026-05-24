@@ -4,7 +4,8 @@
     data-ui="event-show-slots"
     x-data="{
         selectedProposalSlotIds: $wire.entangle('proposalSlotIds'),
-        proposeActivityBaseUrl: @js(route('activities.create')),
+        proposeActivityBaseUrl: @js(url_with_return(route('activities.create'), route('events.show', ['event' => $event, 'tab' => 'plan'], false))),
+        proposeReturnPath: @js(route('events.show', ['event' => $event, 'tab' => 'plan'], false)),
         proposalEventId: {{ (int) $event->id }},
         toggleProposalSlot(slotId) {
             const normalizedIds = this.selectedProposalSlotIds.map((id) => Number(id));
@@ -18,11 +19,18 @@
         proposeActivityHref() {
             const params = new URLSearchParams();
             params.set('proposal_event_id', String(this.proposalEventId));
+            params.set('return', this.proposeReturnPath);
             for (const id of this.selectedProposalSlotIds.map((id) => Number(id))) {
                 params.append('proposal_slot_ids[]', String(id));
             }
 
-            return this.proposeActivityBaseUrl + '?' + params.toString();
+            const base = this.proposeActivityBaseUrl.split('?')[0];
+            const existing = new URLSearchParams(this.proposeActivityBaseUrl.includes('?') ? this.proposeActivityBaseUrl.split('?')[1] : '');
+            for (const [key, value] of params.entries()) {
+                existing.set(key, value);
+            }
+
+            return base + '?' + existing.toString();
         }
     }"
 >
@@ -33,12 +41,16 @@
     @auth
         @if ($canShowPlanActivityProposalUi ?? false)
             @php
+                $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
                 $proposeActivityUrl = ! empty($proposalSlotIds)
-                    ? route('activities.create').'?'.http_build_query([
-                        'proposal_event_id' => $event->id,
-                        'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
-                    ])
-                    : route('activities.create', ['proposal_event_id' => $event->id]);
+                    ? url_with_return(
+                        route('activities.create').'?'.http_build_query([
+                            'proposal_event_id' => $event->id,
+                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                        ]),
+                        $proposeReturnPath,
+                    )
+                    : url_with_return(route('activities.create', ['proposal_event_id' => $event->id]), $proposeReturnPath);
             @endphp
         @endif
     @endauth
@@ -361,12 +373,16 @@
     @auth
         @if ($canShowPlanActivityProposalUi ?? false)
             @php
+                $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
                 $proposeActivityUrl = ! empty($proposalSlotIds)
-                    ? route('activities.create').'?'.http_build_query([
-                        'proposal_event_id' => $event->id,
-                        'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
-                    ])
-                    : route('activities.create', ['proposal_event_id' => $event->id]);
+                    ? url_with_return(
+                        route('activities.create').'?'.http_build_query([
+                            'proposal_event_id' => $event->id,
+                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                        ]),
+                        $proposeReturnPath,
+                    )
+                    : url_with_return(route('activities.create', ['proposal_event_id' => $event->id]), $proposeReturnPath);
             @endphp
             <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
                 <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">

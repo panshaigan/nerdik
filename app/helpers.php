@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Browse\BrowseSearchUrl;
 use App\Support\RichText;
 use Carbon\Carbon;
 use Illuminate\Support\HtmlString;
@@ -335,5 +336,160 @@ if (! function_exists('rich_text_excerpt')) {
     function rich_text_excerpt(?string $stored, int $limit = 120): string
     {
         return RichText::excerpt($stored, $limit);
+    }
+}
+
+if (! function_exists('return_path_from_uri')) {
+    /**
+     * Extract the path segment from a URI or path string.
+     */
+    function return_path_from_uri(string $uri): string
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+
+        return is_string($path) && $path !== '' ? $path : $uri;
+    }
+}
+
+if (! function_exists('is_invalid_return_path')) {
+    /**
+     * Paths that must never be stored or used as a `return` destination.
+     */
+    function is_invalid_return_path(string $pathOrUri): bool
+    {
+        $path = return_path_from_uri($pathOrUri);
+
+        if (preg_match('#^/livewire(?:/|-)#', $path) === 1) {
+            return true;
+        }
+
+        if (preg_match('#^/(activities|events)/[^/]+/edit$#', $path) === 1) {
+            return true;
+        }
+
+        return in_array($path, ['/activities/create', '/events/create'], true);
+    }
+}
+
+if (! function_exists('safe_return_url')) {
+    /**
+     * Validate an app-internal return URL (path + optional query only).
+     */
+    function safe_return_url(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        $url = trim($url);
+
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            $parts = parse_url($url);
+            $host = $parts['host'] ?? null;
+            if ($host === null || strcasecmp($host, request()->getHost()) !== 0) {
+                return null;
+            }
+            if (isset($parts['port']) && (int) $parts['port'] !== (int) request()->getPort()) {
+                return null;
+            }
+
+            $path = $parts['path'] ?? '/';
+            $query = isset($parts['query']) && $parts['query'] !== '' ? '?'.$parts['query'] : '';
+            $url = $path.$query;
+        }
+
+        if (! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            return null;
+        }
+
+        if (is_invalid_return_path($url)) {
+            return null;
+        }
+
+        if (return_path_from_uri($url) === '/search') {
+            $url = BrowseSearchUrl::normalizeReturnUrl($url);
+        }
+
+        return $url;
+    }
+}
+
+if (! function_exists('remember_browsing_return_url')) {
+    /**
+     * Persist a validated browsing URL for Livewire sub-requests.
+     */
+    function remember_browsing_return_url(?string $url): void
+    {
+        $safe = safe_return_url($url);
+        if ($safe !== null) {
+            session(['browsing.return' => $safe]);
+        }
+    }
+}
+
+if (! function_exists('browsing_return_url')) {
+    /**
+     * Best-effort current browsing URL (path + query) for `return` links.
+     */
+    function browsing_return_url(): string
+    {
+        $currentUri = request()->getRequestUri();
+        if (! is_invalid_return_path($currentUri)) {
+            return $currentUri;
+        }
+
+        $fromReferer = safe_return_url(request()->headers->get('referer'));
+        if ($fromReferer !== null) {
+            return $fromReferer;
+        }
+
+        $fromSession = safe_return_url(session('browsing.return'));
+        if ($fromSession !== null) {
+            return $fromSession;
+        }
+
+        return route('search.index', [], false) ?: '/search';
+    }
+}
+
+if (! function_exists('current_return_url')) {
+    /**
+     * Current request path and query, suitable for a `return` query param.
+     */
+    function current_return_url(): string
+    {
+        return browsing_return_url();
+    }
+}
+
+if (! function_exists('url_with_return')) {
+    /**
+     * Append a validated `return` query param to a URL.
+     */
+    function url_with_return(string $url, ?string $return = null): string
+    {
+        $return = safe_return_url($return ?? current_return_url());
+        if ($return === null) {
+            return $url;
+        }
+
+        $parts = parse_url($url);
+        $query = [];
+        if (! empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+        $query['return'] = $return;
+
+        $scheme = isset($parts['scheme']) ? $parts['scheme'].'://' : '';
+        $user = $parts['user'] ?? '';
+        $pass = isset($parts['pass']) ? ':'.$parts['pass'] : '';
+        $auth = $user !== '' ? $user.$pass.'@' : '';
+        $host = $parts['host'] ?? '';
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $authority = $host !== '' ? $auth.$host.$port : '';
+        $path = $parts['path'] ?? '';
+        $fragment = isset($parts['fragment']) ? '#'.$parts['fragment'] : '';
+
+        return $scheme.$authority.$path.'?'.http_build_query($query).$fragment;
     }
 }

@@ -222,7 +222,7 @@ new class extends Component
             orgShown.forEach((item, idx) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                 btn.textContent = item.name;
                 btn.dataset.orgSuggestionIdx = String(idx);
                 btn.addEventListener('mousedown', (event) => event.preventDefault());

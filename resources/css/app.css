@@ -1088,8 +1088,28 @@
     [data-atp-results],
     [data-ep-results],
     [data-profile-org-popup],
-    [id$='-suggestions-popup']
+    [id$='-suggestions-popup'],
+    [data-activity-name-popup],
+    [data-proposal-event-popup],
+    [data-slot-name-popup],
+    [data-slot-base-name-popup],
+    [data-slot-room-popup]
 ) {
     background-color: var(--ui-field-bg) !important;
     border-color: var(--ui-field-border-color) !important;
+}
+
+:is(
+    [data-ts-results],
+    [data-atp-results],
+    [data-ep-results],
+    [data-profile-org-popup],
+    [id$='-suggestions-popup'],
+    [data-activity-name-popup],
+    [data-proposal-event-popup],
+    [data-slot-name-popup],
+    [data-slot-base-name-popup],
+    [data-slot-room-popup]
+) :is(button, [role='option']) {
+    cursor: pointer;
 }

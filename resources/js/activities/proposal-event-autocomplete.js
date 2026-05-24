@@ -106,7 +106,7 @@ function renderSuggestionItems(root, items, state) {
     const frag = document.createDocumentFragment();
     const noneBtn = document.createElement('button');
     noneBtn.type = 'button';
-    noneBtn.className = 'block w-full border-b border-base-300/70 px-3 py-2 text-left text-sm text-base-content/80 hover:bg-base-200';
+    noneBtn.className = 'block w-full cursor-pointer border-b border-base-300/70 px-3 py-2 text-left text-sm text-base-content/80 hover:bg-base-200';
     noneBtn.textContent = cfg.noneLabel || '—';
     noneBtn.addEventListener('mousedown', (e) => e.preventDefault());
     noneBtn.addEventListener('click', () => setSelectedEvent(root, null, true));
@@ -115,7 +115,7 @@ function renderSuggestionItems(root, items, state) {
     items.forEach((item, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+        btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
         btn.textContent = item.label;
         btn.dataset.proposalEventIdx = String(idx);
         btn.id = `proposal-event-opt-${idx}`;

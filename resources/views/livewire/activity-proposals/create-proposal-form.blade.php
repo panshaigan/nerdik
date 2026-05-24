@@ -27,11 +27,11 @@
                     @if ($myActivities->isEmpty())
                         <p class="mt-1 text-sm text-warning">
                             {{ __('ui.proposals.no_activities_yet') }}
-                            <a href="{{ route('activities.create') }}" class="link link-primary">{{ __('ui.proposals.create_one') }}</a>
+                            <a href="{{ url_with_return(route('activities.create'), route('events.propose', $event, false)) }}" class="link link-primary">{{ __('ui.proposals.create_one') }}</a>
                         </p>
                     @else
                         <p class="mt-1 text-sm text-base-content/60">
-                            <a href="{{ route('activities.create') }}" class="link link-primary">{{ __('ui.proposals.create_new_activity') }}</a>
+                            <a href="{{ url_with_return(route('activities.create'), route('events.propose', $event, false)) }}" class="link link-primary">{{ __('ui.proposals.create_new_activity') }}</a>
                         </p>
                     @endif
                 </div>

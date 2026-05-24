@@ -508,7 +508,7 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
         shown.forEach((r, idx) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+            btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
             btn.textContent = r.name;
             btn.dataset.suggestionIdx = String(idx);
             btn.setAttribute('role', 'option');
@@ -638,7 +638,7 @@ function wireNameSuggestions(nameInput, namePopup, suggestionsJson, massForm) {
         shown.forEach((name, idx) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+            btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
             btn.textContent = name;
             btn.dataset.suggestionIdx = String(idx);
             btn.setAttribute('role', 'option');

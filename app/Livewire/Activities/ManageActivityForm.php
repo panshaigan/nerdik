@@ -16,6 +16,7 @@ use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
+use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -401,7 +402,11 @@ class ManageActivityForm extends Component
 
         $hostingModes->setDraft($activity);
 
-        $this->redirect(route('activities.edit', ['activity' => $activity, 'tab' => 'hosting-mode']), navigate: true);
+        $editUrl = route('activities.edit', ['activity' => $activity, 'tab' => 'hosting-mode']);
+        if (($return = safe_return_url(request()->query('return'))) !== null) {
+            $editUrl = url_with_return($editUrl, $return);
+        }
+        $this->redirect($editUrl, navigate: true);
     }
 
     public function closeConfirm(): void
@@ -1029,6 +1034,9 @@ class ManageActivityForm extends Component
         }
 
         return view('livewire.activities.manage-activity-form', [
+            'backUrl' => ManageFormBackUrl::resolve(
+                $editingActivity !== null ? route('activities.show', $editingActivity) : null,
+            ),
             'activityTagPickerConfig' => $activityTagPickerConfig,
             'futureEvents' => $this->futureEventsForProposal(),
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,

@@ -22,11 +22,12 @@ class ListingCard extends Component
     public function __construct(
         public Activity|Event $listing,
         public array $interestedIds = [],
+        public ?string $returnUrl = null,
     ) {
         $presenter = app(BrowseListingCardPresenter::class);
         $this->viewData = $listing instanceof Event
-            ? $presenter->fromEvent($listing, $interestedIds)
-            : $presenter->fromActivity($listing, $interestedIds);
+            ? $presenter->fromEvent($listing, $interestedIds, $returnUrl)
+            : $presenter->fromActivity($listing, $interestedIds, $returnUrl);
     }
 
     #[\Override]

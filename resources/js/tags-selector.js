@@ -636,7 +636,7 @@ export function initTagSelector(root) {
             const b = document.createElement('button');
             b.type = 'button';
             b.dataset.tsItem = '1';
-            b.className = 'block w-full px-2 py-1.5 text-left text-sm hover:bg-base-200 rounded-md';
+            b.className = 'block w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-base-200 rounded-md';
             const local = displayLabel(t, locale);
             const en = t.labels?.en && norm(t.labels.en) !== norm(local) ? ` / ${t.labels.en}` : '';
             b.textContent = `${local}${en}`;
@@ -682,7 +682,7 @@ export function initTagSelector(root) {
             const make = document.createElement('button');
             make.type = 'button';
             make.dataset.tsItem = '1';
-            make.className = 'block w-full border-t border-base-300 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-base-200';
+            make.className = 'block w-full cursor-pointer border-t border-base-300 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-base-200';
             make.textContent = `+ ${cfg.strings?.createTag || 'Create tag'}: "${q.trim()}"`;
             make.addEventListener('click', () => {
                 addNewTagLabel(q.trim());

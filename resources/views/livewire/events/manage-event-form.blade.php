@@ -7,7 +7,7 @@
     $title = $editingEvent ? $this->name : __('ui.events.create');
 @endphp
 <div>
-    <x-page-header :title="$title" :user="$creator">
+    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl">
         <x-slot:titleSuffix>
             @if ($this->isCancelled)
                 <x-popover class="inline-flex transition-none" position="bottom" offset="8">
@@ -42,20 +42,13 @@
             @endif
         </x-slot:titleSuffix>
     </x-page-header>
-    <div class="flex justify-between items-center pb-6">
-        <div class="">
-        @if ($this->slug)
-            <a href="/events/{{$this->slug}}" class="btn btn-outline btn-secondary"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
-        @endif
-        </div>
-        <div class="">
+    <div class="flex justify-end items-center pb-6">
             <x-toggle
                 id="is_public"
                 wire:model="is_public"
                 :label="__('Public event')"
                 :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
             />
-        </div>
     </div>
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
@@ -211,7 +204,7 @@
                 shown.forEach((name, idx) => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                     btn.textContent = name;
                     btn.dataset.suggestionIdx = String(idx);
                     btn.setAttribute('role', 'option');
@@ -337,7 +330,7 @@
                 orgShown.forEach((item, idx) => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                     btn.textContent = item.name;
                     btn.dataset.orgSuggestionIdx = String(idx);
                     btn.setAttribute('role', 'option');
