@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Events\ManageEventForm;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\User;
+use App\Support\Ui\ManageFormBackUrl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ManageFormBackUrlTest extends TestCase
@@ -65,7 +68,29 @@ class ManageFormBackUrlTest extends TestCase
             ->actingAs($user)
             ->get(route('events.edit', $event).'?return='.rawurlencode('/livewire-9ee9781d/update'))
             ->assertOk()
-            ->assertSee('href="/dashboard"', false);
+            ->assertSee(route('events.show', $event), false);
+    }
+
+    public function test_event_edit_back_link_keeps_return_url_after_tab_change(): void
+    {
+        $user = User::factory()->create([
+            'is_event_organizer' => true,
+        ]);
+        $event = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['return' => '/search?only_events=1&only_mine=1'])
+            ->test(ManageEventForm::class, ['event' => $event])
+            ->assertSet('tab', 'main-details')
+            ->assertSee('href="/search?only_events=1&amp;only_mine=1"', false)
+            ->set('tab', 'location')
+            ->assertSet('tab', 'location')
+            ->assertSee('href="/search?only_events=1&amp;only_mine=1"', false);
+
+        $this->assertSame('/search?only_events=1&only_mine=1', session(ManageFormBackUrl::SESSION_KEY));
     }
 
     public function test_activity_edit_back_link_uses_return_query_param(): void

@@ -204,6 +204,8 @@ class ManageActivityForm extends Component
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
         $this->hostingModeBeforeChange = $this->hosting_mode;
+
+        ManageFormBackUrl::captureFromRequest();
     }
 
     public function updatedTab(string $value): void
@@ -403,7 +405,7 @@ class ManageActivityForm extends Component
         $hostingModes->setDraft($activity);
 
         $editUrl = route('activities.edit', ['activity' => $activity, 'tab' => 'hosting-mode']);
-        if (($return = safe_return_url(request()->query('return'))) !== null) {
+        if (($return = ManageFormBackUrl::storedReturnUrl()) !== null) {
             $editUrl = url_with_return($editUrl, $return);
         }
         $this->redirect($editUrl, navigate: true);
