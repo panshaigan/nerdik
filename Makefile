@@ -4,7 +4,7 @@ SAIL := ./vendor/bin/sail
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
-        dump cache artisan pint sail tags-recalculate
+        dump cache artisan pint sail tags-recalculate test-all
 
 up:
 	$(SAIL) up -d
@@ -62,6 +62,9 @@ cache:
 #   make test --filter ActivityBadgeGroupBuilderTest::test_something
 test:
 	$(SAIL) artisan test --filter $(filter-out $@,$(MAKECMDGOALS))
+
+test-all:
+	$(SAIL) artisan test
 
 # New dedicated command for recalculating tags popularity
 tags-recalculate:
