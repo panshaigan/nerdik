@@ -97,17 +97,18 @@ class ProfileTest extends TestCase
 
     public function test_user_can_attach_existing_organization_from_profile(): void
     {
-        $organization = Organization::factory()->create([
-            'name' => 'Nerdik Org',
-        ]);
         $user = User::factory()->create([
             'organization_id' => null,
+        ]);
+        $organization = Organization::factory()->create([
+            'name' => 'Nerdik Org',
+            'created_by' => $user->id,
         ]);
 
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-identity-information-form')
-            ->set('organization_name', 'Nerdik Org')
+            ->set('organization_id', $organization->id)
             ->call('updateIdentityInformation');
 
         $component
@@ -118,24 +119,26 @@ class ProfileTest extends TestCase
         $this->assertSame(1, Organization::query()->where('name', 'Nerdik Org')->count());
     }
 
-    public function test_user_can_create_and_attach_organization_from_profile(): void
+    public function test_user_can_select_organization_they_created_from_profile(): void
     {
         $user = User::factory()->create([
             'organization_id' => null,
+        ]);
+        $organization = Organization::factory()->create([
+            'name' => 'Brand New Org',
+            'created_by' => $user->id,
         ]);
 
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-identity-information-form')
-            ->set('organization_name', 'Brand New Org')
+            ->set('organization_id', $organization->id)
             ->call('updateIdentityInformation');
 
         $component
             ->assertHasNoErrors()
             ->assertNoRedirect();
 
-        $organization = Organization::query()->where('name', 'Brand New Org')->first();
-        $this->assertNotNull($organization);
         $this->assertSame($organization->id, $user->refresh()->organization_id);
     }
 
@@ -150,7 +153,6 @@ class ProfileTest extends TestCase
 
         $component = Volt::test('profile.update-identity-information-form')
             ->set('organization_id', null)
-            ->set('organization_name', '')
             ->call('updateIdentityInformation');
 
         $component

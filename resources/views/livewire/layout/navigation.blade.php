@@ -106,18 +106,11 @@ new class extends Component
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2">
-                            <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
-                            <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
-                        </li>
-                        <li>
-                            <a wire:navigate href="{{ route('notifications.index') }}">
-                                {{ __('Notifications') }}
-                                @if (auth()->user()->unreadNotifications->count() > 0)
-                                    <span class="badge badge-sm badge-error">{{ auth()->user()->unreadNotifications->count() }}</span>
-                                @endif
+                            <a wire:navigate href="{{ route('profile') }}" class="-mx-1 block rounded-lg px-1 py-0.5 hover:bg-base-200">
+                                <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
+                                <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
                             </a>
                         </li>
-                        <li><a wire:navigate href="{{ route('profile') }}">{{ __('Profile') }}</a></li>
                         <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('Organizations') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
@@ -167,8 +160,10 @@ new class extends Component
         <div class="border-t border-base-300 pb-1 pt-4">
             @auth
             <div class="px-4">
-                <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
+                <a href="{{ route('profile') }}" wire:navigate class="block">
+                    <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                    <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
+                </a>
             </div>
             @endauth
 
@@ -198,17 +193,6 @@ new class extends Component
                     {{ __('Switch Theme') }}
                 </a>
                 @auth
-                <a href="{{ route('notifications.index') }}" wire:navigate
-                   class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
-                    {{ __('Notifications') }}
-                    @if (auth()->user()->unreadNotifications->count() > 0)
-                        <span class="badge badge-error badge-sm">{{ auth()->user()->unreadNotifications->count() }}</span>
-                    @endif
-                </a>
-                <a href="{{ route('profile') }}" wire:navigate
-                   class="block border-l-4 border-transparent py-2 ps-3 pe-4 text-base font-medium text-base-content/80">
-                    {{ __('Profile') }}
-                </a>
                 <a href="{{ route('organizations.index') }}" wire:navigate
                    class="{{ $navLink(request()->routeIs('organizations.index')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                     {{ __('Organizations') }}
