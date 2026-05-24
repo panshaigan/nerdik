@@ -141,7 +141,7 @@
                         <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
                             @if ($canManageActivity)
                                 <x-button
-                                    :link="route('activities.edit', $activity)"
+                                    :link="url_with_return(route('activities.edit', $activity))"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                     :tooltip="__('ui.activities.edit')"
                                     :aria-label="__('ui.activities.edit').': '.$activity->name"
@@ -149,7 +149,7 @@
                                     icon="o-pencil"
                                 />
                                 <x-button
-                                    :link="route('activities.create', ['duplicate' => $activity->slug])"
+                                    :link="url_with_return(route('activities.create', ['duplicate' => $activity->slug]))"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                     :tooltip="__('ui.activities.duplicate_action')"
                                     :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"

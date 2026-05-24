@@ -59,12 +59,12 @@ new class extends Component
                     </a>
                     @auth
                         @if (auth()->user()->canCreateEvents())
-                            <a href="{{ route('events.create') }}" wire:navigate
+                            <a href="{{ url_with_return(route('events.create')) }}" wire:navigate
                                class="{{ $navLink(request()->routeIs('events.create')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                                 {{ __('ui.nav.create_event') }}
                             </a>
                         @endif
-                        <a href="{{ route('activities.create') }}" wire:navigate
+                        <a href="{{ url_with_return(route('activities.create')) }}" wire:navigate
                            class="{{ $navLink(request()->routeIs('activities.create')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                             {{ __('ui.nav.create_activity') }}
                         </a>
@@ -152,12 +152,12 @@ new class extends Component
             </a>
             @auth
                 @if (auth()->user()->canCreateEvents())
-                    <a href="{{ route('events.create') }}" wire:navigate
+                    <a href="{{ url_with_return(route('events.create')) }}" wire:navigate
                        class="{{ $navLink(request()->routeIs('events.create')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                         {{ __('ui.nav.create_event') }}
                     </a>
                 @endif
-                <a href="{{ route('activities.create') }}" wire:navigate
+                <a href="{{ url_with_return(route('activities.create')) }}" wire:navigate
                    class="{{ $navLink(request()->routeIs('activities.create')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
                     {{ __('ui.nav.create_activity') }}
                 </a>

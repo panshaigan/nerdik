@@ -6,16 +6,8 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 <div>
-    <x-page-header :title="$this->name" :user="$creator">
+    <x-page-header :title="$this->name" :user="$creator" :back-url="$backUrl">
     </x-page-header>
-
-    <div class="flex justify-between items-center pb-6">
-        @if ($this->slug)
-            <div class="">
-                <a href="/activities/{{$this->slug}}" class="btn btn-ghost btn-neutral"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
-            </div>
-        @endif
-    </div>
 
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
@@ -178,7 +170,7 @@
                 shown.forEach((name, idx) => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                     btn.textContent = name;
                     btn.dataset.suggestionIdx = String(idx);
                     btn.setAttribute('role', 'option');
@@ -334,7 +326,7 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className =
-                'block w-full px-3 py-2 text-left text-sm hover:bg-base-200'
+                'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200'
                 + (idx === state.popupActive ? ' bg-base-200' : '');
             btn.textContent = it.name;
             btn.dataset.suggestionIdx = String(idx);

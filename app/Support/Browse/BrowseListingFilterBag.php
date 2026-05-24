@@ -43,7 +43,9 @@ final class BrowseListingFilterBag
         $onlyEvents = filter_var($request->input('only_events', false), FILTER_VALIDATE_BOOLEAN);
         $onlyActivities = filter_var($request->input('only_activities', false), FILTER_VALIDATE_BOOLEAN);
         if ($onlyEvents && $onlyActivities) {
-            $onlyActivities = false;
+            $winner = BrowseSearchUrl::resolveExclusiveKindFilterFromRequest($request);
+            $onlyEvents = $winner === 'events';
+            $onlyActivities = $winner === 'activities';
         }
 
         return new self(

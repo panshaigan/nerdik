@@ -167,7 +167,11 @@ class Dashboard extends Component
             ->map(fn ($id) => (int) $id)
             ->all();
 
+        $browsingReturnUrl = browsing_return_url();
+        remember_browsing_return_url($browsingReturnUrl);
+
         return view('livewire.dashboard.dashboard', [
+            'browsingReturnUrl' => $browsingReturnUrl,
             'hostedActivitiesCount' => $hostedActivitiesCount,
             'hostedEventsCount' => $hostedEventsCount,
             'participatedActivitiesCount' => $participatedActivitiesCount,

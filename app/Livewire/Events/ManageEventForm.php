@@ -9,6 +9,7 @@ use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
 use App\Support\RichText;
+use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -628,6 +629,9 @@ class ManageEventForm extends Component
         $exceptId = $this->editingEventId;
 
         return view('livewire.events.manage-event-form', [
+            'backUrl' => ManageFormBackUrl::resolve(
+                $editingEvent !== null ? route('events.show', $editingEvent) : null,
+            ),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
             'eventPlacesConfig' => $eventPlacesConfig,

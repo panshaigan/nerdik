@@ -753,7 +753,7 @@ export function initEventPlacesUnified(root) {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.dataset.epResultItem = '1';
-                b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                b.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = p.label;
                 b.addEventListener('click', () => {
                     if (singleSelect) {
@@ -795,7 +795,7 @@ export function initEventPlacesUnified(root) {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.dataset.epResultItem = '1';
-                b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                b.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = d.label;
                 b.addEventListener('click', () => {
                     map.setView([d.lat, d.lng], Math.max(map.getZoom(), MIN_FOCUS_ZOOM));
@@ -813,7 +813,7 @@ export function initEventPlacesUnified(root) {
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.dataset.epResultItem = '1';
-                b.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-base-200';
+                b.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
                 b.textContent = r.label;
                 b.addEventListener('click', () => {
                     const shortName = r.label.split(',').slice(0, 1).join('').trim();

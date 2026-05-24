@@ -11,6 +11,7 @@ return [
         'menu_activities' => 'My activities',
     ],
     'common' => [
+        'back' => 'Back',
         'cancel' => 'Cancel',
         'confirm' => 'Confirm',
         'create' => 'Create',

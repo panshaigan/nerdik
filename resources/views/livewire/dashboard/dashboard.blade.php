@@ -39,6 +39,7 @@
                         <x-cards.listing-card
                             :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
                             :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
+                            :return-url="$browsingReturnUrl"
                         />
                     @endforeach
                 </div>

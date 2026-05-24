@@ -15,6 +15,7 @@ use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseListingQuery;
+use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -440,7 +441,11 @@ class BrowseEvents extends Component
                 ->all()
             : [];
 
+        $browsingReturnUrl = BrowseSearchUrl::returnUrlFromFilterBag($this->browseFilterBag(), $this->map_view);
+        remember_browsing_return_url($browsingReturnUrl);
+
         return view('livewire.browse.browse-events', [
+            'browsingReturnUrl' => $browsingReturnUrl,
             'browseListings' => $paginator,
             'mapFeaturesUrl' => route('search.map-features'),
             'interestedEventIds' => $interestedEventIds,

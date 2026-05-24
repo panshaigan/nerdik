@@ -20,8 +20,9 @@ final class BrowseListingCardPresenter
     /**
      * @param  list<int>  $interestedIds
      */
-    public function fromActivity(Activity $activity, array $interestedIds): BrowseListingCardViewData
+    public function fromActivity(Activity $activity, array $interestedIds, ?string $returnUrl = null): BrowseListingCardViewData
     {
+        $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($activity->created_by ?? 0) === (int) $currentUser->id;
         $parentEvent = (int) ($activity->hosting_mode ?? 0) === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT
@@ -41,7 +42,7 @@ final class BrowseListingCardPresenter
             name: (string) $activity->name,
             logoUrl: $this->logoUrl($activity->logo_path),
             detailsUrl: route('activities.show', $activity),
-            editUrl: route('activities.edit', $activity),
+            editUrl: url_with_return(route('activities.edit', $activity), $return),
             isOwner: $isOwner,
             isInterested: in_array((int) $activity->id, $interestedIds, true),
             interestWireMethod: 'toggleActivityInterest',
@@ -71,8 +72,9 @@ final class BrowseListingCardPresenter
     /**
      * @param  list<int>  $interestedIds
      */
-    public function fromEvent(Event $event, array $interestedIds): BrowseListingCardViewData
+    public function fromEvent(Event $event, array $interestedIds, ?string $returnUrl = null): BrowseListingCardViewData
     {
+        $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
 
@@ -82,7 +84,7 @@ final class BrowseListingCardPresenter
             name: (string) $event->name,
             logoUrl: $this->logoUrl($event->logo_path),
             detailsUrl: route('events.show', $event),
-            editUrl: route('events.edit', $event),
+            editUrl: url_with_return(route('events.edit', $event), $return),
             isOwner: $isOwner,
             isInterested: in_array((int) $event->id, $interestedIds, true),
             interestWireMethod: 'toggleEventInterest',

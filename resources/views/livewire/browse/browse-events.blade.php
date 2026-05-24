@@ -80,6 +80,7 @@
                         <x-cards.listing-card
                             :listing="$listing"
                             :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
+                            :return-url="$browsingReturnUrl"
                         />
                     </div>
                 @empty
@@ -88,7 +89,7 @@
                         @auth
                             @if (auth()->user()?->canCreateEvents())
                                 <div class="mt-3">
-                                    <a href="{{ route('events.create') }}" class="link link-primary">{{ __('Create one') }}</a>
+                                    <a href="{{ url_with_return(route('events.create')) }}" class="link link-primary">{{ __('Create one') }}</a>
                                 </div>
                             @endif
                         @endauth

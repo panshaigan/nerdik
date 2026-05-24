@@ -11,6 +11,7 @@ return [
         'menu_activities' => 'Wszystkie moje aktywnosci',
     ],
     'common' => [
+        'back' => 'Wstecz',
         'cancel' => 'Anuluj',
         'confirm' => 'Potwierdz',
         'create' => 'Utworz',
