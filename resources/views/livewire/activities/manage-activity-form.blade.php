@@ -12,7 +12,7 @@
     <div class="flex justify-between items-center pb-6">
         @if ($this->slug)
             <div class="">
-                <a href="/activities/{{$this->slug}}" class="btn btn-outline btn-secondary"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
+                <a href="/activities/{{$this->slug}}" class="btn btn-ghost btn-neutral"><x-icon name="o-chevron-double-left" class="mr-2 h-10 w-10 shrink-0" /></a>
             </div>
         @endif
     </div>

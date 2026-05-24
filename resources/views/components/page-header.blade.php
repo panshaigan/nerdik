@@ -2,7 +2,7 @@
     'title',
     'user' => null,
     'organization' => null,
-    'hrIcon' => 'o-academic-cap',
+    'hrIcon' => 'o-sparkles',
     'headerClass' => '!mb-0 pb-1',
     'hrClass' => 'mt-1',
     'userBadgeSize' => 'md',
