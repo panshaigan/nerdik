@@ -93,6 +93,8 @@ class ManageEventForm extends Component
         }
 
         $this->tab = $this->normalizeFormTab($this->tab);
+
+        ManageFormBackUrl::captureFromRequest();
     }
 
     public function updatedTab(string $value): void
