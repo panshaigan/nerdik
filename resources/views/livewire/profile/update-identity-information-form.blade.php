@@ -14,6 +14,8 @@ new class extends Component
 
     public string $timezone = '';
 
+    public $organizationOptions = null;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -21,6 +23,13 @@ new class extends Component
         $this->nickname = $user->nickname ?? '';
         $this->organization_id = $user->organization_id;
         $this->timezone = $user->profile?->timezone ?? '';
+        $this->organizationOptions = Organization::query()
+            ->where('created_by', $user->id)
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Organization $organization) => ['id' => $organization->id, 'name' => $organization->name])
+            ->values()
+            ->all();
     }
 
     public function updateIdentityInformation(): void
@@ -46,29 +55,19 @@ new class extends Component
 
         $this->dispatch('profile-identity-updated');
     }
-
-    public function with(): array
-    {
-        $user = Auth::user();
-
-        return [
-            'organizationOptions' => $user === null
-                ? []
-                : Organization::query()
-                    ->where('created_by', $user->id)
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
-                    ->map(fn (Organization $organization) => ['id' => $organization->id, 'name' => $organization->name])
-                    ->values()
-                    ->all(),
-        ];
-    }
 }; ?>
 
 <section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity" data-ui="profile-identity-section">
     <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
         <x-input wire:model="nickname" label="{{ __('Nickname') }}" type="text" name="nickname" error-field="nickname" required />
         <x-input wire:model="name" label="{{ __('Name (optional)') }}" type="text" name="name" error-field="name" />
+        <x-select
+            wire:model="organization_id"
+            label="{{ __('Organization') }}"
+            placeholder="{{ __('Select an organization (optional)') }}"
+            :options="$organizationOptions"
+            error-field="organization_id"
+        />
 
         <div>
             <fieldset class="fieldset py-0">
