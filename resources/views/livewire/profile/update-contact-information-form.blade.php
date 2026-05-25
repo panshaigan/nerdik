@@ -68,9 +68,9 @@ new class extends Component
             </div>
         @endif
 
-        <div class="flex items-center gap-4">
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+        <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="profile-contact-updated">{{ __('Saved.') }}</x-action-message>
+            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
         </div>
     </form>
 </section>

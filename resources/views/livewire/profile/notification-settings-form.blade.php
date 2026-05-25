@@ -109,11 +109,11 @@ new class extends Component
             </div>
         @endforeach
 
-        <div class="flex items-center gap-4">
-            <x-button id="ui-profile-notifications-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-notifications-submit">{{ __('Save') }}</x-button>
+        <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="profile-notifications-updated">
                 {{ __('Saved.') }}
             </x-action-message>
+            <x-button id="ui-profile-notifications-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-notifications-submit">{{ __('Save') }}</x-button>
         </div>
     </form>
 </section>
