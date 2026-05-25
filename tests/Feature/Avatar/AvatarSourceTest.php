@@ -40,7 +40,13 @@ final class AvatarSourceTest extends TestCase
             ->set('croppedAvatar', $file)
             ->call('updateAvatar');
 
-        $component->assertHasNoErrors();
+        $component
+            ->assertHasNoErrors()
+            ->assertDispatched('profile-avatar-updated', function (string $eventName, array $params): bool {
+                return isset($params['avatarUrl'])
+                    && is_string($params['avatarUrl'])
+                    && str_contains($params['avatarUrl'], 'v=');
+            });
 
         $user->refresh();
         $this->assertSame(AvatarSource::Uploaded, $user->profile?->avatar_source);
