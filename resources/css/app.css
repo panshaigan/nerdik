@@ -731,6 +731,22 @@
             0 0 26px -14px color-mix(in oklab, var(--brand-secondary) 78%, transparent);
     }
 
+    /** Event plan activity slot tiles: pressed state when opening preview (toolbar clicks excluded). */
+    .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:active):not(:has(.status-dots-toolbar :active)),
+    .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:focus-visible) {
+        border-color: color-mix(in oklab, var(--brand-primary) 72%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 22%, transparent),
+            inset 0 14px 26px -22px color-mix(in oklab, var(--brand-primary) 42%, transparent),
+            0 0 28px -14px color-mix(in oklab, var(--brand-primary) 78%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:active):not(:has(.status-dots-toolbar :active)) {
+            transform: translate3d(0, -1px, 0);
+        }
+    }
+
     /** Stat card embedded in a glow box (no inner padding/background). */
     .ui-stat-embed {
         background: transparent !important;

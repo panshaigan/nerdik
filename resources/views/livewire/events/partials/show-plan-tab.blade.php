@@ -136,9 +136,9 @@
                                     'ui-tile-active' => $activity && !$activity?->isCancelled(),
                                     'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
                                     'status-dots group relative w-full rounded-xl border border-transparent',
-                                    'status-dots-active !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
+                                    'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
-                                    'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
+                                    'cursor-pointer select-none' => $activity || (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false)),
                                 ])
                                 @if (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false))
                                     x-on:click="toggleProposalSlot({{ $slot->id }})"
@@ -239,7 +239,7 @@
                                             wire:loading.attr="disabled"
                                             wire:target="openActivityPreview({{ (int) $activity->id }})"
                                             wire:loading.class.delay="cursor-wait"
-                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 motion-reduce:transition-none"
+                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40 motion-reduce:transition-none"
                                             aria-label="{{ $activity->name }}"
                                             data-ui="event-show-slot-open-activity-preview"
                                         >

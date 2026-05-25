@@ -25,16 +25,14 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
             ->assertSet('mountedTabs', ['description', 'plan']);
     }
 
-    public function test_shell_renders_single_tab_loading_overlay_markers(): void
+    public function test_shell_does_not_render_tab_switch_loading_overlay(): void
     {
         $event = Event::factory()->create();
 
         $html = Livewire::test(ShowEvent::class, ['event' => $event])->html();
 
-        $this->assertSame(1, substr_count($html, 'data-ui="event-show-tab-loading"'));
-        $this->assertStringContainsString('wire:target="tab"', $html);
-        $this->assertStringNotContainsString('bg-base-100/45', $html);
-        $this->assertStringNotContainsString('backdrop-blur-[2px]', $html);
+        $this->assertStringNotContainsString('data-ui="event-show-tab-loading"', $html);
+        $this->assertStringNotContainsString('wire:target="tab"', $html);
     }
 
     public function test_plan_tab_panel_remains_in_dom_after_switching_away_and_back(): void
