@@ -702,6 +702,15 @@
         }
     }
 
+    .ui-profile-avatar-crop .croppie-container {
+        width: 100%;
+    }
+
+    .ui-profile-avatar-crop .cr-slider-wrap {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
     .bg-texture-scratches {
         background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
         repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 5px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 35px);

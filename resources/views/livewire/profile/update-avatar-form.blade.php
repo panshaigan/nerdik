@@ -249,9 +249,15 @@ new class extends Component
                 <p class="text-sm text-base-content/80">{{ __('Choose an image, crop it in the dialog, then save.') }}</p>
                 <input type="file" accept="image/jpeg,image/png,image/webp" class="file-input file-input-bordered w-full max-w-md" data-profile-avatar-file />
                 <p class="text-xs text-base-content/65">{{ __('JPEG, PNG, or WebP. After cropping, click Save below.') }}</p>
-                <div class="flex items-center gap-3">
-                    <span class="text-sm font-medium text-base-content/80">{{ __('Current') }}</span>
-                    <img src="{{ auth()->user()->avatarUrl() }}" alt="" class="h-14 w-14 rounded-full border border-base-300 object-cover" loading="lazy" />
+                <div wire:ignore class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
+                    <img
+                        src="{{ auth()->user()->avatarUrl() }}"
+                        alt=""
+                        class="h-14 w-14 rounded-full border border-base-300 object-cover"
+                        loading="lazy"
+                        data-profile-avatar-preview
+                    />
                 </div>
                 <x-field-error :messages="$errors->get('croppedAvatar')" class="mt-2" />
             </div>
@@ -304,17 +310,6 @@ new class extends Component
                 @endif
             </div>
         @endif
-
-        <dialog id="ui-profile-avatar-crop-modal" class="modal">
-            <div class="modal-box max-w-lg">
-                <h3 class="text-lg font-semibold">{{ __('Crop your avatar') }}</h3>
-                <div class="mt-4 flex justify-center" data-profile-avatar-croppie></div>
-                <div class="modal-action">
-                    <x-button type="button" class="btn-ghost" data-profile-avatar-crop-cancel>{{ __('Cancel') }}</x-button>
-                    <x-button type="button" class="btn-primary" data-profile-avatar-crop-apply>{{ __('Use cropped image') }}</x-button>
-                </div>
-            </div>
-        </dialog>
 
         <div class="flex items-center gap-4">
             <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
