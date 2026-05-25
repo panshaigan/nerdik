@@ -7,10 +7,18 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    public ?string $navAvatarUrl = null;
+
     #[On('database-notifications-updated')]
     public function refreshNotificationIndicators(): void
     {
         //
+    }
+
+    #[On('profile-avatar-updated')]
+    public function refreshNavigationAvatar(string $avatarUrl): void
+    {
+        $this->navAvatarUrl = $avatarUrl;
     }
 
     /**
@@ -102,7 +110,13 @@ new class extends Component
 
                 <div class="dropdown dropdown-end relative z-50">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle border border-base-300 p-0">
-                        <x-user-badge :user="auth()->user()" size="sm" avatar-only />
+                        <x-user-badge
+                            :user="auth()->user()"
+                            :avatar-url="$navAvatarUrl"
+                            size="sm"
+                            avatar-only
+                            track-nav-avatar
+                        />
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2">

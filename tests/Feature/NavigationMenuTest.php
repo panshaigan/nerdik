@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Volt\Volt;
 use Tests\TestCase;
 
 class NavigationMenuTest extends TestCase
@@ -46,5 +47,18 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.create_activity'), false)
             ->assertSee(route('events.create'), false)
             ->assertSee(route('activities.create'), false);
+    }
+
+    public function test_navigation_avatar_url_updates_on_profile_avatar_updated_event(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $avatarUrl = 'https://example.test/storage/avatars/'.$user->id.'.webp?v=123456';
+
+        Volt::test('layout.navigation')
+            ->dispatch('profile-avatar-updated', avatarUrl: $avatarUrl)
+            ->assertSet('navAvatarUrl', $avatarUrl);
     }
 }

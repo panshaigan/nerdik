@@ -109,6 +109,16 @@ function syncAvatarPreview(form, url) {
     preview.src = url;
 }
 
+function syncNavigationAvatars(url) {
+    if (!url) {
+        return;
+    }
+
+    document.querySelectorAll('[data-nav-user-avatar]').forEach((img) => {
+        img.src = url;
+    });
+}
+
 function resetCropPreview(form) {
     const preview = form?.querySelector('[data-profile-avatar-preview]');
     if (!preview) {
@@ -525,17 +535,20 @@ export function bootProfileAvatarCropper() {
     document.addEventListener(
         'profile-avatar-updated',
         (event) => {
-            const form = document.querySelector('#ui-profile-avatar-form');
-            if (!form) {
-                return;
-            }
-
             const avatarUrl = resolveProfileAvatarUpdatedUrl(event);
+            const form = document.querySelector('#ui-profile-avatar-form');
+
             if (avatarUrl) {
-                syncAvatarPreview(form, avatarUrl);
+                syncNavigationAvatars(avatarUrl);
+
+                if (form) {
+                    syncAvatarPreview(form, avatarUrl);
+                }
             }
 
-            resetPendingCropUi(form, { resetPreview: !avatarUrl });
+            if (form) {
+                resetPendingCropUi(form, { resetPreview: !avatarUrl });
+            }
         },
         { signal },
     );
