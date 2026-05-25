@@ -8,21 +8,28 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class NotificationList extends Component
 {
+    use Toast;
     use WithPagination;
 
     #[On('database-notifications-updated')]
-    public function refreshNotificationList(): void
+    public function refreshNotificationList(bool $resetPagination = true): void
     {
-        $this->resetPage();
+        if ($resetPagination) {
+            $this->resetPage();
+        }
     }
 
     public function markAllRead(): void
     {
-        Auth::user()->unreadNotifications->markAsRead();
-        session()->flash('status', __('All notifications marked as read.'));
+        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+
+        $this->success(__('All notifications marked as read.'));
+
+        $this->dispatch('database-notifications-updated', resetPagination: false);
     }
 
     public function markReadAndGo(string $id)

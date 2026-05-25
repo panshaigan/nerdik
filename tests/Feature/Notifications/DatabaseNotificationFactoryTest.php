@@ -57,6 +57,31 @@ class DatabaseNotificationFactoryTest extends TestCase
             ->assertSee($proposal->activity->name, false);
     }
 
+    public function test_mark_all_read_marks_notifications_and_dispatches_without_session_status(): void
+    {
+        $user = User::factory()->create();
+        $proposal = ActivityProposal::factory()->create()->load(['activity', 'event']);
+
+        foreach (range(1, 3) as $ignored) {
+            DatabaseNotificationFactory::new()
+                ->for($user, 'notifiable')
+                ->fromNotification(new ProposalSubmittedNotification($proposal), $user)
+                ->unread()
+                ->create();
+        }
+
+        $this->assertSame(3, $user->unreadNotifications()->count());
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('markAllRead')
+            ->assertDispatched('database-notifications-updated', resetPagination: false)
+            ->assertSessionMissing('status');
+
+        $this->assertSame(0, $user->fresh()->unreadNotifications()->count());
+        $this->assertSame(3, $user->fresh()->notifications()->whereNotNull('read_at')->count());
+    }
+
     public function test_random_sample_notification_uses_supported_ui_type(): void
     {
         $user = User::factory()->create();

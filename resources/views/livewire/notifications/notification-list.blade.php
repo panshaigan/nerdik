@@ -1,8 +1,4 @@
 <div class="py-12 max-w-lg mx-auto">
-    @if (session('status'))
-        <div role="alert" class="alert alert-success mb-4 text-sm">{{ session('status') }}</div>
-    @endif
-
     @if ($notifications->total() > 0)
         <div class="mb-4">
             <x-button type="button" class="btn-ghost btn-sm" wire:click="markAllRead" wire:loading.attr="disabled">
