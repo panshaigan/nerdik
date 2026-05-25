@@ -197,7 +197,14 @@ class ShowEvent extends Component
             $this->slotCreateModalReady = true;
         }
 
-        $this->js('document.getElementById("event-slots-create-modal")?.showModal()');
+        $this->js(<<<'JS'
+            queueMicrotask(() => {
+                document.getElementById('event-slots-create-modal')?.showModal();
+                requestAnimationFrame(() => {
+                    document.getElementById('event-slots-create-modal')?.showModal();
+                });
+            });
+        JS);
     }
 
     public function deleteEvent(): void

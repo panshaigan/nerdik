@@ -135,7 +135,7 @@
                                 @class([
                                     'ui-tile-active' => $activity && !$activity?->isCancelled(),
                                     'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
-                                    'status-dots group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                    'status-dots group relative w-full rounded-xl border border-transparent',
                                     'status-dots-active !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer' => auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false),
@@ -347,16 +347,16 @@
                                 @if ($group['boundary'] === 'event_start')
                                     <x-ui.hr
                                         text="{{ __('ui.events.event_boundary_starts') }}"
-                                        left-edge-icon="s-star"
-                                        right-edge-icon="s-star"
+                                        left-edge-icon="s-chevron-right"
+                                        right-edge-icon="s-chevron-left"
                                         left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-primary/80"
                                         right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-primary/80"
                                     />
                                 @else
                                     <x-ui.hr
                                         text="{{ __('ui.events.event_boundary_ends') }}"
-                                        left-edge-icon="s-star"
-                                        right-edge-icon="s-star"
+                                        left-edge-icon="s-chevron-right"
+                                        right-edge-icon="s-chevron-left"
                                         left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-primary/80"
                                         right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-primary/80"
                                     />

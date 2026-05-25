@@ -1,6 +1,6 @@
 @auth
-    <dialog id="slot-edit-modal" class="modal">
-        <div class="modal-box max-w-3xl">
+    <dialog id="slot-edit-modal" class="modal backdrop-blur">
+        <div class="modal-box max-w-3xl ui-modal-surface">
             <div id="slot-edit-modal-body" class="min-h-[4rem]"></div>
         </div>
         <form method="dialog" class="modal-backdrop">

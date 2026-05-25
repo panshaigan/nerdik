@@ -67,11 +67,14 @@ class EventShowPlanTab extends Component
     public ?array $attachedActivityIds = null;
 
     /**
-     * When set by the parent shell, skips a duplicate interestedActivities query.
+     * When set by the parent shell, skips a duplicate interestedActivities query on mount.
      *
      * @var list<int>|null
      */
     public ?array $shellInterestedActivityIds = null;
+
+    /** Activity ids the current user has marked interested (updated live on toggle). */
+    public array $interestedActivityIds = [];
 
     public function placeholder(): string
     {
@@ -91,6 +94,8 @@ class EventShowPlanTab extends Component
         $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
         $syncEvent->load(['slots.activity']);
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
+
+        $this->interestedActivityIds = $this->resolveInitialInterestedActivityIds();
     }
 
     /**
@@ -150,6 +155,10 @@ class EventShowPlanTab extends Component
         abort_unless($user !== null, 403);
         $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
         $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        $id = (int) $activity->id;
+        if (! in_array($id, $this->interestedActivityIds, true)) {
+            $this->interestedActivityIds[] = $id;
+        }
         $this->success(__('ui.interests.added_activity'));
     }
 
@@ -164,6 +173,11 @@ class EventShowPlanTab extends Component
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $user->interestedActivities()->detach($activity->id);
+        $id = (int) $activity->id;
+        $this->interestedActivityIds = array_values(array_filter(
+            $this->interestedActivityIds,
+            static fn (int $interestedId): bool => $interestedId !== $id,
+        ));
         $this->warning(__('ui.interests.removed_activity'));
     }
 
@@ -429,29 +443,7 @@ class EventShowPlanTab extends Component
 
         $this->applyShowEmptySlotsPolicy($event, $user);
 
-        $eventActivityIds = $this->attachedActivityIds ?? Slot::query()
-            ->where('event_id', $event->id)
-            ->whereNotNull('activity_id')
-            ->pluck('activity_id')
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-
-        if ($this->shellInterestedActivityIds !== null) {
-            $interestedActivityIds = array_values(array_map(
-                static fn ($id) => (int) $id,
-                $this->shellInterestedActivityIds,
-            ));
-        } elseif ($user !== null && $eventActivityIds !== []) {
-            $interestedActivityIds = $user->interestedActivities()
-                ->whereIn('activities.id', $eventActivityIds)
-                ->pluck('activities.id')
-                ->map(fn ($id) => (int) $id)
-                ->all();
-        } else {
-            $interestedActivityIds = [];
-        }
+        $interestedActivityIds = $this->interestedActivityIds;
 
         /** @var list<string>|null $slotSurfaceTagKeys */
         $slotSurfaceTagKeys = config('activity-badges.surfaces.event_slot.tag_category_keys');
@@ -513,6 +505,43 @@ class EventShowPlanTab extends Component
             'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
             'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
         ]);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function resolveInitialInterestedActivityIds(): array
+    {
+        if ($this->shellInterestedActivityIds !== null) {
+            return array_values(array_map(
+                static fn ($id) => (int) $id,
+                $this->shellInterestedActivityIds,
+            ));
+        }
+
+        $user = auth()->user();
+        if ($user === null) {
+            return [];
+        }
+
+        $eventActivityIds = $this->attachedActivityIds ?? Slot::query()
+            ->where('event_id', $this->eventId)
+            ->whereNotNull('activity_id')
+            ->pluck('activity_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($eventActivityIds === []) {
+            return [];
+        }
+
+        return $user->interestedActivities()
+            ->whereIn('activities.id', $eventActivityIds)
+            ->pluck('activities.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     private function shouldRestrictEmptySlots(Event $event, ?User $user): bool

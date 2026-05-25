@@ -33,6 +33,8 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
 
         $this->assertSame(1, substr_count($html, 'data-ui="event-show-tab-loading"'));
         $this->assertStringContainsString('wire:target="tab"', $html);
+        $this->assertStringNotContainsString('bg-base-100/45', $html);
+        $this->assertStringNotContainsString('backdrop-blur-[2px]', $html);
     }
 
     public function test_plan_tab_panel_remains_in_dom_after_switching_away_and_back(): void

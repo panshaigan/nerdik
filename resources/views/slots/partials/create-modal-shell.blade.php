@@ -1,6 +1,6 @@
 @auth
-    <dialog id="event-slots-create-modal" class="modal">
-        <div class="modal-box max-w-3xl">
+    <dialog id="event-slots-create-modal" class="modal backdrop-blur">
+        <div class="modal-box max-w-3xl ui-modal-surface">
             @include('slots.mass-create', [
                 'embeddedInModal' => true,
                 'editMode' => false,
