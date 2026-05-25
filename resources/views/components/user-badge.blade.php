@@ -3,10 +3,12 @@
     'organization' => null,
     'name' => null,
     'avatarPath' => null,
+    'avatarUrl' => null,
     'size' => 'md',
     'nameClass' => '',
     'subline' => null,
     'avatarOnly' => false,
+    'trackNavAvatar' => false,
 ])
 
 @php
@@ -14,14 +16,16 @@
     $resolvedName = trim((string) ($name ?? $organization?->name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
     $avatarBackgroundColor = ltrim((string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8'), '#');
     $avatarTextColor = ltrim((string) ($user?->profile?->avatar_text_color ?? '#ffffff'), '#');
-    $avatarUrl = ! $usesOrganization && $user !== null
-        ? $user->avatarUrl()
-        : sprintf(
-            'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
-            rawurlencode($resolvedName),
-            rawurlencode($avatarBackgroundColor),
-            rawurlencode($avatarTextColor),
-        );
+    $resolvedAvatarUrl = is_string($avatarUrl) && $avatarUrl !== ''
+        ? $avatarUrl
+        : (! $usesOrganization && $user !== null
+            ? $user->avatarUrl()
+            : sprintf(
+                'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
+                rawurlencode($resolvedName),
+                rawurlencode($avatarBackgroundColor),
+                rawurlencode($avatarTextColor),
+            ));
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',
@@ -33,14 +37,26 @@
 @if ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>
         <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
-            <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
+            <img
+                src="{{ $resolvedAvatarUrl }}"
+                alt="{{ $resolvedName }}"
+                class="h-full w-full object-cover"
+                loading="lazy"
+                @if ($trackNavAvatar) data-nav-user-avatar @endif
+            />
         </div>
     </div>
 @else
     <div {{ $attributes->class('flex items-center gap-2 min-w-0') }}>
         <div class="avatar">
             <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
-                <img src="{{ $avatarUrl }}" alt="{{ $resolvedName }}" class="h-full w-full object-cover" loading="lazy" />
+                <img
+                    src="{{ $resolvedAvatarUrl }}"
+                    alt="{{ $resolvedName }}"
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    @if ($trackNavAvatar) data-nav-user-avatar @endif
+                />
             </div>
         </div>
         <div class="min-w-0">
