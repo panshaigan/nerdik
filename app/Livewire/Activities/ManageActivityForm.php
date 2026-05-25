@@ -31,8 +31,6 @@ class ManageActivityForm extends Component
         closeConfirm as protected traitCloseConfirm;
     }
 
-    private const NAME_SUGGESTIONS_LIMIT = 40;
-
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
 
     public ?int $editingActivityId = null;
@@ -130,6 +128,7 @@ class ManageActivityForm extends Component
             $this->activity_type_id = $activity->activity_type_id;
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
+            $this->normalizeParticipantBounds();
             $this->minimum_age = $activity->minimum_age;
             $this->duration_in_minutes = $activity->duration_in_minutes;
             $this->cancellation_deadline_in_hours = $activity->cancellation_deadline_in_hours;
@@ -242,6 +241,7 @@ class ManageActivityForm extends Component
         $this->activity_type_id = $source->activity_type_id;
         $this->min_participants = $source->min_participants;
         $this->max_participants = $source->max_participants;
+        $this->normalizeParticipantBounds();
         $this->minimum_age = $source->minimum_age;
         $this->duration_in_minutes = $source->duration_in_minutes;
         $this->cancellation_deadline_in_hours = $source->cancellation_deadline_in_hours;
@@ -911,33 +911,21 @@ class ManageActivityForm extends Component
         return $maxUtc === null || $preferredUtc->lte($maxUtc);
     }
 
-    /**
-     * @return list<string>
-     */
-    protected function nameSuggestionsForCurrentUser(?int $exceptActivityId = null): array
+    private function normalizeParticipantBounds(): void
     {
-        $query = Activity::query()
-            ->where('created_by', auth()->id());
-
-        if ($exceptActivityId !== null) {
-            $query->where('id', '!=', $exceptActivityId);
+        if ($this->min_participants !== null && $this->min_participants < 1) {
+            $this->min_participants = 1;
         }
-
-        return $query
-            ->whereNotNull('name')
-            ->orderBy('created_at', 'desc')
-            ->limit(self::NAME_SUGGESTIONS_LIMIT)
-            ->pluck('name')
-            ->filter(fn ($name) => is_string($name) && trim($name) !== '')
-            ->map(fn ($name) => trim($name))
-            ->unique()
-            ->values()
-            ->all();
+        if ($this->max_participants !== null && $this->max_participants < 1) {
+            $this->max_participants = 1;
+        }
+        if ($this->min_participants !== null && $this->max_participants !== null && $this->min_participants > $this->max_participants) {
+            $this->min_participants = $this->max_participants;
+        }
     }
 
     public function render()
     {
-        $exceptId = $this->editingActivityId;
         $editingActivity = null;
         if ($this->editingActivityId !== null) {
             $editingActivity = Activity::query()
@@ -1044,7 +1032,6 @@ class ManageActivityForm extends Component
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
             'selfHostedStartTimeMin' => format_in_user_tz(now(), 'Y-m-d\TH:i'),
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
-            'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'proposalEventSuggestions' => $proposalEventSuggestions,
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => $activityTypesQuery->get(),
