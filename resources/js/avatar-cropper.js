@@ -88,17 +88,34 @@ function setCropPreview(form, blob) {
     preview.src = url;
 }
 
+function revokeCropPreviewBlob(preview) {
+    const previousUrl = preview?.dataset.blobUrl;
+    if (!previousUrl) {
+        return;
+    }
+
+    URL.revokeObjectURL(previousUrl);
+    delete preview.dataset.blobUrl;
+}
+
+function syncAvatarPreview(form, url) {
+    const preview = form?.querySelector('[data-profile-avatar-preview]');
+    if (!preview || !url) {
+        return;
+    }
+
+    revokeCropPreviewBlob(preview);
+    preview.dataset.defaultSrc = url;
+    preview.src = url;
+}
+
 function resetCropPreview(form) {
     const preview = form?.querySelector('[data-profile-avatar-preview]');
     if (!preview) {
         return;
     }
 
-    const previousUrl = preview.dataset.blobUrl;
-    if (previousUrl) {
-        URL.revokeObjectURL(previousUrl);
-        delete preview.dataset.blobUrl;
-    }
+    revokeCropPreviewBlob(preview);
 
     const defaultSrc = preview.dataset.defaultSrc;
     if (defaultSrc) {
@@ -135,24 +152,53 @@ function updateFileUi(form, { buttonText, showRemove, showRecropHint }) {
     }
 }
 
-function clearPendingCropState(form, { clearInput = true } = {}) {
+function resetPendingCropUi(form, { resetPreview = true } = {}) {
     originalImageDataUrl = null;
     hasPendingCrop = false;
     pendingSourceFileName = null;
 
-    if (form) {
-        const labels = getDropzoneLabels(getDropzone(form));
-        updateFileUi(form, {
-            buttonText: labels.choose,
-            showRemove: false,
-            showRecropHint: false,
-        });
+    if (!form) {
+        return;
+    }
+
+    const labels = getDropzoneLabels(getDropzone(form));
+    updateFileUi(form, {
+        buttonText: labels.choose,
+        showRemove: false,
+        showRecropHint: false,
+    });
+
+    if (resetPreview) {
         resetCropPreview(form);
     }
+}
+
+function clearPendingCropState(form, { clearInput = true, resetPreview = true } = {}) {
+    resetPendingCropUi(form, { resetPreview });
 
     if (clearInput) {
         clearFileInput();
     }
+}
+
+function resolveProfileAvatarUpdatedUrl(event) {
+    const detail = event?.detail;
+
+    if (typeof detail === 'string') {
+        return detail;
+    }
+
+    if (detail && typeof detail === 'object') {
+        if (typeof detail.avatarUrl === 'string') {
+            return detail.avatarUrl;
+        }
+
+        if (Array.isArray(detail) && typeof detail[0] === 'string') {
+            return detail[0];
+        }
+    }
+
+    return null;
 }
 
 function isAcceptedImageFile(file) {
@@ -476,6 +522,24 @@ export function bootProfileAvatarCropper() {
         { signal },
     );
 
+    document.addEventListener(
+        'profile-avatar-updated',
+        (event) => {
+            const form = document.querySelector('#ui-profile-avatar-form');
+            if (!form) {
+                return;
+            }
+
+            const avatarUrl = resolveProfileAvatarUpdatedUrl(event);
+            if (avatarUrl) {
+                syncAvatarPreview(form, avatarUrl);
+            }
+
+            resetPendingCropUi(form, { resetPreview: !avatarUrl });
+        },
+        { signal },
+    );
+
     if (typeof window.Livewire?.hook === 'function') {
         window.Livewire.hook('morph.updated', ({ el }) => {
             const section = el.matches?.('#ui-profile-avatar-section')
@@ -491,7 +555,7 @@ export function bootProfileAvatarCropper() {
                 wire && typeof wire.get === 'function' ? wire.get('croppedAvatar') != null : false;
 
             if (!hasUpload && form) {
-                clearPendingCropState(form, { clearInput: false });
+                resetPendingCropUi(form, { resetPreview: false });
             }
         });
     }
