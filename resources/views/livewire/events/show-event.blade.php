@@ -92,7 +92,7 @@
                 <div
                     wire:loading.delay.shortest
                     wire:target="tab"
-                    class="absolute inset-0 z-20 flex cursor-wait items-center justify-center rounded-b-2xl bg-base-100/45 backdrop-blur-[2px]"
+                    class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-b-2xl"
                     aria-live="polite"
                     role="status"
                     data-ui="event-show-tab-loading"
@@ -111,7 +111,7 @@
                                     id="ui-event-show-create-slots"
                                     type="button"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success ui-action ui-action-create-slots"
-                                    wire:click="openSlotCreateModal"
+                                    wire:click.stop="openSlotCreateModal"
                                     wire:loading.attr="disabled"
                                     wire:target="openSlotCreateModal"
                                     :tooltip="__('ui.slots.create_slots')"
@@ -217,7 +217,7 @@
         </x-ui.tabs-with-toolbar>
     </div>
 
-    @if ($slotCreateModalReady ?? false)
+    @if ($canManageEvent ?? false)
         @include('slots.partials.create-modal-shell', [
             'event' => $event,
             'slotMassVenues' => $slotMassVenues,
