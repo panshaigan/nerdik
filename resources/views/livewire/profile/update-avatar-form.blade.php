@@ -249,16 +249,18 @@ new class extends Component
         </fieldset>
 
         @if ($avatar_source === 'generated')
-            <div class="space-y-4 rounded-lg border border-base-200 bg-base-200/40 p-4">
-                <p class="text-sm text-base-content/80">{{ __('Pick background and text colors for your generated avatar.') }}</p>
-                <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('Avatar background color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
-                <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('Avatar text color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
-                <div class="flex items-center gap-3">
+            <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
+                <div class="flex flex-col gap-4">
+                    <p class="text-sm text-base-content/80">{{ __('Pick background and text colors for your generated avatar.') }}</p>
+                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('Avatar background color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
+                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('Avatar text color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
+                </div>
+                <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
                     <img
                         src="https://ui-avatars.com/api/?name={{ rawurlencode(auth()->user()->displayName()) }}&background={{ ltrim($avatar_bg_color, '#') }}&color={{ ltrim($avatar_text_color, '#') }}&rounded=true&bold=true"
                         alt=""
-                        class="h-14 w-14 rounded-full border border-base-300 object-cover"
+                        class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"
                     />
                 </div>
@@ -326,50 +328,66 @@ new class extends Component
         @endif
 
         @if ($avatar_source === 'gravatar')
-            <div class="space-y-3 rounded-lg border border-base-200 bg-base-200/40 p-4">
-                <p class="text-sm text-base-content/80">{{ __('We cache your Gravatar on our server when you save or when you log in.') }}</p>
-                <div class="flex items-center gap-3">
+            <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
+                <div class="flex flex-col gap-4">
+                    <p class="text-sm text-base-content/80">{{ __('We cache your Gravatar on our server when you save or when you log in.') }}</p>
+                    <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Gravatar now') }}</x-button>
+                </div>
+                <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
                     <img
-                        src="https://www.gravatar.com/avatar/{{ md5(strtolower(trim($userEmail))) }}?s=160&d=mp"
+                        src="https://www.gravatar.com/avatar/{{ md5(strtolower(trim($userEmail))) }}?s=320&d=mp"
                         alt=""
-                        class="h-14 w-14 rounded-full border border-base-300 object-cover"
+                        class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"
                     />
                 </div>
-                <x-button type="button" class="btn-ghost btn-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Gravatar now') }}</x-button>
             </div>
         @endif
 
         @if ($avatar_source === 'google')
-            <div class="space-y-3 rounded-lg border border-base-200 bg-base-200/40 p-4">
-                @if (auth()->user()->profile?->google_id)
-                    <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Google account. Refreshed on each Google sign-in and when you click below.') }}</p>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-medium text-base-content/80">{{ __('Current') }}</span>
-                        <img src="{{ auth()->user()->avatarUrl() }}" alt="" class="h-14 w-14 rounded-full border border-base-300 object-cover" loading="lazy" />
-                    </div>
-                    <x-button type="button" class="btn-ghost btn-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Google now') }}</x-button>
-                @else
-                    <p class="text-sm text-base-content/80">{{ __('Sign in once with Google to link your account, then you can use this avatar source.') }}</p>
-                    <a href="{{ route('google.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-sm">{{ __('Link Google account') }}</a>
-                @endif
+            <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
+                <div class="flex flex-col gap-4">
+                    @if (auth()->user()->profile?->google_id)
+                        <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Google account. Refreshed on each Google sign-in and when you click below.') }}</p>
+                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Google now') }}</x-button>
+                    @else
+                        <p class="text-sm text-base-content/80">{{ __('Sign in once with Google to link your account, then you can use this avatar source.') }}</p>
+                        <a href="{{ route('google.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('Link Google account') }}</a>
+                    @endif
+                </div>
+                <div class="flex flex-col items-center justify-center gap-3">
+                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->google_id ? __('Current') : __('Preview') }}</span>
+                    <img
+                        src="{{ auth()->user()->avatarUrl() }}"
+                        alt=""
+                        class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
+                        loading="lazy"
+                    />
+                </div>
             </div>
         @endif
 
         @if ($avatar_source === 'facebook')
-            <div class="space-y-3 rounded-lg border border-base-200 bg-base-200/40 p-4">
-                @if (auth()->user()->profile?->facebook_id)
-                    <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Facebook account. Refreshed on each Facebook sign-in and when you click below.') }}</p>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-medium text-base-content/80">{{ __('Current') }}</span>
-                        <img src="{{ auth()->user()->avatarUrl() }}" alt="" class="h-14 w-14 rounded-full border border-base-300 object-cover" loading="lazy" />
-                    </div>
-                    <x-button type="button" class="btn-ghost btn-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Facebook now') }}</x-button>
-                @else
-                    <p class="text-sm text-base-content/80">{{ __('Sign in once with Facebook to link your account, then you can use this avatar source.') }}</p>
-                    <a href="{{ route('facebook.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-sm">{{ __('Link Facebook account') }}</a>
-                @endif
+            <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
+                <div class="flex flex-col gap-4">
+                    @if (auth()->user()->profile?->facebook_id)
+                        <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Facebook account. Refreshed on each Facebook sign-in and when you click below.') }}</p>
+                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Facebook now') }}</x-button>
+                    @else
+                        <p class="text-sm text-base-content/80">{{ __('Sign in once with Facebook to link your account, then you can use this avatar source.') }}</p>
+                        <a href="{{ route('facebook.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('Link Facebook account') }}</a>
+                    @endif
+                </div>
+                <div class="flex flex-col items-center justify-center gap-3">
+                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->facebook_id ? __('Current') : __('Preview') }}</span>
+                    <img
+                        src="{{ auth()->user()->avatarUrl() }}"
+                        alt=""
+                        class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
+                        loading="lazy"
+                    />
+                </div>
             </div>
         @endif
 
