@@ -251,53 +251,56 @@ new class extends Component
 
         @if ($avatar_source === 'uploaded')
             <div
-                class="ui-profile-avatar-dropzone space-y-4 rounded-lg border border-base-200 bg-base-200/40 p-4"
+                class="ui-profile-avatar-dropzone grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2"
                 data-profile-avatar-dropzone
                 data-label-choose="{{ __('Choose file') }}"
                 data-label-crop="{{ __('Crop file') }}"
                 data-label-remove="{{ __('Remove image') }}"
             >
-                <div class="flex flex-wrap items-center gap-3">
-                    <input
-                        type="file"
-                        id="ui-profile-avatar-file"
-                        accept="image/jpeg,image/png,image/webp"
-                        class="sr-only"
-                        data-profile-avatar-file
-                    />
-                    <label
-                        for="ui-profile-avatar-file"
-                        class="btn btn-outline btn-sm cursor-pointer"
-                        data-profile-avatar-file-trigger
-                    >
-                        <span data-profile-avatar-file-button-text>{{ __('Choose file') }}</span>
-                    </label>
-                    <x-button
-                        type="button"
-                        class="btn-ghost btn-sm hidden"
-                        data-profile-avatar-remove
-                    >
-                        {{ __('Remove image') }}
-                    </x-button>
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input
+                            type="file"
+                            id="ui-profile-avatar-file"
+                            accept="image/jpeg,image/png,image/webp"
+                            class="sr-only"
+                            data-profile-avatar-file
+                        />
+                        <label
+                            for="ui-profile-avatar-file"
+                            class="btn btn-outline btn-sm cursor-pointer"
+                            data-profile-avatar-file-trigger
+                        >
+                            <span data-profile-avatar-file-button-text>{{ __('Choose file') }}</span>
+                        </label>
+                        <x-button
+                            type="button"
+                            class="btn-ghost btn-sm hidden"
+                            data-profile-avatar-remove
+                        >
+                            {{ __('Remove image') }}
+                        </x-button>
+                    </div>
+                    <p class="text-xs text-base-content/65">
+                        {{ __('Drag and drop an image here, or use the button above. JPEG, PNG, or WebP. After cropping, click Save below.') }}
+                    </p>
+                    <p class="hidden text-xs text-base-content/65" data-profile-avatar-recrop-hint>
+                        {{ __('Click Crop file to adjust the crop before saving.') }}
+                    </p>
+                    <x-field-error :messages="$errors->get('croppedAvatar')" class="mt-2" />
                 </div>
-                <p class="text-xs text-base-content/65">
-                    {{ __('Drag and drop an image here, or use the button above. JPEG, PNG, or WebP. After cropping, click Save below.') }}
-                </p>
-                <p class="hidden text-xs text-base-content/65" data-profile-avatar-recrop-hint>
-                    {{ __('Click Crop file to adjust the crop before saving.') }}
-                </p>
-                <div wire:ignore class="flex flex-col items-start gap-3">
+
+                <div wire:ignore class="flex flex-col items-center justify-center gap-3 md:items-end">
                     <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
                     <img
                         src="{{ auth()->user()->avatarUrl() }}"
                         alt=""
-                        class="h-32 w-32 rounded-full border-2 border-base-300 object-cover sm:h-40 sm:w-40"
+                        class="h-64 w-64 rounded-full border-2 border-base-300 object-cover"
                         loading="lazy"
                         data-profile-avatar-preview
                         data-default-src="{{ auth()->user()->avatarUrl() }}"
                     />
                 </div>
-                <x-field-error :messages="$errors->get('croppedAvatar')" class="mt-2" />
             </div>
         @endif
 
