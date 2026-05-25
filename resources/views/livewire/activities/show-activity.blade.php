@@ -40,7 +40,7 @@
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
-<div class="space-y-2 sm:space-y-6 " data-show-activity-id="{{ $activity->id }}">
+<div class="space-y-2 sm:space-y-4 " data-show-activity-id="{{ $activity->id }}">
     <x-page-header :title="$activity->name" :user="$activity->creator">
         @if ($showHeroHost)
             <x-slot:subtitle>
@@ -97,19 +97,13 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-3 gap-3 px-3 pb-5 sm:px-3 sm:pb-6">
+    <div class="grid grid-cols-3 items-center gap-3 px-3 pb-5 sm:px-3 sm:pb-6">
         <x-ui.activity-badge-group
             :items="$badgeItems"
             class="col-span-2 bg-texture-glass box-glow-primary !rounded-2xl p-6"
             data-ui="activity-show-badge-group"
         />
-        <div class="space-y-3">
-            <x-ui.interested-stat-card
-                :title="__('ui.events.interested_people_count')"
-                :value="$interestedPeopleCount"
-                :has-interest="$hasInterest"
-                data-ui="activity-show-interested-stat"
-            />
+        <div class="grid grid-cols-2">
             <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.activities.show_participation_section') }}"
@@ -119,6 +113,12 @@
                     data-ui="activity-show-participants-stat"
                 />
             </div>
+            <x-ui.interested-stat-card
+                :title="__('ui.events.interested_people_count')"
+                :value="$interestedPeopleCount"
+                :has-interest="$hasInterest"
+                data-ui="activity-show-interested-stat"
+            />
         </div>
     </div>
 

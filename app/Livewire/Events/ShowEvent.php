@@ -16,6 +16,7 @@ use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
 use App\Traits\AuthorizesOwnership;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,9 @@ use Mary\Traits\Toast;
  * Event show shell: owns `tab` and the `?tab=` query string ({@see self::$tab}, {@see self::normalizeTab()}).
  * Nested tab components receive {@see ShowEvent::$tab} via the `active-tab` Blade prop only; they must not use
  * {@see Url} or read `tab` from the request for routing UI state.
+ *
+ * Default tab when `?tab=` is absent (see {@see self::resolveDefaultTab()}): pending proposals for organizers,
+ * then plan during active enrollment or while the event is in progress, otherwise description.
  */
 class ShowEvent extends Component
 {
@@ -80,7 +84,13 @@ class ShowEvent extends Component
     {
         $event->loadMissing('enrollmentWindows');
         $this->eventId = $event->id;
-        $this->tab = $this->normalizeTab($this->tab);
+
+        if (! request()->has('tab')) {
+            $this->tab = $this->resolveDefaultTab($event);
+        } else {
+            $this->tab = $this->normalizeTab($this->tab);
+        }
+
         $this->mountedTabs = [$this->tab];
         $user = auth()->user();
         if ($this->tab === 'proposals' && ($user === null || ! $user->canModifyEntity($event))) {
@@ -463,5 +473,51 @@ class ShowEvent extends Component
     private function normalizeTab(?string $value): string
     {
         return in_array($value, ['description', 'plan', 'proposals'], true) ? $value : 'description';
+    }
+
+    private function resolveDefaultTab(Event $event): string
+    {
+        $user = auth()->user();
+        $eventShowReadCache = app(EventShowReadCache::class);
+
+        if ($user !== null
+            && $user->canModifyEntity($event)
+            && $eventShowReadCache->hasPendingProposals((int) $event->id)) {
+            return 'proposals';
+        }
+
+        $now = now();
+
+        if ($this->hasActiveEnrollmentWindow($event, $now) || $this->eventIsInProgress($event, $now)) {
+            return 'plan';
+        }
+
+        return 'description';
+    }
+
+    private function hasActiveEnrollmentWindow(Event $event, Carbon $now): bool
+    {
+        return $event->enrollmentWindows->contains(function ($window) use ($now): bool {
+            return $window->starts_at !== null
+                && $window->ends_at !== null
+                && $now->between($window->starts_at, $window->ends_at);
+        });
+    }
+
+    private function eventIsInProgress(Event $event, Carbon $now): bool
+    {
+        if ($event->starts_at === null) {
+            return false;
+        }
+
+        if (! $now->gte($event->starts_at)) {
+            return false;
+        }
+
+        if ($event->ends_at !== null && $now->gt($event->ends_at)) {
+            return false;
+        }
+
+        return true;
     }
 }
