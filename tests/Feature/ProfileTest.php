@@ -83,6 +83,7 @@ class ProfileTest extends TestCase
             ->set('avatar_source', 'generated')
             ->set('avatar_bg_color', '#112233')
             ->set('avatar_text_color', '#ddeeff')
+            ->set('avatar_initials', 'xyz')
             ->call('updateAvatar');
 
         $component
@@ -93,6 +94,9 @@ class ProfileTest extends TestCase
 
         $this->assertSame('#112233', $user->profile?->avatar_bg_color);
         $this->assertSame('#ddeeff', $user->profile?->avatar_text_color);
+        $this->assertSame('XYZ', $user->profile?->avatar_initials);
+        $this->assertStringContainsString('name=XYZ', $user->avatarUrl());
+        $this->assertStringContainsString('length=3', $user->avatarUrl());
     }
 
     public function test_user_can_attach_existing_organization_from_profile(): void
@@ -205,6 +209,7 @@ class ProfileTest extends TestCase
         $user->profile()->update([
             'avatar_bg_color' => '#112233',
             'avatar_text_color' => '#ddeeff',
+            'avatar_initials' => 'CU',
         ]);
 
         $html = Blade::render('<x-user-badge :user="$user" avatar-only />', [
@@ -212,7 +217,9 @@ class ProfileTest extends TestCase
         ]);
 
         $this->assertStringContainsString('ui-avatars.com/api/', $html);
-        $this->assertStringContainsString('name=Color%20User', $html);
+        $this->assertStringContainsString('name=CU', $html);
+        $this->assertStringContainsString('length=2', $html);
+        $this->assertStringNotContainsString('name=Color%20User', $html);
         $this->assertStringContainsString('background=112233', $html);
         $this->assertStringContainsString('color=ddeeff', $html);
     }

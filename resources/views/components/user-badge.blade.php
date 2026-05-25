@@ -12,20 +12,17 @@
 ])
 
 @php
+    use App\Models\User;
+
     $usesOrganization = $organization !== null;
     $resolvedName = trim((string) ($name ?? $organization?->name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
-    $avatarBackgroundColor = ltrim((string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8'), '#');
-    $avatarTextColor = ltrim((string) ($user?->profile?->avatar_text_color ?? '#ffffff'), '#');
+    $avatarBackgroundColor = (string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8');
+    $avatarTextColor = (string) ($user?->profile?->avatar_text_color ?? '#ffffff');
     $resolvedAvatarUrl = is_string($avatarUrl) && $avatarUrl !== ''
         ? $avatarUrl
         : (! $usesOrganization && $user !== null
             ? $user->avatarUrl()
-            : sprintf(
-                'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
-                rawurlencode($resolvedName),
-                rawurlencode($avatarBackgroundColor),
-                rawurlencode($avatarTextColor),
-            ));
+            : User::uiAvatarsUrl($resolvedName, $avatarBackgroundColor, $avatarTextColor, 2));
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',

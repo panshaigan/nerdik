@@ -13,17 +13,7 @@ final class ResolveAvatarUrl
     public function __invoke(User $user): string
     {
         $profile = $user->profile;
-        $name = $user->displayName();
-
-        $bg = ltrim((string) ($profile?->avatar_bg_color ?? '#1d4ed8'), '#');
-        $fg = ltrim((string) ($profile?->avatar_text_color ?? '#ffffff'), '#');
-
-        $generated = sprintf(
-            'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&rounded=true&bold=true',
-            rawurlencode($name),
-            rawurlencode($bg),
-            rawurlencode($fg),
-        );
+        $generated = $user->generatedAvatarUrl();
 
         $rawSource = $profile?->avatar_source;
         $source = $rawSource instanceof AvatarSource

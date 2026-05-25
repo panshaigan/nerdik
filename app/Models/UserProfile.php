@@ -27,6 +27,7 @@ class UserProfile extends Model
         'facebook_avatar_url',
         'avatar_bg_color',
         'avatar_text_color',
+        'avatar_initials',
         'discord_handle',
         'current_location',
         'timezone',

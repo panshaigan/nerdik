@@ -75,6 +75,50 @@ class User extends Authenticatable implements MustVerifyEmail
         return (string) $this->nickname;
     }
 
+    public function generatedAvatarName(): string
+    {
+        $initials = trim((string) ($this->profile?->avatar_initials ?? ''));
+
+        return $initials !== '' ? $initials : $this->displayName();
+    }
+
+    public function generatedAvatarLength(): int
+    {
+        $initials = trim((string) ($this->profile?->avatar_initials ?? ''));
+
+        if ($initials !== '') {
+            return strlen($initials);
+        }
+
+        return 2;
+    }
+
+    public static function uiAvatarsUrl(string $name, string $backgroundColor, string $textColor, int $length): string
+    {
+        $bg = ltrim($backgroundColor, '#');
+        $fg = ltrim($textColor, '#');
+
+        return sprintf(
+            'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&length=%d&rounded=true&bold=true',
+            rawurlencode($name),
+            rawurlencode($bg),
+            rawurlencode($fg),
+            $length,
+        );
+    }
+
+    public function generatedAvatarUrl(): string
+    {
+        $profile = $this->profile;
+
+        return self::uiAvatarsUrl(
+            $this->generatedAvatarName(),
+            (string) ($profile?->avatar_bg_color ?? '#1d4ed8'),
+            (string) ($profile?->avatar_text_color ?? '#ffffff'),
+            $this->generatedAvatarLength(),
+        );
+    }
+
     public function avatarUrl(): string
     {
         return app(ResolveAvatarUrl::class)($this);

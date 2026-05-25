@@ -50,6 +50,9 @@ class UserForm
                     ->default('#1d4ed8'),
                 TextInput::make('profile.avatar_text_color')
                     ->default('#ffffff'),
+                TextInput::make('profile.avatar_initials')
+                    ->maxLength(3)
+                    ->default(null),
                 TextInput::make('profile.discord_handle')
                     ->default(null),
                 TextInput::make('profile.current_location')
