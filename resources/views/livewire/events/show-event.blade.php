@@ -88,20 +88,6 @@
             data-ui="event-show-tabs"
             class="bg-texture-scratches rounded-2xl"
         >
-            <x-slot:panelOverlay>
-                <div
-                    wire:loading.delay.shortest
-                    wire:target="tab"
-                    class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-b-2xl"
-                    aria-live="polite"
-                    role="status"
-                    data-ui="event-show-tab-loading"
-                >
-                    <span class="sr-only">{{ __('ui.common.loading') }}</span>
-                    <span class="loading loading-spinner loading-md text-primary" aria-hidden="true"></span>
-                </div>
-            </x-slot:panelOverlay>
-
             <x-slot:toolbar>
                 @auth
                     <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
