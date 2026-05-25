@@ -80,12 +80,12 @@ new class extends Component
             data-ui="profile-password-confirmation"
         />
 
-        <div class="flex items-center gap-4">
-            <x-button id="ui-profile-password-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-password-submit">{{ __('Save') }}</x-button>
-
+        <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="password-updated">
                 {{ __('Saved.') }}
             </x-action-message>
+
+            <x-button id="ui-profile-password-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-password-submit">{{ __('Save') }}</x-button>
         </div>
     </form>
 </section>
