@@ -72,6 +72,40 @@ final class AvatarSourceTest extends TestCase
     }
 
     #[Test]
+    public function test_generated_avatar_initials_must_be_one_to_three_letters(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'generated')
+            ->set('avatar_bg_color', '#112233')
+            ->set('avatar_text_color', '#ddeeff')
+            ->set('avatar_initials', 'abc')
+            ->call('updateAvatar')
+            ->assertHasNoErrors();
+
+        $this->assertSame('ABC', $user->refresh()->profile?->avatar_initials);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'generated')
+            ->set('avatar_bg_color', '#112233')
+            ->set('avatar_text_color', '#ddeeff')
+            ->set('avatar_initials', '1234')
+            ->call('updateAvatar')
+            ->assertHasErrors('avatar_initials');
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'generated')
+            ->set('avatar_bg_color', '#112233')
+            ->set('avatar_text_color', '#ddeeff')
+            ->set('avatar_initials', 'ABCD')
+            ->call('updateAvatar')
+            ->assertHasErrors('avatar_initials');
+    }
+
+    #[Test]
     public function test_switching_from_gravatar_to_uploaded_requires_new_file(): void
     {
         Storage::fake('public');

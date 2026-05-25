@@ -117,6 +117,7 @@ return new class extends Migration
             $table->text('facebook_avatar_url')->nullable();
             $table->string('avatar_bg_color', 7)->nullable();
             $table->string('avatar_text_color', 7)->nullable();
+            $table->string('avatar_initials', 3)->nullable();
             $table->string('discord_handle')->nullable();
             $table->string('current_location')->nullable();
             $table->string('timezone', 50)->nullable();

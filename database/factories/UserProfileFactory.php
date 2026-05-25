@@ -29,6 +29,7 @@ final class UserProfileFactory extends Factory
             'facebook_avatar_url' => null,
             'avatar_bg_color' => '#1d4ed8',
             'avatar_text_color' => '#ffffff',
+            'avatar_initials' => null,
             'discord_handle' => null,
             'current_location' => null,
             'timezone' => null,

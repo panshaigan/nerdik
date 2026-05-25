@@ -19,6 +19,8 @@ new class extends Component
 
     public string $avatar_text_color = '#ffffff';
 
+    public string $avatar_initials = '';
+
     /** @var mixed */
     public $croppedAvatar = null;
 
@@ -31,6 +33,7 @@ new class extends Component
         $this->userEmail = (string) $user->email;
         $this->avatar_bg_color = $profile?->avatar_bg_color ?? '#1d4ed8';
         $this->avatar_text_color = $profile?->avatar_text_color ?? '#ffffff';
+        $this->avatar_initials = $profile?->avatar_initials ?? '';
         $src = $profile?->avatar_source;
         if ($src instanceof AvatarSource) {
             $this->avatar_source = $src->value;
@@ -81,6 +84,7 @@ new class extends Component
             'avatar_source' => ['required', 'string', Rule::in(array_map(static fn (AvatarSource $s) => $s->value, AvatarSource::cases()))],
             'avatar_bg_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'avatar_text_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'avatar_initials' => ['nullable', 'string', 'max:3', 'regex:/^[A-Za-z]{1,3}$/'],
             'croppedAvatar' => [
                 Rule::requiredIf(fn (): bool => $this->avatar_source === 'uploaded'
                     && ($previousSource !== AvatarSource::Uploaded->value || ! $hasExistingUpload)),
@@ -98,6 +102,8 @@ new class extends Component
             $profile->avatar_source = AvatarSource::Generated;
             $profile->avatar_bg_color = $validated['avatar_bg_color'];
             $profile->avatar_text_color = $validated['avatar_text_color'];
+            $rawInitials = trim((string) ($validated['avatar_initials'] ?? ''));
+            $profile->avatar_initials = $rawInitials !== '' ? strtoupper($rawInitials) : null;
             $this->deleteStoredAvatarIfPresent($user->id);
             $profile->avatar_path = null;
             $profile->avatar_cache_signature = null;
@@ -252,13 +258,28 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     <p class="text-sm text-base-content/80">{{ __('Pick background and text colors for your generated avatar.') }}</p>
+                    <x-input
+                        wire:model.live="avatar_initials"
+                        label="{{ __('Avatar initials') }}"
+                        type="text"
+                        name="avatar_initials"
+                        error-field="avatar_initials"
+                        placeholder="{{ auth()->user()->displayName() }}"
+                        maxlength="3"
+                    />
+                    <p class="text-xs text-base-content/70">{{ __('Leave blank to use your nickname. Up to 3 letters.') }}</p>
                     <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('Avatar background color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
                     <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('Avatar text color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
+                    @php
+                        $previewInitials = trim($avatar_initials);
+                        $previewName = $previewInitials !== '' ? $previewInitials : auth()->user()->displayName();
+                        $previewLength = $previewInitials !== '' ? strlen($previewInitials) : 2;
+                    @endphp
                     <img
-                        src="https://ui-avatars.com/api/?name={{ rawurlencode(auth()->user()->displayName()) }}&background={{ ltrim($avatar_bg_color, '#') }}&color={{ ltrim($avatar_text_color, '#') }}&rounded=true&bold=true"
+                        src="{{ \App\Models\User::uiAvatarsUrl($previewName, $avatar_bg_color, $avatar_text_color, $previewLength) }}"
                         alt=""
                         class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"
