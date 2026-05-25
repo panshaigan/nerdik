@@ -3,7 +3,7 @@
 @endphp
 <div>
     <div class="grid gap-4 sm:grid-cols-2">
-        <div class="relative">
+        <div>
             <x-input
                 wire:model.live.debounce.300ms="name"
                 label="{{ __('ui.activities.name') }}"
@@ -13,19 +13,9 @@
                 required
                 autocomplete="off"
                 data-activity-name-input
-                aria-autocomplete="list"
-                aria-expanded="false"
-                aria-controls="activity-name-suggestions-popup"
                 icon="o-bookmark"
                 inline
             />
-            <div
-                id="activity-name-suggestions-popup"
-                class="absolute left-0 right-0 z-30 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                data-activity-name-popup
-                role="listbox"
-                wire:ignore
-            ></div>
         </div>
 
         <div>

@@ -59,7 +59,7 @@
             z-index: 1;
             height: var(--range-thumb-size);
             transform: translateY(-50%);
-            border-radius: calc(var(--range-thumb-size) / 3);
+            border-radius: var(--brand-radius-field);
             background-color: var(--brand-base-content-dark);
         }
         [data-theme="light"] .range-dual-fill {
@@ -76,44 +76,69 @@
         maxLimit: {{ (int) $maxLimit }},
         step: {{ (int) $step }},
 
-        get minPercent() {
-            const val = Number(this.min ?? this.minLimit);
-            const lo = this.minLimit;
-            const hi = this.maxLimit;
-            if (!Number.isFinite(val)) {
-                return 0;
+        clamp(value, lo, hi) {
+            return Math.min(hi, Math.max(lo, value));
+        },
+
+        clampToLimits(value, fallback) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) {
+                return fallback;
             }
 
-            return ((val - lo) / (hi - lo)) * 100;
+            return this.clamp(n, this.minLimit, this.maxLimit);
+        },
+
+        percentForValue(value, fallback) {
+            const val = this.clampToLimits(value, fallback);
+            const lo = this.minLimit;
+            const hi = this.maxLimit;
+            if (hi === lo) {
+                return fallback === this.maxLimit ? 100 : 0;
+            }
+
+            return this.clamp(((val - lo) / (hi - lo)) * 100, 0, 100);
+        },
+
+        get minPercent() {
+            return this.percentForValue(this.min, this.minLimit);
         },
         get maxPercent() {
-            const val = Number(this.max ?? this.maxLimit);
-            const lo = this.minLimit;
-            const hi = this.maxLimit;
-            if (!Number.isFinite(val)) {
-                return 100;
-            }
+            return this.percentForValue(this.max, this.maxLimit);
+        },
 
-            return ((val - lo) / (hi - lo)) * 100;
+        syncBounds() {
+            this.min = this.clampToLimits(this.min ?? this.minLimit, this.minLimit);
+            this.max = this.clampToLimits(this.max ?? this.maxLimit, this.maxLimit);
+            if (this.min > this.max) {
+                this.min = this.max;
+            }
         },
 
         init() {
             this.min = this.min ?? this.minLimit;
             this.max = this.max ?? this.maxLimit;
+            this.syncBounds();
 
             this.$watch('min', (value) => {
-                const minValue = Number(value);
-                const maxValue = Number(this.max);
+                let minValue = this.clampToLimits(value, this.minLimit);
+                const maxValue = this.clampToLimits(this.max, this.maxLimit);
                 if (minValue > maxValue) {
-                    this.min = maxValue;
+                    minValue = maxValue;
+                }
+                if (minValue !== Number(value)) {
+                    this.min = minValue;
                 }
             });
 
             this.$watch('max', (value) => {
-                const maxValue = Number(value);
-                const minValue = Number(this.min);
+                let maxValue = this.clampToLimits(value, this.maxLimit);
+                const minValue = this.clampToLimits(this.min, this.minLimit);
                 if (maxValue < minValue) {
-                    this.max = minValue;
+                    maxValue = minValue;
+                }
+                if (maxValue !== Number(value)) {
+                    this.max = maxValue;
                 }
             });
         },
@@ -130,7 +155,7 @@
         <div
             class="range-dual-fill"
             aria-hidden="true"
-            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent + 2) + '%' }"
+            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent + 3) + '%' }"
         ></div>
 
         <input
