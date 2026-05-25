@@ -49,6 +49,23 @@ final class AvatarSourceTest extends TestCase
     }
 
     #[Test]
+    public function test_clear_cropped_avatar_resets_pending_upload(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $file = UploadedFile::fake()->image('photo.jpg', 64, 64);
+
+        $component = Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'uploaded')
+            ->set('croppedAvatar', $file)
+            ->call('clearCroppedAvatar');
+
+        $component->assertSet('croppedAvatar', null);
+    }
+
+    #[Test]
     public function test_switching_from_gravatar_to_uploaded_requires_new_file(): void
     {
         Storage::fake('public');

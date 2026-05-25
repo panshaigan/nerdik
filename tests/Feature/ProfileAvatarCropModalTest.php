@@ -45,6 +45,11 @@ final class ProfileAvatarCropModalTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('data-profile-avatar-preview', $html);
+        $this->assertStringContainsString('data-profile-avatar-dropzone', $html);
+        $this->assertStringContainsString('data-profile-avatar-file-trigger', $html);
+        $this->assertStringContainsString('data-profile-avatar-remove', $html);
+        $this->assertStringNotContainsString('data-profile-avatar-file-name', $html);
+        $this->assertStringContainsString('data-default-src', $html);
         $this->assertMatchesRegularExpression(
             '/id="ui-profile-avatar-form"[\s\S]*?type="submit"[\s\S]*?<\/form>\s*<\/section>/',
             $html,
