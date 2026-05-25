@@ -12,7 +12,11 @@ use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
 use App\Models\User;
+use Database\Factories\DatabaseNotificationFactory;
+use Database\Factories\SampleNotificationContext;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Random\RandomException;
 
 use function fake;
@@ -43,6 +47,8 @@ class SampleDataSeeder extends Seeder
             'draftActivities' => 10,
             'scheduledActivities' => 30,
             'proposedActivities' => 50,
+            'notificationsPerUserMin' => 8,
+            'notificationsPerUserMax' => 15,
         ],
         self::DATASET_STANDARD => [
             'admins' => 2,
@@ -58,6 +64,8 @@ class SampleDataSeeder extends Seeder
             'draftActivities' => 20,
             'scheduledActivities' => 60,
             'proposedActivities' => 100,
+            'notificationsPerUserMin' => 15,
+            'notificationsPerUserMax' => 30,
         ],
         self::DATASET_MAXIMAL => [
             'admins' => 4,
@@ -73,6 +81,8 @@ class SampleDataSeeder extends Seeder
             'draftActivities' => 40,
             'scheduledActivities' => 120,
             'proposedActivities' => 200,
+            'notificationsPerUserMin' => 30,
+            'notificationsPerUserMax' => 50,
         ],
     ];
 
@@ -157,6 +167,46 @@ class SampleDataSeeder extends Seeder
         foreach ($allUsers as $user) {
             $user->interestedActivities()->attach($activities->random(fake()->numberBetween(0, 10)));
             $user->interestedEvents()->attach($events->random(fake()->numberBetween(0, 2)));
+        }
+
+        $this->seedNotifications($dataset, $allUsers, $activities, $events);
+    }
+
+    /**
+     * @param  array<string, int>  $dataset
+     * @param  Collection<int, User>  $allUsers
+     * @param  Collection<int, Activity>  $activities
+     * @param  Collection<int, Event>  $events
+     */
+    private function seedNotifications(array $dataset, Collection $allUsers, Collection $activities, Collection $events): void
+    {
+        $proposals = ActivityProposal::with(['activity', 'event'])->get();
+
+        if ($proposals->isEmpty() || $activities->isEmpty() || $events->isEmpty()) {
+            return;
+        }
+
+        DB::table('notifications')->truncate();
+
+        $context = new SampleNotificationContext(
+            proposals: $proposals,
+            activities: $activities,
+            events: $events,
+            users: $allUsers,
+        );
+
+        foreach ($allUsers as $user) {
+            $count = fake()->numberBetween(
+                $dataset['notificationsPerUserMin'],
+                $dataset['notificationsPerUserMax'],
+            );
+
+            for ($i = 0; $i < $count; $i++) {
+                DatabaseNotificationFactory::new()
+                    ->for($user, 'notifiable')
+                    ->randomSampleNotification($context, $user)
+                    ->create();
+            }
         }
     }
 }
