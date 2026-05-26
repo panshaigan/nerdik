@@ -2,23 +2,30 @@
 
 namespace App\Livewire\Events;
 
+use App\Actions\Events\StoreUploadedEventLogo;
+use App\Enums\EventLogoSource;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
+use App\Support\Events\EventDefaultImageCatalog;
+use App\Support\Media\MediaPictureSources;
 use App\Support\RichText;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class ManageEventForm extends Component
 {
     use AuthorizesOwnership;
+    use WithFileUploads;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
 
@@ -70,6 +77,13 @@ class ManageEventForm extends Component
     /** When set, creating the event will clone empty slots from this source (owner-only; re-checked on save). */
     public ?int $duplicateSlotsFromEventId = null;
 
+    public ?string $logo_source = null;
+
+    public ?int $listing_media_id = null;
+
+    /** @var mixed */
+    public $croppedLogo = null;
+
     protected array $queryString = [
         'tab' => ['except' => 'main-details'],
     ];
@@ -116,7 +130,7 @@ class ManageEventForm extends Component
 
     private function normalizeFormTab(?string $value): string
     {
-        if (! in_array($value, ['main-details', 'location', 'enrollment-windows'], true)) {
+        if (! in_array($value, ['main-details', 'image', 'location', 'enrollment-windows'], true)) {
             return 'main-details';
         }
         if ($value === 'enrollment-windows' && ! $this->eventDatesReadyForEnrollmentWindows()) {
@@ -217,6 +231,7 @@ class ManageEventForm extends Component
             ->values()
             ->all();
         $this->new_places = [];
+        $this->hydrateLogoFieldsFromEvent($event);
         $this->enrollment_windows = $event->enrollmentWindows
             ->map(fn ($p) => [
                 'name' => (string) $p->name,
@@ -228,6 +243,64 @@ class ManageEventForm extends Component
             ])
             ->values()
             ->all();
+    }
+
+    private function hydrateLogoFieldsFromEvent(Event $event): void
+    {
+        $rawLogoSource = $event->logo_source;
+        if ($rawLogoSource instanceof EventLogoSource) {
+            $this->logo_source = $rawLogoSource->value;
+        } elseif (is_string($rawLogoSource) && $rawLogoSource !== '') {
+            $this->logo_source = $rawLogoSource;
+        } else {
+            $this->logo_source = null;
+        }
+
+        $this->listing_media_id = $event->listing_media_id !== null
+            ? (int) $event->listing_media_id
+            : null;
+    }
+
+    /**
+     * @return list<array{media_id: int, sources: MediaPictureSources}>
+     */
+    public function getAvailableDefaultImagesProperty(): array
+    {
+        return app(EventDefaultImageCatalog::class)->all();
+    }
+
+    public function updatedLogoSource(?string $value): void
+    {
+        if ($value !== EventLogoSource::Default->value) {
+            $this->listing_media_id = null;
+        }
+
+        if ($value !== EventLogoSource::Upload->value) {
+            $this->reset('croppedLogo');
+        }
+    }
+
+    public function clearCroppedLogo(): void
+    {
+        $this->reset('croppedLogo');
+    }
+
+    private function hasExistingUploadedLogo(): bool
+    {
+        if ($this->editingEventId === null) {
+            return false;
+        }
+
+        $event = Event::query()->find($this->editingEventId);
+        if ($event === null) {
+            return false;
+        }
+
+        $source = $event->logo_source;
+        $isUpload = $source === EventLogoSource::Upload
+            || (is_string($source) && $source === EventLogoSource::Upload->value);
+
+        return $isUpload && filled($event->logo_path);
     }
 
     /**
@@ -339,7 +412,7 @@ class ManageEventForm extends Component
         $placeIds = $this->place_ids;
         unset($validated['place_ids'], $validated['new_places']);
 
-        unset($validated['slug']);
+        unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo']);
 
         if ($this->editingEventId !== null) {
             $event = Event::query()->findOrFail($this->editingEventId);
@@ -348,6 +421,7 @@ class ManageEventForm extends Component
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
             $event->refresh();
             $this->syncEnrollmentWindows($event, $signupService);
+            $this->applyEventLogoFromForm($event);
             session()->flash('status', __('Event updated.'));
 
             return redirect()->route('events.show', $event);
@@ -362,6 +436,7 @@ class ManageEventForm extends Component
         $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
         $event->refresh();
         $this->syncEnrollmentWindows($event, $signupService);
+        $this->applyEventLogoFromForm($event);
 
         if ($duplicateSlotsFrom !== null) {
             $source = Event::query()->find($duplicateSlotsFrom);
@@ -423,7 +498,78 @@ class ManageEventForm extends Component
             'new_places.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'new_places.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'new_places.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'logo_source' => ['nullable', 'string', Rule::in(array_map(static fn (EventLogoSource $s) => $s->value, EventLogoSource::cases()))],
+            'listing_media_id' => [
+                'nullable',
+                'integer',
+                Rule::requiredIf(fn (): bool => $this->logo_source === EventLogoSource::Default->value),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->logo_source !== EventLogoSource::Default->value) {
+                        return;
+                    }
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    if (! app(EventDefaultImageCatalog::class)->mediaIsAvailable((int) $value)) {
+                        $fail(__('ui.events.image_invalid_listing_media'));
+                    }
+                },
+            ],
+            'croppedLogo' => [
+                Rule::requiredIf(fn (): bool => $this->logo_source === EventLogoSource::Upload->value
+                    && ! $this->hasExistingUploadedLogo()),
+                'nullable',
+                'image',
+                'max:5120',
+                'mimes:jpeg,jpg,png,webp',
+            ],
         ];
+    }
+
+    private function applyEventLogoFromForm(Event $event): void
+    {
+        $source = EventLogoSource::tryFrom((string) ($this->logo_source ?? ''));
+
+        if ($source === EventLogoSource::Default) {
+            $this->deleteEventLogoFileIfPresent($event);
+            $event->logo_source = EventLogoSource::Default;
+            $event->listing_media_id = $this->listing_media_id;
+            $event->logo_path = null;
+        } elseif ($source === EventLogoSource::Upload) {
+            $event->logo_source = EventLogoSource::Upload;
+            $event->listing_media_id = null;
+
+            if ($this->croppedLogo !== null) {
+                $event->logo_path = app(StoreUploadedEventLogo::class)($event, $this->croppedLogo);
+            }
+        } else {
+            $this->deleteEventLogoFileIfPresent($event);
+            $event->logo_source = null;
+            $event->listing_media_id = null;
+            $event->logo_path = null;
+        }
+
+        $event->save();
+        $this->reset('croppedLogo');
+    }
+
+    private function deleteEventLogoFileIfPresent(Event $event): void
+    {
+        $path = $this->eventLogoStoragePath($event);
+        if ($path !== null && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+
+    private function eventLogoStoragePath(Event $event): ?string
+    {
+        if (filled($event->logo_path)) {
+            return (string) $event->logo_path;
+        }
+
+        $canonical = 'event-logos/'.$event->id.'.webp';
+
+        return Storage::disk('public')->exists($canonical) ? $canonical : null;
     }
 
     protected function normalizeDesc(?string $html): ?string
@@ -630,7 +776,17 @@ class ManageEventForm extends Component
 
         $exceptId = $this->editingEventId;
 
+        $logoPreviewUrl = null;
+        if (
+            $editingEvent !== null
+            && $editingEvent->logo_source === EventLogoSource::Upload
+            && filled($editingEvent->logo_path)
+        ) {
+            $logoPreviewUrl = Storage::disk('public')->url((string) $editingEvent->logo_path);
+        }
+
         return view('livewire.events.manage-event-form', [
+            'logoPreviewUrl' => $logoPreviewUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingEvent !== null ? route('events.show', $editingEvent) : null,
             ),

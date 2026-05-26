@@ -26,10 +26,10 @@
         ? __('Drag and drop an image here, or use the button below. JPEG, PNG, or WebP. Crop to 16:9; stored as WebP after you save.')
         : __('Drag and drop an image here, or use the button below. JPEG, PNG, or WebP. After cropping, click Save below.'));
     $previewClasses = $isVideo
-        ? 'aspect-video w-full max-w-md rounded-xl object-cover ring-2 ring-base-300/50'
+        ? 'aspect-video w-full max-w-md rounded-2xl object-cover ring-2 ring-base-300/50'
         : 'h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56';
     $placeholderClasses = $isVideo
-        ? 'flex aspect-video w-full max-w-md items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50'
+        ? 'flex aspect-video w-full max-w-md items-center justify-center rounded-2xl bg-base-300/40 ring-2 ring-base-300/50'
         : 'flex h-48 w-48 items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50 sm:h-56 sm:w-56';
     $resolvedFileInputId = $fileInputId ?? 'ui-image-crop-file-'.md5($wireProperty.$formSelector);
     $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('Crop cover image') : __('Crop your avatar'));
