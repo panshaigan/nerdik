@@ -392,7 +392,6 @@ return new class extends Migration
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tag_category_id')->nullable()->constrained('tag_categories')->nullOnDelete();
-            $table->string('logo_path')->nullable();
             $table->unsignedInteger('popularity_score')->default(0);
             $table->timestamps();
             $table->softDeletes();
@@ -458,6 +457,28 @@ return new class extends Migration
             $table->unique(['tag_id', 'taggable_type', 'taggable_id'], 'taggables_unique_idx');
             $table->index(['taggable_type', 'taggable_id'], 'taggables_taggable_lookup_idx');
             $table->index(['tag_id', 'taggable_type'], 'taggables_tag_type_idx');
+        });
+
+        // ------------------------------------------------------------------ //
+        // 28b. MEDIA  (Spatie Media Library)
+        // ------------------------------------------------------------------ //
+        Schema::create('media', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('model');
+            $table->uuid()->nullable()->unique();
+            $table->string('collection_name');
+            $table->string('name');
+            $table->string('file_name');
+            $table->string('mime_type')->nullable();
+            $table->string('disk');
+            $table->string('conversions_disk')->nullable();
+            $table->unsignedBigInteger('size');
+            $table->json('manipulations');
+            $table->json('custom_properties');
+            $table->json('generated_conversions');
+            $table->json('responsive_images');
+            $table->unsignedInteger('order_column')->nullable()->index();
+            $table->nullableTimestamps();
         });
 
         // ------------------------------------------------------------------ //
@@ -566,7 +587,7 @@ return new class extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
             $table->string('queue');
-            $table->jsonb('payload');
+            $table->longText('payload');
             $table->smallInteger('attempts');
             $table->integer('reserved_at')->nullable();
             $table->integer('available_at');
@@ -598,7 +619,7 @@ return new class extends Migration
             $table->string('uuid')->unique();
             $table->text('connection');
             $table->text('queue');
-            $table->jsonb('payload');
+            $table->longText('payload');
             $table->text('exception');
             $table->timestamp('failed_at')->useCurrent();
         });
@@ -660,6 +681,7 @@ return new class extends Migration
         Schema::dropIfExists('notification_email_logs');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('user_interests');
+        Schema::dropIfExists('media');
         Schema::dropIfExists('taggables');
         Schema::dropIfExists('tag_contexts');
         Schema::dropIfExists('tag_relations');

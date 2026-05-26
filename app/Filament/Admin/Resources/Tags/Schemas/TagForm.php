@@ -3,7 +3,9 @@
 namespace App\Filament\Admin\Resources\Tags\Schemas;
 
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class TagForm
@@ -14,7 +16,19 @@ class TagForm
             ->components([
                 Select::make('tag_category_id')
                     ->relationship('tagCategory', 'id'),
-                TextInput::make('logo_path'),
+                Section::make('Images')
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('images')
+                            ->collection('images')
+                            ->multiple()
+                            ->image()
+                            ->reorderable()
+                            ->responsiveImages()
+                            ->conversion('webp')
+                            ->visibility('public')
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
                 TextInput::make('popularity_score')
                     ->required()
                     ->numeric()
