@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeders;
 
+use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\TagCategory;
+use App\Support\Ui\EventListingImageResolver;
 use Database\Seeders\ActivityTypeSeeder;
 use Database\Seeders\TagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,6 +41,26 @@ final class TagSeederImagesTest extends TestCase
             $this->assertTrue($media->hasGeneratedConversion('webp'));
             $this->assertNotEmpty($media->responsive_images);
         }
+    }
+
+    #[Test]
+    public function rpg_activity_type_and_event_listing_defaults_are_seeded(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $this->seed(TagSeeder::class);
+
+        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        $this->assertNotNull($rpgType);
+
+        $typeMedia = $rpgType->getMedia('images')
+            ->first(fn ($media) => $media->getCustomProperty('listing_role') !== EventListingImageResolver::LISTING_ROLE);
+        $this->assertNotNull($typeMedia);
+        $this->assertSame('images/listing/activity-type-rpg.jpg', $typeMedia->getCustomProperty('seed_source'));
+
+        $eventDefault = $rpgType->getMedia('images')
+            ->first(fn ($media) => $media->getCustomProperty('listing_role') === EventListingImageResolver::LISTING_ROLE);
+        $this->assertNotNull($eventDefault);
+        $this->assertSame('images/listing/event-default.jpg', $eventDefault->getCustomProperty('seed_source'));
     }
 
     #[Test]

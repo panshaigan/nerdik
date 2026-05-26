@@ -252,6 +252,8 @@ return new class extends Migration
             $table->boolean('requires_approval')->default(false);
             $table->decimal('price', 10, 2)->nullable();
             $table->string('logo_path')->nullable();
+            $table->enum('logo_source', ['tag', 'upload'])->nullable();
+            $table->unsignedBigInteger('tag_media_id')->nullable();
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->text('cancel_reason')->nullable();
@@ -481,6 +483,10 @@ return new class extends Migration
             $table->nullableTimestamps();
         });
 
+        Schema::table('activities', function (Blueprint $table) {
+            $table->foreign('tag_media_id')->references('id')->on('media')->nullOnDelete();
+        });
+
         // ------------------------------------------------------------------ //
         // 29. USER INTERESTS  (wishlist; polymorphic Activity|Event[, Tag later])
         // ------------------------------------------------------------------ //
@@ -681,7 +687,7 @@ return new class extends Migration
         Schema::dropIfExists('notification_email_logs');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('user_interests');
-        Schema::dropIfExists('media');
+        DB::statement('DROP TABLE IF EXISTS "media" CASCADE;');
         Schema::dropIfExists('taggables');
         Schema::dropIfExists('tag_contexts');
         Schema::dropIfExists('tag_relations');

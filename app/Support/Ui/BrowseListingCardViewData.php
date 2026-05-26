@@ -17,7 +17,7 @@ final readonly class BrowseListingCardViewData
         public string $kind,
         public int $id,
         public string $name,
-        public ?string $logoUrl,
+        public ListingCardPicture $coverPicture,
         public string $detailsUrl,
         public string $editUrl,
         public bool $isOwner,

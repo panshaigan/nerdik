@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Seeders\AttachModelMediaFromPublic;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\ActivityType;
 use App\Models\Tag;
@@ -45,6 +46,51 @@ class TagSeeder extends Seeder
         $this->seedOthers();
         $this->seedGames();
         $this->seedDefaultTagImages();
+        $this->seedListingImages();
+    }
+
+    /**
+     * Listing card defaults for activity types and events (until per-event upload exists).
+     *
+     * @return array{
+     *     event_listing_default: list<string>,
+     *     activity_types: array<string, list<string>>
+     * }
+     */
+    protected function listingImageConfig(): array
+    {
+        return [
+            'event_listing_default' => ['images/listing/event-default.jpg'],
+            'activity_types' => [
+                ActivityType::SLUG_RPG => ['images/listing/activity-type-rpg.jpg'],
+            ],
+        ];
+    }
+
+    public function seedListingImages(): void
+    {
+        $config = $this->listingImageConfig();
+        $attach = app(AttachModelMediaFromPublic::class);
+
+        foreach ($config['activity_types'] as $slug => $sources) {
+            $activityType = ActivityType::findBySlug($slug);
+            if ($activityType === null) {
+                continue;
+            }
+
+            $attach($activityType, $sources);
+        }
+
+        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        if ($rpgType === null) {
+            return;
+        }
+
+        $attach(
+            $rpgType,
+            $config['event_listing_default'],
+            ['listing_role' => 'event_listing_default'],
+        );
     }
 
     /**

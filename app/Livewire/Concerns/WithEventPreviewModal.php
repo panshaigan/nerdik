@@ -6,6 +6,7 @@ namespace App\Livewire\Concerns;
 
 use App\Models\Event;
 use App\Support\Ui\BrowseListingCardPresenter;
+use App\Support\Ui\ListingCardPicture;
 use Illuminate\Database\Eloquent\Builder;
 
 trait WithEventPreviewModal
@@ -46,7 +47,7 @@ trait WithEventPreviewModal
      *     previewEventBadgeItems: array<int, mixed>,
      *     previewEventTimeSummary: string,
      *     previewEventLocationSummary: string,
-     *     previewEventLogoUrl: ?string,
+     *     previewEventCoverPicture: ListingCardPicture,
      * }
      */
     protected function resolveEventPreviewViewData(BrowseListingCardPresenter $presenter): array
@@ -63,7 +64,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
-                'previewEventLogoUrl' => null,
+                'previewEventCoverPicture' => ListingCardPicture::globalFallback(),
             ];
         }
 
@@ -73,7 +74,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
-                'previewEventLogoUrl' => null,
+                'previewEventCoverPicture' => ListingCardPicture::globalFallback(),
             ];
         }
 
@@ -84,7 +85,7 @@ trait WithEventPreviewModal
             'previewEventBadgeItems' => $cardViewData->badgeItems,
             'previewEventTimeSummary' => $cardViewData->timeSummary,
             'previewEventLocationSummary' => $cardViewData->locationSummary,
-            'previewEventLogoUrl' => $cardViewData->logoUrl,
+            'previewEventCoverPicture' => $cardViewData->coverPicture,
         ];
     }
 

@@ -31,6 +31,10 @@
                     @include('livewire.activities.partials.manage-tags-tab')
                 </x-tab>
 
+                <x-tab name="image" :label="__('ui.activities.image')" class="px-6 py-6" data-ui="activity-manage-tab-image" icon="o-photo">
+                    @include('livewire.activities.partials.manage-image-tab')
+                </x-tab>
+
                 <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="px-6 py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
                     @include('livewire.activities.partials.manage-hosting-mode-tab')
                 </x-tab>
