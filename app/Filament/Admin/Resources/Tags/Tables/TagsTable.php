@@ -17,13 +17,13 @@ class TagsTable
     {
         return $table
             ->columns([
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('tagCategory.key')
+                TextColumn::make('tagCategory.id')
                     ->searchable(),
                 TextColumn::make('logo_path')
                     ->searchable(),
+                TextColumn::make('popularity_score')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -36,10 +36,13 @@ class TagsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_by')
+                TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('updated_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('deleted_by')
                     ->numeric()
                     ->sortable(),
             ])

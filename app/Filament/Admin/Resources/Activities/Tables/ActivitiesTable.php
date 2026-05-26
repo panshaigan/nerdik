@@ -20,7 +20,12 @@ class ActivitiesTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('type')
+                TextColumn::make('activityType.id')
+                    ->searchable(),
+                TextColumn::make('hosting_mode')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('place.name')
                     ->searchable(),
                 TextColumn::make('min_participants')
                     ->numeric()
@@ -31,26 +36,39 @@ class ActivitiesTable
                 TextColumn::make('minimum_age')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                IconColumn::make('requires_approval')
-                    ->boolean(),
                 TextColumn::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('logo_path')
-                    ->searchable(),
                 TextColumn::make('duration_in_minutes')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('allows_observers')
                     ->boolean(),
+                IconColumn::make('is_host_passive')
+                    ->boolean(),
+                IconColumn::make('requires_approval')
+                    ->boolean(),
+                TextColumn::make('price')
+                    ->money()
+                    ->sortable(),
+                TextColumn::make('logo_path')
+                    ->searchable(),
                 TextColumn::make('slug')
                     ->searchable(),
+                TextColumn::make('starts_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('ends_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('cancelledWithEvent.name')
+                    ->searchable(),
+                TextColumn::make('cancelled_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('cancelled_by')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -63,12 +81,16 @@ class ActivitiesTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_by')
+                TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('updated_by')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('deleted_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('search_vector'),
             ])
             ->filters([
                 TrashedFilter::make(),

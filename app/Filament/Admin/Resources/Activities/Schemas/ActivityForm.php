@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
-use App\Models\ActivityType;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -17,48 +17,54 @@ class ActivityForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Textarea::make('description')
-                    ->rows(4)
-                    ->columnSpanFull(),
                 Select::make('activity_type_id')
-                    ->options(ActivityType::query()->orderBy('id')->pluck('slug', 'id'))
-                    ->required(),
+                    ->relationship('activityType', 'id'),
+                TextInput::make('hosting_mode')
+                    ->required()
+                    ->numeric()
+                    ->default(1),
+                Select::make('place_id')
+                    ->relationship('place', 'name'),
                 TextInput::make('min_participants')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
                 TextInput::make('max_participants')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
                 TextInput::make('minimum_age')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('price')
-                    ->numeric()
-                    ->default(null)
-                    ->prefix('$'),
-                Toggle::make('is_host_passive')
-                    ->default(false),
-                TextInput::make('created_by')
-                    ->numeric()
-                    ->default(null),
-                Toggle::make('requires_approval')
-                    ->required(),
+                    ->numeric(),
                 TextInput::make('cancellation_deadline_in_hours')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('logo_path')
-                    ->default(null),
+                    ->numeric(),
                 TextInput::make('duration_in_minutes')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
                 Toggle::make('allows_observers')
                     ->required(),
-                TextInput::make('deleted_by')
+                Toggle::make('is_host_passive')
+                    ->required(),
+                Toggle::make('requires_approval')
+                    ->required(),
+                TextInput::make('price')
                     ->numeric()
-                    ->default(null),
+                    ->prefix('$'),
+                TextInput::make('logo_path'),
+                TextInput::make('slug')
+                    ->required(),
+                Textarea::make('description')
+                    ->columnSpanFull(),
+                Textarea::make('cancel_reason')
+                    ->columnSpanFull(),
+                DateTimePicker::make('starts_at'),
+                DateTimePicker::make('ends_at'),
+                Select::make('cancelled_with_event_id')
+                    ->relationship('cancelledWithEvent', 'name'),
+                DateTimePicker::make('cancelled_at'),
+                TextInput::make('cancelled_by')
+                    ->numeric(),
+                TextInput::make('created_by')
+                    ->numeric(),
                 TextInput::make('updated_by')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
+                TextInput::make('deleted_by')
+                    ->numeric(),
+                TextInput::make('search_vector'),
             ]);
     }
 }

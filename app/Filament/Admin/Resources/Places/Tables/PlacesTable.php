@@ -18,16 +18,18 @@ class PlacesTable
     {
         return $table
             ->columns([
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('parent_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('type')
-                    ->badge(),
+                    ->searchable(),
+                TextColumn::make('country.id')
+                    ->searchable(),
+                TextColumn::make('city.id')
+                    ->searchable(),
+                TextColumn::make('parent.name')
+                    ->searchable(),
+                TextColumn::make('address')
+                    ->searchable(),
                 TextColumn::make('links')
                     ->searchable(),
                 IconColumn::make('is_online')
@@ -54,10 +56,13 @@ class PlacesTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_by')
+                TextColumn::make('created_by')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('updated_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('deleted_by')
                     ->numeric()
                     ->sortable(),
             ])

@@ -12,7 +12,6 @@ class EditTag extends EditRecord
 {
     protected static string $resource = TagResource::class;
 
-    #[\Override]
     protected function getHeaderActions(): array
     {
         return [

@@ -15,10 +15,14 @@ class UsersTable
     {
         return $table
             ->columns([
+                TextColumn::make('name')
+                    ->searchable(),
                 TextColumn::make('nickname')
                     ->searchable(),
                 TextColumn::make('email')
                     ->label('Email address')
+                    ->searchable(),
+                TextColumn::make('organization.name')
                     ->searchable(),
                 IconColumn::make('is_admin')
                     ->boolean(),
@@ -27,18 +31,6 @@ class UsersTable
                 TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('profile.google_id')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('profile.facebook_id')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('profile.avatar_path')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('profile.discord_handle')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('profile.current_location')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('profile.timezone')
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
