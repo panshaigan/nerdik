@@ -12,7 +12,6 @@ class EditPlace extends EditRecord
 {
     protected static string $resource = PlaceResource::class;
 
-    #[\Override]
     protected function getHeaderActions(): array
     {
         return [

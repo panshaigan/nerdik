@@ -2,8 +2,6 @@
 
 namespace App\Filament\Admin\Resources\Places\Schemas;
 
-use App\Models\City;
-use App\Models\Country;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -16,54 +14,35 @@ class PlaceForm
     {
         return $schema
             ->components([
-                TextInput::make('created_by')
-                    ->numeric()
-                    ->default(null),
                 TextInput::make('name')
                     ->required(),
-                Select::make('country_id')
-                    ->label('Country (location)')
-                    ->options(fn () => Country::query()->with('translations')->orderBy('iso_alpha2')->get()
-                        ->mapWithKeys(fn (Country $c) => [$c->id => $c->name()]))
-                    ->searchable()
-                    ->nullable(),
-                Select::make('city_id')
-                    ->label('City (location)')
-                    ->options(fn () => City::query()->with(['translations', 'country'])->get()
-                        ->mapWithKeys(fn (City $c) => [$c->id => $c->name()]))
-                    ->searchable()
-                    ->nullable(),
-                TextInput::make('parent_id')
-                    ->numeric()
-                    ->default(null),
-                Select::make('type')
-                    ->options([
-                        'state' => 'State / region',
-                        'venue' => 'Venue',
-                        'room' => 'Room',
-                    ])
+                TextInput::make('type')
                     ->required(),
-                TextInput::make('links')
-                    ->default(null),
-                Textarea::make('description')
-                    ->default(null)
-                    ->columnSpanFull(),
+                Select::make('country_id')
+                    ->relationship('country', 'id'),
+                Select::make('city_id')
+                    ->relationship('city', 'id'),
+                Select::make('parent_id')
+                    ->relationship('parent', 'name'),
+                TextInput::make('address'),
+                TextInput::make('links'),
                 Toggle::make('is_online')
                     ->required(),
                 TextInput::make('latitude')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
                 TextInput::make('longitude')
-                    ->numeric()
-                    ->default(null),
-                TextInput::make('logo_path')
-                    ->default(null),
-                TextInput::make('deleted_by')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
+                TextInput::make('logo_path'),
+                TextInput::make('slug')
+                    ->required(),
+                Textarea::make('description')
+                    ->columnSpanFull(),
+                TextInput::make('created_by')
+                    ->numeric(),
                 TextInput::make('updated_by')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
+                TextInput::make('deleted_by')
+                    ->numeric(),
             ]);
     }
 }

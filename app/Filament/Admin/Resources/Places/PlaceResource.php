@@ -22,19 +22,16 @@ class PlaceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    #[\Override]
     public static function form(Schema $schema): Schema
     {
         return PlaceForm::configure($schema);
     }
 
-    #[\Override]
     public static function table(Table $table): Table
     {
         return PlacesTable::configure($table);
     }
 
-    #[\Override]
     public static function getRelations(): array
     {
         return [
@@ -42,7 +39,6 @@ class PlaceResource extends Resource
         ];
     }
 
-    #[\Override]
     public static function getPages(): array
     {
         return [
@@ -52,7 +48,6 @@ class PlaceResource extends Resource
         ];
     }
 
-    #[\Override]
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
         return parent::getRecordRouteBindingEloquentQuery()

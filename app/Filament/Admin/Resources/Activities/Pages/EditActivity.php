@@ -12,7 +12,6 @@ class EditActivity extends EditRecord
 {
     protected static string $resource = ActivityResource::class;
 
-    #[\Override]
     protected function getHeaderActions(): array
     {
         return [

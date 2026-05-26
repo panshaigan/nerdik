@@ -12,22 +12,20 @@ class OrganizationForm
     {
         return $schema
             ->components([
-                TextInput::make('created_by')
-                    ->numeric()
-                    ->default(null),
                 TextInput::make('name')
                     ->required(),
+                TextInput::make('logo_path'),
+                TextInput::make('slug')
+                    ->required(),
+                TextInput::make('acronym'),
                 Textarea::make('description')
-                    ->default(null)
                     ->columnSpanFull(),
-                TextInput::make('logo_path')
-                    ->default(null),
-                TextInput::make('deleted_by')
-                    ->numeric()
-                    ->default(null),
+                TextInput::make('created_by')
+                    ->numeric(),
                 TextInput::make('updated_by')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
+                TextInput::make('deleted_by')
+                    ->numeric(),
             ]);
     }
 }

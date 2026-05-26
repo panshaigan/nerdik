@@ -15,26 +15,32 @@ class EventForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
+                TextInput::make('name'),
+                Select::make('organization_id')
+                    ->relationship('organization', 'name'),
+                Toggle::make('is_public')
+                    ->required(),
+                TextInput::make('logo_path'),
+                TextInput::make('slug')
                     ->required(),
                 Textarea::make('description')
-                    ->default(null)
                     ->columnSpanFull(),
-                Select::make('organization_id')
-                    ->relationship('organization', 'name')
-                    ->searchable()
-                    ->preload(),
-                Toggle::make('is_public')
-                    ->default(true),
                 DateTimePicker::make('starts_at')
                     ->required(),
                 DateTimePicker::make('ends_at')
                     ->required(),
-                TextInput::make('logo_path')
-                    ->default(null),
+                Textarea::make('cancel_reason')
+                    ->columnSpanFull(),
+                DateTimePicker::make('cancelled_at'),
+                TextInput::make('cancelled_by')
+                    ->numeric(),
                 TextInput::make('created_by')
-                    ->numeric()
-                    ->default(null),
+                    ->numeric(),
+                TextInput::make('updated_by')
+                    ->numeric(),
+                TextInput::make('deleted_by')
+                    ->numeric(),
+                TextInput::make('search_vector'),
             ]);
     }
 }

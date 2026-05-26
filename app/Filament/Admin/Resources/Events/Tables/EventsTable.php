@@ -20,18 +20,26 @@ class EventsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('organization.name')
+                    ->searchable(),
+                IconColumn::make('is_public')
+                    ->boolean(),
+                TextColumn::make('logo_path')
+                    ->searchable(),
+                TextColumn::make('slug')
+                    ->searchable(),
                 TextColumn::make('starts_at')
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('ends_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('organization.name')
-                    ->searchable(),
-                IconColumn::make('is_public')
-                    ->boolean(),
-                TextColumn::make('slug')
-                    ->searchable(),
+                TextColumn::make('cancelled_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('cancelled_by')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -44,6 +52,16 @@ class EventsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('created_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('updated_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('deleted_by')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('search_vector'),
             ])
             ->filters([
                 TrashedFilter::make(),
