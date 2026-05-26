@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\TagAlias;
@@ -43,6 +44,27 @@ class TagSeeder extends Seeder
         $this->seedMechanics();
         $this->seedOthers();
         $this->seedGames();
+        $this->seedDefaultTagImages();
+    }
+
+    /**
+     * Attach default images to tags by category. Extend this map or per-tag `images` in seed arrays.
+     */
+    public function seedDefaultTagImages(): void
+    {
+        $defaultSources = ['images/tag-game/warhammer.jpg'];
+
+        $categoryKeys = [
+            TagCategory::KEY_GAME,
+            TagCategory::KEY_GENRE,
+            TagCategory::KEY_SETTING,
+        ];
+
+        $attach = app(AttachTagMediaFromPublic::class);
+
+        Tag::query()
+            ->whereHas('tagCategory', fn ($query) => $query->whereIn('key', $categoryKeys))
+            ->each(fn (Tag $tag) => $attach($tag, $defaultSources));
     }
 
     public function seedOthers(): void
@@ -1099,6 +1121,10 @@ class TagSeeder extends Seeder
                         'slug' => Str::slug($data[$locale]),
                     ]
                 );
+            }
+
+            if (isset($data['images'])) {
+                app(AttachTagMediaFromPublic::class)($tag, $data['images']);
             }
 
             $this->tagIds[$data['en']] = $tag->id;

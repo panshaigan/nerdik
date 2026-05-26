@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -19,8 +20,11 @@ class TagsTable
             ->columns([
                 TextColumn::make('tagCategory.id')
                     ->searchable(),
-                TextColumn::make('logo_path')
-                    ->searchable(),
+                SpatieMediaLibraryImageColumn::make('images')
+                    ->collection('images')
+                    ->conversion('webp')
+                    ->limit(3)
+                    ->stacked(),
                 TextColumn::make('popularity_score')
                     ->numeric()
                     ->sortable(),

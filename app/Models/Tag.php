@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Builders\TagBuilder;
+use App\Models\Concerns\InteractsWithOptimizedImages;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\HasBuilder;
@@ -12,16 +13,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
 
-class Tag extends Model
+class Tag extends Model implements HasMedia
 {
-    use HasBuilder, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasBuilder, HasFactory, HasMetaColumns, InteractsWithOptimizedImages, SoftDeletes;
 
     protected static string $builder = TagBuilder::class;
 
     protected $fillable = [
         'tag_category_id',
-        'logo_path',
         'created_by',
         'updated_by',
         'context_type',
