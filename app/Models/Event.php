@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EventLogoSource;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Event extends Model
 {
@@ -30,6 +32,8 @@ class Event extends Model
         'created_by',
         'updated_by',
         'logo_path',
+        'logo_source',
+        'listing_media_id',
         'slug',
         'starts_at',
         'ends_at',
@@ -43,7 +47,13 @@ class Event extends Model
         'ends_at' => 'datetime',
         'is_public' => 'boolean',
         'cancelled_at' => 'datetime',
+        'logo_source' => EventLogoSource::class,
     ];
+
+    public function listingMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'listing_media_id');
+    }
 
     public function canceller(): BelongsTo
     {

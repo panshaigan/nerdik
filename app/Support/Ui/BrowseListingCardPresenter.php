@@ -83,7 +83,7 @@ final class BrowseListingCardPresenter
             kind: 'event',
             id: (int) $event->id,
             name: (string) $event->name,
-            coverPicture: $this->eventListingImageResolver->resolve(),
+            coverPicture: $this->eventListingImageResolver->resolve($event),
             detailsUrl: route('events.show', $event),
             editUrl: url_with_return(route('events.edit', $event), $return),
             isOwner: $isOwner,

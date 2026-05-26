@@ -33,9 +33,11 @@ final class ListingCardPictureTest extends TestCase
         ]);
         $activity->setRelation('tagMedia', $media);
 
-        $html = (new ListingCard($activity))->render()->render();
+        $component = new ListingCard($activity);
+        $html = $component->render()->with($component->data())->render();
 
         $this->assertStringContainsString('<picture', $html);
+        $this->assertStringContainsString('rounded-2xl', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
     }
 }

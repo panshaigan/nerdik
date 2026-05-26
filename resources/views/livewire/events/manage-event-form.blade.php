@@ -69,6 +69,10 @@
                         @include('livewire.events.partials.manage-main-details-tab')
                     </x-tab>
 
+                    <x-tab name="image" :label="__('ui.events.image')" class="px-6 pt-6" data-ui="event-manage-tab-image" icon="o-photo">
+                        @include('livewire.events.partials.manage-image-tab')
+                    </x-tab>
+
                     <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
                         @include('livewire.events.partials.manage-location-tab')
                     </x-tab>
@@ -97,6 +101,7 @@
         </x-form>
     </div>
 
+    <x-image-crop-modal :title="__('ui.events.image_crop_title')" />
 </div>
 @push('scripts')
 <script>
