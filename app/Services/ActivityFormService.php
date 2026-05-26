@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Activities\ManageActivityForm;
@@ -11,6 +12,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Support\RichText;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class ActivityFormService
@@ -45,6 +47,7 @@ class ActivityFormService
                 'new_tags',
                 'logo_source',
                 'selected_tag_media_id',
+                'croppedLogo',
             ]
         );
 
@@ -263,16 +266,44 @@ class ActivityFormService
         $source = ActivityLogoSource::tryFrom((string) ($form->logo_source ?? ''));
 
         if ($source === ActivityLogoSource::Tag) {
+            $this->deleteActivityLogoFileIfPresent($activity);
             $activity->logo_source = ActivityLogoSource::Tag;
             $activity->tag_media_id = $form->selected_tag_media_id;
+            $activity->logo_path = null;
         } elseif ($source === ActivityLogoSource::Upload) {
             $activity->logo_source = ActivityLogoSource::Upload;
             $activity->tag_media_id = null;
+
+            if ($form->croppedLogo !== null) {
+                $activity->logo_path = app(StoreUploadedActivityLogo::class)($activity, $form->croppedLogo);
+            }
         } else {
+            $this->deleteActivityLogoFileIfPresent($activity);
             $activity->logo_source = null;
             $activity->tag_media_id = null;
+            $activity->logo_path = null;
         }
 
         $activity->save();
+        $form->reset('croppedLogo');
+    }
+
+    private function deleteActivityLogoFileIfPresent(Activity $activity): void
+    {
+        $path = $this->activityLogoStoragePath($activity);
+        if ($path !== null && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+
+    private function activityLogoStoragePath(Activity $activity): ?string
+    {
+        if (filled($activity->logo_path)) {
+            return (string) $activity->logo_path;
+        }
+
+        $canonical = 'activity-logos/'.$activity->id.'.webp';
+
+        return Storage::disk('public')->exists($canonical) ? $canonical : null;
     }
 }

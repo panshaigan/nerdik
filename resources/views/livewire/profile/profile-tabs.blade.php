@@ -35,20 +35,6 @@
             </x-tab>
         </x-ui.tabs-with-toolbar>
 
-        <dialog id="ui-profile-avatar-crop-modal" class="modal backdrop-blur">
-            <div class="modal-box max-w-lg ui-modal-surface">
-                <h3 class="text-lg font-semibold">{{ __('Crop your avatar') }}</h3>
-                <div class="ui-profile-avatar-crop mt-4 w-full" wire:ignore>
-                    <div class="w-full" data-profile-avatar-croppie></div>
-                </div>
-                <div class="modal-action">
-                    <x-button type="button" class="btn-ghost" data-profile-avatar-crop-cancel>{{ __('Cancel') }}</x-button>
-                    <x-button type="button" class="btn-primary" data-profile-avatar-crop-apply>{{ __('Use cropped image') }}</x-button>
-                </div>
-            </div>
-            <form method="dialog" class="modal-backdrop">
-                <button type="submit" class="sr-only">{{ __('Cancel') }}</button>
-            </form>
-        </dialog>
+        <x-image-crop-modal :title="__('Crop your avatar')" />
     </div>
 </div>
