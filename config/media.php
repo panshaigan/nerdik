@@ -28,7 +28,7 @@ return [
     | Queue media conversions
     |--------------------------------------------------------------------------
     |
-    | When false, conversions run synchronously (used in PHPUnit).
+    | When false, conversions run synchronously (PHPUnit sets MEDIA_QUEUE_CONVERSIONS=false).
     |
     */
     'queue_conversions' => env('MEDIA_QUEUE_CONVERSIONS', env('QUEUE_CONVERSIONS_BY_DEFAULT', true)),
