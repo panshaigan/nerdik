@@ -38,29 +38,14 @@ final class AttachModelMediaFromPublic
 
         $imageSize = @getimagesize($absolutePath);
 
-        $previousQueueConversions = config('media.queue_conversions');
-        $previousQueueConversionsByDefault = config('media-library.queue_conversions_by_default');
-
-        config([
-            'media.queue_conversions' => false,
-            'media-library.queue_conversions_by_default' => false,
-        ]);
-
-        try {
-            $model->addMedia($absolutePath)
-                ->preservingOriginal()
-                ->withCustomProperties(array_merge([
-                    'seed_source' => $source,
-                    'width' => $imageSize !== false ? $imageSize[0] : null,
-                    'height' => $imageSize !== false ? $imageSize[1] : null,
-                ], $extraCustomProperties))
-                ->toMediaCollection('images');
-        } finally {
-            config([
-                'media.queue_conversions' => $previousQueueConversions,
-                'media-library.queue_conversions_by_default' => $previousQueueConversionsByDefault,
-            ]);
-        }
+        $model->addMedia($absolutePath)
+            ->preservingOriginal()
+            ->withCustomProperties(array_merge([
+                'seed_source' => $source,
+                'width' => $imageSize !== false ? $imageSize[0] : null,
+                'height' => $imageSize !== false ? $imageSize[1] : null,
+            ], $extraCustomProperties))
+            ->toMediaCollection('images');
     }
 
     /**
