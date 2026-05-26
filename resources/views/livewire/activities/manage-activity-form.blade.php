@@ -71,6 +71,8 @@
         :message="$confirmModalMessage"
         confirm-action="runConfirmedAction"
     />
+
+    <x-image-crop-modal :title="__('ui.activities.image_crop_title')" />
 </div>
 
 @push('scripts')

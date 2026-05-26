@@ -24,12 +24,15 @@ use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class ManageActivityForm extends Component
 {
     use AuthorizesOwnership;
+    use WithFileUploads;
     use WithUiConfirmModal {
         closeConfirm as protected traitCloseConfirm;
     }
@@ -115,6 +118,9 @@ class ManageActivityForm extends Component
     public ?string $logo_source = null;
 
     public ?int $selected_tag_media_id = null;
+
+    /** @var mixed */
+    public $croppedLogo = null;
 
     /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
     private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
@@ -259,6 +265,33 @@ class ManageActivityForm extends Component
         if ($value !== ActivityLogoSource::Tag->value) {
             $this->selected_tag_media_id = null;
         }
+
+        if ($value !== ActivityLogoSource::Upload->value) {
+            $this->reset('croppedLogo');
+        }
+    }
+
+    public function clearCroppedLogo(): void
+    {
+        $this->reset('croppedLogo');
+    }
+
+    private function hasExistingUploadedLogo(): bool
+    {
+        if ($this->editingActivityId === null) {
+            return false;
+        }
+
+        $activity = Activity::query()->find($this->editingActivityId);
+        if ($activity === null) {
+            return false;
+        }
+
+        $source = $activity->logo_source;
+        $isUpload = $source === ActivityLogoSource::Upload
+            || (is_string($source) && $source === ActivityLogoSource::Upload->value);
+
+        return $isUpload && filled($activity->logo_path);
     }
 
     private function pruneInvalidTagMediaSelection(): void
@@ -728,6 +761,14 @@ class ManageActivityForm extends Component
                     }
                 },
             ],
+            'croppedLogo' => [
+                Rule::requiredIf(fn (): bool => $this->logo_source === ActivityLogoSource::Upload->value
+                    && ! $this->hasExistingUploadedLogo()),
+                'nullable',
+                'image',
+                'max:5120',
+                'mimes:jpeg,jpg,png,webp',
+            ],
             'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],
             'self_hosted_starts_at' => [
                 'nullable',
@@ -1100,7 +1141,17 @@ class ManageActivityForm extends Component
             $activityTypesQuery->whereIn('id', $this->proposal_allowed_activity_type_ids);
         }
 
+        $logoPreviewUrl = null;
+        if (
+            $editingActivity !== null
+            && $editingActivity->logo_source === ActivityLogoSource::Upload
+            && filled($editingActivity->logo_path)
+        ) {
+            $logoPreviewUrl = Storage::disk('public')->url((string) $editingActivity->logo_path);
+        }
+
         return view('livewire.activities.manage-activity-form', [
+            'logoPreviewUrl' => $logoPreviewUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingActivity !== null ? route('activities.show', $editingActivity) : null,
             ),

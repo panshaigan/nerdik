@@ -26,11 +26,11 @@ final class ProfileAvatarCropModalTest extends TestCase
         Livewire::withoutLazyLoading()
             ->test(ProfileTabs::class)
             ->set('tab', 'avatar')
-            ->assertSeeHtml('id="ui-profile-avatar-crop-modal"')
+            ->assertSeeHtml('id="ui-image-crop-modal"')
             ->assertSeeHtml('class="modal backdrop-blur"')
             ->assertSeeHtml('ui-modal-surface')
-            ->assertSeeHtml('data-profile-avatar-croppie')
-            ->assertSeeHtml('ui-profile-avatar-crop');
+            ->assertSeeHtml('data-image-crop-croppie')
+            ->assertSeeHtml('ui-image-crop-crop');
     }
 
     #[Test]
@@ -44,16 +44,15 @@ final class ProfileAvatarCropModalTest extends TestCase
             ->set('avatar_source', 'uploaded')
             ->html();
 
-        $this->assertStringContainsString('data-profile-avatar-preview', $html);
-        $this->assertStringContainsString('data-profile-avatar-dropzone', $html);
-        $this->assertStringContainsString('data-profile-avatar-file-trigger', $html);
-        $this->assertStringContainsString('data-profile-avatar-remove', $html);
-        $this->assertStringNotContainsString('data-profile-avatar-file-name', $html);
+        $this->assertStringContainsString('data-image-crop-preview', $html);
+        $this->assertStringContainsString('data-image-crop-dropzone', $html);
+        $this->assertStringContainsString('data-image-crop-file-trigger', $html);
+        $this->assertStringContainsString('data-image-crop-remove', $html);
         $this->assertStringContainsString('data-default-src', $html);
         $this->assertMatchesRegularExpression(
             '/id="ui-profile-avatar-form"[\s\S]*?type="submit"[\s\S]*?<\/form>\s*<\/section>/',
             $html,
         );
-        $this->assertStringNotContainsString('id="ui-profile-avatar-crop-modal"', $html);
+        $this->assertStringNotContainsString('id="ui-image-crop-modal"', $html);
     }
 }

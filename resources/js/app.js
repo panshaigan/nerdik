@@ -1,6 +1,6 @@
 import './bootstrap';
 import './tinymce-field-chrome';
-import './avatar-cropper';
+import './image-cropper';
 import './notifications-echo';
 import './activities-echo';
 import './events-plan-counters-echo';
