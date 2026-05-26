@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
@@ -36,7 +37,15 @@ class ActivityFormService
 
         $payload = Arr::except(
             $validated,
-            ['proposal_event_id', 'proposal_preferred_start_time', 'proposal_slot_ids', 'tag_ids', 'new_tags']
+            [
+                'proposal_event_id',
+                'proposal_preferred_start_time',
+                'proposal_slot_ids',
+                'tag_ids',
+                'new_tags',
+                'logo_source',
+                'selected_tag_media_id',
+            ]
         );
 
         $tagIds = $tagSelectionService->resolveFinalTagIds(
@@ -62,6 +71,7 @@ class ActivityFormService
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
             $activity->tags()->sync($tagIds);
+            $this->applyActivityLogoFromForm($form, $activity);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $message = $proposalCreated
                 ? __('ui.status.activity_updated_with_proposal', ['event' => $proposalCreated->event->name])
@@ -71,6 +81,7 @@ class ActivityFormService
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
             $activity->tags()->sync($tagIds);
+            $this->applyActivityLogoFromForm($form, $activity);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $message = $proposalCreated
                 ? __('ui.status.activity_saved_with_proposal', ['event' => $proposalCreated->event->name])
@@ -245,5 +256,23 @@ class ActivityFormService
         }
 
         $form->self_hosted_place_id = $venue->id;
+    }
+
+    private function applyActivityLogoFromForm(ManageActivityForm $form, Activity $activity): void
+    {
+        $source = ActivityLogoSource::tryFrom((string) ($form->logo_source ?? ''));
+
+        if ($source === ActivityLogoSource::Tag) {
+            $activity->logo_source = ActivityLogoSource::Tag;
+            $activity->tag_media_id = $form->selected_tag_media_id;
+        } elseif ($source === ActivityLogoSource::Upload) {
+            $activity->logo_source = ActivityLogoSource::Upload;
+            $activity->tag_media_id = null;
+        } else {
+            $activity->logo_source = null;
+            $activity->tag_media_id = null;
+        }
+
+        $activity->save();
     }
 }

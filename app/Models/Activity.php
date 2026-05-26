@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityLogoSource;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Activity extends Model
 {
@@ -54,6 +56,8 @@ class Activity extends Model
         'requires_approval',
         'cancellation_deadline_in_hours',
         'logo_path',
+        'logo_source',
+        'tag_media_id',
         'duration_in_minutes',
         'allows_observers',
         'slug',
@@ -68,7 +72,13 @@ class Activity extends Model
         'requires_approval' => 'boolean',
         'allows_observers' => 'boolean',
         'is_host_passive' => 'boolean',
+        'logo_source' => ActivityLogoSource::class,
     ];
+
+    public function tagMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'tag_media_id');
+    }
 
     public function proposals(): HasMany
     {
@@ -108,6 +118,24 @@ class Activity extends Model
     public function activityType(): BelongsTo
     {
         return $this->belongsTo(ActivityType::class);
+    }
+
+    /**
+     * @return array<string|int, mixed>
+     */
+    public static function listingCardEagerLoad(): array
+    {
+        return [
+            'tagMedia',
+            'creator',
+            'activityType.media',
+            'tags' => fn ($query) => $query
+                ->with(['translations', 'tagCategory', 'media'])
+                ->orderBy('taggables.id'),
+            'slot.event',
+            'slot.place.parent',
+            'place.parent',
+        ];
     }
 
     public function place(): BelongsTo

@@ -9,12 +9,13 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Domain\ActivityBadges\ActivityBadgeItem;
 use App\Models\Activity;
 use App\Models\Event;
-use Illuminate\Support\Facades\Storage;
 
 final class BrowseListingCardPresenter
 {
     public function __construct(
         private ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        private ActivityListingImageResolver $activityListingImageResolver,
+        private EventListingImageResolver $eventListingImageResolver,
     ) {}
 
     /**
@@ -40,7 +41,7 @@ final class BrowseListingCardPresenter
             kind: 'activity',
             id: (int) $activity->id,
             name: (string) $activity->name,
-            logoUrl: $this->logoUrl($activity->logo_path),
+            coverPicture: $this->activityListingImageResolver->resolve($activity),
             detailsUrl: route('activities.show', $activity),
             editUrl: url_with_return(route('activities.edit', $activity), $return),
             isOwner: $isOwner,
@@ -82,7 +83,7 @@ final class BrowseListingCardPresenter
             kind: 'event',
             id: (int) $event->id,
             name: (string) $event->name,
-            logoUrl: $this->logoUrl($event->logo_path),
+            coverPicture: $this->eventListingImageResolver->resolve(),
             detailsUrl: route('events.show', $event),
             editUrl: url_with_return(route('events.edit', $event), $return),
             isOwner: $isOwner,
@@ -106,15 +107,6 @@ final class BrowseListingCardPresenter
             openAriaLabel: __('Open event').': '.$event->name,
             previewWireMethod: 'openListingEventPreview',
         );
-    }
-
-    private function logoUrl(?string $logoPath): ?string
-    {
-        if (! filled($logoPath)) {
-            return null;
-        }
-
-        return Storage::disk('public')->url($logoPath);
     }
 
     private function eventLocationSummary(Event $event): string

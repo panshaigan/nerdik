@@ -39,21 +39,10 @@
     @endauth
     <div class="ui-listing-card__surface ui-content-card flex min-h-0 flex-1 flex-col overflow-visible">
         <div class="ui-listing-card__media relative aspect-video w-full shrink-0 overflow-visible bg-transparent">
-            @if ($d->logoUrl)
-                <img
-                    src="{{ $d->logoUrl }}"
-                    alt=""
-                    class="ui-card-media-fade h-full w-full object-cover"
-                    loading="lazy"
-                />
-            @else
-                <img
-                    src="{{ asset('images/tag-game/warhammer.jpg') }}"
-                    alt=""
-                    class="ui-card-media-fade h-full w-full object-cover rounded-2xl"
-                    loading="lazy"
-                />
-            @endif
+            <x-listing-card-picture
+                :picture="$d->coverPicture"
+                class="ui-card-media-fade h-full w-full object-cover rounded-2xl"
+            />
             <span
                 class="absolute left-2 top-2 z-20 max-w-[min(100%,12rem)] truncate rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
                 data-ui="{{ $d->dataUiPrefix }}-kind-label"

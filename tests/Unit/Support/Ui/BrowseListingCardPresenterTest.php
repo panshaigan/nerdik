@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Ui;
 
-use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Domain\ActivityBadges\ActivityBadgeKind;
+use App\Enums\ActivityLogoSource;
 use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\ActivityType;
@@ -13,6 +14,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\Tag;
 use App\Models\User;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +30,7 @@ final class BrowseListingCardPresenterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->presenter = new BrowseListingCardPresenter(new ActivityBadgeGroupBuilder);
+        $this->presenter = app(BrowseListingCardPresenter::class);
     }
 
     #[Test]
@@ -173,6 +175,37 @@ final class BrowseListingCardPresenterTest extends TestCase
 
         $this->assertSame($organization->id, $viewData->hostOrganization?->id);
         $this->assertSame($user->id, $viewData->hostUser?->id);
+    }
+
+    #[Test]
+    public function from_activity_includes_cover_picture_with_user_selected_media(): void
+    {
+        $tag = Tag::factory()->create();
+        $fixturePath = 'images/tag-game/presenter-cover.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
+        $media = $tag->refresh()->getFirstMedia('images');
+        $this->assertNotNull($media);
+
+        $activity = Activity::factory()->create([
+            'logo_source' => ActivityLogoSource::Tag,
+            'tag_media_id' => $media->id,
+        ]);
+        $activity->setRelation('tagMedia', $media);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertNotNull($viewData->coverPicture->sources);
+    }
+
+    #[Test]
+    public function from_event_includes_cover_picture(): void
+    {
+        $event = Event::factory()->create();
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertTrue($viewData->coverPicture->hasDisplayableImage());
     }
 
     #[Test]

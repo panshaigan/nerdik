@@ -37,5 +37,6 @@ return [
         'tag_chip' => '64px',
         'tag_card' => '(max-width: 640px) 100vw, 384px',
         'tag_hero' => '(max-width: 1024px) 100vw, 640px',
+        'listing_card' => '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 400px',
     ],
 ];

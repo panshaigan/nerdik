@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Activities;
 
+use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
@@ -16,6 +17,8 @@ use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
 use App\Services\TagSelectionService;
+use App\Support\Activities\ActivityTagImageCatalog;
+use App\Support\Media\MediaPictureSources;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -109,6 +112,10 @@ class ManageActivityForm extends Component
     /** @var list<array{label: string, category_id: int|string}> */
     public array $new_tags = [];
 
+    public ?string $logo_source = null;
+
+    public ?int $selected_tag_media_id = null;
+
     /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
     private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
 
@@ -153,6 +160,7 @@ class ManageActivityForm extends Component
             $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
+            $this->hydrateLogoFieldsFromActivity($activity);
             if ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
                 $proposal = $activity->proposals()
                     ->where('status', ActivityProposalStatus::Pending)
@@ -214,7 +222,59 @@ class ManageActivityForm extends Component
 
     private function normalizeFormTab(?string $value): string
     {
-        return in_array($value, ['main-details', 'tags', 'hosting-mode'], true) ? $value : 'main-details';
+        return in_array($value, ['main-details', 'tags', 'image', 'hosting-mode'], true) ? $value : 'main-details';
+    }
+
+    private function hydrateLogoFieldsFromActivity(Activity $activity): void
+    {
+        $rawLogoSource = $activity->logo_source;
+        if ($rawLogoSource instanceof ActivityLogoSource) {
+            $this->logo_source = $rawLogoSource->value;
+        } elseif (is_string($rawLogoSource) && $rawLogoSource !== '') {
+            $this->logo_source = $rawLogoSource;
+        } else {
+            $this->logo_source = null;
+        }
+
+        $this->selected_tag_media_id = $activity->tag_media_id !== null
+            ? (int) $activity->tag_media_id
+            : null;
+    }
+
+    /**
+     * @return list<array{tag_id: int, label: string, images: list<array{media_id: int, sources: MediaPictureSources}>}>
+     */
+    public function getAvailableTagImagesProperty(): array
+    {
+        return app(ActivityTagImageCatalog::class)->forTagIds($this->tag_ids);
+    }
+
+    public function updatedTagIds(): void
+    {
+        $this->pruneInvalidTagMediaSelection();
+    }
+
+    public function updatedLogoSource(?string $value): void
+    {
+        if ($value !== ActivityLogoSource::Tag->value) {
+            $this->selected_tag_media_id = null;
+        }
+    }
+
+    private function pruneInvalidTagMediaSelection(): void
+    {
+        if ($this->selected_tag_media_id === null) {
+            return;
+        }
+
+        $availableIds = app(ActivityTagImageCatalog::class)->availableMediaIds($this->tag_ids);
+        if (! in_array($this->selected_tag_media_id, $availableIds, true)) {
+            $this->selected_tag_media_id = null;
+        }
+
+        if ($availableIds === [] && $this->logo_source === ActivityLogoSource::Tag->value) {
+            $this->logo_source = null;
+        }
     }
 
     private function duplicateQuerySlug(): ?string
@@ -651,6 +711,23 @@ class ManageActivityForm extends Component
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
+            'logo_source' => ['nullable', 'string', Rule::in(array_map(static fn (ActivityLogoSource $s) => $s->value, ActivityLogoSource::cases()))],
+            'selected_tag_media_id' => [
+                'nullable',
+                'integer',
+                Rule::requiredIf(fn (): bool => $this->logo_source === ActivityLogoSource::Tag->value),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->logo_source !== ActivityLogoSource::Tag->value) {
+                        return;
+                    }
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    if (! app(ActivityTagImageCatalog::class)->mediaBelongsToSelectedTags((int) $value, $this->tag_ids)) {
+                        $fail(__('ui.activities.image_invalid_tag_media'));
+                    }
+                },
+            ],
             'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],
             'self_hosted_starts_at' => [
                 'nullable',
