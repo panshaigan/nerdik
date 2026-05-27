@@ -149,7 +149,7 @@ class BrowseActivities extends Component
 
         $this->applyBrowseTagFilter($query, 'tags');
 
-        BrowseFullTextSearch::apply($query, $this->q, 'activities.search_vector');
+        BrowseFullTextSearch::applyActivityHybrid($query, $this->q);
 
         $this->applyBrowseActivitySort($query);
 

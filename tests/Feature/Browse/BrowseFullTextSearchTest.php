@@ -232,4 +232,46 @@ class BrowseFullTextSearchTest extends TestCase
                 'Story Workship',
             ]);
     }
+
+    public function test_browse_activities_matches_without_polish_diacritics(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'name' => 'Pęknięte Lustro',
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(BrowseActivities::class)
+            ->set('q', 'Pekniete')
+            ->assertSee('Pęknięte Lustro');
+    }
+
+    public function test_browse_events_matches_without_polish_diacritics(): void
+    {
+        $owner = User::factory()->create();
+        $startsAt = now()->addDays(5)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(4);
+
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'name' => 'Pęknięte Lustro',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(BrowseEvents::class)
+            ->set('only_events', true)
+            ->set('q', 'Pekniete')
+            ->assertSee('Pęknięte Lustro');
+    }
 }
