@@ -9,14 +9,18 @@
     "mcp": true,
     "nightwatch": false,
     "packages": [
-        "filament/filament"
+        "filament/filament",
+        "spatie/laravel-medialibrary"
     ],
     "sail": true,
     "skills": [
         "laravel-best-practices",
+        "pulse-development",
         "socialite-development",
         "livewire-development",
         "volt-development",
-        "tailwindcss-development"
+        "echo-development",
+        "tailwindcss-development",
+        "medialibrary-development"
     ]
 }
