@@ -124,4 +124,18 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('wire:target="joinPreviewActivity"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
     }
+
+    public function test_open_activity_preview_gracefully_handles_missing_activity(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(ShowEvent::class, ['event' => $event])
+            ->set('tab', 'plan')
+            ->call('openActivityPreview', 999_999)
+            ->assertSet('activityPreviewModalOpen', false)
+            ->assertSet('previewActivityId', null);
+    }
 }

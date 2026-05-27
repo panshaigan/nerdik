@@ -72,19 +72,17 @@ function registerSessionExpiredInterceptor() {
 
     window.__nerdikSessionExpiredInterceptorRegistered = true;
 
-    window.Livewire.interceptRequest(({ onResponse }) => {
-        onResponse(({ response }) => {
-            if (! response) {
-                return;
-            }
-
+    window.Livewire.interceptRequest(({ onError }) => {
+        onError(({ response, preventDefault }) => {
             if (
-                window.__nerdikSessionExpiredHandled
+                !response
+                || window.__nerdikSessionExpiredHandled
                 || (response.status !== 401 && response.status !== 419)
             ) {
                 return;
             }
 
+            preventDefault();
             window.__nerdikSessionExpiredHandled = true;
             window.dispatchEvent(new CustomEvent('session-expired'));
         });
