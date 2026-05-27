@@ -8,6 +8,8 @@ SAIL := ./vendor/bin/sail
 
 up:
 	$(SAIL) up -d
+	nohup $(SAIL) artisan schedule:work > storage/logs/scheduler.log 2>&1 &
+	nohup $(SAIL) artisan queue:work > storage/logs/queue.log 2>&1 &
 
 down:
 	$(SAIL) down
