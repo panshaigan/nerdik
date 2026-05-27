@@ -171,6 +171,8 @@ return new class extends Migration
             $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
             $table->boolean('is_public')->default(true);
             $table->string('logo_path')->nullable();
+            $table->enum('logo_source', ['default', 'upload'])->nullable();
+            $table->unsignedBigInteger('listing_media_id')->nullable();
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->dateTime('starts_at');
@@ -184,6 +186,7 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreign('listing_media_id')->references('id')->on('media')->nullOnDelete();
         });
 
         DB::statement("
