@@ -40,23 +40,23 @@ final class BrowseFullTextSearch
         $query
             ->where(function (Builder $outer) use ($term, $normalized, $similarityThreshold, $ftsQuery): void {
                 $outer->whereRaw("events.search_vector @@ {$ftsQuery}", [$term])
-                    ->orWhereRaw('similarity(LOWER(events.name), ?) >= ?', [$normalized, $similarityThreshold])
-                    ->orWhereRaw('similarity(LOWER(COALESCE(events.description, \'\')), ?) >= ?', [$normalized, $similarityThreshold]);
+                    ->orWhereRaw('similarity(unaccent(LOWER(events.name)), unaccent(LOWER(?))) >= ?', [$normalized, $similarityThreshold])
+                    ->orWhereRaw('similarity(unaccent(LOWER(COALESCE(events.description, \'\'))), unaccent(LOWER(?))) >= ?', [$normalized, $similarityThreshold]);
             })
             ->orderByRaw(
                 "
                 (
-                    CASE WHEN LOWER(events.name) = ? THEN 3 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(events.name)) = unaccent(LOWER(?)) THEN 3 ELSE 0 END
                     +
-                    CASE WHEN LOWER(COALESCE(events.description, '')) = ? THEN 3 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(COALESCE(events.description, ''))) = unaccent(LOWER(?)) THEN 3 ELSE 0 END
                     +
                     CASE WHEN events.search_vector @@ {$ftsQuery} THEN 2 ELSE 0 END
                     +
-                    CASE WHEN LOWER(events.name) LIKE ? OR LOWER(COALESCE(events.description, '')) LIKE ? THEN 1 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(events.name)) LIKE unaccent(LOWER(?)) OR unaccent(LOWER(COALESCE(events.description, ''))) LIKE unaccent(LOWER(?)) THEN 1 ELSE 0 END
                 ) DESC,
                 GREATEST(
-                    similarity(LOWER(events.name), ?),
-                    similarity(LOWER(COALESCE(events.description, '')), ?)
+                    similarity(unaccent(LOWER(events.name)), unaccent(LOWER(?))),
+                    similarity(unaccent(LOWER(COALESCE(events.description, ''))), unaccent(LOWER(?)))
                 ) DESC
                 ",
                 [
@@ -89,23 +89,23 @@ final class BrowseFullTextSearch
         $query
             ->where(function (Builder $outer) use ($term, $normalized, $similarityThreshold, $ftsQuery): void {
                 $outer->whereRaw("activities.search_vector @@ {$ftsQuery}", [$term])
-                    ->orWhereRaw('similarity(LOWER(activities.name), ?) >= ?', [$normalized, $similarityThreshold])
-                    ->orWhereRaw('similarity(LOWER(COALESCE(activities.description, \'\')), ?) >= ?', [$normalized, $similarityThreshold]);
+                    ->orWhereRaw('similarity(unaccent(LOWER(activities.name)), unaccent(LOWER(?))) >= ?', [$normalized, $similarityThreshold])
+                    ->orWhereRaw('similarity(unaccent(LOWER(COALESCE(activities.description, \'\'))), unaccent(LOWER(?))) >= ?', [$normalized, $similarityThreshold]);
             })
             ->orderByRaw(
                 "
                 (
-                    CASE WHEN LOWER(activities.name) = ? THEN 3 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(activities.name)) = unaccent(LOWER(?)) THEN 3 ELSE 0 END
                     +
-                    CASE WHEN LOWER(COALESCE(activities.description, '')) = ? THEN 3 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(COALESCE(activities.description, ''))) = unaccent(LOWER(?)) THEN 3 ELSE 0 END
                     +
                     CASE WHEN activities.search_vector @@ {$ftsQuery} THEN 2 ELSE 0 END
                     +
-                    CASE WHEN LOWER(activities.name) LIKE ? OR LOWER(COALESCE(activities.description, '')) LIKE ? THEN 1 ELSE 0 END
+                    CASE WHEN unaccent(LOWER(activities.name)) LIKE unaccent(LOWER(?)) OR unaccent(LOWER(COALESCE(activities.description, ''))) LIKE unaccent(LOWER(?)) THEN 1 ELSE 0 END
                 ) DESC,
                 GREATEST(
-                    similarity(LOWER(activities.name), ?),
-                    similarity(LOWER(COALESCE(activities.description, '')), ?)
+                    similarity(unaccent(LOWER(activities.name)), unaccent(LOWER(?))),
+                    similarity(unaccent(LOWER(COALESCE(activities.description, ''))), unaccent(LOWER(?)))
                 ) DESC
                 ",
                 [
