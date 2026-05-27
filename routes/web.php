@@ -13,10 +13,15 @@ use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Services\Welcome\WelcomeUpcomingQueryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+Route::get('/', function (WelcomeUpcomingQueryService $upcomingQuery) {
+    return view('welcome', [
+        'upcomingListings' => $upcomingQuery->nearestPublicListings(6),
+    ]);
+});
 
 Route::get('locale/{locale}', function (Request $request, string $locale) {
     abort_unless(in_array($locale, ['en', 'pl'], true), 404);
