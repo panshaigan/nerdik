@@ -69,11 +69,6 @@
                                 @endif
                             </div>
                     </x-slot:value>
-                    <x-slot:sub-value class="truncate text-xs text-base-content/65">
-                        @if ((int) $p->user_id === (int) ($activity->created_by ?? 0))
-                            {{ __('ui.activities.host') }}
-                        @endif
-                    </x-slot:sub-value>
                     @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
                         <x-slot:actions class="flex items-center gap-1">
                             @if ($p->is_absent)

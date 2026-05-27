@@ -2,7 +2,7 @@
     $prefix = $sortIdPrefix ?? 'browse';
     $dirAsc = strtolower($sort_dir ?? 'asc') === 'asc';
 @endphp
-<div class="flex flex-wrap items-center gap-x-6 gap-y-2" data-ui="browse-sort-controls">
+<div class="flex flex-wrap items-center gap-x-6 gap-y-2 pl-2" data-ui="browse-sort-controls">
     <div class="flex items-center gap-1.5">
         <span class="text-sm font-medium text-base-content">{{ __('ui.browse.sort_date') }}</span>
         <x-button
