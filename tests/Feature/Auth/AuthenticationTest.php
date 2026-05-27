@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Events\SessionInvalidated;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -73,6 +75,8 @@ class AuthenticationTest extends TestCase
 
         $this->actingAs($user);
 
+        Event::fake([SessionInvalidated::class]);
+
         $component = Volt::test('layout.navigation');
 
         $component->call('logout');
@@ -82,5 +86,28 @@ class AuthenticationTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
+
+        Event::assertDispatched(
+            SessionInvalidated::class,
+            fn (SessionInvalidated $event) => $event->userId === $user->id
+        );
+    }
+
+    public function test_livewire_request_with_x_livewire_header_returns_401_json_when_unauthenticated(): void
+    {
+        $referer = url('/profile');
+
+        $response = $this
+            ->withHeaders([
+                'X-Livewire' => '1',
+                'Referer' => $referer,
+            ])
+            ->get('/profile');
+
+        $response
+            ->assertStatus(401)
+            ->assertJsonFragment(['message' => 'Unauthenticated.']);
+
+        $this->assertSame($referer, session('url.intended'));
     }
 }

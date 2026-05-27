@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ForceLivewireJson;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StoreBrowsingReturnUrl;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prependToGroup('web', ForceLivewireJson::class);
         $middleware->appendToGroup('web', StoreBrowsingReturnUrl::class);
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->appendToGroup('web', SetCacheHeaders::class);

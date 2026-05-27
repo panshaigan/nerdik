@@ -11,22 +11,20 @@ use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<\App\Models\Organization>
+ * @extends Factory<Organization>
  */
 final class OrganizationFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Organization::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     #[\Override]
     public function definition(): array
     {
@@ -54,7 +52,7 @@ final class OrganizationFactory extends Factory
             ['name' => 'Bractwo Kodu i Mitu',             'acronym' => 'BKIM', 'slug' => 'bractwo-kodu-i-mitu'],
             ['name' => 'Akademia Neonowych Proroków',     'acronym' => 'ANP',  'slug' => 'akademia-neonowych-prorokow'],
             ['name' => 'Syndykat Sztucznej Magii',        'acronym' => 'SSM',  'slug' => 'syndykat-sztucznej-magii'],
-            ['name' => 'Kolektyw Zer i Jedynkowych Smoków','acronym' => 'KZJS', 'slug' => 'kolektyw-zer-i-jedynkowych-smokow'],
+            ['name' => 'Kolektyw Zer i Jedynkowych Smoków', 'acronym' => 'KZJS', 'slug' => 'kolektyw-zer-i-jedynkowych-smokow'],
             ['name' => 'Imperium Kafelkowych Lochów',     'acronym' => 'IKL',  'slug' => 'imperium-kafelkowych-lochow'],
             ['name' => 'Towarzystwo Kwantowej Kawy',      'acronym' => 'TKK',  'slug' => 'towarzystwo-kwantowej-kawy'],
             ['name' => 'Rada Władców Dice’ów',            'acronym' => 'RWD',  'slug' => 'rada-wladcow-dice-ow'],
@@ -72,7 +70,7 @@ final class OrganizationFactory extends Factory
             ['name' => 'Cult of the Overclocked Dragon',  'acronym' => 'COD',  'slug' => 'cult-of-the-overclocked-dragon'],
             ['name' => 'Departament Anomalii Fabularnych', 'acronym' => 'DAF', 'slug' => 'departament-anomalii-fabularnych'],
             ['name' => 'Liga Retro-Futurystycznych Rebeliantów', 'acronym' => 'LRR', 'slug' => 'liga-retro-futurystycznych-rebeliantow'],
-            ['name' => 'Enklawa Psionicznych Programistów','acronym' => 'EPP', 'slug' => 'enklawa-psionicznych-programistow'],
+            ['name' => 'Enklawa Psionicznych Programistów', 'acronym' => 'EPP', 'slug' => 'enklawa-psionicznych-programistow'],
             ['name' => 'Wielki Zakon Riftwalkerów',       'acronym' => 'WZR',  'slug' => 'wielki-zakon-riftwalkerow'],
         ));
     }

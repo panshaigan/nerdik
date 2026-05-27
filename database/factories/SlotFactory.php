@@ -19,17 +19,15 @@ use function fake;
 final class SlotFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Slot::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     #[\Override]
     public function definition(): array
     {
@@ -50,7 +48,7 @@ final class SlotFactory extends Factory
         return $this->afterCreating(function (Slot $slot) {
             $event = $slot->event;
 
-            if (!$event) {
+            if (! $event) {
                 return;
             }
 
@@ -58,8 +56,8 @@ final class SlotFactory extends Factory
                 ->setTime(fake()->randomElement([12, 14]), fake()->randomElement([0, 30]));
 
             $slot->update([
-                'starts_at'  => $startsAt,
-                'ends_at'    => (clone $startsAt)->modify('+4 hours'),
+                'starts_at' => $startsAt,
+                'ends_at' => (clone $startsAt)->modify('+4 hours'),
                 'created_by' => $event->created_by,
                 'place_id' => $event->place_id,
             ]);

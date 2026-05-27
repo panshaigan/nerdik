@@ -8,22 +8,20 @@ use App\Models\ActivityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\ActivityType>
+ * @extends Factory<ActivityType>
  */
 final class ActivityTypeFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = ActivityType::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     #[\Override]
     public function definition(): array
     {

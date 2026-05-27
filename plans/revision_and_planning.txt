@@ -1,5 +1,0 @@
-- redirect after logoff
-- colors
-- refinements/performance
-
-

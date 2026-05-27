@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ActivityProposalSlot extends Model
 {
     protected $table = 'activity_proposal_slot';
+
     public $timestamps = false;
 
     protected $fillable = [

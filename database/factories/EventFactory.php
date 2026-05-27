@@ -24,17 +24,15 @@ use function random_int;
 final class EventFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Event::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     #[\Override]
     public function definition(): array
     {
@@ -100,7 +98,7 @@ final class EventFactory extends Factory
                     $counters[$eventId] = ($counters[$eventId] ?? 0) + 1;
 
                     return [
-                        'name' => 'Stół ' . $counters[$eventId]
+                        'name' => 'Stół '.$counters[$eventId],
                     ];
                 })
                 ->withActivityTypesAttached($activityTypes)
@@ -130,11 +128,11 @@ final class EventFactory extends Factory
             foreach ($event->slots()->get() as $slot) {
                 if (fake()->boolean(65)) {
                     $slot->update([
-                        'place_id' => $availableRooms->random()->id
+                        'place_id' => $availableRooms->random()->id,
                     ]);
                 } else {
                     $slot->update([
-                        'place_id' => $availableRooms->random()->parent_id
+                        'place_id' => $availableRooms->random()->parent_id,
                     ]);
                 }
             }
@@ -159,7 +157,7 @@ final class EventFactory extends Factory
             ['name' => 'Orcus Con',             'slug' => 'orcus-con'],
             ['name' => 'Szczury z Kanałów',     'slug' => 'szczury-z-kanalow'],
             ['name' => 'Mythic Quest',          'slug' => 'mythic-quest'],
-            ['name' => 'Baldur’s Gate Gathering','slug' => 'baldurs-gate-gathering'],
+            ['name' => 'Baldur’s Gate Gathering', 'slug' => 'baldurs-gate-gathering'],
             ['name' => 'Piątek z RPG',          'slug' => 'piatek-z-rpg'],
             ['name' => 'Tower of Games',        'slug' => 'tower-of-games'],
             ['name' => 'Legendarne Kości',      'slug' => 'legendarne-kosci'],

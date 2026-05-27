@@ -22,8 +22,7 @@ trait WithUiConfirmModal
         string $message,
         ?int $participantId = null,
         ?int $contextId = null
-    ): void
-    {
+    ): void {
         $this->pendingAction = $action;
         $this->pendingParticipantId = $participantId;
         $this->pendingContextId = $contextId;
