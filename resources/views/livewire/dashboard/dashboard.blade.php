@@ -1,4 +1,5 @@
-<div class="py-12">
+<div class="p-1">
+    <x-page-header title="Dashboard"/>
     <div class="max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
         <section class="space-y-4">
             @if ($feed->isEmpty())

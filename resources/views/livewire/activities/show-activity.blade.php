@@ -97,14 +97,14 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-3 items-center gap-3 px-3 pb-5 sm:px-3 sm:pb-6">
+    <div class="grid grid-cols-1 items-center gap-3 px-3 pb-5 sm:px-3 sm:pb-6 sm:grid-cols-4">
         <x-ui.activity-badge-group
             :items="$badgeItems"
-            class="col-span-2 bg-texture-glass box-glow-primary !rounded-2xl p-6"
+            class="col-span-3 bg-texture-glass box-glow-primary !rounded-2xl p-6"
             data-ui="activity-show-badge-group"
         />
-        <div class="grid grid-cols-2">
-            <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
+        <div class="mx-auto grid grid-cols-2 gap-3 mt-2 sm:mt-0">
+            <div class="mx-auto box-glow-dark-primary rounded-2xl px-4 py-3">
                 <x-stat
                     title="{{ __('ui.activities.show_participation_section') }}"
                     value="{{ $participantsCounterValue }}"
