@@ -32,7 +32,14 @@ trait WithActivityPreviewModal
 
     public function openActivityPreview(int $activityId): void
     {
-        $activity = $this->previewActivityQuery($activityId)->firstOrFail();
+        $activity = $this->previewActivityQuery($activityId)->first();
+
+        if ($activity === null) {
+            $this->closeActivityPreview();
+            $this->warning(__('This activity is no longer available.'));
+
+            return;
+        }
 
         $this->previewActivityId = (int) $activity->id;
         $this->activityPreviewTab = 'info';
