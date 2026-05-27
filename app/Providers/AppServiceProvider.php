@@ -106,5 +106,11 @@ class AppServiceProvider extends ServiceProvider
 
             return Password::min(12)->letters()->mixedCase()->numbers()->symbols()->uncompromised();
         });
+
+        if ($this->app->environment('testing') && config('media.test_profile', 'minimal') === 'minimal') {
+            config([
+                'media.responsive_widths' => config('media.testing.responsive_widths', [128]),
+            ]);
+        }
     }
 }

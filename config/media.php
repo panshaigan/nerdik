@@ -33,6 +33,27 @@ return [
     */
     'queue_conversions' => env('MEDIA_QUEUE_CONVERSIONS', env('QUEUE_CONVERSIONS_BY_DEFAULT', true)),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Testing
+    |--------------------------------------------------------------------------
+    |
+    | PHPUnit uses MEDIA_TEST_PROFILE=minimal by default. Set profile to "full"
+    | in a single test to exercise avif/webp/jpeg + full responsive widths.
+    |
+    */
+    'test_profile' => env('MEDIA_TEST_PROFILE', 'minimal'),
+
+    'seed_bulk_tag_images_in_tests' => env('MEDIA_SEED_BULK_TAG_IMAGES_IN_TESTS', false),
+
+    'testing' => [
+        'conversion_formats' => ['webp'],
+        'responsive_widths' => [128],
+        'generate_responsive_images' => true,
+    ],
+
+    'full_test_formats' => ['avif', 'webp', 'jpeg'],
+
     'sizes' => [
         'tag_chip' => '64px',
         'tag_card' => '(max-width: 640px) 100vw, 384px',

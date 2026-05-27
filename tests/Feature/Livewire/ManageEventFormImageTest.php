@@ -9,24 +9,23 @@ use App\Livewire\Events\ManageEventForm;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Events\EventDefaultImageCatalog;
-use Database\Seeders\ActivityTypeSeeder;
-use Database\Seeders\TagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
 final class ManageEventFormImageTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsListingDefaultMedia;
 
     #[Test]
     public function image_tab_lists_default_event_images_when_seeded(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
         $user = User::factory()->organizer()->create();
         $mediaId = app(EventDefaultImageCatalog::class)->availableMediaIds()[0] ?? null;
         $this->assertNotNull($mediaId);
@@ -41,8 +40,7 @@ final class ManageEventFormImageTest extends TestCase
     #[Test]
     public function save_persists_default_listing_media_selection(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
         $user = User::factory()->organizer()->create();
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
 
@@ -145,8 +143,7 @@ final class ManageEventFormImageTest extends TestCase
     public function switching_logo_source_from_upload_to_default_deletes_stored_file(): void
     {
         Storage::fake('public');
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
         $user = User::factory()->organizer()->create();
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
         $path = 'event-logos/to-delete.webp';
@@ -175,8 +172,7 @@ final class ManageEventFormImageTest extends TestCase
     #[Test]
     public function edit_form_loads_existing_default_image_selection(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
         $user = User::factory()->organizer()->create();
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
         $event = Event::factory()->create([

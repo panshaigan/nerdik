@@ -12,22 +12,22 @@ use App\Support\Events\EventDefaultImageCatalog;
 use App\Support\Ui\EventListingImageResolver;
 use App\Support\Ui\ListingCardPicture;
 use Database\Seeders\ActivityTypeSeeder;
-use Database\Seeders\TagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
 final class EventListingImageResolverTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsListingDefaultMedia;
 
     #[Test]
     public function it_uses_seeded_event_listing_default_media(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
 
         $picture = app(EventListingImageResolver::class)->resolve();
 
@@ -94,8 +94,7 @@ final class EventListingImageResolverTest extends TestCase
     #[Test]
     public function it_uses_selected_default_media_for_event(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $this->seedListingDefaultMedia();
 
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
 

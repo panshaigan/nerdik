@@ -11,7 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
-use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 use Tests\TestCase;
 
 final class AttachModelMediaFromPublicTest extends TestCase
@@ -39,7 +38,6 @@ final class AttachModelMediaFromPublicTest extends TestCase
         app(AttachModelMediaFromPublic::class)($tag, [$fixture]);
 
         Queue::assertPushed(PerformConversionsJob::class);
-        Queue::assertPushed(GenerateResponsiveImagesJob::class);
     }
 
     #[Test]

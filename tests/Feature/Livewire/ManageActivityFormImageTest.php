@@ -37,7 +37,7 @@ final class ManageActivityFormImageTest extends TestCase
             ->set('tag_ids', [(int) $tag->id])
             ->set('logo_source', ActivityLogoSource::Tag->value)
             ->assertSee('Warhammer')
-            ->assertSeeHtml('value="'.$media->id.'"');
+            ->assertSeeHtml('@click="selectedMediaId = '.$media->id.'"');
     }
 
     #[Test]
