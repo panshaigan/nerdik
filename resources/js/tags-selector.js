@@ -169,12 +169,16 @@ export function initTagSelector(root) {
     const autoSelected = new Set();
     let pendingNew = Array.isArray(cfg.initialNewTags) ? [...cfg.initialNewTags] : [];
     let activeIndex = -1;
+    const browseSearchDebounceMs = 400;
     let browseSearchDebounce = null;
     let browseSearchRequestId = 0;
     let browseSearchLoading = false;
+    /** @type {{ tags: object[], events: object[], activities: object[] }|null} */
     let browseSearchResults = null;
     /** @type {string|null} */
     let browseSearchQuery = null;
+    /** @type {string|null} */
+    let browseSearchLastFetchedQuery = null;
 
     const browseTextSearch = cfg.browseTextSearch;
 
@@ -203,9 +207,40 @@ export function initTagSelector(root) {
         });
     }
 
+    function normalizeBrowseSuggestionsPayload(payload) {
+        if (!payload || typeof payload !== 'object') {
+            return { tags: [], events: [], activities: [] };
+        }
+        if (Array.isArray(payload)) {
+            return { tags: payload, events: [], activities: [] };
+        }
+
+        return {
+            tags: Array.isArray(payload.tags) ? payload.tags : [],
+            events: Array.isArray(payload.events) ? payload.events : [],
+            activities: Array.isArray(payload.activities) ? payload.activities : [],
+        };
+    }
+
+    function renderBrowseLoadingSpinner() {
+        results.innerHTML = '';
+        activeIndex = -1;
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-center justify-center gap-2 px-4 py-6 text-sm text-base-content/70';
+        wrap.dataset.tsLoading = '1';
+        wrap.setAttribute('role', 'status');
+        wrap.innerHTML =
+            '<span class="loading loading-spinner loading-sm text-primary" aria-hidden="true"></span>' +
+            `<span>${cfg.strings?.browseSuggestionsLoading || 'Loading suggestions…'}</span>`;
+        results.appendChild(wrap);
+        results.classList.remove('hidden');
+    }
+
     function setBrowseSearchLoading(loading) {
         browseSearchLoading = loading;
-        results.classList.toggle('opacity-60', loading && isBrowseSelector);
+        if (loading && isBrowseSelector) {
+            renderBrowseLoadingSpinner();
+        }
     }
 
     function scheduleBrowseTagSearch(q) {
@@ -220,8 +255,13 @@ export function initTagSelector(root) {
         if (!trimmed) {
             browseSearchResults = null;
             browseSearchQuery = null;
+            browseSearchLastFetchedQuery = null;
             setBrowseSearchLoading(false);
             buildResults('');
+            return;
+        }
+        if (trimmed === browseSearchLastFetchedQuery && browseSearchResults !== null) {
+            buildResults(trimmed);
             return;
         }
         const requestId = ++browseSearchRequestId;
@@ -236,13 +276,14 @@ export function initTagSelector(root) {
                 return;
             }
             wire
-                .call('searchBrowseTags', trimmed)
+                .call('searchBrowseSuggestions', trimmed)
                 .then((payload) => {
                     if (requestId !== browseSearchRequestId || browseSearchQuery !== trimmed) {
                         return;
                     }
-                    browseSearchResults = Array.isArray(payload) ? payload : [];
-                    mergeTagsIntoById(browseSearchResults);
+                    browseSearchResults = normalizeBrowseSuggestionsPayload(payload);
+                    browseSearchLastFetchedQuery = trimmed;
+                    mergeTagsIntoById(browseSearchResults.tags);
                     setBrowseSearchLoading(false);
                     buildResults(trimmed);
                 })
@@ -251,10 +292,11 @@ export function initTagSelector(root) {
                         return;
                     }
                     browseSearchResults = null;
+                    browseSearchLastFetchedQuery = null;
                     setBrowseSearchLoading(false);
                     buildResults(trimmed);
                 });
-        }, 300);
+        }, browseSearchDebounceMs);
     }
 
     let browseTextQuery = String(browseTextSearch?.value || '').trim();
@@ -360,15 +402,14 @@ export function initTagSelector(root) {
             category_id: Number(t.category_id),
         }));
 
-        if (!root.hasAttribute('data-browse-tag-selector')) {
-            if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.find === 'function') {
-                const host = root.closest('[wire\\:id]');
-                const id = host?.getAttribute('wire:id');
-                const wire = id ? window.Livewire.find(id) : null;
-                const get = wire && (typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null);
-                if (get && sameTagIds(tagIds, get('tag_ids')) && sameNewTagsPayload(newTagsPayload, get('new_tags'))) {
-                    return;
-                }
+        if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.find === 'function') {
+            const host = root.closest('[wire\\:id]');
+            const id = host?.getAttribute('wire:id');
+            const wire = id ? window.Livewire.find(id) : null;
+            const get =
+                wire && (typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null);
+            if (get && sameTagIds(tagIds, get('tag_ids')) && sameNewTagsPayload(newTagsPayload, get('new_tags'))) {
+                return;
             }
         }
 
@@ -523,7 +564,7 @@ export function initTagSelector(root) {
     }
 
     function resultButtons() {
-        return Array.from(results.querySelectorAll('button[data-ts-item="1"]'));
+        return Array.from(results.querySelectorAll('button[data-ts-item="1"], a[data-ts-listing-item="1"]'));
     }
 
     function paintActive() {
@@ -568,10 +609,39 @@ export function initTagSelector(root) {
         );
     }
 
+    function appendListingSuggestionSection(parent, title, items) {
+        if (!items.length) {
+            return;
+        }
+        const head = document.createElement('div');
+        head.className =
+            'px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-base-content/50 border-t border-base-300/60 first:border-t-0 first:pt-0';
+        head.textContent = title;
+        parent.appendChild(head);
+        items.forEach((item) => {
+            const link = document.createElement('a');
+            link.href = String(item.url || '#');
+            link.dataset.tsListingItem = '1';
+            link.className =
+                'block w-full cursor-pointer px-2 py-1.5 text-left text-sm hover:bg-base-200 rounded-md no-underline text-base-content';
+            link.textContent = String(item.label || '');
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeResults();
+            });
+            parent.appendChild(link);
+        });
+    }
+
     function buildResults(q) {
+        if (isBrowseSelector && browseSearchLoading && browseSearchQuery === String(q || '').trim()) {
+            return;
+        }
+
         results.innerHTML = '';
         activeIndex = -1;
         const qn = norm(q);
+        const trimmedQuery = String(q || '').trim();
 
         let pool = allTags;
         if (!qn && browseHiddenOnEmpty.size > 0) {
@@ -579,27 +649,26 @@ export function initTagSelector(root) {
         }
 
         let found;
+        let listingEvents = [];
+        let listingActivities = [];
         if (!qn) {
             found = fillTagsByCategoryOrder(pool, browseCategoryOrder, emptyFillLimits);
-        } else if (isBrowseSelector && browseSearchQuery === String(q || '').trim() && browseSearchResults !== null) {
-            found = fillTagsByCategoryOrder(browseSearchResults, browseCategoryOrder, {
+        } else if (isBrowseSelector && browseSearchQuery === trimmedQuery && browseSearchResults !== null) {
+            found = fillTagsByCategoryOrder(browseSearchResults.tags, browseCategoryOrder, {
                 maxTotal: browseSearchLimit,
             });
-        } else if (isBrowseSelector && browseSearchLoading && browseSearchQuery === String(q || '').trim()) {
-            closeResults();
-            return;
+            listingEvents = browseSearchResults.events || [];
+            listingActivities = browseSearchResults.activities || [];
         } else {
-            const typedFillLimits = isBrowseSelector
-                ? { maxTotal: browseSearchLimit }
-                : emptyFillLimits;
-            found = fillTagsByCategoryOrder(
-                filterTagsByQuery(pool, qn),
-                browseCategoryOrder,
-                typedFillLimits
-            );
+            if (isBrowseSelector) {
+                closeResults();
+                return;
+            }
+            found = fillTagsByCategoryOrder(filterTagsByQuery(pool, qn), browseCategoryOrder, emptyFillLimits);
         }
 
-        if (!found.length) {
+        const hasListings = listingEvents.length > 0 || listingActivities.length > 0;
+        if (!found.length && !hasListings) {
             closeResults();
             return;
         }
@@ -671,7 +740,25 @@ export function initTagSelector(root) {
                     grid.appendChild(column);
                 }
             });
-            frag.appendChild(grid);
+            if (grid.childElementCount > 0) {
+                frag.appendChild(grid);
+            }
+
+            const listingsWrap = document.createElement('div');
+            listingsWrap.className = 'border-t border-base-300/60 px-1 py-1';
+            appendListingSuggestionSection(
+                listingsWrap,
+                cfg.strings?.browseSuggestionsEvents || 'Events',
+                listingEvents
+            );
+            appendListingSuggestionSection(
+                listingsWrap,
+                cfg.strings?.browseSuggestionsActivities || 'Activities',
+                listingActivities
+            );
+            if (listingsWrap.childElementCount > 0) {
+                frag.appendChild(listingsWrap);
+            }
         } else {
             groupKeys.forEach((key) => {
                 appendCategoryGroup(frag, key);
@@ -725,8 +812,11 @@ export function initTagSelector(root) {
     });
     input.addEventListener('focus', () => {
         const value = input.value;
+        const trimmed = String(value || '').trim();
         if (isBrowseSelector && norm(value)) {
-            scheduleBrowseTagSearch(value);
+            if (trimmed !== browseSearchLastFetchedQuery || browseSearchResults === null) {
+                scheduleBrowseTagSearch(value);
+            }
         }
         buildResults(value);
     });
