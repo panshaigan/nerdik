@@ -37,7 +37,7 @@ final class BrowseListingQuery
             $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
         }
 
-        BrowseFullTextSearch::apply($query, $filters->q, 'events.search_vector');
+        BrowseFullTextSearch::applyEventHybrid($query, $filters->q);
 
         BrowseTagFilter::apply($query, $filters->tagIds, $filters->tagsMatchAll, 'slots.activity.tags');
 
@@ -74,7 +74,7 @@ final class BrowseListingQuery
             $query = Activity::query()->attachedToPublicEvent(! $filters->includePastEvents);
         }
 
-        BrowseFullTextSearch::apply($query, $filters->q, 'activities.search_vector');
+        BrowseFullTextSearch::applyActivityHybrid($query, $filters->q);
 
         BrowseTagFilter::apply($query, $filters->tagIds, $filters->tagsMatchAll, 'tags');
 

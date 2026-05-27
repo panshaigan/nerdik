@@ -149,20 +149,86 @@ class TagBuilder extends Builder
         }
 
         $like = '%'.$normalized.'%';
+        $similarityThreshold = 0.2;
 
         return $this->getModel()->newQuery()
             ->with(['translations', 'aliases', 'tagCategory.translations'])
             ->usedOnBrowseVisibleActivities(! $includePast)
-            ->where(function (Builder $outer) use ($like): void {
-                $outer->whereHas('translations', function (Builder $q) use ($like): void {
+            ->where(function (Builder $outer) use ($like, $normalized, $similarityThreshold): void {
+                $outer->whereHas('translations', function (Builder $q) use ($like, $normalized, $similarityThreshold): void {
                     $q->where(function (Builder $inner) use ($like): void {
                         $inner->whereRaw('LOWER(label) LIKE ?', [$like])
                             ->orWhereRaw('LOWER(slug) LIKE ?', [$like]);
+                    })->orWhere(function (Builder $inner) use ($normalized, $similarityThreshold): void {
+                        $inner->whereRaw('similarity(LOWER(label), ?) >= ?', [$normalized, $similarityThreshold])
+                            ->orWhereRaw('similarity(LOWER(slug), ?) >= ?', [$normalized, $similarityThreshold]);
                     });
-                })->orWhereHas('aliases', function (Builder $q) use ($like): void {
-                    $q->whereRaw('LOWER(alias) LIKE ?', [$like]);
+                })->orWhereHas('aliases', function (Builder $q) use ($like, $normalized, $similarityThreshold): void {
+                    $q->whereRaw('LOWER(alias) LIKE ?', [$like])
+                        ->orWhereRaw('similarity(LOWER(alias), ?) >= ?', [$normalized, $similarityThreshold]);
                 });
             })
+            ->orderByRaw(
+                '
+                (
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) = ? OR LOWER(tag_translations.slug) = ?)
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) = ?
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) LIKE ? OR LOWER(tag_translations.slug) LIKE ?)
+                    ) THEN 1 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) LIKE ?
+                    ) THEN 1 ELSE 0 END
+                ) DESC,
+                GREATEST(
+                    COALESCE((
+                        SELECT MAX(
+                            GREATEST(
+                                similarity(LOWER(tag_translations.label), ?),
+                                similarity(LOWER(tag_translations.slug), ?)
+                            )
+                        )
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                    ), 0),
+                    COALESCE((
+                        SELECT MAX(similarity(LOWER(tag_aliases.alias), ?))
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                    ), 0)
+                ) DESC
+                ',
+                [
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                    $like,
+                    $like,
+                    $like,
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                ]
+            )
             ->orderedByPopularity()
             ->limit($limit)
             ->get();
