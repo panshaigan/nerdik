@@ -26,6 +26,14 @@ return [
         'language_en' => 'English',
         'language_pl' => 'Polish',
     ],
+    'seo' => [
+        'default_description' => 'Discover events and activities, manage schedules, and coordinate with hosts on Nerdik.',
+        'welcome_title' => 'Home',
+        'welcome_description' => 'Nerdik helps organizers and hosts coordinate activities for upcoming events. Build schedules faster, collect activity proposals, and keep participants informed.',
+        'search_description' => 'Search public events and activities on Nerdik. Filter by tags, dates, and location.',
+        'event_fallback_description' => 'View details for :name on Nerdik.',
+        'activity_fallback_description' => 'View details for :name on Nerdik.',
+    ],
     'profile' => [
         'notifications' => [
             'intro' => 'Choose where you receive each kind of update. In-app notifications appear in your list and may show a quick banner.',
