@@ -163,6 +163,28 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
+        // 28b. MEDIA  (Spatie Media Library)
+        // ------------------------------------------------------------------ //
+        Schema::create('media', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('model');
+            $table->uuid()->nullable()->unique();
+            $table->string('collection_name');
+            $table->string('name');
+            $table->string('file_name');
+            $table->string('mime_type')->nullable();
+            $table->string('disk');
+            $table->string('conversions_disk')->nullable();
+            $table->unsignedBigInteger('size');
+            $table->json('manipulations');
+            $table->json('custom_properties');
+            $table->json('generated_conversions');
+            $table->json('responsive_images');
+            $table->unsignedInteger('order_column')->nullable()->index();
+            $table->nullableTimestamps();
+        });
+
+        // ------------------------------------------------------------------ //
         // 10. EVENTS
         // ------------------------------------------------------------------ //
         Schema::create('events', function (Blueprint $table) {
@@ -186,7 +208,6 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreign('listing_media_id')->references('id')->on('media')->nullOnDelete();
         });
 
         DB::statement("
@@ -430,6 +451,10 @@ return new class extends Migration
             $table->unique(['tag_id', 'alias', 'locale']);
         });
 
+        DB::statement('CREATE INDEX tag_translations_label_trgm_idx ON tag_translations USING gin (lower(label) gin_trgm_ops)');
+        DB::statement('CREATE INDEX tag_translations_slug_trgm_idx ON tag_translations USING gin (lower(slug) gin_trgm_ops)');
+        DB::statement('CREATE INDEX tag_aliases_alias_trgm_idx ON tag_aliases USING gin (lower(alias) gin_trgm_ops)');
+
         // ------------------------------------------------------------------ //
         // 26. TAG RELATIONS
         // ------------------------------------------------------------------ //
@@ -464,30 +489,12 @@ return new class extends Migration
             $table->index(['tag_id', 'taggable_type'], 'taggables_tag_type_idx');
         });
 
-        // ------------------------------------------------------------------ //
-        // 28b. MEDIA  (Spatie Media Library)
-        // ------------------------------------------------------------------ //
-        Schema::create('media', function (Blueprint $table) {
-            $table->id();
-            $table->morphs('model');
-            $table->uuid()->nullable()->unique();
-            $table->string('collection_name');
-            $table->string('name');
-            $table->string('file_name');
-            $table->string('mime_type')->nullable();
-            $table->string('disk');
-            $table->string('conversions_disk')->nullable();
-            $table->unsignedBigInteger('size');
-            $table->json('manipulations');
-            $table->json('custom_properties');
-            $table->json('generated_conversions');
-            $table->json('responsive_images');
-            $table->unsignedInteger('order_column')->nullable()->index();
-            $table->nullableTimestamps();
-        });
-
         Schema::table('activities', function (Blueprint $table) {
             $table->foreign('tag_media_id')->references('id')->on('media')->nullOnDelete();
+        });
+
+        Schema::table('events', function (Blueprint $table) {
+            $table->foreign('listing_media_id')->references('id')->on('media')->nullOnDelete();
         });
 
         // ------------------------------------------------------------------ //
@@ -737,6 +744,7 @@ return new class extends Migration
     private function ensurePolishTextSearchCatalog(): void
     {
         DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent');
+        DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
 
         if (! $this->polishTextSearchDictionaryExists('polish_ispell')) {
             DB::statement('

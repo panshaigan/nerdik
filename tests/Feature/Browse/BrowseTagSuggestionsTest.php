@@ -108,6 +108,58 @@ class BrowseTagSuggestionsTest extends TestCase
         $this->assertContains((int) $vampire->id, $ids);
     }
 
+    public function test_search_browse_tags_matches_typo_via_trigram_similarity(): void
+    {
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+
+        $vampire = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
+        TagTranslation::factory()->create([
+            'tag_id' => $vampire->id,
+            'locale' => 'en',
+            'label' => 'Vampire',
+            'slug' => 'vampire',
+        ]);
+        $this->attachTagToBrowseVisibleActivity($vampire, 5);
+
+        $component = Livewire::withoutLazyLoading()->test(BrowseEvents::class);
+        $results = $component->instance()->searchBrowseTags('vamprie');
+
+        $this->assertIsArray($results);
+        $ids = array_map(static fn (array $row) => (int) $row['id'], $results);
+        $this->assertContains((int) $vampire->id, $ids);
+    }
+
+    public function test_search_browse_tags_prefers_exact_match_over_fuzzy_match(): void
+    {
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+
+        $exact = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
+        TagTranslation::factory()->create([
+            'tag_id' => $exact->id,
+            'locale' => 'en',
+            'label' => 'Vampire',
+            'slug' => 'vampire',
+        ]);
+        $this->attachTagToBrowseVisibleActivity($exact, 1);
+
+        $fuzzy = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
+        TagTranslation::factory()->create([
+            'tag_id' => $fuzzy->id,
+            'locale' => 'en',
+            'label' => 'Vamspire',
+            'slug' => 'vamspire',
+        ]);
+        $this->attachTagToBrowseVisibleActivity($fuzzy, 100);
+
+        $component = Livewire::withoutLazyLoading()->test(BrowseEvents::class);
+        $results = $component->instance()->searchBrowseTags('vampire');
+
+        $this->assertIsArray($results);
+        $ids = array_map(static fn (array $row) => (int) $row['id'], $results);
+        $this->assertSame((int) $exact->id, $ids[0] ?? null);
+        $this->assertContains((int) $fuzzy->id, $ids);
+    }
+
     public function test_browse_events_renders_tag_selector_with_browse_suggestion_config(): void
     {
         $html = Livewire::withoutLazyLoading()
