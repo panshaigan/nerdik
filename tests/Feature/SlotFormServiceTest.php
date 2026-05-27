@@ -7,7 +7,6 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
 use App\Services\SlotFormService;
-use App\Services\TagSelectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
@@ -23,7 +22,7 @@ class SlotFormServiceTest extends TestCase
 
     private function makeService(): SlotFormService
     {
-        return new SlotFormService();
+        return new SlotFormService;
     }
 
     #[Test]

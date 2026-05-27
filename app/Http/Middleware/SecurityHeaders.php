@@ -18,6 +18,7 @@ class SecurityHeaders
         $response = $next($request);
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN'); // legacy fallback
         $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'");
+
         return $response;
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -45,6 +44,7 @@ class ActivityProposalFlowService
     ): void {
         if ($requestedSlotIds === []) {
             $this->hostingModes->markProposedToEvent($activity);
+
             return;
         }
 

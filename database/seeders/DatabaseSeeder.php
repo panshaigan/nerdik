@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             BaseDataSeeder::class,
-            SampleDataSeeder::class
+            SampleDataSeeder::class,
         ]);
     }
 }

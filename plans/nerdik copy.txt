@@ -1,28 +1,11 @@
-- performance
-- regenerate the admin panel
-
-
 - search everything on top
 - should we allow users to delete their own tags?: no, it will be auto deletion of not used tags
 - places
 - activity languages
 - feedback system
 - losowanie uczestników, jeśli jest więcej
-tag extraction:
-    Key package design choices to decide early
-    Do you want package to enforce your schema, or allow customization?
-    DB compatibility target (MySQL/Postgres only?)
-    How much UI you ship vs backend-only core
-    API surface stability (events, contracts, extension hooks)
-
-
 - deletion policy
-    - cleaning scripts (Schedule::command('telescope:prune')->daily();)
-    - countries and city translations do we need them? + language rule always fallback to english
-    - DDDize Scheduling/Proposals/Tagging
-        - rename mass create to create in the code
-        - refactor signup to enroll in the code
-
+    - countries and city translations do we need them?
 
 Features:
 	- (anyone) Sign up / Sign in:
@@ -40,8 +23,6 @@ Features:
 	- Search/discovery
 		- (user) remember last search [MVP]
 		- (user) browsing/searching for users added specific tags to wishlist. and places. like you can find a person who wants to play fantasy rpg in wrocław. [FUTURE]
-		- (guest) Browse (list) public events (read-only)
-		- (guest) Browse (list) public activities (accepted ones in public events) (read-only)
 	- User Dashboard
 		- friends activity [FUTURE]
 		- your location stats [FUTURE]
@@ -57,7 +38,6 @@ Features:
 		- (owner) a feature which would allow to sign friends for activities. like someone sees a perfect activity and enroll himself and his 2 friends. [FUTURE]
 
 	- Administration
-		- (admin) CRUDding and choosing global tags. meaning the ones which are being suggested to everyone [MVP]
 		- (admin) global reports, statistics [FUTURE]
 		- (admin) tags management
 			- CRUD [MVP]
@@ -74,9 +54,7 @@ Features:
 		- (admin) browse and resolve
 
 	- Adding logo/covers to the main entities
-		- event [MVP]
 		- organization [MVP]
-		- activity [MVP]
 		- place [FUTURE]
 
 DB:
@@ -84,19 +62,16 @@ DB:
 	- logging [FUTURE]
 
 FUTURE:
-	- placing activities online. like rpg session on discord
 	- mobile app
 	- possible ai enhancements
 		- Suggest tags while user types (based on existing tags, popularity, hierarchy)
 			- "Did you mean X?" for misspellings or close variants.
 			- "You might like these activities/events" based on wishlist, past participation, tags, location.
 		- Moderation helpers: Flag abusive descriptions/feedback for admin review.
-		- Better matching across languages, typos, synonyms.
 	- paid activities (if user wants money for hosting an activity, he needs to pay to the app as well - fair)
 	- any other fair ideas for monetization?
 	- common journeys to the events
 	- contacting
-	- confirming the presence before the meeting
 
 Monetization
 - buycofee at will to help covering the server costs

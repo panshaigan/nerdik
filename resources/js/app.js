@@ -6,6 +6,7 @@ import './activities-echo';
 import './events-plan-counters-echo';
 import './maps-init';
 import './tags-init';
+import './session-invalidated-echo';
 import { bootActivityTagPickers } from './activity-tag-picker';
 import { bootDateTimePickers } from './datetime-picker';
 import { initEventShowSlotForms } from './event-show-slot-forms';
@@ -56,3 +57,39 @@ document.addEventListener('DOMContentLoaded', () => bootProposalEventAutocomplet
 document.addEventListener('livewire:navigated', () => bootActivityTagPickers());
 document.addEventListener('livewire:init', registerActivityTagPickerMorphHook);
 document.addEventListener('livewire:initialized', registerActivityTagPickerMorphHook);
+
+function registerSessionExpiredInterceptor() {
+    if (
+        typeof window.Livewire === 'undefined'
+        || typeof window.Livewire.interceptRequest !== 'function'
+    ) {
+        return;
+    }
+
+    if (window.__nerdikSessionExpiredInterceptorRegistered) {
+        return;
+    }
+
+    window.__nerdikSessionExpiredInterceptorRegistered = true;
+
+    window.Livewire.interceptRequest(({ onResponse }) => {
+        onResponse(({ response }) => {
+            if (! response) {
+                return;
+            }
+
+            if (
+                window.__nerdikSessionExpiredHandled
+                || (response.status !== 401 && response.status !== 419)
+            ) {
+                return;
+            }
+
+            window.__nerdikSessionExpiredHandled = true;
+            window.dispatchEvent(new CustomEvent('session-expired'));
+        });
+    });
+}
+
+document.addEventListener('livewire:init', registerSessionExpiredInterceptor);
+document.addEventListener('DOMContentLoaded', registerSessionExpiredInterceptor);

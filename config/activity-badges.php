@@ -87,40 +87,40 @@ return [
     ],
 
     'semantic_by_tag_category' => [
-        TagCategory::KEY_GAME     => 'neutral',   // was primary
-        TagCategory::KEY_GENRE    => 'neutral',   // was primary
-        TagCategory::KEY_SETTING  => 'neutral',   // was primary
+        TagCategory::KEY_GAME => 'neutral',   // was primary
+        TagCategory::KEY_GENRE => 'neutral',   // was primary
+        TagCategory::KEY_SETTING => 'neutral',   // was primary
         TagCategory::KEY_MECHANIC => 'neutral',   // was primary
-        TagCategory::KEY_FORMAT   => 'neutral', // was secondary
-        TagCategory::KEY_OTHER    => 'neutral', // was secondary
-        TagCategory::KEY_TOPIC    => 'neutral', // was secondary
-        TagCategory::KEY_TRIGGER  => 'warning',   // keep
+        TagCategory::KEY_FORMAT => 'neutral', // was secondary
+        TagCategory::KEY_OTHER => 'neutral', // was secondary
+        TagCategory::KEY_TOPIC => 'neutral', // was secondary
+        TagCategory::KEY_TRIGGER => 'warning',   // keep
     ],
 
     'semantic_by_kind' => [
-        'taxonomy_tag'       => 'neutral',   // was primary
-        'activity_type'      => 'secondary',    // was info → teal is more distinctive
-        'minimum_age'        => 'warning',   // keep
-        'requires_approval'  => 'neutral',   // was accent → needs more attention
-        'allows_observers'   => 'neutral',   // was accent → it's just a property
+        'taxonomy_tag' => 'neutral',   // was primary
+        'activity_type' => 'secondary',    // was info → teal is more distinctive
+        'minimum_age' => 'warning',   // keep
+        'requires_approval' => 'neutral',   // was accent → needs more attention
+        'allows_observers' => 'neutral',   // was accent → it's just a property
     ],
 
     'icon_by_tag_category' => [
-        TagCategory::KEY_GAME     => 'o-puzzle-piece',
-        TagCategory::KEY_GENRE    => 'o-book-open',
-        TagCategory::KEY_SETTING  => 'o-map-pin',
+        TagCategory::KEY_GAME => 'o-puzzle-piece',
+        TagCategory::KEY_GENRE => 'o-book-open',
+        TagCategory::KEY_SETTING => 'o-map-pin',
         TagCategory::KEY_MECHANIC => 'o-cog-6-tooth',
-        TagCategory::KEY_FORMAT   => 'o-squares-2x2',
-        TagCategory::KEY_OTHER    => 'o-tag',
-        TagCategory::KEY_TOPIC    => 'o-chat-bubble-left-right',
-        TagCategory::KEY_TRIGGER  => 'o-exclamation-triangle',
+        TagCategory::KEY_FORMAT => 'o-squares-2x2',
+        TagCategory::KEY_OTHER => 'o-tag',
+        TagCategory::KEY_TOPIC => 'o-chat-bubble-left-right',
+        TagCategory::KEY_TRIGGER => 'o-exclamation-triangle',
     ],
 
     'icon_by_kind' => [
-        'taxonomy_tag'      => 'o-tag',
-        'activity_type'     => 'o-star',
-        'minimum_age'       => 'o-clock',
+        'taxonomy_tag' => 'o-tag',
+        'activity_type' => 'o-star',
+        'minimum_age' => 'o-clock',
         'requires_approval' => 'o-shield-check',
-        'allows_observers'  => 'o-eye',
+        'allows_observers' => 'o-eye',
     ],
 ];

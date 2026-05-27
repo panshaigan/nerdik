@@ -23,17 +23,15 @@ use function min;
 final class ActivityFactory extends Factory
 {
     /**
-    * The name of the factory's corresponding model.
-    *
-    * @var string
-    */
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Activity::class;
 
     /**
-    * Define the model's default state.
-    *
-    * @return array
-    */
+     * Define the model's default state.
+     */
     #[\Override]
     public function definition(): array
     {
@@ -49,12 +47,12 @@ final class ActivityFactory extends Factory
             'minimum_age' => fake()->optional(0.3)->randomElement([
                 12,
                 16, 16,
-                18, 18, 18, 18
+                18, 18, 18, 18,
             ]),
             'cancellation_deadline_in_hours' => fake()->optional()->randomElement([
                 12,
                 18, 18,
-                24, 24, 24, 24
+                24, 24, 24, 24,
             ]),
             'duration_in_minutes' => fake()->randomElement([
                 120,
@@ -90,7 +88,7 @@ final class ActivityFactory extends Factory
                 'place_id' => Place::inRandomOrder()->first()?->id,
             ]);
 
-            $users  = collect($users);
+            $users = collect($users);
 
             $activity->users()->attach(
                 $users->random(random_int(1, min(3, $activity->max_participants)))->pluck('id')
@@ -126,10 +124,11 @@ final class ActivityFactory extends Factory
         ]);
     }
 
-    private static Sequence|null $predefinedSequence = null;
+    private static ?Sequence $predefinedSequence = null;
+
     public function predefined(): self
     {
-        if (!self::$predefinedSequence) {
+        if (! self::$predefinedSequence) {
             self::$predefinedSequence = new Sequence(
                 ['name' => 'Noc Świetlików', 'slug' => 'noc-swietlikow'],
                 ['name' => 'Szept w Ciemności', 'slug' => 'szept-w-ciemnosci'],

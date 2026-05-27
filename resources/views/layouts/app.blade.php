@@ -48,6 +48,46 @@
 
         <x-toast />
 
+        <dialog
+            id="ui-session-expired-modal"
+            class="modal backdrop-blur"
+            x-data="{ redirecting: false }"
+            x-on:session-expired.window.prevent="
+                if (redirecting) return;
+                if (window.location.pathname === '{{ route('login', absolute: false) }}') return;
+
+                redirecting = true;
+                $el.showModal();
+
+                window.setTimeout(() => {
+                    window.location.href = '{{ route('login', absolute: true) }}';
+                }, 2000);
+            "
+        >
+            <div class="modal-box max-w-md ui-modal-surface">
+                <h3 class="text-lg font-semibold">{{ __('Session expired') }}</h3>
+                <p class="mt-2 text-sm opacity-70">
+                    {{ __('Your session is no longer valid. Redirecting to login...') }}
+                </p>
+
+                <div class="mt-4 flex justify-center">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+
+                <div class="mt-6 modal-action">
+                    <form method="dialog">
+                        <button type="submit" class="btn btn-ghost">
+                            {{ __('Cancel') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <form method="dialog" class="modal-backdrop">
+                <button type="submit" class="sr-only">{{ __('Close') }}</button>
+            </form>
+        </dialog>
+
         @stack('scripts')
     </body>
 </html>

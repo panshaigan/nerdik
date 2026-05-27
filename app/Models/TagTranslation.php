@@ -42,7 +42,7 @@ class TagTranslation extends Model
         });
     }
 
-    static function uniqueSlugForLocale(string $locale, string $base, ?int $ignoreId = null): string
+    public static function uniqueSlugForLocale(string $locale, string $base, ?int $ignoreId = null): string
     {
         $slug = $base;
         $i = 1;

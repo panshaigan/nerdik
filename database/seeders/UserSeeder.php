@@ -29,8 +29,8 @@ class UserSeeder extends Seeder
             ->create();
 
         // We reduce the number of admins and organizers by one, as they are already created
-        User::factory($dataset['admins']-1)->admin()->create();
-        User::factory($dataset['organizers']-1)->organizer()->create();
-        User::factory($dataset['standardUsers']-2)->create();
+        User::factory($dataset['admins'] - 1)->admin()->create();
+        User::factory($dataset['organizers'] - 1)->organizer()->create();
+        User::factory($dataset['standardUsers'] - 2)->create();
     }
 }
