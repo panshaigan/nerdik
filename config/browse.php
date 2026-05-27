@@ -42,4 +42,13 @@ return [
         'search_limit' => 30,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Browse event/activity name suggestions (dropdown while typing)
+    |--------------------------------------------------------------------------
+    */
+    'listing_suggestions' => [
+        'limit' => 5,
+    ],
+
 ];

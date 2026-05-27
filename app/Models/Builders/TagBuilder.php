@@ -150,22 +150,28 @@ class TagBuilder extends Builder
 
         $like = '%'.$normalized.'%';
         $similarityThreshold = 0.2;
+        $useSimilarity = mb_strlen($normalized) >= 3;
 
         return $this->getModel()->newQuery()
             ->with(['translations', 'aliases', 'tagCategory.translations'])
             ->usedOnBrowseVisibleActivities(! $includePast)
-            ->where(function (Builder $outer) use ($like, $normalized, $similarityThreshold): void {
-                $outer->whereHas('translations', function (Builder $q) use ($like, $normalized, $similarityThreshold): void {
+            ->where(function (Builder $outer) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                $outer->whereHas('translations', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
                     $q->where(function (Builder $inner) use ($like): void {
                         $inner->whereRaw('LOWER(label) LIKE ?', [$like])
                             ->orWhereRaw('LOWER(slug) LIKE ?', [$like]);
-                    })->orWhere(function (Builder $inner) use ($normalized, $similarityThreshold): void {
-                        $inner->whereRaw('similarity(LOWER(label), ?) >= ?', [$normalized, $similarityThreshold])
-                            ->orWhereRaw('similarity(LOWER(slug), ?) >= ?', [$normalized, $similarityThreshold]);
                     });
-                })->orWhereHas('aliases', function (Builder $q) use ($like, $normalized, $similarityThreshold): void {
-                    $q->whereRaw('LOWER(alias) LIKE ?', [$like])
-                        ->orWhereRaw('similarity(LOWER(alias), ?) >= ?', [$normalized, $similarityThreshold]);
+                    if ($useSimilarity) {
+                        $q->orWhere(function (Builder $inner) use ($normalized, $similarityThreshold): void {
+                            $inner->whereRaw('similarity(LOWER(label), ?) >= ?', [$normalized, $similarityThreshold])
+                                ->orWhereRaw('similarity(LOWER(slug), ?) >= ?', [$normalized, $similarityThreshold]);
+                        });
+                    }
+                })->orWhereHas('aliases', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                    $q->whereRaw('LOWER(alias) LIKE ?', [$like]);
+                    if ($useSimilarity) {
+                        $q->orWhereRaw('similarity(LOWER(alias), ?) >= ?', [$normalized, $similarityThreshold]);
+                    }
                 });
             })
             ->orderByRaw(
