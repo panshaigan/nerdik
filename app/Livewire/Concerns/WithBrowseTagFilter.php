@@ -3,10 +3,11 @@
 namespace App\Livewire\Concerns;
 
 use App\Models\Tag;
-use App\Support\Browse\BrowseTagSelectorPayload;
+use App\Support\Browse\BrowseSuggestions;
 use App\Support\BrowseTagFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Attributes\Renderless;
 use Livewire\Attributes\Url;
 
 trait WithBrowseTagFilter
@@ -44,25 +45,40 @@ trait WithBrowseTagFilter
      */
     public function searchBrowseTags(string $q): array
     {
+        return $this->searchBrowseSuggestions($q)['tags'];
+    }
+
+    /**
+     * Unified browse dropdown suggestions: tags, events, and activities.
+     *
+     * @return array{
+     *     tags: list<array<string, mixed>>,
+     *     events: list<array{id: int, label: string, url: string}>,
+     *     activities: list<array{id: int, label: string, url: string}>
+     * }
+     */
+    #[Renderless]
+    public function searchBrowseSuggestions(string $q): array
+    {
         $trimmed = trim($q);
         if ($trimmed === '') {
-            return [];
+            return [
+                'tags' => [],
+                'events' => [],
+                'activities' => [],
+            ];
         }
 
         $includePast = property_exists($this, 'include_past_events') && $this->include_past_events;
-        $limit = (int) config('browse.tag_suggestions.search_limit', 30);
-        $locale = app()->getLocale();
-        $categories = BrowseTagSelectorPayload::categoriesForLocale($locale);
-        $maps = BrowseTagSelectorPayload::categoryMapsFromConfig($categories);
+        $onlyEvents = property_exists($this, 'only_events') && $this->only_events;
+        $onlyActivities = property_exists($this, 'only_activities') && $this->only_activities;
 
-        $tags = Tag::query()->searchForBrowseSelector($trimmed, $includePast, $limit);
-
-        return BrowseTagSelectorPayload::fromCollection(
-            $tags,
-            $locale,
-            $maps['namesById'],
-            $maps['keysById'],
-            includeRelatedIds: false,
+        return BrowseSuggestions::search(
+            $trimmed,
+            $includePast,
+            auth()->id(),
+            includeEvents: ! $onlyActivities,
+            includeActivities: ! $onlyEvents,
         );
     }
 
