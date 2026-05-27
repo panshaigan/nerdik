@@ -1,66 +1,71 @@
 # Nerdik
 
-A system for organizing and participating in nerd events (RPG sessions, board game meetings, lectures, conventions). Built with Laravel, Livewire, **Mary**, **DaisyUI**, and **Vite**.
+Nerdik is a platform for organizing and joining nerd events: RPG sessions, board game meetups, and convention-style programs. It supports public discovery, organizer-managed scheduling, activity proposals, participant rosters, and waitlists.
 
-## Development
+## Quick Start
 
-- **Stack:** Laravel 13, Sail (Docker), PostgreSQL, Mailpit, Adminer
-- **Frontend:** Tailwind CSS v4 (via `@tailwindcss/vite`), DaisyUI v5, Mary UI (Livewire components). Source CSS: `resources/css/app.css` (`@import "tailwindcss"`, `@plugin "daisyui"`, `@source` globs for views, JS, Mary, pagination, and Filament Blade under `vendor/filament`).
-- **Start:** `make up` then open http://localhost (or your Sail URL)
-- **Artisan:** run via Sail, e.g. `./vendor/bin/sail artisan migrate` or use Makefile: `make migrate`, `make seed`, `make test`, `make queue`
-- **Assets:** after `git pull` or dependency changes, run `make npm-install` then `make npm-build` (or `make npm-dev` while developing). Production builds use `npm run build` (Vite); the admin panel (Filament) ships its own compiled CSS separately from this bundle.
-- **Polish full-text search:** On first Postgres volume init, Sail runs [`docker/pgsql/init-polish-fts.sql`](docker/pgsql/init-polish-fts.sql) (dictionaries and `polish` text search config). Migrations also apply the same catalog idempotently (needed for the `testing` database and existing volumes). After pulling this setup on an old volume, run `make migrate`, or reset the DB volume with `./vendor/bin/sail down -v`, `./vendor/bin/sail up -d`, and `make migrate`.
+1. Install dependencies:
+   - `vendor/bin/sail composer install`
+   - `vendor/bin/sail npm install`
+2. Start containers:
+   - `make up` (or `vendor/bin/sail up -d`)
+3. Prepare app:
+   - `cp .env.example .env` (if missing)
+   - `vendor/bin/sail artisan key:generate`
+   - `make migrate`
+   - `make seed`
+4. Build assets:
+   - `make npm-build` (or `make npm-dev` during frontend work)
+5. Open the app:
+   - `http://localhost`
 
-## Seeding sample data
+## Technology Stack
 
-To load foundations (places, tags) plus sample users, organizations, events, instances, slots, activities, and a proposal for testing:
+- Backend: `PHP 8.5`, `Laravel 13`, `Livewire 4`, `Volt`, `Filament 5`
+- Frontend: `Tailwind CSS 4`, `DaisyUI 5`, `Mary UI`, `Vite 7`
+- Database & runtime: `PostgreSQL`, Laravel Sail (Docker), queues/scheduler via Sail
+- Integrations: `Laravel Reverb`, `Laravel Echo`, `Socialite`, `Spatie Media Library`
 
-```bash
-make migrate   # if needed
-make seed     # or: ./vendor/bin/sail artisan db:seed
-```
+## Core Concepts
 
-To reset the database and seed from scratch:
+- **Event**: top-level entity visible in browse when public.
+- **Slot**: time/place capacity unit within an event that can host one activity.
+- **Activity**: playable/joinable item either self-hosted or scheduled on an event slot.
+- **Proposal**: request to place an activity into an event slot, then accepted/rejected by event owner.
+- **Participation**: attendee roster and optional waitlist logic per activity.
 
-```bash
-make migrate-fresh
-make seed
-```
+## Key Behavior (High-Level)
 
-**Sample users** (password for all: `password`):
+- Public browse is unified under `search` and includes public events and eligible activities.
+- Activities can require host approval and can switch between participant roster and waitlist.
+- Proposal acceptance validates slot compatibility (activity type, duration, and capacity).
+- Authorization is ownership-based (`created_by`) with admin override.
+- All core entities keep audit metadata and soft-delete support.
 
-| Email               | Nickname | Role in sample data |
-|---------------------|----------|----------------------|
-| alice@nerdik.test   | alice    | Owns Nerdik Club, Monthly RPG Night, Convention 2026; hosts D&D activity |
-| bob@nerdik.test     | bob      | Owns Wrocław Gamers, Board Game Evening; hosts Forbidden Lands activity |
-| charlie@nerdik.test | charlie   | Hosts Talisman board game activity |
-| diana@nerdik.test   | diana    | Hosts Call of Cthulhu activity; has a **pending proposal** for Convention 2026 |
+## Documentation Map
 
-**Sample entities:**
+- Product and feature context: [`docs/product-overview.md`](docs/product-overview.md)
+- Domain rules and mechanisms: [`docs/domain-mechanics.md`](docs/domain-mechanics.md)
+- Setup and development operations: [`docs/development-workflow.md`](docs/development-workflow.md)
 
-- **Organizations:** Nerdik Club (owner: alice), Wrocław Gamers (owner: bob).
-- **Events:** Monthly RPG Night (alice, Nerdik Club), Convention 2026 (alice, no org), Board Game Evening (bob, Wrocław Gamers).
-- **Event instances:** One instance per event (next Friday 18:00–23:00 for Monthly RPG; a weekend in 2 months for Convention; next Wednesday 17:00–22:00 for Board Game Evening). Each has 3 slots (Table #01–#03); #02 requires approval.
-- **Activities:** D&D 5e one-shot (host alice) and Forbidden Lands (host bob) on Monthly RPG slots; Talisman (host charlie) on Board Game Evening; Call of Cthulhu (host diana) proposed to Convention 2026 (pending).
-- **Proposal:** Diana’s Call of Cthulhu activity is proposed to Convention 2026 (pending). Log in as **alice** → Event instances → Convention 2026 → accept or reject in “Pending proposals”.
+## Updating Docs
 
-All seeded entities have `created_by` set so ownership and audit are consistent. Use **alice** or **bob** to manage events and accept proposals; **diana** to see proposal status; all four to test browse, wishlist, join/leave, and waitlist.
+- Update `README.md` for quick-start, stack, and top-level project orientation.
+- Update `docs/product-overview.md` for product scope and feature-level explanation.
+- Update `docs/domain-mechanics.md` for business logic and flow rules.
+- Update `docs/development-workflow.md` for setup/ops commands and local workflows.
 
-**Optional: Google login** – Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` (e.g. `${APP_URL}/auth/google/callback`) in `.env` to show “Log in with Google” on the login and register pages. Create OAuth 2.0 credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+## Optional Authentication Providers
 
-## Data & conventions
+Set these in `.env` to enable social login buttons:
 
-- **Timezones:** All datetimes are stored in **UTC** in the database. Users can set a timezone in Profile; dates and times are then shown in that timezone. Form inputs (e.g. event instance start/end) are interpreted in the user’s timezone and saved as UTC.
-- **Ownership & audit:** Main entities (events, event instances, organizations, slots, places, tags, activities, activity proposals) have `created_by` and `updated_by` (user IDs). The `HasMetaColumns` trait sets these from the authenticated user. These entities also support soft deletes (`deleted_at`, `deleted_by`).
+- Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- Facebook: `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
 
-## GitHub
+Callbacks are routed under `/auth/google/callback` and `/auth/facebook/callback`.
 
-This repo is ready to push to GitHub. After creating a new repository on GitHub:
+## Notes
 
-```bash
-git remote add origin https://github.com/YOUR_USERNAME/nerdik.git
-git branch -M main   # optional: use main instead of master
-git push -u origin main
-```
-
-Do not commit `.env` (it’s in `.gitignore`). Commit `.env.example` if you have one so others can copy it for local setup.
+- Datetimes are stored in UTC; UI renders in the user profile timezone.
+- After pulling dependency or frontend changes, run `make npm-install` and `make npm-build`.
+- Polish full-text search catalog setup lives in `docker/pgsql/init-polish-fts.sql`.
