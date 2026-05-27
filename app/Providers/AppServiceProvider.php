@@ -17,6 +17,7 @@ use App\Observers\ActivityObserver;
 use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
+use App\View\Composers\SeoComposer;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -60,6 +61,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Let published Livewire pagination views override package defaults (theme-aware styles).
         View::prependNamespace('livewire', resource_path('views/vendor/livewire'));
+
+        View::composer(['layouts.app', 'layouts.guest', 'welcome'], SeoComposer::class);
 
         // Keep polymorphic type strings compact and stable across apps/packages.
         Relation::morphMap([

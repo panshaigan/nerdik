@@ -96,9 +96,6 @@ Route::middleware(['auth'])->group(function () {
         ->except(['show']);
 
     Route::resource('activities', ActivityController::class)->except(['store', 'update', 'show', 'index']);
-    Route::get('activities/{activity}', function (Activity $activity) {
-        return view('activities.show', compact('activity'));
-    })->name('activities.show');
 
     Route::view('activity-proposals', 'activity-proposals.index')->name('activity-proposals.index');
     Route::post('activity-proposals/{proposal}/accept', [ActivityProposalController::class, 'accept'])->name('activity-proposals.accept');
@@ -129,5 +126,16 @@ Route::middleware(['auth'])->group(function () {
 Route::get('events/{event}', function (Event $event) {
     return view('events.show', compact('event'));
 })->name('events.show');
+
+// Public activity detail route.
+// Must be declared after more specific routes like `activities/create` and `activities/*/edit`.
+Route::get('activities/{activity}', function (Activity $activity) {
+    abort_unless(
+        Activity::query()->whereKey($activity->getKey())->attachedToPublicEvent()->exists(),
+        404
+    );
+
+    return view('activities.show', compact('activity'));
+})->name('activities.show');
 
 require __DIR__.'/auth.php';

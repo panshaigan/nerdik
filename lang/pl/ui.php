@@ -26,6 +26,14 @@ return [
         'language_en' => 'Angielski',
         'language_pl' => 'Polski',
     ],
+    'seo' => [
+        'default_description' => 'Odkrywaj wydarzenia i aktywnosci, zarzadzaj harmonogramem i wspolpracuj z organizatorami w Nerdik.',
+        'welcome_title' => 'Strona glowna',
+        'welcome_description' => 'Nerdik pomaga organizatorom i prowadzacym koordynowac aktywnosci podczas nadchodzacych wydarzen. Tworz harmonogramy szybciej, zbieraj propozycje aktywnosci i informuj uczestnikow.',
+        'search_description' => 'Szukaj publicznych wydarzen i aktywnosci w Nerdik. Filtruj po tagach, datach i lokalizacji.',
+        'event_fallback_description' => 'Zobacz szczegoly wydarzenia :name w Nerdik.',
+        'activity_fallback_description' => 'Zobacz szczegoly aktywnosci :name w Nerdik.',
+    ],
     'profile' => [
         'notifications' => [
             'intro' => 'Wybierz, jak chcesz otrzymywac rozne aktualizacje. Powiadomienia w aplikacji trafiaja na liste i moga pojawiac sie jako krotka nakladka.',
