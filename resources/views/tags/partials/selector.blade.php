@@ -45,6 +45,9 @@
             'browseTextSearchHint' => __('ui.browse.text_search_chip_hint'),
             'browseTextSearchLabel' => __('ui.browse.text_search_chip_label'),
             'browseTextSearchRemove' => __('ui.browse.text_search_remove'),
+            'browseSuggestionsLoading' => __('ui.browse.suggestions_loading'),
+            'browseSuggestionsEvents' => __('ui.browse.suggestions_events'),
+            'browseSuggestionsActivities' => __('ui.browse.suggestions_activities'),
         ],
     ];
     if ($browseTextSearch) {

@@ -173,6 +173,55 @@ class BrowseTagSuggestionsTest extends TestCase
         $this->assertStringContainsString('"searchLimit":30', $normalized);
     }
 
+    public function test_browse_suggestions_include_events_and_activities(): void
+    {
+        $event = Event::factory()->public()->create([
+            'name' => 'Vampire Weekend',
+            'starts_at' => now()->addDays(4),
+            'ends_at' => now()->addDays(5),
+            'cancelled_at' => null,
+        ]);
+
+        $activity = Activity::factory()->create([
+            'name' => 'Vampire Workshop',
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(3),
+            'cancelled_at' => null,
+        ]);
+
+        $component = Livewire::withoutLazyLoading()->test(BrowseEvents::class);
+        $results = $component->instance()->searchBrowseSuggestions('vamp');
+
+        $this->assertIsArray($results);
+
+        $eventIds = array_map(static fn (array $row) => (int) $row['id'], $results['events'] ?? []);
+        $this->assertContains((int) $event->id, $eventIds);
+
+        $activityIds = array_map(static fn (array $row) => (int) $row['id'], $results['activities'] ?? []);
+        $this->assertContains((int) $activity->id, $activityIds);
+
+        $eventRow = null;
+        foreach (($results['events'] ?? []) as $row) {
+            if ((int) $row['id'] === (int) $event->id) {
+                $eventRow = $row;
+                break;
+            }
+        }
+        $this->assertNotNull($eventRow, 'Expected events suggestion row to exist.');
+        $this->assertSame(route('events.show', $event), (string) $eventRow['url']);
+
+        $activityRow = null;
+        foreach (($results['activities'] ?? []) as $row) {
+            if ((int) $row['id'] === (int) $activity->id) {
+                $activityRow = $row;
+                break;
+            }
+        }
+        $this->assertNotNull($activityRow, 'Expected activities suggestion row to exist.');
+        $this->assertSame(route('activities.show', $activity), (string) $activityRow['url']);
+    }
+
     private function attachTagToBrowseVisibleActivity(Tag $tag, int $popularityScore): void
     {
         $owner = User::factory()->create();
