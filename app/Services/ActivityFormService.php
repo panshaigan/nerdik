@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
+use App\Jobs\RecalculateTagPopularityJob;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -73,7 +74,7 @@ class ActivityFormService
             $activity->update($payload);
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
-            $activity->tags()->sync($tagIds);
+            $this->syncActivityTags($activity, $tagIds);
             $this->applyActivityLogoFromForm($form, $activity);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $message = $proposalCreated
@@ -83,7 +84,7 @@ class ActivityFormService
             $activity = Activity::create($payload);
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
-            $activity->tags()->sync($tagIds);
+            $this->syncActivityTags($activity, $tagIds);
             $this->applyActivityLogoFromForm($form, $activity);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $message = $proposalCreated
@@ -117,6 +118,35 @@ class ActivityFormService
         $event = $slot->event;
         $event->load(['slots.activity']);
         $this->slotScheduleSync->syncSlotEndsForEvent($event);
+    }
+
+    /**
+     * @param  list<int>  $tagIds
+     */
+    private function syncActivityTags(Activity $activity, array $tagIds): void
+    {
+        $existingTagIds = array_values(array_unique(
+            $activity->tags()->pluck('tags.id')->map(fn (mixed $id): int => (int) $id)->all()
+        ));
+        $normalizedTagIds = array_values(array_unique(array_map('intval', $tagIds)));
+
+        $sortedExistingTagIds = $existingTagIds;
+        $sortedNormalizedTagIds = $normalizedTagIds;
+        sort($sortedExistingTagIds);
+        sort($sortedNormalizedTagIds);
+
+        $activity->tags()->sync($normalizedTagIds);
+
+        if ($sortedExistingTagIds === $sortedNormalizedTagIds) {
+            return;
+        }
+
+        $affectedTagIds = array_values(array_unique(array_merge($existingTagIds, $normalizedTagIds)));
+        if ($affectedTagIds === []) {
+            return;
+        }
+
+        RecalculateTagPopularityJob::dispatch($affectedTagIds)->afterCommit();
     }
 
     private function createProposalForActivityIfRequested(

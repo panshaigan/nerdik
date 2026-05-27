@@ -25,6 +25,11 @@ final class AttachTagMediaFromPublicTest extends TestCase
     #[Test]
     public function it_attaches_media_with_conversions_and_responsive_images(): void
     {
+        config([
+            'media.test_profile' => 'full',
+            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+        ]);
+
         $tag = Tag::factory()->create();
 
         $fixturePath = 'images/tag-game/fixture-seed.jpg';

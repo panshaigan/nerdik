@@ -21,8 +21,16 @@ final class TagSeederImagesTest extends TestCase
     #[Test]
     public function game_genre_and_setting_tags_receive_default_seed_image(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $genreCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GENRE]);
+        $settingCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_SETTING]);
+
+        Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
+        Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
+        Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
+
+        $seeder = new TagSeeder;
+        $seeder->seedDefaultTagImages();
 
         $tagsWithImages = Tag::query()
             ->whereHas('tagCategory', fn ($query) => $query->whereIn('key', [
@@ -32,7 +40,7 @@ final class TagSeederImagesTest extends TestCase
             ]))
             ->get();
 
-        $this->assertNotEmpty($tagsWithImages);
+        $this->assertCount(3, $tagsWithImages);
 
         foreach ($tagsWithImages as $tag) {
             $media = $tag->getFirstMedia('images');
@@ -47,7 +55,9 @@ final class TagSeederImagesTest extends TestCase
     public function rpg_activity_type_and_event_listing_defaults_are_seeded(): void
     {
         $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+
+        $seeder = new TagSeeder;
+        $seeder->seedListingImages();
 
         $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($rpgType);
@@ -66,17 +76,12 @@ final class TagSeederImagesTest extends TestCase
     #[Test]
     public function other_category_tags_do_not_receive_default_seed_image(): void
     {
-        $this->seed(ActivityTypeSeeder::class);
-        $this->seed(TagSeeder::class);
+        $otherCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_OTHER]);
+        $tag = Tag::factory()->create(['tag_category_id' => $otherCategory->id]);
 
-        $otherTags = Tag::query()
-            ->whereHas('tagCategory', fn ($query) => $query->where('key', TagCategory::KEY_OTHER))
-            ->get();
+        $seeder = new TagSeeder;
+        $seeder->seedDefaultTagImages();
 
-        $this->assertNotEmpty($otherTags);
-
-        foreach ($otherTags as $tag) {
-            $this->assertCount(0, $tag->getMedia('images'), "Tag #{$tag->id} should not have images.");
-        }
+        $this->assertCount(0, $tag->refresh()->getMedia('images'));
     }
 }

@@ -22,9 +22,39 @@ trait InteractsWithOptimizedImages
     {
         $queued = (bool) config('media.queue_conversions', true);
 
-        $this->registerOptimizedImageConversion('avif', 'avif', $queued);
-        $this->registerOptimizedImageConversion('webp', 'webp', $queued);
-        $this->registerOptimizedImageConversion('jpeg', 'jpg', $queued);
+        foreach ($this->conversionFormatsForEnvironment() as $format) {
+            $this->registerOptimizedImageConversion(
+                $format['name'],
+                $format['extension'],
+                $queued,
+            );
+        }
+    }
+
+    /**
+     * @return list<array{name: string, extension: string}>
+     */
+    protected function conversionFormatsForEnvironment(): array
+    {
+        if (! app()->environment('testing')) {
+            return [
+                ['name' => 'avif', 'extension' => 'avif'],
+                ['name' => 'webp', 'extension' => 'webp'],
+                ['name' => 'jpeg', 'extension' => 'jpg'],
+            ];
+        }
+
+        $formats = config('media.test_profile', 'minimal') === 'full'
+            ? config('media.full_test_formats', ['avif', 'webp', 'jpeg'])
+            : config('media.testing.conversion_formats', ['webp']);
+
+        return array_map(
+            fn (string $name): array => [
+                'name' => $name,
+                'extension' => $name === 'jpeg' ? 'jpg' : $name,
+            ],
+            $formats,
+        );
     }
 
     protected function registerOptimizedImageConversion(string $name, string $format, bool $queued): void
@@ -33,13 +63,25 @@ trait InteractsWithOptimizedImages
             ->format($format)
             ->quality((int) config("media.conversion_qualities.{$name}", 85))
             ->fit(Fit::Max, 1536, 1536)
-            ->withResponsiveImages()
             ->performOnCollections('images');
+
+        if ($this->shouldGenerateResponsiveImages()) {
+            $conversion->withResponsiveImages();
+        }
 
         if ($queued) {
             $conversion->queued();
         } else {
             $conversion->nonQueued();
         }
+    }
+
+    protected function shouldGenerateResponsiveImages(): bool
+    {
+        if (! app()->environment('testing')) {
+            return true;
+        }
+
+        return (bool) config('media.testing.generate_responsive_images', true);
     }
 }

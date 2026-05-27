@@ -15,6 +15,16 @@ final class MediaPictureSourcesTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'media.test_profile' => 'full',
+            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+        ]);
+    }
+
     #[Test]
     public function it_builds_srcset_strings_for_each_conversion(): void
     {
