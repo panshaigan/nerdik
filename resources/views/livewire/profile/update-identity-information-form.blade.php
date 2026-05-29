@@ -59,21 +59,21 @@ new class extends Component
 
 <section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity" data-ui="profile-identity-section">
     <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
-        <x-input wire:model="nickname" label="{{ __('Nickname') }}" type="text" name="nickname" error-field="nickname" required />
-        <x-input wire:model="name" label="{{ __('Name (optional)') }}" type="text" name="name" error-field="name" />
+        <x-input wire:model="nickname" label="{{ __('ui.auth.nickname') }}" type="text" name="nickname" error-field="nickname" required />
+        <x-input wire:model="name" label="{{ __('ui.profile.name_optional') }}" type="text" name="name" error-field="name" />
         <x-select
             wire:model="organization_id"
-            label="{{ __('Organization') }}"
-            placeholder="{{ __('Select an organization (optional)') }}"
+            label="{{ __('ui.profile.organization') }}"
+            placeholder="{{ __('ui.profile.select_organization_optional') }}"
             :options="$organizationOptions"
             error-field="organization_id"
         />
 
         <div>
             <fieldset class="fieldset py-0">
-                <legend class="fieldset-legend mb-0.5">{{ __('Timezone (for displaying dates)') }}</legend>
+                <legend class="fieldset-legend mb-0.5">{{ __('ui.profile.timezone_label') }}</legend>
                 <select wire:model="timezone" name="timezone" class="select select-bordered w-full">
-                    <option value="">{{ __('Use server default (UTC)') }}</option>
+                    <option value="">{{ __('ui.profile.timezone_server_default') }}</option>
                     @if ($timezone && ! in_array($timezone, ['UTC', 'Europe/Warsaw', 'Europe/London', 'Europe/Berlin', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney'], true))
                         <option value="{{ $timezone }}" selected>{{ $timezone }}</option>
                     @endif
@@ -93,8 +93,8 @@ new class extends Component
         </div>
 
         <div class="flex items-center justify-end gap-4">
-            <x-action-message class="me-3" on="profile-identity-updated">{{ __('Saved.') }}</x-action-message>
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+            <x-action-message class="me-3" on="profile-identity-updated">{{ __('ui.common.saved') }}</x-action-message>
+            <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
 </section>

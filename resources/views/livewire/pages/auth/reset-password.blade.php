@@ -67,7 +67,7 @@ new #[Layout('layouts.guest')] class extends Component
     <form id="ui-auth-reset-form" wire:submit="resetPassword" class="ui-form ui-form-auth-reset space-y-4" data-ui="auth-reset-form">
         <x-input
             wire:model="email"
-            label="{{ __('Email') }}"
+            label="{{ __('ui.common.email') }}"
             type="email"
             name="email"
             error-field="email"
@@ -80,7 +80,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         <x-password
             wire:model="password"
-            label="{{ __('Password') }}"
+            label="{{ __('ui.common.password') }}"
             name="password"
             error-field="password"
             required
@@ -91,7 +91,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         <x-password
             wire:model="password_confirmation"
-            label="{{ __('Confirm Password') }}"
+            label="{{ __('ui.common.confirm_password') }}"
             name="password_confirmation"
             error-field="password_confirmation"
             required
@@ -101,7 +101,7 @@ new #[Layout('layouts.guest')] class extends Component
         />
 
         <div class="flex justify-end">
-            <x-button id="ui-auth-reset-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-reset-submit">{{ __('Reset Password') }}</x-button>
+            <x-button id="ui-auth-reset-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-reset-submit">{{ __('ui.auth.reset_password') }}</x-button>
         </div>
     </form>
 </div>

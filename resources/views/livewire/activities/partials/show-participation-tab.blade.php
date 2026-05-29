@@ -11,7 +11,7 @@
             <div class="mb-6 max-w-xl mx-auto w-full">
             @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ $signupBlockedMessage }}"
                     icon="o-home"
                     data-ui="activity-show-signup-blocked"
@@ -20,7 +20,7 @@
             @endif
             @if (filled($stateBlockedMessage ?? null))
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ $stateBlockedMessage }}"
                     icon="o-home"
                     data-ui="activity-show-state-blocked"
@@ -29,7 +29,7 @@
             @endif
             @if (($activeWindowRemainingForActivity ?? null) !== null)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ __('ui.events.enrollment_window_activity_spots_remaining', [
                         'remaining' => $activeWindowRemainingForActivity,
                         'max' => $activeWindowPerActivityMax,
@@ -41,7 +41,7 @@
             @endif
             @if (($activeWindowUserRemaining ?? null) !== null)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}"
                     icon="o-home"
                     data-ui="activity-show-window-user-cap"

@@ -8,13 +8,13 @@
     'formSelector' => null,
     'fileInputId' => null,
     'modalTitle' => null,
-    'uploadTitle' => __('Upload a photo'),
+    'uploadTitle' => __('ui.common.upload_photo'),
     'uploadHelp' => null,
-    'chooseLabel' => __('Choose file'),
-    'cropLabel' => __('Crop file'),
-    'removeLabel' => __('Remove image'),
-    'recropHint' => __('Click Crop file to adjust the crop before saving.'),
-    'previewLabel' => __('Preview'),
+    'chooseLabel' => __('ui.common.choose_file'),
+    'cropLabel' => __('ui.common.crop_file'),
+    'removeLabel' => __('ui.common.remove_image'),
+    'recropHint' => __('ui.common.recrop_hint'),
+    'previewLabel' => __('ui.common.preview'),
     'outputSize' => '512,512',
     'fileName' => 'image.webp',
     'savedEvent' => null,
@@ -23,8 +23,8 @@
 @php
     $isVideo = $aspect === 'video';
     $uploadHelpText = $uploadHelp ?? ($isVideo
-        ? __('Drag and drop an image here, or use the button below. JPEG, PNG, or WebP. Crop to 16:9; stored as WebP after you save.')
-        : __('Drag and drop an image here, or use the button below. JPEG, PNG, or WebP. After cropping, click Save below.'));
+        ? __('ui.common.crop_upload_help_video')
+        : __('ui.common.crop_upload_help_square'));
     $previewClasses = $isVideo
         ? 'aspect-video w-full max-w-md rounded-2xl object-cover ring-2 ring-base-300/50'
         : 'h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56';
@@ -32,7 +32,7 @@
         ? 'flex aspect-video w-full max-w-md items-center justify-center rounded-2xl bg-base-300/40 ring-2 ring-base-300/50'
         : 'flex h-48 w-48 items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50 sm:h-56 sm:w-56';
     $resolvedFileInputId = $fileInputId ?? 'ui-image-crop-file-'.md5($wireProperty.$formSelector);
-    $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('Crop cover image') : __('Crop your avatar'));
+    $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('ui.events.image_crop_title') : __('ui.profile.crop_avatar'));
 @endphp
 
 <div

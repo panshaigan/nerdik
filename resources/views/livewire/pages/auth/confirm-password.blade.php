@@ -35,13 +35,13 @@ new #[Layout('layouts.guest')] class extends Component
 
 <div id="ui-auth-confirm-root" class="ui-auth ui-auth-confirm" data-ui="auth-confirm-root">
     <div class="mb-4 text-sm text-base-content/80">
-        {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
+        {{ __('ui.auth.confirm_password_intro') }}
     </div>
 
     <form id="ui-auth-confirm-form" wire:submit="confirmPassword" class="ui-form ui-form-auth-confirm space-y-4" data-ui="auth-confirm-form">
         <x-password
             wire:model="password"
-            label="{{ __('Password') }}"
+            label="{{ __('ui.common.password') }}"
             name="password"
             error-field="password"
             required
@@ -51,7 +51,7 @@ new #[Layout('layouts.guest')] class extends Component
         />
 
         <div class="flex justify-end">
-            <x-button id="ui-auth-confirm-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-confirm-submit">{{ __('Confirm') }}</x-button>
+            <x-button id="ui-auth-confirm-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-confirm-submit">{{ __('ui.common.confirm') }}</x-button>
         </div>
     </form>
 </div>

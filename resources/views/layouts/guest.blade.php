@@ -48,9 +48,9 @@
             "
         >
             <div class="modal-box max-w-md ui-modal-surface">
-                <h3 class="text-lg font-semibold">{{ __('Session expired') }}</h3>
+                <h3 class="text-lg font-semibold">{{ __('ui.auth.session_expired') }}</h3>
                 <p class="mt-2 text-sm opacity-70">
-                    {{ __('Your session is no longer valid. Redirecting to login...') }}
+                    {{ __('ui.auth.session_expired_redirect') }}
                 </p>
 
                 <div class="mt-4 flex justify-center">
@@ -60,14 +60,14 @@
                 <div class="mt-6 modal-action">
                     <form method="dialog">
                         <button type="submit" class="btn btn-ghost">
-                            {{ __('Cancel') }}
+                            {{ __('ui.common.cancel') }}
                         </button>
                     </form>
                 </div>
             </div>
 
             <form method="dialog" class="modal-backdrop">
-                <button type="submit" class="sr-only">{{ __('Close') }}</button>
+                <button type="submit" class="sr-only">{{ __('ui.common.close') }}</button>
             </form>
         </dialog>
 

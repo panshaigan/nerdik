@@ -1,6 +1,6 @@
 <div class="">
     <p class="mb-6 text-sm text-base-content/80">
-        {{ __('Click saved-place markers to toggle them (several allowed). Search lists your places, venues you add on this form, and map results. Double-click empty map to add a venue — the name field is focused so you can type (e.g. a pub not in OpenStreetMap). After saving, those places appear under your places for future events.') }}
+        {{ __('ui.events.location_tab_help') }}
     </p>
 
     <div id="ui-event-places-section" data-event-places-unified class="ui-event-places space-y-3" data-ui="event-places-section" wire:ignore>
@@ -11,7 +11,7 @@
                 data-ep-search
                 autocomplete="off"
                 :label="__('ui.slots.venue_optional')"
-                :placeholder="__('Search places or address… (double-click map to add)')"
+                :placeholder="__('ui.activities.self_hosted_place_search_placeholder')"
                 class="ui-field ui-field-event-place-search w-full"
                 :omit-error="true"
                 id="ui-event-place-search"
@@ -40,7 +40,7 @@
             data-ep-new-venues-wrap
             class="{{ count($eventPlacesConfig['initialNewPlaces'] ?? []) ? '' : 'hidden' }} space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3"
         >
-            <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('New venues (created when you save)') }}</p>
+            <p class="text-xs font-medium text-base-content" data-ep-new-heading>{{ __('ui.activities.self_hosted_new_venues_label') }}</p>
             <div data-ep-new-venues class="space-y-3"></div>
         </div>
 

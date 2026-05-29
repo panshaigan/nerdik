@@ -2,8 +2,8 @@
     @if ($notifications->total() > 0)
         <div class="mb-4">
             <x-button type="button" class="btn-ghost btn-sm" wire:click="markAllRead" wire:loading.attr="disabled">
-                <span wire:loading.remove wire:target="markAllRead">{{ __('Mark all as read') }}</span>
-                <span wire:loading wire:target="markAllRead">{{ __('Updating…') }}</span>
+                <span wire:loading.remove wire:target="markAllRead">{{ __('ui.notifications.mark_all_read') }}</span>
+                <span wire:loading wire:target="markAllRead">{{ __('ui.notifications.updating') }}</span>
             </x-button>
         </div>
     @endif
@@ -33,7 +33,7 @@
                 </x-button>
             </div>
         @empty
-            <p class="p-6 text-center opacity-70">{{ __('No notifications yet.') }}</p>
+            <p class="p-6 text-center opacity-70">{{ __('ui.notifications.empty') }}</p>
         @endforelse
 
         @if ($notifications->hasPages())

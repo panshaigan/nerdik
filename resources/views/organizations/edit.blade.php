@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-base-content">
-            {{ __('Edit organization') }}: {{ $organization->name }}
+            {{ __('ui.organizations.edit') }}: {{ $organization->name }}
         </h2>
     </x-slot>
 
@@ -10,7 +10,7 @@
             <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
                 <form method="POST" action="{{ route('organizations.update', $organization) }}">
                     @method('PUT')
-                    @include('organizations.form', ['submitLabel' => __('Update')])
+                    @include('organizations.form', ['submitLabel' => __('ui.common.update')])
                 </form>
             </div>
         </div>

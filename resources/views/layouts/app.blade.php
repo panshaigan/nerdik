@@ -34,11 +34,11 @@
 
                     <x-slot:footer class="border-t border-base-300 bg-base-100/90">
                         <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-                            <p class="opacity-70">Copyright {{ date('Y') }} Nerdik. All rights reserved.</p>
+                            <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-                                <a href="#" class="link link-hover opacity-80">Privacy</a>
-                                <a href="#" class="link link-hover opacity-80">Terms</a>
-                                <a href="#" class="link link-hover opacity-80">Contact</a>
+                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
+                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>
+                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.contact') }}</a>
                             </div>
                         </div>
                     </x-slot:footer>
@@ -65,9 +65,9 @@
             "
         >
             <div class="modal-box max-w-md ui-modal-surface">
-                <h3 class="text-lg font-semibold">{{ __('Session expired') }}</h3>
+                <h3 class="text-lg font-semibold">{{ __('ui.auth.session_expired') }}</h3>
                 <p class="mt-2 text-sm opacity-70">
-                    {{ __('Your session is no longer valid. Redirecting to login...') }}
+                    {{ __('ui.auth.session_expired_redirect') }}
                 </p>
 
                 <div class="mt-4 flex justify-center">
@@ -77,14 +77,14 @@
                 <div class="mt-6 modal-action">
                     <form method="dialog">
                         <button type="submit" class="btn btn-ghost">
-                            {{ __('Cancel') }}
+                            {{ __('ui.common.cancel') }}
                         </button>
                     </form>
                 </div>
             </div>
 
             <form method="dialog" class="modal-backdrop">
-                <button type="submit" class="sr-only">{{ __('Close') }}</button>
+                <button type="submit" class="sr-only">{{ __('ui.common.close') }}</button>
             </form>
         </dialog>
 

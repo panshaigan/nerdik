@@ -3,7 +3,7 @@
         <div class="mx-auto w-full max-w-xl space-y-2">
             @if (filled($participation?->signupBlockedMessage) && ! $participation?->isParticipant && ! $participation?->onWaitlist && ! $participation?->canJoin)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ $participation->signupBlockedMessage }}"
                     icon="o-home"
                     data-ui="event-activity-preview-signup-blocked"
@@ -13,7 +13,7 @@
 
             @if (filled($participation?->stateBlockedMessage))
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ $participation->stateBlockedMessage }}"
                     icon="o-home"
                     data-ui="event-activity-preview-state-blocked"
@@ -23,7 +23,7 @@
 
             @if (($participation?->activeWindowRemainingForActivity ?? null) !== null)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ __('ui.events.enrollment_window_activity_spots_remaining', [
                         'remaining' => $participation->activeWindowRemainingForActivity,
                         'max' => $participation->activeWindowPerActivityMax,
@@ -36,7 +36,7 @@
 
             @if (($participation?->activeWindowUserRemaining ?? null) !== null)
                 <x-alert
-                    title="Hey!"
+                    title="{{ __('ui.common.attention') }}"
                     description="{{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $participation->activeWindowUserRemaining]) }}"
                     icon="o-home"
                     data-ui="event-activity-preview-window-user-cap"

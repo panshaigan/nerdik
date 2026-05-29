@@ -108,8 +108,8 @@
                             <x-button
                                 :link="url_with_return(route('events.edit', $event))"
                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
-                                :tooltip="__('Edit')"
-                                :aria-label="__('Edit').': '.$event->name"
+                                :tooltip="__('ui.common.edit')"
+                                :aria-label="__('ui.common.edit').': '.$event->name"
                                 data-ui="event-show-edit-open"
                                 icon="o-pencil"
                             />
@@ -129,8 +129,8 @@
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                         wire:click="confirmDeleteEvent"
-                                        :tooltip="__('Delete')"
-                                        :aria-label="__('Delete').': '.$event->name"
+                                        :tooltip="__('ui.common.delete')"
+                                        :aria-label="__('ui.common.delete').': '.$event->name"
                                         data-ui="event-show-delete"
                                         icon="o-trash"
                                     />
@@ -150,8 +150,8 @@
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                                         wire:click="confirmDeleteEvent"
-                                        :tooltip="__('Delete')"
-                                        :aria-label="__('Delete').': '.$event->name"
+                                        :tooltip="__('ui.common.delete')"
+                                        :aria-label="__('ui.common.delete').': '.$event->name"
                                         data-ui="event-show-delete-after-cancel"
                                         icon="o-trash"
                                     />

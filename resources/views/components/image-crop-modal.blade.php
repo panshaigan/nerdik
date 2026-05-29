@@ -1,5 +1,5 @@
 @props([
-    'title' => __('Crop image'),
+    'title' => __('ui.common.crop_image'),
 ])
 
 <dialog id="ui-image-crop-modal" class="modal backdrop-blur">
@@ -9,11 +9,11 @@
             <div class="w-full" data-image-crop-croppie></div>
         </div>
         <div class="modal-action">
-            <x-button type="button" class="btn-ghost" data-image-crop-cancel>{{ __('Cancel') }}</x-button>
-            <x-button type="button" class="btn-primary" data-image-crop-apply>{{ __('Use cropped image') }}</x-button>
+            <x-button type="button" class="btn-ghost" data-image-crop-cancel>{{ __('ui.common.cancel') }}</x-button>
+            <x-button type="button" class="btn-primary" data-image-crop-apply>{{ __('ui.common.use_cropped_image') }}</x-button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
-        <button type="submit" class="sr-only">{{ __('Cancel') }}</button>
+        <button type="submit" class="sr-only">{{ __('ui.common.cancel') }}</button>
     </form>
 </dialog>

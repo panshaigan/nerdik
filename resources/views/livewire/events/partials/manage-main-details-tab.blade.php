@@ -9,8 +9,8 @@
     <div class="relative">
         <x-input
             wire:model.live.debounce.300ms="name"
-            label="{{ __('Name') }}"
-            placeholder="{{ __('Name') }}"
+            label="{{ __('ui.common.name') }}"
+            placeholder="{{ __('ui.common.name') }}"
             type="text"
             error-field="name"
             required
@@ -34,8 +34,8 @@
         <input type="hidden" wire:model="organization_id" data-event-org-id />
         <x-input
             wire:model.live.debounce.300ms="organization_name"
-            label="{{ __('Organization') }}"
-            placeholder="{{ __('Organization (optional)') }}"
+            label="{{ __('ui.events.form_organization') }}"
+            placeholder="{{ __('ui.events.form_organization_optional') }}"
             type="text"
             error-field="organization_name"
             autocomplete="off"
@@ -58,7 +58,7 @@
     <div class="relative">
         <x-input
             wire:model="starts_at"
-            label="{{ __('Starts at') }}"
+            label="{{ __('ui.events.form_starts_at') }}"
             type="datetime-local"
             :step="$datetimeMinuteStepSeconds"
             :min="$eventStartsAtMin"
@@ -74,7 +74,7 @@
     <div class="relative">
         <x-input
             wire:model="ends_at"
-            label="{{ __('Ends at') }}"
+            label="{{ __('ui.events.form_ends_at') }}"
             type="datetime-local"
             :step="$datetimeMinuteStepSeconds"
             :min="$eventEndsAtMin"

@@ -22,7 +22,7 @@
                     <x-brand-logo class="h-10 w-10" />
                     <div>
                         <p class="text-lg font-semibold">{{ config('app.name', 'Nerdik') }}</p>
-                        <p class="text-sm opacity-70">{{ __('Discover what to play next') }}</p>
+                        <p class="text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
                     </div>
                 </div>
                 @if (Route::has('login'))
@@ -32,25 +32,25 @@
 
             <main class="flex-1 py-8">
                 <section class="rounded-3xl border border-base-300 bg-base-100/90 p-8 shadow-xl shadow-primary/10 backdrop-blur-sm md:p-12">
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">{{ __('Welcome') }}</p>
+                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">{{ __('ui.welcome.heading') }}</p>
                     <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-                        {{ __('Find your next unforgettable session.') }}
+                        {{ __('ui.welcome.hero_title') }}
                     </h1>
                     <p class="mt-5 max-w-2xl text-lg opacity-80">
-                        {{ __('Step into a living map of stories, games, and gatherings. Pick what feels right and join in.') }}
+                        {{ __('ui.welcome.hero_description') }}
                     </p>
 
                     <div class="mt-8 flex flex-wrap gap-3">
                         @auth
-                            <x-button :link="route('dashboard')" class="btn-primary">{{ __('Continue your journey') }}</x-button>
-                            <x-button :link="route('search.index')" class="btn-outline">{{ __('Browse everything') }}</x-button>
+                            <x-button :link="route('dashboard')" class="btn-primary">{{ __('ui.welcome.continue_journey') }}</x-button>
+                            <x-button :link="route('search.index')" class="btn-outline">{{ __('ui.welcome.browse_everything') }}</x-button>
                         @else
                             @if (Route::has('register'))
-                                <x-button :link="route('register')" class="btn-primary">{{ __('Start exploring') }}</x-button>
+                                <x-button :link="route('register')" class="btn-primary">{{ __('ui.welcome.start_exploring') }}</x-button>
                             @endif
-                            <x-button :link="route('search.index')" class="btn-outline">{{ __('See upcoming events') }}</x-button>
+                            <x-button :link="route('search.index')" class="btn-outline">{{ __('ui.welcome.see_upcoming_events') }}</x-button>
                             @if (Route::has('login'))
-                                <x-button :link="route('login')" class="btn-ghost">{{ __('I already have an account') }}</x-button>
+                                <x-button :link="route('login')" class="btn-ghost">{{ __('ui.welcome.already_have_account') }}</x-button>
                             @endif
                         @endauth
                     </div>
@@ -59,11 +59,11 @@
                 <section class="mt-10">
                     <div class="mb-5 flex items-end justify-between gap-4">
                         <div>
-                            <h2 class="text-2xl font-semibold md:text-3xl">{{ __('Closest activities & events') }}</h2>
-                            <p class="mt-1 text-sm opacity-70">{{ __('Fresh picks that are coming up next.') }}</p>
+                            <h2 class="text-2xl font-semibold md:text-3xl">{{ __('ui.welcome.closest_heading') }}</h2>
+                            <p class="mt-1 text-sm opacity-70">{{ __('ui.welcome.closest_subheading') }}</p>
                         </div>
                         <a href="{{ route('search.index') }}" class="link link-primary text-sm font-medium">
-                            {{ __('Open full calendar') }}
+                            {{ __('ui.welcome.open_full_calendar') }}
                         </a>
                     </div>
 
@@ -95,16 +95,16 @@
                         </div>
                     @else
                         <div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-6 text-center">
-                            <p class="text-lg font-medium">{{ __('New adventures are just around the corner.') }}</p>
-                            <p class="mt-2 text-sm opacity-70">{{ __('Check back soon or browse all listings to discover what is already open.') }}</p>
-                            <x-button :link="route('search.index')" class="btn-primary mt-4">{{ __('Browse listings') }}</x-button>
+                            <p class="text-lg font-medium">{{ __('ui.welcome.empty_title') }}</p>
+                            <p class="mt-2 text-sm opacity-70">{{ __('ui.welcome.empty_description') }}</p>
+                            <x-button :link="route('search.index')" class="btn-primary mt-4">{{ __('ui.welcome.browse_listings') }}</x-button>
                         </div>
                     @endif
                 </section>
             </main>
 
             <footer class="mt-10 border-t border-base-300 py-5 text-sm opacity-70">
-                {{ config('app.name', 'Nerdik') }} · {{ __('Bring people together through play') }}
+                {{ config('app.name', 'Nerdik') }} · {{ __('ui.welcome.footer_tagline') }}
             </footer>
         </div>
     </body>

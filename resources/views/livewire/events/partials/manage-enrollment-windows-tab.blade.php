@@ -103,8 +103,8 @@
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                             wire:click="removeEnrollmentWindow({{ $index }})"
                             wire:loading.attr="disabled"
-                            :title="__('Remove')"
-                            :aria-label="__('Remove')"
+                            :title="__('ui.common.remove')"
+                            :aria-label="__('ui.common.remove')"
                             data-ui="event-enrollment-window-remove"
                         >
                             <x-ui.icons.trash class="h-5 w-5 shrink-0" />

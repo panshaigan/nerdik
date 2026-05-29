@@ -214,41 +214,41 @@ new class extends Component
         <x-field-error :messages="$errors->get('avatar_source')" class="mt-2" />
 
         <fieldset class="fieldset py-0">
-            <legend class="fieldset-legend mb-2">{{ __('Avatar source') }}</legend>
+            <legend class="fieldset-legend mb-2">{{ __('ui.profile.avatar_source') }}</legend>
             <div class="grid gap-3 sm:grid-cols-2">
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="generated" class="radio radio-primary mt-0.5" />
                     <span>
-                        <span class="block text-sm font-semibold text-base-content">{{ __('Generated (initials)') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('Colors for ui-avatars.com') }}</span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_generated') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_generated_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="uploaded" class="radio radio-primary mt-0.5" />
                     <span>
-                        <span class="block text-sm font-semibold text-base-content">{{ __('Uploaded photo') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('Crop to a square; stored as WebP (max 5 MB upload)') }}</span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_uploaded') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_uploaded_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="gravatar" class="radio radio-primary mt-0.5" />
                     <span>
-                        <span class="block text-sm font-semibold text-base-content">{{ __('Gravatar') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('Uses your profile email') }}</span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_gravatar') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_gravatar_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="google" class="radio radio-primary mt-0.5" />
                     <span>
-                        <span class="block text-sm font-semibold text-base-content">{{ __('Google profile photo') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('Requires linked Google account') }}</span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_google') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_google_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5 sm:col-span-2">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="facebook" class="radio radio-primary mt-0.5" />
                     <span>
-                        <span class="block text-sm font-semibold text-base-content">{{ __('Facebook profile photo') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('Requires linked Facebook account') }}</span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_facebook') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_facebook_hint') }}</span>
                     </span>
                 </label>
             </div>
@@ -257,22 +257,22 @@ new class extends Component
         @if ($avatar_source === 'generated')
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('Pick background and text colors for your generated avatar.') }}</p>
+                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_colors_hint') }}</p>
                     <x-input
                         wire:model.live="avatar_initials"
-                        label="{{ __('Avatar initials') }}"
+                        label="{{ __('ui.profile.avatar_initials') }}"
                         type="text"
                         name="avatar_initials"
                         error-field="avatar_initials"
                         placeholder="{{ auth()->user()->displayName() }}"
                         maxlength="3"
                     />
-                    <p class="text-xs text-base-content/70">{{ __('Leave blank to use your nickname. Up to 3 letters.') }}</p>
-                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('Avatar background color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
-                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('Avatar text color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
+                    <p class="text-xs text-base-content/70">{{ __('ui.profile.avatar_initials_hint') }}</p>
+                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.profile.avatar_bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
+                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.profile.avatar_text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
-                    <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
+                    <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>
                     @php
                         $previewInitials = trim($avatar_initials);
                         $previewName = $previewInitials !== '' ? $previewInitials : auth()->user()->displayName();
@@ -299,18 +299,18 @@ new class extends Component
                 :preview-url="auth()->user()->avatarUrl()"
                 output-size="512,512"
                 file-name="avatar.webp"
-                :modal-title="__('Crop your avatar')"
+                :modal-title="__('ui.profile.crop_avatar')"
             />
         @endif
 
         @if ($avatar_source === 'gravatar')
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('We cache your Gravatar on our server when you save or when you log in.') }}</p>
-                    <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Gravatar now') }}</x-button>
+                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_gravatar_cache_hint') }}</p>
+                    <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_gravatar') }}</x-button>
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
-                    <span class="text-sm font-medium text-base-content/80">{{ __('Preview') }}</span>
+                    <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>
                     <img
                         src="https://www.gravatar.com/avatar/{{ md5(strtolower(trim($userEmail))) }}?s=320&d=mp"
                         alt=""
@@ -325,15 +325,15 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     @if (auth()->user()->profile?->google_id)
-                        <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Google account. Refreshed on each Google sign-in and when you click below.') }}</p>
-                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Google now') }}</x-button>
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_linked_hint') }}</p>
+                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_google') }}</x-button>
                     @else
-                        <p class="text-sm text-base-content/80">{{ __('Sign in once with Google to link your account, then you can use this avatar source.') }}</p>
-                        <a href="{{ route('google.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('Link Google account') }}</a>
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_link_hint') }}</p>
+                        <a href="{{ route('google.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</a>
                     @endif
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
-                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->google_id ? __('Current') : __('Preview') }}</span>
+                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->google_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
                     <img
                         src="{{ auth()->user()->avatarUrl() }}"
                         alt=""
@@ -348,15 +348,15 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     @if (auth()->user()->profile?->facebook_id)
-                        <p class="text-sm text-base-content/80">{{ __('Uses the picture from your linked Facebook account. Refreshed on each Facebook sign-in and when you click below.') }}</p>
-                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('Refresh from Facebook now') }}</x-button>
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_linked_hint') }}</p>
+                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_facebook') }}</x-button>
                     @else
-                        <p class="text-sm text-base-content/80">{{ __('Sign in once with Facebook to link your account, then you can use this avatar source.') }}</p>
-                        <a href="{{ route('facebook.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('Link Facebook account') }}</a>
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_link_hint') }}</p>
+                        <a href="{{ route('facebook.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</a>
                     @endif
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
-                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->facebook_id ? __('Current') : __('Preview') }}</span>
+                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->facebook_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
                     <img
                         src="{{ auth()->user()->avatarUrl() }}"
                         alt=""
@@ -368,8 +368,8 @@ new class extends Component
         @endif
 
         <div class="flex items-center justify-end gap-4">
-            <x-action-message class="me-3" on="profile-avatar-updated">{{ __('Saved.') }}</x-action-message>
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+            <x-action-message class="me-3" on="profile-avatar-updated">{{ __('ui.common.saved') }}</x-action-message>
+            <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
 </section>

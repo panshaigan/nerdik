@@ -75,12 +75,12 @@ new #[Layout('layouts.guest')] class extends Component
 
 <div id="ui-auth-verify-root" class="ui-auth ui-auth-verify" data-ui="auth-verify-root">
     <div class="mb-4 text-sm text-base-content/80">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+        {{ __('ui.auth.verify_intro') }}
     </div>
 
     @if (session('status') == 'verification-link-sent')
         <div class="mb-4 text-sm font-medium text-success">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+            {{ __('ui.auth.verification_link_sent') }}
         </div>
     @endif
 
@@ -90,11 +90,11 @@ new #[Layout('layouts.guest')] class extends Component
 
     <div class="mt-4 flex items-center justify-between gap-3">
         <x-button id="ui-auth-verify-resend" class="btn-primary ui-action ui-action-resend" wire:click="sendVerification" data-ui="auth-verify-resend">
-            {{ __('Resend Verification Email') }}
+            {{ __('ui.auth.resend_verification_email') }}
         </x-button>
 
         <x-button id="ui-auth-verify-logout" wire:click="logout" type="button" class="btn-link link link-primary h-auto min-h-0 p-0 text-sm font-normal ui-action ui-action-logout" data-ui="auth-verify-logout">
-            {{ __('Log Out') }}
+            {{ __('ui.nav.log_out') }}
         </x-button>
     </div>
 </div>

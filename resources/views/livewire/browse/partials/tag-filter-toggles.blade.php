@@ -12,6 +12,6 @@
         x-bind:aria-pressed="filtersOpen ? 'true' : 'false'"
     >
         <x-icon name="o-funnel" />
-        {{ __('Filters') }}
+        {{ __('ui.browse.filters') }}
     </button>
 </div>

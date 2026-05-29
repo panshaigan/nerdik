@@ -28,7 +28,7 @@
     );
     $skipLivewireSync = (bool) ($skipLivewireSync ?? false);
     $allowCreate = ($allowCreate ?? true) !== false;
-    $tagInputPlaceholder = $placeholder ?? __('Type to search tags (or create a new one)');
+    $tagInputPlaceholder = $placeholder ?? __('ui.tags.placeholder_search_or_create');
     $browseTextSearch = ($browseTextSearch ?? false) === true;
     $fieldShellClass = trim((string) ($fieldShellClass ?? ''));
     $fieldShellUsesBrandFrame = $browseTagSelector && $fieldShellClass !== '';
@@ -40,8 +40,8 @@
         'initialNewTags' => $initialNewTags,
         'allowCreate' => $allowCreate,
         'strings' => [
-            'createTag' => __('Create tag'),
-            'auto' => __('auto'),
+            'createTag' => __('ui.tags.create_tag'),
+            'auto' => __('ui.tags.auto'),
             'browseTextSearchHint' => __('ui.browse.text_search_chip_hint'),
             'browseTextSearchLabel' => __('ui.browse.text_search_chip_label'),
             'browseTextSearchRemove' => __('ui.browse.text_search_remove'),
@@ -68,7 +68,7 @@
 @endphp
 
 @if (empty($tagsForJs))
-    <p class="text-sm text-base-content/70">{{ __('No tags in the system yet. Start typing to create the first ones.') }}</p>
+    <p class="text-sm text-base-content/70">{{ __('ui.tags.empty_system') }}</p>
 @endif
 
 <div
@@ -114,7 +114,7 @@
     </div>
 
     <div data-ts-new-wrap class="hidden space-y-2 rounded-2xl border border-primary/30 bg-primary/5 p-3">
-        <p class="text-xs font-medium text-base-content">{{ __('New tags to create') }}</p>
+        <p class="text-xs font-medium text-base-content">{{ __('ui.tags.new_to_create') }}</p>
         <div data-ts-new class="space-y-2"></div>
     </div>
 

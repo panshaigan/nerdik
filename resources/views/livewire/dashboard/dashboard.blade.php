@@ -1,9 +1,9 @@
 <div class="p-1">
-    <x-page-header title="Dashboard"/>
+    <x-page-header :title="__('ui.dashboard.title')"/>
     <div class="max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
         <section class="space-y-4">
             @if ($feed->isEmpty())
-                <p class="text-sm opacity-70">{{ __('No upcoming events or activities yet.') }}</p>
+                <p class="text-sm opacity-70">{{ __('ui.dashboard.empty') }}</p>
             @else
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
                     @foreach ($feed as $row)
