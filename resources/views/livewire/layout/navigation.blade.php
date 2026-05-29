@@ -57,6 +57,11 @@ new class extends Component
         syncBody() {
             document.body.style.overflow = this.open ? 'hidden' : '';
         },
+        localeSwitchUrl(base) {
+            return base + '?redirect=' + encodeURIComponent(
+                window.location.pathname + window.location.search + window.location.hash,
+            );
+        },
     }"
     @keydown.escape.window="open && close()"
     class="ui-app-navigation relative z-40 border-b border-base-300"
@@ -104,14 +109,14 @@ new class extends Component
         <x-slot:actions class="!gap-2 sm:!gap-2">
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-2">
                 <a
-                   href="{{ route('locale.switch', ['locale' => 'en']) }}"
-                   @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                   wire:navigate
+                   x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
                     {{ __('ui.common.language_en') }}
                 </a>
                 <a
-                   href="{{ route('locale.switch', ['locale' => 'pl']) }}"
-                   @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                   wire:navigate
+                   x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
                     {{ __('ui.common.language_pl') }}
                 </a>
@@ -297,15 +302,17 @@ new class extends Component
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="join">
                                 <a
-                                    href="{{ route('locale.switch', ['locale' => 'en']) }}"
-                                    @click.prevent="close(); window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                                    wire:navigate
+                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
+                                    @click="close()"
                                     class="join-item btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-ghost' }}"
                                 >
                                     {{ __('ui.common.language_en') }}
                                 </a>
                                 <a
-                                    href="{{ route('locale.switch', ['locale' => 'pl']) }}"
-                                    @click.prevent="close(); window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                                    wire:navigate
+                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
+                                    @click="close()"
                                     class="join-item btn btn-sm {{ app()->getLocale() === 'pl' ? 'btn-primary' : 'btn-ghost' }}"
                                 >
                                     {{ __('ui.common.language_pl') }}
