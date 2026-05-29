@@ -84,6 +84,10 @@
 
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* ─── Light theme ──────────────────────────────────────────────────── */
 @plugin "daisyui/theme" {
     name: "light";
