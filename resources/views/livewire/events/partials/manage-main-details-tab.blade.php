@@ -5,7 +5,7 @@
         ? $starts_at
         : ($enforceFuture ? format_in_user_tz(now(), 'Y-m-d\TH:i') : null);
 @endphp
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div class="relative">
         <x-input
             wire:model.live.debounce.300ms="name"
@@ -55,7 +55,7 @@
         <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
     </div>
 
-    <div class="">
+    <div class="relative">
         <x-input
             wire:model="starts_at"
             label="{{ __('Starts at') }}"
@@ -71,7 +71,7 @@
         />
     </div>
 
-    <div class="">
+    <div class="relative">
         <x-input
             wire:model="ends_at"
             label="{{ __('Ends at') }}"
