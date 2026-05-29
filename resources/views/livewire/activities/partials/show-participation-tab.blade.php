@@ -120,11 +120,11 @@
             @endforelse
             @auth
                 @if (($isParticipant || $canJoin) && ! filled($stateBlockedMessage ?? null))
-                    <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-participants-actions">
+                    <div class="mt-6 flex flex-wrap gap-2" data-ui="activity-show-participants-actions">
                         @if ($isParticipant)
-                            <x-button type="button" class="btn-error" wire:click="leave" spinner="leave">{{ __('ui.activities.leave') }}</x-button>
+                            <x-button type="button" class="btn-error mx-auto" wire:click="leave" spinner="leave">{{ __('ui.activities.leave') }}</x-button>
                         @elseif ($canJoin && ! $activity->requires_approval && ! $isFull)
-                            <x-button type="button" class="btn-primary" wire:click="join" spinner="join">{{ __('ui.activities.join') }}</x-button>
+                            <x-button type="button" class="btn-primary mx-auto" wire:click="join" spinner="join">{{ __('ui.activities.join') }}</x-button>
                         @endif
                     </div>
                 @endif
