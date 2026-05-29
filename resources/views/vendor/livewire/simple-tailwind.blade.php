@@ -12,11 +12,11 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
 
 <div>
     @if ($paginator->hasPages())
-        <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex justify-between">
+        <nav role="navigation" aria-label="{{ __('ui.pagination.navigation') }}" class="flex justify-between">
             <span>
                 @if ($paginator->onFirstPage())
                     <span class="btn btn-sm btn-disabled pointer-events-none opacity-60">
-                        {!! __('pagination.previous') !!}
+                        {!! __('ui.pagination.previous') !!}
                     </span>
                 @else
                     @if (method_exists($paginator, 'getCursorName'))
@@ -29,7 +29,7 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
                             wire:loading.attr="disabled"
                             class="btn btn-sm btn-outline border-base-300 bg-base-100 text-base-content"
                         >
-                            {!! __('pagination.previous') !!}
+                            {!! __('ui.pagination.previous') !!}
                         </button>
                     @else
                         <button
@@ -40,7 +40,7 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
                             dusk="previousPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}"
                             class="btn btn-sm btn-outline border-base-300 bg-base-100 text-base-content"
                         >
-                            {!! __('pagination.previous') !!}
+                            {!! __('ui.pagination.previous') !!}
                         </button>
                     @endif
                 @endif
@@ -58,7 +58,7 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
                             wire:loading.attr="disabled"
                             class="btn btn-sm btn-outline border-base-300 bg-base-100 text-base-content"
                         >
-                            {!! __('pagination.next') !!}
+                            {!! __('ui.pagination.next') !!}
                         </button>
                     @else
                         <button
@@ -69,12 +69,12 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
                             dusk="nextPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}"
                             class="btn btn-sm btn-outline border-base-300 bg-base-100 text-base-content"
                         >
-                            {!! __('pagination.next') !!}
+                            {!! __('ui.pagination.next') !!}
                         </button>
                     @endif
                 @else
                     <span class="btn btn-sm btn-disabled pointer-events-none opacity-60">
-                        {!! __('pagination.next') !!}
+                        {!! __('ui.pagination.next') !!}
                     </span>
                 @endif
             </span>
