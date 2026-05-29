@@ -42,7 +42,7 @@
             @endif
         </x-slot:titleSuffix>
     </x-page-header>
-    <div class="flex justify-end items-center pb-6">
+    <div class="flex justify-end items-center p-6">
             <x-toggle
                 id="is_public"
                 wire:model="is_public"
