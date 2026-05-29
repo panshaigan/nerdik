@@ -188,13 +188,13 @@ new class extends Component
                         <a
                            href="{{ route('locale.switch', ['locale' => 'en']) }}"
                            @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
-                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'border-primary bg-primary text-primary-content' : '' }}">
+                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
                             {{ __('EN') }}
                         </a>
                         <a
                            href="{{ route('locale.switch', ['locale' => 'pl']) }}"
                            @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
-                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'border-primary bg-primary text-primary-content' : '' }}">
+                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
                             {{ __('PL') }}
                         </a>
                     </div>
