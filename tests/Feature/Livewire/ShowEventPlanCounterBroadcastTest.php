@@ -10,7 +10,6 @@ use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Slot;
 use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -97,11 +96,11 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
             'activity_id' => $otherActivity->id,
         ]);
 
-        $this->expectException(ModelNotFoundException::class);
-
         Livewire::actingAs($owner)
             ->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $otherActivity->id);
+            ->call('openActivityPreview', $otherActivity->id)
+            ->assertSet('activityPreviewModalOpen', false)
+            ->assertSet('previewActivityId', null);
     }
 
     public function test_activity_preview_refresh_tick_increments_for_selected_activity_broadcast(): void
