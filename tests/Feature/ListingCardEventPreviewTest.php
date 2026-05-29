@@ -42,6 +42,7 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSet('previewEventId', $event->id)
             ->assertSee('Unique event preview body for listing modal')
+            ->assertSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'));
     }
