@@ -39,6 +39,8 @@ final readonly class BrowseListingCardViewData
         public string $badgeGroupDataUi,
         public string $editTitle,
         public string $openAriaLabel,
+        public string $openDetailsAriaLabel,
         public string $previewWireMethod,
+        public ?int $confirmedActivitiesCount = null,
     ) {}
 }

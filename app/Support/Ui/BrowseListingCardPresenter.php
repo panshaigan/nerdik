@@ -9,6 +9,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Domain\ActivityBadges\ActivityBadgeItem;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Services\EventShowReadCache;
 
 final class BrowseListingCardPresenter
 {
@@ -16,6 +17,7 @@ final class BrowseListingCardPresenter
         private ActivityBadgeGroupBuilder $badgeGroupBuilder,
         private ActivityListingImageResolver $activityListingImageResolver,
         private EventListingImageResolver $eventListingImageResolver,
+        private EventShowReadCache $eventShowReadCache,
     ) {}
 
     /**
@@ -66,7 +68,9 @@ final class BrowseListingCardPresenter
             badgeGroupDataUi: 'activity-card-badge-group',
             editTitle: __('ui.activities.edit_activity'),
             openAriaLabel: __('Open activity').': '.$activity->name,
+            openDetailsAriaLabel: __('ui.activities.show_details').': '.$activity->name,
             previewWireMethod: 'openListingActivityPreview',
+            confirmedActivitiesCount: null,
         );
     }
 
@@ -78,6 +82,7 @@ final class BrowseListingCardPresenter
         $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
+        [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
 
         return new BrowseListingCardViewData(
             kind: 'event',
@@ -105,7 +110,9 @@ final class BrowseListingCardPresenter
             badgeGroupDataUi: 'event-card-slot-type-badges',
             editTitle: __('ui.events.edit_event'),
             openAriaLabel: __('Open event').': '.$event->name,
+            openDetailsAriaLabel: __('ui.events.show_details').': '.$event->name,
             previewWireMethod: 'openListingEventPreview',
+            confirmedActivitiesCount: $confirmedActivitiesCount,
         );
     }
 
