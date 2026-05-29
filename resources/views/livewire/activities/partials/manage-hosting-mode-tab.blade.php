@@ -23,7 +23,7 @@
             id="hosting_mode"
             wire:model.live="hosting_mode"
             error-field="hosting_mode"
-            class="ui-field ui-field-hosting-mode"
+            class="ui-field ui-field-hosting-mode btn-sm"
             data-ui="activity-hosting-mode"
             :options="[
                 ['id' => \App\Models\Activity::HOSTING_MODE_DRAFT, 'name' => __('ui.activities.hosting_modes.draft')],

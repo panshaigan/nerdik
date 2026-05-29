@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 <div>
-    <x-page-header :title="$this->name" :user="$creator" :back-url="$backUrl">
+    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl">
     </x-page-header>
 
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
