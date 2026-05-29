@@ -27,7 +27,7 @@
     use App\Models\TagCategory;
 
     $cfg = is_array($config) ? $config : [];
-    $atpInputPlaceholder = __('Type to search tags (or create a new one)');
+    $atpInputPlaceholder = __('ui.tags.placeholder_search_or_create');
 
     /**
      * Display order: this list is walked top-to-bottom. Keys must match `tag_categories.key`.
@@ -60,7 +60,7 @@
 <div data-activity-tag-picker>
     <script type="application/json" data-atp-config>@json(array_merge($cfg, ['inputPlaceholder' => $atpInputPlaceholder]))</script>
     @if (empty($cfg['tags'] ?? []))
-        <p class="mb-4 text-sm text-base-content/70">{{ __('No tags in the system yet. Start typing to create the first ones.') }}</p>
+        <p class="mb-4 text-sm text-base-content/70">{{ __('ui.tags.empty_system') }}</p>
     @endif
     <div class="{{ $rowClass }}">
         @foreach ($categoriesOrdered as $cat)

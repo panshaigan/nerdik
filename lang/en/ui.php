@@ -708,6 +708,16 @@ return [
         'description' => 'Description',
         'create_title' => 'Create organization',
     ],
+    'pagination' => [
+        'navigation' => 'Pagination Navigation',
+        'showing' => 'Showing',
+        'to' => 'to',
+        'of' => 'of',
+        'results' => 'results',
+        'previous' => '&laquo; Previous',
+        'next' => 'Next &raquo;',
+        'go_to_page' => 'Go to page :page',
+    ],
     'tags' => [
         'placeholder_search_or_create' => 'Type to search tags (or create a new one)',
         'create_tag' => 'Create tag',
