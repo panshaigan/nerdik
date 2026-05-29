@@ -1,4 +1,4 @@
-<div class="py-12">
+<div class="py-12 p-1">
     <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
         @if (session('status'))
             <div role="status" class="alert alert-success mb-4 text-sm">
