@@ -41,18 +41,18 @@ new class extends Component
 <section id="ui-profile-password-section" class="ui-profile-section ui-profile-password" data-ui="profile-password-section">
     <header>
         <h2 class="text-lg font-medium text-base-content">
-            {{ __('Update Password') }}
+            {{ __('ui.profile.update_password_title') }}
         </h2>
 
         <p class="mt-1 text-sm text-base-content/70">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
+            {{ __('ui.profile.update_password_hint') }}
         </p>
     </header>
 
     <form id="ui-profile-password-form" wire:submit="updatePassword" class="ui-form ui-form-profile-password mt-6 space-y-4" data-ui="profile-password-form">
         <x-password
             wire:model="current_password"
-            label="{{ __('Current Password') }}"
+            label="{{ __('ui.profile.current_password') }}"
             name="current_password"
             error-field="current_password"
             autocomplete="current-password"
@@ -62,7 +62,7 @@ new class extends Component
 
         <x-password
             wire:model="password"
-            label="{{ __('New Password') }}"
+            label="{{ __('ui.profile.new_password') }}"
             name="password"
             error-field="password"
             autocomplete="new-password"
@@ -72,7 +72,7 @@ new class extends Component
 
         <x-password
             wire:model="password_confirmation"
-            label="{{ __('Confirm Password') }}"
+            label="{{ __('ui.common.confirm_password') }}"
             name="password_confirmation"
             error-field="password_confirmation"
             autocomplete="new-password"
@@ -82,10 +82,10 @@ new class extends Component
 
         <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="password-updated">
-                {{ __('Saved.') }}
+                {{ __('ui.common.saved') }}
             </x-action-message>
 
-            <x-button id="ui-profile-password-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-password-submit">{{ __('Save') }}</x-button>
+            <x-button id="ui-profile-password-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-password-submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
 </section>

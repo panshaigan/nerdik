@@ -46,8 +46,8 @@
             <x-toggle
                 id="is_public"
                 wire:model="is_public"
-                :label="__('Public event')"
-                :hint="__('When checked, this event is visible in public lists. If unchecked, it is hidden from those lists.')"
+                :label="__('ui.events.public_event')"
+                :hint="__('ui.events.public_event_hint')"
             />
     </div>
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
@@ -65,7 +65,7 @@
                     class="bg-texture-scratches rounded-2xl"
                 >
 
-                    <x-tab name="main-details" :label="__('Main details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
+                    <x-tab name="main-details" :label="__('ui.events.tab_main_details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
                         @include('livewire.events.partials.manage-main-details-tab')
                     </x-tab>
 
@@ -73,13 +73,13 @@
                         @include('livewire.events.partials.manage-image-tab')
                     </x-tab>
 
-                    <x-tab name="location" :label="__('Location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
+                    <x-tab name="location" :label="__('ui.events.tab_location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
                         @include('livewire.events.partials.manage-location-tab')
                     </x-tab>
 
                     <x-tab
                         name="enrollment-windows"
-                        :label="__('Enrollment windows')"
+                        :label="__('ui.events.tab_enrollment_windows')"
                         :disabled="$enrollmentWindowsTabDisabled"
                         class="px-6 pt-6"
                         data-ui="event-manage-tab-enrollment-windows"
@@ -91,11 +91,11 @@
             </div>
 
             <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
-                <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('Cancel') }}</x-button>
+                <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('ui.common.cancel') }}</x-button>
 
                 <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
                     <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
-                    <span wire:loading wire:target="save">{{ __('Saving…') }}</span>
+                    <span wire:loading wire:target="save">{{ __('ui.common.saving') }}</span>
                 </x-button>
             </x-slot:actions>
         </x-form>
@@ -416,10 +416,10 @@
             startsAtEl.setCustomValidity('');
             endsAtEl.setCustomValidity('');
             if (enforceFuture && startsAtEl.value && startsAtEl.value < minNow) {
-                startsAtEl.setCustomValidity('{{ __('Start date cannot be in the past.') }}');
+                startsAtEl.setCustomValidity('{{ __('ui.events.start_date_past') }}');
             }
             if (endsAtEl.value && endsAtEl.value < (startsAtEl.value || (enforceFuture ? minNow : endsAtEl.value))) {
-                endsAtEl.setCustomValidity('{{ __('End date cannot be earlier than start date.') }}');
+                endsAtEl.setCustomValidity('{{ __('ui.events.end_date_before_start') }}');
             }
         }
 

@@ -49,28 +49,28 @@ new class extends Component
 
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <form id="ui-profile-contact-form" wire:submit="updateContactInformation" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
-        <x-input wire:model="email" label="{{ __('Email') }}" type="email" name="email" error-field="email" required readonly disabled />
-        <x-input wire:model="discord_handle" label="{{ __('Discord (optional)') }}" type="text" name="discord_handle" error-field="discord_handle" />
+        <x-input wire:model="email" label="{{ __('ui.common.email') }}" type="email" name="email" error-field="email" required readonly disabled />
+        <x-input wire:model="discord_handle" label="{{ __('ui.profile.discord_optional') }}" type="text" name="discord_handle" error-field="discord_handle" />
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
             <div class="mt-2">
                 <p class="text-sm text-base-content/80">
-                    {{ __('Your email address is unverified.') }}
+                    {{ __('ui.profile.email_unverified') }}
                     <x-button type="button" wire:click.prevent="sendVerification" class="btn-link link link-primary h-auto min-h-0 p-0 text-sm font-normal">
-                        {{ __('Click here to re-send the verification email.') }}
+                        {{ __('ui.profile.resend_verification') }}
                     </x-button>
                 </p>
                 @if (session('status') === 'verification-link-sent')
                     <p class="mt-2 text-sm font-medium text-success">
-                        {{ __('A new verification link has been sent to your email address.') }}
+                        {{ __('ui.profile.verification_link_sent_contact') }}
                     </p>
                 @endif
             </div>
         @endif
 
         <div class="flex items-center justify-end gap-4">
-            <x-action-message class="me-3" on="profile-contact-updated">{{ __('Saved.') }}</x-action-message>
-            <x-button class="btn-primary" type="submit">{{ __('Save') }}</x-button>
+            <x-action-message class="me-3" on="profile-contact-updated">{{ __('ui.common.saved') }}</x-action-message>
+            <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
 </section>

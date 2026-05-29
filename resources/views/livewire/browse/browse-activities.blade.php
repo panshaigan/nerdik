@@ -9,7 +9,7 @@
                             id="from_date"
                             wire:model.live.debounce.300ms="from_date"
                             type="date"
-                            :label="__('From')"
+                            :label="__('ui.browse.from')"
                             class="ui-field ui-field-from-date w-full max-w-[12rem]"
                             :omit-error="true"
                             data-ui="browse-activities-from-date-input"
@@ -18,7 +18,7 @@
                             id="to_date"
                             wire:model.live.debounce.300ms="to_date"
                             type="date"
-                            :label="__('To')"
+                            :label="__('ui.browse.to')"
                             class="ui-field ui-field-to-date w-full max-w-[12rem]"
                             :omit-error="true"
                             data-ui="browse-activities-to-date-input"
@@ -26,9 +26,9 @@
                         <x-select
                             id="place_id"
                             wire:model.live="place_id"
-                            :label="__('Place')"
+                            :label="__('ui.browse.place')"
                             :options="$places->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values()->all()"
-                            :placeholder="__('Any')"
+                            :placeholder="__('ui.browse.any')"
                             placeholder-value=""
                             class="ui-field ui-field-place"
                             data-ui="browse-activities-place-select"
@@ -42,7 +42,7 @@
                                 wire:click="clearFilters"
                                 class="btn-ghost ui-action ui-action-clear shrink-0"
                                 data-ui="browse-activities-clear"
-                            >{{ __('Clear') }}</x-button>
+                            >{{ __('ui.browse.clear') }}</x-button>
                         @endif
                     </div>
                     <div class="min-w-0 w-full">
@@ -60,7 +60,7 @@
                 />
             @empty
                 <div class="col-span-full rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
-                    {{ __('No activities found.') }}
+                    {{ __('ui.browse.no_activities_found') }}
                 </div>
             @endforelse
         </div>

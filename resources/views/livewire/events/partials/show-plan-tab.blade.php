@@ -197,8 +197,8 @@
                                                     <x-button
                                                         type="button"
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                                        :tooltip="__('Delete')"
-                                                        :aria-label="__('Delete')"
+                                                        :tooltip="__('ui.common.delete')"
+                                                        :aria-label="__('ui.common.delete')"
                                                         wire:click="confirmDeleteSlot({{ $slot->id }})"
                                                         icon="o-trash"
                                                     />

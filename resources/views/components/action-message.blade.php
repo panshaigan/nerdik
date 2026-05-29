@@ -6,5 +6,5 @@
      x-transition:leave.opacity.duration.1500ms
      style="display: none;"
     {{ $attributes->merge(['class' => 'text-sm text-base-content/70']) }}>
-    {{ $slot->isEmpty() ? __('Saved.') : $slot }}
+    {{ $slot->isEmpty() ? __('ui.common.saved') : $slot }}
 </div>

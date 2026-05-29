@@ -65,7 +65,7 @@ new class extends Component
         sticky
         full-width
         role="navigation"
-        aria-label="{{ __('Main navigation') }}"
+        aria-label="{{ __('ui.nav.main_navigation') }}"
         class="relative z-40 !border-b-0 bg-base-100/90 backdrop-blur [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
@@ -79,7 +79,7 @@ new class extends Component
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <a href="{{ route('dashboard') }}" wire:navigate
                        class="{{ $navLink(request()->routeIs('dashboard')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
-                        {{ __('Dashboard') }}
+                        {{ __('ui.nav.dashboard') }}
                     </a>
                     <a href="{{ route('search.index') }}" wire:navigate
                        class="{{ $navLink(request()->routeIs('search.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
@@ -107,13 +107,13 @@ new class extends Component
                    href="{{ route('locale.switch', ['locale' => 'en']) }}"
                    @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
-                    {{ __('EN') }}
+                    {{ __('ui.common.language_en') }}
                 </a>
                 <a
                    href="{{ route('locale.switch', ['locale' => 'pl']) }}"
                    @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
-                    {{ __('PL') }}
+                    {{ __('ui.common.language_pl') }}
                 </a>
                 <x-theme-toggle class="btn btn-circle btn-ghost"/>
                 @auth
@@ -145,11 +145,11 @@ new class extends Component
                                 <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
                             </a>
                         </li>
-                        <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('Organizations') }}</a></li>
+                        <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
                         <li>
-                            <button type="button" wire:click="logout">{{ __('Log Out') }}</button>
+                            <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
                         </li>
                     </ul>
                 </div>
@@ -162,7 +162,7 @@ new class extends Component
                         href="{{ route('notifications.index') }}"
                         wire:navigate
                         class="relative btn btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none"
-                        aria-label="{{ __('Notifications') }}"
+                        aria-label="{{ __('ui.nav.notifications') }}"
                     >
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -180,7 +180,7 @@ new class extends Component
                     @click="toggle()"
                     x-bind:aria-expanded="open"
                     aria-controls="mobile-nav-drawer"
-                    aria-label="{{ __('Open menu') }}"
+                    aria-label="{{ __('ui.nav.open_menu') }}"
                     class="btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none"
                 >
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -215,7 +215,7 @@ new class extends Component
                 id="mobile-nav-drawer"
                 role="dialog"
                 aria-modal="true"
-                aria-label="{{ __('Main navigation') }}"
+                aria-label="{{ __('ui.nav.main_navigation') }}"
                 x-show="open"
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="translate-x-full"
@@ -241,7 +241,7 @@ new class extends Component
 
                 <div class="flex-1 overflow-y-auto">
                     <p class="px-4 pt-4 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                        {{ __('Navigation') }}
+                        {{ __('ui.nav.navigation') }}
                     </p>
                     <ul class="menu menu-lg w-full px-2">
                         <li>
@@ -251,7 +251,7 @@ new class extends Component
                                 @click="close()"
                                 class="{{ $mobileNavLink(request()->routeIs('dashboard')) }}"
                             >
-                                {{ __('Dashboard') }}
+                                {{ __('ui.nav.dashboard') }}
                             </a>
                         </li>
                         <li>
@@ -292,7 +292,7 @@ new class extends Component
 
                     <div class="border-t border-base-300 px-4 py-4">
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            {{ __('Preferences') }}
+                            {{ __('ui.nav.preferences') }}
                         </p>
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="join">
@@ -301,14 +301,14 @@ new class extends Component
                                     @click.prevent="close(); window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                                     class="join-item btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-ghost' }}"
                                 >
-                                    {{ __('EN') }}
+                                    {{ __('ui.common.language_en') }}
                                 </a>
                                 <a
                                     href="{{ route('locale.switch', ['locale' => 'pl']) }}"
                                     @click.prevent="close(); window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
                                     class="join-item btn btn-sm {{ app()->getLocale() === 'pl' ? 'btn-primary' : 'btn-ghost' }}"
                                 >
-                                    {{ __('PL') }}
+                                    {{ __('ui.common.language_pl') }}
                                 </a>
                             </div>
                             <x-theme-toggle class="btn btn-ghost btn-sm" />
@@ -318,7 +318,7 @@ new class extends Component
                     @auth
                         <div class="border-t border-base-300 px-4 pb-4 pt-2">
                             <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                {{ __('Account') }}
+                                {{ __('ui.nav.account') }}
                             </p>
                             <ul class="menu menu-lg w-full px-0">
                                 <li>
@@ -328,7 +328,7 @@ new class extends Component
                                         @click="close()"
                                         class="{{ $mobileNavLink(request()->routeIs('organizations.index')) }}"
                                     >
-                                        {{ __('Organizations') }}
+                                        {{ __('ui.nav.organizations') }}
                                     </a>
                                 </li>
                                 <li>

@@ -11,8 +11,8 @@
                 type="button"
                 class="btn-primary btn-circle shadow-sm touch-manipulation"
                 wire:click="openCreateModal"
-                :title="__('Add organization')"
-                :aria-label="__('Add organization')"
+                :title="__('ui.organizations.add')"
+                :aria-label="__('ui.organizations.add')"
             >
                 <svg class="h-6 w-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -40,8 +40,8 @@
                             type="button"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                             wire:click="openEditModal({{ $organization->id }})"
-                            :title="__('Edit')"
-                            :aria-label="__('Edit').': '.$organization->name"
+                            :title="__('ui.common.edit')"
+                            :aria-label="__('ui.common.edit').': '.$organization->name"
                         >
                             <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
                         </x-button>
@@ -49,9 +49,9 @@
                             type="button"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
                             wire:click="deleteOrganization({{ $organization->id }})"
-                            wire:confirm="{{ __('Are you sure you want to delete this organization?') }}"
-                            :title="__('Delete')"
-                            :aria-label="__('Delete').': '.$organization->name"
+                            wire:confirm="{{ __('ui.organizations.delete_confirm') }}"
+                            :title="__('ui.common.delete')"
+                            :aria-label="__('ui.common.delete').': '.$organization->name"
                         >
                             <x-ui.icons.trash class="h-5 w-5 shrink-0" />
                         </x-button>
@@ -60,14 +60,14 @@
                 </li>
             @empty
                 <li class="rounded-lg border border-dashed border-base-300 bg-base-100/50 px-4 py-8 text-center text-sm text-base-content/70">
-                    {{ __('You have no organizations yet.') }}
+                    {{ __('ui.organizations.empty') }}
                 </li>
             @endforelse
         </ul>
 
         <x-modal
             wire:model="modalOpen"
-            :title="$modalMode === 'create' ? __('Add organization') : __('Edit organization')"
+            :title="$modalMode === 'create' ? __('ui.organizations.add') : __('ui.organizations.edit')"
             box-class="max-w-2xl"
             data-org-modal
         >
@@ -80,8 +80,8 @@
                 >
                     <x-input
                         wire:model="name"
-                        label="{{ __('Name') }}"
-                        placeholder="{{ __('Name') }}"
+                        label="{{ __('ui.common.name') }}"
+                        placeholder="{{ __('ui.common.name') }}"
                         type="text"
                         error-field="name"
                         required
@@ -92,7 +92,7 @@
                         <x-editor
                             id="org-description-{{ $modalRenderKey }}"
                             wire:model="description"
-                            :label="__('Description')"
+                            :label="__('ui.organizations.description')"
                             :gpl-license="true"
                             :config="['height' => 260, 'z_index' => 100020]"
                         />
@@ -101,10 +101,10 @@
 
                     <div class="modal-action">
                         <x-button type="button" class="btn-ghost" wire:click="closeModal">
-                            {{ __('Cancel') }}
+                            {{ __('ui.common.cancel') }}
                         </x-button>
                         <x-button type="submit" class="btn-primary">
-                            {{ __('Save') }}
+                            {{ __('ui.common.save') }}
                         </x-button>
                     </div>
                 </form>

@@ -87,11 +87,11 @@
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">
-                        <dt class="sr-only">{{ __('Date') }}</dt>
+                        <dt class="sr-only">{{ __('ui.browse.date_label') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
                             <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-slate-500">{{ __('Date') }}:</span>
+                                <span class="font-medium text-slate-500">{{ __('ui.browse.date_label') }}:</span>
                                 {{ $d->timeSummary }}
                             </span>
                         </dd>
@@ -99,11 +99,11 @@
                 @endif
                 @if ($d->locationSummary !== '')
                     <div class="flex gap-2">
-                        <dt class="sr-only">{{ __('Location') }}</dt>
+                        <dt class="sr-only">{{ __('ui.browse.location_label') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
                             <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-slate-500">{{ __('Location') }}:</span>
+                                <span class="font-medium text-slate-500">{{ __('ui.browse.location_label') }}:</span>
                                 {{ $d->locationSummary }}
                             </span>
                         </dd>

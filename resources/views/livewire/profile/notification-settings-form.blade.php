@@ -58,7 +58,7 @@ new class extends Component
 <section id="ui-profile-notifications-section" class="ui-profile-section ui-profile-notifications" data-ui="profile-notifications-section">
     <header>
         <h2 class="text-lg font-medium text-base-content">
-            {{ __('Notification settings') }}
+            {{ __('ui.profile.notifications.title') }}
         </h2>
         <p class="mt-1 text-sm text-base-content/70">
             {{ __('ui.profile.notifications.intro') }}
@@ -111,9 +111,9 @@ new class extends Component
 
         <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="profile-notifications-updated">
-                {{ __('Saved.') }}
+                {{ __('ui.common.saved') }}
             </x-action-message>
-            <x-button id="ui-profile-notifications-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-notifications-submit">{{ __('Save') }}</x-button>
+            <x-button id="ui-profile-notifications-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="profile-notifications-submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
 </section>

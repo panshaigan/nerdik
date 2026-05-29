@@ -7,8 +7,11 @@
     'headerClass' => '!mb-0 pb-1',
     'hrClass' => 'mt-1',
     'userBadgeSize' => 'md',
-    'userBadgeTitle' => 'Organizer',
+    'userBadgeTitle' => null,
 ])
+@php
+    $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
+@endphp
 <div class="px-6 py-6 {{ $attributes->class([]) }}">
     <x-header :title="$title" :class="$headerClass" size="text-3xl sm:text-4xl" use-h1>
         <x-slot:title class="text-primary text-glow-primary">
@@ -44,7 +47,7 @@
                     :organization="$organization"
                     :size="$userBadgeSize"
                     data-ui="activity-show-host"
-                    :title="$userBadgeTitle"
+                    :title="$resolvedUserBadgeTitle"
                 />
             </x-slot:actions>
         @endif
