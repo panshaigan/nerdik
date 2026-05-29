@@ -7,36 +7,57 @@
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
 >
-    @auth
-        <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-30 flex shrink-0 items-center gap-1">
+    <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-30 flex shrink-0 items-start gap-1">
+        @auth
             @if ($d->isOwner)
                 <x-button
                     :link="$d->editUrl"
-                    class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs rounded-lg"
+                    class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs btn-square rounded-lg"
                     :aria-label="$d->editTitle"
                     icon="o-pencil"
                     data-ui="{{ $d->dataUiPrefix }}-edit"
                 />
             @endif
-            @if ($d->isInterested)
+            <div class="flex flex-col items-center gap-1">
+                @if ($d->isInterested)
+                    <x-button
+                        type="button"
+                        wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                        class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs btn-square rounded-lg ui-action ui-action-interest-remove"
+                        :aria-label="__('ui.interests.remove_from_interests')"
+                        icon="s-star"
+                        data-ui="{{ $d->dataUiPrefix }}-interest-remove"
+                    />
+                @else
+                    <x-button
+                        type="button"
+                        wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                        class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs btn-square rounded-lg ui-action ui-action-interest-add"
+                        :aria-label="__('ui.interests.add_to_interests')"
+                        icon="o-star"
+                        data-ui="{{ $d->dataUiPrefix }}-interest-add"
+                    />
+                @endif
                 <x-button
-                    type="button"
-                    wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                    class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs rounded-lg ui-action ui-action-interest-remove"
-                    :aria-label="__('ui.interests.remove_from_interests')"
-                    data-ui="{{ $d->dataUiPrefix }}-interest-remove"
-                >★</x-button>
-            @else
-                <x-button
-                    type="button"
-                    wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                    class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs rounded-lg ui-action ui-action-interest-add"
-                    :aria-label="__('ui.interests.add_to_interests')"
-                    data-ui="{{ $d->dataUiPrefix }}-interest-add"
-                >☆</x-button>
-            @endif
-        </div>
-    @endauth
+                    :link="$d->detailsUrl"
+                    wire:navigate
+                    class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                    :aria-label="$d->openDetailsAriaLabel"
+                    icon="o-arrow-top-right-on-square"
+                    data-ui="{{ $d->dataUiPrefix }}-open-details"
+                />
+            </div>
+        @else
+            <x-button
+                :link="$d->detailsUrl"
+                wire:navigate
+                class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                :aria-label="$d->openDetailsAriaLabel"
+                icon="o-arrow-top-right-on-square"
+                data-ui="{{ $d->dataUiPrefix }}-open-details"
+            />
+        @endauth
+    </div>
     <div class="ui-listing-card__surface ui-content-card flex min-h-0 flex-1 flex-col overflow-visible">
         <div class="ui-listing-card__media relative aspect-video w-full shrink-0 overflow-visible bg-transparent">
             <x-listing-card-picture
@@ -84,6 +105,18 @@
                             <span class="min-w-0 leading-snug">
                                 <span class="font-medium text-slate-500">{{ __('Location') }}:</span>
                                 {{ $d->locationSummary }}
+                            </span>
+                        </dd>
+                    </div>
+                @endif
+                @if ($d->confirmedActivitiesCount !== null)
+                    <div class="flex gap-2" data-ui="{{ $d->dataUiPrefix }}-confirmed-activities">
+                        <dt class="sr-only">{{ __('ui.events.confirmed_activities') }}</dt>
+                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                            <x-icon name="o-envelope" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <span class="min-w-0 leading-snug tabular-nums">
+                                <span class="font-medium text-slate-500">{{ __('ui.events.confirmed_activities') }}:</span>
+                                {{ $d->confirmedActivitiesCount }}
                             </span>
                         </dd>
                     </div>

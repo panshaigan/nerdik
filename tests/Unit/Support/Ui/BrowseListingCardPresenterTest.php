@@ -126,6 +126,42 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
+    public function from_event_exposes_confirmed_activities_count_using_programme_stats(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $user->id]);
+        $active = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancelled_at' => null,
+        ]);
+        $cancelled = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancelled_at' => now(),
+        ]);
+
+        Slot::factory()->create(['event_id' => $event->id, 'activity_id' => $active->id]);
+        Slot::factory()->create(['event_id' => $event->id, 'activity_id' => $cancelled->id]);
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertSame(1, $viewData->confirmedActivitiesCount);
+    }
+
+    #[Test]
+    public function from_activity_does_not_expose_confirmed_activities_count(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertNull($viewData->confirmedActivitiesCount);
+    }
+
+    #[Test]
     public function from_event_uses_compact_place_summary_and_event_interest_toggle(): void
     {
         $user = User::factory()->create();
