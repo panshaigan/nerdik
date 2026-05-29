@@ -61,4 +61,20 @@ class NavigationMenuTest extends TestCase
             ->dispatch('profile-avatar-updated', avatarUrl: $avatarUrl)
             ->assertSet('navAvatarUrl', $avatarUrl);
     }
+
+    public function test_authenticated_mobile_drawer_includes_account_and_notification_links(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('id="mobile-nav-drawer"', false)
+            ->assertSee(route('notifications.index'), false)
+            ->assertSee(route('organizations.index'), false)
+            ->assertSee(__('ui.me.menu_events'), false)
+            ->assertSee(__('ui.me.menu_activities'), false)
+            ->assertSee(__('Log Out'), false)
+            ->assertDontSee('window.toggleTheme()', false);
+    }
 }
