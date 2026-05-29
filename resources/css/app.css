@@ -529,6 +529,21 @@
         --btn-border: var(--ui-field-focus-border-color) !important;
     }
 
+    .ui-form-activity .ui-tile-empty,
+    .ui-form-activity .range-dual,
+    .ui-form-activity input[type='range'].range {
+        max-width: 100%;
+    }
+
+    .ui-form-activity .fieldset label.flex.justify-between > div {
+        min-width: 0;
+        flex: 1 1 0%;
+    }
+
+    .ui-form-activity .fieldset label.flex.justify-between > input.toggle {
+        flex-shrink: 0;
+    }
+
     .ui-filter-form-events .ui-tile-empty {
         background: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
         border-color: color-mix(in oklab, var(--brand-primary-dark) 32%, transparent);

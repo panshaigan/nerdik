@@ -11,9 +11,9 @@
 
     <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
-    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
+    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] min-w-0 rounded-2xl">
         <x-form wire:submit.prevent="save" class="" data-activity-form>
-        <div id="ui-activity-form-fields" class="ui-form ui-form-activity" data-ui="activity-form-fields">
+        <div id="ui-activity-form-fields" class="ui-form ui-form-activity min-w-0" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
                 label-div-class="flex gap-5 overflow-x-auto px-3 pt-2"
@@ -23,25 +23,25 @@
                 data-ui="activity-manage-tabs"
                 class="bg-texture-scratches rounded-2xl"
             >
-                <x-tab name="main-details" :label="__('Main details')" class="px-6 py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
+                <x-tab name="main-details" :label="__('Main details')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
                     @include('livewire.activities.partials.manage-main-details-tab')
                 </x-tab>
 
-                <x-tab name="tags" :label="__('ui.activities.tags')" class="px-6 py-6" data-ui="activity-manage-tab-tags" icon="o-tag">
+                <x-tab name="tags" :label="__('ui.activities.tags')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-tags" icon="o-tag">
                     @include('livewire.activities.partials.manage-tags-tab')
                 </x-tab>
 
-                <x-tab name="image" :label="__('ui.activities.image')" class="px-6 py-6" data-ui="activity-manage-tab-image" icon="o-photo">
+                <x-tab name="image" :label="__('ui.activities.image')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-image" icon="o-photo">
                     @include('livewire.activities.partials.manage-image-tab')
                 </x-tab>
 
-                <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="px-6 py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
+                <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
                     @include('livewire.activities.partials.manage-hosting-mode-tab')
                 </x-tab>
             </x-ui.tabs-with-toolbar>
         </div>
 
-        <x-slot:actions class="px-6 pb-6">
+        <x-slot:actions class="px-4 pb-4 sm:px-6 sm:pb-6">
             @if ($this->slug)
             <x-button id="ui-activity-cancel" :link="route('activities.show', ['activity' => $editingActivity->slug])" class="btn-outline ui-action ui-action-cancel" data-ui="activity-cancel">{{ __('ui.common.cancel') }}</x-button>
             @endif
