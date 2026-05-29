@@ -2,8 +2,8 @@
     use App\Models\ActivityType;
 @endphp
 <div>
-    <div class="grid gap-4 sm:grid-cols-2">
-        <div>
+    <div class="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div class="min-w-0">
             <x-input
                 wire:model.live.debounce.300ms="name"
                 label="{{ __('ui.activities.name') }}"
@@ -18,7 +18,7 @@
             />
         </div>
 
-        <div>
+        <div class="min-w-0">
             <x-select
                 id="activity_type_id"
                 wire:model="activity_type_id"
@@ -37,9 +37,10 @@
             />
         </div>
 
-        <div class="ui-tile-empty rounded-2xl p-6">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-6">
+            <div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
                 <x-range-dual
+                    class="min-w-0"
                     :label="__('ui.activities.participants')"
                     min-wire-model="min_participants"
                     max-wire-model="max_participants"
@@ -52,7 +53,7 @@
                 <div
                     x-data="{ value: @entangle('minimum_age') }"
                     x-init="$nextTick(() => value = value ?? 0)"
-                    class="space-y-1"
+                    class="min-w-0 space-y-1"
                 >
                     <label class="text-sm font-medium flex justify-between">
                         <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value"></span></span>
@@ -61,11 +62,11 @@
                         x-model="value"
                         min="0"
                         max="18"
-                        class="range-xs"
+                        class="range-xs w-full"
                     />
                 </div>
 
-                <div x-data="{ value: @entangle('duration_in_minutes') }" class="space-y-1">
+                <div x-data="{ value: @entangle('duration_in_minutes') }" class="min-w-0 space-y-1">
                     <label class="text-sm font-medium flex justify-between">
                         <span>
                             {{ __('ui.activities.duration_in_minutes') }}:
@@ -82,13 +83,13 @@
                         min="30"
                         max="720"
                         step="30"
-                        class="range-xs"
+                        class="range-xs w-full"
                     />
                 </div>
 
-                <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="space-y-1">
-                    <label class="text-sm font-medium flex justify-between">
-                        <span>
+                <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="min-w-0 space-y-1">
+                    <label class="flex min-w-0 justify-between gap-2 text-sm font-medium">
+                        <span class="min-w-0">
                             {{ __('ui.activities.cancellation_deadline_in_hours') }}:
                             <span class="font-semibold">
                                 <span x-text="Math.floor(value / 24)" x-show="value >= 24"></span>
@@ -98,7 +99,7 @@
                                 </span>
                             </span>
                         </span>
-                        <x-popover class="transition-none">
+                        <x-popover class="shrink-0 transition-none">
                             <x-slot:trigger>
                                 <x-icon name="o-information-circle" class="" :popover="__('ui.activities.cancellation_deadline_description')"/>
                             </x-slot:trigger>
@@ -112,13 +113,13 @@
                         min="0"
                         max="48"
                         step="6"
-                        class="range-xs"
+                        class="range-xs w-full"
                     />
                 </div>
             </div>
         </div>
 
-        <div class="ui-tile-empty rounded-2xl p-6">
+        <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-6">
             <x-toggle
                 id="requires_approval"
                 :label="__('ui.activities.requires_approval_badge')"
