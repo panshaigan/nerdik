@@ -18,16 +18,16 @@
     $eventDateSummary = format_date_range_compact($event->starts_at, $event->ends_at);
     $eventPlaceSummary = $event->compactPlaceSummary();
 @endphp
-<div class="space-y-6 p-4 sm:p-6">
+<div class="space-y-6 px-1 pb-6 pt-2 sm:px-8 sm:pt-8">
     @if ($hasEventDescription)
-        <div class="rich-text-content text-justify rounded-xl border border-primary/25 bg-base-200/40 p-6 text-base-content/80">
+        <div class="rich-text-content text-justify rounded-xl border border-primary/25 bg-base-200/40 text-base-content/80 p-2 sm:p-6">
             {!! rich_text($event->description) !!}
         </div>
     @endif
 
     @if ($hasEnrollmentWindows)
         <div @class(['border-t border-primary/25 pt-6' => $hasEventDescription])>
-            <h3 class="text-base font-semibold text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</h3>
+            <h3 class="text-base font-semibold text-base-content pl-2">{{ __('ui.events.enrollment_windows_heading') }}</h3>
             @if ($activeEnrollmentWindow)
                 <div
                     role="status"

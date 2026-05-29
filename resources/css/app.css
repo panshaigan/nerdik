@@ -939,6 +939,20 @@
             inset 0 0 0 1px color-mix(in oklch, var(--color-warning) 24%, transparent);
     }
 
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--details {
+        border-color: color-mix(in oklch, var(--color-info) 38%, transparent);
+        color: color-mix(in oklch, var(--color-info) 88%, var(--color-info-content));
+    }
+
+    .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool--details:hover {
+        border-color: color-mix(in oklch, var(--color-info) 58%, transparent);
+        background-color: color-mix(in oklch, var(--color-base-100) 72%, var(--color-info) 16%);
+        color: color-mix(in oklch, var(--color-info) 92%, var(--color-info-content));
+        box-shadow:
+            0 0 16px color-mix(in oklch, var(--color-info) 34%, transparent),
+            inset 0 0 0 1px color-mix(in oklch, var(--color-info) 22%, transparent);
+    }
+
     @media (prefers-reduced-motion: no-preference) {
         .card.ui-listing-card .ui-listing-card__toolbar .ui-listing-card__tool:hover {
             transform: scale(1.08);

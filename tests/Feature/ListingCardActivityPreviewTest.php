@@ -106,6 +106,8 @@ class ListingCardActivityPreviewTest extends TestCase
             ->test(BrowseActivities::class)
             ->assertSeeHtml('wire:click="openListingActivityPreview('.$activityId.')"')
             ->assertSeeHtml('data-ui="activity-card-open-preview"')
+            ->assertSeeHtml('data-ui="activity-card-open-details"')
+            ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
             ->assertDontSeeHtml('data-ui="activity-card-link"');
     }
 
