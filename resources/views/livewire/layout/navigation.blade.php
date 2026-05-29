@@ -148,6 +148,14 @@ new class extends Component
     </x-nav>
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        @auth
+            <div class="px-4">
+                <a href="{{ route('profile') }}" wire:navigate class="block">
+                    <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                    <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
+                </a>
+            </div>
+        @endauth
         <div class="space-y-1 pb-3 pt-2">
             <a href="{{ route('dashboard') }}" wire:navigate
                class="{{ $navLink(request()->routeIs('dashboard')) }} block border-l-4 py-2 ps-3 pe-4 text-base font-medium">
@@ -169,36 +177,24 @@ new class extends Component
                     {{ __('ui.nav.create_activity') }}
                 </a>
             @endauth
+            <div class="mt-2 flex gap-2">
+                <a
+                    href="{{ route('locale.switch', ['locale' => 'en']) }}"
+                    @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
+                    {{ __('EN') }}
+                </a>
+                <a
+                    href="{{ route('locale.switch', ['locale' => 'pl']) }}"
+                    @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
+                    class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
+                    {{ __('PL') }}
+                </a>
+            </div>
         </div>
 
         <div class="border-t border-base-300 pb-1 pt-4">
-            @auth
-            <div class="px-4">
-                <a href="{{ route('profile') }}" wire:navigate class="block">
-                    <div class="text-base font-medium" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                    <div class="text-sm font-medium opacity-70">{{ auth()->user()->email }}</div>
-                </a>
-            </div>
-            @endauth
-
             <div class="mt-3 space-y-1">
-                <div class="px-4 py-2">
-                    <p class="text-xs uppercase tracking-wide opacity-70">{{ __('ui.common.language') }}</p>
-                    <div class="mt-2 flex gap-2">
-                        <a
-                           href="{{ route('locale.switch', ['locale' => 'en']) }}"
-                           @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'en']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
-                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
-                            {{ __('EN') }}
-                        </a>
-                        <a
-                           href="{{ route('locale.switch', ['locale' => 'pl']) }}"
-                           @click.prevent="window.location.href = '{{ route('locale.switch', ['locale' => 'pl']) }}?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)"
-                           class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
-                            {{ __('PL') }}
-                        </a>
-                    </div>
-                </div>
                 <a href="#"
                     type="button"
                     onclick="window.toggleTheme()"
