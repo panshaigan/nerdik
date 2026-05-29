@@ -27,7 +27,7 @@
                     x-html="tab.label"
                     @click="tab.disabled ? null: selected = tab.name"
                     :class="{ '{{ $activeClass }} tab-active': selected === tab.name, 'hidden': tab.hidden }"
-                    class="tab {{ $labelClass }}"
+                    class="tab {{ $labelClass }} [&_.inline-flex>div:last-child]:hidden [&_.inline-flex>div:last-child]:sm:inline [&_.inline-flex>*:first-child]:max-sm:!me-0"
                 ></button>
             </template>
         </div>
