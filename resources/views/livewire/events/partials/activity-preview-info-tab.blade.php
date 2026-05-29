@@ -42,7 +42,7 @@
 
     <div class="rounded-xl border border-base-300 bg-base-300/70 p-4">
         @if (filled(rich_text_excerpt($activity->description)))
-            <div class="rich-text-content text-base-content/90">
+            <div class="rich-text-content ui-rich-text-mobile-clamp text-base-content/90">
                 {!! rich_text($activity->description) !!}
             </div>
         @else

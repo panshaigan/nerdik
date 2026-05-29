@@ -189,6 +189,29 @@
         @apply prose-img:max-w-full prose-img:h-auto;
     }
 
+    /**
+     * Listing preview modals: shorten long descriptions on phones only.
+     */
+    .ui-rich-text-mobile-clamp {
+        @variant max-sm {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 6;
+            overflow: hidden;
+        }
+
+        @variant max-sm {
+            & > :is(p, ul, ol, blockquote) {
+                display: inline;
+            }
+
+            & > :is(p, ul, ol, blockquote):not(:last-child)::after {
+                content: '\A';
+                white-space: pre;
+            }
+        }
+    }
+
     .ui-content-card {
         border: 1px solid color-mix(in oklab, var(--brand-info) 50%, transparent);
         background: linear-gradient(

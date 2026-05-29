@@ -139,6 +139,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSee('Unique preview body for listing modal')
+            ->assertSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSee('Slot Alpha')
             ->assertSee('Preview Venue · Room B')
             ->assertSee('10:00')
