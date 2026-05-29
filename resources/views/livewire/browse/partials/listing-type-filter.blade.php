@@ -1,6 +1,6 @@
 {{-- Mutually exclusive: only one of only_events / only_activities, or neither for both. --}}
 <div data-ui="browse-listing-type-filter">
-    <div class="flex w-full flex-wrap items-center gap-4 p-3">
+    <div class="flex w-full flex-col gap-4 p-3 md:flex-row md:items-center">
         <div class="flex items-center">
             <x-group
                 wire:model.live="tags_match_all"
@@ -14,7 +14,7 @@
             >
             </x-group>
         </div>
-        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-4">
+        <div class="flex min-w-0 flex-1 flex-col flex-wrap gap-4 md:flex-row md:items-center">
             <x-checkbox
                 wire:model.live="include_past_events"
                 :label="__('ui.browse.include_past_events')"
