@@ -54,7 +54,7 @@
             @endphp
         @endif
     @endauth
-    <div class="flex items-center justify-end gap-2">
+    <div class="flex items-center justify-end gap-2 mb-4 sm:mb-0">
         @auth
             @if ($canShowPlanActivityProposalUi ?? false)
                 <x-button
