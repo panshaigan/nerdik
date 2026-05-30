@@ -15,6 +15,7 @@ use App\Services\CancellationNotificationDispatcher;
 use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
+use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -353,6 +354,7 @@ class ShowEvent extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
         EventShowReadCache $eventShowReadCache,
+        EventListingImageResolver $eventListingImageResolver,
     ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -360,6 +362,7 @@ class ShowEvent extends Component
             'creator',
             'canceller',
             'organization',
+            'listingMedia',
             'places',
             'enrollmentWindows',
         ]);
@@ -408,6 +411,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
+            'coverPicture' => $eventListingImageResolver->resolve($event),
             'attachedActivityIds' => $eventActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'hasPendingProposals' => $hasPendingProposals,
