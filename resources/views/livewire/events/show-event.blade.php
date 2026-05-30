@@ -4,10 +4,26 @@
     $eventPlaceSummary = $event->compactPlaceSummary();
 @endphp
 <div
-    class="space-y-2 sm:space-y-6"
+    class="relative isolate"
     data-show-event-id="{{ $event->id }}"
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
+    <div
+        class="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        data-ui="event-show-page-background"
+        aria-hidden="true"
+    >
+        <div class="absolute inset-0 scale-105 blur-md">
+            <x-listing-card-picture
+                :picture="$coverPicture"
+                class="h-full w-full object-cover"
+                loading="eager"
+            />
+        </div>
+        <div class="absolute inset-0 bg-base-100/65"></div>
+    </div>
+
+    <div class="relative z-0 space-y-2 sm:space-y-6">
     <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
         <x-slot:subtitle>
             <div class="mb-1"><x-icon name="o-map-pin" />{{ $eventPlaceSummary }}</div>
@@ -201,6 +217,7 @@
             @endif
 
         </x-ui.tabs-with-toolbar>
+    </div>
     </div>
 
     @if ($canManageEvent ?? false)
