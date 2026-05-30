@@ -20,12 +20,14 @@ trait SeedsListingDefaultMedia
             return;
         }
 
+        $fixture = base_path('tests/fixtures/tag-sample.jpg');
         $attach = app(AttachModelMediaFromPublic::class);
 
-        $attach($rpg, ['images/listing/activity-type-rpg.jpg']);
-        $attach(
+        $attach->attachFile($rpg, $fixture, 'tests/fixtures/tag-sample-activity-default.jpg');
+        $attach->attachFile(
             $rpg,
-            ['images/listing/event-default.jpg'],
+            $fixture,
+            'tests/fixtures/tag-sample-event-default.jpg',
             ['listing_role' => EventListingImageResolver::LISTING_ROLE],
         );
     }
