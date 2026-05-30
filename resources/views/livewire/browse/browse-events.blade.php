@@ -68,10 +68,15 @@
                 </div>
             </div>
         @else
-            <div
-                class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6"
-                data-ui="browse-events-listings"
-            >
+            <div class="relative min-h-[12rem]">
+                <x-ui.livewire-loading-overlay
+                    target="previousPage,nextPage,gotoPage"
+                    data-ui="browse-events-listings-loading"
+                />
+                <div
+                    class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6"
+                    data-ui="browse-events-listings"
+                >
                 @forelse ($browseListings as $row)
                     @php
                         $listing = $row['kind'] === 'event' ? $row['event'] : $row['activity'];
@@ -95,6 +100,7 @@
                         @endauth
                     </div>
                 @endforelse
+                </div>
             </div>
 
             @if ($browseListings->hasPages())
