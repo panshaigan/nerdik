@@ -45,7 +45,7 @@ class SampleDataSeeder extends Seeder
             'maxSlotsPerEvent' => 10,
             'selfHostedActivities' => 10,
             'draftActivities' => 10,
-            'scheduledActivities' => 30,
+            'scheduledActivities' => 100,
             'proposedActivities' => 50,
             'notificationsPerUserMin' => 8,
             'notificationsPerUserMax' => 15,

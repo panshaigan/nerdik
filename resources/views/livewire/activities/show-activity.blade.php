@@ -1,7 +1,4 @@
 @php
-    $logoUrl = $activity->logo_path
-        ? \Illuminate\Support\Facades\Storage::disk('public')->url($activity->logo_path)
-        : null;
     $activityTypeSlug = $activity->activityType?->slug;
     $activityTypeLabel = $activityTypeSlug ? __('ui.activities.types.'.$activityTypeSlug) : __('ui.common.none');
     $slot = $activity->slot;
@@ -40,7 +37,23 @@
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
-<div class="space-y-2 sm:space-y-4 " data-show-activity-id="{{ $activity->id }}">
+<div class="relative isolate" data-show-activity-id="{{ $activity->id }}">
+    <div
+        class="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        data-ui="activity-show-page-background"
+        aria-hidden="true"
+    >
+        <div class="absolute inset-0 scale-105 blur-md">
+            <x-listing-card-picture
+                :picture="$coverPicture"
+                class="h-full w-full object-cover"
+                loading="eager"
+            />
+        </div>
+        <div class="absolute inset-0 bg-base-100/65"></div>
+    </div>
+
+    <div class="relative z-0 space-y-2 sm:space-y-4">
     <x-page-header :title="$activity->name" :user="$activity->creator">
         @if ($showHeroHost)
             <x-slot:subtitle>
@@ -216,7 +229,8 @@
                     ])
                 </x-tab>
             </x-ui.tabs-with-toolbar>
-</div>
+        </div>
+    </div>
 
     <x-ui.confirm-modal
         wire:model="confirmModalOpen"
