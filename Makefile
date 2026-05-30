@@ -4,7 +4,7 @@ SAIL := ./vendor/bin/sail
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
-        dump cache artisan pint sail tags-recalculate test-all
+        dump cache artisan pint sail tags-recalculate tags-seed-images test-all
 
 up:
 	$(SAIL) up -d
@@ -71,6 +71,9 @@ test-all:
 # New dedicated command for recalculating tags popularity
 tags-recalculate:
 	$(SAIL) artisan tags:recalculate-popularity
+
+tags-seed-images:
+	$(SAIL) artisan tags:seed-images
 
 npm-install:
 	$(SAIL) npm install

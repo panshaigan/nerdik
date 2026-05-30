@@ -46,12 +46,6 @@ class TagSeeder extends Seeder
         $this->seedMechanics();
         $this->seedOthers();
         $this->seedGames();
-
-        if (! app()->environment('testing') || config('media.seed_bulk_tag_images_in_tests', false)) {
-            $this->seedTagImagesFromLibrary();
-        }
-
-        $this->seedListingImages();
     }
 
     /**
