@@ -17,22 +17,30 @@ final class AttachModelMediaFromPublic
     public function __invoke(HasMedia $model, array $sources, array $extraCustomProperties = []): void
     {
         foreach ($sources as $source) {
-            $this->attachSource($model, $source, $extraCustomProperties);
+            $absolutePath = public_path($source);
+
+            if (! File::isFile($absolutePath)) {
+                throw new RuntimeException("Seed image not found at public path [{$source}].");
+            }
+
+            $this->attachFile($model, $absolutePath, $source, $extraCustomProperties);
         }
     }
 
     /**
      * @param  array<string, mixed>  $extraCustomProperties
      */
-    private function attachSource(HasMedia $model, string $source, array $extraCustomProperties): void
-    {
-        $absolutePath = public_path($source);
-
+    public function attachFile(
+        HasMedia $model,
+        string $absolutePath,
+        string $seedSource,
+        array $extraCustomProperties = [],
+    ): void {
         if (! File::isFile($absolutePath)) {
-            throw new RuntimeException("Seed image not found at public path [{$source}].");
+            throw new RuntimeException("Seed image not found at [{$absolutePath}].");
         }
 
-        if ($this->alreadyAttached($model, $source, $extraCustomProperties)) {
+        if ($this->alreadyAttached($model, $seedSource, $extraCustomProperties)) {
             return;
         }
 
@@ -41,7 +49,7 @@ final class AttachModelMediaFromPublic
         $model->addMedia($absolutePath)
             ->preservingOriginal()
             ->withCustomProperties(array_merge([
-                'seed_source' => $source,
+                'seed_source' => $seedSource,
                 'width' => $imageSize !== false ? $imageSize[0] : null,
                 'height' => $imageSize !== false ? $imageSize[1] : null,
             ], $extraCustomProperties))
@@ -51,7 +59,7 @@ final class AttachModelMediaFromPublic
     /**
      * @param  array<string, mixed>  $extraCustomProperties
      */
-    private function alreadyAttached(HasMedia $model, string $source, array $extraCustomProperties): bool
+    private function alreadyAttached(HasMedia $model, string $seedSource, array $extraCustomProperties): bool
     {
         $listingRole = $extraCustomProperties['listing_role'] ?? null;
 
@@ -64,7 +72,7 @@ final class AttachModelMediaFromPublic
 
         return $model->media()
             ->where('collection_name', 'images')
-            ->where('custom_properties->seed_source', $source)
+            ->where('custom_properties->seed_source', $seedSource)
             ->exists();
     }
 }

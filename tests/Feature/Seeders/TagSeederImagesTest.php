@@ -19,14 +19,14 @@ final class TagSeederImagesTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    public function game_genre_and_setting_tags_receive_default_seed_image(): void
+    public function game_and_setting_tags_receive_default_seed_image(): void
     {
         $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $genreCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GENRE]);
         $settingCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_SETTING]);
 
         Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
-        Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
+        $genreTag = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
         Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
 
         $seeder = new TagSeeder;
@@ -35,12 +35,12 @@ final class TagSeederImagesTest extends TestCase
         $tagsWithImages = Tag::query()
             ->whereHas('tagCategory', fn ($query) => $query->whereIn('key', [
                 TagCategory::KEY_GAME,
-                TagCategory::KEY_GENRE,
                 TagCategory::KEY_SETTING,
             ]))
             ->get();
 
-        $this->assertCount(3, $tagsWithImages);
+        $this->assertCount(2, $tagsWithImages);
+        $this->assertCount(0, $genreTag->refresh()->getMedia('images'));
 
         foreach ($tagsWithImages as $tag) {
             $media = $tag->getFirstMedia('images');
