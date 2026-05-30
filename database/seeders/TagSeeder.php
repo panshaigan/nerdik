@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\Seeders\AttachModelMediaFromPublic;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
+use App\Actions\Seeders\AttachTagMediaFromSeederLibrary;
 use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\TagAlias;
@@ -47,6 +48,7 @@ class TagSeeder extends Seeder
         $this->seedGames();
 
         if (! app()->environment('testing') || config('media.seed_bulk_tag_images_in_tests', false)) {
+            $this->seedTagImagesFromLibrary();
             $this->seedDefaultTagImages();
         }
 
@@ -98,6 +100,18 @@ class TagSeeder extends Seeder
     }
 
     /**
+     * Attach images from {@see database_path('seeders/tag_images')} subfolders (e.g. Genres).
+     * Top-level files map to a tag by `{id}_{name}`; folders attach all images to that tag.
+     */
+    public function seedTagImagesFromLibrary(): void
+    {
+        app(AttachTagMediaFromSeederLibrary::class)(
+            database_path('seeders/tag_images/Genres'),
+            TagCategory::KEY_GENRE,
+        );
+    }
+
+    /**
      * Attach default images to tags by category. Extend this map or per-tag `images` in seed arrays.
      */
     public function seedDefaultTagImages(): void
@@ -106,7 +120,6 @@ class TagSeeder extends Seeder
 
         $categoryKeys = [
             TagCategory::KEY_GAME,
-            TagCategory::KEY_GENRE,
             TagCategory::KEY_SETTING,
         ];
 
