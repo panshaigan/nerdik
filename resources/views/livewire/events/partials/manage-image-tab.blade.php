@@ -1,4 +1,8 @@
-<div class="space-y-6">
+<div class="relative space-y-6">
+    <x-ui.livewire-loading-overlay
+        target="logo_source"
+        data-ui="manage-image-source-loading"
+    />
     <fieldset class="fieldset py-0">
         <legend class="fieldset-legend mb-2">{{ __('ui.events.image_source') }}</legend>
         <div class="grid gap-3 sm:grid-cols-2">
