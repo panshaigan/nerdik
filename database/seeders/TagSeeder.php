@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Actions\Seeders\AttachModelMediaFromPublic;
+use App\Actions\Seeders\AttachListingDefaultsFromSeederLibrary;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Actions\Seeders\AttachTagMediaFromSeederLibrary;
 use App\Models\ActivityType;
@@ -49,85 +49,46 @@ class TagSeeder extends Seeder
 
         if (! app()->environment('testing') || config('media.seed_bulk_tag_images_in_tests', false)) {
             $this->seedTagImagesFromLibrary();
-            $this->seedDefaultTagImages();
         }
 
         $this->seedListingImages();
     }
 
     /**
-     * Listing card defaults for activity types and events (until per-event upload exists).
+     * Listing card defaults for activity types and events (end of automatic image chain).
      *
-     * @return array{
-     *     event_listing_default: list<string>,
-     *     activity_types: array<string, list<string>>
-     * }
+     * @see database/seeders/tag_images/Default/Activity Activity type fallback images (RPG when unnamed).
+     * @see database/seeders/tag_images/Default/Event Event listing catalog defaults.
      */
-    protected function listingImageConfig(): array
-    {
-        return [
-            'event_listing_default' => ['images/listing/event-default.jpg'],
-            'activity_types' => [
-                ActivityType::SLUG_RPG => ['images/listing/activity-type-rpg.jpg'],
-            ],
-        ];
-    }
-
     public function seedListingImages(): void
     {
-        $config = $this->listingImageConfig();
-        $attach = app(AttachModelMediaFromPublic::class);
-
-        foreach ($config['activity_types'] as $slug => $sources) {
-            $activityType = ActivityType::findBySlug($slug);
-            if ($activityType === null) {
-                continue;
-            }
-
-            $attach($activityType, $sources);
-        }
-
-        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
-        if ($rpgType === null) {
-            return;
-        }
-
-        $attach(
-            $rpgType,
-            $config['event_listing_default'],
-            ['listing_role' => 'event_listing_default'],
+        app(AttachListingDefaultsFromSeederLibrary::class)(
+            database_path('seeders/tag_images/Default'),
         );
     }
 
     /**
-     * Attach images from {@see database_path('seeders/tag_images')} subfolders (e.g. Genres).
+     * Attach images from {@see database_path('seeders/tag_images')} category subfolders.
      * Top-level files map to a tag by `{id}_{name}`; folders attach all images to that tag.
      */
     public function seedTagImagesFromLibrary(): void
     {
-        app(AttachTagMediaFromSeederLibrary::class)(
+        $attach = app(AttachTagMediaFromSeederLibrary::class);
+
+        $attach(
             database_path('seeders/tag_images/Genres'),
             TagCategory::KEY_GENRE,
         );
-    }
 
-    /**
-     * Attach default images to tags by category. Extend this map or per-tag `images` in seed arrays.
-     */
-    public function seedDefaultTagImages(): void
-    {
-        $defaultSources = ['images/tag-game/warhammer.jpg'];
-
-        $categoryKeys = [
+        $attach(
+            database_path('seeders/tag_images/Games'),
             TagCategory::KEY_GAME,
+        );
+
+        $attach(
+            database_path('seeders/tag_images/Settings'),
             TagCategory::KEY_SETTING,
-        ];
-
-        $attach = app(AttachTagMediaFromPublic::class);
-
-        Tag::query()
-            ->whereHas('tagCategory', fn ($query) => $query->whereIn('key', $categoryKeys))
-            ->each(fn (Tag $tag) => $attach($tag, $defaultSources));
+        );
     }
 
     public function seedOthers(): void
