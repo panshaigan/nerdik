@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
+use App\Support\Ui\ActivityListingImageResolver;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -271,14 +272,18 @@ class ShowActivity extends Component
         $this->toastFromSessionStatus();
     }
 
-    public function render(ActivityParticipationViewService $participationView, ActivityBadgeGroupBuilder $badgeGroupBuilder)
-    {
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        ActivityListingImageResolver $activityListingImageResolver,
+    ) {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
         $activity->load([
             'creator',
             'canceller',
             'activityType',
+            'tagMedia',
             'tags.translations',
             'tags.tagCategory',
             'participants.user',
@@ -297,6 +302,7 @@ class ShowActivity extends Component
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
+            'coverPicture' => $activityListingImageResolver->resolve($activity),
             'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,
