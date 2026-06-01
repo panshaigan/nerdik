@@ -49,6 +49,7 @@ Nerdik is a platform for organizing and joining nerd events: RPG sessions, board
 - Setup and development operations: [`docs/development-workflow.md`](docs/development-workflow.md)
 - Production deployment checklist: [`docs/deployment.md`](docs/deployment.md)
 - Deployment roadmap (phases): [`docs/deployment-plan.md`](docs/deployment-plan.md)
+- Local runtime uses Sail (`make up`), while server deploys use `make dev-deploy` / `make prod-deploy`.
 
 ## Updating Docs
 

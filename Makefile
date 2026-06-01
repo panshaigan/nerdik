@@ -4,7 +4,8 @@ SAIL := ./vendor/bin/sail
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
-        dump cache artisan pint sail tags-recalculate tags-seed-images test-all
+        dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
+        docker-config docker-pull dev-deploy prod-deploy deploy docker-publish
 
 up:
 	$(SAIL) up -d
@@ -96,3 +97,29 @@ artisan:
 
 pint:
 	$(SAIL) bin pint --dirty --format agent
+
+# VPS Docker stack (not Sail)
+DEPLOY_ENV ?= prod
+IMAGE_TAG ?=
+BUILD ?=
+DEPLOY_BUILD_FLAG := $(if $(BUILD),--build,)
+DEPLOY_IMAGE_ENV := $(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),)
+DC := docker compose -f compose.stack.yaml -f compose.$(DEPLOY_ENV).yaml
+
+docker-config:
+	$(DC) config
+
+docker-pull:
+	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) --pull-only
+
+dev-deploy:
+	$(MAKE) deploy DEPLOY_ENV=dev IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
+
+prod-deploy:
+	$(MAKE) deploy DEPLOY_ENV=prod IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
+
+deploy:
+	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) $(DEPLOY_BUILD_FLAG)
+
+docker-publish:
+	./scripts/docker-publish.sh
