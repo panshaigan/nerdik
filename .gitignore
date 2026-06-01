@@ -21,6 +21,7 @@
 /vendor
 Homestead.json
 Homestead.yaml
+/docker/caddy/Caddyfile
 Thumbs.db
 npm-debug.log
 yarn-error.log
