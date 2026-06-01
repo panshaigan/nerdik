@@ -11,7 +11,7 @@ Roadmap from first production deploy through CI/CD and optional Kubernetes. For 
 | Phase | Focus | Status |
 |-------|--------|--------|
 | 0 | Code and config readiness | **Done** |
-| 1 | Production Docker on VPS | Not started |
+| 1 | Production Docker on VPS | **Done** (repo) |
 | 2 | Dev/prod environments, shared images | Not started |
 | 3 | CI/CD | Not started |
 | 4 | Kubernetes (optional learning path) | Not started |
@@ -60,17 +60,17 @@ Roadmap from first production deploy through CI/CD and optional Kubernetes. For 
 
 ### Tasks
 
-- [ ] Multi-stage **production Dockerfile** (composer `--no-dev`, `npm ci && npm run build`, PHP-FPM + Nginx or Caddy)
-- [ ] **`compose.prod.yaml`** (or override) with:
-  - [ ] `app` (web)
-  - [ ] `worker` (`queue:work`)
-  - [ ] `scheduler` (`schedule:work` or cron sidecar)
-  - [ ] `reverb`
-  - [ ] PostgreSQL **or** external managed DB
-  - [ ] **No** Adminer / Mailpit / Vite dev port
-- [ ] Persistent volumes for `storage` (and DB if containerized)
-- [ ] Reverse proxy (Caddy/Nginx/Traefik) for TLS and WebSocket proxy to Reverb
-- [ ] Optional: managed PostgreSQL instead of container PG
+- [x] Multi-stage **production Dockerfile** ([`docker/production/Dockerfile`](../docker/production/Dockerfile): composer `--no-dev`, `npm ci && npm run build`, Nginx + PHP-FPM in `app`, Caddy at edge)
+- [x] **`compose.prod.yaml`** with:
+  - [x] `app` (web)
+  - [x] `worker` (`queue:work`)
+  - [x] `scheduler` (`schedule:work`)
+  - [x] `reverb`
+  - [x] PostgreSQL (containerized; external managed DB documented in [deployment.md](deployment.md))
+  - [x] **No** Adminer / Mailpit / Vite dev port
+- [x] Persistent volumes for `storage` (and DB if containerized)
+- [x] Reverse proxy (Caddy in compose) for TLS and WebSocket proxy to Reverb ([`docker/caddy/Caddyfile.example`](../docker/caddy/Caddyfile.example))
+- [x] Optional: managed PostgreSQL instead of container PG (documented)
 
 ```mermaid
 flowchart LR
