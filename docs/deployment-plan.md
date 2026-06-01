@@ -12,8 +12,8 @@ Roadmap from first production deploy through CI/CD and optional Kubernetes. For 
 |-------|--------|--------|
 | 0 | Code and config readiness | **Done** |
 | 1 | Production Docker on VPS | **Done** (repo) |
-| 2 | Dev/prod environments, shared images | Not started |
-| 3 | CI/CD | Not started |
+| 2 | Dev/prod environments, shared images | **Done** (repo) |
+| 3 | CI/CD | **Done** (repo); VPS deploy secrets pending |
 | 4 | Kubernetes (optional learning path) | Not started |
 | 5 | Public repository decision | Not started |
 | 6 | Ongoing operations | Partially documented |
@@ -116,22 +116,22 @@ flowchart LR
 
 **Goal:** Automated test, build, push, and deploy.
 
-**Current state:** No `.github/workflows` (or other CI) in repo yet.
+**Current state:** GitHub Actions in [`.github/workflows/`](../.github/workflows/). Operational guide: [ci-cd.md](ci-cd.md). Remote deploy workflows are ready; configure VPS secrets when hosting exists.
 
-### Pipeline (suggested)
+### Pipeline
 
-- [ ] On PR / push: run tests, `composer audit`, Pint (optional fail)
-- [ ] Build production Docker image
-- [ ] Push to registry on `main` or version tags
-- [ ] Deploy dev: pull image + `docker compose up` + `migrate --force`
-- [ ] Deploy prod: approval or tag trigger; smoke `/up`
+- [x] On PR / push: run tests, `composer audit`, Pint (optional fail) — [`ci.yml`](../.github/workflows/ci.yml)
+- [x] Build production Docker image — [`docker.yml`](../.github/workflows/docker.yml)
+- [x] Push to registry on `main` or version tags — GHCR `ghcr.io/<owner>/nerdik:<sha>`
+- [x] Deploy dev workflow (manual): pull image + compose + `migrate --force` — [`deploy.yml`](../.github/workflows/deploy.yml); awaits `DEPLOY_*` secrets
+- [x] Deploy prod: `production` environment + manual dispatch; smoke `/up` when `PROD_APP_URL` is set
 
 ### Deploy script should
 
-- [ ] Pull image by SHA
-- [ ] `php artisan migrate --force`
-- [ ] `php artisan config:cache` / `route:cache` / `view:cache`
-- [ ] Rolling restart worker, scheduler, Reverb
+- [x] Pull image by SHA — [`scripts/deploy.sh`](../scripts/deploy.sh)
+- [x] `php artisan migrate --force`
+- [x] `php artisan config:cache` / `route:cache` / `view:cache`
+- [x] Rolling restart worker, scheduler, Reverb
 
 ---
 
@@ -194,7 +194,7 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 
 ### Performance / scale (later)
 
-- [ ] Redis for queue, cache, Reverb scaling (today: `database` queue/cache)
+- [ ] Reverb scaling (today: `database` queue/cache)
 - [ ] CDN for static assets and public media
 - [ ] Horizontal app servers only after Reverb scaling (`REVERB_SCALING_*` + Redis)
 
@@ -218,6 +218,7 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 
 ## Related docs
 
+- [ci-cd.md](ci-cd.md) — GitHub Actions, GHCR, deploy secrets
 - [deployment.md](deployment.md) — operational checklist for a deploy
 - [development-workflow.md](development-workflow.md) — local Sail workflow
 - [README.md](../README.md) — project overview
