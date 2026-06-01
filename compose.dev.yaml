@@ -1,0 +1,15 @@
+name: nerdik-dev
+
+volumes:
+  storage:
+    name: nerdik_dev_storage
+    driver: local
+  pgsql_data:
+    name: nerdik_dev_pgsql_data
+    driver: local
+  caddy_data:
+    name: nerdik_dev_caddy_data
+    driver: local
+  caddy_config:
+    name: nerdik_dev_caddy_config
+    driver: local

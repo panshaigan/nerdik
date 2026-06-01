@@ -99,10 +99,10 @@ flowchart LR
 
 ### Tasks
 
-- [ ] Container registry (e.g. GHCR): `nerdik:<git-sha>` immutable tags
-- [ ] `compose.dev.yaml` / `compose.prod.yaml` — same image, different `.env`
-- [ ] Promote by deploying a SHA (dev auto from `main`, prod manual or tag)
-- [ ] Avoid separate dev/prod image builds unless dev needs extra tooling (prefer prod-only multi-stage image)
+- [x] Container registry (GHCR-ready): `ghcr.io/${GITHUB_OWNER}/nerdik:<git-sha>` immutable tags
+- [x] `compose.dev.yaml` / `compose.prod.yaml` overlays on shared `compose.stack.yaml` image
+- [x] Promote by deploying a SHA (`IMAGE_TAG=<git-sha> make dev-deploy|prod-deploy`)
+- [x] Keep one production-grade multi-stage Dockerfile; only build args differ per environment
 
 | Share | Do not share |
 |-------|----------------|
