@@ -47,6 +47,8 @@ Nerdik is a platform for organizing and joining nerd events: RPG sessions, board
 - Product and feature context: [`docs/product-overview.md`](docs/product-overview.md)
 - Domain rules and mechanisms: [`docs/domain-mechanics.md`](docs/domain-mechanics.md)
 - Setup and development operations: [`docs/development-workflow.md`](docs/development-workflow.md)
+- Production deployment checklist: [`docs/deployment.md`](docs/deployment.md)
+- Deployment roadmap (phases): [`docs/deployment-plan.md`](docs/deployment-plan.md)
 
 ## Updating Docs
 

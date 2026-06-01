@@ -3,12 +3,16 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Laravel\Telescope\Telescope;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('telescope:prune')->daily();
+Schedule::command('telescope:prune')
+    ->daily()
+    ->when(fn (): bool => class_exists(Telescope::class)
+        && (bool) config('telescope.enabled', false));
 Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
 Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
 

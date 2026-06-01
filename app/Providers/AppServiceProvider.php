@@ -27,7 +27,9 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event as EventFacade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -59,6 +61,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('viewPulse', fn (User $user): bool => $user->is_admin === true);
+
+        if ($this->app->environment('production')) {
+            $appUrl = (string) config('app.url');
+
+            if (str_starts_with($appUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
+        }
+
         // Let published Livewire pagination views override package defaults (theme-aware styles).
         View::prependNamespace('livewire', resource_path('views/vendor/livewire'));
 
