@@ -238,8 +238,24 @@
     }
 
     .ui-card-media-fade {
-        -webkit-mask-image: linear-gradient(to top, transparent 0%, black 42%);
-        mask-image: linear-gradient(to top, transparent 0%, black 42%);
+        -webkit-mask-image: linear-gradient(
+            to top,
+            transparent 0%,
+            rgb(0 0 0 / 0.18) 7%,
+            rgb(0 0 0 / 0.42) 13%,
+            rgb(0 0 0 / 0.68) 19%,
+            rgb(0 0 0 / 0.89) 25%,
+            black 30%
+        );
+        mask-image: linear-gradient(
+            to top,
+            transparent 0%,
+            rgb(0 0 0 / 0.18) 7%,
+            rgb(0 0 0 / 0.42) 13%,
+            rgb(0 0 0 / 0.68) 19%,
+            rgb(0 0 0 / 0.89) 25%,
+            black 30%
+        );
         mask-size: 100% 100%;
     }
 
@@ -673,6 +689,12 @@
     text-shadow:
         0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
         0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+
+    @variant light {
+        text-shadow:
+            0 0 6px  color-mix(in oklch, var(--_glow-base) 50%, black),
+            0 0 20px color-mix(in oklch, var(--_glow-base) 50%, black);
+    }
 }
 
 @utility box-glow-* {
