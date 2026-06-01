@@ -1,0 +1,143 @@
+name: nerdik
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/production/Dockerfile
+      target: runtime
+      args:
+        VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY:-}
+        VITE_REVERB_HOST: ${VITE_REVERB_HOST:-localhost}
+        VITE_REVERB_PORT: ${VITE_REVERB_PORT:-443}
+        VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-https}
+        VITE_APP_NAME: ${VITE_APP_NAME:-Nerdik}
+    image: nerdik-app:local
+    restart: unless-stopped
+    env_file: .env
+    expose:
+      - "80"
+    volumes:
+      - nerdik_storage:/var/www/html/storage
+    networks:
+      - nerdik
+    depends_on:
+      pgsql:
+        condition: service_healthy
+
+  worker:
+    image: nerdik-app:local
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - php
+      - artisan
+      - queue:work
+      - database
+      - --queue=default
+      - --sleep=1
+      - --tries=3
+      - --max-time=3600
+      - --no-interaction
+    volumes:
+      - nerdik_storage:/var/www/html/storage
+    networks:
+      - nerdik
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  scheduler:
+    image: nerdik-app:local
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - php
+      - artisan
+      - schedule:work
+      - --no-interaction
+    networks:
+      - nerdik
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  reverb:
+    image: nerdik-app:local
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - php
+      - artisan
+      - reverb:start
+      - --host=0.0.0.0
+      - --port=8080
+      - --no-interaction
+    expose:
+      - "8080"
+    networks:
+      - nerdik
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+  pgsql:
+    build:
+      context: ./docker/pgsql
+      dockerfile: Dockerfile
+    image: nerdik-pgsql:local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-nerdik}
+      POSTGRES_USER: ${DB_USERNAME:-nerdik}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - nerdik_pgsql_data:/var/lib/postgresql/data
+    networks:
+      - nerdik
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${DB_USERNAME:-nerdik} -d ${DB_DATABASE:-nerdik}
+      retries: 5
+      interval: 5s
+      timeout: 5s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - nerdik
+    depends_on:
+      - app
+      - reverb
+
+networks:
+  nerdik:
+    driver: bridge
+
+volumes:
+  nerdik_storage:
+    driver: local
+  nerdik_pgsql_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
