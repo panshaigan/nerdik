@@ -21,6 +21,15 @@ flowchart LR
 | Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | PR (build only); `main` and `v*` tags (build + push) |
 | Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Manual only (`workflow_dispatch`) |
 
+## Without a git remote yet
+
+Workflows in [`.github/workflows/`](../.github/workflows/) run only after the project is pushed to **GitHub**. Until then:
+
+- Run tests locally: `vendor/bin/sail artisan test --compact` (with Sail up).
+- Build and push images manually: `GITHUB_OWNER=… ./scripts/docker-publish.sh` (requires `docker login ghcr.io`).
+
+After you create the remote, push `main` once to enable automated CI and GHCR publishes.
+
 ## CI (no VPS required)
 
 **Job `test` (required to pass):**
