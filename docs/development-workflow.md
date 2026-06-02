@@ -99,3 +99,7 @@ If using an older DB volume after pulling FTS changes:
    - `vendor/bin/sail down -v`
    - `vendor/bin/sail up -d`
    - `make migrate`
+
+## Production deploy
+
+Local development uses Sail (`make up`). Server deploys use Docker Compose — see [deployment.md](deployment.md) and [deployment-plan.md](deployment-plan.md). You do not need a VPS to develop locally.

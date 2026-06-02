@@ -2,6 +2,20 @@
 
 Checklist for production and staging environments. For CI/CD (GitHub Actions, GHCR, automated deploy), see [ci-cd.md](ci-cd.md). For the multi-phase roadmap (Docker, CI/CD, K8s), see [deployment-plan.md](deployment-plan.md). For local development, see [development-workflow.md](development-workflow.md).
 
+## Before you have a server
+
+You can stay on local Sail only. When you are ready:
+
+1. Push the project to a git remote (GitHub recommended for bundled Actions/GHCR).
+2. Wait for CI to publish `ghcr.io/<github-owner>/nerdik:<git-sha>` on `main`.
+3. Provision a VPS, then follow **First-time setup** below.
+
+Do not use `NERDIK_IMAGE=...:main` unless you tagged that image yourself; CI publishes **commit SHAs**, not a `main` tag. Prefer:
+
+```bash
+IMAGE_TAG=<full-git-sha-from-ci> make prod-deploy
+```
+
 ## Docker production (VPS)
 
 Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../compose.stack.yaml) + [`compose.prod.yaml`](../compose.prod.yaml) (not Sail [`compose.yaml`](../compose.yaml)).
@@ -15,12 +29,13 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 
 ### First-time setup
 
-1. Copy [`.env.production.example`](../.env.production.example) to `.env` and fill secrets (`APP_KEY`, `DB_PASSWORD`, Reverb keys, mail, OAuth).
-2. Set `APP_DOMAIN`, `ACME_EMAIL`, `GITHUB_OWNER`, and `NERDIK_IMAGE`.
-3. Set `APP_URL` to `https://<APP_DOMAIN>`.
-4. Set browser Reverb vars: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https` (must match the image build).
-5. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile` and ensure `APP_DOMAIN` in `.env` matches the site block.
-6. Deploy:
+1. Clone this repo on the server from your git remote (e.g. `git clone … /opt/nerdik`).
+2. Copy [`.env.production.example`](../.env.production.example) to `.env` and fill secrets (`APP_KEY`, `DB_PASSWORD`, Reverb keys, mail, OAuth).
+3. Set `APP_DOMAIN`, `ACME_EMAIL`, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a published SHA, or leave it unset and deploy with `IMAGE_TAG=<sha>` (see below).
+4. Set `APP_URL` to `https://<APP_DOMAIN>`.
+5. Set browser Reverb vars: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https` (must match the image build).
+6. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile` and ensure `APP_DOMAIN` in `.env` matches the site block.
+7. Deploy (use the SHA from CI after your first push to `main`):
 
 ```bash
 make prod-deploy
@@ -92,10 +107,14 @@ Persistent volumes in prod: `nerdik_storage`, `nerdik_pgsql_data`.
 
 ### Updates
 
+The server needs a clone of your git remote (not only a copied folder). After pushing changes:
+
 ```bash
-git pull
-make prod-deploy
+git pull --ff-only
+IMAGE_TAG=<git-sha> make prod-deploy
 ```
+
+Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image you want.
 
 ### Promote the same SHA from staging to production
 
@@ -108,7 +127,7 @@ IMAGE_TAG=<git-sha> make prod-deploy
 
 1. Copy [`.env.production.example`](../.env.production.example) to `.env` on production (or [`.env.staging.example`](../.env.staging.example) on staging).
 2. Run `php artisan key:generate` if `APP_KEY` is empty.
-3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `NERDIK_IMAGE`.
+3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a CI-published SHA, or deploy with `IMAGE_TAG=<sha>` (recommended).
 4. Set `TRUSTED_PROXIES` when TLS terminates at a reverse proxy (`*` or specific proxy IPs).
 5. Keep `APP_DEBUG=false`, `TELESCOPE_ENABLED=false`, and `PULSE_ENABLED=false` unless you explicitly need Pulse (admins only via `viewPulse` gate).
 

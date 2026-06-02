@@ -8,15 +8,53 @@ Roadmap from first production deploy through CI/CD and optional Kubernetes. For 
 
 ## Executive summary
 
-| Phase | Focus | Status |
-|-------|--------|--------|
-| 0 | Code and config readiness | **Done** |
-| 1 | Production Docker on VPS | **Done** (repo) |
-| 2 | Dev/prod environments, shared images | **Done** (repo) |
-| 3 | CI/CD | **Done** (repo); VPS deploy secrets pending |
-| 4 | Kubernetes (optional learning path) | Not started |
-| 5 | Public repository decision | Not started |
-| 6 | Ongoing operations | Partially documented |
+| Phase | Focus | Repo | Live infrastructure |
+|-------|--------|------|---------------------|
+| 0 | Code and config readiness | Done | N/A |
+| 1 | Production Docker on VPS | Done (Dockerfile, compose, scripts) | **Blocked** — no VPS yet |
+| 2 | Dev/prod environments, shared images | Done (compose overlays, GHCR-oriented scripts) | **Blocked** — no registry images until remote + CI |
+| 3 | CI/CD | Done (workflows) | **Blocked** — no git remote; deploy secrets pending |
+| 4 | Kubernetes (optional learning path) | Not started | Not started |
+| 5 | Public repository decision | Not decided | N/A |
+| 6 | Ongoing operations | Partially documented | N/A |
+
+**You are here:** Phase 0 complete in git; **external prerequisites** (remote repo, VPS, DNS) not started.
+
+---
+
+## External prerequisites (do these before first deploy)
+
+Nothing in this section is finished until you complete it. Repo-only work does not count as "deployed."
+
+### 1. Choose and create a git remote
+
+- **Recommended for this repo:** GitHub (matches [`.github/workflows/`](../.github/workflows/) and GHCR).
+- Create an empty repo, add `origin`, push `main`.
+- Enable GitHub Actions on the repo.
+- Optional: branch protection requiring the CI **Test** job on `main`.
+
+**Not chosen yet:** record the decision when made (`GitHub` / `GitLab` / other). If not GitHub, plan to adjust or replace workflows and registry URLs in Phase 3.
+
+### 2. Provision hosting
+
+- At least one VPS (or managed platform) with Docker Engine + Compose plugin.
+- Optional second VPS for staging, or one VPS with staging + prod domains.
+- Open ports **80** and **443**; point DNS `A`/`AAAA` at the server when you have a domain.
+
+### 3. After remote + VPS exist
+
+| Step | Doc |
+|------|-----|
+| CI green on `main` | [ci-cd.md](ci-cd.md) |
+| Image on GHCR (`ghcr.io/<owner>/nerdik:<sha>`) | [ci-cd.md](ci-cd.md) |
+| Server `.env`, Caddyfile, `docker login ghcr.io` | [deployment.md](deployment.md) |
+| `IMAGE_TAG=<sha> make prod-deploy` (or Actions Deploy workflow) | [deployment.md](deployment.md), [ci-cd.md](ci-cd.md) |
+
+### 4. Still local-only (fine for now)
+
+- No VPS secrets in GitHub
+- Deploy workflow will **skip** with a message until `DEPLOY_*` secrets exist
+- You can develop with Sail only ([development-workflow.md](development-workflow.md))
 
 ---
 
@@ -56,7 +94,11 @@ Roadmap from first production deploy through CI/CD and optional Kubernetes. For 
 
 **Goal:** Run Nerdik on a VPS using Docker, without treating Sail dev compose as production.
 
-**Current state:** [`compose.yaml`](../compose.yaml) is Laravel Sail for local dev (bind mounts, `artisan serve`, Adminer, Mailpit). **Do not ship it unchanged to production.**
+**Current state (repo):** Production Dockerfile, `compose.stack.yaml`, and prod/dev overlays are in git.
+
+**Current state (your servers):** Not provisioned — see [External prerequisites](#external-prerequisites-do-these-before-first-deploy).
+
+[`compose.yaml`](../compose.yaml) is Laravel Sail for local dev (bind mounts, `artisan serve`, Adminer, Mailpit). **Do not ship it unchanged to production.**
 
 ### Tasks
 
@@ -133,6 +175,12 @@ flowchart LR
 - [x] `php artisan config:cache` / `route:cache` / `view:cache`
 - [x] Rolling restart worker, scheduler, Reverb
 
+### Blocked until remote exists
+
+- [ ] Create GitHub (or other) repository and push `main`
+- [ ] Verify CI and Docker workflows run on the remote
+- [ ] First image tag available on GHCR (copy full SHA from Actions)
+
 ---
 
 ## Phase 4: Kubernetes (optional learning path)
@@ -206,13 +254,16 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 
 ## Suggested order of work
 
-1. **Phase 0** — done  
-2. **Phase 1** — production Dockerfile + `compose.prod.yaml` + first VPS  
-3. **Phase 3** — CI/CD (can overlap with Phase 1 once image exists)  
-4. **Phase 2** — formalize dev/staging using same image  
-5. **Phase 5** — public repo when comfortable  
-6. **Phase 4** — Kubernetes when you want to learn, not blocking launch  
-7. **Phase 6** — continuous improvement  
+1. **Phase 0** — done in repo  
+2. **Choose git remote** — create repo, push `main`, confirm CI passes  
+3. **Confirm GHCR image** — after first push to `main`, note the SHA tag from Actions → Packages  
+4. **Provision VPS** — Docker, DNS, firewall  
+5. **Phase 1 on server** — `.env`, Caddyfile, `IMAGE_TAG=<sha> make prod-deploy` (see [deployment.md](deployment.md))  
+6. **Phase 3 secrets** — SSH deploy from Actions (optional; manual `make prod-deploy` on the server works without Actions)  
+7. **Phase 2** — staging VPS or `compose.dev.yaml` on same host  
+8. **Phase 5** — public repo when comfortable  
+9. **Phase 4** — Kubernetes only if you want to learn it  
+10. **Phase 6** — monitoring, backups automation, legal pages  
 
 ---
 
