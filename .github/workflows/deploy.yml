@@ -52,7 +52,7 @@ jobs:
 
       - name: Deploy over SSH
         if: steps.config.outputs.skip != 'true'
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST_DEV }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Deploy over SSH
         if: steps.config.outputs.skip != 'true'
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST_PROD }}
           username: ${{ secrets.DEPLOY_USER }}
