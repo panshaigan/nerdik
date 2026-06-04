@@ -217,7 +217,7 @@ flowchart LR
 
 ### Before going public
 
-- [ ] Run secret scan on git history (`gitleaks` or GitHub secret scanning)
+- [x] Run secret scan on git history (`gitleaks` in CI; see `.gitleaks.toml`)
 - [ ] Review [`plans/`](../plans/) for internal notes you do not want public (or gitignore)
 - [ ] Add `SECURITY.md` and responsible disclosure
 - [ ] Disable or change default seeded `password` on any public staging

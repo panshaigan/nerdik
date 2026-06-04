@@ -43,6 +43,44 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Debug Page Sensitive Data
+    |--------------------------------------------------------------------------
+    |
+    | When APP_DEBUG is true, these values are hidden from Whoops / exception
+    | pages so request dumps do not expose credentials or session tokens.
+    |
+    */
+
+    'debug_hide' => [
+        '_ENV' => [
+            'APP_KEY',
+            'DB_PASSWORD',
+            'REDIS_PASSWORD',
+            'MAIL_PASSWORD',
+            'AWS_SECRET_ACCESS_KEY',
+            'REVERB_APP_SECRET',
+            'REVERB_APP_KEY',
+            'GOOGLE_CLIENT_SECRET',
+            'FACEBOOK_CLIENT_SECRET',
+            'NOCAPTCHA_SECRET',
+        ],
+        '_POST' => [
+            'password',
+            'password_confirmation',
+            'current_password',
+            '_token',
+        ],
+        '_COOKIE' => [
+            'laravel_session',
+            'XSRF-TOKEN',
+        ],
+        '_SESSION' => [
+            '_token',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |
