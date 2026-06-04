@@ -1,0 +1,18 @@
+title = "Nerdik"
+
+[allowlist]
+description = "Runtime artifacts, env templates, CI fixtures, and documentation examples"
+paths = [
+  '''(?i)storage/logs/''',
+  '''(?i)storage/framework/''',
+  '''(?i)storage/media-library/temp/''',
+  '''(?i)storage/pail/''',
+  '''(?i)\.env\.example$''',
+  '''(?i)\.env\.production\.example$''',
+  '''(?i)\.env\.staging\.example$''',
+  '''(?i)\.github/workflows/ci\.yml$''',
+  '''(?i)(^|/)\.cursor/skills/''',
+  '''(?i)(^|/)\.claude/skills/''',
+  '''(?i)(^|/)\.junie/skills/''',
+  '''(?i)(^|/)docs/''',
+]

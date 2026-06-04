@@ -100,6 +100,10 @@ fi
 "${COMPOSE[@]}" exec -T app php artisan config:cache
 "${COMPOSE[@]}" exec -T app php artisan route:cache
 "${COMPOSE[@]}" exec -T app php artisan view:cache
+
+log_retention_days="${LOG_DAILY_DAYS:-14}"
+"${COMPOSE[@]}" exec -T app sh -c "find storage/logs -type f -name '*.log' -mtime +${log_retention_days} -delete 2>/dev/null || true"
+
 "${COMPOSE[@]}" restart worker scheduler reverb
 
 echo "Deploy complete for ${DEPLOY_ENV}. Verify: curl -fsS \"${APP_URL:-https://localhost}/up\""
