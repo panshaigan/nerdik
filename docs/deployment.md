@@ -130,6 +130,7 @@ IMAGE_TAG=<git-sha> make prod-deploy
 3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a CI-published SHA, or deploy with `IMAGE_TAG=<sha>` (recommended).
 4. Set `TRUSTED_PROXIES` when TLS terminates at a reverse proxy (`*` or specific proxy IPs).
 5. Keep `APP_DEBUG=false`, `TELESCOPE_ENABLED=false`, and `PULSE_ENABLED=false` unless you explicitly need Pulse (admins only via `viewPulse` gate).
+6. Logging: use `LOG_LEVEL=error` and `LOG_STACK=daily` (see env templates). Deploy prunes log files older than `LOG_DAILY_DAYS` (default 14). Application logs redact passwords, CSRF tokens, and session payloads before they are written.
 
 ## Database
 

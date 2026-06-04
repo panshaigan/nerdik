@@ -4,6 +4,7 @@ use App\Http\Middleware\ForceLivewireJson;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StoreBrowsingReturnUrl;
+use App\Support\Logging\RedactsSensitiveData;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -34,5 +35,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->dontFlash([
+            'current_password',
+            'password',
+            'password_confirmation',
+            '_token',
+        ]);
+
+        $exceptions->context(function (Throwable $throwable, array $context): array {
+            return RedactsSensitiveData::redactArray($context);
+        });
     })->create();
