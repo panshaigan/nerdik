@@ -49,6 +49,7 @@ Nerdik is a platform for organizing and joining nerd events: RPG sessions, board
 - Setup and development operations: [`docs/development-workflow.md`](docs/development-workflow.md)
 - Production deployment checklist: [`docs/deployment.md`](docs/deployment.md)
 - CI/CD (GitHub Actions, GHCR): [`docs/ci-cd.md`](docs/ci-cd.md)
+- Security policy and controls: [`docs/security.md`](docs/security.md) · [`SECURITY.md`](SECURITY.md)
 - Deployment roadmap (phases): [`docs/deployment-plan.md`](docs/deployment-plan.md)
 - Local runtime uses Sail (`make up`), while server deploys use `make dev-deploy` / `make prod-deploy`.
 
@@ -67,6 +68,10 @@ Set these in `.env` to enable social login buttons:
 - Facebook: `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
 
 Callbacks are routed under `/auth/google/callback` and `/auth/facebook/callback`.
+
+## License
+
+Nerdik is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
 
 ## Notes
 

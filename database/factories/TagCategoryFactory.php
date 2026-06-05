@@ -26,7 +26,7 @@ final class TagCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'key' => fake()->word,
+            'key' => fake()->unique()->slug(2),
         ];
     }
 }
