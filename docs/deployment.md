@@ -111,7 +111,7 @@ Optional private Composer packages: pass `COMPOSER_AUTH` or a BuildKit secret fo
 | `app` | Nginx + PHP-FPM (Laravel) |
 | `worker` | `queue:work database` |
 | `scheduler` | `schedule:work` |
-| `reverb` | `reverb:start` |
+| `reverb` | `reverb:start` (requires PHP `pcntl` in the image — see [`docker/production/Dockerfile`](../docker/production/Dockerfile)) |
 | `pgsql` | PostgreSQL with Polish FTS init (or use external DB: set `DB_HOST` and remove `pgsql` service) |
 
 Persistent volumes in prod: `nerdik_storage`, `nerdik_pgsql_data`.

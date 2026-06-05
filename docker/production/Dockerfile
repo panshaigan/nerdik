@@ -83,6 +83,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         exif \
         gd \
         intl \
+        pcntl \
         pdo_pgsql \
         zip \
     && apt-get clean \
