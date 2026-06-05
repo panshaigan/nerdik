@@ -80,6 +80,7 @@ services:
       context: ./docker/pgsql
       dockerfile: Dockerfile
     image: nerdik-pgsql:local
+    pull_policy: build
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE:-nerdik}
