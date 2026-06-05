@@ -177,7 +177,7 @@ flowchart LR
 
 ### Blocked until remote exists
 
-- [ ] Create GitHub (or other) repository and push `main`
+- [x] Create GitHub (or other) repository and push `main`
 - [ ] Verify CI and Docker workflows run on the remote
 - [ ] First image tag available on GHCR (copy full SHA from Actions)
 
@@ -218,10 +218,10 @@ flowchart LR
 ### Before going public
 
 - [x] Run secret scan on git history (`gitleaks` in CI; see `.gitleaks.toml`)
-- [ ] Review [`plans/`](../plans/) for internal notes you do not want public (or gitignore)
-- [ ] Add `SECURITY.md` and responsible disclosure
+- [x] Review [`plans/`](../plans/) for internal notes you do not want public (or gitignore)
+- [x] Add `SECURITY.md` and responsible disclosure — [`SECURITY.md`](../SECURITY.md), [`docs/security.md`](security.md)
 - [ ] Disable or change default seeded `password` on any public staging
-- [ ] `composer audit` in CI
+- [x] `composer audit` in CI
 
 **Verdict from review:** Public repo is reasonable if secrets stay in env/CI; main risk is operational (leaked server `.env`), not PHP source alone.
 
@@ -272,4 +272,6 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 - [ci-cd.md](ci-cd.md) — GitHub Actions, GHCR, deploy secrets
 - [deployment.md](deployment.md) — operational checklist for a deploy
 - [development-workflow.md](development-workflow.md) — local Sail workflow
+- [security.md](security.md) — security controls and vulnerability reporting
+- [SECURITY.md](../SECURITY.md) — GitHub security policy (report a vulnerability)
 - [README.md](../README.md) — project overview
