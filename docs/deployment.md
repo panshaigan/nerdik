@@ -35,7 +35,7 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 4. Set `APP_URL` to `https://<APP_DOMAIN>`.
 5. Set browser Reverb vars: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https` (must match the image build).
 6. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile` and ensure `APP_DOMAIN` in `.env` matches the site block.
-7. Deploy (use the SHA from CI after your first push to `main`):
+7. Deploy (use the SHA from CI after your first push to `main`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
 
 ```bash
 make prod-deploy
@@ -53,11 +53,22 @@ Fallback if you must build on the server:
 make prod-deploy BUILD=1
 ```
 
-Generate `APP_KEY` if needed:
+Generate secrets on the **server host** before the first deploy (Compose injects `.env` as environment variables; there is no `.env` file inside the app container):
 
 ```bash
-docker compose -f compose.stack.yaml -f compose.prod.yaml exec app php artisan key:generate
+# On the VPS, in /opt/nerdik — add these to .env (do not commit .env)
+echo "APP_KEY=base64:$(openssl rand -base64 32)"
+openssl rand -hex 16   # REVERB_APP_KEY
+openssl rand -hex 32   # REVERB_APP_SECRET
 ```
+
+Or print an `APP_KEY` without writing a file:
+
+```bash
+docker compose -f compose.stack.yaml -f compose.prod.yaml run --rm --no-deps app php artisan key:generate --show
+```
+
+After editing `.env`, recreate containers so new values load: `docker compose … up -d --force-recreate`, then clear config cache before re-caching (see **Updates**).
 
 ### Staging / dev VPS
 
@@ -126,7 +137,7 @@ IMAGE_TAG=<git-sha> make prod-deploy
 ## Environment
 
 1. Copy [`.env.production.example`](../.env.production.example) to `.env` on production (or [`.env.staging.example`](../.env.staging.example) on staging).
-2. Run `php artisan key:generate` if `APP_KEY` is empty.
+2. Set `APP_KEY` in the server `.env` before deploy (see **First-time setup**). Do not run `key:generate` inside the app container without `--show` — it has no `.env` file to write.
 3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a CI-published SHA, or deploy with `IMAGE_TAG=<sha>` (recommended).
 4. Set `TRUSTED_PROXIES` when TLS terminates at a reverse proxy (`*` or specific proxy IPs).
 5. Keep `APP_DEBUG=false`, `TELESCOPE_ENABLED=false`, and `PULSE_ENABLED=false` unless you explicitly need Pulse (admins only via `viewPulse` gate).

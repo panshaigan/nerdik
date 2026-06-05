@@ -87,7 +87,14 @@ COMPOSE=(docker compose "${COMPOSE_FILES[@]}")
 if [[ "$USE_BUILD" == "1" ]]; then
     "${COMPOSE[@]}" build
 else
-    "${COMPOSE[@]}" pull
+    # pgsql uses nerdik-pgsql:local (built from docker/pgsql); it is not on GHCR.
+    if "${COMPOSE[@]}" pull --ignore-buildable 2>/dev/null; then
+        :
+    else
+        "${COMPOSE[@]}" pull caddy app
+    fi
+
+    "${COMPOSE[@]}" build pgsql
 fi
 
 if [[ "$PULL_ONLY" == "1" ]]; then
