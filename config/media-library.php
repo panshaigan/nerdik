@@ -288,7 +288,7 @@ return [
          * This ensures that the browser can already determine the correct layout.
          * When disabled, no tiny placeholder is generated.
          */
-        'use_tiny_placeholders' => true,
+        'use_tiny_placeholders' => false,
 
         /*
          * This class will generate the tiny placeholder used for progressive image loading. By default

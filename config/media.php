@@ -54,10 +54,43 @@ return [
 
     'full_test_formats' => ['avif', 'webp', 'jpeg'],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Picture presets (sizes hint + optional srcset width cap)
+    |--------------------------------------------------------------------------
+    */
+    'presets' => [
+        'tag_chip' => [
+            'sizes' => '64px',
+            'max_srcset_width' => 128,
+        ],
+        'tag_card' => [
+            'sizes' => '(max-width: 640px) 100vw, 384px',
+            'max_srcset_width' => 512,
+        ],
+        'tag_hero' => [
+            'sizes' => '(max-width: 1024px) 100vw, 640px',
+            'max_srcset_width' => 768,
+        ],
+        'listing_card' => [
+            'sizes' => '(max-width: 767px) 100vw, 320px',
+            'max_srcset_width' => 512,
+        ],
+        'listing_hero' => [
+            'sizes' => '100vw',
+            'max_srcset_width' => 1536,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy sizes map (deprecated — use media.presets)
+    |--------------------------------------------------------------------------
+    */
     'sizes' => [
         'tag_chip' => '64px',
         'tag_card' => '(max-width: 640px) 100vw, 384px',
         'tag_hero' => '(max-width: 1024px) 100vw, 640px',
-        'listing_card' => '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 400px',
+        'listing_card' => '(max-width: 767px) 100vw, 320px',
     ],
 ];

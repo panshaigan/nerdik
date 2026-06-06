@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ActivityLogoSource;
+use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,11 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Activity extends Model
+class Activity extends Model implements HasMedia
 {
-    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, SoftDeletes;
 
     public const HOSTING_MODE_DRAFT = 1;
 
@@ -129,6 +131,7 @@ class Activity extends Model
             'tagMedia',
             'creator',
             'activityType.media',
+            'media' => fn ($query) => $query->where('collection_name', 'logo'),
             'tags' => fn ($query) => $query
                 ->with(['translations', 'tagCategory', 'media'])
                 ->orderBy('taggables.id'),

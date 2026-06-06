@@ -39,5 +39,7 @@ final class ListingCardPictureTest extends TestCase
         $this->assertStringContainsString('<picture', $html);
         $this->assertStringContainsString('rounded-2xl', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
+        $this->assertStringContainsString('320px', $html);
+        $this->assertStringNotContainsString('768w', $html);
     }
 }

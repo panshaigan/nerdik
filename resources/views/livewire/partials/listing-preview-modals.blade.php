@@ -16,6 +16,6 @@
         'previewEventBadgeItems' => $previewEventBadgeItems ?? [],
         'previewEventTimeSummary' => $previewEventTimeSummary ?? '',
         'previewEventLocationSummary' => $previewEventLocationSummary ?? '',
-        'previewEventCoverPicture' => $previewEventCoverPicture ?? \App\Support\Ui\ListingCardPicture::globalFallback(),
+        'previewEventCoverPicture' => $previewEventCoverPicture ?? \App\Support\Ui\ListingCardPicture::empty(),
     ])
 @endif

@@ -302,7 +302,7 @@ class ShowActivity extends Component
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
-            'coverPicture' => $activityListingImageResolver->resolve($activity),
+            'coverPicture' => $activityListingImageResolver->resolve($activity, 'listing_hero'),
             'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,

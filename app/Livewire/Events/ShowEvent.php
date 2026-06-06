@@ -411,7 +411,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
-            'coverPicture' => $eventListingImageResolver->resolve($event),
+            'coverPicture' => $eventListingImageResolver->resolve($event, 'listing_hero'),
             'attachedActivityIds' => $eventActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'hasPendingProposals' => $hasPendingProposals,

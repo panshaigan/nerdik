@@ -110,14 +110,7 @@ class Dashboard extends Component
         $eventsById = $eventIds === []
             ? collect()
             : Event::query()
-                ->with([
-                    'organization',
-                    'creator',
-                    'places.country.translations',
-                    'places.city.translations',
-                    'slots.activity.activityType',
-                    'slots.activityTypes',
-                ])
+                ->with(Event::listingCardEagerLoad())
                 ->whereIn('id', $eventIds)
                 ->get()
                 ->keyBy('id');

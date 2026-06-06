@@ -19,11 +19,13 @@ use App\Models\User;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
 final class BrowseListingCardPresenterTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsListingDefaultMedia;
 
     private BrowseListingCardPresenter $presenter;
 
@@ -237,6 +239,8 @@ final class BrowseListingCardPresenterTest extends TestCase
     #[Test]
     public function from_event_includes_cover_picture(): void
     {
+        $this->seedListingDefaultMedia();
+
         $event = Event::factory()->create();
 
         $viewData = $this->presenter->fromEvent($event, []);

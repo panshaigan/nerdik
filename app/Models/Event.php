@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventLogoSource;
+use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,11 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Event extends Model
+class Event extends Model implements HasMedia
 {
-    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string
@@ -53,6 +55,23 @@ class Event extends Model
     public function listingMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'listing_media_id');
+    }
+
+    /**
+     * @return array<string|int, mixed>
+     */
+    public static function listingCardEagerLoad(): array
+    {
+        return [
+            'listingMedia',
+            'creator',
+            'organization',
+            'media' => fn ($query) => $query->where('collection_name', 'logo'),
+            'places.country.translations',
+            'places.city.translations',
+            'slots.activity.activityType',
+            'slots.activityTypes',
+        ];
     }
 
     public function canceller(): BelongsTo

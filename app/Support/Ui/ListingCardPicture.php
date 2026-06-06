@@ -9,32 +9,24 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final readonly class ListingCardPicture
 {
-    public const GLOBAL_FALLBACK_ASSET = 'images/tag-game/warhammer.jpg';
-
     public function __construct(
         public ?MediaPictureSources $sources = null,
-        public ?string $staticUrl = null,
     ) {}
 
-    public static function fromMedia(Media $media, string $alt = ''): self
+    public static function fromMedia(Media $media, string $alt = '', string $preset = 'listing_card'): self
     {
         return new self(
-            sources: MediaPictureSources::fromMediaWithPreset($media, 'listing_card', $alt),
+            sources: MediaPictureSources::fromMediaWithPreset($media, $preset, $alt),
         );
     }
 
-    public static function fromStaticAsset(string $publicPath): self
+    public static function empty(): self
     {
-        return new self(staticUrl: asset($publicPath));
-    }
-
-    public static function globalFallback(): self
-    {
-        return self::fromStaticAsset(self::GLOBAL_FALLBACK_ASSET);
+        return new self;
     }
 
     public function hasDisplayableImage(): bool
     {
-        return $this->sources !== null || $this->staticUrl !== null;
+        return $this->sources !== null;
     }
 }
