@@ -24,7 +24,6 @@ use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -291,7 +290,7 @@ class ManageActivityForm extends Component
         $isUpload = $source === ActivityLogoSource::Upload
             || (is_string($source) && $source === ActivityLogoSource::Upload->value);
 
-        return $isUpload && filled($activity->logo_path);
+        return $isUpload && ($activity->getFirstMedia('logo') !== null || filled($activity->logo_path));
     }
 
     private function pruneInvalidTagMediaSelection(): void
@@ -1142,12 +1141,11 @@ class ManageActivityForm extends Component
         }
 
         $logoPreviewUrl = null;
-        if (
-            $editingActivity !== null
-            && $editingActivity->logo_source === ActivityLogoSource::Upload
-            && filled($editingActivity->logo_path)
-        ) {
-            $logoPreviewUrl = Storage::disk('public')->url((string) $editingActivity->logo_path);
+        if ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Upload) {
+            $logoMedia = $editingActivity->getFirstMedia('logo');
+            if ($logoMedia !== null) {
+                $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+            }
         }
 
         return view('livewire.activities.manage-activity-form', [

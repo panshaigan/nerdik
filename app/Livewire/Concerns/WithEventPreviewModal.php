@@ -64,7 +64,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
-                'previewEventCoverPicture' => ListingCardPicture::globalFallback(),
+                'previewEventCoverPicture' => ListingCardPicture::empty(),
             ];
         }
 
@@ -74,7 +74,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
-                'previewEventCoverPicture' => ListingCardPicture::globalFallback(),
+                'previewEventCoverPicture' => ListingCardPicture::empty(),
             ];
         }
 
@@ -93,14 +93,6 @@ trait WithEventPreviewModal
     {
         return Event::query()
             ->whereKey($eventId)
-            ->with([
-                'creator',
-                'canceller',
-                'organization',
-                'places.country.translations',
-                'places.city.translations',
-                'slots.activity.activityType',
-                'slots.activityTypes',
-            ]);
+            ->with(Event::listingCardEagerLoad());
     }
 }

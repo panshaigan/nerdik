@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
+use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
 use App\Livewire\Activities\ManageActivityForm;
@@ -125,8 +126,8 @@ final class ManageActivityFormImageTest extends TestCase
         $activity = Activity::query()->where('name', 'Upload Logo Activity')->first();
         $this->assertNotNull($activity);
         $this->assertSame(ActivityLogoSource::Upload, $activity->logo_source);
-        $this->assertSame('activity-logos/'.$activity->id.'.webp', $activity->logo_path);
-        Storage::disk('public')->assertExists('activity-logos/'.$activity->id.'.webp');
+        $this->assertNull($activity->logo_path);
+        $this->assertNotNull($activity->getFirstMedia('logo'));
     }
 
     #[Test]
@@ -152,15 +153,17 @@ final class ManageActivityFormImageTest extends TestCase
         Storage::fake('public');
         $this->seed(ActivityTypeSeeder::class);
         $user = User::factory()->create();
-        $path = 'activity-logos/existing.webp';
-        Storage::disk('public')->put($path, UploadedFile::fake()->image('existing.jpg')->getContent());
         $activity = Activity::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'logo_source' => ActivityLogoSource::Upload,
-            'logo_path' => $path,
+            'logo_path' => null,
             'tag_media_id' => null,
         ]);
+        app(StoreUploadedActivityLogo::class)(
+            $activity,
+            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+        );
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
 
         Livewire::actingAs($user)
@@ -173,7 +176,8 @@ final class ManageActivityFormImageTest extends TestCase
             ->assertHasNoErrors();
 
         $activity->refresh();
-        $this->assertSame($path, $activity->logo_path);
+        $this->assertNotNull($activity->getFirstMedia('logo'));
+        $this->assertNull($activity->logo_path);
         $this->assertSame('Updated Name Only', $activity->name);
     }
 
@@ -184,14 +188,16 @@ final class ManageActivityFormImageTest extends TestCase
         $this->seed(ActivityTypeSeeder::class);
         $user = User::factory()->create();
         [$tag, $media] = $this->createTagWithImage('Switch Source');
-        $path = 'activity-logos/to-delete.webp';
-        Storage::disk('public')->put($path, UploadedFile::fake()->image('logo.jpg')->getContent());
         $activity = Activity::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'logo_source' => ActivityLogoSource::Upload,
-            'logo_path' => $path,
+            'logo_path' => null,
         ]);
+        app(StoreUploadedActivityLogo::class)(
+            $activity,
+            UploadedFile::fake()->image('logo.jpg', 1280, 720),
+        );
         $activity->tags()->attach($tag->id);
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
 
@@ -207,7 +213,7 @@ final class ManageActivityFormImageTest extends TestCase
         $activity->refresh();
         $this->assertSame(ActivityLogoSource::Tag, $activity->logo_source);
         $this->assertNull($activity->logo_path);
-        Storage::disk('public')->assertMissing($path);
+        $this->assertNull($activity->getFirstMedia('logo'));
     }
 
     #[Test]

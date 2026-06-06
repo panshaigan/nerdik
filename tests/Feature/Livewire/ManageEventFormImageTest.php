@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
+use App\Actions\Events\StoreUploadedEventLogo;
 use App\Enums\EventLogoSource;
 use App\Livewire\Events\ManageEventForm;
 use App\Models\Event;
@@ -89,8 +90,8 @@ final class ManageEventFormImageTest extends TestCase
         $event = Event::query()->where('name', 'Upload Logo Event')->first();
         $this->assertNotNull($event);
         $this->assertSame(EventLogoSource::Upload, $event->logo_source);
-        $this->assertSame('event-logos/'.$event->id.'.webp', $event->logo_path);
-        Storage::disk('public')->assertExists('event-logos/'.$event->id.'.webp');
+        $this->assertNull($event->logo_path);
+        $this->assertNotNull($event->getFirstMedia('logo'));
     }
 
     #[Test]
@@ -117,15 +118,17 @@ final class ManageEventFormImageTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
-        $path = 'event-logos/existing.webp';
-        Storage::disk('public')->put($path, UploadedFile::fake()->image('existing.jpg')->getContent());
         $event = Event::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'logo_source' => EventLogoSource::Upload,
-            'logo_path' => $path,
+            'logo_path' => null,
             'listing_media_id' => null,
         ]);
+        app(StoreUploadedEventLogo::class)(
+            $event,
+            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+        );
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class, ['event' => $event])
@@ -135,7 +138,8 @@ final class ManageEventFormImageTest extends TestCase
             ->assertHasNoErrors();
 
         $event->refresh();
-        $this->assertSame($path, $event->logo_path);
+        $this->assertNotNull($event->getFirstMedia('logo'));
+        $this->assertNull($event->logo_path);
         $this->assertSame('Updated Event Name', $event->name);
     }
 
@@ -146,14 +150,16 @@ final class ManageEventFormImageTest extends TestCase
         $this->seedListingDefaultMedia();
         $user = User::factory()->organizer()->create();
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
-        $path = 'event-logos/to-delete.webp';
-        Storage::disk('public')->put($path, UploadedFile::fake()->image('logo.jpg')->getContent());
         $event = Event::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'logo_source' => EventLogoSource::Upload,
-            'logo_path' => $path,
+            'logo_path' => null,
         ]);
+        app(StoreUploadedEventLogo::class)(
+            $event,
+            UploadedFile::fake()->image('logo.jpg', 1280, 720),
+        );
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class, ['event' => $event])
@@ -166,7 +172,7 @@ final class ManageEventFormImageTest extends TestCase
         $this->assertSame(EventLogoSource::Default, $event->logo_source);
         $this->assertNull($event->logo_path);
         $this->assertSame($mediaId, (int) $event->listing_media_id);
-        Storage::disk('public')->assertMissing($path);
+        $this->assertNull($event->getFirstMedia('logo'));
     }
 
     #[Test]

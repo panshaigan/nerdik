@@ -287,14 +287,7 @@ class BrowseEvents extends Component
      */
     protected function paginateEventsOnly()
     {
-        $query = $this->baseEventQuery()->with([
-            'organization',
-            'creator',
-            'places.country.translations',
-            'places.city.translations',
-            'slots.activity.activityType',
-            'slots.activityTypes',
-        ]);
+        $query = $this->baseEventQuery()->with(Event::listingCardEagerLoad());
         $this->applyBrowseEventSort($query);
         $paginator = $query->paginate(self::PER_PAGE);
         $paginator->setCollection(
@@ -365,14 +358,7 @@ class BrowseEvents extends Component
         $events = $eventIds === []
             ? collect()
             : Event::query()
-                ->with([
-                    'organization',
-                    'creator',
-                    'places.country.translations',
-                    'places.city.translations',
-                    'slots.activity.activityType',
-                    'slots.activityTypes',
-                ])
+                ->with(Event::listingCardEagerLoad())
                 ->whereIn('id', $eventIds)
                 ->get()
                 ->keyBy('id');

@@ -114,10 +114,6 @@ final class Seo
 
     private static function pictureUrl(ListingCardPicture $picture): ?string
     {
-        if ($picture->staticUrl !== null) {
-            return self::absoluteUrl($picture->staticUrl);
-        }
-
         if ($picture->sources === null) {
             return null;
         }

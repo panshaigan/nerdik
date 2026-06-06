@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Events;
 
+use App\Actions\Events\DeleteUploadedEventLogo;
 use App\Actions\Events\StoreUploadedEventLogo;
 use App\Enums\EventLogoSource;
 use App\Models\Event;
@@ -17,7 +18,6 @@ use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -300,7 +300,7 @@ class ManageEventForm extends Component
         $isUpload = $source === EventLogoSource::Upload
             || (is_string($source) && $source === EventLogoSource::Upload->value);
 
-        return $isUpload && filled($event->logo_path);
+        return $isUpload && ($event->getFirstMedia('logo') !== null || filled($event->logo_path));
     }
 
     /**
@@ -531,7 +531,7 @@ class ManageEventForm extends Component
         $source = EventLogoSource::tryFrom((string) ($this->logo_source ?? ''));
 
         if ($source === EventLogoSource::Default) {
-            $this->deleteEventLogoFileIfPresent($event);
+            app(DeleteUploadedEventLogo::class)($event);
             $event->logo_source = EventLogoSource::Default;
             $event->listing_media_id = $this->listing_media_id;
             $event->logo_path = null;
@@ -540,10 +540,11 @@ class ManageEventForm extends Component
             $event->listing_media_id = null;
 
             if ($this->croppedLogo !== null) {
-                $event->logo_path = app(StoreUploadedEventLogo::class)($event, $this->croppedLogo);
+                app(StoreUploadedEventLogo::class)($event, $this->croppedLogo);
+                $event->logo_path = null;
             }
         } else {
-            $this->deleteEventLogoFileIfPresent($event);
+            app(DeleteUploadedEventLogo::class)($event);
             $event->logo_source = null;
             $event->listing_media_id = null;
             $event->logo_path = null;
@@ -551,25 +552,6 @@ class ManageEventForm extends Component
 
         $event->save();
         $this->reset('croppedLogo');
-    }
-
-    private function deleteEventLogoFileIfPresent(Event $event): void
-    {
-        $path = $this->eventLogoStoragePath($event);
-        if ($path !== null && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
-    }
-
-    private function eventLogoStoragePath(Event $event): ?string
-    {
-        if (filled($event->logo_path)) {
-            return (string) $event->logo_path;
-        }
-
-        $canonical = 'event-logos/'.$event->id.'.webp';
-
-        return Storage::disk('public')->exists($canonical) ? $canonical : null;
     }
 
     protected function normalizeDesc(?string $html): ?string
@@ -777,12 +759,11 @@ class ManageEventForm extends Component
         $exceptId = $this->editingEventId;
 
         $logoPreviewUrl = null;
-        if (
-            $editingEvent !== null
-            && $editingEvent->logo_source === EventLogoSource::Upload
-            && filled($editingEvent->logo_path)
-        ) {
-            $logoPreviewUrl = Storage::disk('public')->url((string) $editingEvent->logo_path);
+        if ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Upload) {
+            $logoMedia = $editingEvent->getFirstMedia('logo');
+            if ($logoMedia !== null) {
+                $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+            }
         }
 
         return view('livewire.events.manage-event-form', [

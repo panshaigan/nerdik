@@ -8,14 +8,13 @@ use App\Enums\ActivityLogoSource;
 use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
-use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class ActivityListingImageResolver
 {
-    public function resolve(Activity $activity): ListingCardPicture
+    public function resolve(Activity $activity, string $preset = 'listing_card'): ListingCardPicture
     {
-        $userChosen = $this->resolveUserChosen($activity);
+        $userChosen = $this->resolveUserChosen($activity, $preset);
         if ($userChosen !== null) {
             return $userChosen;
         }
@@ -23,19 +22,19 @@ final class ActivityListingImageResolver
         foreach ([TagCategory::KEY_GAME, TagCategory::KEY_SETTING, TagCategory::KEY_GENRE] as $categoryKey) {
             $tagMedia = $this->firstMediaFromTagsByCategory($activity, $categoryKey);
             if ($tagMedia !== null) {
-                return ListingCardPicture::fromMedia($tagMedia, (string) $activity->name);
+                return ListingCardPicture::fromMedia($tagMedia, (string) $activity->name, $preset);
             }
         }
 
         $activityTypeMedia = $this->firstActivityTypeMedia($activity);
         if ($activityTypeMedia !== null) {
-            return ListingCardPicture::fromMedia($activityTypeMedia, (string) $activity->name);
+            return ListingCardPicture::fromMedia($activityTypeMedia, (string) $activity->name, $preset);
         }
 
-        return ListingCardPicture::globalFallback();
+        return ListingCardPicture::empty();
     }
 
-    private function resolveUserChosen(Activity $activity): ?ListingCardPicture
+    private function resolveUserChosen(Activity $activity, string $preset): ?ListingCardPicture
     {
         $source = $activity->logo_source;
 
@@ -43,18 +42,32 @@ final class ActivityListingImageResolver
             $media = $this->resolveTagMediaRelation($activity);
 
             if ($media !== null) {
-                return ListingCardPicture::fromMedia($media, (string) $activity->name);
+                return ListingCardPicture::fromMedia($media, (string) $activity->name, $preset);
             }
         }
 
-        if ($source === ActivityLogoSource::Upload && filled($activity->logo_path)) {
-            $path = (string) $activity->logo_path;
-            if (Storage::disk('public')->exists($path)) {
-                return new ListingCardPicture(staticUrl: Storage::disk('public')->url($path));
+        if ($source === ActivityLogoSource::Upload) {
+            $media = $this->resolveUploadedLogoMedia($activity);
+
+            if ($media !== null) {
+                return ListingCardPicture::fromMedia($media, (string) $activity->name, $preset);
             }
         }
 
         return null;
+    }
+
+    private function resolveUploadedLogoMedia(Activity $activity): ?Media
+    {
+        if ($activity->relationLoaded('media')) {
+            $logoMedia = $activity->getMedia('logo')->first();
+
+            if ($logoMedia !== null) {
+                return $logoMedia;
+            }
+        }
+
+        return $activity->getFirstMedia('logo');
     }
 
     private function resolveTagMediaRelation(Activity $activity): ?Media

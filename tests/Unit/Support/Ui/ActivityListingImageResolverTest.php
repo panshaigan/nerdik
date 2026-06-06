@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Ui;
 
+use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Actions\Seeders\AttachModelMediaFromPublic;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
@@ -14,7 +15,6 @@ use App\Models\TagCategory;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Support\Ui\EventListingImageResolver;
-use App\Support\Ui\ListingCardPicture;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -95,27 +95,25 @@ final class ActivityListingImageResolverTest extends TestCase
     }
 
     #[Test]
-    public function it_uses_uploaded_logo_path_when_logo_source_is_upload(): void
+    public function it_uses_uploaded_logo_media_when_logo_source_is_upload(): void
     {
         Storage::fake('public');
-        $path = 'activity-logos/test-upload.jpg';
-        Storage::disk('public')->put($path, UploadedFile::fake()->image('upload.jpg')->getContent());
-
         $activity = Activity::factory()->create([
             'logo_source' => ActivityLogoSource::Upload,
-            'logo_path' => $path,
+            'logo_path' => null,
             'tag_media_id' => null,
         ]);
 
-        $picture = $this->resolver->resolve($activity);
+        app(StoreUploadedActivityLogo::class)($activity, UploadedFile::fake()->image('upload.jpg', 1600, 900));
 
-        $this->assertNull($picture->sources);
-        $this->assertNotNull($picture->staticUrl);
-        $this->assertStringContainsString($path, (string) $picture->staticUrl);
+        $picture = $this->resolver->resolve($activity->fresh());
+
+        $this->assertNotNull($picture->sources);
+        $this->assertTrue($picture->hasDisplayableImage());
     }
 
     #[Test]
-    public function it_uses_activity_type_media_before_global_fallback(): void
+    public function it_uses_activity_type_media_before_empty_fallback(): void
     {
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($activityType);
@@ -135,7 +133,7 @@ final class ActivityListingImageResolverTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_global_fallback_when_nothing_else_matches(): void
+    public function it_returns_empty_picture_when_nothing_else_matches(): void
     {
         $activity = Activity::factory()->create([
             'logo_source' => null,
@@ -145,11 +143,8 @@ final class ActivityListingImageResolverTest extends TestCase
 
         $picture = $this->resolver->resolve($activity);
 
+        $this->assertFalse($picture->hasDisplayableImage());
         $this->assertNull($picture->sources);
-        $this->assertStringContainsString(
-            ListingCardPicture::GLOBAL_FALLBACK_ASSET,
-            (string) $picture->staticUrl,
-        );
     }
 
     #[Test]
@@ -173,10 +168,26 @@ final class ActivityListingImageResolverTest extends TestCase
 
         $picture = $this->resolver->resolve($activity->load(['activityType.media']));
 
-        $this->assertNull($picture->sources);
-        $this->assertStringContainsString(
-            ListingCardPicture::GLOBAL_FALLBACK_ASSET,
-            (string) $picture->staticUrl,
-        );
+        $this->assertFalse($picture->hasDisplayableImage());
+    }
+
+    #[Test]
+    public function it_uses_listing_hero_preset_when_requested(): void
+    {
+        $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        $this->assertNotNull($activityType);
+
+        $fixture = 'images/listing/resolver-hero-preset.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
+        app(AttachModelMediaFromPublic::class)($activityType, [$fixture]);
+
+        $activity = Activity::factory()->create([
+            'activity_type_id' => $activityType->id,
+            'logo_source' => null,
+        ]);
+
+        $picture = $this->resolver->resolve($activity->load(['activityType.media']), 'listing_hero');
+
+        $this->assertSame('100vw', $picture->sources?->sizes());
     }
 }

@@ -38,5 +38,6 @@ final class ShowEventPageBackgroundTest extends TestCase
         $this->assertStringContainsString('blur-md', $html);
         $this->assertStringContainsString('<picture', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
+        $this->assertStringContainsString('sizes="100vw"', $html);
     }
 }
