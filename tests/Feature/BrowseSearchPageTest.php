@@ -9,11 +9,13 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
 class BrowseSearchPageTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsListingDefaultMedia;
 
     public function test_search_page_renders_browse_events_filter_shell(): void
     {
@@ -36,6 +38,8 @@ class BrowseSearchPageTest extends TestCase
 
     public function test_search_page_lists_public_event_and_self_hosted_activity_cards(): void
     {
+        $this->seedListingDefaultMedia();
+
         $user = User::factory()->create();
         $startsAt = now()->addDays(14)->setSecond(0);
         $endsAt = (clone $startsAt)->addHours(5);
