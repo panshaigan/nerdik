@@ -5,7 +5,7 @@ SAIL := ./vendor/bin/sail
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
-        docker-config docker-pull dev-deploy prod-deploy deploy docker-publish
+        docker-config docker-pull dev-deploy prod-deploy deploy vps-deploy docker-publish
 
 up:
 	$(SAIL) up -d
@@ -117,6 +117,9 @@ dev-deploy:
 
 prod-deploy:
 	$(MAKE) deploy DEPLOY_ENV=prod IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
+
+vps-deploy:
+	./scripts/vps-deploy.sh
 
 deploy:
 	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) $(DEPLOY_BUILD_FLAG)

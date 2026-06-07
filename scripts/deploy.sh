@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# Deploy a pre-built GHCR image to dev or prod via Docker Compose.
+#
+# Composer and npm dependencies are baked into the image during CI
+# (docker/production/Dockerfile). This script does not run composer/npm on the
+# host — it pulls NERDIK_IMAGE (or IMAGE_TAG), starts containers, migrates,
+# caches config/routes/views, and restarts worker/scheduler/reverb.
+#
+# For a full VPS update (git pull + deploy latest SHA): ./scripts/vps-deploy.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -34,7 +34,7 @@ jobs:
           if [[ -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Deploy skipped: set DEPLOY_SSH_KEY, DEPLOY_HOST_DEV, and DEPLOY_USER repository secrets when the VPS is ready."
-            echo "See docs/ci-cd.md for the full checklist."
+            echo "See docs/github-deploy-setup.md for the full checklist."
             exit 0
           fi
 
@@ -85,7 +85,7 @@ jobs:
           if [[ -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Deploy skipped: set DEPLOY_SSH_KEY, DEPLOY_HOST_PROD, and DEPLOY_USER repository secrets when the VPS is ready."
-            echo "See docs/ci-cd.md for the full checklist."
+            echo "See docs/github-deploy-setup.md for the full checklist."
             exit 0
           fi
 
@@ -112,8 +112,7 @@ jobs:
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH:-/opt/nerdik}"
-            git pull --ff-only
-            IMAGE_TAG=${{ steps.tag.outputs.value }} make prod-deploy
+            IMAGE_TAG=${{ steps.tag.outputs.value }} ./scripts/vps-deploy.sh --no-pull
 
       - name: Smoke check
         if: steps.config.outputs.skip != 'true' && vars.PROD_APP_URL != ''
