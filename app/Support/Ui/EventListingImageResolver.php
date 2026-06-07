@@ -10,6 +10,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class EventListingImageResolver
 {
+    public const EVENT_LISTING_COLLECTION = 'event_listing';
+
+    /** @deprecated Use EVENT_LISTING_COLLECTION; kept for legacy data migration only */
     public const LISTING_ROLE = 'event_listing_default';
 
     public function resolve(?Event $event = null, string $preset = 'listing_card'): ListingCardPicture
@@ -72,8 +75,7 @@ final class EventListingImageResolver
     private function resolveGlobalDefault(string $preset): ListingCardPicture
     {
         $media = Media::query()
-            ->where('collection_name', 'images')
-            ->where('custom_properties->listing_role', self::LISTING_ROLE)
+            ->where('collection_name', self::EVENT_LISTING_COLLECTION)
             ->orderBy('id')
             ->first();
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Seeders;
 
 use App\Models\ActivityType;
-use App\Support\Ui\EventListingImageResolver;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use SplFileInfo;
@@ -76,7 +75,7 @@ final class AttachListingDefaultsFromSeederLibrary
                 $rpgType,
                 $absolutePath,
                 $this->seedSourcePath($absolutePath),
-                ['listing_role' => EventListingImageResolver::LISTING_ROLE],
+                collection: 'event_listing',
             );
         }
     }

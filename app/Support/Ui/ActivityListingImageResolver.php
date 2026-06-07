@@ -121,7 +121,6 @@ final class ActivityListingImageResolver
             return null;
         }
 
-        return $activityType->getMedia('images')
-            ->first(fn (Media $media): bool => $media->getCustomProperty('listing_role') !== EventListingImageResolver::LISTING_ROLE);
+        return $activityType->getMedia('images')->first();
     }
 }

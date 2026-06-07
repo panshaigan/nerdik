@@ -83,13 +83,11 @@ final class TagSeederImagesTest extends TestCase
         $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($rpgType);
 
-        $typeMedia = $rpgType->getMedia('images')
-            ->first(fn ($media) => $media->getCustomProperty('listing_role') !== EventListingImageResolver::LISTING_ROLE);
+        $typeMedia = $rpgType->getMedia('images')->first();
         $this->assertNotNull($typeMedia);
         $this->assertStringContainsString('Default/Activity/default_activity_type_01.png', $typeMedia->getCustomProperty('seed_source'));
 
-        $eventDefault = $rpgType->getMedia('images')
-            ->first(fn ($media) => $media->getCustomProperty('listing_role') === EventListingImageResolver::LISTING_ROLE);
+        $eventDefault = $rpgType->getMedia(EventListingImageResolver::EVENT_LISTING_COLLECTION)->first();
         $this->assertNotNull($eventDefault);
         $this->assertStringContainsString('Default/Event/default_event.png', $eventDefault->getCustomProperty('seed_source'));
     }

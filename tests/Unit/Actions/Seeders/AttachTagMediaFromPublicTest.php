@@ -8,10 +8,12 @@ use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\Tag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsResponsiveMedia;
 use Tests\TestCase;
 
 final class AttachTagMediaFromPublicTest extends TestCase
 {
+    use AssertsResponsiveMedia;
     use RefreshDatabase;
 
     private AttachTagMediaFromPublic $action;
@@ -41,10 +43,7 @@ final class AttachTagMediaFromPublicTest extends TestCase
 
         $this->assertNotNull($media);
         $this->assertSame($fixturePath, $media->getCustomProperty('seed_source'));
-        $this->assertTrue($media->hasGeneratedConversion('avif'));
-        $this->assertTrue($media->hasGeneratedConversion('webp'));
-        $this->assertTrue($media->hasGeneratedConversion('jpeg'));
-        $this->assertNotEmpty($media->responsive_images);
+        $this->assertMediaHasResponsiveConversions($media);
     }
 
     #[Test]

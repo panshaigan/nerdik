@@ -6,6 +6,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Storage path prefix
+    |--------------------------------------------------------------------------
+    |
+    | All Spatie media files are stored under this folder on the configured
+    | disk (e.g. storage/app/public/media/{id}/).
+    |
+    */
+    'storage_path_prefix' => env('MEDIA_STORAGE_PATH_PREFIX', 'media'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Responsive image widths
     |--------------------------------------------------------------------------
     |

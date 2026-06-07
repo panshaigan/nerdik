@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\BackfillMediaDimensions;
 use App\Listeners\LogNotificationEmail;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
@@ -35,6 +36,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -105,6 +107,7 @@ class AppServiceProvider extends ServiceProvider
 
         EventFacade::listen(NotificationSent::class, LogNotificationEmail::class);
         EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
+        EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);
 
         RateLimiter::for('registration', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
