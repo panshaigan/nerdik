@@ -85,6 +85,10 @@ Deploy is **manual** via Actions → **Deploy** → Run workflow. Choose `dev` o
 
 If deploy secrets are not configured, the workflow prints a skip message and exits successfully so the repo stays green before you have a server.
 
+**Setup guide:** [github-deploy-setup.md](github-deploy-setup.md) — SSH keys, GitHub secrets, environments, and verification.
+
+Composer and npm dependencies are installed during the Docker image build (CI), not at deploy time. Deploy pulls the pre-built `ghcr.io/<owner>/nerdik:<sha>` image.
+
 ### Repository secrets
 
 | Secret | Purpose |
@@ -116,15 +120,20 @@ Before the first automated deploy:
 4. `docker/caddy/Caddyfile` from `docker/caddy/Caddyfile.example`.
 5. `docker login ghcr.io` on the server.
 
-The remote deploy script runs:
+Production deploy from the VPS:
 
 ```bash
-cd /opt/nerdik   # or set DEPLOY_PATH in the SSH session
-git pull --ff-only
-IMAGE_TAG=<sha> make dev-deploy   # or prod-deploy
+cd /opt/nerdik
+make vps-deploy
 ```
 
-That matches [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -d`, `migrate --force`, config/route/view cache, restart worker/scheduler/reverb.
+Production deploy from GitHub Actions (explicit SHA, no git pull):
+
+```bash
+IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull
+```
+
+Dev deploy still uses `git pull` + `make dev-deploy`. Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -d`, `migrate --force`, config/route/view cache, restart worker/scheduler/reverb.
 
 ### Promote a tested SHA
 
@@ -138,6 +147,7 @@ IMAGE_TAG=abc123 make prod-deploy   # on production after approval
 
 | Command | Use |
 |---------|-----|
+| `make vps-deploy` | Production VPS: git pull + deploy latest SHA |
 | `make dev-deploy` | Staging VPS deploy |
 | `make prod-deploy` | Production VPS deploy |
 | `make docker-publish` | Build and push image from local machine |

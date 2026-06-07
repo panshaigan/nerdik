@@ -1,6 +1,6 @@
 # Deployment
 
-Checklist for production and staging environments. For CI/CD (GitHub Actions, GHCR, automated deploy), see [ci-cd.md](ci-cd.md). For the multi-phase roadmap (Docker, CI/CD, K8s), see [deployment-plan.md](deployment-plan.md). For local development, see [development-workflow.md](development-workflow.md).
+Checklist for production and staging environments. For CI/CD (GitHub Actions, GHCR, automated deploy), see [ci-cd.md](ci-cd.md). For GitHub Actions deploy secrets and SSH setup, see [github-deploy-setup.md](github-deploy-setup.md). For the multi-phase roadmap (Docker, CI/CD, K8s), see [deployment-plan.md](deployment-plan.md). For local development, see [development-workflow.md](development-workflow.md).
 
 ## Before you have a server
 
@@ -93,7 +93,9 @@ Staging volumes are isolated (`nerdik_dev_storage`, `nerdik_dev_pgsql_data`, etc
 
 ### Image build and publish
 
-Frontend assets are baked into the image (`npm run build` in [`docker/production/Dockerfile`](../docker/production/Dockerfile)). `VITE_REVERB_*` and `VITE_APP_NAME` are taken from build args.
+Composer and frontend dependencies are installed **inside the Docker image** during CI, not on the VPS at deploy time. The [`docker/production/Dockerfile`](../docker/production/Dockerfile) runs `composer install --no-dev`, `npm ci`, and `npm run build`; [`scripts/deploy.sh`](../scripts/deploy.sh) only pulls that image and runs containers. After you push to `main`, wait for the Docker workflow to publish `ghcr.io/<owner>/nerdik:<sha>`, then deploy with that SHA.
+
+Frontend assets are baked into the image (`npm run build` in the Dockerfile). `VITE_REVERB_*` and `VITE_APP_NAME` are taken from build args.
 
 Publish from a machine authenticated to GHCR with write permissions:
 
@@ -118,10 +120,18 @@ Persistent volumes in prod: `nerdik_storage`, `nerdik_pgsql_data`.
 
 ### Updates
 
-The server needs a clone of your git remote (not only a copied folder). After pushing changes:
+The server needs a clone of your git remote (not only a copied folder). After pushing changes to `main` and waiting for CI + Docker workflows to publish the image:
 
 ```bash
-git pull --ff-only
+cd /opt/nerdik
+make vps-deploy
+```
+
+That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves the new commit SHA, verifies the GHCR image exists, then `make prod-deploy`.
+
+To pin a specific SHA manually:
+
+```bash
 IMAGE_TAG=<git-sha> make prod-deploy
 ```
 
