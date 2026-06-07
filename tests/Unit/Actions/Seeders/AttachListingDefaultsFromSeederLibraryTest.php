@@ -11,10 +11,12 @@ use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsResponsiveMedia;
 use Tests\TestCase;
 
 final class AttachListingDefaultsFromSeederLibraryTest extends TestCase
 {
+    use AssertsResponsiveMedia;
     use RefreshDatabase;
 
     private string $defaultDirectory;
@@ -34,7 +36,7 @@ final class AttachListingDefaultsFromSeederLibraryTest extends TestCase
     }
 
     #[Test]
-    public function it_attaches_activity_defaults_to_rpg_and_event_defaults_with_listing_role(): void
+    public function it_attaches_activity_defaults_and_event_listing_catalog_media(): void
     {
         config(['media.test_profile' => 'full']);
 
@@ -51,15 +53,15 @@ final class AttachListingDefaultsFromSeederLibraryTest extends TestCase
         $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($rpgType);
 
-        $activityDefault = $rpgType->getMedia('images')
-            ->first(fn ($media) => $media->getCustomProperty('listing_role') !== EventListingImageResolver::LISTING_ROLE);
+        $activityDefault = $rpgType->getMedia('images')->first();
         $this->assertNotNull($activityDefault);
-        $this->assertStringContainsString('default_activity_type_01.jpg', $activityDefault->getCustomProperty('seed_source'));
+        $this->assertStringContainsString('default_activity_type_01.jpg', (string) $activityDefault->getCustomProperty('seed_source'));
+        $this->assertMediaHasResponsiveConversions($activityDefault);
 
-        $eventDefault = $rpgType->getMedia('images')
-            ->first(fn ($media) => $media->getCustomProperty('listing_role') === EventListingImageResolver::LISTING_ROLE);
+        $eventDefault = $rpgType->getMedia(EventListingImageResolver::EVENT_LISTING_COLLECTION)->first();
         $this->assertNotNull($eventDefault);
-        $this->assertStringContainsString('default_event.jpg', $eventDefault->getCustomProperty('seed_source'));
+        $this->assertStringContainsString('default_event.jpg', (string) $eventDefault->getCustomProperty('seed_source'));
+        $this->assertMediaHasResponsiveConversions($eventDefault);
     }
 
     #[Test]

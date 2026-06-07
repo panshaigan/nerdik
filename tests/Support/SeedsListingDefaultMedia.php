@@ -28,7 +28,7 @@ trait SeedsListingDefaultMedia
             $rpg,
             $fixture,
             'tests/fixtures/tag-sample-event-default.jpg',
-            ['listing_role' => EventListingImageResolver::LISTING_ROLE],
+            collection: EventListingImageResolver::EVENT_LISTING_COLLECTION,
         );
     }
 }

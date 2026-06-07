@@ -122,4 +122,11 @@ class Tag extends Model implements HasMedia
 
         return $this->tagCategory()->value('key');
     }
+
+    protected static function booted(): void
+    {
+        static::forceDeleting(function (Tag $tag): void {
+            $tag->media()->get()->each->delete();
+        });
+    }
 }

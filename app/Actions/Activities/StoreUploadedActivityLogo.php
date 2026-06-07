@@ -22,7 +22,7 @@ final class StoreUploadedActivityLogo
 
     public function __invoke(Activity $activity, TemporaryUploadedFile|UploadedFile $file): void
     {
-        $tempRelativePath = 'activity-logos/temp-'.$activity->id.'-'.uniqid('', true).'.webp';
+        $tempRelativePath = 'media/temp/activity-logos/temp-'.$activity->id.'-'.uniqid('', true).'.webp';
 
         ($this->storeCroppedPublicImage)(
             $tempRelativePath,

@@ -47,7 +47,7 @@ final class EventListingImageResolverTest extends TestCase
     }
 
     #[Test]
-    public function seeded_event_default_is_attached_via_listing_role(): void
+    public function seeded_event_default_is_attached_to_event_listing_collection(): void
     {
         $this->seed(ActivityTypeSeeder::class);
 
@@ -57,15 +57,17 @@ final class EventListingImageResolverTest extends TestCase
         $fixture = 'images/listing/test-event-default.jpg';
         copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
 
-        app(AttachModelMediaFromPublic::class)(
+        app(AttachModelMediaFromPublic::class)->attachFile(
             $rpgType,
-            [$fixture],
-            ['listing_role' => EventListingImageResolver::LISTING_ROLE],
+            public_path($fixture),
+            $fixture,
+            collection: EventListingImageResolver::EVENT_LISTING_COLLECTION,
         );
 
         $picture = app(EventListingImageResolver::class)->resolve();
 
         $this->assertNotNull($picture->sources);
+        $this->assertCount(1, $rpgType->refresh()->getMedia(EventListingImageResolver::EVENT_LISTING_COLLECTION));
     }
 
     #[Test]

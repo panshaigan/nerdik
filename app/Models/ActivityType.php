@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\InteractsWithOptimizedImages;
+use App\Models\Concerns\InteractsWithActivityTypeImages;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +11,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 class ActivityType extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithOptimizedImages;
+    use HasFactory, InteractsWithActivityTypeImages;
 
     public const SLUG_RPG = 'rpg';
 

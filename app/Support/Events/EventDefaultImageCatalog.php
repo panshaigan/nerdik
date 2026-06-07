@@ -16,8 +16,7 @@ final class EventDefaultImageCatalog
     public function all(): array
     {
         return Media::query()
-            ->where('collection_name', 'images')
-            ->where('custom_properties->listing_role', EventListingImageResolver::LISTING_ROLE)
+            ->where('collection_name', EventListingImageResolver::EVENT_LISTING_COLLECTION)
             ->orderBy('id')
             ->get()
             ->map(fn (Media $media): array => [

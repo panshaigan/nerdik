@@ -148,17 +148,18 @@ final class ActivityListingImageResolverTest extends TestCase
     }
 
     #[Test]
-    public function it_excludes_event_listing_default_media_from_activity_type_fallback(): void
+    public function it_excludes_event_listing_collection_media_from_activity_type_fallback(): void
     {
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($activityType);
 
         $eventFixture = 'images/listing/resolver-event-default.jpg';
         copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($eventFixture));
-        app(AttachModelMediaFromPublic::class)(
+        app(AttachModelMediaFromPublic::class)->attachFile(
             $activityType,
-            [$eventFixture],
-            ['listing_role' => EventListingImageResolver::LISTING_ROLE],
+            public_path($eventFixture),
+            $eventFixture,
+            collection: EventListingImageResolver::EVENT_LISTING_COLLECTION,
         );
 
         $activity = Activity::factory()->create([

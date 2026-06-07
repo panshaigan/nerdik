@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Media\ConfiguredWidthCalculator;
+use App\Support\Media\PrefixedPathGenerator;
 use Spatie\ImageOptimizer\Optimizers\Avifenc;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
@@ -22,7 +23,6 @@ use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 use Spatie\MediaLibrary\ResponsiveImages\TinyPlaceholderGenerator\Blurred;
 use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Spatie\MediaLibrary\Support\FileRemover\DefaultFileRemover;
-use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
 use Spatie\MediaLibrary\Support\UrlGenerator\DefaultUrlGenerator;
 use Spatie\MediaLibraryPro\Models\TemporaryUpload;
 
@@ -107,7 +107,7 @@ return [
     /*
      * The class that contains the strategy for determining a media file's path.
      */
-    'path_generator' => DefaultPathGenerator::class,
+    'path_generator' => PrefixedPathGenerator::class,
 
     /*
      * The class that contains the strategy for determining how to remove files.
@@ -319,7 +319,7 @@ return [
      * You can specify a prefix for that is used for storing all media.
      * If you set this to `/my-subdir`, all your media will be stored in a `/my-subdir` directory.
      */
-    'prefix' => env('MEDIA_PREFIX', ''),
+    'prefix' => env('MEDIA_PREFIX', env('MEDIA_STORAGE_PATH_PREFIX', 'media')),
 
     /*
      * When forcing lazy loading, media will be loaded even if you don't eager load media and you have

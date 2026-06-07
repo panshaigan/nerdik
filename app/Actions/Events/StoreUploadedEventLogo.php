@@ -22,7 +22,7 @@ final class StoreUploadedEventLogo
 
     public function __invoke(Event $event, TemporaryUploadedFile|UploadedFile $file): void
     {
-        $tempRelativePath = 'event-logos/temp-'.$event->id.'-'.uniqid('', true).'.webp';
+        $tempRelativePath = 'media/temp/event-logos/temp-'.$event->id.'-'.uniqid('', true).'.webp';
 
         ($this->storeCroppedPublicImage)(
             $tempRelativePath,
