@@ -177,7 +177,7 @@ Optional private Composer packages: pass `COMPOSER_AUTH` or a BuildKit secret fo
 
 | Service | Role |
 |---------|------|
-| `caddy` (prod only) | TLS for prod + staging domains; HTTP → `app:80`, WebSocket `/app/*` → `reverb:8080`; staging via `nerdik-edge` |
+| `caddy` (prod only) | TLS for prod + staging domains; prod → `prod-app`/`prod-reverb`; staging → `staging-app`/`staging-reverb` on `nerdik-edge` |
 | `app` | Nginx + PHP-FPM (Laravel) |
 | `worker` | `queue:work database` |
 | `scheduler` | `schedule:work` |
