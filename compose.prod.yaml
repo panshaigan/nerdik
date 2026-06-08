@@ -2,16 +2,10 @@ name: nerdik-prod
 
 services:
   app:
-    networks:
-      nerdik:
-        aliases:
-          - prod-app
+    container_name: nerdik-prod-app
 
   reverb:
-    networks:
-      nerdik:
-        aliases:
-          - prod-reverb
+    container_name: nerdik-prod-reverb
 
   caddy:
     image: caddy:2-alpine
@@ -20,13 +14,14 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env}
       STAGING_DOMAIN: ${STAGING_DOMAIN:-staging.nerdik.app}
-      ACME_EMAIL: ${ACME_EMAIL:-}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
     volumes:
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./docker/caddy/entrypoint.sh:/etc/caddy/entrypoint.sh:ro
       - caddy_data:/data
       - caddy_config:/config
+    entrypoint: ["/bin/sh", "/etc/caddy/entrypoint.sh"]
     networks:
       - nerdik
       - edge

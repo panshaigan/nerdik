@@ -118,7 +118,7 @@ Before the first automated deploy:
 1. VPS with Docker and Compose (see [deployment.md](deployment.md)).
 2. Clone this repo (e.g. `/opt/nerdik`).
 3. `.env` from [`.env.production.example`](../.env.production.example) with `GITHUB_OWNER` and `STAGING_DOMAIN` set.
-4. `docker/caddy/Caddyfile` from `docker/caddy/Caddyfile.example`.
+4. `APP_DOMAIN`, `STAGING_DOMAIN`, and `ACME_EMAIL` in `.env` for Caddy.
 5. `docker login ghcr.io` on the server.
 
 Production deploy from the VPS:

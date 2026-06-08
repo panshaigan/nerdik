@@ -2,18 +2,16 @@ name: nerdik-staging
 
 services:
   app:
+    container_name: nerdik-staging-app
     networks:
-      nerdik: {}
-      edge:
-        aliases:
-          - staging-app
+      - nerdik
+      - edge
 
   reverb:
+    container_name: nerdik-staging-reverb
     networks:
-      nerdik: {}
-      edge:
-        aliases:
-          - staging-reverb
+      - nerdik
+      - edge
 
   worker:
     deploy:
