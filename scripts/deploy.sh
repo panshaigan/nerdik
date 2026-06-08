@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy a pre-built GHCR image to dev or prod via Docker Compose.
+# Deploy a pre-built GHCR image to staging or prod via Docker Compose.
 #
 # Composer and npm dependencies are baked into the image during CI
 # (docker/production/Dockerfile). This script does not run composer/npm on the
@@ -14,7 +14,7 @@ cd "$ROOT"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/deploy.sh <dev|prod> [--build] [--pull-only]
+Usage: ./scripts/deploy.sh <staging|prod> [--build] [--pull-only]
 
 Options:
   --build      Build locally using compose.build.yaml before deploy
@@ -30,8 +30,13 @@ fi
 DEPLOY_ENV="$1"
 shift
 
-if [[ "$DEPLOY_ENV" != "dev" && "$DEPLOY_ENV" != "prod" ]]; then
-    echo "First argument must be 'dev' or 'prod'." >&2
+if [[ "$DEPLOY_ENV" == "dev" ]]; then
+    echo "Note: 'dev' deploy was renamed to 'staging'." >&2
+    DEPLOY_ENV="staging"
+fi
+
+if [[ "$DEPLOY_ENV" != "staging" && "$DEPLOY_ENV" != "prod" ]]; then
+    echo "First argument must be 'staging' or 'prod'." >&2
     usage
     exit 1
 fi
@@ -60,9 +65,16 @@ if [[ ! -f .env ]]; then
     exit 1
 fi
 
-if [[ ! -f docker/caddy/Caddyfile ]]; then
+if [[ "$DEPLOY_ENV" == "prod" && ! -f docker/caddy/Caddyfile ]]; then
     echo "Missing docker/caddy/Caddyfile — copy docker/caddy/Caddyfile.example and set APP_DOMAIN." >&2
     exit 1
+fi
+
+if [[ "$DEPLOY_ENV" == "staging" ]]; then
+    if ! docker network inspect nerdik-edge >/dev/null 2>&1; then
+        echo "Docker network nerdik-edge not found. Deploy production first (make vps-deploy) so Caddy creates the shared edge network." >&2
+        exit 1
+    fi
 fi
 
 # shellcheck disable=SC1091
@@ -98,8 +110,10 @@ else
     # pgsql uses nerdik-pgsql:local (built from docker/pgsql); it is not on GHCR.
     if "${COMPOSE[@]}" pull --ignore-buildable 2>/dev/null; then
         :
-    else
+    elif [[ "$DEPLOY_ENV" == "prod" ]]; then
         "${COMPOSE[@]}" pull caddy app
+    else
+        "${COMPOSE[@]}" pull app
     fi
 
     "${COMPOSE[@]}" build pgsql

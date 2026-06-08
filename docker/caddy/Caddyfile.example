@@ -1,5 +1,5 @@
-# Copy to Caddyfile and set APP_DOMAIN / ACME_EMAIL in .env (see docs/deployment.md).
-# Caddy loads environment variables from the caddy service in compose.prod.yaml.
+# Copy to Caddyfile on the production host and set APP_DOMAIN / STAGING_DOMAIN / ACME_EMAIL in .env.
+# Caddy runs only in the prod stack (compose.prod.yaml) and routes staging through nerdik-edge.
 
 {
 	email {$ACME_EMAIL}
@@ -13,4 +13,30 @@
 	}
 
 	reverse_proxy app:80
+}
+
+{$STAGING_DOMAIN} {
+	encode gzip
+
+	handle /app/* {
+		reverse_proxy staging-reverb:8080 {
+			transport http {
+				read_timeout 5s
+				dial_timeout 2s
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy staging-app:80 {
+			transport http {
+				read_timeout 5s
+				dial_timeout 2s
+			}
+		}
+	}
+
+	handle_errors {
+		respond "Staging is offline" 503
+	}
 }

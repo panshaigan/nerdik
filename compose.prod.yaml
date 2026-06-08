@@ -1,5 +1,32 @@
 name: nerdik-prod
 
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      STAGING_DOMAIN: ${STAGING_DOMAIN:-staging.nerdik.app}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - nerdik
+      - edge
+    depends_on:
+      - app
+      - reverb
+
+networks:
+  edge:
+    name: nerdik-edge
+    driver: bridge
+
 volumes:
   storage:
     name: nerdik_storage
