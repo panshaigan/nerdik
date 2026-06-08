@@ -8,11 +8,13 @@
 {$APP_DOMAIN} {
 	encode gzip
 
+	# Use prod-app / prod-reverb — not "app" / "reverb". Staging also registers
+	# "app" on nerdik-edge; Caddy is on that network and would route prod traffic there.
 	handle /app/* {
-		reverse_proxy reverb:8080
+		reverse_proxy prod-reverb:8080
 	}
 
-	reverse_proxy app:80
+	reverse_proxy prod-app:80
 }
 
 {$STAGING_DOMAIN} {

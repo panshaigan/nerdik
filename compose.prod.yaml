@@ -1,6 +1,18 @@
 name: nerdik-prod
 
 services:
+  app:
+    networks:
+      nerdik:
+        aliases:
+          - prod-app
+
+  reverb:
+    networks:
+      nerdik:
+        aliases:
+          - prod-reverb
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
