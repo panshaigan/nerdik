@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Production VPS deploy: git pull, resolve SHA, verify GHCR image, prod-deploy.
+# VPS deploy: git pull, resolve SHA, verify GHCR image, deploy prod or staging.
 #
 # Usage:
-#   ./scripts/vps-deploy.sh              # pull + deploy HEAD SHA
-#   ./scripts/vps-deploy.sh --dry-run    # show SHA and image without deploying
-#   ./scripts/vps-deploy.sh --no-pull    # deploy current checkout SHA (or IMAGE_TAG)
-#   IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull
+#   ./scripts/vps-deploy.sh                    # prod: pull + deploy HEAD SHA
+#   ./scripts/vps-deploy.sh staging          # staging: pull + deploy HEAD SHA
+#   ./scripts/vps-deploy.sh --dry-run          # prod dry run
+#   ./scripts/vps-deploy.sh staging --no-pull  # staging deploy current checkout SHA
+#   IMAGE_TAG=<sha> ./scripts/vps-deploy.sh staging --no-pull
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,7 +14,11 @@ cd "$ROOT"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/vps-deploy.sh [--dry-run] [--no-pull]
+Usage: ./scripts/vps-deploy.sh [prod|staging] [--dry-run] [--no-pull]
+
+Arguments:
+  prod       Deploy production (default)
+  staging    Deploy staging
 
 Options:
   --dry-run   Show commit SHA and GHCR image ref without deploying
@@ -24,11 +29,15 @@ Environment:
 EOF
 }
 
+DEPLOY_ENV="prod"
 NO_PULL=0
 DRY_RUN=0
 
 for arg in "$@"; do
     case "$arg" in
+        prod|staging)
+            DEPLOY_ENV="$arg"
+            ;;
         --no-pull)
             NO_PULL=1
             ;;
@@ -47,8 +56,16 @@ for arg in "$@"; do
     esac
 done
 
+env_example=".env.production.example"
+deploy_make_target="prod-deploy"
+
+if [[ "$DEPLOY_ENV" == "staging" ]]; then
+    env_example=".env.staging.example"
+    deploy_make_target="staging-deploy"
+fi
+
 if [[ ! -f .env ]]; then
-    echo "Missing .env — copy .env.production.example to .env and configure secrets." >&2
+    echo "Missing .env — copy ${env_example} to .env and configure secrets." >&2
     exit 1
 fi
 
@@ -76,6 +93,7 @@ fi
 
 IMAGE="ghcr.io/${GITHUB_OWNER}/nerdik:${SHA}"
 
+echo "Target environment: ${DEPLOY_ENV}"
 echo "Target SHA: ${SHA}"
 echo "Target image: ${IMAGE}"
 
@@ -90,11 +108,12 @@ if [[ "$DRY_RUN" == "1" ]]; then
     exit 0
 fi
 
-echo "Deploying production..."
-make prod-deploy
+echo "Deploying ${DEPLOY_ENV}..."
+make "${deploy_make_target}"
 
 echo ""
 echo "Deploy complete."
-echo "  SHA:    ${SHA}"
-echo "  Image:  ${IMAGE}"
-echo "  Verify: curl -fsS \"${APP_URL:-https://localhost}/up\""
+echo "  Environment: ${DEPLOY_ENV}"
+echo "  SHA:         ${SHA}"
+echo "  Image:       ${IMAGE}"
+echo "  Verify:      curl -fsS \"${APP_URL:-https://localhost}/up\""

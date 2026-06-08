@@ -79,7 +79,7 @@ Staging runs on the **same VPS** as production, in a separate directory and Dock
 | Directory | `/opt/nerdik` | `/opt/nerdik-staging` |
 | Compose overlay | `compose.prod.yaml` | `compose.staging.yaml` |
 | Domain | `nerdik.app` | `staging.nerdik.app` |
-| Deploy | `make vps-deploy` | `make staging-deploy` |
+| Deploy | `make vps-deploy` | `make vps-staging-deploy` |
 | Stop | always on | `make staging-down` |
 
 Stack: [`compose.stack.yaml`](../compose.stack.yaml) + [`compose.staging.yaml`](../compose.staging.yaml).
@@ -130,9 +130,10 @@ Production must have been deployed at least once (so `nerdik-edge` exists).
 
 ```bash
 cd /opt/nerdik-staging
-git pull --ff-only
-IMAGE_TAG=<sha-from-ci> make staging-deploy
+make vps-staging-deploy
 ```
+
+That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) `staging`: `git pull --ff-only`, resolves HEAD SHA, verifies the GHCR image exists, then `make staging-deploy`. Pin a specific SHA with `IMAGE_TAG=<sha> make vps-staging-deploy --no-pull` or `./scripts/vps-deploy.sh staging --no-pull` with `IMAGE_TAG` set.
 
 First run only — seed the empty database if needed:
 
@@ -207,12 +208,12 @@ Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image yo
 ### Promote the same SHA from staging to production
 
 ```bash
-# After verifying on staging.nerdik.app
+# After verifying on staging.nerdik.app (both dirs on same SHA after pull)
 cd /opt/nerdik-staging
-IMAGE_TAG=<git-sha> make staging-deploy
+make vps-staging-deploy
 
 cd /opt/nerdik
-IMAGE_TAG=<git-sha> make vps-deploy
+make vps-deploy
 ```
 
 ## Environment

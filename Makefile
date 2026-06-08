@@ -5,7 +5,9 @@ SAIL := ./vendor/bin/sail
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
-        docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy docker-publish
+        docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
+        staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
+        vps-staging-deploy docker-publish dump-schema
 
 up:
 	$(SAIL) up -d
@@ -35,6 +37,7 @@ migrate:
 
 fresh:
 	$(SAIL) artisan migrate:fresh
+	$(SAIL) artisan tags:recalculate-popularity
 
 refresh:
 	$(SAIL) artisan migrate:refresh --seed
@@ -43,7 +46,7 @@ refresh:
 seed:
 	$(SAIL) artisan db:seed
 
-dump:
+dump-schema:
 	$(SAIL) artisan schema:dump --prune
 
 queue:
@@ -69,7 +72,6 @@ test:
 test-all:
 	$(SAIL) artisan test
 
-# New dedicated command for recalculating tags popularity
 tags-recalculate:
 	$(SAIL) artisan tags:recalculate-popularity
 
@@ -144,7 +146,10 @@ staging-refresh:
 	./scripts/compose-exec.sh staging exec -T app php artisan tags:recalculate-popularity
 
 vps-deploy:
-	./scripts/vps-deploy.sh
+	./scripts/vps-deploy.sh prod
+
+vps-staging-deploy:
+	./scripts/vps-deploy.sh staging
 
 deploy:
 	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) $(DEPLOY_BUILD_FLAG)

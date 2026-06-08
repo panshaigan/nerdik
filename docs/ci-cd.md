@@ -140,8 +140,8 @@ Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -
 
 ```bash
 # After CI published ghcr.io/owner/nerdik:abc123...
-cd /opt/nerdik-staging && IMAGE_TAG=abc123 make staging-deploy
-cd /opt/nerdik && IMAGE_TAG=abc123 make vps-deploy
+cd /opt/nerdik-staging && make vps-staging-deploy
+cd /opt/nerdik && make vps-deploy
 ```
 
 ## Related commands
@@ -149,7 +149,8 @@ cd /opt/nerdik && IMAGE_TAG=abc123 make vps-deploy
 | Command | Use |
 |---------|-----|
 | `make vps-deploy` | Production VPS: git pull + deploy latest SHA |
-| `make staging-deploy` | Start or update staging on the same VPS |
+| `make vps-staging-deploy` | Staging VPS: git pull + deploy latest SHA |
+| `make staging-deploy` | Staging deploy only (requires `IMAGE_TAG` or `NERDIK_IMAGE`) |
 | `make staging-down` | Stop staging containers (prod unaffected) |
 | `make prod-deploy` | Production VPS deploy |
 | `make docker-publish` | Build and push image from local machine |
