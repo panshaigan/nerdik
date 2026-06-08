@@ -52,7 +52,7 @@ Nerdik is a platform for organizing and joining nerd events: RPG sessions, board
 - GitHub Actions deploy secrets setup: [`docs/github-deploy-setup.md`](docs/github-deploy-setup.md)
 - Security policy and controls: [`docs/security.md`](docs/security.md) · [`SECURITY.md`](SECURITY.md)
 - Deployment roadmap (phases): [`docs/deployment-plan.md`](docs/deployment-plan.md)
-- **Environments:** local dev (`make up` via Sail), staging on the same VPS (`make staging-deploy` / `make staging-down`), production (`make vps-deploy` or GitHub Actions).
+- **Environments:** local dev (`make up` via Sail), staging on the same VPS (`make vps-staging-deploy` / `make staging-down`), production (`make vps-deploy` or GitHub Actions).
 
 ## Updating Docs
 
