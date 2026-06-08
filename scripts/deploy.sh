@@ -65,9 +65,21 @@ if [[ ! -f .env ]]; then
     exit 1
 fi
 
-if [[ "$DEPLOY_ENV" == "prod" && ! -f docker/caddy/Caddyfile ]]; then
-    echo "Missing docker/caddy/Caddyfile — copy docker/caddy/Caddyfile.example and set APP_DOMAIN." >&2
-    exit 1
+# shellcheck disable=SC1091
+set -a
+source .env
+set +a
+
+if [[ "$DEPLOY_ENV" == "prod" ]]; then
+    if [[ ! -f docker/caddy/entrypoint.sh ]]; then
+        echo "Missing docker/caddy/entrypoint.sh — pull the latest code from git." >&2
+        exit 1
+    fi
+
+    if [[ -z "${APP_DOMAIN:-}" || -z "${ACME_EMAIL:-}" ]]; then
+        echo "APP_DOMAIN and ACME_EMAIL are required in .env for production Caddy." >&2
+        exit 1
+    fi
 fi
 
 if [[ "$DEPLOY_ENV" == "staging" ]]; then
@@ -76,11 +88,6 @@ if [[ "$DEPLOY_ENV" == "staging" ]]; then
         exit 1
     fi
 fi
-
-# shellcheck disable=SC1091
-set -a
-source .env
-set +a
 
 if [[ -n "${IMAGE_TAG:-}" ]]; then
     if [[ -z "${GITHUB_OWNER:-}" ]]; then
