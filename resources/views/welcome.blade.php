@@ -103,8 +103,15 @@
                 </section>
             </main>
 
-            <footer class="mt-10 border-t border-base-300 py-5 text-sm opacity-70">
-                {{ config('app.name', 'Nerdik') }} · {{ __('ui.welcome.footer_tagline') }}
+            <footer class="mt-10 border-t border-base-300 px-4 py-5 text-sm opacity-70 sm:px-6 lg:px-8">
+                <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p>{{ config('app.name', 'Nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <a href="{{ route('privacy') }}" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
+                        <a href="{{ route('terms') }}" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>
+                        <a href="{{ route('contact') }}" class="link link-hover opacity-80">{{ __('ui.footer.contact') }}</a>
+                    </div>
+                </div>
             </footer>
         </div>
     </body>

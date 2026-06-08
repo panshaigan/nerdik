@@ -41,6 +41,33 @@ final class Seo
         );
     }
 
+    public static function forPrivacy(): SeoMetadata
+    {
+        return new SeoMetadata(
+            title: self::pageTitle((string) __('legal.privacy.title')),
+            description: (string) __('ui.seo.privacy_description'),
+            canonical: route('privacy'),
+        );
+    }
+
+    public static function forTerms(): SeoMetadata
+    {
+        return new SeoMetadata(
+            title: self::pageTitle((string) __('legal.terms.title')),
+            description: (string) __('ui.seo.terms_description'),
+            canonical: route('terms'),
+        );
+    }
+
+    public static function forContact(): SeoMetadata
+    {
+        return new SeoMetadata(
+            title: self::pageTitle((string) __('legal.contact.title')),
+            description: (string) __('ui.seo.contact_description'),
+            canonical: route('contact'),
+        );
+    }
+
     public static function forEvent(Event $event): SeoMetadata
     {
         $description = rich_text_excerpt($event->description, 160);
