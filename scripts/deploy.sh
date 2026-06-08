@@ -135,4 +135,7 @@ log_retention_days="${LOG_DAILY_DAYS:-14}"
 
 "${COMPOSE[@]}" restart worker scheduler reverb
 
+printf 'NERDIK_IMAGE=%s\n' "${NERDIK_IMAGE}" > .nerdik-image
+chmod 600 .nerdik-image
+
 echo "Deploy complete for ${DEPLOY_ENV}. Verify: curl -fsS \"${APP_URL:-https://localhost}/up\""
