@@ -730,7 +730,7 @@
 @layer utilities {
     /* ====================== CUSTOM BACKGROUNDS ====================== */
     .bg-gradient {
-        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-300-dark) 40%, var(--brand-secondary) 100%);
+        background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-base-200-dark) 40%, var(--brand-secondary) 100%);
 
         @variant light {
             background-image: radial-gradient(125% 125% at 50% 10%, var(--brand-primary-dark) 40%, var(--brand-secondary) 100%);
