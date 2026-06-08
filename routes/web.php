@@ -14,6 +14,7 @@ use App\Http\Controllers\TagController;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Services\Welcome\WelcomeUpcomingQueryService;
+use App\Support\Seo\Seo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,10 @@ Route::get('geocode/reverse', [GeocodeController::class, 'reverse'])
 Route::get('geocode/search', [GeocodeController::class, 'search'])
     ->middleware('throttle:30,1')
     ->name('geocode.search');
+
+Route::get('privacy', fn () => view('pages.privacy', ['seo' => Seo::forPrivacy()]))->name('privacy');
+Route::get('terms', fn () => view('pages.terms', ['seo' => Seo::forTerms()]))->name('terms');
+Route::get('contact', fn () => view('pages.contact', ['seo' => Seo::forContact()]))->name('contact');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])

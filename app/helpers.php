@@ -493,3 +493,51 @@ if (! function_exists('url_with_return')) {
         return $scheme.$authority.$path.'?'.http_build_query($query).$fragment;
     }
 }
+
+if (! function_exists('legal_placeholders')) {
+    /**
+     * @return array<string, string>
+     */
+    function legal_placeholders(): array
+    {
+        $country = (string) config('legal.operator_country', '');
+
+        return [
+            'app' => (string) config('app.name', 'Nerdik'),
+            'operator' => (string) (config('legal.operator_name') ?: config('app.name', 'Nerdik')),
+            'country' => $country !== '' ? $country : (string) __('legal.placeholders.country'),
+            'email' => (string) (config('legal.contact_email') ?: config('mail.from.address', 'hello@example.com')),
+            'date' => (string) config('legal.effective_date', ''),
+        ];
+    }
+}
+
+if (! function_exists('legal_replace')) {
+    /**
+     * Replace :placeholder tokens in legal copy strings or nested arrays.
+     */
+    function legal_replace(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            $replaced = $value;
+
+            foreach (legal_placeholders() as $key => $replacement) {
+                $replaced = str_replace(':'.$key, $replacement, $replaced);
+            }
+
+            return $replaced;
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $result = [];
+
+        foreach ($value as $key => $item) {
+            $result[$key] = legal_replace($item);
+        }
+
+        return $result;
+    }
+}

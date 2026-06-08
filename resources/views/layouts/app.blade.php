@@ -36,9 +36,9 @@
                         <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                             <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
-                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>
-                                <a href="#" class="link link-hover opacity-80">{{ __('ui.footer.contact') }}</a>
+                                <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
+                                <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>
+                                <a href="{{ route('contact') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.contact') }}</a>
                             </div>
                         </div>
                     </x-slot:footer>
