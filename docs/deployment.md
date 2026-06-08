@@ -226,6 +226,26 @@ IMAGE_TAG=<git-sha> make vps-deploy
 
 ## Database
 
+VPS Artisan commands use [`scripts/compose-exec.sh`](../scripts/compose-exec.sh), which resolves the deployed image automatically from the running `app` container (or `.nerdik-image` written on each deploy). You do **not** need `NERDIK_IMAGE` in `.env`.
+
+**Refresh database (same as local `make refresh` — wipes all data):**
+
+```bash
+cd /opt/nerdik
+make prod-refresh
+```
+
+**Run any Artisan command:**
+
+```bash
+make prod-artisan migrate --force
+make prod-artisan db:seed --force
+```
+
+On staging (`/opt/nerdik-staging`): `make staging-refresh`, `make staging-artisan …`.
+
+After each deploy, `.nerdik-image` is updated automatically. Pull the latest code once so these helpers are available on the server.
+
 1. `php artisan migrate --force`
 2. Polish full-text search: new PostgreSQL volumes pick up [`docker/pgsql/init-polish-fts.sql`](../docker/pgsql/init-polish-fts.sql) automatically. On managed Postgres, apply that script manually once per database.
 

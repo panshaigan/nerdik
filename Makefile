@@ -5,12 +5,12 @@ SAIL := ./vendor/bin/sail
 .PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
-        docker-config docker-pull staging-deploy staging-down staging-ps dev-deploy prod-deploy deploy vps-deploy docker-publish
+        docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy docker-publish
 
 up:
 	$(SAIL) up -d
-	nohup $(SAIL) artisan schedule:work > storage/logs/scheduler.log 2>&1 &
-	nohup $(SAIL) artisan queue:work > storage/logs/queue.log 2>&1 &
+#	nohup $(SAIL) artisan schedule:work > storage/logs/scheduler.log 2>&1 &
+#	nohup $(SAIL) artisan queue:work > storage/logs/queue.log 2>&1 &
 
 down:
 	$(SAIL) down
@@ -117,10 +117,10 @@ staging-deploy:
 	$(MAKE) deploy DEPLOY_ENV=staging IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
 
 staging-down:
-	$(STAGING_DC) down
+	./scripts/compose-exec.sh staging down
 
 staging-ps:
-	$(STAGING_DC) ps
+	./scripts/compose-exec.sh staging ps
 
 dev-deploy:
 	@echo "dev-deploy is deprecated; use: make staging-deploy" >&2
@@ -128,6 +128,20 @@ dev-deploy:
 
 prod-deploy:
 	$(MAKE) deploy DEPLOY_ENV=prod IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
+
+prod-artisan:
+	./scripts/compose-exec.sh prod exec -T app php artisan $(filter-out $@,$(MAKECMDGOALS))
+
+prod-refresh:
+	./scripts/compose-exec.sh prod exec -T app php artisan migrate:refresh --seed --force
+	./scripts/compose-exec.sh prod exec -T app php artisan tags:recalculate-popularity
+
+staging-artisan:
+	./scripts/compose-exec.sh staging exec -T app php artisan $(filter-out $@,$(MAKECMDGOALS))
+
+staging-refresh:
+	./scripts/compose-exec.sh staging exec -T app php artisan migrate:refresh --seed --force
+	./scripts/compose-exec.sh staging exec -T app php artisan tags:recalculate-popularity
 
 vps-deploy:
 	./scripts/vps-deploy.sh
