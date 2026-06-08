@@ -1,10 +1,10 @@
 # GitHub Actions Deploy Setup
 
-Step-by-step guide to enable remote deploy from GitHub Actions. Deploy secrets are **not stored in the repository** — they are configured in GitHub Settings. For the overall CI/CD pipeline, see [ci-cd.md](ci-cd.md). For VPS operations, see [deployment.md](deployment.md).
+Step-by-step guide to enable remote deploy from GitHub Actions. Deploy secrets are **not stored in the repository** — they are configured in GitHub Settings. For the overall CI/CD pipeline, see [ci-cd.md](ci-cd.md). For VPS operations (including manual staging), see [deployment.md](deployment.md).
 
 ## Overview
 
-The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. Until secrets are configured, the workflow prints a skip message and exits successfully.
+The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your production VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. Staging is deployed manually on the VPS (`make staging-deploy` / `make staging-down`). Until secrets are configured, the workflow prints a skip message and exits successfully.
 
 ## A. One-time VPS preparation
 
@@ -16,8 +16,9 @@ The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your VPS and r
    ```
 3. Clone this repo as the deploy user (e.g. `/opt/nerdik`).
 4. Copy [`.env.production.example`](../.env.production.example) to `.env` and fill secrets. Set `GITHUB_OWNER` to your GitHub username or org.
-5. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile`.
-6. Log in to GHCR on the VPS: `docker login ghcr.io` (PAT with `read:packages`).
+5. Set `STAGING_DOMAIN=staging.nerdik.app` (or your staging subdomain) for prod Caddy routing.
+6. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile`.
+7. Log in to GHCR on the VPS: `docker login ghcr.io` (PAT with `read:packages`).
 
 ## B. SSH key for GitHub Actions
 
@@ -55,7 +56,6 @@ Go to **GitHub → your repo → Settings → Secrets and variables → Actions 
 | `DEPLOY_SSH_KEY` | Full contents of the private key file `nerdik-deploy` |
 | `DEPLOY_USER` | `deploy` |
 | `DEPLOY_HOST_PROD` | Production VPS hostname or IP |
-| `DEPLOY_HOST_DEV` | Staging VPS hostname or IP (only if you use dev deploy) |
 
 ## D. GitHub repository variables (optional)
 
@@ -63,8 +63,7 @@ Go to **Settings → Secrets and variables → Actions → Variables**.
 
 | Variable | Example |
 |----------|---------|
-| `PROD_APP_URL` | `https://your-domain.com` |
-| `DEV_APP_URL` | `https://staging.your-domain.com` |
+| `PROD_APP_URL` | `https://nerdik.app` |
 
 When set, the Deploy workflow runs a smoke check (`GET /up`) after deploy.
 
@@ -72,7 +71,6 @@ When set, the Deploy workflow runs a smoke check (`GET /up`) after deploy.
 
 Go to **Settings → Environments** and create:
 
-- **`dev`** — used by the dev deploy job (no approval required by default).
 - **`production`** — used by the prod deploy job. Add **required reviewers** here for a manual approval gate before production deploys.
 
 ## F. Verify remote deploy
@@ -80,7 +78,7 @@ Go to **Settings → Environments** and create:
 1. Push to `main` and wait for CI and Docker workflows to finish.
 2. Note the published image tag (full git SHA) from Actions → Docker workflow or GitHub Packages.
 3. Go to **Actions → Deploy → Run workflow**.
-4. Choose `prod`, enter the image SHA (or leave empty to use the workflow run's commit SHA).
+4. Enter the image SHA (or leave empty to use the workflow run's commit SHA).
 5. Approve if the `production` environment requires reviewers.
 6. Confirm the SSH step succeeds and the smoke check passes.
 
@@ -95,6 +93,8 @@ make vps-deploy
 
 This pulls the latest `main`, verifies the GHCR image for that SHA exists, and runs `make prod-deploy`.
 
+Staging is manual only — see [deployment.md](deployment.md#staging-on-the-same-vps).
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
@@ -103,7 +103,7 @@ This pulls the latest `main`, verifies the GHCR image for that SHA exists, and r
 | SSH authentication failure | Wrong `DEPLOY_SSH_KEY`, `DEPLOY_USER`, or missing `authorized_keys` entry |
 | Image pull failure on VPS | `docker login ghcr.io` not done, or wrong `GITHUB_OWNER` in `.env` |
 | "GHCR image not found" | Docker workflow on `main` has not finished publishing that SHA yet |
-| Smoke check fails | `PROD_APP_URL` / `DEV_APP_URL` wrong, or app not healthy after deploy |
+| Smoke check fails | `PROD_APP_URL` wrong, or app not healthy after deploy |
 
 ## Related
 

@@ -142,8 +142,8 @@ flowchart LR
 ### Tasks
 
 - [x] Container registry (GHCR-ready): `ghcr.io/${GITHUB_OWNER}/nerdik:<git-sha>` immutable tags
-- [x] `compose.dev.yaml` / `compose.prod.yaml` overlays on shared `compose.stack.yaml` image
-- [x] Promote by deploying a SHA (`IMAGE_TAG=<git-sha> make dev-deploy|prod-deploy`)
+- [x] `compose.staging.yaml` / `compose.prod.yaml` overlays on shared `compose.stack.yaml` image
+- [x] Promote by deploying a SHA (`IMAGE_TAG=<git-sha> make staging-deploy|prod-deploy`)
 - [x] Keep one production-grade multi-stage Dockerfile; only build args differ per environment
 
 | Share | Do not share |
@@ -260,7 +260,7 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 4. **Provision VPS** — Docker, DNS, firewall  
 5. **Phase 1 on server** — `.env`, Caddyfile, `IMAGE_TAG=<sha> make prod-deploy` (see [deployment.md](deployment.md))  
 6. **Phase 3 secrets** — SSH deploy from Actions (optional; manual `make prod-deploy` on the server works without Actions)  
-7. **Phase 2** — staging VPS or `compose.dev.yaml` on same host  
+7. **Phase 2** — staging on same VPS via `compose.staging.yaml` (manual on/off)  
 8. **Phase 5** — public repo when comfortable  
 9. **Phase 4** — Kubernetes only if you want to learn it  
 10. **Phase 6** — monitoring, backups automation, legal pages  

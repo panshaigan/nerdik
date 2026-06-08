@@ -98,25 +98,6 @@ services:
       interval: 5s
       timeout: 5s
 
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      APP_DOMAIN: ${APP_DOMAIN:-localhost}
-      ACME_EMAIL: ${ACME_EMAIL:-}
-    volumes:
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - nerdik
-    depends_on:
-      - app
-      - reverb
-
 networks:
   nerdik:
     driver: bridge

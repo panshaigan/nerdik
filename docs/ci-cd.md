@@ -11,7 +11,7 @@ flowchart LR
   Main[push main or tag] --> DockerPush[docker.yml push GHCR]
   DockerPush --> GHCR["ghcr.io/owner/nerdik:sha"]
   Manual[workflow_dispatch] --> Deploy[deploy.yml]
-  Deploy --> VPS[VPS make dev-deploy or prod-deploy]
+  Deploy --> VPS[VPS make vps-deploy]
   VPS --> Up["GET /up"]
 ```
 
@@ -19,7 +19,7 @@ flowchart LR
 |----------|------|----------------|
 | CI | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Every PR and push to `main` |
 | Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | PR (build only); `main` and `v*` tags (build + push) |
-| Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Manual only (`workflow_dispatch`) |
+| Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Manual only (`workflow_dispatch`), production only |
 
 ## Without a git remote yet
 
@@ -38,13 +38,17 @@ After you create the remote, push `main` once to enable automated CI and GHCR pu
 - PHP 8.5, `composer install`, `npm ci && npm run build`, `php artisan migrate --force`, full test suite.
 - `composer audit` for known dependency vulnerabilities.
 
+**Job `compose` (required to pass):**
+
+- Validates production and staging Docker Compose files merge correctly.
+
 **Job `pint` (informational):**
 
 - `vendor/bin/pint --test` with `continue-on-error: true` — visible on the run but does not block merges.
 
 ### Branch protection (recommended)
 
-In GitHub → Settings → Branches, require the **Test** job from the CI workflow before merging to `main`.
+In GitHub → Settings → Branches, require the **Test** and **Compose** jobs from the CI workflow before merging to `main`.
 
 ## Docker images (no VPS required)
 
@@ -81,7 +85,7 @@ GITHUB_OWNER=your-github-owner GIT_SHA=$(git rev-parse HEAD) ./scripts/docker-pu
 
 ## Deploy (VPS required)
 
-Deploy is **manual** via Actions → **Deploy** → Run workflow. Choose `dev` or `prod` and an `image_tag` (git SHA from GHCR, or a semver tag).
+Deploy is **manual** via Actions → **Deploy** → Run workflow. Enter an `image_tag` (git SHA from GHCR, or a semver tag). Staging is deployed manually on the VPS — see [deployment.md](deployment.md#staging-on-the-same-vps).
 
 If deploy secrets are not configured, the workflow prints a skip message and exits successfully so the repo stays green before you have a server.
 
@@ -94,20 +98,17 @@ Composer and npm dependencies are installed during the Docker image build (CI), 
 | Secret | Purpose |
 |--------|---------|
 | `DEPLOY_SSH_KEY` | Private SSH key for the deploy user |
-| `DEPLOY_HOST_DEV` | Staging hostname or IP |
-| `DEPLOY_HOST_PROD` | Production hostname or IP |
+| `DEPLOY_HOST_PROD` | Production VPS hostname or IP |
 | `DEPLOY_USER` | SSH user (e.g. `deploy`) |
 
 ### Repository variables (optional, for smoke checks)
 
 | Variable | Purpose |
 |----------|---------|
-| `DEV_APP_URL` | Base URL for staging, e.g. `https://staging.example.com` |
 | `PROD_APP_URL` | Base URL for production |
 
 ### GitHub environments
 
-- **`dev`** — used by dev deploy job (no approval required by default).
 - **`production`** — used by prod deploy; add **required reviewers** under Settings → Environments for a manual approval gate.
 
 ### Server prerequisites
@@ -116,7 +117,7 @@ Before the first automated deploy:
 
 1. VPS with Docker and Compose (see [deployment.md](deployment.md)).
 2. Clone this repo (e.g. `/opt/nerdik`).
-3. `.env` from [`.env.production.example`](../.env.production.example) or [`.env.staging.example`](../.env.staging.example) with `GITHUB_OWNER` set.
+3. `.env` from [`.env.production.example`](../.env.production.example) with `GITHUB_OWNER` and `STAGING_DOMAIN` set.
 4. `docker/caddy/Caddyfile` from `docker/caddy/Caddyfile.example`.
 5. `docker login ghcr.io` on the server.
 
@@ -133,14 +134,14 @@ Production deploy from GitHub Actions (explicit SHA, no git pull):
 IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull
 ```
 
-Dev deploy still uses `git pull` + `make dev-deploy`. Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -d`, `migrate --force`, config/route/view cache, restart worker/scheduler/reverb.
+Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -d`, `migrate --force`, config/route/view cache, restart worker/scheduler/reverb.
 
 ### Promote a tested SHA
 
 ```bash
 # After CI published ghcr.io/owner/nerdik:abc123...
-IMAGE_TAG=abc123 make dev-deploy    # on staging VPS or via Deploy workflow
-IMAGE_TAG=abc123 make prod-deploy   # on production after approval
+cd /opt/nerdik-staging && IMAGE_TAG=abc123 make staging-deploy
+cd /opt/nerdik && IMAGE_TAG=abc123 make vps-deploy
 ```
 
 ## Related commands
@@ -148,7 +149,8 @@ IMAGE_TAG=abc123 make prod-deploy   # on production after approval
 | Command | Use |
 |---------|-----|
 | `make vps-deploy` | Production VPS: git pull + deploy latest SHA |
-| `make dev-deploy` | Staging VPS deploy |
+| `make staging-deploy` | Start or update staging on the same VPS |
+| `make staging-down` | Stop staging containers (prod unaffected) |
 | `make prod-deploy` | Production VPS deploy |
 | `make docker-publish` | Build and push image from local machine |
 | `IMAGE_TAG=<sha> make prod-deploy` | Pin deploy to a GHCR tag |

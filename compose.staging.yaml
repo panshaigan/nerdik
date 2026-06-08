@@ -1,0 +1,43 @@
+name: nerdik-staging
+
+services:
+  app:
+    networks:
+      nerdik: {}
+      edge:
+        aliases:
+          - staging-app
+
+  reverb:
+    networks:
+      nerdik: {}
+      edge:
+        aliases:
+          - staging-reverb
+
+  worker:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+  scheduler:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+networks:
+  edge:
+    external: true
+    name: nerdik-edge
+
+volumes:
+  storage:
+    name: nerdik_staging_storage
+    driver: local
+  pgsql_data:
+    name: nerdik_staging_pgsql_data
+    driver: local

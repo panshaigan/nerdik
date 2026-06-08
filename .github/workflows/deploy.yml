@@ -3,13 +3,6 @@ name: Deploy
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: Target environment
-        required: true
-        type: choice
-        options:
-          - dev
-          - prod
       image_tag:
         description: GHCR image tag (git SHA or semver tag)
         required: true
@@ -17,60 +10,8 @@ on:
         default: ""
 
 jobs:
-  deploy-dev:
-    name: Deploy to dev
-    if: inputs.environment == 'dev'
-    runs-on: ubuntu-latest
-    environment: dev
-
-    steps:
-      - name: Check deploy configuration
-        id: config
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST_DEV }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          if [[ -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Deploy skipped: set DEPLOY_SSH_KEY, DEPLOY_HOST_DEV, and DEPLOY_USER repository secrets when the VPS is ready."
-            echo "See docs/github-deploy-setup.md for the full checklist."
-            exit 0
-          fi
-
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-
-      - name: Resolve image tag
-        if: steps.config.outputs.skip != 'true'
-        id: tag
-        run: |
-          TAG="${{ inputs.image_tag }}"
-          if [[ -z "$TAG" ]]; then
-            TAG="${{ github.sha }}"
-          fi
-          echo "value=$TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy over SSH
-        if: steps.config.outputs.skip != 'true'
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST_DEV }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${DEPLOY_PATH:-/opt/nerdik}"
-            git pull --ff-only
-            IMAGE_TAG=${{ steps.tag.outputs.value }} make dev-deploy
-
-      - name: Smoke check
-        if: steps.config.outputs.skip != 'true' && vars.DEV_APP_URL != ''
-        run: curl -fsS "${{ vars.DEV_APP_URL }}/up"
-
   deploy-prod:
     name: Deploy to production
-    if: inputs.environment == 'prod'
     runs-on: ubuntu-latest
     environment: production
 

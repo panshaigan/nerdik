@@ -31,10 +31,10 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 
 1. Clone this repo on the server from your git remote (e.g. `git clone … /opt/nerdik`).
 2. Copy [`.env.production.example`](../.env.production.example) to `.env` and fill secrets (`APP_KEY`, `DB_PASSWORD`, Reverb keys, mail, OAuth).
-3. Set `APP_DOMAIN`, `ACME_EMAIL`, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a published SHA, or leave it unset and deploy with `IMAGE_TAG=<sha>` (see below).
+3. Set `APP_DOMAIN`, `STAGING_DOMAIN` (e.g. `staging.nerdik.app`), `ACME_EMAIL`, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a published SHA, or leave it unset and deploy with `IMAGE_TAG=<sha>` (see below).
 4. Set `APP_URL` to `https://<APP_DOMAIN>`.
 5. Set browser Reverb vars: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https` (must match the image build).
-6. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile` and ensure `APP_DOMAIN` in `.env` matches the site block.
+6. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile` — prod Caddy routes both `APP_DOMAIN` and `STAGING_DOMAIN`.
 7. Deploy (use the SHA from CI after your first push to `main`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
 
 ```bash
@@ -70,26 +70,93 @@ docker compose -f compose.stack.yaml -f compose.prod.yaml run --rm --no-deps app
 
 After editing `.env`, recreate containers so new values load: `docker compose … up -d --force-recreate`, then clear config cache before re-caching (see **Updates**).
 
-### Staging / dev VPS
+### Staging on the same VPS
 
-Staging uses the same image with a different env and overlay: [`compose.stack.yaml`](../compose.stack.yaml) + [`compose.dev.yaml`](../compose.dev.yaml).
+Staging runs on the **same VPS** as production, in a separate directory and Docker Compose project. Prod Caddy owns ports `80`/`443` and routes `STAGING_DOMAIN` to staging containers over the shared `nerdik-edge` network. Staging has **no local Caddy** and can be started or stopped without affecting prod.
 
-1. Copy [`.env.staging.example`](../.env.staging.example) to `.env` on the staging host.
-2. Set staging domain and secrets.
-3. Copy Caddy config: `cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile`.
-4. Deploy:
+| | Production | Staging |
+|---|------------|---------|
+| Directory | `/opt/nerdik` | `/opt/nerdik-staging` |
+| Compose overlay | `compose.prod.yaml` | `compose.staging.yaml` |
+| Domain | `nerdik.app` | `staging.nerdik.app` |
+| Deploy | `make vps-deploy` | `make staging-deploy` |
+| Stop | always on | `make staging-down` |
+
+Stack: [`compose.stack.yaml`](../compose.stack.yaml) + [`compose.staging.yaml`](../compose.staging.yaml).
+
+#### One-time prod update (existing installs)
+
+After pulling this layout, update production once so Caddy creates `nerdik-edge` and serves the staging domain:
 
 ```bash
-make dev-deploy
+cd /opt/nerdik
+git pull --ff-only
+# Add to .env: STAGING_DOMAIN=staging.nerdik.app
+cp docker/caddy/Caddyfile.example docker/caddy/Caddyfile
+make vps-deploy
 ```
 
-Pin staging to a specific SHA:
+Add DNS: `A` record `staging.nerdik.app` → same VPS IP as production.
+
+Verify:
 
 ```bash
-IMAGE_TAG=<git-sha> make dev-deploy
+curl -fsS https://nerdik.app/up
+curl -fsS https://staging.nerdik.app/up   # 503 until staging is started
 ```
 
-Staging volumes are isolated (`nerdik_dev_storage`, `nerdik_dev_pgsql_data`, etc.).
+#### One-time staging directory setup
+
+Use a **second clone** so `.env` files stay separate:
+
+```bash
+sudo -u deploy git clone <your-repo-url> /opt/nerdik-staging
+cd /opt/nerdik-staging
+cp .env.staging.example .env
+```
+
+Fill staging `.env`:
+
+- `APP_DOMAIN=staging.nerdik.app`, `APP_URL=https://staging.nerdik.app`
+- Unique `APP_KEY`, `DB_PASSWORD`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` (do not reuse prod)
+- `GITHUB_OWNER=<your-github-owner>`
+- `VITE_REVERB_HOST=staging.nerdik.app`
+
+No `docker/caddy/Caddyfile` is required in the staging directory.
+
+#### Activate staging
+
+Production must have been deployed at least once (so `nerdik-edge` exists).
+
+```bash
+cd /opt/nerdik-staging
+git pull --ff-only
+IMAGE_TAG=<sha-from-ci> make staging-deploy
+```
+
+First run only — seed the empty database if needed:
+
+```bash
+docker compose -f compose.stack.yaml -f compose.staging.yaml exec -T app php artisan db:seed --force
+```
+
+Verify:
+
+```bash
+curl -fsS https://staging.nerdik.app/up
+make staging-ps
+```
+
+#### Deactivate staging
+
+```bash
+cd /opt/nerdik-staging
+make staging-down
+```
+
+Prod keeps running. Staging data remains in `nerdik_staging_*` volumes until you remove them explicitly.
+
+Staging volumes are isolated (`nerdik_staging_storage`, `nerdik_staging_pgsql_data`, etc.).
 
 ### Image build and publish
 
@@ -109,7 +176,7 @@ Optional private Composer packages: pass `COMPOSER_AUTH` or a BuildKit secret fo
 
 | Service | Role |
 |---------|------|
-| `caddy` | TLS, HTTP → `app:80`, WebSocket `/app/*` → `reverb:8080` |
+| `caddy` (prod only) | TLS for prod + staging domains; HTTP → `app:80`, WebSocket `/app/*` → `reverb:8080`; staging via `nerdik-edge` |
 | `app` | Nginx + PHP-FPM (Laravel) |
 | `worker` | `queue:work database` |
 | `scheduler` | `schedule:work` |
@@ -140,8 +207,12 @@ Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image yo
 ### Promote the same SHA from staging to production
 
 ```bash
-IMAGE_TAG=<git-sha> make dev-deploy
-IMAGE_TAG=<git-sha> make prod-deploy
+# After verifying on staging.nerdik.app
+cd /opt/nerdik-staging
+IMAGE_TAG=<git-sha> make staging-deploy
+
+cd /opt/nerdik
+IMAGE_TAG=<git-sha> make vps-deploy
 ```
 
 ## Environment
