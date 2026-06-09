@@ -148,6 +148,7 @@ cd /opt/nerdik && make vps-deploy
 
 | Command | Use |
 |---------|-----|
+| `make ci-check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
 | `make vps-deploy` | Production VPS: git pull + deploy latest SHA |
 | `make vps-staging-deploy` | Staging VPS: git pull + deploy latest SHA |
 | `make staging-deploy` | Staging deploy only (requires `IMAGE_TAG` or `NERDIK_IMAGE`) |
