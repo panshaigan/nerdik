@@ -8,7 +8,7 @@ SAIL := ./vendor/bin/sail
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
-        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote
+        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -112,6 +112,9 @@ artisan:
 
 pint:
 	$(SAIL) bin pint --dirty --format agent
+
+ci-check:
+	FULL=$(FULL) ./scripts/ci-check.sh
 
 # VPS Docker stack (not Sail)
 DEPLOY_ENV ?= prod
