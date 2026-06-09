@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.sync
 .nerdik-image
 .phpactor.json
 .phpunit.result.cache

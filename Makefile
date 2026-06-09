@@ -7,7 +7,20 @@ SAIL := ./vendor/bin/sail
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
-        vps-staging-deploy docker-publish dump-schema
+        vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
+        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote
+
+# Data sync (prod → local / staging)
+SYNC_FLAGS :=
+ifeq ($(YES),1)
+SYNC_FLAGS += --yes
+endif
+ifeq ($(BACKUP),1)
+SYNC_FLAGS += --backup
+endif
+ifeq ($(DRY_RUN),1)
+SYNC_FLAGS += --dry-run
+endif
 
 up:
 	$(SAIL) up -d
@@ -156,3 +169,18 @@ deploy:
 
 docker-publish:
 	./scripts/docker-publish.sh
+
+sync-from-prod:
+	./scripts/sync/pull-from-prod.sh $(SYNC_FLAGS)
+
+sync-from-prod-db:
+	./scripts/sync/pull-from-prod.sh --db-only $(SYNC_FLAGS)
+
+sync-from-prod-storage:
+	./scripts/sync/pull-from-prod.sh --storage-only $(SYNC_FLAGS)
+
+prod-to-staging-sync:
+	./scripts/sync/prod-to-staging.sh $(SYNC_FLAGS)
+
+prod-to-staging-sync-remote:
+	./scripts/sync/prod-to-staging-remote.sh $(SYNC_FLAGS)

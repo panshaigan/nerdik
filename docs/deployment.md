@@ -313,6 +313,48 @@ Do not expose Sail-only tools (Adminer, Mailpit) in production.
 - PostgreSQL (daily minimum)
 - `storage/app` (private and public media)
 
+## Data sync (prod → local / staging)
+
+Scripts under [`scripts/sync/`](../scripts/sync/) copy **production PostgreSQL** and **`storage/app`** into local Sail or staging. They do **not** copy Redis, built frontend assets, Caddy TLS data, or per-environment `.env` secrets.
+
+**What is copied:** users, events, activities, Spatie `media` rows/files, avatars, FTS search vectors.
+
+**Post-import cleanup (automatic):** truncates `jobs`, `job_batches`, `failed_jobs`, `sessions`, `cache`, `cache_locks`; runs `storage:link`, `optimize:clear`, and `tags:recalculate-popularity`.
+
+**Warning:** sync overwrites the target database and storage. Production data may contain real user PII — handle exports carefully.
+
+### Local dev: pull from production via SSH
+
+1. Copy [`.env.sync.example`](../.env.sync.example) to `.env.sync` and set `SYNC_SSH_HOST`, `SYNC_SSH_KEY`, etc.
+2. Add the sync public key to `deploy@VPS` `authorized_keys`.
+3. Start Sail: `make up`
+4. Sync:
+
+```bash
+make sync-from-prod              # interactive confirm
+make sync-from-prod YES=1        # skip prompt
+make sync-from-prod-db           # database only
+make sync-from-prod-storage      # storage only
+make sync-from-prod DRY_RUN=1    # print steps only
+```
+
+### VPS: production → staging
+
+Run from the production clone (`/opt/nerdik`):
+
+```bash
+make prod-to-staging-sync
+make prod-to-staging-sync BACKUP=1 YES=1
+```
+
+From your local machine (SSH into VPS and run the same):
+
+```bash
+make prod-to-staging-sync-remote BACKUP=1
+```
+
+Staging uses `SYNC_STAGING_PATH` (default `/opt/nerdik-staging`) from `.env.sync` when set, otherwise the default path above.
+
 ## Broadcast channels
 
 Private channel `activity.{id}` is intentionally available to **any authenticated user** when the activity exists, so visitors see live capacity/roster changes before joining. Only `activityId` is broadcast; full roster data is loaded over HTTP/Livewire.
