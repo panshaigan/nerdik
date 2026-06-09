@@ -4,7 +4,7 @@
     /** @var \App\Support\Media\MediaPictureSources $sources */
 @endphp
 
-<picture @class([$class, 'overflow-hidden'])>
+<picture @class(['block', $class, 'overflow-hidden'])>
     @if ($sources->avifSrcset() !== '')
         <source type="image/avif" srcset="{{ $sources->avifSrcset() }}" sizes="{{ $sources->sizes() }}">
     @endif
