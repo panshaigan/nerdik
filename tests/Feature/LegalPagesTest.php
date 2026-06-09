@@ -9,7 +9,6 @@ use Tests\TestCase;
 
 class LegalPagesTest extends TestCase
 {
-
     public function test_privacy_page_renders_in_english(): void
     {
         app()->setLocale('en');
@@ -81,5 +80,4 @@ class LegalPagesTest extends TestCase
         $response->assertSee('href="'.e(route('terms')).'"', false);
         $response->assertSee('href="'.e(route('contact')).'"', false);
     }
-
 }
