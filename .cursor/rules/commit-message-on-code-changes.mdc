@@ -1,0 +1,48 @@
+---
+description: Include a copy-pasteable git commit message whenever code changes are made
+alwaysApply: true
+---
+
+# Commit message on code changes
+
+When you **modify, create, or delete** project files during a query, end your response with a **Suggested commit message** section — even if the user did not ask you to commit.
+
+## When to include it
+
+- **Include** when you changed any source, config, test, migration, or asset files.
+- **Skip** when the query was read-only (questions, reviews, explanations) and no files were changed.
+
+## Format
+
+Place the section at the **end** of the response, after your summary:
+
+```markdown
+## Suggested commit message
+
+\`\`\`
+<type>: <short subject in imperative mood>
+
+<Optional 1–2 sentence body explaining why, not a file list.>
+\`\`\`
+```
+
+## Message style
+
+- Use conventional types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `build`.
+- Subject line: imperative, ≤72 characters, no trailing period.
+- Body (optional): focus on **why**, not a bullet list of every file touched.
+- Do **not** run `git commit` unless the user explicitly asks.
+
+## Example
+
+After adding a rate-limit middleware and test:
+
+```markdown
+## Suggested commit message
+
+\`\`\`
+feat: add rate limiting to login endpoint
+
+Throttle failed login attempts to reduce brute-force risk.
+\`\`\`
+```
