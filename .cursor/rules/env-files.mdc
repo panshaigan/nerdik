@@ -1,0 +1,23 @@
+---
+description: Protect working .env files; sync env templates without overwriting secrets
+alwaysApply: true
+---
+
+# Environment files (.env)
+
+## Never overwrite a working `.env`
+
+- **Never** replace, copy over, or recreate the project root `.env` from `.env.example` or any template.
+- **Never** run `cp .env.example .env` (or equivalent) when `.env` already exists.
+- **Never** delete and rewrite `.env` to “sync” or “fix” it.
+
+## When env values need to change
+
+1. **Read** the existing `.env` first.
+2. **Patch surgically** — add missing keys or update only the specific lines requested.
+3. **Preserve** all existing values unless the user explicitly asks to change them.
+4. **Update templates in parallel** — add the same keys (with placeholders, no real secrets) to:
+   - `.env.example` (local/Sail)
+   - `.env.staging.example`
+   - `.env.production.example`
+   - `.env.compose.ci` when CI compose validation needs them
