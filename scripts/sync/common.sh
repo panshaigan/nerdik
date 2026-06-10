@@ -53,21 +53,116 @@ sync_load_sync_config() {
     SYNC_SSH_HOST="${SYNC_SSH_HOST:-}"
     SYNC_SSH_USER="${SYNC_SSH_USER:-deploy}"
     SYNC_SSH_KEY="${SYNC_SSH_KEY:-}"
+    SYNC_SSH_PORT="${SYNC_SSH_PORT:-}"
     SYNC_PROD_PATH="${SYNC_PROD_PATH:-/opt/nerdik}"
     SYNC_STAGING_PATH="${SYNC_STAGING_PATH:-/opt/nerdik-staging}"
 }
 
 sync_ssh_opts() {
     local -n _out=$1
+    local tool="${2:-ssh}"
 
     _out=()
 
     if [[ -n "${SYNC_SSH_KEY:-}" ]]; then
-        local expanded_key="${SYNC_SSH_KEY/#\~/$HOME}"
+        local expanded_key
+        expanded_key="$(sync_expand_ssh_key_path "$SYNC_SSH_KEY")"
         _out+=(-i "$expanded_key")
     fi
 
+    if [[ -n "${SYNC_SSH_PORT:-}" ]]; then
+        if [[ "$tool" == "scp" ]]; then
+            _out+=(-P "$SYNC_SSH_PORT")
+        else
+            _out+=(-p "$SYNC_SSH_PORT")
+        fi
+    fi
+
     _out+=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+}
+
+sync_expand_ssh_key_path() {
+    local key_path="$1"
+    key_path="${key_path/#\~/$HOME}"
+
+    if [[ "$key_path" != /* ]]; then
+        key_path="$(cd "$(dirname "$key_path")" && pwd)/$(basename "$key_path")"
+    fi
+
+    printf '%s' "$key_path"
+}
+
+sync_validate_ssh_key() {
+    if [[ -z "${SYNC_SSH_KEY:-}" ]]; then
+        return 0
+    fi
+
+    local key_file
+    key_file="$(sync_expand_ssh_key_path "$SYNC_SSH_KEY")"
+
+    if [[ ! -f "$key_file" ]]; then
+        sync_die "SSH key not found: ${key_file} (from SYNC_SSH_KEY=${SYNC_SSH_KEY})"
+    fi
+
+    if [[ "${key_file,,}" == *.ppk ]]; then
+        cat >&2 <<EOF
+[sync] error: OpenSSH cannot use PuTTY .ppk keys directly.
+
+Convert to OpenSSH format and store under ~/.ssh/ (WSL/Linux filesystem):
+
+  mkdir -p ~/.ssh
+  puttygen "${key_file}" -O private-openssh -o ~/.ssh/nerdik-sync
+  chmod 600 ~/.ssh/nerdik-sync
+
+Then set in .env.sync:
+
+  SYNC_SSH_KEY=~/.ssh/nerdik-sync
+
+(Install putty-tools if needed: sudo apt install putty-tools)
+EOF
+        exit 1
+    fi
+
+    if [[ "$key_file" == /mnt/* ]]; then
+        cat >&2 <<EOF
+[sync] error: SSH keys on Windows drives (/mnt/c/...) cannot get secure permissions in WSL.
+
+Copy or convert the key into the WSL filesystem instead:
+
+  mkdir -p ~/.ssh
+  puttygen /path/to/key.ppk -O private-openssh -o ~/.ssh/nerdik-sync
+  chmod 600 ~/.ssh/nerdik-sync
+
+Set SYNC_SSH_KEY=~/.ssh/nerdik-sync in .env.sync
+EOF
+        exit 1
+    fi
+
+    local perms owner
+    perms="$(stat -c '%a' "$key_file")"
+    owner="$(stat -c '%u' "$key_file")"
+
+    if [[ "$perms" != "600" && "$perms" != "400" ]]; then
+        if [[ "$owner" == "$(id -u)" ]]; then
+            sync_log "fixing SSH key permissions on ${key_file} (was ${perms}, need 600)"
+            chmod 600 "$key_file"
+            perms="$(stat -c '%a' "$key_file")"
+        fi
+    fi
+
+    if [[ "$perms" != "600" && "$perms" != "400" ]]; then
+        cat >&2 <<EOF
+[sync] error: SSH rejected key permissions on ${key_file} (mode ${perms}).
+
+Run:
+
+  chmod 600 ${key_file}
+
+If that fails or SSH still complains, move the key to ~/.ssh/ inside WSL
+(not /mnt/c/...) and point SYNC_SSH_KEY there.
+EOF
+        exit 1
+    fi
 }
 
 sync_confirm() {

@@ -323,9 +323,11 @@ Scripts under [`scripts/sync/`](../scripts/sync/) copy **production PostgreSQL**
 
 **Warning:** sync overwrites the target database and storage. Production data may contain real user PII — handle exports carefully.
 
+**`.env.sync` is local-only.** You only need it on your dev machine for SSH-based flows (`make sync-from-prod*`, `make prod-to-staging-sync-remote`). Running `make prod-to-staging-sync` on the VPS (`/opt/nerdik`) uses built-in defaults (`/opt/nerdik-staging`) and does not require `.env.sync`.
+
 ### Local dev: pull from production via SSH
 
-1. Copy [`.env.sync.example`](../.env.sync.example) to `.env.sync` and set `SYNC_SSH_HOST`, `SYNC_SSH_KEY`, etc.
+1. Copy [`.env.sync.example`](../.env.sync.example) to `.env.sync` and set `SYNC_SSH_HOST`, `SYNC_SSH_KEY`, and `SYNC_SSH_PORT` if SSH is not on port 22.
 2. Add the sync public key to `deploy@VPS` `authorized_keys`.
 3. Start Sail: `make up`
 4. Sync:
@@ -338,6 +340,15 @@ make sync-from-prod-storage      # storage only
 make sync-from-prod DRY_RUN=1    # print steps only
 ```
 
+**WSL + PuTTY keys:** OpenSSH cannot use `.ppk` files or keys stored on `/mnt/c/...` (Windows permissions cannot be tightened). Convert and keep the key in the WSL filesystem:
+
+```bash
+sudo apt install putty-tools   # if needed
+puttygen /var/www/putty.ppk -O private-openssh -o ~/.ssh/nerdik-sync
+chmod 600 ~/.ssh/nerdik-sync
+# set SYNC_SSH_KEY=~/.ssh/nerdik-sync in .env.sync
+```
+
 ### VPS: production → staging
 
 Run from the production clone (`/opt/nerdik`):
@@ -347,13 +358,13 @@ make prod-to-staging-sync
 make prod-to-staging-sync BACKUP=1 YES=1
 ```
 
-From your local machine (SSH into VPS and run the same):
+From your local machine (SSH into VPS and run the same; requires local `.env.sync`):
 
 ```bash
 make prod-to-staging-sync-remote BACKUP=1
 ```
 
-Staging uses `SYNC_STAGING_PATH` (default `/opt/nerdik-staging`) from `.env.sync` when set, otherwise the default path above.
+On the VPS, staging path defaults to `/opt/nerdik-staging`. Override locally via `SYNC_STAGING_PATH` in `.env.sync` if your clone lives elsewhere.
 
 ## Broadcast channels
 

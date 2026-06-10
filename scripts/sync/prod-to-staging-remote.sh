@@ -39,6 +39,8 @@ if [[ -z "${SYNC_SSH_HOST}" ]]; then
     sync_die "SYNC_SSH_HOST is not set. Copy .env.sync.example to .env.sync and configure it."
 fi
 
+sync_validate_ssh_key
+
 SSH_TARGET="${SYNC_SSH_USER}@${SYNC_SSH_HOST}"
 SSH_OPTS=()
 sync_ssh_opts SSH_OPTS
