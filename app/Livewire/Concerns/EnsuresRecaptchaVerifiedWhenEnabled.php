@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Concerns;
 
+use Illuminate\Validation\ValidationException;
+
 trait EnsuresRecaptchaVerifiedWhenEnabled
 {
     public string $gRecaptchaResponse = '';
@@ -15,20 +17,40 @@ trait EnsuresRecaptchaVerifiedWhenEnabled
     }
 
     /**
-     * Merge reCAPTCHA rules when enabled and configured.
+     * Validate form fields first, then reCAPTCHA when enabled.
      *
-     * @param  array<string, array<int, mixed>>  $rules
-     * @return array<string, array<int, mixed>>
+     * reCAPTCHA tokens are single-use; deferring verification avoids burning a token on field errors.
+     *
+     * @param  array<string, array<int, mixed>>  $formRules
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
      */
-    protected function rulesIncludingRecaptchaIfEnabled(array $rules): array
+    protected function validateFormThenRecaptchaIfEnabled(array $formRules): array
     {
+        $validated = $this->validate($formRules);
+
         if (! $this->usesRecaptchaForRequests()) {
-            return $rules;
+            return $validated;
         }
 
-        return array_merge($rules, [
-            'gRecaptchaResponse' => ['required', 'string', 'captcha'],
-        ]);
+        try {
+            $recaptchaValidated = $this->validate([
+                'gRecaptchaResponse' => ['required', 'string', 'captcha'],
+            ]);
+
+            return array_merge($validated, $recaptchaValidated);
+        } catch (ValidationException $exception) {
+            $this->resetRecaptchaAfterFailure();
+
+            throw $exception;
+        }
+    }
+
+    protected function resetRecaptchaAfterFailure(): void
+    {
+        $this->clearRecaptchaState();
+        $this->dispatch('reset-recaptcha');
     }
 
     protected function clearRecaptchaState(): void
