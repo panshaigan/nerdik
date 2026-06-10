@@ -195,6 +195,8 @@ class DeletionAndCancelGatesTest extends TestCase
         $this->assertSame((int) $organizer->id, (int) $activity->cancelled_by);
         $this->assertSame($event->id, $activity->cancelled_with_event_id);
 
+        $this->travel(61)->seconds();
+
         $this->actingAs($organizer);
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->call('reopenEvent')
@@ -260,6 +262,8 @@ class DeletionAndCancelGatesTest extends TestCase
         $this->assertNotNull($activityPreCancelled->cancelled_at);
         $this->assertSame('Venue flooded', $activityCascaded->cancel_reason);
         $this->assertSame($event->id, $activityCascaded->cancelled_with_event_id);
+
+        $this->travel(61)->seconds();
 
         $this->actingAs($organizer);
         Livewire::test(ShowEvent::class, ['event' => $event])

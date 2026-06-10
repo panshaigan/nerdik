@@ -339,6 +339,8 @@ class CancellationNotificationsTest extends TestCase
 
         Notification::fake();
 
+        $this->travel(61)->seconds();
+
         app(ActivityHostingModeService::class)->reopen($activity->fresh(), $organizer);
 
         Notification::assertSentTo($interestedUser, ActivityReopenedNotification::class);
@@ -380,6 +382,8 @@ class CancellationNotificationsTest extends TestCase
             ->call('cancelEvent');
 
         Notification::fake();
+
+        $this->travel(61)->seconds();
 
         Livewire::test(ShowEvent::class, ['event' => $event->fresh()])
             ->call('reopenEvent');

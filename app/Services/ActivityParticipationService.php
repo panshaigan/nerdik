@@ -7,6 +7,7 @@ use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class ActivityParticipationService
@@ -18,6 +19,10 @@ class ActivityParticipationService
 
     public function join(Activity $activity, User $user): RedirectResponse
     {
+        if ($response = $this->participationRateLimitedResponse($activity, $user)) {
+            return $response;
+        }
+
         if ($msg = $this->signupStateBlockMessage($activity)) {
             return redirect()->back()->with('status', $msg);
         }
@@ -48,12 +53,17 @@ class ActivityParticipationService
         }
 
         $this->signupService->userJoinActivity($activity, $user);
+        $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the activity.'));
     }
 
     public function leave(Activity $activity, User $user): RedirectResponse
     {
+        if ($response = $this->participationRateLimitedResponse($activity, $user)) {
+            return $response;
+        }
+
         if ($msg = $this->signupStateBlockMessage($activity)) {
             return redirect()->back()->with('status', $msg);
         }
@@ -64,12 +74,17 @@ class ActivityParticipationService
         }
 
         $this->signupService->userLeaveActivity($activity, $participant);
+        $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You left the activity.'));
     }
 
     public function joinWaitlist(Activity $activity, User $user): RedirectResponse
     {
+        if ($response = $this->participationRateLimitedResponse($activity, $user)) {
+            return $response;
+        }
+
         if ($msg = $this->signupStateBlockMessage($activity)) {
             return redirect()->back()->with('status', $msg);
         }
@@ -95,12 +110,17 @@ class ActivityParticipationService
         }
 
         $this->signupService->userJoinWaitlist($activity, $user);
+        $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the waitlist.'));
     }
 
     public function leaveWaitlist(Activity $activity, User $user): RedirectResponse
     {
+        if ($response = $this->participationRateLimitedResponse($activity, $user)) {
+            return $response;
+        }
+
         if ($msg = $this->signupStateBlockMessage($activity)) {
             return redirect()->back()->with('status', $msg);
         }
@@ -111,6 +131,7 @@ class ActivityParticipationService
         }
 
         $this->signupService->userLeaveWaitlist($activity, $entry);
+        $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You left the waitlist.'));
     }
@@ -240,5 +261,27 @@ class ActivityParticipationService
         $messages = $e->errors();
 
         return (string) (collect($messages)->flatten()->first() ?? __('Validation failed.'));
+    }
+
+    protected function participationRateLimitedResponse(Activity $activity, User $user): ?RedirectResponse
+    {
+        $key = $this->participationRateLimitKey($activity, $user);
+        $max = (int) config('notification_throttle.participation_mutations_per_minute', 3);
+
+        if (RateLimiter::tooManyAttempts($key, $max)) {
+            return redirect()->back()->with('status', __('ui.activities.participation_rate_limited'));
+        }
+
+        return null;
+    }
+
+    protected function recordParticipationMutation(Activity $activity, User $user): void
+    {
+        RateLimiter::hit($this->participationRateLimitKey($activity, $user), 60);
+    }
+
+    protected function participationRateLimitKey(Activity $activity, User $user): string
+    {
+        return "participation:{$user->id}:{$activity->id}";
     }
 }

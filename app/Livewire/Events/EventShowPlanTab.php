@@ -376,7 +376,16 @@ class EventShowPlanTab extends Component
         }
         $reason = $reasonValidation->validated()['reason'] ?? null;
 
-        $hostingModes->cancel($activity, $user, $reason);
+        $result = $hostingModes->cancel($activity, $user, $reason);
+        if ($result->rateLimited) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
+            return;
+        }
+        if (! $result->performed) {
+            return;
+        }
+
         unset($this->slotCancelReason[$slotId], $this->slotCancelReason[(string) $slotId]);
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
@@ -400,7 +409,16 @@ class EventShowPlanTab extends Component
         $user = auth()->user();
         abort_unless($user?->canModifyEntity($event) || $user?->canModifyEntity($activity), 403);
 
-        $hostingModes->reopen($activity, $user);
+        $result = $hostingModes->reopen($activity, $user);
+        if ($result->rateLimited) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
+            return;
+        }
+        if (! $result->performed) {
+            return;
+        }
+
         $this->slotListVersion++;
         $this->syncSlotEndsForThisEvent();
         $this->success(__('ui.activities.reopened_status'));

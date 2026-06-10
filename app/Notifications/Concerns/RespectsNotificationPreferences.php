@@ -6,6 +6,7 @@ namespace App\Notifications\Concerns;
 
 use App\Enums\NotificationPreferenceKey;
 use App\Models\User;
+use App\Services\Notifications\NotificationDispatchThrottle;
 
 trait RespectsNotificationPreferences
 {
@@ -18,6 +19,10 @@ trait RespectsNotificationPreferences
     {
         if (! $notifiable instanceof User) {
             return ['database', 'broadcast', 'mail'];
+        }
+
+        if (app(NotificationDispatchThrottle::class)->shouldSuppress($this, $notifiable)) {
+            return [];
         }
 
         return $this->notificationPreferenceKey()->channelsFor($notifiable);

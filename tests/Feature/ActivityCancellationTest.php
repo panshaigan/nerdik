@@ -9,8 +9,11 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
+use App\Notifications\ActivityCancelledNotification;
+use App\Notifications\ActivityReopenedNotification;
 use App\Services\ActivityHostingModeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -36,6 +39,8 @@ class ActivityCancellationTest extends TestCase
         $this->assertNotNull($activity->cancelled_at);
         $this->assertSame($host->id, (int) $activity->cancelled_by);
         $this->assertSame('Host is unavailable', $activity->cancel_reason);
+
+        $this->travel(61)->seconds();
 
         $service->reopen($activity, $host);
         $activity->refresh();
@@ -80,6 +85,8 @@ class ActivityCancellationTest extends TestCase
         $this->assertSame('Venue emergency', $activity->cancel_reason);
         $this->assertSame($activity->id, $slot->fresh()->activity_id, 'Cancelled activity should remain attached to the slot.');
 
+        $this->travel(61)->seconds();
+
         $component->call('reopenSlotActivity', $slot->id);
         $activity->refresh();
         $this->assertNull($activity->cancelled_at);
@@ -113,6 +120,58 @@ class ActivityCancellationTest extends TestCase
 
         $this->expectException(HttpException::class);
         $component->instance()->cancelSlotActivity($slot->id, app(ActivityHostingModeService::class));
+    }
+
+    public function test_second_cancel_does_not_send_duplicate_notifications(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+        ]);
+
+        $service = app(ActivityHostingModeService::class);
+
+        $service->cancel($activity, $host, 'Unavailable');
+        $service->cancel($activity->fresh(), $host, 'Again');
+
+        Notification::assertSentToTimes($participant, ActivityCancelledNotification::class, 1);
+    }
+
+    public function test_second_reopen_does_not_send_duplicate_notifications(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'cancelled_at' => now(),
+            'cancelled_by' => $host->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+        ]);
+
+        $service = app(ActivityHostingModeService::class);
+
+        $service->reopen($activity, $host);
+        $service->reopen($activity->fresh(), $host);
+
+        Notification::assertSentToTimes($participant, ActivityReopenedNotification::class, 1);
     }
 
     public function test_participation_endpoints_block_cancelled_and_non_joinable_modes(): void

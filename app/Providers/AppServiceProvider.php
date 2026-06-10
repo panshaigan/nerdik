@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\BackfillMediaDimensions;
 use App\Listeners\LogNotificationEmail;
+use App\Listeners\RecordNotificationDispatchThrottle;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -106,6 +107,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         EventFacade::listen(NotificationSent::class, LogNotificationEmail::class);
+        EventFacade::listen(NotificationSent::class, RecordNotificationDispatchThrottle::class);
         EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
         EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);
 
@@ -115,6 +117,34 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('password.request', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('participation', function (Request $request) {
+            $userId = $request->user()?->id ?? $request->ip();
+            $activity = $request->route('activity');
+            $activityId = is_object($activity) ? $activity->getKey() : $activity;
+
+            return Limit::perMinute(
+                (int) config('notification_throttle.participation_mutations_per_minute', 3)
+            )->by("participation:{$userId}:{$activityId}");
+        });
+
+        RateLimiter::for('lifecycle', function (Request $request) {
+            $userId = $request->user()?->id ?? $request->ip();
+            $activity = $request->route('activity');
+            $event = $request->route('event');
+
+            if (is_object($activity)) {
+                $key = "lifecycle:activity:{$userId}:{$activity->getKey()}";
+            } elseif (is_object($event)) {
+                $key = "lifecycle:event:{$userId}:{$event->getKey()}";
+            } else {
+                $key = "lifecycle:unknown:{$userId}";
+            }
+
+            return Limit::perMinute(
+                (int) config('notification_throttle.lifecycle_mutations_per_minute', 1)
+            )->by($key);
         });
 
         Password::defaults(function (): Password {
