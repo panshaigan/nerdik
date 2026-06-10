@@ -15,6 +15,7 @@ use App\Services\CancellationNotificationDispatcher;
 use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
+use App\Services\LifecycleMutationRateLimiter;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -227,7 +228,7 @@ class ShowEvent extends Component
         $this->redirect(route('search.index'), navigate: true);
     }
 
-    public function cancelEvent(): void
+    public function cancelEvent(LifecycleMutationRateLimiter $lifecycleRateLimiter): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
@@ -242,6 +243,12 @@ class ShowEvent extends Component
 
         $user = auth()->user();
         abort_unless($user !== null, 403);
+
+        if ($lifecycleRateLimiter->isRateLimitedForEvent($user, $event)) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
+            return;
+        }
 
         $reason = $this->eventCancelReason !== null ? trim($this->eventCancelReason) : null;
         if ($reason === '') {
@@ -271,18 +278,28 @@ class ShowEvent extends Component
         });
         $this->eventCancelReason = null;
 
+        $lifecycleRateLimiter->recordEventMutation($user, $event);
         app(CancellationNotificationDispatcher::class)->notifyEventCancelled($event->fresh(), $user);
         $this->success(__('ui.events.cancelled_status'));
 
         $this->dispatch('slot-mutations-refresh');
     }
 
-    public function reopenEvent(): void
+    public function reopenEvent(LifecycleMutationRateLimiter $lifecycleRateLimiter): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
 
         if (! $event->isCancelled()) {
+            return;
+        }
+
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        if ($lifecycleRateLimiter->isRateLimitedForEvent($user, $event)) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
             return;
         }
 
@@ -296,9 +313,7 @@ class ShowEvent extends Component
             ]);
         });
 
-        $user = auth()->user();
-        abort_unless($user !== null, 403);
-
+        $lifecycleRateLimiter->recordEventMutation($user, $event);
         app(CancellationNotificationDispatcher::class)->notifyEventReopened($event->fresh(), $user);
         $this->success(__('ui.events.reopened_status'));
 

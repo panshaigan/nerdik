@@ -9,12 +9,17 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
+use App\Support\Lifecycle\LifecycleMutationResult;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ActivityHostingModeService
 {
+    public function __construct(
+        private readonly LifecycleMutationRateLimiter $lifecycleRateLimiter,
+    ) {}
+
     public function setDraft(Activity $activity): void
     {
         $this->ensureNotScheduledOnEvent($activity);
@@ -104,22 +109,42 @@ class ActivityHostingModeService
         ]);
     }
 
-    public function cancel(Activity $activity, User $actor, ?string $reason = null): void
+    public function cancel(Activity $activity, User $actor, ?string $reason = null): LifecycleMutationResult
     {
+        if ($activity->isCancelled()) {
+            return LifecycleMutationResult::skipped();
+        }
+
+        if ($this->lifecycleRateLimiter->isRateLimitedForActivity($actor, $activity)) {
+            return LifecycleMutationResult::rateLimited();
+        }
+
         $activity->update([
             'cancelled_at' => now(),
             'cancelled_by' => $actor->id,
             'cancel_reason' => $reason !== null ? trim($reason) : null,
         ]);
 
+        $this->lifecycleRateLimiter->recordActivityMutation($actor, $activity);
+
         app(CancellationNotificationDispatcher::class)->notifyActivityCancelled(
             $activity->fresh(),
             $actor
         );
+
+        return LifecycleMutationResult::performed();
     }
 
-    public function reopen(Activity $activity, User $actor): void
+    public function reopen(Activity $activity, User $actor): LifecycleMutationResult
     {
+        if (! $activity->isCancelled()) {
+            return LifecycleMutationResult::skipped();
+        }
+
+        if ($this->lifecycleRateLimiter->isRateLimitedForActivity($actor, $activity)) {
+            return LifecycleMutationResult::rateLimited();
+        }
+
         $activity->update([
             'cancelled_at' => null,
             'cancelled_by' => null,
@@ -127,10 +152,14 @@ class ActivityHostingModeService
             'cancelled_with_event_id' => null,
         ]);
 
+        $this->lifecycleRateLimiter->recordActivityMutation($actor, $activity);
+
         app(CancellationNotificationDispatcher::class)->notifyActivityReopened(
             $activity->fresh(),
             $actor
         );
+
+        return LifecycleMutationResult::performed();
     }
 
     public function detachAcceptedSlot(Event $event, Slot $slot): bool

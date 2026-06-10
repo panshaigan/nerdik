@@ -133,9 +133,16 @@ class ShowActivity extends Component
             return;
         }
 
-        $hostingModes->cancel($activity, auth()->user(), $reason);
+        $result = $hostingModes->cancel($activity, auth()->user(), $reason);
         $this->cancelReason = null;
-        $this->success(__('ui.activities.cancelled_status'));
+        if ($result->rateLimited) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
+            return;
+        }
+        if ($result->performed) {
+            $this->success(__('ui.activities.cancelled_status'));
+        }
     }
 
     public function reopen(ActivityHostingModeService $hostingModes): void
@@ -144,8 +151,15 @@ class ShowActivity extends Component
         $user = auth()->user();
         abort_unless($user instanceof User && $user->canModifyEntity($activity), 403);
 
-        $hostingModes->reopen($activity, $user);
-        $this->success(__('ui.activities.reopened_status'));
+        $result = $hostingModes->reopen($activity, $user);
+        if ($result->rateLimited) {
+            $this->warning(__('ui.common.lifecycle_rate_limited'));
+
+            return;
+        }
+        if ($result->performed) {
+            $this->success(__('ui.activities.reopened_status'));
+        }
     }
 
     public function deleteActivity(): void
