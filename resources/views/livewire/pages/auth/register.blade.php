@@ -35,16 +35,22 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function register(): void
     {
-        $validated = $this->validate($this->rulesIncludingRecaptchaIfEnabled([
+        $validated = $this->validateFormThenRecaptchaIfEnabled([
             'nickname' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'timezone' => ['nullable', 'string', 'timezone'],
-        ]));
+        ]);
 
         unset($validated['gRecaptchaResponse']);
 
-        $this->ensureRegistrationIsNotRateLimited();
+        try {
+            $this->ensureRegistrationIsNotRateLimited();
+        } catch (ValidationException $exception) {
+            $this->resetRecaptchaAfterFailure();
+
+            throw $exception;
+        }
 
         RateLimiter::hit($this->registrationThrottleKey());
 

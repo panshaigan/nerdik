@@ -24,9 +24,9 @@ new #[Layout('layouts.guest')] class extends Component
      */
     public function sendPasswordResetLink(): void
     {
-        $this->validate($this->rulesIncludingRecaptchaIfEnabled([
+        $this->validateFormThenRecaptchaIfEnabled([
             'email' => ['required', 'string', 'email'],
-        ]));
+        ]);
 
         $this->ensurePasswordResetLinkIsNotRateLimited();
 
@@ -38,6 +38,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         if ($status != Password::RESET_LINK_SENT) {
             $this->addError('email', __($status));
+            $this->resetRecaptchaAfterFailure();
 
             return;
         }

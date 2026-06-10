@@ -92,6 +92,16 @@
                     window.Livewire.find(id).set('gRecaptchaResponse', token);
                 }
             }
+
+            function nerdikResetRecaptcha() {
+                if (typeof grecaptcha !== 'undefined' && typeof grecaptcha.reset === 'function') {
+                    grecaptcha.reset();
+                }
+            }
+
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('reset-recaptcha', nerdikResetRecaptcha);
+            });
         </script>
 
         @stack('scripts')

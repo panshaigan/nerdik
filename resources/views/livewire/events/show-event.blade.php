@@ -129,6 +129,14 @@
                                 data-ui="event-show-edit-open"
                                 icon="o-pencil"
                             />
+                            <x-button
+                                :link="route('events.create', ['duplicate' => $event->slug])"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-accent"
+                                :tooltip="__('ui.events.duplicate_action')"
+                                :aria-label="__('ui.events.duplicate_action').': '.$event->name"
+                                data-ui="event-show-duplicate-open"
+                                icon="o-square-2-stack"
+                            />
                             @if (! $event->isCancelled())
                                 @if (($eventSignupPressureBlocksDelete ?? false))
                                     <x-button
