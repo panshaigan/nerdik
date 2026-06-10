@@ -13,7 +13,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/sync/pull-from-prod.sh [--yes] [--dry-run] [--db-only] [--storage-only]
 
-Requires .env.sync with SYNC_SSH_HOST, SYNC_SSH_USER, SYNC_SSH_KEY, SYNC_PROD_PATH.
+Requires .env.sync with SYNC_SSH_HOST (and optionally SYNC_SSH_PORT, SYNC_SSH_KEY, SYNC_PROD_PATH).
 EOF
 }
 
@@ -48,9 +48,13 @@ if [[ -z "${SYNC_SSH_HOST}" ]]; then
     sync_die "SYNC_SSH_HOST is not set. Copy .env.sync.example to .env.sync and configure it."
 fi
 
+sync_validate_ssh_key
+
 SSH_TARGET="${SYNC_SSH_USER}@${SYNC_SSH_HOST}"
 SSH_OPTS=()
-sync_ssh_opts SSH_OPTS
+SCP_OPTS=()
+sync_ssh_opts SSH_OPTS ssh
+sync_ssh_opts SCP_OPTS scp
 
 REMOTE_EXPORT_DIR="$(sync_default_export_dir)"
 LOCAL_EXPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nerdik-sync-local.XXXXXX")"
@@ -99,12 +103,12 @@ mkdir -p "$LOCAL_EXPORT_DIR"
 
 if [[ "$SYNC_STORAGE_ONLY" != "1" ]]; then
     sync_log "downloading db.sql.gz"
-    sync_run scp "${SSH_OPTS[@]}" "${SSH_TARGET}:${REMOTE_EXPORT_DIR}/db.sql.gz" "${LOCAL_EXPORT_DIR}/"
+    sync_run scp "${SCP_OPTS[@]}" "${SSH_TARGET}:${REMOTE_EXPORT_DIR}/db.sql.gz" "${LOCAL_EXPORT_DIR}/"
 fi
 
 if [[ "$SYNC_DB_ONLY" != "1" ]]; then
     sync_log "downloading storage-app.tar.gz"
-    sync_run scp "${SSH_OPTS[@]}" "${SSH_TARGET}:${REMOTE_EXPORT_DIR}/storage-app.tar.gz" "${LOCAL_EXPORT_DIR}/"
+    sync_run scp "${SCP_OPTS[@]}" "${SSH_TARGET}:${REMOTE_EXPORT_DIR}/storage-app.tar.gz" "${LOCAL_EXPORT_DIR}/"
 fi
 
 IMPORT_FLAGS=()
