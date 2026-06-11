@@ -200,9 +200,9 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Resolved matrix: every known key is present; missing storage keys default both channels to true.
+     * Resolved matrix: every known key is present; missing storage keys use {@see NotificationPreferenceKey::defaultMatrix()}.
      *
-     * @return array<string, array{in_app: bool, email: bool}>
+     * @return array<string, array{in_app: bool, email: bool, every_join?: bool}>
      */
     public function resolvedNotificationPreferences(): array
     {
@@ -224,6 +224,9 @@ class User extends Authenticatable implements MustVerifyEmail
             }
             if (array_key_exists('email', $block)) {
                 $matrix[$key]['email'] = (bool) $block['email'];
+            }
+            if ($case === NotificationPreferenceKey::ActivityParticipantJoined && array_key_exists('every_join', $block)) {
+                $matrix[$key]['every_join'] = (bool) $block['every_join'];
             }
         }
 

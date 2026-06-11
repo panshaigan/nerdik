@@ -36,16 +36,16 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         ]);
         EventEnrollmentWindow::factory()->create([
             'event_id' => $event->id,
-            'starts_at' => now()->addDay(),
+            'starts_at' => now()->addHours(12),
             'ends_at' => now()->addDays(2),
         ]);
         $user->interestedEvents()->attach($event->id);
 
         $activity = Activity::factory()->create([
             'created_by' => $organizer->id,
-            'starts_at' => now()->addDays(3),
-            'ends_at' => now()->addDays(3)->addHours(2),
-            'cancellation_deadline_in_hours' => 24,
+            'starts_at' => now()->addHours(30),
+            'ends_at' => now()->addHours(32),
+            'cancellation_deadline_in_hours' => 6,
         ]);
         DB::table('activity_user')->insert([
             'activity_id' => $activity->id,
@@ -69,15 +69,39 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         $this->assertSame($firstDispatchCount, DB::table('scheduled_notification_dispatches')->count());
     }
 
-    public function test_organizer_pending_proposal_is_not_sent_outside_baseline_or_escalation_window(): void
+    public function test_enrollment_window_outside_24h_lookahead_is_not_included(): void
     {
         config()->set('scheduled_notifications.daily_send_time', '09:00');
-        $this->travelTo('2026-06-02 09:00:00'); // Tuesday
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update(['timezone' => 'UTC']);
+        $organizer = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => now()->addDays(30),
+            'ends_at' => now()->addDays(31),
+        ]);
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->addHours(30),
+            'ends_at' => now()->addDays(2),
+        ]);
+        $user->interestedEvents()->attach($event->id);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_organizer_pending_proposals_are_not_collected_in_digest(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-02 09:00:00');
 
         $organizer = User::factory()->create();
-        $organizer->profile()->update([
-            'timezone' => 'UTC',
-        ]);
+        $organizer->profile()->update(['timezone' => 'UTC']);
         $proposer = User::factory()->create();
         $activity = Activity::factory()->create([
             'created_by' => $proposer->id,
@@ -97,13 +121,51 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
 
         EventEnrollmentWindow::factory()->create([
             'event_id' => $event->id,
-            'starts_at' => now()->addDays(10),
-            'ends_at' => now()->addDays(11),
+            'starts_at' => now()->addHours(6),
+            'ends_at' => now()->addDays(1),
         ]);
 
         Notification::fake();
         $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
 
         Notification::assertNothingSent();
+    }
+
+    public function test_cancellation_deadline_within_24h_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update(['timezone' => 'UTC']);
+        $host = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->addHours(20),
+            'ends_at' => now()->addHours(22),
+            'cancellation_deadline_in_hours' => 8,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $user,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($user): bool {
+                $payload = $notification->toArray($user);
+
+                return collect($payload['items'] ?? [])
+                    ->contains(fn (array $item): bool => ($item['category'] ?? '') === 'participant_cancellation_deadline');
+            }
+        );
     }
 }

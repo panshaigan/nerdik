@@ -28,7 +28,7 @@ enum NotificationPreferenceKey: string
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
 
     /**
-     * @return array<string, array{in_app: bool, email: bool}>
+     * @return array<string, array{in_app: bool, email: bool, every_join?: bool}>
      */
     public static function defaultMatrix(): array
     {
@@ -40,7 +40,24 @@ enum NotificationPreferenceKey: string
             ];
         }
 
+        $matrix[self::ActivityParticipantJoined->value] = [
+            'in_app' => true,
+            'email' => false,
+            'every_join' => false,
+        ];
+
         return $matrix;
+    }
+
+    public function wantsEveryJoinNotification(User $user): bool
+    {
+        if ($this !== self::ActivityParticipantJoined) {
+            return true;
+        }
+
+        $prefs = $user->resolvedNotificationPreferences()[self::ActivityParticipantJoined->value];
+
+        return (bool) ($prefs['every_join'] ?? false);
     }
 
     public static function tryFromScheduledCategory(string $category): ?self

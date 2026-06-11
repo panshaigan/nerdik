@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\User;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
 use App\Notifications\Concerns\RespectsNotificationPreferences;
+use App\Services\Notifications\NotificationDispatchThrottle;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -28,6 +29,28 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
     protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
         return NotificationPreferenceKey::ActivityParticipantJoined;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        if (! $notifiable instanceof User) {
+            return ['database', 'broadcast', 'mail'];
+        }
+
+        if (app(NotificationDispatchThrottle::class)->shouldSuppress($this, $notifiable)) {
+            return [];
+        }
+
+        $key = NotificationPreferenceKey::ActivityParticipantJoined;
+
+        if (! $this->isMilestone() && ! $key->wantsEveryJoinNotification($notifiable)) {
+            return [];
+        }
+
+        return $key->channelsFor($notifiable);
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -73,6 +96,11 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
         ];
     }
 
+    public function isMilestone(): bool
+    {
+        return $this->isFull() || $this->isMinReached();
+    }
+
     protected function isFull(): bool
     {
         $max = $this->activity->max_participants;
@@ -91,6 +119,12 @@ class ActivityParticipantJoinedNotification extends Notification implements Shou
     {
         if ($this->isFull()) {
             return __('ui.notifications.activity_roster_full_subject', [
+                'activity' => $this->activity->name,
+            ]);
+        }
+
+        if ($this->isMinReached()) {
+            return __('ui.notifications.activity_participant_min_reached_subject', [
                 'activity' => $this->activity->name,
             ]);
         }
