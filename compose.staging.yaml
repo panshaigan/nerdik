@@ -6,6 +6,11 @@ services:
     networks:
       - nerdik
       - edge
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
 
   reverb:
     container_name: nerdik-staging-reverb
@@ -19,6 +24,13 @@ services:
         limits:
           cpus: "0.50"
           memory: 512M
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      app:
+        condition: service_started
+      mailpit:
+        condition: service_started
 
   scheduler:
     deploy:
@@ -26,6 +38,20 @@ services:
         limits:
           cpus: "0.25"
           memory: 256M
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: nerdik-staging-mailpit
+    restart: unless-stopped
+    environment:
+      MP_UI_AUTH: ${MAILPIT_UI_AUTH:?Set MAILPIT_UI_AUTH in .env}
+      MP_MAX_MESSAGES: 5000
+    expose:
+      - "1025"
+      - "8025"
+    networks:
+      - nerdik
+      - edge
 
 networks:
   edge:

@@ -6,6 +6,8 @@ set -eu
 : "${STAGING_DOMAIN:?STAGING_DOMAIN is required}"
 : "${ACME_EMAIL:?ACME_EMAIL is required}"
 
+STAGING_MAILPIT_DOMAIN="${STAGING_MAILPIT_DOMAIN:-}"
+
 cat > /etc/caddy/Caddyfile <<EOF
 {
 	email ${ACME_EMAIL}
@@ -47,5 +49,21 @@ ${STAGING_DOMAIN} {
 	}
 }
 EOF
+
+if [ -n "$STAGING_MAILPIT_DOMAIN" ]; then
+cat >> /etc/caddy/Caddyfile <<EOF
+
+${STAGING_MAILPIT_DOMAIN} {
+	encode gzip
+
+	reverse_proxy nerdik-staging-mailpit:8025 {
+		transport http {
+			read_timeout 30s
+			dial_timeout 5s
+		}
+	}
+}
+EOF
+fi
 
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile

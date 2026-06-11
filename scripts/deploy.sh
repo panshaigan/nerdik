@@ -87,6 +87,12 @@ if [[ "$DEPLOY_ENV" == "staging" ]]; then
         echo "Docker network nerdik-edge not found. Deploy production first (make vps-deploy) so Caddy creates the shared edge network." >&2
         exit 1
     fi
+
+    if [[ -z "${MAILPIT_UI_AUTH:-}" ]]; then
+        echo "MAILPIT_UI_AUTH is required in staging .env (username:bcrypt for Mailpit UI)." >&2
+        echo "Generate: docker run --rm axllent/mailpit:latest mailpit bcrypt 'your-secret'" >&2
+        exit 1
+    fi
 fi
 
 if [[ -n "${IMAGE_TAG:-}" ]]; then

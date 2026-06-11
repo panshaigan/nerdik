@@ -1,5 +1,6 @@
 # Reference only — production Caddy config is generated at container start by
-# docker/caddy/entrypoint.sh from APP_DOMAIN, STAGING_DOMAIN, and ACME_EMAIL in .env.
+# docker/caddy/entrypoint.sh from APP_DOMAIN, STAGING_DOMAIN, STAGING_MAILPIT_DOMAIN,
+# and ACME_EMAIL in .env.
 #
 # Upstreams use fixed Docker container names (not service names) so prod and staging
 # cannot collide on the shared nerdik-edge network.
@@ -41,5 +42,16 @@ staging.nerdik.app {
 
 	handle_errors {
 		respond "Staging is offline" 503
+	}
+}
+
+mail.staging.nerdik.app {
+	encode gzip
+
+	reverse_proxy nerdik-staging-mailpit:8025 {
+		transport http {
+			read_timeout 30s
+			dial_timeout 5s
+		}
 	}
 }
