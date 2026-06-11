@@ -65,10 +65,9 @@ if [[ ! -f .env ]]; then
     exit 1
 fi
 
-# shellcheck disable=SC1091
-set -a
-source .env
-set +a
+# shellcheck source=scripts/lib/load-dotenv.sh
+source "${ROOT}/scripts/lib/load-dotenv.sh"
+dotenv_load .env
 
 if [[ "$DEPLOY_ENV" == "prod" ]]; then
     if [[ ! -f docker/caddy/entrypoint.sh ]]; then

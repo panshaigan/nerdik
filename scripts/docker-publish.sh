@@ -5,10 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 if [[ -z "${GITHUB_OWNER:-}" && -f .env ]]; then
-    # shellcheck disable=SC1091
-    set -a
-    source .env
-    set +a
+    # shellcheck source=scripts/lib/load-dotenv.sh
+    source "${ROOT}/scripts/lib/load-dotenv.sh"
+    dotenv_load .env
 fi
 
 if [[ -z "${GITHUB_OWNER:-}" ]]; then
