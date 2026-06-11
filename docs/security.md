@@ -65,7 +65,8 @@ Follow [deployment.md](deployment.md) before exposing a server to the internet.
 | `PULSE_ENABLED` | `false` unless needed (admins only) |
 | `LOG_LEVEL` | `error` (or stricter) |
 | Secrets (DB, Reverb, OAuth, mail) | Server `.env` or secret manager only |
-| Sail-only tools | Do not expose Adminer, Mailpit, or Vite dev server |
+| Sail-only tools | Do not expose Adminer, Mailpit, or Vite dev server in production |
+| Staging Mailpit | UI at `STAGING_MAILPIT_DOMAIN` must use `MAILPIT_UI_AUTH`; never expose Mailpit without authentication |
 
 Additional checklist:
 

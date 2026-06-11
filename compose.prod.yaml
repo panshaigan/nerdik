@@ -16,6 +16,7 @@ services:
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env}
       STAGING_DOMAIN: ${STAGING_DOMAIN:-staging.nerdik.app}
+      STAGING_MAILPIT_DOMAIN: ${STAGING_MAILPIT_DOMAIN:-}
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
     volumes:
       - ./docker/caddy/entrypoint.sh:/etc/caddy/entrypoint.sh:ro
