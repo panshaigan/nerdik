@@ -81,7 +81,7 @@ jobs:
           cache: npm
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@v4
         with:
           composer-options: --prefer-dist --no-interaction
 
@@ -137,7 +137,7 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@v4
         with:
           composer-options: --prefer-dist --no-interaction
 
