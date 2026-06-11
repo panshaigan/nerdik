@@ -25,6 +25,15 @@ class NotificationDispatchThrottleTest extends TestCase
         ]);
 
         $host = User::factory()->create();
+        $host->profile()->update([
+            'notification_preferences' => [
+                'activity_participant_joined' => [
+                    'in_app' => true,
+                    'email' => true,
+                    'every_join' => true,
+                ],
+            ],
+        ]);
         $firstJoiner = User::factory()->create();
         $secondJoiner = User::factory()->create();
         $activity = Activity::factory()->create([
@@ -46,7 +55,7 @@ class NotificationDispatchThrottleTest extends TestCase
                 $host
             )
         );
-        $this->assertSame([], (new ActivityParticipantJoinedNotification($activity, $secondJoiner, 2))->via($host));
+        $this->assertSame([], (new ActivityParticipantJoinedNotification($activity, $secondJoiner, 2))->via($host->fresh()));
     }
 
     public function test_dispatch_throttle_allows_notification_after_cooldown_expires(): void
@@ -59,6 +68,15 @@ class NotificationDispatchThrottleTest extends TestCase
         ]);
 
         $host = User::factory()->create();
+        $host->profile()->update([
+            'notification_preferences' => [
+                'activity_participant_joined' => [
+                    'in_app' => true,
+                    'email' => true,
+                    'every_join' => true,
+                ],
+            ],
+        ]);
         $joiner = User::factory()->create();
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
@@ -68,7 +86,7 @@ class NotificationDispatchThrottleTest extends TestCase
         $throttle = app(NotificationDispatchThrottle::class);
         $notification = new ActivityParticipantJoinedNotification($activity, $joiner, 1);
 
-        $throttle->record($notification, $host);
+        $throttle->record($notification, $host->fresh());
         $this->assertTrue($throttle->shouldSuppress($notification, $host));
 
         $this->travel(61)->seconds();
@@ -88,6 +106,15 @@ class NotificationDispatchThrottleTest extends TestCase
         ]);
 
         $host = User::factory()->create();
+        $host->profile()->update([
+            'notification_preferences' => [
+                'activity_participant_joined' => [
+                    'in_app' => true,
+                    'email' => true,
+                    'every_join' => true,
+                ],
+            ],
+        ]);
         $joiner = User::factory()->create();
         $activity = Activity::factory()->create([
             'created_by' => $host->id,

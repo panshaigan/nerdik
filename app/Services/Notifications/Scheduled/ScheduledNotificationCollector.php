@@ -2,7 +2,6 @@
 
 namespace App\Services\Notifications\Scheduled;
 
-use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
@@ -23,15 +22,11 @@ class ScheduledNotificationCollector
      */
     public function collectForUser(User $user, CarbonImmutable $referenceNow): array
     {
-        $timezone = $this->timezoneForUser($user);
-        $localNow = $referenceNow->setTimezone($timezone);
-
         return collect()
-            ->concat($this->collectOrganizerUnansweredProposals($user, $referenceNow, $localNow, $timezone))
-            ->concat($this->collectInterestedEnrollmentWindows($user, $referenceNow, $localNow, $timezone))
-            ->concat($this->collectDashboardFeedItems($user, $referenceNow, $localNow, $timezone))
-            ->concat($this->collectParticipantCancellationDeadlines($user, $referenceNow, $localNow, $timezone))
-            ->concat($this->collectHostLowParticipationWarnings($user, $referenceNow, $localNow, $timezone))
+            ->concat($this->collectInterestedEnrollmentWindows($user, $referenceNow))
+            ->concat($this->collectDashboardFeedItems($user, $referenceNow))
+            ->concat($this->collectParticipantCancellationDeadlines($user, $referenceNow))
+            ->concat($this->collectHostLowParticipationWarnings($user, $referenceNow))
             ->values()
             ->all();
     }
@@ -39,67 +34,14 @@ class ScheduledNotificationCollector
     /**
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
-    private function collectOrganizerUnansweredProposals(User $user, CarbonImmutable $referenceNow, CarbonImmutable $localNow, DateTimeZone $timezone): Collection
+    private function collectInterestedEnrollmentWindows(User $user, CarbonImmutable $referenceNow): Collection
     {
-        $baselineWeekdays = collect(config('scheduled_notifications.organizer_unanswered_proposals.baseline_weekdays', [1, 4]))
-            ->map(fn ($weekday) => (int) $weekday)
-            ->all();
-        $escalationWindowDays = (int) config('scheduled_notifications.organizer_unanswered_proposals.daily_escalation_window_days', 7);
-
-        return Event::query()
-            ->where('created_by', $user->id)
-            ->withCount([
-                'proposals as pending_proposals_count' => fn ($query) => $query->where('status', ActivityProposalStatus::Pending),
-            ])
-            ->whereHas('proposals', fn ($query) => $query->where('status', ActivityProposalStatus::Pending))
-            ->with(['enrollmentWindows' => fn ($query) => $query->orderBy('starts_at')])
-            ->get()
-            ->map(function (Event $event) use ($baselineWeekdays, $escalationWindowDays, $referenceNow, $localNow, $timezone): ?array {
-                /** @var EventEnrollmentWindow|null $nextWindow */
-                $nextWindow = $event->enrollmentWindows
-                    ->first(fn (EventEnrollmentWindow $window): bool => $window->starts_at !== null && $window->starts_at->greaterThanOrEqualTo($referenceNow));
-
-                $isEscalated = false;
-                if ($nextWindow?->starts_at !== null) {
-                    $daysUntilWindow = $this->daysUntil($localNow, CarbonImmutable::instance($nextWindow->starts_at)->setTimezone($timezone));
-                    $isEscalated = $daysUntilWindow >= 0 && $daysUntilWindow <= $escalationWindowDays;
-                }
-
-                $shouldSend = $isEscalated || in_array((int) $localNow->dayOfWeekIso, $baselineWeekdays, true);
-                if (! $shouldSend) {
-                    return null;
-                }
-
-                $pendingCount = (int) ($event->pending_proposals_count ?? 0);
-
-                return [
-                    'category' => 'organizer_unanswered_proposals',
-                    'title' => __('ui.notifications.scheduled.organizer_unanswered_title', ['event' => (string) $event->name]),
-                    'lines' => [
-                        __('ui.notifications.scheduled.organizer_unanswered_line', ['count' => $pendingCount]),
-                    ],
-                    'url' => route('events.show', ['event' => $event, 'tab' => 'proposals'], false),
-                    'dedupe_key' => $this->dedupeKey('organizer_unanswered_proposals', (int) $event->id, 0, $localNow),
-                ];
-            })
-            ->filter();
-    }
-
-    /**
-     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
-     */
-    private function collectInterestedEnrollmentWindows(User $user, CarbonImmutable $referenceNow, CarbonImmutable $localNow, DateTimeZone $timezone): Collection
-    {
-        $offsets = collect(config('scheduled_notifications.days_before.enrollment_window', [1, 0]))
-            ->map(fn ($offset) => (int) $offset)
-            ->unique()
-            ->values()
-            ->all();
+        $timezone = $this->timezoneForUser($user);
 
         return $user->interestedEvents()
             ->with(['enrollmentWindows' => fn ($query) => $query->orderBy('starts_at')])
             ->get()
-            ->map(function (Event $event) use ($referenceNow, $localNow, $timezone, $offsets): ?array {
+            ->map(function (Event $event) use ($referenceNow, $timezone): ?array {
                 /** @var EventEnrollmentWindow|null $nextWindow */
                 $nextWindow = $event->enrollmentWindows
                     ->first(fn (EventEnrollmentWindow $window): bool => $window->starts_at !== null && $window->starts_at->greaterThanOrEqualTo($referenceNow));
@@ -108,9 +50,8 @@ class ScheduledNotificationCollector
                     return null;
                 }
 
-                $localWindowStart = CarbonImmutable::instance($nextWindow->starts_at)->setTimezone($timezone);
-                $daysUntilStart = $this->daysUntil($localNow, $localWindowStart);
-                if (! in_array($daysUntilStart, $offsets, true)) {
+                $windowStart = CarbonImmutable::instance($nextWindow->starts_at);
+                if (! $this->isWithinLookahead($referenceNow, $windowStart)) {
                     return null;
                 }
 
@@ -119,12 +60,12 @@ class ScheduledNotificationCollector
                     'title' => __('ui.notifications.scheduled.enrollment_window_title', ['event' => (string) $event->name]),
                     'lines' => [
                         __('ui.notifications.scheduled.enrollment_window_line', [
-                            'when' => $localWindowStart->format('Y-m-d H:i'),
-                            'days' => $daysUntilStart,
+                            'when' => $windowStart->setTimezone($timezone)->format('Y-m-d H:i'),
+                            'hours' => (int) $referenceNow->diffInHours($windowStart),
                         ]),
                     ],
                     'url' => route('events.show', ['event' => $event], false),
-                    'dedupe_key' => $this->dedupeKey('interested_enrollment_window', (int) $event->id, $daysUntilStart, $localNow),
+                    'dedupe_key' => $this->dedupeKey('interested_enrollment_window', (int) $event->id, $windowStart),
                 ];
             })
             ->filter();
@@ -133,30 +74,23 @@ class ScheduledNotificationCollector
     /**
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
-    private function collectDashboardFeedItems(User $user, CarbonImmutable $referenceNow, CarbonImmutable $localNow, DateTimeZone $timezone): Collection
+    private function collectDashboardFeedItems(User $user, CarbonImmutable $referenceNow): Collection
     {
-        $offsets = collect(config('scheduled_notifications.days_before.dashboard_feed', [3]))
-            ->map(fn ($offset) => (int) $offset)
-            ->unique()
-            ->values()
-            ->all();
-
         $rows = $this->upcomingFeedQueryService->dedupeAndSort(
             $this->upcomingFeedQueryService->buildUnifiedUpcomingRows((int) $user->id)
         );
 
         $dueRows = $rows
-            ->map(function (array $row) use ($localNow, $timezone): array {
-                $sortAt = CarbonImmutable::parse((string) $row['sort_at'], 'UTC')->setTimezone($timezone);
+            ->map(function (array $row): array {
+                $sortAt = CarbonImmutable::parse((string) $row['sort_at'], 'UTC');
 
                 return [
                     'kind' => (string) $row['kind'],
                     'id' => (int) $row['id'],
                     'sort_at' => $sortAt,
-                    'days_until' => $this->daysUntil($localNow, $sortAt),
                 ];
             })
-            ->filter(fn (array $row): bool => in_array((int) $row['days_until'], $offsets, true))
+            ->filter(fn (array $row): bool => $this->isWithinLookahead($referenceNow, $row['sort_at']))
             ->values();
 
         if ($dueRows->isEmpty()) {
@@ -168,15 +102,18 @@ class ScheduledNotificationCollector
 
         $events = Event::query()->whereKey($eventIds)->get()->keyBy('id');
         $activities = Activity::query()->whereKey($activityIds)->get()->keyBy('id');
+        $timezone = $this->timezoneForUser($user);
 
-        $lines = $dueRows->map(function (array $row) use ($events, $activities): string {
+        $lines = $dueRows->map(function (array $row) use ($events, $activities, $timezone): string {
+            $when = $row['sort_at']->setTimezone($timezone)->format('Y-m-d H:i');
+
             if ($row['kind'] === 'event') {
                 /** @var Event|null $event */
                 $event = $events->get($row['id']);
 
                 return __('ui.notifications.scheduled.dashboard_feed_event_line', [
                     'name' => (string) ($event?->name ?? '—'),
-                    'when' => $row['sort_at']->format('Y-m-d H:i'),
+                    'when' => $when,
                 ]);
             }
 
@@ -185,7 +122,7 @@ class ScheduledNotificationCollector
 
             return __('ui.notifications.scheduled.dashboard_feed_activity_line', [
                 'name' => (string) ($activity?->name ?? '—'),
-                'when' => $row['sort_at']->format('Y-m-d H:i'),
+                'when' => $when,
             ]);
         })->all();
 
@@ -194,39 +131,24 @@ class ScheduledNotificationCollector
             'title' => __('ui.notifications.scheduled.dashboard_feed_title', ['count' => count($lines)]),
             'lines' => $lines,
             'url' => route('dashboard'),
-            'dedupe_key' => $this->dedupeKey('dashboard_feed', (int) $user->id, 0, $localNow),
+            'dedupe_key' => $this->dedupeKey('dashboard_feed', (int) $user->id, $referenceNow->startOfHour()),
         ]]);
     }
 
     /**
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
-    private function collectParticipantCancellationDeadlines(User $user, CarbonImmutable $referenceNow, CarbonImmutable $localNow, DateTimeZone $timezone): Collection
+    private function collectParticipantCancellationDeadlines(User $user, CarbonImmutable $referenceNow): Collection
     {
-        $offsets = collect(config('scheduled_notifications.days_before.participant_cancellation_deadline', [2]))
-            ->map(fn ($offset) => (int) $offset)
-            ->unique()
-            ->values()
-            ->all();
-
         return Activity::query()
             ->whereHas('participants', fn ($query) => $query->where('user_id', $user->id)->where('is_absent', false))
             ->whereNotNull('cancellation_deadline_in_hours')
             ->whereNull('cancelled_at')
             ->with('slot')
             ->get()
-            ->map(function (Activity $activity) use ($localNow, $timezone, $offsets): ?array {
-                $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
-                if ($activityStart === null || $activity->cancellation_deadline_in_hours === null) {
-                    return null;
-                }
-
-                $deadline = CarbonImmutable::instance($activityStart)
-                    ->subHours((int) $activity->cancellation_deadline_in_hours)
-                    ->setTimezone($timezone);
-
-                $daysUntilDeadline = $this->daysUntil($localNow, $deadline);
-                if (! in_array($daysUntilDeadline, $offsets, true)) {
+            ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
+                $deadline = $this->cancellationDeadlineAt($activity);
+                if ($deadline === null || ! $this->isWithinLookahead($referenceNow, $deadline)) {
                     return null;
                 }
 
@@ -235,11 +157,11 @@ class ScheduledNotificationCollector
                     'title' => __('ui.notifications.scheduled.participant_deadline_title', ['activity' => (string) $activity->name]),
                     'lines' => [
                         __('ui.notifications.scheduled.participant_deadline_line', [
-                            'when' => $deadline->format('Y-m-d H:i'),
+                            'when' => $deadline->setTimezone($this->timezoneForUser($user))->format('Y-m-d H:i'),
                         ]),
                     ],
                     'url' => route('activities.show', ['activity' => $activity], false),
-                    'dedupe_key' => $this->dedupeKey('participant_cancellation_deadline', (int) $activity->id, $daysUntilDeadline, $localNow),
+                    'dedupe_key' => $this->dedupeKey('participant_cancellation_deadline', (int) $activity->id, $deadline),
                 ];
             })
             ->filter();
@@ -248,14 +170,8 @@ class ScheduledNotificationCollector
     /**
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
-    private function collectHostLowParticipationWarnings(User $user, CarbonImmutable $referenceNow, CarbonImmutable $localNow, DateTimeZone $timezone): Collection
+    private function collectHostLowParticipationWarnings(User $user, CarbonImmutable $referenceNow): Collection
     {
-        $offsets = collect(config('scheduled_notifications.days_before.host_low_participation', [1]))
-            ->map(fn ($offset) => (int) $offset)
-            ->unique()
-            ->values()
-            ->all();
-
         return Activity::query()
             ->where('created_by', $user->id)
             ->whereNotNull('min_participants')
@@ -264,24 +180,15 @@ class ScheduledNotificationCollector
             ->with('slot')
             ->withCount(['participants as active_participants_count' => fn ($query) => $query->where('is_absent', false)])
             ->get()
-            ->map(function (Activity $activity) use ($localNow, $timezone, $offsets): ?array {
+            ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
                 $minimum = (int) ($activity->min_participants ?? 0);
                 $current = (int) ($activity->active_participants_count ?? 0);
                 if ($minimum <= 0 || $current >= $minimum) {
                     return null;
                 }
 
-                $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
-                if ($activityStart === null || $activity->cancellation_deadline_in_hours === null) {
-                    return null;
-                }
-
-                $deadline = CarbonImmutable::instance($activityStart)
-                    ->subHours((int) $activity->cancellation_deadline_in_hours)
-                    ->setTimezone($timezone);
-
-                $daysUntilDeadline = $this->daysUntil($localNow, $deadline);
-                if (! in_array($daysUntilDeadline, $offsets, true)) {
+                $deadline = $this->cancellationDeadlineAt($activity);
+                if ($deadline === null || ! $this->isWithinLookahead($referenceNow, $deadline)) {
                     return null;
                 }
 
@@ -292,14 +199,33 @@ class ScheduledNotificationCollector
                         __('ui.notifications.scheduled.host_low_participation_line', [
                             'current' => $current,
                             'minimum' => $minimum,
-                            'when' => $deadline->format('Y-m-d H:i'),
+                            'when' => $deadline->setTimezone($this->timezoneForUser($user))->format('Y-m-d H:i'),
                         ]),
                     ],
                     'url' => route('activities.show', ['activity' => $activity], false),
-                    'dedupe_key' => $this->dedupeKey('host_low_participation', (int) $activity->id, $daysUntilDeadline, $localNow),
+                    'dedupe_key' => $this->dedupeKey('host_low_participation', (int) $activity->id, $deadline),
                 ];
             })
             ->filter();
+    }
+
+    private function cancellationDeadlineAt(Activity $activity): ?CarbonImmutable
+    {
+        $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
+        if ($activityStart === null || $activity->cancellation_deadline_in_hours === null) {
+            return null;
+        }
+
+        return CarbonImmutable::instance($activityStart)
+            ->subHours((int) $activity->cancellation_deadline_in_hours);
+    }
+
+    private function isWithinLookahead(CarbonImmutable $referenceNow, CarbonImmutable $target): bool
+    {
+        $hours = (int) config('scheduled_notifications.lookahead_hours', 24);
+
+        return $target->greaterThan($referenceNow)
+            && $target->lessThanOrEqualTo($referenceNow->addHours($hours));
     }
 
     private function timezoneForUser(User $user): DateTimeZone
@@ -313,13 +239,8 @@ class ScheduledNotificationCollector
         }
     }
 
-    private function daysUntil(CarbonImmutable $localNow, CarbonImmutable $targetDateTime): int
+    private function dedupeKey(string $type, int $entityId, CarbonImmutable $target): string
     {
-        return $localNow->startOfDay()->diffInDays($targetDateTime->startOfDay(), false);
-    }
-
-    private function dedupeKey(string $type, int $entityId, int $offset, CarbonImmutable $localNow): string
-    {
-        return sprintf('%s:%d:%d:%s', $type, $entityId, $offset, $localNow->toDateString());
+        return sprintf('%s:%d:%s', $type, $entityId, $target->utc()->format('Y-m-d\TH:i:s\Z'));
     }
 }

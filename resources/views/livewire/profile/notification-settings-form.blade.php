@@ -7,7 +7,7 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     /**
-     * @var array<string, array{in_app: bool, email: bool}>
+     * @var array<string, array{in_app: bool, email: bool, every_join?: bool}>
      */
     public array $preferences = [];
 
@@ -27,6 +27,8 @@ new class extends Component
             $rules[sprintf('preferences.%s.email', $key)] = ['required', 'boolean'];
         }
 
+        $rules['preferences.'.NotificationPreferenceKey::ActivityParticipantJoined->value.'.every_join'] = ['required', 'boolean'];
+
         return $rules;
     }
 
@@ -35,13 +37,18 @@ new class extends Component
         $this->validate($this->preferenceValidationRules());
 
         $defaults = NotificationPreferenceKey::defaultMatrix();
-        /** @var array<string, array{in_app: bool, email: bool}> $clean */
+        $joinKey = NotificationPreferenceKey::ActivityParticipantJoined->value;
+        /** @var array<string, array{in_app: bool, email: bool, every_join?: bool}> $clean */
         $clean = [];
         foreach (array_keys($defaults) as $key) {
-            $clean[(string) $key] = [
-                'in_app' => (bool) ($this->preferences[$key]['in_app'] ?? true),
-                'email' => (bool) ($this->preferences[$key]['email'] ?? true),
+            $block = [
+                'in_app' => (bool) ($this->preferences[$key]['in_app'] ?? $defaults[$key]['in_app'] ?? true),
+                'email' => (bool) ($this->preferences[$key]['email'] ?? $defaults[$key]['email'] ?? true),
             ];
+            if ($key === $joinKey) {
+                $block['every_join'] = (bool) ($this->preferences[$key]['every_join'] ?? $defaults[$key]['every_join'] ?? false);
+            }
+            $clean[(string) $key] = $block;
         }
 
         $user = Auth::user();
@@ -74,6 +81,7 @@ new class extends Component
                         <thead class="[&_tr]:border-base-300">
                             <tr>
                                 <th class="text-base-content">{{ __('ui.profile.notifications.col_kind') }}</th>
+                                <th class="text-center text-base-content">{{ __('ui.profile.notifications.every_join_short') }}</th>
                                 <th class="text-center text-base-content">{{ __('ui.profile.notifications.in_app_short') }}</th>
                                 <th class="text-center text-base-content">{{ __('ui.profile.notifications.email_short') }}</th>
                             </tr>
@@ -85,6 +93,18 @@ new class extends Component
                                 @endphp
                                 <tr wire:key="{{ $pkey }}">
                                     <td class="max-w-xl text-sm text-base-content">{{ __('ui.profile.notifications.keys.'.$pkey) }}</td>
+                                    <td class="text-center">
+                                        @if ($pkey === \App\Enums\NotificationPreferenceKey::ActivityParticipantJoined->value)
+                                            <input
+                                                type="checkbox"
+                                                wire:model="preferences.{{ $pkey }}.every_join"
+                                                class="checkbox checkbox-sm ui-field ui-field-notification-every-join"
+                                                aria-label="{{ __('ui.profile.notifications.every_join_short') }}"
+                                            />
+                                        @else
+                                            <span class="text-base-content/40" aria-hidden="true">—</span>
+                                        @endif
+                                    </td>
                                     <td class="text-center">
                                         <input
                                             type="checkbox"

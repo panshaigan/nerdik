@@ -176,11 +176,38 @@ class AppNotificationsTest extends TestCase
         Notification::assertNotSentTo($bob, WaitlistPromotedNotification::class);
     }
 
-    public function test_user_join_activity_notifies_host_with_default_subject_when_below_minimum(): void
+    public function test_user_join_activity_does_not_notify_host_below_minimum_when_every_join_disabled(): void
     {
         Notification::fake();
 
         $host = User::factory()->create();
+        $joiner = User::factory()->create(['nickname' => 'Joiner']);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'min_participants' => 3,
+            'max_participants' => 10,
+        ]);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity->fresh(), $joiner);
+
+        Notification::assertNotSentTo($host, ActivityParticipantJoinedNotification::class);
+    }
+
+    public function test_user_join_activity_notifies_host_with_default_subject_when_every_join_enabled(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'notification_preferences' => [
+                'activity_participant_joined' => [
+                    'in_app' => true,
+                    'email' => true,
+                    'every_join' => true,
+                ],
+            ],
+        ]);
         $joiner = User::factory()->create(['nickname' => 'Joiner']);
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
@@ -419,6 +446,15 @@ class AppNotificationsTest extends TestCase
     public function test_new_roster_notifications_include_all_three_channels(): void
     {
         $user = User::factory()->create();
+        $user->profile()->update([
+            'notification_preferences' => [
+                'activity_participant_joined' => [
+                    'in_app' => true,
+                    'email' => true,
+                    'every_join' => true,
+                ],
+            ],
+        ]);
         $activity = Activity::factory()->create();
 
         $joined = new ActivityParticipantJoinedNotification($activity, $user, 1);
@@ -429,7 +465,7 @@ class AppNotificationsTest extends TestCase
         );
 
         foreach ([$joined, $left, $removed] as $notification) {
-            $channels = $notification->via($user);
+            $channels = $notification->via($user->fresh());
 
             $this->assertContains('database', $channels);
             $this->assertContains('broadcast', $channels);
