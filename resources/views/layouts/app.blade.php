@@ -23,6 +23,8 @@
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >
+        <x-environment-indicator />
+
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
