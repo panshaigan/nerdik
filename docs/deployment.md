@@ -190,8 +190,10 @@ MAIL_FROM_ADDRESS="hello@staging.nerdik.app"
 
 # username:bcrypt — generate with:
 # docker run --rm axllent/mailpit:latest mailpit bcrypt 'your-secret'
-MAILPIT_UI_AUTH=nerdik:$2a$12$...
+MAILPIT_UI_AUTH='nerdik:$2a$12$...'
 ```
+
+Use **single quotes** around the value in `.env` so `$` in the bcrypt hash is not expanded when deploy/sync scripts load the file.
 
 Deploy staging after setting `MAILPIT_UI_AUTH` (deploy fails if it is missing):
 

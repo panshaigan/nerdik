@@ -36,11 +36,9 @@ sync_load_dotenv() {
         sync_die "missing env file: ${env_file}"
     fi
 
-    # shellcheck disable=SC1090
-    set -a
-    # shellcheck disable=SC1090
-    source "$env_file"
-    set +a
+    # shellcheck source=scripts/lib/load-dotenv.sh
+    source "${SYNC_ROOT}/scripts/lib/load-dotenv.sh"
+    dotenv_load "$env_file"
 }
 
 sync_load_sync_config() {

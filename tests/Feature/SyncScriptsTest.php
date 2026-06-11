@@ -57,6 +57,29 @@ class SyncScriptsTest extends TestCase
         );
     }
 
+    public function test_dotenv_loader_preserves_bcrypt_hash_without_shell_expansion(): void
+    {
+        $envFile = base_path('tests/fixtures/sync/dotenv-bcrypt.env');
+
+        $process = new Process(
+            [
+                'bash',
+                '-c',
+                'set -euo pipefail; source scripts/lib/load-dotenv.sh; dotenv_load "$1"; test "$MAILPIT_UI_AUTH" = \'$2y$12$.jpxvb6dOdlKSyeEBWWdnOPH2HDLD2Gr.q3JvLToabMXhayJv7h8K\'',
+                'bash',
+                $envFile,
+            ],
+            base_path(),
+        );
+
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            $process->getErrorOutput().$process->getOutput(),
+        );
+    }
+
     public function test_export_from_prod_dry_run_exits_successfully_when_env_is_present(): void
     {
         if (! is_file(base_path('.env'))) {
