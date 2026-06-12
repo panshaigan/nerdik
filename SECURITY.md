@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-If you believe you have found a security vulnerability in Nerdik, please report it **privately**. Do not open a public issue, pull request, or discussion thread that describes the flaw.
+If you believe you have found a security vulnerability in nerdik, please report it **privately**. Do not open a public issue, pull request, or discussion thread that describes the flaw.
 
 **Preferred channel:** [GitHub private security advisories](https://github.com/panshaigan/nerdik/security/advisories/new) on this repository.
 

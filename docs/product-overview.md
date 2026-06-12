@@ -1,8 +1,8 @@
 # Product Overview
 
-## What Nerdik Is
+## What nerdik Is
 
-Nerdik is an event and activity coordination platform for tabletop and nerd communities. It combines event-level planning with activity-level participation so organizers can publish programs and players can discover and join sessions.
+nerdik is an event and activity coordination platform for tabletop and nerd communities. It combines event-level planning with activity-level participation so organizers can publish programs and players can discover and join sessions.
 
 ## Primary User Roles
 

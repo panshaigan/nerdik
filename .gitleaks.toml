@@ -1,4 +1,4 @@
-title = "Nerdik"
+title = "nerdik"
 
 [allowlist]
 description = "Runtime artifacts, env templates, CI fixtures, and documentation examples"

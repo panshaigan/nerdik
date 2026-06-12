@@ -9,4 +9,4 @@ services:
         VITE_REVERB_HOST: ${VITE_REVERB_HOST:-localhost}
         VITE_REVERB_PORT: ${VITE_REVERB_PORT:-443}
         VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-https}
-        VITE_APP_NAME: ${VITE_APP_NAME:-Nerdik}
+        VITE_APP_NAME: ${VITE_APP_NAME:-nerdik}

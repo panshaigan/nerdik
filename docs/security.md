@@ -1,6 +1,6 @@
 # Security
 
-Security practices, controls, and operational guidance for Nerdik. For how to report a vulnerability, see [SECURITY.md](../SECURITY.md) at the repository root.
+Security practices, controls, and operational guidance for nerdik. For how to report a vulnerability, see [SECURITY.md](../SECURITY.md) at the repository root.
 
 ## Reporting vulnerabilities
 
@@ -93,7 +93,7 @@ Before making the repository public, run a manual secret scan on history and rev
 **In scope**
 
 - Authentication, authorization, or session bypass.
-- Cross-site scripting, CSRF, or injection in Nerdik application code.
+- Cross-site scripting, CSRF, or injection in nerdik application code.
 - Insecure direct object reference on events, activities, slots, or user data.
 - Server misconfiguration documented in this repo that leads to exposure when following our deployment guides.
 - Dependency issues reproducible in the application with a clear impact.

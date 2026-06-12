@@ -85,7 +85,7 @@ run_docker_build() {
         --build-arg VITE_REVERB_HOST=localhost \
         --build-arg VITE_REVERB_PORT=443 \
         --build-arg VITE_REVERB_SCHEME=https \
-        --build-arg VITE_APP_NAME=Nerdik \
+        --build-arg VITE_APP_NAME=nerdik \
         -t nerdik:ci-check .
 }
 

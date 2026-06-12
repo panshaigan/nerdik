@@ -119,7 +119,7 @@ final class Seo
 
     private static function appName(): string
     {
-        return (string) config('app.name', 'Nerdik');
+        return (string) config('app.name', 'nerdik');
     }
 
     /**

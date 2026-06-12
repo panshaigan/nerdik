@@ -1,6 +1,6 @@
-# Nerdik
+# nerdik
 
-Nerdik is a platform for organizing and joining nerd events: RPG sessions, board game meetups, and convention-style programs. It supports public discovery, organizer-managed scheduling, activity proposals, participant rosters, and waitlists.
+nerdik is a platform for organizing and joining nerd events: RPG sessions, board game meetups, and convention-style programs. It supports public discovery, organizer-managed scheduling, activity proposals, participant rosters, and waitlists.
 
 ## Quick Start
 
@@ -72,7 +72,7 @@ Callbacks are routed under `/auth/google/callback` and `/auth/facebook/callback`
 
 ## License
 
-Nerdik is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
+nerdik is free software licensed under the [GNU General Public License v3.0 or later](LICENSE).
 
 ## Notes
 

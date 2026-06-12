@@ -8,7 +8,8 @@ SAIL := ./vendor/bin/sail
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
-        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check
+        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check \
+        sail-build sail-rebuild
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -187,3 +188,12 @@ prod-to-staging-sync:
 
 prod-to-staging-sync-remote:
 	./scripts/sync/prod-to-staging-remote.sh $(SYNC_FLAGS)
+
+NO_CACHE ?=
+
+sail-build:
+	$(SAIL) build $(if $(NO_CACHE),--no-cache,)
+
+sail-rebuild: down
+	$(SAIL) build --no-cache
+	$(SAIL) up -d

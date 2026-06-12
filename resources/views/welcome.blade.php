@@ -23,7 +23,7 @@
                 <div class="flex items-center gap-3">
                     <x-brand-logo class="h-10 w-10" />
                     <div>
-                        <p class="text-lg font-semibold">{{ config('app.name', 'Nerdik') }}</p>
+                        <p class="text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
                         <p class="text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
 
             <footer class="mt-10 border-t border-base-300 px-4 py-5 text-sm opacity-70 sm:px-6 lg:px-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p>{{ config('app.name', 'Nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
+                    <p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>

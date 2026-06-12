@@ -92,7 +92,7 @@ Nothing in this section is finished until you complete it. Repo-only work does n
 
 ## Phase 1: Production Docker (VPS-friendly)
 
-**Goal:** Run Nerdik on a VPS using Docker, without treating Sail dev compose as production.
+**Goal:** Run nerdik on a VPS using Docker, without treating Sail dev compose as production.
 
 **Current state (repo):** Production Dockerfile, `compose.stack.yaml`, and prod/dev overlays are in git.
 
