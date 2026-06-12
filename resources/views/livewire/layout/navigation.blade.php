@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Support\Browse\BrowseSearchState;
 use App\Support\Browse\BrowseSearchUrl;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
@@ -86,7 +87,7 @@ new class extends Component
                        class="{{ $navLink(request()->routeIs('dashboard')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('ui.nav.dashboard') }}
                     </a>
-                    <a href="{{ route('search.index') }}" wire:navigate
+                    <a href="{{ BrowseSearchState::indexUrl() }}" wire:navigate
                        class="{{ $navLink(request()->routeIs('search.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
                         {{ __('ui.nav.search') }}
                     </a>
@@ -261,7 +262,7 @@ new class extends Component
                         </li>
                         <li>
                             <a
-                                href="{{ route('search.index') }}"
+                                href="{{ BrowseSearchState::indexUrl() }}"
                                 wire:navigate
                                 @click="close()"
                                 class="{{ $mobileNavLink(request()->routeIs('search.index')) }}"

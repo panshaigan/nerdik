@@ -15,6 +15,7 @@ use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseListingQuery;
+use App\Support\Browse\BrowseSearchState;
 use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -69,6 +70,18 @@ class BrowseEvents extends Component
 
     #[Url]
     public bool $map_view = false;
+
+    public function mount(): void
+    {
+        if (BrowseSearchState::requestHasSearchParams(request())) {
+            return;
+        }
+
+        $cached = BrowseSearchState::cached();
+        if ($cached !== null) {
+            $this->redirect($cached, navigate: true);
+        }
+    }
 
     public function updatedOnlyEvents(bool $value): void
     {
@@ -141,6 +154,9 @@ class BrowseEvents extends Component
 
     public function clearFilters()
     {
+        BrowseSearchState::forget();
+        $this->js('window.__nerdikClearBrowseSearchState?.()');
+
         $this->resetPage();
         $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'map_view']);
         $this->resetTagFilter();
@@ -427,8 +443,19 @@ class BrowseEvents extends Component
                 ->all()
             : [];
 
-        $browsingReturnUrl = BrowseSearchUrl::returnUrlFromFilterBag($this->browseFilterBag(), $this->map_view);
+        $browsingReturnUrl = BrowseSearchUrl::returnUrlFromFilterBag(
+            $this->browseFilterBag(),
+            $this->map_view,
+            $this->browseSortKey(),
+            $this->browseSortDirection(),
+        );
         remember_browsing_return_url($browsingReturnUrl);
+        BrowseSearchState::syncFromFilterBag(
+            $this->browseFilterBag(),
+            $this->map_view,
+            $this->browseSortKey(),
+            $this->browseSortDirection(),
+        );
 
         return view('livewire.browse.browse-events', [
             'browsingReturnUrl' => $browsingReturnUrl,
