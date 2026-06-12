@@ -263,7 +263,7 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 7. **Phase 2** — staging on same VPS via `compose.staging.yaml` (manual on/off)  
 8. **Phase 5** — public repo when comfortable  
 9. **Phase 4** — Kubernetes only if you want to learn it  
-10. **Phase 6** — monitoring, backups automation, legal pages  
+10. **Phase 6** — monitoring, backups automation ([`scripts/backup/backup-prod.sh`](../scripts/backup/backup-prod.sh), see [deployment.md](deployment.md#backups)), legal pages  
 
 ---
 

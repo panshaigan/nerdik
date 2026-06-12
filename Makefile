@@ -9,7 +9,7 @@ SAIL := ./vendor/bin/sail
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
         sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check \
-        sail-build sail-rebuild
+        backup-prod backup-prod-dry-run sail-build sail-rebuild
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -188,6 +188,12 @@ prod-to-staging-sync:
 
 prod-to-staging-sync-remote:
 	./scripts/sync/prod-to-staging-remote.sh $(SYNC_FLAGS)
+
+backup-prod:
+	./scripts/backup/backup-prod.sh
+
+backup-prod-dry-run:
+	DRY_RUN=1 ./scripts/backup/backup-prod.sh
 
 NO_CACHE ?=
 
