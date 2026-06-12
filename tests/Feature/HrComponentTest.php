@@ -47,4 +47,12 @@ class HrComponentTest extends TestCase
 
         $this->assertMatchesRegularExpression('/<svg[\s\S]*<\/svg>/', $html);
     }
+
+    public function test_hr_renders_end_glow_when_show_end_glow_is_enabled(): void
+    {
+        $html = Blade::render('<x-ui.hr show-end-glow />');
+
+        $this->assertStringContainsString('rounded-full bg-primary', $html);
+        $this->assertStringContainsString('shadow-[0_0_8px_theme(colors.primary)]', $html);
+    }
 }

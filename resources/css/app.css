@@ -5,6 +5,7 @@
 @theme {
     --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Cinzel', ui-serif, Georgia, serif;
 }
 
 /* Scan paths for Tailwind class detection (v4 CSS-first pipeline). */

@@ -19,6 +19,7 @@
     'centerClass' => 'grid place-items-center rounded-full border border-primary/50 bg-base-100/70 text-primary shadow-[0_0_12px_theme(colors.primary/.80)]',
     'centerSizeClass' => 'size-8',
     'centerTextWrapClass' => 'min-h-8 min-w-0 px-3 flex items-center justify-center text-center',
+    'showEndGlow' => false,
 ])
 
 <div {{ $attributes->class([$wrapperClass]) }}>
@@ -26,6 +27,7 @@
         $showDoubleLine = filter_var($double, FILTER_VALIDATE_BOOLEAN);
         $lineCount = $showDoubleLine ? 2 : 1;
         $centerShowsText = filled($text);
+        $showEndGlowDot = filter_var($showEndGlow, FILTER_VALIDATE_BOOLEAN);
     @endphp
 
     <div class="{{ $lineWrapClass }}">
@@ -57,6 +59,9 @@
             @for ($i = 0; $i < $lineCount; $i++)
                 <div class="{{ $lineClass }} {{ $rightLineClass }}">
                     <div class="{{ $lineGlowClass }}"></div>
+                    @if ($showEndGlowDot && $i === 0)
+                        <div class="pointer-events-none absolute right-0 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_8px_theme(colors.primary)]"></div>
+                    @endif
                 </div>
             @endfor
         </div>
