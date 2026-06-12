@@ -18,6 +18,13 @@ class QueueAndScheduleConfigurationTest extends TestCase
         $this->artisan('schedule:list')
             ->expectsOutputToContain('telescope:prune')
             ->expectsOutputToContain('notifications:scheduled-digest')
+            ->expectsOutputToContain('queue:prune-failed')
+            ->expectsOutputToContain('queue:prune-batches')
+            ->expectsOutputToContain('housekeeping:prune-sessions')
+            ->expectsOutputToContain('housekeeping:prune-cache')
+            ->expectsOutputToContain('housekeeping:prune-livewire-uploads')
+            ->expectsOutputToContain('housekeeping:prune-logs')
+            ->expectsOutputToContain('media-library:clean')
             ->assertExitCode(0);
     }
 }

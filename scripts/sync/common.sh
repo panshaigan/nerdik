@@ -348,3 +348,26 @@ sync_cleanup_export_dir() {
         sync_run rm -rf "$export_dir"
     fi
 }
+
+sync_prune_old_tmp_backups() {
+    local retention_days="${HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS:-7}"
+    local pattern
+    local entry
+    local age
+
+    sync_log "pruning /tmp nerdik sync backup dirs older than ${retention_days} days"
+
+    for pattern in nerdik-prod-backup-* nerdik-staging-backup-*; do
+        for entry in /tmp/${pattern}; do
+            if [[ ! -d "$entry" ]]; then
+                continue
+            fi
+
+            age=$(( ($(date +%s) - $(stat -c '%Y' "$entry")) / 86400 ))
+
+            if [[ "$age" -gt "$retention_days" ]]; then
+                sync_run rm -rf "$entry"
+            fi
+        done
+    done
+}

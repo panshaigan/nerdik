@@ -304,7 +304,54 @@ make vps-deploy
 3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a CI-published SHA, or deploy with `IMAGE_TAG=<sha>` (recommended).
 4. Set `TRUSTED_PROXIES` when TLS terminates at a reverse proxy (`*` or specific proxy IPs).
 5. Keep `APP_DEBUG=false`, `TELESCOPE_ENABLED=false`, and `PULSE_ENABLED=false` unless you explicitly need Pulse (admins only via `viewPulse` gate).
-6. Logging: use `LOG_LEVEL=error` and `LOG_STACK=daily` (see env templates). Deploy prunes log files older than `LOG_DAILY_DAYS` (default 14). Application logs redact passwords, CSRF tokens, and session payloads before they are written.
+6. Logging: use `LOG_LEVEL=error` and `LOG_STACK=daily` (see env templates). Deploy and the daily scheduler prune log files older than `LOG_DAILY_DAYS` (default 14). See **Housekeeping** below. Application logs redact passwords, CSRF tokens, and session payloads before they are written.
+
+## Housekeeping
+
+The `scheduler` container runs `schedule:work` and executes automated cleanup so prod/staging disks and database tables do not grow without bound. Retention defaults live in [`config/housekeeping.php`](../config/housekeeping.php) and can be overridden via env (see [`.env.production.example`](../.env.production.example)).
+
+### Scheduled tasks
+
+| When | Command | Purpose |
+|------|---------|---------|
+| Daily 03:30 | `queue:prune-failed` | Remove failed jobs older than 7 days |
+| Daily 03:30 | `queue:prune-batches` | Remove finished job batches older than 2 days |
+| Daily 03:30 | `housekeeping:prune-sessions` | Delete expired database session rows |
+| Daily 03:30 | `housekeeping:prune-cache` | Delete expired `cache` / `cache_locks` rows |
+| Daily 03:30 | `housekeeping:prune-livewire-uploads` | Remove abandoned Livewire temp uploads |
+| Daily 03:30 | `housekeeping:prune-logs` | Delete `storage/logs/*.log` older than `LOG_DAILY_DAYS` |
+| Weekly Sun 04:00 | `media-library:clean --delete-orphaned --force` | Orphan media, stale conversions, orphan disk dirs |
+| Daily (if enabled) | `telescope:prune` | Telescope data (off in prod) |
+
+**Not scheduled by design:** database notifications (retained indefinitely), `media:prune-orphans` (manual alternative), media on soft-deleted models (parent row still exists).
+
+### Retention env vars
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `LOG_DAILY_DAYS` | `14` | Monolog daily driver + log file prune |
+| `HOUSEKEEPING_FAILED_JOBS_HOURS` | `168` | 7 days |
+| `HOUSEKEEPING_JOB_BATCHES_HOURS` | `48` | 2 days |
+| `HOUSEKEEPING_SESSIONS_GRACE_DAYS` | `7` | Beyond `SESSION_LIFETIME` |
+| `HOUSEKEEPING_LIVEWIRE_TMP_HOURS` | `24` | Abandoned upload files |
+| `HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS` | `7` | Host `/tmp/nerdik-*-backup-*` from sync |
+
+### Verify on VPS
+
+```bash
+cd /opt/nerdik
+make prod-artisan schedule:list
+make prod-artisan housekeeping:prune-sessions --dry-run
+make prod-artisan media-library:clean --delete-orphaned --dry-run --force
+```
+
+### Docker container logs
+
+Compose sets `json-file` log rotation (`max-size: 10m`, `max-file: 5`) on app, worker, scheduler, reverb, pgsql, caddy, and mailpit. Recreate containers after pulling compose changes: `make vps-deploy`.
+
+### Sync temp backups
+
+Imports with `BACKUP=1` write snapshots under `/tmp/nerdik-prod-backup-*` or `/tmp/nerdik-staging-backup-*`. [`scripts/sync/import-to-env.sh`](../scripts/sync/import-to-env.sh) prunes those directories older than `HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS` after each successful import.
 
 ## Database
 
@@ -445,11 +492,31 @@ Default local path: `/home/deploy/backups/nerdik/prod/YYYY-MM-DD-HHMMSS/` contai
 
 Schedule nightly cron (as `deploy`):
 
+```bash
+cd /opt/nerdik
+./scripts/backup/install-cron.sh
+```
+
+Or install manually:
+
 ```cron
-0 3 * * * cd /opt/nerdik && ./scripts/backup/backup-prod.sh >> /home/deploy/logs/nerdik-backup.log 2>&1
+0 3 * * * cd /opt/nerdik && ./scripts/backup/backup-prod.sh >> /home/deploy/logs/nerdik-backup.log 2>&1 # nerdik-backup-prod
 ```
 
 Create the log directory once: `mkdir -p /home/deploy/logs`.
+
+Rotate the backup cron log on the host (e.g. `/etc/logrotate.d/nerdik-backup`):
+
+```
+/home/deploy/logs/nerdik-backup.log {
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
+```
 
 **Failure emails:** sent only when a backup fails, to `LEGAL_CONTACT_EMAIL` via prod `MAIL_*` settings (`php artisan backup:notify-failure`). No email on success.
 

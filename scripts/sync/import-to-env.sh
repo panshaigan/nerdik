@@ -286,4 +286,8 @@ if [[ "$TARGET_ENV" == "prod" && "$SYNC_DRY_RUN" != "1" ]]; then
     sync_compose_cmd prod "$PROJECT_ROOT" start worker || true
 fi
 
+if [[ "$SYNC_DRY_RUN" != "1" ]]; then
+    sync_prune_old_tmp_backups
+fi
+
 sync_log "import into ${TARGET_ENV} complete"
