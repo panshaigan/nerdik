@@ -43,7 +43,11 @@ services:
     image: axllent/mailpit:latest
     container_name: nerdik-staging-mailpit
     restart: unless-stopped
-    logging: *default-logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       MP_UI_AUTH: ${MAILPIT_UI_AUTH:?Set MAILPIT_UI_AUTH in .env}
       MP_MAX_MESSAGES: 5000
