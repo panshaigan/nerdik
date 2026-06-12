@@ -234,6 +234,8 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 ### Operations
 
 - [x] Backups called out (DB + `storage/app`)
+- [x] Scheduled housekeeping (queue/session/cache/logs/media prune; see [deployment.md](deployment.md#housekeeping))
+- [x] Docker container log rotation in compose
 - [x] Reverb required for live UX
 - [ ] Monitoring / error tracking (Sentry, etc.)
 - [ ] Uptime checks on `/up`
