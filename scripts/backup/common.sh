@@ -75,7 +75,7 @@ backup_release_lock() {
 }
 
 backup_cleanup_staging() {
-    if [[ -n "$BACKUP_STAGING_DIR" && -d "$BACKUP_STAGING_DIR" && "$BACKUP_STAGING_DIR" == /tmp/nerdik-backup-* ]]; then
+    if [[ -n "$BACKUP_STAGING_DIR" && -d "$BACKUP_STAGING_DIR" && ( "$BACKUP_STAGING_DIR" == /tmp/nerdik-backup-* || "$BACKUP_STAGING_DIR" == /tmp/nerdik-restore-* ) ]]; then
         if [[ "$BACKUP_DRY_RUN" == "1" ]]; then
             backup_log "[dry-run] rm -rf ${BACKUP_STAGING_DIR}"
         else
@@ -199,4 +199,77 @@ backup_validate_remote() {
     if ! rclone listremotes | grep -Fx "${BACKUP_REMOTE_NAME}:"; then
         backup_die "rclone remote not found: ${BACKUP_REMOTE_NAME}:"
     fi
+}
+
+backup_require_artifacts() {
+    local export_dir="$1"
+    local require_db="${2:-1}"
+    local require_storage="${3:-1}"
+
+    if [[ "$require_db" == "1" && ! -f "${export_dir}/db.sql.gz" ]]; then
+        backup_die "missing ${export_dir}/db.sql.gz"
+    fi
+
+    if [[ "$require_storage" == "1" && ! -f "${export_dir}/storage-app.tar.gz" ]]; then
+        backup_die "missing ${export_dir}/storage-app.tar.gz"
+    fi
+}
+
+backup_dir_has_artifacts() {
+    local dir="$1"
+
+    [[ -f "${dir}/db.sql.gz" || -f "${dir}/storage-app.tar.gz" ]]
+}
+
+backup_resolve_source() {
+    local input="$1"
+    local resolved=""
+
+    if [[ -z "$input" ]]; then
+        backup_die "backup source path is required"
+    fi
+
+    if [[ ! -e "$input" ]]; then
+        backup_die "backup source not found: ${input}"
+    fi
+
+    if [[ -d "$input" ]]; then
+        if backup_dir_has_artifacts "$input"; then
+            printf '%s\n' "$input"
+            return 0
+        fi
+
+        backup_die "backup directory is missing db.sql.gz and storage-app.tar.gz: ${input}"
+    fi
+
+    case "$input" in
+        *.tar.gz|*.tgz)
+            BACKUP_STAGING_DIR="/tmp/nerdik-restore-$(backup_timestamp)"
+            if [[ "$BACKUP_DRY_RUN" == "1" ]]; then
+                backup_log "[dry-run] mkdir -p ${BACKUP_STAGING_DIR}"
+                backup_log "[dry-run] tar xzf ${input} -C ${BACKUP_STAGING_DIR}"
+                printf '%s\n' "$BACKUP_STAGING_DIR"
+                return 0
+            fi
+
+            mkdir -p "$BACKUP_STAGING_DIR"
+            tar xzf "$input" -C "$BACKUP_STAGING_DIR"
+
+            if backup_dir_has_artifacts "$BACKUP_STAGING_DIR"; then
+                printf '%s\n' "$BACKUP_STAGING_DIR"
+                return 0
+            fi
+
+            resolved="$(find "$BACKUP_STAGING_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1 || true)"
+            if [[ -n "$resolved" ]] && backup_dir_has_artifacts "$resolved"; then
+                printf '%s\n' "$resolved"
+                return 0
+            fi
+
+            backup_die "archive does not contain a valid backup (expected db.sql.gz and/or storage-app.tar.gz)"
+            ;;
+        *)
+            backup_die "unsupported backup source (use a directory or .tar.gz archive): ${input}"
+            ;;
+    esac
 }

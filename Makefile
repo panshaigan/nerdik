@@ -9,7 +9,7 @@ SAIL := ./vendor/bin/sail
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
         sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check \
-        backup-prod backup-prod-dry-run sail-build sail-rebuild
+        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -21,6 +21,27 @@ SYNC_FLAGS += --backup
 endif
 ifeq ($(DRY_RUN),1)
 SYNC_FLAGS += --dry-run
+endif
+
+# Production restore (ARCHIVE = backup directory or .tar.gz)
+RESTORE_FLAGS :=
+ifeq ($(YES),1)
+RESTORE_FLAGS += --yes
+endif
+ifeq ($(RESTORE_BACKUP),1)
+RESTORE_FLAGS += --backup
+endif
+ifeq ($(RESTORE_ENV),1)
+RESTORE_FLAGS += --restore-env
+endif
+ifeq ($(DRY_RUN),1)
+RESTORE_FLAGS += --dry-run
+endif
+ifeq ($(DB_ONLY),1)
+RESTORE_FLAGS += --db-only
+endif
+ifeq ($(STORAGE_ONLY),1)
+RESTORE_FLAGS += --storage-only
 endif
 
 up:
@@ -194,6 +215,13 @@ backup-prod:
 
 backup-prod-dry-run:
 	DRY_RUN=1 ./scripts/backup/backup-prod.sh
+
+restore-prod:
+	@if [ -z "$(ARCHIVE)" ]; then \
+		echo "Usage: make restore-prod ARCHIVE=/path/to/backup.tar.gz [YES=1] [RESTORE_BACKUP=1] [RESTORE_ENV=1] [DRY_RUN=1]" >&2; \
+		exit 1; \
+	fi
+	./scripts/backup/restore-prod.sh "$(ARCHIVE)" $(RESTORE_FLAGS)
 
 NO_CACHE ?=
 
