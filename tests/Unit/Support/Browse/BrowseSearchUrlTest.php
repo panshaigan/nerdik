@@ -91,4 +91,49 @@ final class BrowseSearchUrlTest extends TestCase
         $this->assertFalse($bag->onlyEvents);
         $this->assertTrue($bag->onlyActivities);
     }
+
+    public function test_return_url_from_filter_bag_includes_non_default_sort(): void
+    {
+        $bag = new BrowseListingFilterBag(
+            q: '',
+            tagIds: [],
+            tagsMatchAll: false,
+            includePastEvents: false,
+            onlyEvents: false,
+            onlyActivities: false,
+            onlyMine: false,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+        );
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag($bag, false, 'name', 'desc');
+
+        $this->assertStringContainsString('sort=name', $url);
+        $this->assertStringContainsString('sort_dir=desc', $url);
+    }
+
+    public function test_return_url_from_filter_bag_omits_default_sort(): void
+    {
+        $bag = new BrowseListingFilterBag(
+            q: 'term',
+            tagIds: [],
+            tagsMatchAll: false,
+            includePastEvents: false,
+            onlyEvents: false,
+            onlyActivities: false,
+            onlyMine: false,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+        );
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag($bag);
+
+        $this->assertStringContainsString('q=term', $url);
+        $this->assertStringNotContainsString('sort=', $url);
+        $this->assertStringNotContainsString('sort_dir=', $url);
+    }
 }

@@ -48,8 +48,12 @@ final class BrowseSearchUrl
     /**
      * Build a relative /search return URL from the active browse filter state.
      */
-    public static function returnUrlFromFilterBag(BrowseListingFilterBag $bag, bool $mapView = false): string
-    {
+    public static function returnUrlFromFilterBag(
+        BrowseListingFilterBag $bag,
+        bool $mapView = false,
+        string $sort = 'date',
+        string $sortDir = 'asc',
+    ): string {
         $params = [];
 
         if ($bag->q !== '') {
@@ -91,6 +95,16 @@ final class BrowseSearchUrl
             if (filled($value)) {
                 $params[$key] = $value;
             }
+        }
+
+        $normalizedSort = in_array($sort, ['name', 'date'], true) ? $sort : 'date';
+        if ($normalizedSort !== 'date') {
+            $params['sort'] = $normalizedSort;
+        }
+
+        $normalizedSortDir = strtolower($sortDir) === 'desc' ? 'desc' : 'asc';
+        if ($normalizedSortDir !== 'asc') {
+            $params['sort_dir'] = $normalizedSortDir;
         }
 
         return self::relativeSearchUrl($params);

@@ -6,6 +6,7 @@ import './activities-echo';
 import './events-plan-counters-echo';
 import './maps-init';
 import './tags-init';
+import './browse-search-state';
 import './session-invalidated-echo';
 import { bootActivityTagPickers } from './activity-tag-picker';
 import { bootDateTimePickers } from './datetime-picker';
