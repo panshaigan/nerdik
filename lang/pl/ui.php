@@ -98,6 +98,7 @@ return [
         'log_in' => 'Zaloguj się',
         'nickname' => 'Nick',
         'already_registered' => 'Masz już konto?',
+        'not_registered' => 'Nie masz konta?',
         'register' => 'Zarejestruj się',
         'forgot_password_intro' => 'Nie pamiętasz hasła? Podaj swój adres e-mail, a wyślemy link do ustawienia nowego hasła.',
         'email_password_reset_link' => 'Wyślij link resetujący hasło',

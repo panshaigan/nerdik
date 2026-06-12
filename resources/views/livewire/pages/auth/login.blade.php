@@ -88,12 +88,20 @@ new #[Layout('layouts.guest')] class extends Component
             data-ui="auth-login-remember"
         />
 
-        <div class="flex items-center justify-end gap-3">
-            @if (Route::has('password.request'))
-                <a class="link link-primary text-sm" href="{{ route('password.request') }}" wire:navigate>
-                    {{ __('ui.auth.forgot_password') }}
-                </a>
-            @endif
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-col gap-1">
+                @if (Route::has('register'))
+                    <a class="link link-primary text-sm" href="{{ route('register') }}" wire:navigate>
+                        {{ __('ui.auth.not_registered') }}
+                    </a>
+                @endif
+
+                @if (Route::has('password.request'))
+                    <a class="link link-primary text-sm" href="{{ route('password.request') }}" wire:navigate>
+                        {{ __('ui.auth.forgot_password') }}
+                    </a>
+                @endif
+            </div>
 
             <x-button id="ui-auth-login-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-login-submit">{{ __('ui.auth.log_in') }}</x-button>
         </div>
