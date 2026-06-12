@@ -421,6 +421,64 @@ make prod-to-staging-sync-remote BACKUP=1
 
 On the VPS, staging path defaults to `/opt/nerdik-staging`. Override locally via `SYNC_STAGING_PATH` in `.env.sync` if your clone lives elsewhere.
 
+## Backups
+
+Production backups run on the **VPS host** (not inside the app container). They export the database and `storage/app`, optionally encrypt `.env`, store artifacts locally with retention, and optionally upload to off-site object storage.
+
+Scripts: [`scripts/backup/backup-prod.sh`](../scripts/backup/backup-prod.sh), [`scripts/backup/common.sh`](../scripts/backup/common.sh). Config template: [`.env.backup.example`](../.env.backup.example).
+
+### Local-only (default)
+
+Works without external storage or `.env.backup`:
+
+1. Ensure `gpg` is installed on the host.
+2. Optional: create `/opt/nerdik/.backup-gpg-passphrase` (`chmod 600`, owned by `deploy`) to include encrypted `.env` in each backup. Without it, DB + storage backups still run.
+3. Run manually:
+
+```bash
+cd /opt/nerdik
+make backup-prod-dry-run   # print steps only
+make backup-prod           # write backup under BACKUP_LOCAL_PATH
+```
+
+Default local path: `/home/deploy/backups/nerdik/prod/YYYY-MM-DD-HHMMSS/` containing `db.sql.gz`, `storage-app.tar.gz`, optional `env.tar.gz.gpg`, and `manifest.json`. Backups older than 30 days are pruned automatically.
+
+Schedule nightly cron (as `deploy`):
+
+```cron
+0 3 * * * cd /opt/nerdik && ./scripts/backup/backup-prod.sh >> /home/deploy/logs/nerdik-backup.log 2>&1
+```
+
+Create the log directory once: `mkdir -p /home/deploy/logs`.
+
+**Failure emails:** sent only when a backup fails, to `LEGAL_CONTACT_EMAIL` via prod `MAIL_*` settings (`php artisan backup:notify-failure`). No email on success.
+
+Local backups share the VPS disk — better than nothing, but add off-site storage when ready.
+
+### Off-site upload (optional)
+
+When you are ready for off-site copies:
+
+1. Create an OVH Object Storage bucket (or other S3-compatible storage).
+2. Install `rclone` on the VPS and configure a remote (e.g. `ovh-nerdik`).
+3. Copy [`.env.backup.example`](../.env.backup.example) to `/opt/nerdik/.env.backup` and set:
+
+```bash
+BACKUP_REMOTE_NAME=ovh-nerdik
+BACKUP_REMOTE_PATH=nerdik-backups/prod
+```
+
+The next `make backup-prod` uploads to the remote **in addition to** the local copy. If `BACKUP_REMOTE_NAME` is unset, upload is skipped (not a failure).
+
+### Restore overview
+
+1. Pick a backup folder (local path or download from object storage).
+2. **Database:** `gunzip -c db.sql.gz | … psql` (see [`scripts/sync/import-to-env.sh`](../scripts/sync/import-to-env.sh) for the full restore flow used by prod → staging sync).
+3. **Storage:** extract `storage-app.tar.gz` into the `nerdik_storage` Docker volume (same script pattern).
+4. **`.env`:** decrypt if needed: `gpg -d env.tar.gz.gpg | tar xzf -`
+
+Run a restore drill monthly on staging to verify backups are usable.
+
 ## Broadcast channels
 
 Private channel `activity.{id}` is intentionally available to **any authenticated user** when the activity exists, so visitors see live capacity/roster changes before joining. Only `activityId` is broadcast; full roster data is loaded over HTTP/Livewire.
