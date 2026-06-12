@@ -9,10 +9,13 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Services\ActivityParticipationViewService;
+use App\Services\Dashboard\DashboardFeedPresentationService;
 use App\Services\Dashboard\UpcomingFeedQueryService;
 use App\Services\EventActivitySignupService;
 use App\Support\Ui\BrowseListingCardPresenter;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -26,7 +29,7 @@ class Dashboard extends Component
     use WithEventPreviewModal;
     use WithPagination;
 
-    private const PER_PAGE = 15;
+    private const GROUPS_PER_PAGE = 8;
 
     public function toggleEventInterest(int $eventId): void
     {
@@ -73,6 +76,7 @@ class Dashboard extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
         BrowseListingCardPresenter $listingCardPresenter,
+        DashboardFeedPresentationService $feedPresentation,
     ) {
         $user = Auth::user();
         $this->toastFromSessionStatus();
@@ -91,16 +95,16 @@ class Dashboard extends Component
             ->distinct('activity_id')
             ->count('activity_id');
 
-        $feed = $this->buildUnifiedUpcomingFeed($user->id);
+        $sortedRows = $this->buildSortedUpcomingRows($user->id);
 
-        $eventIds = collect($feed->items())
+        $eventIds = $sortedRows
             ->where('kind', 'event')
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->values()
             ->all();
 
-        $activityIds = collect($feed->items())
+        $activityIds = $sortedRows
             ->where('kind', 'activity')
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
@@ -124,22 +128,32 @@ class Dashboard extends Component
                 ->get()
                 ->keyBy('id');
 
-        $feedItems = collect($feed->items())
+        $feedItems = $sortedRows
             ->map(function (array $row) use ($eventsById, $activitiesById) {
                 if ($row['kind'] === 'event') {
                     $event = $eventsById->get($row['id']);
 
-                    return $event ? ['kind' => 'event', 'event' => $event] : null;
+                    return $event ? [
+                        'kind' => 'event',
+                        'event' => $event,
+                        'starts_at' => $this->startsAtForEvent($event),
+                    ] : null;
                 }
 
                 $activity = $activitiesById->get($row['id']);
 
-                return $activity ? ['kind' => 'activity', 'activity' => $activity] : null;
+                return $activity ? [
+                    'kind' => 'activity',
+                    'activity' => $activity,
+                    'starts_at' => $this->startsAtForActivity($activity),
+                ] : null;
             })
             ->filter()
             ->values();
 
-        $feed->setCollection($feedItems);
+        $feedHourGroups = $this->paginateHourGroups(
+            $feedPresentation->hourGroupsForFeedItems($feedItems),
+        );
 
         $interestedEventIds = $user->interestedEvents()->pluck('events.id')->map(fn ($id) => (int) $id)->all();
         $interestedActivityIds = $user->interestedActivities()->pluck('activities.id')->map(fn ($id) => (int) $id)->all();
@@ -168,7 +182,7 @@ class Dashboard extends Component
             'hostedActivitiesCount' => $hostedActivitiesCount,
             'hostedEventsCount' => $hostedEventsCount,
             'participatedActivitiesCount' => $participatedActivitiesCount,
-            'feed' => $feed,
+            'feedHourGroups' => $feedHourGroups,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
@@ -179,23 +193,42 @@ class Dashboard extends Component
         ]);
     }
 
-    private function buildUnifiedUpcomingFeed(int $userId): LengthAwarePaginator
+    /**
+     * @return Collection<int, array{kind: string, id: int, sort_at: mixed}>
+     */
+    private function buildSortedUpcomingRows(int $userId): Collection
     {
         $service = app(UpcomingFeedQueryService::class);
-        $rows = $service->buildUnifiedUpcomingRows($userId);
-        $sorted = $service->dedupeAndSort($rows);
 
+        return $service->dedupeAndSort($service->buildUnifiedUpcomingRows($userId));
+    }
+
+    /**
+     * @param  list<array{label: string, items: Collection, starts_at: ?Carbon}>  $hourGroups
+     */
+    private function paginateHourGroups(array $hourGroups): LengthAwarePaginator
+    {
         $page = (int) request()->query('page', 1);
-        $total = $sorted->count();
-        $slice = $sorted->forPage($page, self::PER_PAGE)->values();
+        $total = count($hourGroups);
+        $slice = collect($hourGroups)->forPage($page, self::GROUPS_PER_PAGE)->values();
 
         return new LengthAwarePaginator(
             $slice,
             $total,
-            self::PER_PAGE,
+            self::GROUPS_PER_PAGE,
             $page,
             ['path' => request()->url(), 'query' => request()->query()]
         );
+    }
+
+    private function startsAtForEvent(Event $event): ?Carbon
+    {
+        return $event->starts_at ?? $event->ends_at;
+    }
+
+    private function startsAtForActivity(Activity $activity): ?Carbon
+    {
+        return $activity->slot?->starts_at ?? $activity->starts_at ?? $activity->ends_at;
     }
 
     private function toastFromSessionStatus(): void
