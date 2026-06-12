@@ -26,8 +26,8 @@
     <div class="relative z-0 space-y-2 sm:space-y-6">
     <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
         <x-slot:subtitle>
-            <div class="mb-1"><x-icon name="o-map-pin" />{{ $eventPlaceSummary }}</div>
-            <div><x-icon name="o-calendar" />{{ $eventDateSummary }}</div>
+            <div class="mb-1"><x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />{{ $eventPlaceSummary }}</div>
+            <div class=""><x-icon name="o-calendar" class="inline h-4 w-4 align-text-bottom" />{{ $eventDateSummary }}</div>
         </x-slot:subtitle>
 
         <x-slot:titleSuffix>

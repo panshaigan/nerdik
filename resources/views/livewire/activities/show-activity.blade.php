@@ -57,21 +57,19 @@
     <x-page-header :title="$activity->name" :user="$activity->creator">
         @if ($showHeroHost)
             <x-slot:subtitle>
-                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                    {{ $activityTypeLabel }}
-                    @if ($event)
-                        @
-                        <a
-                            href="{{ route('events.show', $event) }}"
-                            wire:navigate
-                            class="link link-primary break-words"
-                            data-ui="activity-show-hero-event-link"
-                        >{{ $event->name }}</a>
-                    @endif
-                    @if ($activity->duration_in_minutes)
-                        <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
-                    @endif
-                </p>
+                {{ $activityTypeLabel }}
+                @if ($event)
+                    @
+                    <a
+                        href="{{ route('events.show', $event) }}"
+                        wire:navigate
+                        class="link link-primary break-words"
+                        data-ui="activity-show-hero-event-link"
+                    >{{ $event->name }}</a>
+                @endif
+                @if ($activity->duration_in_minutes)
+                    <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
+                @endif
             </x-slot:subtitle>
         @endif
 
