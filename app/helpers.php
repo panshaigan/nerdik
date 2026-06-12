@@ -503,8 +503,8 @@ if (! function_exists('legal_placeholders')) {
         $country = (string) config('legal.operator_country', '');
 
         return [
-            'app' => (string) config('app.name', 'Nerdik'),
-            'operator' => (string) (config('legal.operator_name') ?: config('app.name', 'Nerdik')),
+            'app' => (string) config('app.name', 'nerdik'),
+            'operator' => (string) (config('legal.operator_name') ?: config('app.name', 'nerdik')),
             'country' => $country !== '' ? $country : (string) __('legal.placeholders.country'),
             'email' => (string) (config('legal.contact_email') ?: config('mail.from.address', 'hello@example.com')),
             'date' => (string) config('legal.effective_date', ''),

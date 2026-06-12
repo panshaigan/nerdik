@@ -41,7 +41,7 @@ class GeocodeController extends Controller
         $raw = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($lat, $lng) {
             $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
-                    'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
+                    'User-Agent' => config('app.name', 'nerdik').' ('.config('app.url', 'http://localhost').')',
                     'Accept-Language' => app()->getLocale(),
                 ])
                 ->get('https://nominatim.openstreetmap.org/reverse', [
@@ -113,7 +113,7 @@ class GeocodeController extends Controller
         $rows = Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($q) {
             $response = Http::timeout(self::HTTP_TIMEOUT_SECONDS)
                 ->withHeaders([
-                    'User-Agent' => config('app.name', 'Nerdik').' ('.config('app.url', 'http://localhost').')',
+                    'User-Agent' => config('app.name', 'nerdik').' ('.config('app.url', 'http://localhost').')',
                     'Accept-Language' => app()->getLocale(),
                 ])
                 ->get('https://nominatim.openstreetmap.org/search', [
