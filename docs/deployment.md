@@ -470,14 +470,42 @@ BACKUP_REMOTE_PATH=nerdik-backups/prod
 
 The next `make backup-prod` uploads to the remote **in addition to** the local copy. If `BACKUP_REMOTE_NAME` is unset, upload is skipped (not a failure).
 
-### Restore overview
+### Restore production
 
-1. Pick a backup folder (local path or download from object storage).
-2. **Database:** `gunzip -c db.sql.gz | … psql` (see [`scripts/sync/import-to-env.sh`](../scripts/sync/import-to-env.sh) for the full restore flow used by prod → staging sync).
-3. **Storage:** extract `storage-app.tar.gz` into the `nerdik_storage` Docker volume (same script pattern).
-4. **`.env`:** decrypt if needed: `gpg -d env.tar.gz.gpg | tar xzf -`
+Use [`scripts/backup/restore-prod.sh`](../scripts/backup/restore-prod.sh) with a **backup folder** or **`.tar.gz` archive** (flat or single top-level folder inside the archive).
 
-Run a restore drill monthly on staging to verify backups are usable.
+```bash
+cd /opt/nerdik
+
+# Dry-run (print steps only)
+make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001 DRY_RUN=1
+
+# Restore DB + storage (prompts for confirmation)
+make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001
+
+# Non-interactive; snapshot current prod to /tmp first
+make restore-prod ARCHIVE=/path/to/nerdik-backup.tar.gz YES=1 RESTORE_BACKUP=1
+
+# Also restore encrypted .env (requires .backup-gpg-passphrase)
+make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_ENV=1
+```
+
+| Flag | Effect |
+|------|--------|
+| `ARCHIVE` | Backup directory or `.tar.gz` file (required) |
+| `YES=1` | Skip confirmation prompts |
+| `RESTORE_BACKUP=1` | Dump current prod to `/tmp/nerdik-prod-backup-*` before overwriting |
+| `RESTORE_ENV=1` | Decrypt and restore `env.tar.gz.gpg` into `.env` |
+| `DRY_RUN=1` | Print steps only |
+| `DB_ONLY=1` / `STORAGE_ONLY=1` | Partial restore |
+
+To create a portable archive from a local backup folder:
+
+```bash
+tar czf nerdik-backup.tar.gz -C /home/deploy/backups/nerdik/prod 2026-06-12-030001
+```
+
+Run a restore drill monthly (e.g. onto staging via `import-to-env.sh staging`) to verify backups are usable.
 
 ## Broadcast channels
 

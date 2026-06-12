@@ -12,7 +12,7 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/import-to-env.sh <local|staging> <export_dir> [--yes] [--backup] [--dry-run] [--db-only] [--storage-only]
+Usage: ./scripts/sync/import-to-env.sh <local|staging|prod> <export_dir> [--yes] [--backup] [--dry-run] [--db-only] [--storage-only]
 
 Imports:
   <export_dir>/db.sql.gz
@@ -67,9 +67,9 @@ if [[ "$SYNC_DB_ONLY" == "1" && "$SYNC_STORAGE_ONLY" == "1" ]]; then
 fi
 
 case "$TARGET_ENV" in
-    local|staging) ;;
+    local|staging|prod) ;;
     *)
-        sync_die "target must be local or staging"
+        sync_die "target must be local, staging, or prod"
         ;;
 esac
 
@@ -92,7 +92,36 @@ if [[ "$TARGET_ENV" == "staging" ]]; then
     PROJECT_ROOT="${SYNC_STAGING_PATH}"
 fi
 
-sync_confirm "This will overwrite ${TARGET_ENV} database and storage. Continue?"
+if [[ "$TARGET_ENV" == "prod" ]]; then
+    sync_confirm "This will overwrite PRODUCTION database and storage. Continue?"
+else
+    sync_confirm "This will overwrite ${TARGET_ENV} database and storage. Continue?"
+fi
+
+import_backup_prod() {
+    local backup_dir="/tmp/nerdik-prod-backup-$(sync_export_timestamp)"
+    local storage_volume
+    storage_volume="$(sync_volume_for_env storage prod)"
+
+    sync_log "backing up production to ${backup_dir}"
+
+    if [[ "$SYNC_DRY_RUN" == "1" ]]; then
+        sync_run mkdir -p "$backup_dir"
+        return 0
+    fi
+
+    mkdir -p "$backup_dir"
+
+    sync_prepare_compose_env prod "$PROJECT_ROOT"
+    sync_compose_cmd prod "$PROJECT_ROOT" exec -T pgsql \
+        pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" --no-owner --no-acl --clean --if-exists \
+        | gzip > "${backup_dir}/db.sql.gz"
+
+    docker run --rm -v "${storage_volume}:/data:ro" alpine \
+        tar czf - -C /data/app . > "${backup_dir}/storage-app.tar.gz"
+
+    sync_log "production backup saved to ${backup_dir}"
+}
 
 import_backup_staging() {
     local backup_dir="/tmp/nerdik-staging-backup-$(sync_export_timestamp)"
@@ -151,6 +180,23 @@ import_db_staging() {
         --single-transaction
 }
 
+import_db_prod() {
+    sync_prepare_compose_env prod "$PROJECT_ROOT"
+    sync_log "restoring database into production (${DB_DATABASE})"
+
+    if [[ "$SYNC_DRY_RUN" == "1" ]]; then
+        sync_log "[dry-run] gunzip -c ${EXPORT_DIR}/db.sql.gz | psql → ${DB_DATABASE} (prod)"
+        return 0
+    fi
+
+    sync_compose_cmd prod "$PROJECT_ROOT" stop worker || true
+
+    gunzip -c "${EXPORT_DIR}/db.sql.gz" | sync_compose_cmd prod "$PROJECT_ROOT" exec -T pgsql psql \
+        -U "${DB_USERNAME}" -d "${DB_DATABASE}" \
+        -v ON_ERROR_STOP=1 \
+        --single-transaction
+}
+
 import_storage_local() {
     sync_log "restoring storage/app into local workspace"
 
@@ -183,26 +229,49 @@ import_storage_staging() {
         alpine sh -c 'rm -rf /data/app/* && mkdir -p /data/app && tar xzf /export/storage-app.tar.gz -C /data/app'
 }
 
+import_storage_prod() {
+    local storage_volume
+    storage_volume="$(sync_volume_for_env storage prod)"
+
+    sync_log "restoring storage/app into volume ${storage_volume}"
+
+    if [[ "$SYNC_DRY_RUN" == "1" ]]; then
+        sync_log "[dry-run] extract storage into volume ${storage_volume}"
+        return 0
+    fi
+
+    sync_compose_cmd prod "$PROJECT_ROOT" stop worker || true
+
+    docker run --rm \
+        -v "${storage_volume}:/data" \
+        -v "${EXPORT_DIR}:/export:ro" \
+        alpine sh -c 'rm -rf /data/app/* && mkdir -p /data/app && tar xzf /export/storage-app.tar.gz -C /data/app'
+}
+
+if [[ "$TARGET_ENV" == "prod" && "$SYNC_BACKUP" == "1" ]]; then
+    import_backup_prod
+fi
+
 if [[ "$TARGET_ENV" == "staging" && "$SYNC_BACKUP" == "1" ]]; then
     import_backup_staging
 fi
 
 if [[ "$REQUIRE_DB" == "1" ]]; then
-    if [[ "$TARGET_ENV" == "local" ]]; then
-        import_db_local
-    else
-        import_db_staging
-    fi
+    case "$TARGET_ENV" in
+        local) import_db_local ;;
+        staging) import_db_staging ;;
+        prod) import_db_prod ;;
+    esac
 
     sync_truncate_volatile_tables "$TARGET_ENV" "$PROJECT_ROOT"
 fi
 
 if [[ "$REQUIRE_STORAGE" == "1" ]]; then
-    if [[ "$TARGET_ENV" == "local" ]]; then
-        import_storage_local
-    else
-        import_storage_staging
-    fi
+    case "$TARGET_ENV" in
+        local) import_storage_local ;;
+        staging) import_storage_staging ;;
+        prod) import_storage_prod ;;
+    esac
 fi
 
 if [[ "$REQUIRE_DB" == "1" || "$REQUIRE_STORAGE" == "1" ]]; then
@@ -211,6 +280,10 @@ fi
 
 if [[ "$TARGET_ENV" == "staging" && "$SYNC_DRY_RUN" != "1" ]]; then
     sync_compose_cmd staging "$PROJECT_ROOT" start worker || true
+fi
+
+if [[ "$TARGET_ENV" == "prod" && "$SYNC_DRY_RUN" != "1" ]]; then
+    sync_compose_cmd prod "$PROJECT_ROOT" start worker || true
 fi
 
 sync_log "import into ${TARGET_ENV} complete"
