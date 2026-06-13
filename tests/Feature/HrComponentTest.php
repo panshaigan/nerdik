@@ -53,6 +53,7 @@ class HrComponentTest extends TestCase
         $html = Blade::render('<x-ui.hr show-end-glow />');
 
         $this->assertStringContainsString('rounded-full bg-primary', $html);
+        $this->assertStringContainsString('right-[22%]', $html);
         $this->assertStringContainsString('shadow-[0_0_8px_theme(colors.primary)]', $html);
     }
 }

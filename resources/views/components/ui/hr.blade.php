@@ -20,6 +20,8 @@
     'centerSizeClass' => 'size-8',
     'centerTextWrapClass' => 'min-h-8 min-w-0 px-3 flex items-center justify-center text-center',
     'showEndGlow' => false,
+    'endGlowClass' => 'pointer-events-none absolute right-[22%] top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_8px_theme(colors.primary)]',
+    'endGlowRightLineClass' => 'bg-[linear-gradient(to_left,transparent_0%,transparent_14%,color-mix(in_oklab,var(--color-primary)_70%,transparent)_20%,color-mix(in_oklab,var(--color-primary)_88%,transparent)_24%,color-mix(in_oklab,var(--color-primary)_16%,transparent)_34%,color-mix(in_oklab,var(--color-primary)_42%,transparent)_100%)]',
 ])
 
 <div {{ $attributes->class([$wrapperClass]) }}>
@@ -57,10 +59,10 @@
     <div class="{{ $lineWrapClass }}">
         <div class="{{ $showDoubleLine ? $doubleGapClass : '' }}">
             @for ($i = 0; $i < $lineCount; $i++)
-                <div class="{{ $lineClass }} {{ $rightLineClass }}">
+                <div class="{{ $lineClass }} {{ $showEndGlowDot ? $endGlowRightLineClass : $rightLineClass }}">
                     <div class="{{ $lineGlowClass }}"></div>
                     @if ($showEndGlowDot && $i === 0)
-                        <div class="pointer-events-none absolute right-0 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_8px_theme(colors.primary)]"></div>
+                        <div class="{{ $endGlowClass }}"></div>
                     @endif
                 </div>
             @endfor

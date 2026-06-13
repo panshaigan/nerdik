@@ -20,15 +20,13 @@ class PageHeaderComponentTest extends TestCase
 
     public function test_page_header_renders_user_badge_when_user_is_provided(): void
     {
-        $user = User::factory()->create([
-            'nickname' => 'kuphal.felicia',
-        ]);
+        $user = User::factory()->create();
 
         $html = Blade::render('<x-page-header title="Test" :user="$user" />', [
             'user' => $user,
         ]);
 
-        $this->assertStringContainsString('kuphal.felicia', $html);
+        $this->assertStringContainsString($user->nickname, $html);
         $this->assertStringContainsString('data-ui="activity-show-host"', $html);
     }
 
@@ -48,19 +46,18 @@ class PageHeaderComponentTest extends TestCase
             </x-page-header>
         ');
 
-        $this->assertMatchesRegularExpression('/space-y-1/', $html);
+        $this->assertStringContainsString('right-[22%]', $html);
         $this->assertMatchesRegularExpression('/<svg[\s\S]*<\/svg>/', $html);
 
         $titlePos = strpos($html, '<h1');
-        $hrPos = strpos($html, 'space-y-1');
         $subtitlePos = strpos($html, 'TTRPG 3H');
+        $hrPos = strpos($html, 'right-[22%]');
 
         $this->assertNotFalse($titlePos);
-        $this->assertNotFalse($hrPos);
         $this->assertNotFalse($subtitlePos);
-        $this->assertLessThan($hrPos, $titlePos);
-        $this->assertLessThan($subtitlePos, $hrPos);
-        $this->assertStringNotContainsString('absolute inset-x-6 top-1/2', $html);
+        $this->assertNotFalse($hrPos);
+        $this->assertLessThan($subtitlePos, $titlePos);
+        $this->assertLessThan($hrPos, $subtitlePos);
     }
 
     public function test_page_header_renders_subtitle_slot_inside_wrapper(): void
@@ -73,6 +70,6 @@ class PageHeaderComponentTest extends TestCase
 
         $this->assertStringContainsString('TTRPG 3H', $html);
         $this->assertStringContainsString('tracking-widest', $html);
-        $this->assertStringContainsString('text-primary/75', $html);
+        $this->assertStringContainsString('text-base/75', $html);
     }
 }

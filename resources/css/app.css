@@ -701,8 +701,8 @@
 @utility box-glow-* {
     --_glow-base: --value(--color-*);
     box-shadow:
-        0 0 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
-        0 0 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+        -4px -4px 6px  color-mix(in oklch, var(--_glow-base) 100%, black),
+        3px -8px 20px color-mix(in oklch, var(--_glow-base) 100%, black);
 }
 
 @utility box-glow-dark-* {

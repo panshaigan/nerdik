@@ -413,7 +413,7 @@ return [
         'edit' => 'Edit',
         'create' => 'Create',
         'update' => 'Update',
-        'edit_activity' => 'Edit activity',
+        'edit_activity' => 'Edit',
         'create_activity' => 'Create activity',
         'delete' => 'Delete',
         'delete_confirm' => 'Are you sure you want to delete this activity?',
