@@ -65,14 +65,14 @@ new class extends Component
         },
     }"
     @keydown.escape.window="open && close()"
-    class="ui-app-navigation relative z-40 border-b border-base-300"
+    class="ui-app-navigation relative z-40 border-b border-white/10"
 >
     <x-nav
         sticky
         full-width
         role="navigation"
         aria-label="{{ __('ui.nav.main_navigation') }}"
-        class="relative z-40 !border-b-0 bg-base-100/90 backdrop-blur [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
+        class="relative z-40 !border-b-0 bg-black/35 backdrop-blur-md [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
             <div class="flex">

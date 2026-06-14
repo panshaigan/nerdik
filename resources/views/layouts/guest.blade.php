@@ -18,7 +18,9 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-base-200 font-sans antialiased text-base-content">
+    <body class="font-sans antialiased text-base-content">
+        <x-app-shell-background />
+
         <x-environment-indicator />
 
         <div class="flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0">
