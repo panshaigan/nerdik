@@ -71,14 +71,13 @@ new class extends Component
         },
     }"
     @keydown.escape.window="open && close()"
-    class="ui-app-navigation relative z-40 border-b border-white/10"
+    class="ui-app-navigation"
 >
     <x-nav
-        sticky
         full-width
         role="navigation"
         aria-label="{{ __('ui.nav.main_navigation') }}"
-        class="relative z-40 !border-b-0 bg-black/35 backdrop-blur-md [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
+        class="fixed top-0 inset-x-0 z-40 border-b border-white/10 bg-black/35 backdrop-blur-md [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
             <div class="flex">
@@ -204,6 +203,8 @@ new class extends Component
             </div>
         </x-slot:actions>
     </x-nav>
+
+    <div class="ui-app-navigation__spacer shrink-0" aria-hidden="true"></div>
 
     <template x-teleport="body">
         <div
