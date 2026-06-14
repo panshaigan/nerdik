@@ -238,6 +238,76 @@
         }
     }
 
+    /** Page-level content cards — nav gutter (listing surfaces stay opaque below). */
+    .ui-content-card:not(.ui-listing-card__surface) {
+        margin-inline: 1rem;
+
+        @media (width >= 40rem) {
+            margin-inline: 1.5rem;
+        }
+
+        @media (width >= 64rem) {
+            margin-inline: 2rem;
+        }
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted {
+        --tab-bg: transparent;
+        --tab-border-color: transparent;
+        margin-bottom: 0;
+        border-radius: 0;
+        border-width: 0;
+        border-bottom-width: var(--border, 1px);
+        border-bottom-color: transparent;
+        background-color: transparent;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted::before,
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted::after {
+        content: none;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted.tab-active {
+        border-bottom-color: var(--color-primary);
+        text-shadow: 0 0 12px color-mix(in oklab, var(--color-primary) 45%, transparent);
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 {
+        border-color: color-mix(in oklab, var(--color-primary) 25%, transparent);
+        background: transparent;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 > .flex.overflow-x-auto {
+        padding-inline: 1rem;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 > .flex.shrink-0.items-center {
+        padding-inline: 1rem;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .rich-text-content {
+        border: 1px solid color-mix(in oklab, var(--color-primary) 15%, transparent);
+        background: color-mix(in oklab, black 25%, transparent);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 0.75rem;
+        padding: 1rem;
+
+        @media (width >= 40rem) {
+            padding: 1.5rem;
+        }
+    }
+
+    .ui-activity-show-hero,
+    .ui-event-show-hero {
+        margin-top: 1.5rem;
+        border-radius: var(--rounded-box, 1rem);
+
+        @media (width >= 40rem) {
+            margin-top: 2rem;
+        }
+    }
+
     .ui-card-media-fade {
         -webkit-mask-image: linear-gradient(
             to top,
@@ -330,6 +400,183 @@
     .ui-activity-badge-tooltip {
         --tt-off: calc(100% + 0.2rem);
         --tt-tail: calc(100% + 1px + 0.1rem);
+    }
+
+    /** Glass panels: show info boxes + page-level content cards. */
+    .ui-activity-show-info-panel,
+    .ui-content-card:not(.ui-listing-card__surface) {
+        position: relative;
+        isolation: isolate;
+        overflow: visible;
+        border-radius: 0.75rem;
+        background: color-mix(in oklab, var(--color-primary) 6%, rgba(255 255 255 / 0.06));
+        backdrop-filter: blur(16px) saturate(1.4);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        border: 1px solid transparent;
+        box-shadow:
+            inset 0 18px 30px -26px color-mix(in oklab, var(--color-primary) 22%, transparent);
+    }
+
+    .ui-activity-show-info-panel {
+        padding: 0.75rem 1rem;
+    }
+
+    .ui-activity-show-info-panel::before,
+    .ui-content-card:not(.ui-listing-card__surface)::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: conic-gradient(
+            from 205deg at 38% 24%,
+            color-mix(in oklab, var(--color-primary) 82%, transparent) 0deg,
+            color-mix(in oklab, var(--color-primary) 12%, transparent) 48deg,
+            color-mix(in oklab, var(--color-primary) 68%, transparent) 104deg,
+            color-mix(in oklab, var(--color-primary) 8%, transparent) 168deg,
+            color-mix(in oklab, var(--color-primary) 76%, transparent) 224deg,
+            color-mix(in oklab, var(--color-primary) 16%, transparent) 286deg,
+            color-mix(in oklab, var(--color-primary) 58%, transparent) 332deg,
+            color-mix(in oklab, var(--color-primary) 82%, transparent) 360deg
+        );
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+        box-shadow:
+            inset -10px -6px 14px -12px color-mix(in oklab, var(--color-primary) 62%, transparent),
+            inset 12px 8px 16px -14px color-mix(in oklab, var(--color-primary) 34%, transparent),
+            inset 4px -10px 12px -13px color-mix(in oklab, var(--color-primary) 48%, transparent);
+    }
+
+    .ui-activity-show-info-panel::after,
+    .ui-content-card:not(.ui-listing-card__surface)::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.95;
+        filter: blur(1.25px);
+        box-shadow:
+            -12px -8px 26px -8px color-mix(in oklab, var(--color-primary) 78%, transparent),
+            16px -12px 32px -12px color-mix(in oklab, var(--color-primary) 36%, transparent),
+            -8px 16px 28px -10px color-mix(in oklab, var(--color-primary) 58%, transparent),
+            14px 12px 24px -14px color-mix(in oklab, var(--color-primary) 26%, transparent),
+            -16px 6px 22px -16px color-mix(in oklab, var(--color-primary) 50%, transparent),
+            6px -14px 20px -12px color-mix(in oklab, var(--color-primary) 68%, transparent),
+            10px 18px 18px -18px color-mix(in oklab, var(--color-primary) 32%, transparent);
+    }
+
+    .ui-activity-show-hero.ui-content-card,
+    .ui-event-show-hero.ui-content-card {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    /** Activity show hero: pill badges inside the glass info panel. */
+    .ui-activity-show-info-badges {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.625rem;
+    }
+
+    .ui-activity-show-info-badges .badge {
+        position: relative;
+        overflow: visible;
+        height: auto;
+        min-height: 1.75rem;
+        padding-inline: 0.75rem;
+        padding-block: 0.375rem;
+        border-radius: 9999px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        text-transform: none;
+        gap: 0.375rem;
+        white-space: nowrap;
+        background: color-mix(in oklab, var(--color-base-100) 8%, transparent);
+        border: 1px solid transparent;
+        color: var(--color-base-content);
+        box-shadow:
+            -4px -2px 12px -5px color-mix(in oklab, var(--color-primary) 62%, transparent),
+            5px 1px 14px -6px color-mix(in oklab, var(--color-primary) 34%, transparent),
+            1px 5px 10px -7px color-mix(in oklab, var(--color-primary) 48%, transparent);
+    }
+
+    .ui-activity-show-info-badges .badge::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(
+            132deg,
+            color-mix(in oklab, var(--color-primary) 76%, transparent) 0%,
+            color-mix(in oklab, var(--color-primary) 14%, transparent) 28%,
+            color-mix(in oklab, var(--color-primary) 64%, transparent) 54%,
+            color-mix(in oklab, var(--color-primary) 10%, transparent) 78%,
+            color-mix(in oklab, var(--color-primary) 52%, transparent) 100%
+        );
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .ui-activity-show-info-badges .badge-warning {
+        background: color-mix(in oklab, var(--color-warning) 8%, transparent);
+        color: var(--color-warning);
+        box-shadow:
+            -4px -2px 12px -5px color-mix(in oklab, var(--color-warning) 58%, transparent),
+            5px 2px 14px -6px color-mix(in oklab, var(--color-warning) 30%, transparent),
+            2px 5px 10px -7px color-mix(in oklab, var(--color-warning) 44%, transparent);
+    }
+
+    .ui-activity-show-info-badges .badge-warning::before {
+        background: linear-gradient(
+            128deg,
+            color-mix(in oklab, var(--color-warning) 74%, transparent) 0%,
+            color-mix(in oklab, var(--color-warning) 12%, transparent) 32%,
+            color-mix(in oklab, var(--color-warning) 60%, transparent) 58%,
+            color-mix(in oklab, var(--color-warning) 10%, transparent) 82%,
+            color-mix(in oklab, var(--color-warning) 48%, transparent) 100%
+        );
+    }
+
+    .ui-activity-show-info-badges .badge-primary,
+    .ui-activity-show-info-badges .badge-secondary,
+    .ui-activity-show-info-badges .badge-neutral,
+    .ui-activity-show-info-badges .badge-info,
+    .ui-activity-show-info-badges .badge-accent,
+    .ui-activity-show-info-badges .badge-success,
+    .ui-activity-show-info-badges .badge-error {
+        background: color-mix(in oklab, var(--color-base-100) 8%, transparent);
+        border: 1px solid transparent;
+        color: var(--color-base-content);
+    }
+
+    .ui-activity-show-stat .text-base-content\/50,
+    .ui-activity-show-stat [class*='text-base-content/'] {
+        font-size: 0.75rem;
+        color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+    }
+
+    .ui-activity-show-stat .font-black {
+        font-weight: 700;
+        font-size: 1.125rem;
+        letter-spacing: -0.01em;
     }
 
     .ui-browse-events-listings .ui-listing-card {
@@ -808,16 +1055,6 @@
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent),
             0 0 24px -8px color-mix(in oklab, var(--color-primary) 35%, transparent);
-    }
-
-    .bg-texture-scratches {
-        background: repeating-linear-gradient(45deg, var(--brand-base-300-dark) 0px, var(--brand-base-300-dark) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-        repeating-linear-gradient(-45deg, var(--brand-base-200-dark) 5px, var(--brand-base-200-dark) 1px, transparent 1px, transparent 35px);
-
-        @variant light {
-            background: repeating-linear-gradient(45deg, var(--brand-base-300-light) 0px, var(--brand-base-300-light) 1px, transparent 1px, transparent 20px) 0% 0% / 40px 40px,
-            repeating-linear-gradient(-45deg, var(--brand-base-200-light) 5px, var(--brand-base-200-light) 1px, transparent 1px, transparent 35px);
-        }
     }
 
     .ui-tile-marked {

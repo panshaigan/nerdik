@@ -12,7 +12,7 @@
 @php
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
-<div {{ $attributes->class(['px-6 py-5', $headerClass]) }}>
+<div {{ $attributes->class(['px-4 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
     <div class="flex items-center justify-between gap-4">
         <div class="min-w-0">
             <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-primary sm:text-4xl">
@@ -50,7 +50,7 @@
     </div>
 
     @isset($subtitle)
-        <div class="text-xs font-semibold uppercase tracking-widest text-base/75 text-glow-accent pl-1">
+        <div class="mt-1 text-sm text-base-content/60 pl-1">
             {{ $subtitle }}
         </div>
     @endisset
@@ -59,7 +59,7 @@
         :icon="$hrIcon"
         show-end-glow
         :class="trim(''.$hrClass)"
-        wrapper-class="flex items-center gap-2"
+        wrapper-class="mt-3 flex items-center gap-2"
         edge-icon-class="size-3 text-primary/80"
         line-glow-class="pointer-events-none absolute left-1/2 top-1/2 h-3 w-32 -translate-x-1/2 -translate-y-1/2 bg-primary/55 blur-lg"
         center-class="grid place-items-center rounded-full border border-primary/60 bg-base-100/70 text-primary box-glow-primary"

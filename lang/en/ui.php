@@ -696,6 +696,7 @@ return [
         'activity_detached_from_slot' => 'The activity was removed from the slot and is pending again.',
     ],
     'interests' => [
+        'interested_in_short' => 'Interested in',
         'added_event' => 'Event added to your interests.',
         'removed_event' => 'Event removed from your interests.',
         'added_activity' => 'Activity added to your interests.',

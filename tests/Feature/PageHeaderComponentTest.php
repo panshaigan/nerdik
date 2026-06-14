@@ -16,6 +16,9 @@ class PageHeaderComponentTest extends TestCase
         $this->assertStringContainsString('Szept w Ciemności', $html);
         $this->assertStringContainsString('font-display', $html);
         $this->assertStringContainsString('text-glow-primary', $html);
+        $this->assertStringContainsString('px-4', $html);
+        $this->assertStringContainsString('sm:px-6', $html);
+        $this->assertStringContainsString('lg:px-8', $html);
     }
 
     public function test_page_header_renders_user_badge_when_user_is_provided(): void
@@ -69,7 +72,8 @@ class PageHeaderComponentTest extends TestCase
         ');
 
         $this->assertStringContainsString('TTRPG 3H', $html);
-        $this->assertStringContainsString('tracking-widest', $html);
-        $this->assertStringContainsString('text-base/75', $html);
+        $this->assertStringContainsString('text-sm', $html);
+        $this->assertStringContainsString('text-base-content/60', $html);
+        $this->assertStringContainsString('mt-3 flex items-center gap-2', $html);
     }
 }

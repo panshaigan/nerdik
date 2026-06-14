@@ -20,10 +20,10 @@
                 loading="eager"
             />
         </div>
-        <div class="absolute inset-0 bg-base-100/65"></div>
+        <div class="absolute inset-0 bg-base-100/35"></div>
     </div>
 
-    <div class="relative z-0 space-y-2 sm:space-y-6">
+    <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
         <x-slot:subtitle>
             <div class="mb-1"><x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />{{ $eventPlaceSummary }}</div>
@@ -65,27 +65,28 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-3 gap-3 pb-5 px-3 sm:px-0 sm:pb-6">
-        <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
+    <div class="grid grid-cols-3 gap-3 px-4 pb-5 sm:px-6 sm:pb-6 lg:px-8">
+        <div class="ui-activity-show-info-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_activities') }}"
                 value="{{ $confirmedActivitiesCount }}"
                 icon="o-envelope"
-                class="ui-stat-embed"
+                class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
-        <div class="box-glow-dark-primary rounded-2xl px-4 py-3">
+        <div class="ui-activity-show-info-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_participants') }}"
                 value="{{ $confirmedParticipantsCount }}"
                 icon="o-users"
-                class="ui-stat-embed"
+                class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
         <x-ui.interested-stat-card
             :title="__('ui.events.interested_people_count')"
             :value="$interestedPeopleCount"
             :has-interest="$hasInterest"
+            class="ui-activity-show-info-panel min-w-0"
             data-ui="event-show-interested-stat"
         />
     </div>
@@ -102,7 +103,6 @@
             tabs-class="w-full"
             toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
             data-ui="event-show-tabs"
-            class="bg-texture-scratches rounded-2xl"
         >
             <x-slot:toolbar>
                 @auth
