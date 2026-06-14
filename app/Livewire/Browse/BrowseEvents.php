@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\Tag;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
+use App\Services\UserInterestService;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseListingQuery;
 use App\Support\Browse\BrowseSearchState;
@@ -189,44 +190,32 @@ class BrowseEvents extends Component
         return $this->browseFilterBag()->hasBBox();
     }
 
-    public function toggleEventInterest(int $eventId): void
+    public function toggleEventInterest(int $eventId, UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($eventId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
-        $alreadyInterested = $user->interestedEvents()->whereKey($event->id)->exists();
-        if ($alreadyInterested) {
-            $user->interestedEvents()->detach($event->id);
+        $added = $interests->toggleEventInterest($user, $event);
+        if ($added) {
+            $this->success(__('ui.interests.added_event'));
+        } else {
             $this->warning(__('ui.interests.removed_event'));
-
-            return;
         }
-
-        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
-        $this->success(__('ui.interests.added_event'));
     }
 
-    public function toggleActivityInterest(int $activityId): void
+    public function toggleActivityInterest(int $activityId, UserInterestService $interests): void
     {
         $activity = Activity::query()->whereKey($activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
-        $alreadyInterested = $user->interestedActivities()->whereKey($activity->id)->exists();
-        if ($alreadyInterested) {
-            $user->interestedActivities()->detach($activity->id);
+        $added = $interests->toggleActivityInterest($user, $activity);
+        if ($added) {
+            $this->success(__('ui.interests.added_activity'));
+        } else {
             $this->warning(__('ui.interests.removed_activity'));
-
-            return;
         }
-
-        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
-        $eventId = $activity->slot?->event_id;
-        if ($eventId !== null) {
-            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
-        }
-        $this->success(__('ui.interests.added_activity'));
     }
 
     /**

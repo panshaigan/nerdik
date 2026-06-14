@@ -16,6 +16,7 @@ use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
 use App\Services\LifecycleMutationRateLimiter;
+use App\Services\UserInterestService;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -140,7 +141,7 @@ class ShowEvent extends Component
         $this->shellRefreshTick++;
     }
 
-    public function addInterest(): void
+    public function addInterest(UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         if ($event->isCancelled()) {
@@ -150,18 +151,16 @@ class ShowEvent extends Component
         }
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
-        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
+        $interests->addEventInterest($user, $event);
         $this->success(__('ui.interests.added_event'));
     }
 
-    public function removeInterest(): void
+    public function removeInterest(UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedEvents()->detach($event->id);
-        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
+        $interests->removeEventInterest($user, $event);
         $this->warning(__('ui.interests.removed_event'));
     }
 

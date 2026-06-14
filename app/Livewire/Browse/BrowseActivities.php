@@ -12,6 +12,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
+use App\Services\UserInterestService;
 use App\Support\Browse\BrowseFullTextSearch;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -83,26 +84,18 @@ class BrowseActivities extends Component
             || $this->hasTagFilterActive();
     }
 
-    public function toggleActivityInterest(int $activityId): void
+    public function toggleActivityInterest(int $activityId, UserInterestService $interests): void
     {
         $activity = Activity::query()->whereKey($activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
-        $alreadyInterested = $user->interestedActivities()->whereKey($activity->id)->exists();
-        if ($alreadyInterested) {
-            $user->interestedActivities()->detach($activity->id);
+        $added = $interests->toggleActivityInterest($user, $activity);
+        if ($added) {
+            $this->success(__('ui.interests.added_activity'));
+        } else {
             $this->warning(__('ui.interests.removed_activity'));
-
-            return;
         }
-
-        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
-        $eventId = $activity->slot?->event_id;
-        if ($eventId !== null) {
-            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
-        }
-        $this->success(__('ui.interests.added_activity'));
     }
 
     public function render(

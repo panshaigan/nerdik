@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire;
 
 use App\Livewire\Events\ShowEvent;
+use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Slot;
 use App\Models\User;
+use App\Services\UserInterestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -75,6 +78,39 @@ class ShowEventInterestedStatTest extends TestCase
         $this->assertNotNull($opening);
         $this->assertStringNotContainsString('wire:click', $opening);
         $this->assertStringNotContainsString('wire:target', $opening);
+    }
+
+    public function test_shell_stat_updates_after_plan_tab_activity_interest_sync(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create();
+        $activity = Activity::factory()->scheduled()->create();
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(ShowEvent::class, ['event' => $event]);
+
+        $htmlBefore = $component->html();
+        $openingBefore = $this->interestedStatOpeningTag($htmlBefore);
+        $this->assertNotNull($openingBefore);
+        $this->assertStringContainsString('wire:click="addInterest"', $openingBefore);
+
+        app(UserInterestService::class)->addActivityInterest($user, $activity);
+
+        $htmlAfter = $component
+            ->call('refreshShellFromNestedTabs')
+            ->html();
+
+        $openingAfter = $this->interestedStatOpeningTag($htmlAfter);
+        $this->assertNotNull($openingAfter);
+        $this->assertStringContainsString('wire:click="removeInterest"', $openingAfter);
+        $this->assertStringContainsString('text-warning', $htmlAfter);
+        $this->assertMatchesRegularExpression('/value="1"|>1</', $htmlAfter);
     }
 
     /**
