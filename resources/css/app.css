@@ -409,7 +409,7 @@
         isolation: isolate;
         overflow: visible;
         border-radius: 0.75rem;
-        background: color-mix(in oklab, var(--color-primary) 6%, rgba(255 255 255 / 0.06));
+        background: color-mix(in oklab, var(--color-base-100) 30%, rgba(255 255 255 / 0.06));
         backdrop-filter: blur(16px) saturate(1.4);
         -webkit-backdrop-filter: blur(16px) saturate(1.4);
         border: 1px solid transparent;
@@ -713,6 +713,16 @@
     .ui-browse-events-filter-shell [data-tag-selector],
     .ui-browse-events-filter-shell [data-tag-selector] > .relative {
         overflow: visible;
+    }
+
+    .ui-browse-events-toolbar .ui-browse-events-toolbar-search [data-ts-field].input {
+        min-height: 2.5rem;
+    }
+
+    @media (min-width: 64rem) {
+        .ui-browse-events-toolbar .browse-events-action-toolbar {
+            justify-self: end;
+        }
     }
 
     .ui-filter-form-events [data-browse-tag-selector] [data-ts-results] {

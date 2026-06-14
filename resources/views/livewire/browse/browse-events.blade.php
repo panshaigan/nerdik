@@ -1,41 +1,43 @@
 <div class="py-12 px-1">
     <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
         <div
-            class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell mb-10"
+            class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell mb-6"
             data-ui="browse-events-form"
         >
-            <div class="mx-auto space-y-3 max-w-5xl">
-                @include('livewire.browse.partials.tag-filter', [
-                    'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
-                ])
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
-            <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0">
-                @include('livewire.browse.partials.tag-filter-toggles', [
-                    'buttonClass' => 'btn btn-sm rounded-2xl ui-browse-filter-toggle',
-                ])
-                <x-button
-                    type="button"
-                    wire:click="toggleMapView"
-                    wire:key="browse-events-map-view-toggle"
-                    class="btn btn-sm rounded-2xl ui-browse-filter-toggle {{ $map_view ? 'is-active' : '' }}"
-                    :title="__('ui.browse.map_view_toggle')"
-                    :aria-label="__('ui.browse.map_view_toggle')"
-                    aria-pressed="{{ $map_view ? 'true' : 'false' }}"
-                    data-ui="browse-events-map-toggle"
-                >
-                    <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                    {{ __('ui.browse.map_view_toggle') }}
-                </x-button>
+            <div
+                class="ui-browse-events-toolbar grid grid-cols-1 items-center gap-x-4 gap-y-3 lg:grid-cols-[auto_minmax(12rem,1fr)_auto]"
+                data-ui="browse-events-toolbar"
+            >
+                @include('livewire.browse.partials.sort-controls', ['sortIdPrefix' => 'browse-events'])
+                <div class="ui-browse-events-toolbar-search min-w-0 w-full">
+                    @include('livewire.browse.partials.tag-filter', [
+                        'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
+                    ])
+                </div>
+                <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0">
+                    @include('livewire.browse.partials.tag-filter-toggles', [
+                        'buttonClass' => 'btn btn-sm rounded-2xl ui-browse-filter-toggle',
+                    ])
+                    <x-button
+                        type="button"
+                        wire:click="toggleMapView"
+                        wire:key="browse-events-map-view-toggle"
+                        class="btn btn-sm rounded-2xl ui-browse-filter-toggle {{ $map_view ? 'is-active' : '' }}"
+                        :title="__('ui.browse.map_view_toggle')"
+                        :aria-label="__('ui.browse.map_view_toggle')"
+                        aria-pressed="{{ $map_view ? 'true' : 'false' }}"
+                        data-ui="browse-events-map-toggle"
+                    >
+                        <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
+                        {{ __('ui.browse.map_view_toggle') }}
+                    </x-button>
+                </div>
             </div>
 
             <div
                 x-show="filtersOpen"
                 x-cloak
-                class="ui-tile-empty w-full rounded-2xl p-6 shadow-sm"
+                class="ui-tile-empty mt-3 w-full rounded-2xl p-6 shadow-sm"
                 data-ui="browse-events-filters-panel"
             >
                 @include('livewire.browse.partials.listing-type-filter')
