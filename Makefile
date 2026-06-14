@@ -2,7 +2,9 @@ SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
 
-.PHONY: up down restart ps logs shell migrate refresh fresh seed queue scheduler test \
+SEED_DATASET ?= minimal
+
+.PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal queue scheduler test \
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
@@ -75,11 +77,20 @@ fresh:
 	$(SAIL) artisan tags:recalculate-popularity
 
 refresh:
-	$(SAIL) artisan migrate:refresh --seed
+	SEED_DATASET=$(SEED_DATASET) $(SAIL) artisan migrate:refresh --seed
 	$(SAIL) artisan tags:recalculate-popularity
 
 seed:
-	$(SAIL) artisan db:seed
+	SEED_DATASET=$(SEED_DATASET) $(SAIL) artisan db:seed
+
+seed-minimal:
+	@$(MAKE) seed SEED_DATASET=minimal
+
+seed-standard:
+	@$(MAKE) seed SEED_DATASET=standard
+
+seed-maximal:
+	@$(MAKE) seed SEED_DATASET=maximal
 
 dump-schema:
 	$(SAIL) artisan schema:dump --prune
