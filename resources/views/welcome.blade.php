@@ -22,7 +22,7 @@
 
             <header class="flex items-center justify-between gap-4 pb-6">
                 <div class="flex items-center gap-3">
-                    <x-brand-logo class="h-10 w-10" />
+                    <x-brand-logo class="h-10 w-10 text-base-content" />
                     <div>
                         <p class="text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
                         <p class="text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
