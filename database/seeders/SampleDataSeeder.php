@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Actions\Seeders\AttachGameTagChainUntilGenre;
+use App\Actions\Seeders\ResolveParticipantBoundsForSlot;
+use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
@@ -10,6 +12,7 @@ use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
 use Database\Factories\DatabaseNotificationFactory;
@@ -31,6 +34,8 @@ class SampleDataSeeder extends Seeder
     public const DATASET_STANDARD = 2;
 
     public const DATASET_MAXIMAL = 3;
+
+    private const MAX_PROPOSED_PER_EVENT = 3;
 
     public const DATASETS = [
         self::DATASET_MINIMAL => [
@@ -68,23 +73,34 @@ class SampleDataSeeder extends Seeder
             'notificationsPerUserMax' => 30,
         ],
         self::DATASET_MAXIMAL => [
-            'admins' => 4,
+            'admins' => 3,
             'organizers' => 8,
-            'standardUsers' => 40,
+            'standardUsers' => 100,
             'organizations' => 30,
             'places' => 30,
             'maxRoomsPerVenue' => 6,
             'events' => 20,
             'minSlotsPerEvent' => 6,
             'maxSlotsPerEvent' => 30,
-            'selfHostedActivities' => 40,
-            'draftActivities' => 40,
-            'scheduledActivities' => 120,
-            'proposedActivities' => 200,
+            'selfHostedActivities' => 30,
+            'draftActivities' => 20,
+            'scheduledActivities' => 150,
+            'proposedActivities' => 60,
             'notificationsPerUserMin' => 30,
             'notificationsPerUserMax' => 50,
         ],
     ];
+
+    public static function resolveDatasetFromEnv(): int
+    {
+        $value = strtolower((string) env('SEED_DATASET', 'minimal'));
+
+        return match ($value) {
+            'standard' => self::DATASET_STANDARD,
+            'maximal' => self::DATASET_MAXIMAL,
+            default => self::DATASET_MINIMAL,
+        };
+    }
 
     /**
      * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
@@ -125,6 +141,8 @@ class SampleDataSeeder extends Seeder
             ->withRandomRooms()
             ->create();
 
+        $events->load(['slots.activityTypes']);
+
         $selfHostedActivities = Activity::factory($dataset['selfHostedActivities'])
             ->recycle($allUsers)
             ->predefined()
@@ -136,32 +154,34 @@ class SampleDataSeeder extends Seeder
             ->predefined()
             ->create();
 
-        $proposedActivities = Activity::factory($dataset['proposedActivities'])
+        $proposedCount = min(
+            $dataset['proposedActivities'],
+            $events->count() * self::MAX_PROPOSED_PER_EVENT,
+        );
+
+        $proposedActivities = Activity::factory($proposedCount)
             ->recycle($allUsers)
             ->predefined()
             ->proposed()
             ->create();
 
-        $scheduledActivities = Activity::factory($dataset['scheduledActivities'])
+        $availableSlotCount = $events->sum(fn (Event $event): int => $event->slots->count());
+        $scheduledCount = min($dataset['scheduledActivities'], $availableSlotCount);
+
+        $scheduledActivities = Activity::factory($scheduledCount)
             ->recycle($allUsers)
             ->predefined()
             ->scheduled()
             ->create();
 
+        $this->assignSelfHostedProposals($selfHostedActivities, $events);
+        $this->assignProposedActivities($proposedActivities, $events);
+        $this->assignScheduledActivities($scheduledActivities, $events);
+
         $activities = $proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities);
+
         foreach ($activities as $activity) {
-            ActivityProposal::factory()
-                ->recycle($events->random())
-                ->recycle($activity)
-                ->recycle($activity->creator)
-                ->alignWithActivity($activity)
-                ->create();
-
-            $activity->tags()->attach($otherTags->random(1));
-            $activity->tags()->attach($formatTags->random(1));
-            $activity->tags()->attach($triggerTags->random(fake()->numberBetween(1, 3)));
-
-            app(AttachGameTagChainUntilGenre::class)($activity, $gameTags->random());
+            $this->attachActivityTags($activity, $gameTags, $formatTags, $otherTags, $triggerTags);
         }
 
         foreach ($allUsers as $user) {
@@ -170,6 +190,127 @@ class SampleDataSeeder extends Seeder
         }
 
         $this->seedNotifications($dataset, $allUsers, $activities, $events);
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $activities
+     * @param  Collection<int, Event>  $events
+     */
+    private function assignSelfHostedProposals(Collection $activities, Collection $events): void
+    {
+        foreach ($activities as $activity) {
+            ActivityProposal::factory()
+                ->recycle($events->random())
+                ->recycle($activity)
+                ->recycle($activity->creator)
+                ->alignWithActivity($activity)
+                ->create();
+        }
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $activities
+     * @param  Collection<int, Event>  $events
+     */
+    private function assignProposedActivities(Collection $activities, Collection $events): void
+    {
+        /** @var array<int, int> $proposalCountsByEventId */
+        $proposalCountsByEventId = $events
+            ->mapWithKeys(fn (Event $event): array => [$event->id => 0])
+            ->all();
+
+        foreach ($activities->shuffle() as $activity) {
+            $eligibleEvents = $events->filter(
+                fn (Event $event): bool => ($proposalCountsByEventId[$event->id] ?? 0) < self::MAX_PROPOSED_PER_EVENT,
+            );
+
+            if ($eligibleEvents->isEmpty()) {
+                break;
+            }
+
+            $event = $eligibleEvents->random();
+            $proposalCountsByEventId[$event->id]++;
+
+            ActivityProposal::factory()
+                ->for($event)
+                ->for($activity)
+                ->for($activity->creator, 'creator')
+                ->create([
+                    'status' => ActivityProposalStatus::Pending,
+                ]);
+        }
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $activities
+     * @param  Collection<int, Event>  $events
+     */
+    private function assignScheduledActivities(Collection $activities, Collection $events): void
+    {
+        $resolveParticipantBounds = app(ResolveParticipantBoundsForSlot::class);
+
+        /** @var list<int> $usedSlotIds */
+        $usedSlotIds = [];
+
+        $freeSlots = $events
+            ->flatMap(fn (Event $event) => $event->slots)
+            ->filter(fn (Slot $slot): bool => $slot->activity_id === null)
+            ->values();
+
+        foreach ($activities->shuffle() as $activity) {
+            $candidateSlots = $freeSlots->filter(function (Slot $slot) use ($activity, $usedSlotIds, $resolveParticipantBounds): bool {
+                if (in_array($slot->id, $usedSlotIds, true)) {
+                    return false;
+                }
+
+                $trialActivity = $activity->replicate();
+                $trialActivity->fill($resolveParticipantBounds($slot, $activity));
+
+                return $slot->fitsProposalActivity($trialActivity);
+            });
+
+            if ($candidateSlots->isEmpty()) {
+                continue;
+            }
+
+            $slot = $candidateSlots->random();
+            $activity->update($resolveParticipantBounds($slot, $activity));
+
+            ActivityProposal::factory()
+                ->for($slot->event)
+                ->for($activity)
+                ->for($activity->creator, 'creator')
+                ->create([
+                    'status' => ActivityProposalStatus::Accepted,
+                    'accepted_slot_id' => $slot->id,
+                ]);
+
+            $slot->update([
+                'activity_id' => $activity->id,
+            ]);
+
+            $usedSlotIds[] = $slot->id;
+        }
+    }
+
+    /**
+     * @param  Collection<int, Tag>  $gameTags
+     * @param  Collection<int, Tag>  $formatTags
+     * @param  Collection<int, Tag>  $otherTags
+     * @param  Collection<int, Tag>  $triggerTags
+     */
+    private function attachActivityTags(
+        Activity $activity,
+        Collection $gameTags,
+        Collection $formatTags,
+        Collection $otherTags,
+        Collection $triggerTags,
+    ): void {
+        $activity->tags()->attach($otherTags->random(1));
+        $activity->tags()->attach($formatTags->random(1));
+        $activity->tags()->attach($triggerTags->random(fake()->numberBetween(1, 3)));
+
+        app(AttachGameTagChainUntilGenre::class)($activity, $gameTags->random());
     }
 
     /**

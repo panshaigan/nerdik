@@ -45,17 +45,22 @@ final class ActivityProposalFactory extends Factory
         if ($activity->hosting_mode === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT) {
 
             return $this->afterCreating(function (ActivityProposal $proposal) use ($activity) {
-                foreach ($proposal->event->slots as $slot) {
-                    if ($slot->activityTypes->contains($activity->activityType)) {
-                        $proposal->update([
-                            'accepted_slot_id' => $slot->id,
-                        ]);
-                        $slot->update([
-                            'activity_id' => $proposal->activity->id,
-                        ]);
-                        break;
-                    }
+                $fittingSlots = $proposal->event->slots
+                    ->filter(fn ($slot) => $slot->activity_id === null)
+                    ->filter(fn ($slot) => $slot->fitsProposalActivity($activity));
+
+                $slot = $fittingSlots->first();
+
+                if ($slot === null) {
+                    return;
                 }
+
+                $proposal->update([
+                    'accepted_slot_id' => $slot->id,
+                ]);
+                $slot->update([
+                    'activity_id' => $proposal->activity->id,
+                ]);
             });
         }
 
