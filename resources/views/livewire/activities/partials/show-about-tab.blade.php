@@ -1,5 +1,5 @@
 <div class="flex flex-col" data-ui="activity-show-info">
-    <div class="px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:px-8">
+    <div class="px-1 pb-6 pt-4 sm:px-6 sm:pt-5 lg:px-8">
         @if (filled(rich_text_excerpt($activity->description)))
             <div class="rich-text-content text-justify text-base-content/80">
                 {!! rich_text($activity->description) !!}

@@ -31,6 +31,8 @@ class PageHeaderComponentTest extends TestCase
 
         $this->assertStringContainsString($user->nickname, $html);
         $this->assertStringContainsString('data-ui="activity-show-host"', $html);
+        $this->assertStringContainsString('flex-col items-start gap-3 sm:flex-row', $html);
+        $this->assertStringContainsString('w-full sm:w-auto', $html);
     }
 
     public function test_page_header_renders_back_button_when_back_url_is_set(): void
