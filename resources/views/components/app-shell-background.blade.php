@@ -2,7 +2,7 @@
 
 @if ($enabled)
     <div
-        class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#00050a]"
+        class="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#00050a]"
         data-ui="app-shell-background"
         aria-hidden="true"
     >
