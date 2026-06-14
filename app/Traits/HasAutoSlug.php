@@ -45,36 +45,49 @@ trait HasAutoSlug
                 return;
             }
 
-            $slugBase = Str::slug($sourceValue);
-            if ($slugBase === '') {
-                $slugBase = 'item';
-            }
-
-            // Keep some space for suffixes like `-2`.
-            $slugBase = Str::limit($slugBase, property_exists($model, 'slugBaseMaxLength') ? $model->slugBaseMaxLength : 190, '');
-            $candidate = $slugBase;
-
-            $query = $model->newModelQuery()->where($slugColumn, $candidate);
-            if ($model->exists) {
-                $query->where($model->getKeyName(), '!=', $model->getKey());
-            }
-
-            if ($query->exists()) {
-                $counter = 2;
-                while (true) {
-                    $candidate = $slugBase.'-'.$counter;
-                    $query = $model->newModelQuery()->where($slugColumn, $candidate);
-                    if ($model->exists) {
-                        $query->where($model->getKeyName(), '!=', $model->getKey());
-                    }
-                    if (! $query->exists()) {
-                        break;
-                    }
-                    $counter++;
-                }
-            }
-
-            $model->{$slugColumn} = $candidate;
+            $model->{$slugColumn} = static::makeUniqueSlug(
+                $sourceValue,
+                $model->exists ? (int) $model->getKey() : null,
+            );
         });
+    }
+
+    public static function makeUniqueSlug(string $sourceValue, ?int $ignoreId = null): string
+    {
+        /** @var Model $model */
+        $model = new static;
+
+        $slugColumn = property_exists($model, 'slugColumn') ? $model->slugColumn : 'slug';
+        $maxLength = property_exists($model, 'slugBaseMaxLength') ? $model->slugBaseMaxLength : 190;
+
+        $slugBase = Str::slug($sourceValue);
+        if ($slugBase === '') {
+            $slugBase = 'item';
+        }
+
+        $slugBase = Str::limit($slugBase, $maxLength, '');
+        $candidate = $slugBase;
+
+        $query = static::query()->where($slugColumn, $candidate);
+        if ($ignoreId !== null) {
+            $query->where($model->getKeyName(), '!=', $ignoreId);
+        }
+
+        if ($query->exists()) {
+            $counter = 2;
+            while (true) {
+                $candidate = $slugBase.'-'.$counter;
+                $query = static::query()->where($slugColumn, $candidate);
+                if ($ignoreId !== null) {
+                    $query->where($model->getKeyName(), '!=', $ignoreId);
+                }
+                if (! $query->exists()) {
+                    break;
+                }
+                $counter++;
+            }
+        }
+
+        return $candidate;
     }
 }

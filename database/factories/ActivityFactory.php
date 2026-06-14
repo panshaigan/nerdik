@@ -472,7 +472,15 @@ final class ActivityFactory extends Factory
             );
         }
 
-        return $this->state(self::$predefinedSequence);
+        return $this
+            ->state(self::$predefinedSequence)
+            ->afterMaking(function (Activity $activity): void {
+                if (filled($activity->slug) || ! filled($activity->name)) {
+                    return;
+                }
+
+                $activity->slug = Activity::makeUniqueSlug((string) $activity->name);
+            });
     }
 
     public static function resetPredefinedSequenceForTesting(): void

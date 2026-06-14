@@ -7,6 +7,7 @@ namespace Tests\Unit\Factories;
 use App\Models\Activity;
 use Database\Factories\ActivityFactory;
 use Database\Seeders\ActivityTypeSeeder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -64,6 +65,21 @@ final class ActivityFactoryPredefinedSlugTest extends TestCase
             ->filter(fn (string $slug): bool => (bool) preg_match('/-\d+$/', $slug));
 
         $this->assertCount(5, $suffixedSlugs);
+    }
+
+    #[Test]
+    public function it_assigns_slugs_when_model_events_are_disabled_like_database_seeder(): void
+    {
+        Model::withoutEvents(function (): void {
+            $activities = Activity::factory(10)->predefined()->create();
+
+            foreach ($activities as $activity) {
+                $this->assertNotNull($activity->slug);
+                $this->assertNotSame('', $activity->slug);
+            }
+
+            $this->assertSame(10, $activities->pluck('slug')->unique()->count());
+        });
     }
 
     /**
