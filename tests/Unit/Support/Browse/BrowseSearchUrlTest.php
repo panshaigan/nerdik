@@ -19,6 +19,7 @@ final class BrowseSearchUrlTest extends TestCase
         $this->assertStringContainsString('include_past_events=1', $url);
         $this->assertStringContainsString('only_events=1', $url);
         $this->assertStringContainsString('only_mine=1', $url);
+        $this->assertStringContainsString('preset='.BrowseSearchUrl::PRESET_MY_EVENTS, $url);
         $this->assertStringNotContainsString('only_activities=1', $url);
     }
 
@@ -30,7 +31,27 @@ final class BrowseSearchUrlTest extends TestCase
         $this->assertStringContainsString('include_past_events=1', $url);
         $this->assertStringContainsString('only_activities=1', $url);
         $this->assertStringContainsString('only_mine=1', $url);
+        $this->assertStringContainsString('preset='.BrowseSearchUrl::PRESET_MY_ACTIVITIES, $url);
         $this->assertStringNotContainsString('only_events=1', $url);
+    }
+
+    public function test_is_ephemeral_preset_matches_profile_menu_urls(): void
+    {
+        $myEvents = Request::create(BrowseSearchUrl::myEvents());
+        $myEvents->setRouteResolver(fn () => app('router')->getRoutes()->getByName('search.index'));
+
+        $this->assertTrue(BrowseSearchUrl::isEphemeralPreset($myEvents));
+
+        $myActivities = Request::create(BrowseSearchUrl::myActivities());
+        $myActivities->setRouteResolver(fn () => app('router')->getRoutes()->getByName('search.index'));
+
+        $this->assertTrue(BrowseSearchUrl::isEphemeralPreset($myActivities));
+    }
+
+    public function test_url_has_ephemeral_preset_detects_preset_query_param(): void
+    {
+        $this->assertTrue(BrowseSearchUrl::urlHasEphemeralPreset(BrowseSearchUrl::myEvents()));
+        $this->assertFalse(BrowseSearchUrl::urlHasEphemeralPreset('/search?q=term'));
     }
 
     public function test_is_my_events_matches_search_preset(): void

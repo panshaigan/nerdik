@@ -219,4 +219,32 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSee('Dashboard feed preview description');
     }
+
+    public function test_draft_owner_listing_card_hides_details_link_and_modal_shows_edit(): void
+    {
+        $owner = User::factory()->create();
+        $startsAt = now()->addDay()->setTime(10, 0);
+        $endsAt = (clone $startsAt)->addHours(2);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'name' => 'Draft Dashboard Activity',
+            'description' => 'Draft preview body for owner modal',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(Dashboard::class)
+            ->assertSee('Draft Dashboard Activity')
+            ->assertDontSeeHtml('data-ui="activity-card-open-details"')
+            ->call('openListingActivityPreview', $activity->id)
+            ->assertSet('activityPreviewModalOpen', true)
+            ->assertSee('Draft preview body for owner modal')
+            ->assertSee(__('ui.activities.edit_activity'))
+            ->assertDontSee(__('ui.activities.show_details'))
+            ->assertSeeHtml('activities/'.$activity->slug.'/edit');
+    }
 }

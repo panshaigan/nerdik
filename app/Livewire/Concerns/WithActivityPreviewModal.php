@@ -148,6 +148,9 @@ trait WithActivityPreviewModal
      *     previewActivityHasActiveEnrollmentWindow: bool,
      *     showPreviewParticipationActions: bool,
      *     previewAbout: ?ActivityPreviewAboutViewData,
+     *     previewActivityShowDetailsLink: bool,
+     *     previewActivityIsOwner: bool,
+     *     previewActivityEditUrl: ?string,
      * }
      */
     protected function resolveActivityPreviewViewData(
@@ -166,6 +169,9 @@ trait WithActivityPreviewModal
         $previewActivityHasActiveEnrollmentWindow = false;
         $showPreviewParticipationActions = false;
         $previewAbout = null;
+        $previewActivityShowDetailsLink = false;
+        $previewActivityIsOwner = false;
+        $previewActivityEditUrl = null;
 
         if ($previewActivity !== null) {
             $previewActivity->loadMissing([
@@ -196,6 +202,11 @@ trait WithActivityPreviewModal
             $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
             $showPreviewParticipationActions = $this->showPreviewParticipationActions($previewActivity);
             $previewAbout = $aboutPresenter->build($previewActivity);
+            $previewActivityShowDetailsLink = $previewActivity->isPubliclyShowable();
+            $previewActivityIsOwner = $user !== null && (int) ($previewActivity->created_by ?? 0) === (int) $user->id;
+            $previewActivityEditUrl = $previewActivityIsOwner
+                ? url_with_return(route('activities.edit', $previewActivity), browsing_return_url())
+                : null;
         } elseif ($this->activityPreviewModalOpen) {
             $this->closeActivityPreview();
         }
@@ -207,6 +218,9 @@ trait WithActivityPreviewModal
             'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow,
             'showPreviewParticipationActions' => $showPreviewParticipationActions,
             'previewAbout' => $previewAbout,
+            'previewActivityShowDetailsLink' => $previewActivityShowDetailsLink,
+            'previewActivityIsOwner' => $previewActivityIsOwner,
+            'previewActivityEditUrl' => $previewActivityEditUrl,
         ];
     }
 

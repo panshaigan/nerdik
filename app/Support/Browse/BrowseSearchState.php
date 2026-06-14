@@ -20,6 +20,10 @@ final class BrowseSearchState
             return;
         }
 
+        if (BrowseSearchUrl::urlHasEphemeralPreset($safe)) {
+            return;
+        }
+
         $normalized = BrowseSearchUrl::normalizeReturnUrl($safe);
         if ($normalized === '/search') {
             self::forget();

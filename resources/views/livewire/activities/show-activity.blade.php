@@ -125,8 +125,6 @@
                     :title="__('ui.interests.interested_in_short')"
                     :value="$interestedPeopleCount"
                     :has-interest="$hasInterest"
-                    icon="s-star"
-                    icon-color="text-warning"
                     class="w-full rounded-2xl"
                     data-ui="activity-show-interested-stat"
                 />

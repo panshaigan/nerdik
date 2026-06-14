@@ -135,6 +135,37 @@ class ShowActivityActionsTest extends TestCase
         $this->assertStringContainsString('loading loading-spinner loading-sm', $html);
     }
 
+    public function test_interested_stat_uses_outline_star_when_user_is_not_interested(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->html();
+
+        $statHtml = $this->interestedStatHtml($html);
+        $this->assertNotNull($statHtml);
+        $this->assertStringContainsString('text-base-content/80 hover:text-warning', $statHtml);
+        $this->assertStringContainsString('fill="none"', $statHtml);
+    }
+
+    public function test_interested_stat_uses_filled_yellow_star_when_user_is_interested(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+        $user->interestedActivities()->attach($activity->id);
+
+        $html = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->html();
+
+        $statHtml = $this->interestedStatHtml($html);
+        $this->assertNotNull($statHtml);
+        $this->assertStringContainsString('class="  text-warning"', $statHtml);
+        $this->assertStringContainsString('fill="currentColor"', $statHtml);
+    }
+
     public function test_interested_stat_has_no_wire_click_for_guest(): void
     {
         $activity = Activity::factory()->create();
@@ -211,6 +242,19 @@ class ShowActivityActionsTest extends TestCase
     private function interestedStatOpeningTag(string $html): ?string
     {
         if (preg_match('/<div\b[^>]*\bdata-ui="activity-show-interested-stat"[^>]*>/', $html, $matches) !== 1) {
+            return null;
+        }
+
+        /** @var non-falsy-string */
+        return $matches[0];
+    }
+
+    /**
+     * @return non-empty-string|null
+     */
+    private function interestedStatHtml(string $html): ?string
+    {
+        if (preg_match('/<div\b[^>]*\bdata-ui="activity-show-interested-stat"[^>]*>.*?<\/div>\s*<\/div>/s', $html, $matches) !== 1) {
             return null;
         }
 

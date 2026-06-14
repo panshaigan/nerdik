@@ -73,6 +73,13 @@ class BrowseEvents extends Component
 
     public function mount(): void
     {
+        if (BrowseSearchUrl::isEphemeralPreset(request())) {
+            BrowseSearchState::forget();
+            $this->js('window.__nerdikClearBrowseSearchState?.()');
+
+            return;
+        }
+
         if (BrowseSearchState::requestHasSearchParams(request())) {
             return;
         }
@@ -450,12 +457,14 @@ class BrowseEvents extends Component
             $this->browseSortDirection(),
         );
         remember_browsing_return_url($browsingReturnUrl);
-        BrowseSearchState::syncFromFilterBag(
-            $this->browseFilterBag(),
-            $this->map_view,
-            $this->browseSortKey(),
-            $this->browseSortDirection(),
-        );
+        if (! BrowseSearchUrl::isEphemeralPreset(request())) {
+            BrowseSearchState::syncFromFilterBag(
+                $this->browseFilterBag(),
+                $this->map_view,
+                $this->browseSortKey(),
+                $this->browseSortDirection(),
+            );
+        }
 
         return view('livewire.browse.browse-events', [
             'browsingReturnUrl' => $browsingReturnUrl,

@@ -1,14 +1,24 @@
 const STORAGE_KEY = 'nerdik.browse.search';
 
+const EPHEMERAL_PRESETS = new Set(['my_events', 'my_activities']);
+
+const IGNORED_QUERY_KEYS = new Set(['page', 'preset']);
+
 function isSearchPage() {
     return window.location.pathname === '/search';
+}
+
+function isEphemeralSearchVisit() {
+    const preset = new URLSearchParams(window.location.search).get('preset');
+
+    return preset !== null && EPHEMERAL_PRESETS.has(preset);
 }
 
 function hasSearchQueryString() {
     const params = new URLSearchParams(window.location.search);
 
     for (const key of params.keys()) {
-        if (key !== 'page') {
+        if (!IGNORED_QUERY_KEYS.has(key)) {
             return true;
         }
     }
@@ -18,6 +28,12 @@ function hasSearchQueryString() {
 
 function syncBrowseSearchState() {
     if (!isSearchPage()) {
+        return;
+    }
+
+    if (isEphemeralSearchVisit()) {
+        localStorage.removeItem(STORAGE_KEY);
+
         return;
     }
 
