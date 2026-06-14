@@ -84,6 +84,36 @@ final class SampleDataSeederConsistencyTest extends TestCase
         putenv('SEED_DATASET');
     }
 
+    #[Test]
+    public function it_keeps_activity_slugs_unique_when_seeding_maximal_dataset(): void
+    {
+        $this->seed(BaseDataSeeder::class);
+
+        $this->app->make(SampleDataSeeder::class)->run(SampleDataSeeder::DATASET_MAXIMAL);
+
+        $slugs = Activity::query()->pluck('slug')->all();
+
+        $this->assertGreaterThanOrEqual(200, count($slugs));
+        $this->assertSame(count($slugs), count(array_unique($slugs)));
+    }
+
+    #[Test]
+    public function it_suffixes_activity_slugs_when_more_predefined_activities_are_seeded_later(): void
+    {
+        $this->seed(BaseDataSeeder::class);
+
+        $this->app->make(SampleDataSeeder::class)->run(SampleDataSeeder::DATASET_MINIMAL);
+
+        $beforeCount = Activity::query()->count();
+
+        Activity::factory(5)->predefined()->create();
+
+        $slugs = Activity::query()->pluck('slug')->all();
+
+        $this->assertGreaterThan($beforeCount, Activity::query()->count());
+        $this->assertSame(count($slugs), count(array_unique($slugs)));
+    }
+
     private function seedSampleData(): void
     {
         $this->seed(BaseDataSeeder::class);
