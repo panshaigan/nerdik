@@ -87,7 +87,7 @@
     </div>
 </div>
 
-<div class="mt-4">
+<div class="my-4">
     <x-editor
         wire:model="description"
         :gpl-license="true"
@@ -95,3 +95,10 @@
     />
     <x-field-error :messages="$errors->get('description')" class="mt-2" />
 </div>
+
+<x-toggle
+    id="is_public"
+    wire:model="is_public"
+    :label="__('ui.events.public_event')"
+    :hint="__('ui.events.public_event_hint')"
+/>

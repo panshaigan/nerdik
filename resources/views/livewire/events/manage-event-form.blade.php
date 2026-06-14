@@ -7,7 +7,7 @@
     $title = $editingEvent ? $this->name : __('ui.events.create');
 @endphp
 <div>
-    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl">
+    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl" class="mb-4">
         <x-slot:titleSuffix>
             @if ($this->isCancelled)
                 <x-popover class="inline-flex transition-none" position="bottom" offset="8">
@@ -42,15 +42,7 @@
             @endif
         </x-slot:titleSuffix>
     </x-page-header>
-    <div class="flex justify-end items-center p-6">
-            <x-toggle
-                id="is_public"
-                wire:model="is_public"
-                :label="__('ui.events.public_event')"
-                :hint="__('ui.events.public_event_hint')"
-            />
-    </div>
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="mb-10" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
         <x-form wire:submit.prevent="save" novalidate data-event-form>

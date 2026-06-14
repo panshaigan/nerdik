@@ -6,10 +6,10 @@
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 <div>
-    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl">
+    <x-page-header :title="$title" :user="$creator" :back-url="$backUrl" class="mb-4">
     </x-page-header>
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="mb-10" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] min-w-0 rounded-2xl">
         <x-form wire:submit.prevent="save" novalidate class="" data-activity-form>
