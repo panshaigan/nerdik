@@ -75,6 +75,10 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
     {
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+        ]);
 
         Livewire::withoutLazyLoading()
             ->actingAs($owner)

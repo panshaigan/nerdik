@@ -488,6 +488,10 @@ class EventShowPlanTab extends Component
 
         $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
 
+        $hasEmptySlots = $event->slots->contains(
+            fn (Slot $slot): bool => $slot->activity === null,
+        );
+
         $slotCardBadgeItemsByActivityId = [];
         $slotTypeBadgeItemsBySlotId = [];
         foreach ($event->slots as $slot) {
@@ -518,6 +522,7 @@ class EventShowPlanTab extends Component
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
             'showEmptySlots' => (bool) $this->showEmptySlots,
+            'hasEmptySlots' => $hasEmptySlots,
             'emptySlotsRestricted' => $this->shouldRestrictEmptySlots($event, $user),
             'interestedActivityIds' => $interestedActivityIds,
             'slotHourGroups' => $slotHourGroups,

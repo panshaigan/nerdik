@@ -189,4 +189,72 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             ->assertSee($activity->name)
             ->assertDontSee('Always Hidden Empty Slot');
     }
+
+    public function test_empty_slots_toggle_is_hidden_when_event_has_no_empty_slots(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $organizer = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $organizer->id,
+            'name' => 'Filled Slot Activity',
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'name' => 'Filled Slot',
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('hasEmptySlots', false)
+            ->assertDontSeeHtml('data-ui="event-show-toggle-empty-slots"');
+    }
+
+    public function test_empty_slots_toggle_is_hidden_when_event_has_no_slots(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $organizer = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('hasEmptySlots', false)
+            ->assertDontSeeHtml('data-ui="event-show-toggle-empty-slots"');
+    }
+
+    public function test_empty_slots_toggle_is_shown_when_event_has_empty_slots(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $organizer = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+            'name' => 'Toggle Visible Empty Slot',
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('hasEmptySlots', true)
+            ->assertSeeHtml('data-ui="event-show-toggle-empty-slots"');
+    }
 }

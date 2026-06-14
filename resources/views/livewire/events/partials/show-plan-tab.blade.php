@@ -54,37 +54,41 @@
             @endphp
         @endif
     @endauth
-    <div class="flex items-center justify-end gap-2 mb-4 sm:mb-0">
-        @auth
-            @if ($canShowPlanActivityProposalUi ?? false)
+    @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
+        <div class="flex items-center justify-end gap-2 mb-4 sm:mb-0">
+            @auth
+                @if ($canShowPlanActivityProposalUi ?? false)
+                    <x-button
+                        type="button"
+                        class="btn-outline btn-sm btn-primary"
+                        x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                        data-ui="event-show-scroll-to-propose-hero"
+                    >
+                        {{ __('ui.events.want_to_propose_activity') }}
+                    </x-button>
+                @endif
+            @endauth
+            @if ($hasEmptySlots)
                 <x-button
                     type="button"
-                    class="btn-outline btn-sm btn-primary"
-                    x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
-                    data-ui="event-show-scroll-to-propose-hero"
+                    wire:click="toggleShowEmptySlots"
+                    wire:loading.attr="disabled"
+                    wire:target="toggleShowEmptySlots"
+                    class="btn-outline btn-sm btn-neutral"
+                    :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
+                    data-ui="event-show-toggle-empty-slots"
                 >
-                    {{ __('ui.events.want_to_propose_activity') }}
+                    <span wire:loading.remove wire:target="toggleShowEmptySlots">
+                        {{ $showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots') }}
+                    </span>
+                    <span wire:loading wire:target="toggleShowEmptySlots" class="inline-flex items-center gap-2">
+                        <span class="loading loading-spinner loading-xs" aria-hidden="true"></span>
+                        {{ __('ui.common.loading') }}
+                    </span>
                 </x-button>
             @endif
-        @endauth
-        <x-button
-            type="button"
-            wire:click="toggleShowEmptySlots"
-            wire:loading.attr="disabled"
-            wire:target="toggleShowEmptySlots"
-            class="btn-outline btn-sm btn-neutral"
-            :aria-label="$showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots')"
-            data-ui="event-show-toggle-empty-slots"
-        >
-            <span wire:loading.remove wire:target="toggleShowEmptySlots">
-                {{ $showEmptySlots ? __('ui.events.hide_empty_slots') : __('ui.events.show_empty_slots') }}
-            </span>
-            <span wire:loading wire:target="toggleShowEmptySlots" class="inline-flex items-center gap-2">
-                <span class="loading loading-spinner loading-xs" aria-hidden="true"></span>
-                {{ __('ui.common.loading') }}
-            </span>
-        </x-button>
-    </div>
+        </div>
+    @endif
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             @php
