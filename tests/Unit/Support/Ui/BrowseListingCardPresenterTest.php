@@ -71,6 +71,39 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertNull($viewData->parentEventUrl);
         $this->assertSame('toggleActivityInterest', $viewData->interestWireMethod);
         $this->assertFalse($viewData->isInterested);
+        $this->assertFalse($viewData->showDetailsLink);
+    }
+
+    #[Test]
+    public function from_scheduled_activity_exposes_show_details_link(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $user->id, 'name' => 'Mega Con']);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $slot = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+        $slot->setRelation('event', $event);
+        $activity->setRelation('slot', $slot);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertTrue($viewData->showDetailsLink);
+    }
+
+    #[Test]
+    public function from_event_exposes_show_details_link(): void
+    {
+        $event = Event::factory()->create();
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertTrue($viewData->showDetailsLink);
     }
 
     #[Test]

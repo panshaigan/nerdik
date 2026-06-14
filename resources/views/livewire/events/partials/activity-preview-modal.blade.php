@@ -78,13 +78,23 @@
                     @endif
                 @endauth
 
-                <x-button
-                    :link="route('activities.show', $previewActivity)"
-                    class="btn-outline"
-                    wire:navigate
-                >
-                    {{ __('ui.activities.show_details') }}
-                </x-button>
+                @if ($previewActivityShowDetailsLink ?? false)
+                    <x-button
+                        :link="route('activities.show', $previewActivity)"
+                        class="btn-outline"
+                        wire:navigate
+                    >
+                        {{ __('ui.activities.show_details') }}
+                    </x-button>
+                @elseif ($previewActivityIsOwner ?? false)
+                    <x-button
+                        :link="$previewActivityEditUrl"
+                        class="btn-outline"
+                        wire:navigate
+                    >
+                        {{ __('ui.activities.edit_activity') }}
+                    </x-button>
+                @endif
             </div>
         </div>
     </x-modal>

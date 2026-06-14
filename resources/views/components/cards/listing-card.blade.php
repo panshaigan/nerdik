@@ -38,6 +38,19 @@
                         data-ui="{{ $d->dataUiPrefix }}-interest-add"
                     />
                 @endif
+                @if ($d->showDetailsLink)
+                    <x-button
+                        :link="$d->detailsUrl"
+                        wire:navigate
+                        class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                        :aria-label="$d->openDetailsAriaLabel"
+                        icon="o-arrow-top-right-on-square"
+                        data-ui="{{ $d->dataUiPrefix }}-open-details"
+                    />
+                @endif
+            </div>
+        @else
+            @if ($d->showDetailsLink)
                 <x-button
                     :link="$d->detailsUrl"
                     wire:navigate
@@ -46,16 +59,7 @@
                     icon="o-arrow-top-right-on-square"
                     data-ui="{{ $d->dataUiPrefix }}-open-details"
                 />
-            </div>
-        @else
-            <x-button
-                :link="$d->detailsUrl"
-                wire:navigate
-                class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
-                :aria-label="$d->openDetailsAriaLabel"
-                icon="o-arrow-top-right-on-square"
-                data-ui="{{ $d->dataUiPrefix }}-open-details"
-            />
+            @endif
         @endauth
     </div>
     <div class="ui-listing-card__surface ui-content-card flex min-h-0 flex-1 flex-col overflow-visible">

@@ -11,6 +11,16 @@ use Illuminate\Http\Request;
  */
 final class BrowseSearchUrl
 {
+    public const PRESET_MY_EVENTS = 'my_events';
+
+    public const PRESET_MY_ACTIVITIES = 'my_activities';
+
+    /** @var list<string> */
+    private const EPHEMERAL_PRESETS = [
+        self::PRESET_MY_EVENTS,
+        self::PRESET_MY_ACTIVITIES,
+    ];
+
     /** @var array<string, bool> */
     private const MY_EVENTS = [
         'include_past_events' => true,
@@ -27,22 +37,57 @@ final class BrowseSearchUrl
 
     public static function myEvents(): string
     {
-        return route('search.index', self::MY_EVENTS);
+        return route('search.index', [
+            ...self::MY_EVENTS,
+            'preset' => self::PRESET_MY_EVENTS,
+        ]);
     }
 
     public static function myActivities(): string
     {
-        return route('search.index', self::MY_ACTIVITIES);
+        return route('search.index', [
+            ...self::MY_ACTIVITIES,
+            'preset' => self::PRESET_MY_ACTIVITIES,
+        ]);
+    }
+
+    public static function isEphemeralPreset(Request $request): bool
+    {
+        return in_array((string) $request->query('preset', ''), self::EPHEMERAL_PRESETS, true);
     }
 
     public static function isMyEvents(Request $request): bool
     {
+        if ($request->query('preset') === self::PRESET_MY_EVENTS) {
+            return true;
+        }
+
         return self::requestMatches($request, self::MY_EVENTS);
     }
 
     public static function isMyActivities(Request $request): bool
     {
+        if ($request->query('preset') === self::PRESET_MY_ACTIVITIES) {
+            return true;
+        }
+
         return self::requestMatches($request, self::MY_ACTIVITIES);
+    }
+
+    public static function urlHasEphemeralPreset(string $url): bool
+    {
+        if (return_path_from_uri($url) !== '/search') {
+            return false;
+        }
+
+        $queryString = parse_url($url, PHP_URL_QUERY);
+        if (! is_string($queryString) || $queryString === '') {
+            return false;
+        }
+
+        parse_str($queryString, $query);
+
+        return in_array((string) ($query['preset'] ?? ''), self::EPHEMERAL_PRESETS, true);
     }
 
     /**

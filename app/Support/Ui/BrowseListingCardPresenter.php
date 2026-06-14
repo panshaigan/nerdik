@@ -70,6 +70,7 @@ final class BrowseListingCardPresenter
             openAriaLabel: __('Open activity').': '.$activity->name,
             openDetailsAriaLabel: __('ui.activities.show_details').': '.$activity->name,
             previewWireMethod: 'openListingActivityPreview',
+            showDetailsLink: $activity->isPubliclyShowable(),
             confirmedActivitiesCount: null,
         );
     }
@@ -112,6 +113,7 @@ final class BrowseListingCardPresenter
             openAriaLabel: __('Open event').': '.$event->name,
             openDetailsAriaLabel: __('ui.events.show_details').': '.$event->name,
             previewWireMethod: 'openListingEventPreview',
+            showDetailsLink: true,
             confirmedActivitiesCount: $confirmedActivitiesCount,
         );
     }

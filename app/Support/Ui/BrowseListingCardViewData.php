@@ -41,6 +41,7 @@ final readonly class BrowseListingCardViewData
         public string $openAriaLabel,
         public string $openDetailsAriaLabel,
         public string $previewWireMethod,
+        public bool $showDetailsLink,
         public ?int $confirmedActivitiesCount = null,
     ) {}
 }

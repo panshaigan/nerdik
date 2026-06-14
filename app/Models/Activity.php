@@ -180,6 +180,14 @@ class Activity extends Model implements HasMedia
         ], true);
     }
 
+    public function isPubliclyShowable(): bool
+    {
+        return static::query()
+            ->whereKey($this->getKey())
+            ->attachedToPublicEvent()
+            ->exists();
+    }
+
     /**
      * Hard delete is allowed only for draft-ish activities without roster and not scheduled on an event.
      */

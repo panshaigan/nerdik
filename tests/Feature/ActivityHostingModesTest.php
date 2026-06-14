@@ -84,4 +84,26 @@ class ActivityHostingModesTest extends TestCase
         $this->assertNotContains($draft->id, $ids);
         $this->assertNotContains($scheduledPrivate->id, $ids);
     }
+
+    #[Test]
+    public function is_publicly_showable_matches_attached_scope(): void
+    {
+        $selfHosted = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+        ]);
+        $draft = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+        $proposed = Activity::factory()->proposed()->create();
+
+        $publicEvent = Event::factory()->create(['is_public' => true]);
+        $scheduledPublic = Activity::factory()->create(['hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT]);
+        Slot::factory()->create(['event_id' => $publicEvent->id, 'activity_id' => $scheduledPublic->id]);
+
+        $this->assertTrue($selfHosted->isPubliclyShowable());
+        $this->assertTrue($scheduledPublic->isPubliclyShowable());
+        $this->assertFalse($draft->isPubliclyShowable());
+        $this->assertFalse($proposed->isPubliclyShowable());
+    }
 }

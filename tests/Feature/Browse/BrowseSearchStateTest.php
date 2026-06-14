@@ -6,6 +6,7 @@ namespace Tests\Feature\Browse;
 
 use App\Livewire\Browse\BrowseEvents;
 use App\Support\Browse\BrowseSearchState;
+use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Livewire\Livewire;
@@ -82,6 +83,43 @@ final class BrowseSearchStateTest extends TestCase
         session([BrowseSearchState::SESSION_KEY => '/search?q=old']);
 
         BrowseSearchState::remember('/search');
+
+        $this->assertNull(session(BrowseSearchState::SESSION_KEY));
+    }
+
+    public function test_my_events_preset_does_not_persist_filter_state_to_session(): void
+    {
+        $this->get(BrowseSearchUrl::myEvents())
+            ->assertOk();
+
+        $this->assertNull(session(BrowseSearchState::SESSION_KEY));
+    }
+
+    public function test_my_events_preset_clears_existing_cached_search_url(): void
+    {
+        $this->withSession([
+            BrowseSearchState::SESSION_KEY => '/search?q=old',
+        ])
+            ->get(BrowseSearchUrl::myEvents())
+            ->assertOk();
+
+        $this->assertNull(session(BrowseSearchState::SESSION_KEY));
+    }
+
+    public function test_bare_search_does_not_restore_after_my_events_preset_visit(): void
+    {
+        $this->get(BrowseSearchUrl::myEvents())
+            ->assertOk();
+
+        Livewire::test(BrowseEvents::class)
+            ->assertOk()
+            ->assertSet('only_mine', false)
+            ->assertSet('only_events', false);
+    }
+
+    public function test_remember_ignores_urls_with_ephemeral_preset(): void
+    {
+        BrowseSearchState::remember(BrowseSearchUrl::myEvents());
 
         $this->assertNull(session(BrowseSearchState::SESSION_KEY));
     }
