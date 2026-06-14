@@ -23,7 +23,7 @@ class TabsWithToolbar extends Component
         public string $labelClass = 'font-semibold pb-1',
         public string $activeClass = 'border-b-[length:var(--border)] border-b-base-content/50',
         public string $labelDivClass = 'border-b-[length:var(--border)] border-b-base-content/10 flex overflow-x-auto',
-        public string $tabsClass = 'relative w-full',
+        public string $tabsClass = 'relative flex w-full flex-col',
         /** Flex row wrapping scrollable labels + optional toolbar (border, alignment). */
         public string $labelBarClass = 'flex w-full min-w-0 items-end border-b border-base-300',
         /** Wrapper around the {@see $toolbar} slot; only rendered when the slot has content. */
