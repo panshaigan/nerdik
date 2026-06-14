@@ -29,7 +29,7 @@ final class AppShellBackgroundTest extends TestCase
         $response->assertSee('images/app/background-light.webp', false);
         $response->assertSee('fixed inset-0 z-0', false);
         $response->assertSee('relative z-10 flex min-h-screen flex-col', false);
-        $response->assertSee('<footer class="border-t border-white/10 backdrop-blur-md">', false);
+        $response->assertSee('<footer class="border-t border-white/10 backdrop-blur-xs">', false);
         $response->assertDontSee('bg-base-100/90', false);
     }
 

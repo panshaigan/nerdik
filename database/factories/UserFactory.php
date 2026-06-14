@@ -33,7 +33,7 @@ final class UserFactory extends Factory
         return [
             'name' => fake()->name,
             'nickname' => fake()->unique()->userName,
-            'email' => fake()->safeEmail,
+            'email' => fake()->unique()->safeEmail(),
             'password' => Hash::make(self::SAMPLE_PASSWORD),
             'is_admin' => 0,
             'is_event_organizer' => 0,
