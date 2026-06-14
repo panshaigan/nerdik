@@ -33,5 +33,7 @@ final class ActivityBadgeGroupViewTest extends TestCase
         $this->assertStringContainsString('Sword &amp; Sorcery', $html);
         $this->assertStringNotContainsString('Sword &amp;amp; Sorcery', $html);
         $this->assertStringContainsString('data-tip="Genre"', $html);
+        $this->assertStringContainsString('ui-activity-badge-tags', $html);
+        $this->assertStringContainsString('tooltip tooltip-primary ui-activity-badge-tooltip', $html);
     }
 }

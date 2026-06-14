@@ -39,9 +39,10 @@ final class ShowActivityInfoSectionTest extends TestCase
         $this->assertStringContainsString('px-4', $html);
         $this->assertStringContainsString('sm:px-6', $html);
         $this->assertStringContainsString('lg:px-8', $html);
-        $this->assertStringContainsString('ui-activity-show-info-badges', $html);
+        $this->assertStringContainsString('ui-activity-badge-tags', $html);
         $this->assertStringContainsString('ui-activity-show-info-panel', $html);
         $this->assertStringContainsString('data-ui="activity-show-badge-group"', $html);
+        $this->assertStringContainsString('tooltip tooltip-primary ui-activity-badge-tooltip', $html);
         $this->assertStringContainsString('data-ui="activity-show-participants-stat"', $html);
         $this->assertStringContainsString('data-ui="activity-show-interested-stat"', $html);
         $this->assertStringContainsString('ui-activity-show-stat', $html);

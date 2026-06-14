@@ -160,7 +160,7 @@
             <div class="relative z-20 p-4 pointer-events-auto">
                 <x-ui.activity-badge-group
                     :items="$d->badgeItems"
-                    class="ui-browse-listing-card-tags !my-0 gap-2"
+                    class="!my-0 gap-2"
                     :data-ui="$d->badgeGroupDataUi"
                 />
             </div>
