@@ -2,7 +2,7 @@
     <x-page-header :title="__('ui.profile.title')">
     </x-page-header>
 
-    <div class="ui-content-card rounded-2xl" data-ui="profile-tabs-shell">
+    <div class="ui-content-card rounded-2xl mt-4" data-ui="profile-tabs-shell">
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"
             label-div-class="flex gap-5 px-3"
