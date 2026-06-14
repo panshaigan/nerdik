@@ -130,4 +130,20 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('Log Out'), false)
             ->assertDontSee('window.toggleTheme()', false);
     }
+
+    public function test_navigation_is_fixed_with_layout_spacer(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/<div class="[^"]*\bfixed\b[^"]*\btop-0\b[^"]*\binset-x-0\b[^"]*" role="navigation"/',
+            $response->getContent(),
+        );
+
+        $response->assertSee('ui-app-navigation__spacer', false);
+    }
 }
