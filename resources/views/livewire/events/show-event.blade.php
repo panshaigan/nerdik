@@ -4,24 +4,14 @@
     $eventPlaceSummary = $event->compactPlaceSummary();
 @endphp
 <div
-    class="relative isolate"
+    class="relative"
     data-show-event-id="{{ $event->id }}"
     data-show-event-activity-ids='@json($attachedActivityIds)'
 >
-    <div
-        class="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+    <x-listing-show-page-background
+        :picture="$coverPicture"
         data-ui="event-show-page-background"
-        aria-hidden="true"
-    >
-        <div class="absolute inset-0 scale-105 blur-md">
-            <x-listing-card-picture
-                :picture="$coverPicture"
-                class="h-full w-full object-cover"
-                loading="eager"
-            />
-        </div>
-        <div class="absolute inset-0 bg-base-100/35"></div>
-    </div>
+    />
 
     <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">

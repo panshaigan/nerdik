@@ -19,7 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body
-        class="font-sans antialiased text-base-content"
+        class="bg-transparent font-sans antialiased text-base-content"
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >
@@ -27,7 +27,7 @@
 
         <x-environment-indicator />
 
-        <div class="min-h-screen flex flex-col">
+        <div class="relative z-10 flex min-h-screen flex-col">
             <livewire:layout.navigation />
 
             <div class="flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
@@ -35,19 +35,19 @@
                     <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0 max-w-7xl mx-auto mb-4 sm:mb-6">
                         {{ $slot }}
                     </x-slot:content>
-
-                    <x-slot:footer class="border-t border-white/10 bg-black/35 backdrop-blur-md">
-                        <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-                            <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
-                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-                                <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
-                                <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>
-                                <a href="{{ route('contact') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.contact') }}</a>
-                            </div>
-                        </div>
-                    </x-slot:footer>
                 </x-main>
             </div>
+
+            <footer class="border-t border-white/10 backdrop-blur-md">
+                <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+                    <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
+                        <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>
+                        <a href="{{ route('contact') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.contact') }}</a>
+                    </div>
+                </div>
+            </footer>
         </div>
 
         <x-toast />

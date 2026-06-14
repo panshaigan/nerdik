@@ -13,12 +13,12 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen font-sans text-base-content antialiased">
+    <body class="min-h-screen bg-transparent font-sans text-base-content antialiased">
         <x-app-shell-background />
 
         <x-environment-indicator />
 
-        <div class="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
+        <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
 
             <header class="flex items-center justify-between gap-4 pb-6">
                 <div class="flex items-center gap-3">

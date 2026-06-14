@@ -37,21 +37,11 @@
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
-<div class="relative isolate" data-show-activity-id="{{ $activity->id }}">
-    <div
-        class="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+<div class="relative" data-show-activity-id="{{ $activity->id }}">
+    <x-listing-show-page-background
+        :picture="$coverPicture"
         data-ui="activity-show-page-background"
-        aria-hidden="true"
-    >
-        <div class="absolute inset-0 scale-105 blur-md">
-            <x-listing-card-picture
-                :picture="$coverPicture"
-                class="h-full w-full object-cover"
-                loading="eager"
-            />
-        </div>
-        <div class="absolute inset-0 bg-base-100/35"></div>
-    </div>
+    />
 
     <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$activity->name" :user="$activity->creator">
