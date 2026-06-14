@@ -11,7 +11,7 @@ class NavigationMenuTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_does_not_see_create_links_in_main_navigation(): void
+    public function test_guest_does_not_see_create_links_in_navigation(): void
     {
         $this->get(route('search.index'))
             ->assertOk()
@@ -19,7 +19,7 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee(__('ui.nav.create_activity'), false);
     }
 
-    public function test_logged_in_user_sees_create_activity_but_not_create_event_when_not_organizer(): void
+    public function test_logged_in_user_sees_create_activity_in_profile_menu_but_not_create_event_when_not_organizer(): void
     {
         $user = User::factory()->create([
             'is_admin' => false,
@@ -34,7 +34,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee(route('activities.create'), false);
     }
 
-    public function test_event_organizer_sees_create_event_and_create_activity_in_main_navigation(): void
+    public function test_event_organizer_sees_create_event_and_create_activity_in_profile_menu(): void
     {
         $user = User::factory()->organizer()->create([
             'is_admin' => false,
@@ -47,6 +47,48 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.create_activity'), false)
             ->assertSee(route('events.create'), false)
             ->assertSee(route('activities.create'), false);
+    }
+
+    public function test_navigation_search_link_includes_magnifying_glass_icon(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/<a[^>]*ui-nav-link[^>]*gap-1\.5[^>]*>[\s\S]*?<svg/s',
+            $response->getContent(),
+        );
+    }
+
+    public function test_navigation_app_name_has_active_nav_link_state_on_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/class="[^"]*(?=.*\bui-nav-brand-name\b)(?=.*\bis-active\b)[^"]*"/',
+            $response->getContent(),
+        );
+    }
+
+    public function test_navigation_does_not_include_dashboard_menu_item(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/ui-nav-link[^>]*>\s*'.preg_quote(__('ui.nav.dashboard'), '/').'\s*<\/a>/',
+            $response->getContent(),
+        );
     }
 
     public function test_navigation_avatar_url_updates_on_profile_avatar_updated_event(): void

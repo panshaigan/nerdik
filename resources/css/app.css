@@ -689,11 +689,6 @@
         z-index: 100;
     }
 
-    .ui-app-navigation .ui-nav-brand-name {
-        border-bottom: 2px solid var(--color-base-300);
-        padding-bottom: 0.125rem;
-    }
-
     .ui-app-navigation .ui-nav-link {
         position: relative;
         background-color: transparent;

@@ -82,40 +82,30 @@ new class extends Component
     >
         <x-slot:brand>
             <div class="flex">
-                <div class="flex shrink-0 items-center">
+                <div class="flex shrink-0 items-center gap-3">
                     <a
                         href="{{ route('dashboard') }}"
                         wire:navigate
-                        class="ui-nav-brand group flex items-center gap-3"
+                        class="ui-nav-brand shrink-0"
+                        aria-label="{{ config('app.name') }}"
                     >
                         <x-brand-logo class="block h-9 w-auto shrink-0 text-base-content" />
-                        <span class="ui-nav-brand-name font-display text-base font-medium text-base-content">
-                            {{ config('app.name') }}
-                        </span>
+                    </a>
+                    <a
+                        href="{{ route('dashboard') }}"
+                        wire:navigate
+                        class="{{ $navLink(request()->routeIs('dashboard')) }} ui-nav-brand-name text-base"
+                    >
+                        {{ config('app.name') }}
                     </a>
                 </div>
 
                 <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex">
-                    <a href="{{ route('dashboard') }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('dashboard')) }}">
-                        {{ __('ui.nav.dashboard') }}
-                    </a>
                     <a href="{{ BrowseSearchState::indexUrl() }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('search.index')) }}">
+                       class="{{ $navLink(request()->routeIs('search.index')) }} gap-1.5">
+                        <x-icon name="o-magnifying-glass" class="h-4 w-4 shrink-0" />
                         {{ __('ui.nav.search') }}
                     </a>
-                    @auth
-                        @if (auth()->user()->canCreateEvents())
-                            <a href="{{ url_with_return(route('events.create')) }}" wire:navigate
-                               class="{{ $navLink(request()->routeIs('events.create')) }}">
-                                {{ __('ui.nav.create_event') }}
-                            </a>
-                        @endif
-                        <a href="{{ url_with_return(route('activities.create')) }}" wire:navigate
-                           class="{{ $navLink(request()->routeIs('activities.create')) }}">
-                            {{ __('ui.nav.create_activity') }}
-                        </a>
-                    @endauth
                 </div>
             </div>
         </x-slot:brand>
@@ -167,6 +157,10 @@ new class extends Component
                         <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
+                        @if (auth()->user()->canCreateEvents())
+                            <li><a wire:navigate href="{{ url_with_return(route('events.create')) }}">{{ __('ui.nav.create_event') }}</a></li>
+                        @endif
+                        <li><a wire:navigate href="{{ url_with_return(route('activities.create')) }}">{{ __('ui.nav.create_activity') }}</a></li>
                         <li>
                             <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
                         </li>
@@ -265,48 +259,15 @@ new class extends Component
                     <ul class="menu menu-lg w-full px-2">
                         <li>
                             <a
-                                href="{{ route('dashboard') }}"
-                                wire:navigate
-                                @click="close()"
-                                class="{{ $mobileNavLink(request()->routeIs('dashboard')) }}"
-                            >
-                                {{ __('ui.nav.dashboard') }}
-                            </a>
-                        </li>
-                        <li>
-                            <a
                                 href="{{ BrowseSearchState::indexUrl() }}"
                                 wire:navigate
                                 @click="close()"
                                 class="{{ $mobileNavLink(request()->routeIs('search.index')) }}"
                             >
+                                <x-icon name="o-magnifying-glass" class="h-4 w-4 shrink-0" />
                                 {{ __('ui.nav.search') }}
                             </a>
                         </li>
-                        @auth
-                            @if (auth()->user()->canCreateEvents())
-                                <li>
-                                    <a
-                                        href="{{ url_with_return(route('events.create')) }}"
-                                        wire:navigate
-                                        @click="close()"
-                                        class="{{ $mobileNavLink(request()->routeIs('events.create')) }}"
-                                    >
-                                        {{ __('ui.nav.create_event') }}
-                                    </a>
-                                </li>
-                            @endif
-                            <li>
-                                <a
-                                    href="{{ url_with_return(route('activities.create')) }}"
-                                    wire:navigate
-                                    @click="close()"
-                                    class="{{ $mobileNavLink(request()->routeIs('activities.create')) }}"
-                                >
-                                    {{ __('ui.nav.create_activity') }}
-                                </a>
-                            </li>
-                        @endauth
                     </ul>
 
                     <div class="border-t border-base-300 px-4 py-4">
@@ -370,6 +331,28 @@ new class extends Component
                                         class="{{ $mobileNavLink(BrowseSearchUrl::isMyActivities(request())) }}"
                                     >
                                         {{ __('ui.me.menu_activities') }}
+                                    </a>
+                                </li>
+                                @if (auth()->user()->canCreateEvents())
+                                    <li>
+                                        <a
+                                            href="{{ url_with_return(route('events.create')) }}"
+                                            wire:navigate
+                                            @click="close()"
+                                            class="{{ $mobileNavLink(request()->routeIs('events.create')) }}"
+                                        >
+                                            {{ __('ui.nav.create_event') }}
+                                        </a>
+                                    </li>
+                                @endif
+                                <li>
+                                    <a
+                                        href="{{ url_with_return(route('activities.create')) }}"
+                                        wire:navigate
+                                        @click="close()"
+                                        class="{{ $mobileNavLink(request()->routeIs('activities.create')) }}"
+                                    >
+                                        {{ __('ui.nav.create_activity') }}
                                     </a>
                                 </li>
                                 <li>
