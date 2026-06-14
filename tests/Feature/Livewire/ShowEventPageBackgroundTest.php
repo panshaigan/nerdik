@@ -42,5 +42,4 @@ final class ShowEventPageBackgroundTest extends TestCase
         $this->assertStringContainsString('bg-base-100/35', $html);
         $this->assertStringContainsString('ui-activity-show-info-panel', $html);
     }
-    }
 }

@@ -35,12 +35,18 @@ new class extends Component
 
 @php
     $navLink = function (bool $active): string {
+        $base = 'ui-nav-link font-display inline-flex items-center border-b-2 bg-transparent px-1 pt-1 text-sm font-medium transition hover:bg-transparent focus:bg-transparent';
+
         return $active
-            ? 'border-primary text-base-content'
-            : 'border-transparent text-base-content/70 hover:border-base-300 hover:text-base-content';
+            ? $base.' is-active border-primary text-base-content'
+            : $base.' border-transparent text-base-content/70 hover:border-base-300 hover:text-base-content';
     };
 
-    $mobileNavLink = fn (bool $active): string => $active ? 'active font-medium' : '';
+    $localeLink = fn (bool $active): string => $active
+        ? 'ui-nav-locale is-active font-display border-b-2 border-primary text-base-content'
+        : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
+
+    $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
 @endphp
 
 <div
@@ -77,29 +83,36 @@ new class extends Component
         <x-slot:brand>
             <div class="flex">
                 <div class="flex shrink-0 items-center">
-                    <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-brand-logo class="block h-9 w-auto fill-current text-base-content" />
+                    <a
+                        href="{{ route('dashboard') }}"
+                        wire:navigate
+                        class="ui-nav-brand group flex items-center gap-3"
+                    >
+                        <x-brand-logo class="block h-9 w-auto shrink-0 fill-current text-base-content" />
+                        <span class="ui-nav-brand-name font-display text-base font-medium text-base-content">
+                            {{ config('app.name') }}
+                        </span>
                     </a>
                 </div>
 
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex">
                     <a href="{{ route('dashboard') }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('dashboard')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
+                       class="{{ $navLink(request()->routeIs('dashboard')) }}">
                         {{ __('ui.nav.dashboard') }}
                     </a>
                     <a href="{{ BrowseSearchState::indexUrl() }}" wire:navigate
-                       class="{{ $navLink(request()->routeIs('search.index')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
+                       class="{{ $navLink(request()->routeIs('search.index')) }}">
                         {{ __('ui.nav.search') }}
                     </a>
                     @auth
                         @if (auth()->user()->canCreateEvents())
                             <a href="{{ url_with_return(route('events.create')) }}" wire:navigate
-                               class="{{ $navLink(request()->routeIs('events.create')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
+                               class="{{ $navLink(request()->routeIs('events.create')) }}">
                                 {{ __('ui.nav.create_event') }}
                             </a>
                         @endif
                         <a href="{{ url_with_return(route('activities.create')) }}" wire:navigate
-                           class="{{ $navLink(request()->routeIs('activities.create')) }} inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium transition">
+                           class="{{ $navLink(request()->routeIs('activities.create')) }}">
                             {{ __('ui.nav.create_activity') }}
                         </a>
                     @endauth
@@ -112,13 +125,13 @@ new class extends Component
                 <a
                    wire:navigate
                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
-                   class="btn btn-circle btn-ghost {{ app()->getLocale() === 'en' ? 'text-primary-content' : 'text-neutral' }}">
+                   class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'en') }}">
                     {{ __('ui.common.language_en') }}
                 </a>
                 <a
                    wire:navigate
                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
-                   class="btn btn-circle btn-ghost {{ app()->getLocale() === 'pl' ? 'text-primary-content' : 'text-neutral' }}">
+                   class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'pl') }}">
                     {{ __('ui.common.language_pl') }}
                 </a>
                 <x-theme-toggle class="btn btn-circle btn-ghost"/>
@@ -306,7 +319,7 @@ new class extends Component
                                     wire:navigate
                                     x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
                                     @click="close()"
-                                    class="join-item btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-ghost' }}"
+                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'en' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none' : 'btn-ghost' }}"
                                 >
                                     {{ __('ui.common.language_en') }}
                                 </a>
@@ -314,7 +327,7 @@ new class extends Component
                                     wire:navigate
                                     x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
                                     @click="close()"
-                                    class="join-item btn btn-sm {{ app()->getLocale() === 'pl' ? 'btn-primary' : 'btn-ghost' }}"
+                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'pl' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none' : 'btn-ghost' }}"
                                 >
                                     {{ __('ui.common.language_pl') }}
                                 </a>
