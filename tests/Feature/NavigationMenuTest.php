@@ -62,6 +62,17 @@ class NavigationMenuTest extends TestCase
             ->assertSet('navAvatarUrl', $avatarUrl);
     }
 
+    public function test_navigation_shows_branded_app_name_next_to_logo(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('ui-nav-brand-name', false)
+            ->assertSee(config('app.name'), false);
+    }
+
     public function test_authenticated_mobile_drawer_includes_account_and_notification_links(): void
     {
         $user = User::factory()->create();
