@@ -32,7 +32,7 @@
         :title="$title"
         :value="$value"
         icon="{{ $icon ?? ($hasInterest ? 's-star' : 'o-star') }}"
-        color="{{ $iconColor ?? ($isAuthenticated ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '') }}"
+        color="{{ $iconColor ?? ($isAuthenticated ? ($hasInterest ? 'text-warning' : 'text-base-content/80 group-hover:text-warning') : '') }}"
         class="ui-stat-embed ui-activity-show-stat"
     />
     @auth

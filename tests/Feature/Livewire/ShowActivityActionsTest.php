@@ -146,7 +146,7 @@ class ShowActivityActionsTest extends TestCase
 
         $statHtml = $this->interestedStatHtml($html);
         $this->assertNotNull($statHtml);
-        $this->assertStringContainsString('text-base-content/80 hover:text-warning', $statHtml);
+        $this->assertStringContainsString('text-base-content/80 group-hover:text-warning', $statHtml);
         $this->assertStringContainsString('fill="none"', $statHtml);
     }
 

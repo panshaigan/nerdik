@@ -72,7 +72,7 @@
                 class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
-        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-0 items-center rounded-2xl">
+        <div class="group ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-0 items-center rounded-2xl">
             <x-ui.interested-stat-card
                 :title="__('ui.events.interested_people_count')"
                 :value="$interestedPeopleCount"
