@@ -114,7 +114,7 @@
     >
         <x-ui.activity-badge-group
             :items="$badgeItems"
-            class="ui-activity-show-info-badges ui-activity-show-info-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
+            class="ui-activity-show-info-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
             data-ui="activity-show-badge-group"
         />
         <div class="grid shrink-0 grid-cols-2 gap-3 sm:w-auto">
