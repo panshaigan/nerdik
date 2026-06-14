@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 final class StoreCroppedPublicImageTest extends TestCase
@@ -29,5 +30,24 @@ final class StoreCroppedPublicImageTest extends TestCase
 
         $this->assertSame('covers/test.webp', $path);
         Storage::disk('public')->assertExists('covers/test.webp');
+    }
+
+    #[Test]
+    public function it_throws_when_public_disk_write_fails(): void
+    {
+        $disk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $disk->shouldReceive('put')->once()->andReturn(false);
+
+        Storage::shouldReceive('disk')->with('public')->andReturn($disk);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Failed to write image to public disk at [covers/test.webp].');
+
+        app(StoreCroppedPublicImage::class)(
+            'covers/test.webp',
+            UploadedFile::fake()->image('source.jpg', 1920, 1080),
+            1280,
+            720,
+        );
     }
 }
