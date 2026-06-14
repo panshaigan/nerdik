@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -8,6 +9,7 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -17,24 +19,26 @@ new class extends Component
      */
     public function updatePassword(): void
     {
-        try {
-            $validated = $this->validate([
-                'current_password' => ['required', 'string', 'current_password'],
-                'password' => ['required', 'string', Password::defaults(), 'confirmed'],
+        $this->reportProfileTabValidation('advanced', function (): void {
+            try {
+                $validated = $this->validate([
+                    'current_password' => ['required', 'string', 'current_password'],
+                    'password' => ['required', 'string', Password::defaults(), 'confirmed'],
+                ]);
+            } catch (ValidationException $e) {
+                $this->reset('current_password', 'password', 'password_confirmation');
+
+                throw $e;
+            }
+
+            Auth::user()->update([
+                'password' => Hash::make($validated['password']),
             ]);
-        } catch (ValidationException $e) {
+
             $this->reset('current_password', 'password', 'password_confirmation');
 
-            throw $e;
-        }
-
-        Auth::user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        $this->reset('current_password', 'password', 'password_confirmation');
-
-        $this->dispatch('password-updated');
+            $this->dispatch('password-updated');
+        });
     }
 }; ?>
 
@@ -49,7 +53,9 @@ new class extends Component
         </p>
     </header>
 
-    <form id="ui-profile-password-form" wire:submit="updatePassword" class="ui-form ui-form-profile-password mt-6 space-y-4" data-ui="profile-password-form">
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+
+    <form id="ui-profile-password-form" wire:submit="updatePassword" novalidate class="ui-form ui-form-profile-password mt-6 space-y-4" data-ui="profile-password-form">
         <x-password
             wire:model="current_password"
             label="{{ __('ui.profile.current_password') }}"

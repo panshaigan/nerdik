@@ -1,11 +1,13 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     public string $password = '';
 
     public bool $confirmingUserDeletion = false;
@@ -15,13 +17,15 @@ new class extends Component
      */
     public function deleteUser(Logout $logout): void
     {
-        $this->validate([
-            'password' => ['required', 'string', 'current_password'],
-        ]);
+        $this->reportProfileTabValidation('advanced', function () use ($logout): void {
+            $this->validate([
+                'password' => ['required', 'string', 'current_password'],
+            ]);
 
-        tap(Auth::user(), $logout(...))->delete();
+            tap(Auth::user(), $logout(...))->delete();
 
-        $this->redirect('/', navigate: true);
+            $this->redirect('/', navigate: true);
+        });
     }
 }; ?>
 
@@ -41,7 +45,8 @@ new class extends Component
     </x-button>
 
     <x-modal wire:model="confirmingUserDeletion" :title="__('ui.profile.delete_account_confirm_title')" :subtitle="__('ui.profile.delete_account_confirm_body')" id="ui-profile-delete-modal" class="ui-modal ui-modal-delete" data-ui="profile-delete-modal">
-        <form id="ui-profile-delete-form" wire:submit="deleteUser" class="ui-form ui-form-profile-delete space-y-4" data-ui="profile-delete-form">
+        <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+        <form id="ui-profile-delete-form" wire:submit="deleteUser" novalidate class="ui-form ui-form-profile-delete space-y-4" data-ui="profile-delete-form">
             <x-password
                 wire:model="password"
                 label="{{ __('ui.common.password') }}"

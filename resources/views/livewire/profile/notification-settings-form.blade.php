@@ -1,11 +1,13 @@
 <?php
 
 use App\Enums\NotificationPreferenceKey;
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     /**
      * @var array<string, array{in_app: bool, email: bool, every_join?: bool}>
      */
@@ -34,31 +36,33 @@ new class extends Component
 
     public function updateNotificationSettings(): void
     {
-        $this->validate($this->preferenceValidationRules());
+        $this->reportProfileTabValidation('notifications', function (): void {
+            $this->validate($this->preferenceValidationRules());
 
-        $defaults = NotificationPreferenceKey::defaultMatrix();
-        $joinKey = NotificationPreferenceKey::ActivityParticipantJoined->value;
-        /** @var array<string, array{in_app: bool, email: bool, every_join?: bool}> $clean */
-        $clean = [];
-        foreach (array_keys($defaults) as $key) {
-            $block = [
-                'in_app' => (bool) ($this->preferences[$key]['in_app'] ?? $defaults[$key]['in_app'] ?? true),
-                'email' => (bool) ($this->preferences[$key]['email'] ?? $defaults[$key]['email'] ?? true),
-            ];
-            if ($key === $joinKey) {
-                $block['every_join'] = (bool) ($this->preferences[$key]['every_join'] ?? $defaults[$key]['every_join'] ?? false);
+            $defaults = NotificationPreferenceKey::defaultMatrix();
+            $joinKey = NotificationPreferenceKey::ActivityParticipantJoined->value;
+            /** @var array<string, array{in_app: bool, email: bool, every_join?: bool}> $clean */
+            $clean = [];
+            foreach (array_keys($defaults) as $key) {
+                $block = [
+                    'in_app' => (bool) ($this->preferences[$key]['in_app'] ?? $defaults[$key]['in_app'] ?? true),
+                    'email' => (bool) ($this->preferences[$key]['email'] ?? $defaults[$key]['email'] ?? true),
+                ];
+                if ($key === $joinKey) {
+                    $block['every_join'] = (bool) ($this->preferences[$key]['every_join'] ?? $defaults[$key]['every_join'] ?? false);
+                }
+                $clean[(string) $key] = $block;
             }
-            $clean[(string) $key] = $block;
-        }
 
-        $user = Auth::user();
-        $profile = $user->profile()->firstOrCreate();
-        $profile->notification_preferences = $clean;
-        $profile->save();
-        $user->setRelation('profile', $profile);
+            $user = Auth::user();
+            $profile = $user->profile()->firstOrCreate();
+            $profile->notification_preferences = $clean;
+            $profile->save();
+            $user->setRelation('profile', $profile);
 
-        $this->preferences = $user->resolvedNotificationPreferences();
-        $this->dispatch('profile-notifications-updated');
+            $this->preferences = $user->resolvedNotificationPreferences();
+            $this->dispatch('profile-notifications-updated');
+        });
     }
 }; ?>
 
@@ -72,7 +76,9 @@ new class extends Component
         </p>
     </header>
 
-    <form id="ui-profile-notifications-form" wire:submit="updateNotificationSettings" class="ui-form ui-form-profile-notifications mt-6 space-y-8" data-ui="profile-notifications-form">
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+
+    <form id="ui-profile-notifications-form" wire:submit="updateNotificationSettings" novalidate class="ui-form ui-form-profile-notifications mt-6 space-y-8" data-ui="profile-notifications-form">
         @foreach (\App\Enums\NotificationPreferenceKey::uiSections() as $section)
             <div class="space-y-3">
                 <h3 class="font-medium text-base-content">{{ __('ui.profile.notifications.'.$section['group_key']) }}</h3>
