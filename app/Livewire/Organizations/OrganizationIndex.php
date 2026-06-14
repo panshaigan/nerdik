@@ -2,14 +2,21 @@
 
 namespace App\Livewire\Organizations;
 
+use App\Actions\Organizations\DeleteUploadedOrganizationLogo;
+use App\Actions\Organizations\StoreUploadedOrganizationLogo;
+use App\Enums\OrganizationLogoSource;
 use App\Models\Organization;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class OrganizationIndex extends Component
 {
     use AuthorizesOwnership;
+    use WithFileUploads;
 
     public bool $modalOpen = false;
 
@@ -22,7 +29,18 @@ class OrganizationIndex extends Component
 
     public string $name = '';
 
+    public string $acronym = '';
+
     public string $description = '';
+
+    public string $logo_source = 'generated';
+
+    public string $logo_bg_color = '#1d4ed8';
+
+    public string $logo_text_color = '#ffffff';
+
+    /** @var mixed */
+    public $croppedLogo = null;
 
     public function mount(): void
     {
@@ -61,8 +79,22 @@ class OrganizationIndex extends Component
         $this->modalMode = 'edit';
         $this->editingOrganizationId = $organization->id;
         $this->name = $organization->name;
+        $this->acronym = (string) ($organization->acronym ?? '');
         $this->description = (string) ($organization->description ?? '');
+        $this->logo_bg_color = $organization->logo_bg_color ?? '#1d4ed8';
+        $this->logo_text_color = $organization->logo_text_color ?? '#ffffff';
+
+        $rawLogoSource = $organization->logo_source;
+        if ($rawLogoSource instanceof OrganizationLogoSource) {
+            $this->logo_source = $rawLogoSource->value;
+        } elseif (is_string($rawLogoSource) && $rawLogoSource !== '') {
+            $this->logo_source = $rawLogoSource;
+        } else {
+            $this->logo_source = OrganizationLogoSource::Generated->value;
+        }
+
         $this->resetErrorBag();
+        $this->reset('croppedLogo');
         $this->modalRenderKey++;
         $this->modalOpen = true;
         $this->scheduleTinyMceModalRefresh();
@@ -74,20 +106,51 @@ class OrganizationIndex extends Component
         $this->resetForm();
     }
 
+    public function updatedLogoSource(string $value): void
+    {
+        if ($value !== OrganizationLogoSource::Upload->value) {
+            $this->reset('croppedLogo');
+        }
+    }
+
+    public function clearCroppedLogo(): void
+    {
+        $this->reset('croppedLogo');
+    }
+
     public function save(): void
     {
-        $this->validate([
+        $previousSource = $this->resolvePreviousLogoSourceValue();
+        $hasExistingUpload = $this->hasExistingUploadedLogo();
+
+        $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'acronym' => ['nullable', 'string', 'max:12'],
             'description' => ['nullable', 'string'],
+            'logo_source' => ['required', 'string', Rule::in(array_map(static fn (OrganizationLogoSource $s) => $s->value, OrganizationLogoSource::cases()))],
+            'logo_bg_color' => ['required_if:logo_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'logo_text_color' => ['required_if:logo_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'croppedLogo' => [
+                Rule::requiredIf(fn (): bool => $this->logo_source === OrganizationLogoSource::Upload->value
+                    && ($previousSource !== OrganizationLogoSource::Upload->value || ! $hasExistingUpload)),
+                'nullable',
+                'image',
+                'max:5120',
+                'mimes:jpeg,jpg,png,webp',
+            ],
         ]);
 
         $payload = [
-            'name' => $this->name,
-            'description' => RichText::sanitize($this->description),
+            'name' => $validated['name'],
+            'acronym' => filled($validated['acronym'] ?? null) ? $validated['acronym'] : null,
+            'description' => RichText::sanitize($validated['description'] ?? null),
+            'logo_source' => OrganizationLogoSource::from($validated['logo_source']),
+            'logo_bg_color' => $validated['logo_bg_color'] ?? $this->logo_bg_color,
+            'logo_text_color' => $validated['logo_text_color'] ?? $this->logo_text_color,
         ];
 
         if ($this->modalMode === 'create') {
-            Organization::create($payload);
+            $organization = Organization::create($payload);
             session()->flash('status', __('Organization created.'));
         } else {
             $organization = Organization::query()->findOrFail($this->editingOrganizationId);
@@ -96,6 +159,7 @@ class OrganizationIndex extends Component
             session()->flash('status', __('Organization updated.'));
         }
 
+        $this->applyOrganizationLogoFromForm($organization);
         $this->closeModal();
     }
 
@@ -103,8 +167,43 @@ class OrganizationIndex extends Component
     {
         $organization = Organization::query()->findOrFail($id);
         $this->authorizeCreatedBy($organization);
+        app(DeleteUploadedOrganizationLogo::class)($organization);
         $organization->delete();
         session()->flash('status', __('Organization deleted.'));
+    }
+
+    public function getLogoPreviewUrlProperty(): ?string
+    {
+        if ($this->editingOrganizationId === null) {
+            return null;
+        }
+
+        $organization = Organization::query()->find($this->editingOrganizationId);
+        if ($organization === null) {
+            return null;
+        }
+
+        $source = $organization->logo_source;
+        $isUpload = $source === OrganizationLogoSource::Upload
+            || (is_string($source) && $source === OrganizationLogoSource::Upload->value);
+
+        if (! $isUpload || ! filled($organization->logo_path)) {
+            return null;
+        }
+
+        return $organization->logoUrl();
+    }
+
+    public function getGeneratedLogoPreviewUrlProperty(): string
+    {
+        $previewOrganization = new Organization([
+            'name' => $this->name !== '' ? $this->name : __('ui.organizations.preview_name'),
+            'acronym' => filled($this->acronym) ? $this->acronym : null,
+            'logo_bg_color' => $this->logo_bg_color,
+            'logo_text_color' => $this->logo_text_color,
+        ]);
+
+        return $previewOrganization->generatedLogoUrl();
     }
 
     /**
@@ -130,8 +229,70 @@ class OrganizationIndex extends Component
         $this->modalMode = 'create';
         $this->editingOrganizationId = null;
         $this->name = '';
+        $this->acronym = '';
         $this->description = '';
+        $this->logo_source = OrganizationLogoSource::Generated->value;
+        $this->logo_bg_color = '#1d4ed8';
+        $this->logo_text_color = '#ffffff';
+        $this->reset('croppedLogo');
         $this->resetErrorBag();
+    }
+
+    private function resolvePreviousLogoSourceValue(): string
+    {
+        if ($this->editingOrganizationId === null) {
+            return OrganizationLogoSource::Generated->value;
+        }
+
+        $organization = Organization::query()->find($this->editingOrganizationId);
+        if ($organization === null) {
+            return OrganizationLogoSource::Generated->value;
+        }
+
+        $rawSource = $organization->logo_source;
+
+        return $rawSource instanceof OrganizationLogoSource
+            ? $rawSource->value
+            : (string) ($rawSource ?? OrganizationLogoSource::Generated->value);
+    }
+
+    private function hasExistingUploadedLogo(): bool
+    {
+        if ($this->editingOrganizationId === null) {
+            return false;
+        }
+
+        $organization = Organization::query()->find($this->editingOrganizationId);
+        if ($organization === null) {
+            return false;
+        }
+
+        $source = $organization->logo_source;
+        $isUpload = $source === OrganizationLogoSource::Upload
+            || (is_string($source) && $source === OrganizationLogoSource::Upload->value);
+
+        return $isUpload && filled($organization->logo_path)
+            && Storage::disk('public')->exists((string) $organization->logo_path);
+    }
+
+    private function applyOrganizationLogoFromForm(Organization $organization): void
+    {
+        $source = $organization->logo_source;
+
+        if ($source === OrganizationLogoSource::Generated) {
+            app(DeleteUploadedOrganizationLogo::class)($organization);
+            $organization->logo_path = null;
+            $organization->save();
+
+            return;
+        }
+
+        if ($source === OrganizationLogoSource::Upload && $this->croppedLogo !== null) {
+            $path = app(StoreUploadedOrganizationLogo::class)($organization, $this->croppedLogo);
+            $organization->logo_path = $path;
+            $organization->save();
+            $this->reset('croppedLogo');
+        }
     }
 
     public function render()

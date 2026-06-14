@@ -16,13 +16,13 @@
 
     $usesOrganization = $organization !== null;
     $resolvedName = trim((string) ($name ?? $organization?->name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
-    $avatarBackgroundColor = (string) ($user?->profile?->avatar_bg_color ?? '#1d4ed8');
-    $avatarTextColor = (string) ($user?->profile?->avatar_text_color ?? '#ffffff');
     $resolvedAvatarUrl = is_string($avatarUrl) && $avatarUrl !== ''
         ? $avatarUrl
-        : (! $usesOrganization && $user !== null
-            ? $user->avatarUrl()
-            : User::uiAvatarsUrl($resolvedName, $avatarBackgroundColor, $avatarTextColor, 2));
+        : ($usesOrganization && $organization !== null
+            ? $organization->logoUrl()
+            : ($user !== null
+                ? $user->avatarUrl()
+                : User::uiAvatarsUrl($resolvedName, '#1d4ed8', '#ffffff', 2)));
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',

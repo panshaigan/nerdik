@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Actions\Organizations\ResolveOrganizationLogoUrl;
+use App\Enums\OrganizationLogoSource;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,10 +26,23 @@ class Organization extends Model
         'acronym',
         'description',
         'logo_path',
+        'logo_source',
+        'logo_bg_color',
+        'logo_text_color',
         'slug',
         'created_by',
         'updated_by',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'logo_source' => OrganizationLogoSource::class,
+        ];
+    }
 
     public function events(): HasMany
     {
@@ -37,5 +52,38 @@ class Organization extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function generatedLogoName(): string
+    {
+        $acronym = trim((string) ($this->acronym ?? ''));
+
+        return $acronym !== '' ? $acronym : $this->name;
+    }
+
+    public function generatedLogoLength(): int
+    {
+        $acronym = trim((string) ($this->acronym ?? ''));
+
+        if ($acronym !== '') {
+            return min(strlen($acronym), 3);
+        }
+
+        return 2;
+    }
+
+    public function generatedLogoUrl(): string
+    {
+        return User::uiAvatarsUrl(
+            $this->generatedLogoName(),
+            (string) ($this->logo_bg_color ?? '#1d4ed8'),
+            (string) ($this->logo_text_color ?? '#ffffff'),
+            $this->generatedLogoLength(),
+        );
+    }
+
+    public function logoUrl(): string
+    {
+        return app(ResolveOrganizationLogoUrl::class)($this);
     }
 }
