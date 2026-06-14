@@ -38,7 +38,7 @@
                 </x-main>
             </div>
 
-            <footer class="border-t border-white/10 backdrop-blur-md">
+            <footer class="border-t border-white/10 backdrop-blur-xs">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                     <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">

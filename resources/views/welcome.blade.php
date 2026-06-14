@@ -106,7 +106,7 @@
                 </section>
             </main>
 
-            <footer class="mt-10 border-t border-white/10 bg-black/35 px-4 py-5 text-sm opacity-70 backdrop-blur-md sm:px-6 lg:px-8">
+            <footer class="mt-10 border-t border-white/10 bg-black/35 px-4 py-5 text-sm opacity-70 backdrop-blur-xs sm:px-6 lg:px-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
