@@ -13,8 +13,8 @@
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
 <div {{ $attributes->class(['px-4 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
-    <div class="flex items-center justify-between gap-4">
-        <div class="min-w-0">
+    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div class="min-w-0 w-full">
             <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-primary sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     @if ($backUrl)
@@ -43,8 +43,8 @@
                 :size="$userBadgeSize"
                 data-ui="activity-show-host"
                 :title="$resolvedUserBadgeTitle"
-                name-class="font-display truncate text-sm font-normal text-base"
-                class="shrink-0 [&_.avatar>div]:border-base/60 [&_.avatar>div]:bg-base-100/80 [&_.avatar>div]:box-glow-base"
+                name-class="font-display text-sm font-normal text-base max-sm:whitespace-normal sm:truncate"
+                class="w-full sm:w-auto sm:shrink-0 [&_.avatar>div]:border-base/60 [&_.avatar>div]:bg-base-100/80 [&_.avatar>div]:box-glow-base"
             />
         @endif
     </div>
