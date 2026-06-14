@@ -21,7 +21,7 @@
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"
                 data-ui="activity-manage-tabs"
-                class="bg-texture-scratches rounded-2xl"
+                class="rounded-2xl"
             >
                 <x-tab name="main-details" :label="__('ui.activities.tab_main_details')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
                     @include('livewire.activities.partials.manage-main-details-tab')

@@ -6,6 +6,8 @@
     'clickRemoveAction' => 'removeInterest',
     'target' => 'addInterest, removeInterest',
     'dataUi' => null,
+    'icon' => null,
+    'iconColor' => null,
 ])
 
 @php
@@ -14,7 +16,7 @@
 
 <div
     {{ $attributes->class([
-        'box-glow-dark-primary rounded-2xl px-4 py-3',
+        'rounded-2xl',
         'relative overflow-hidden cursor-pointer select-none transition-transform duration-150 ease-out hover:box-glow-primary active:scale-[0.98]' => $isAuthenticated,
     ]) }}
     @if ($isAuthenticated)
@@ -29,9 +31,9 @@
     <x-stat
         :title="$title"
         :value="$value"
-        icon="{{ $hasInterest ? 's-star' : 'o-star' }}"
-        color="{{ $isAuthenticated ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '' }}"
-        class="ui-stat-embed"
+        icon="{{ $icon ?? ($hasInterest ? 's-star' : 'o-star') }}"
+        color="{{ $iconColor ?? ($isAuthenticated ? ($hasInterest ? 'text-warning' : 'text-base-content/80 hover:text-warning') : '') }}"
+        class="ui-stat-embed ui-activity-show-stat"
     />
     @auth
         <div

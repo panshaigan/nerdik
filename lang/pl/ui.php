@@ -696,6 +696,7 @@ return [
         'activity_detached_from_slot' => 'Aktywność została odłączona od slotu i ponownie oczekuje na decyzję.',
     ],
     'interests' => [
+        'interested_in_short' => 'Zainteresowani',
         'added_event' => 'Wydarzenie dodane do zainteresowan.',
         'removed_event' => 'Wydarzenie usunięte z zainteresowań.',
         'added_activity' => 'Aktywność dodana do zainteresowań.',

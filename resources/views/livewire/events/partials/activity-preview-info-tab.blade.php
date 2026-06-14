@@ -3,7 +3,7 @@
 @endphp
 
 <div class="space-y-5 pt-2" data-ui="event-activity-preview-info">
-    <div class="bg-texture-scratches pt-4">
+    <div class="pt-4">
         <div class="space-y-2">
             @if ($activity->isCancelled())
                 <div class="space-y-1">

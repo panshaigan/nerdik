@@ -50,10 +50,10 @@
                 loading="eager"
             />
         </div>
-        <div class="absolute inset-0 bg-base-100/65"></div>
+        <div class="absolute inset-0 bg-base-100/35"></div>
     </div>
 
-    <div class="relative z-0 space-y-2 sm:space-y-4">
+    <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$activity->name" :user="$activity->creator">
         @if ($showHeroHost)
             <x-slot:subtitle>
@@ -108,33 +108,42 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-1 items-center gap-3 px-3 pb-5 sm:px-3 sm:pb-6 sm:grid-cols-4">
+    <div
+        class="flex flex-col gap-3 px-4 pb-5 sm:flex-row sm:items-stretch sm:px-6 sm:pb-6 lg:px-8"
+        data-ui="activity-show-info-section"
+    >
         <x-ui.activity-badge-group
             :items="$badgeItems"
-            class="col-span-3 bg-texture-glass box-glow-primary !rounded-2xl p-6"
+            class="ui-activity-show-info-badges ui-activity-show-info-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
             data-ui="activity-show-badge-group"
         />
-        <div class="mx-auto grid grid-cols-2 gap-3 mt-2 sm:mt-0">
-            <div class="mx-auto box-glow-dark-primary rounded-2xl px-4 py-3">
+        <div class="grid shrink-0 grid-cols-2 gap-3 sm:w-auto">
+            <div
+                class="ui-activity-show-info-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]"
+                data-ui="activity-show-participants-stat"
+            >
                 <x-stat
                     title="{{ __('ui.activities.show_participation_section') }}"
                     value="{{ $participantsCounterValue }}"
                     icon="o-users"
-                    class="ui-stat-embed"
-                    data-ui="activity-show-participants-stat"
+                    color="text-base-content"
+                    class="ui-stat-embed ui-activity-show-stat"
                 />
             </div>
             <x-ui.interested-stat-card
-                :title="__('ui.events.interested_people_count')"
+                :title="__('ui.interests.interested_in_short')"
                 :value="$interestedPeopleCount"
                 :has-interest="$hasInterest"
+                icon="s-star"
+                icon-color="text-warning"
+                class="ui-activity-show-info-panel min-w-[8.75rem] sm:min-w-[10rem]"
                 data-ui="activity-show-interested-stat"
             />
         </div>
     </div>
 
     <div
-            class="ui-activity-show-hero rounded-xl ui-content-card mt-6"
+            class="ui-activity-show-hero rounded-xl ui-content-card"
             data-ui="activity-show-hero"
         >
             <x-ui.tabs-with-toolbar
@@ -145,7 +154,6 @@
                 tabs-class="w-full"
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="activity-show-tabs"
-                class="bg-texture-scratches rounded-2xl"
             >
                 <x-slot:toolbar>
                     @auth

@@ -39,5 +39,8 @@ final class ShowEventPageBackgroundTest extends TestCase
         $this->assertStringContainsString('<picture', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
         $this->assertStringContainsString('sizes="100vw"', $html);
+        $this->assertStringContainsString('bg-base-100/35', $html);
+        $this->assertStringContainsString('ui-activity-show-info-panel', $html);
+    }
     }
 }
