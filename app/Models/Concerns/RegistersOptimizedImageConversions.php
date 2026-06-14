@@ -14,7 +14,8 @@ trait RegistersOptimizedImageConversions
      */
     protected function registerOptimizedConversionsForCollections(array $collections): void
     {
-        $queued = (bool) config('media.queue_conversions', true);
+        $queued = (bool) config('media.queue_conversions', true)
+            && ! $this->shouldRunConversionsSynchronously();
 
         foreach ($this->conversionFormatsForEnvironment() as $format) {
             $conversion = $this->addMediaConversion($format['name'])
@@ -68,6 +69,15 @@ trait RegistersOptimizedImageConversions
         }
 
         return (bool) config('media.testing.generate_responsive_images', true);
+    }
+
+    protected function shouldRunConversionsSynchronously(): bool
+    {
+        if (! app()->runningInConsole()) {
+            return false;
+        }
+
+        return in_array('tags:seed-images', $_SERVER['argv'] ?? [], true);
     }
 
     abstract public function registerMediaConversions(?Media $media = null): void;

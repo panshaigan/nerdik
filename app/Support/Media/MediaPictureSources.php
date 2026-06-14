@@ -13,13 +13,19 @@ final class MediaPictureSources
         private readonly string $sizes,
         private readonly string $alt,
         private readonly ?int $maxSrcsetWidth = null,
+        private readonly ?int $displayWidth = null,
     ) {}
 
-    public static function fromMedia(Media $media, string $sizes = '100vw', ?string $alt = null, ?int $maxSrcsetWidth = null): self
-    {
+    public static function fromMedia(
+        Media $media,
+        string $sizes = '100vw',
+        ?string $alt = null,
+        ?int $maxSrcsetWidth = null,
+        ?int $displayWidth = null,
+    ): self {
         $resolvedAlt = $alt ?? (string) ($media->getCustomProperty('alt') ?? $media->name ?? '');
 
-        return new self($media, $sizes, $resolvedAlt, $maxSrcsetWidth);
+        return new self($media, $sizes, $resolvedAlt, $maxSrcsetWidth, $displayWidth);
     }
 
     public static function fromMediaWithPreset(Media $media, string $preset, ?string $alt = null): self
@@ -31,12 +37,16 @@ final class MediaPictureSources
             $maxWidth = isset($presetConfig['max_srcset_width'])
                 ? (int) $presetConfig['max_srcset_width']
                 : null;
+            $displayWidth = isset($presetConfig['display_width'])
+                ? (int) $presetConfig['display_width']
+                : null;
         } else {
             $sizes = (string) config("media.sizes.{$preset}", '100vw');
             $maxWidth = null;
+            $displayWidth = null;
         }
 
-        return self::fromMedia($media, $sizes, $alt, $maxWidth);
+        return self::fromMedia($media, $sizes, $alt, $maxWidth, $displayWidth);
     }
 
     public function avifSrcset(): string
@@ -73,6 +83,40 @@ final class MediaPictureSources
             $urls = $this->media->getResponsiveImageUrls('jpeg');
 
             return $urls[0] ?? $this->media->getUrl();
+        }
+
+        return $this->media->getUrl();
+    }
+
+    public function displaySrc(): string
+    {
+        foreach (['jpeg', 'webp'] as $conversion) {
+            if (! $this->media->hasGeneratedConversion($conversion) || ! $this->media->hasResponsiveImages($conversion)) {
+                continue;
+            }
+
+            $cappedSrcset = $this->srcsetForConversion($conversion);
+            $url = $this->smallestFittingWidthUrlFromSrcset($cappedSrcset, $this->targetDisplayPixelWidth());
+
+            if ($url !== null) {
+                return $url;
+            }
+        }
+
+        if ($this->media->hasGeneratedConversion('jpeg')) {
+            return $this->media->getUrl('jpeg');
+        }
+
+        foreach (['jpeg', 'webp'] as $conversion) {
+            if (! $this->media->hasResponsiveImages($conversion)) {
+                continue;
+            }
+
+            $urls = $this->media->getResponsiveImageUrls($conversion);
+
+            if ($urls !== []) {
+                return $urls[0];
+            }
         }
 
         return $this->media->getUrl();
@@ -244,5 +288,63 @@ final class MediaPictureSources
         }
 
         return $bestUrl;
+    }
+
+    private function targetDisplayPixelWidth(): int
+    {
+        $displayWidth = $this->displayWidth ?? $this->largestPixelWidthFromSizes($this->sizes);
+
+        if ($displayWidth === null) {
+            $displayWidth = $this->maxSrcsetWidth !== null
+                ? (int) ceil($this->maxSrcsetWidth / 2)
+                : 640;
+        }
+
+        $target = $displayWidth * 2;
+
+        if ($this->maxSrcsetWidth !== null) {
+            $target = min($target, $this->maxSrcsetWidth);
+        }
+
+        return max(1, $target);
+    }
+
+    private function largestPixelWidthFromSizes(string $sizes): ?int
+    {
+        preg_match_all('/(\d+)px/', $sizes, $matches);
+
+        if ($matches[1] === []) {
+            return null;
+        }
+
+        return max(array_map(intval(...), $matches[1]));
+    }
+
+    private function smallestFittingWidthUrlFromSrcset(string $srcset, int $targetWidth): ?string
+    {
+        $entries = $this->parseSrcsetEntries($srcset);
+
+        if ($entries === []) {
+            return null;
+        }
+
+        $widthEntries = array_values(array_filter(
+            $entries,
+            fn (array $entry): bool => $entry['width'] !== null,
+        ));
+
+        if ($widthEntries === []) {
+            return $entries[0]['url'];
+        }
+
+        usort($widthEntries, fn (array $a, array $b): int => ($a['width'] ?? 0) <=> ($b['width'] ?? 0));
+
+        foreach ($widthEntries as $entry) {
+            if (($entry['width'] ?? 0) >= $targetWidth) {
+                return $entry['url'];
+            }
+        }
+
+        return $widthEntries[array_key_last($widthEntries)]['url'];
     }
 }

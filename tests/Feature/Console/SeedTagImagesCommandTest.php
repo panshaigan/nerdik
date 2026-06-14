@@ -13,10 +13,12 @@ use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsResponsiveMedia;
 use Tests\TestCase;
 
 final class SeedTagImagesCommandTest extends TestCase
 {
+    use AssertsResponsiveMedia;
     use RefreshDatabase;
 
     /** @var list<string> */
@@ -54,6 +56,31 @@ final class SeedTagImagesCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertTagHasLibraryImage($tag, $libraryFilename);
+    }
+
+    #[Test]
+    public function command_generates_conversions_and_responsive_images_for_seeded_media(): void
+    {
+        config(['media.test_profile' => 'full']);
+
+        $this->seed(ActivityTypeSeeder::class);
+
+        $genreCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GENRE]);
+        $tag = $this->createTagWithTranslation($genreCategory, 'Responsive Fantasy', 'responsive-fantasy');
+
+        $fixture = base_path('tests/fixtures/tag-sample.jpg');
+        $libraryFilename = "{$tag->id}_responsive_fantasy.jpg";
+
+        $this->placeLibraryImage('Genres', $libraryFilename, $fixture);
+
+        $this->artisan('tags:seed-images')
+            ->expectsOutputToContain('Conversions and responsive thumbnails generated for seeded media.')
+            ->assertSuccessful();
+
+        $media = $tag->refresh()->getFirstMedia('images');
+        $this->assertNotNull($media);
+        $this->assertMediaHasResponsiveConversions($media);
+        $this->assertTrue($media->hasResponsiveImages('webp'));
     }
 
     #[Test]

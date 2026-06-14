@@ -12,7 +12,7 @@
         <source type="image/webp" srcset="{{ $sources->webpSrcset() }}" sizes="{{ $sources->sizes() }}">
     @endif
     <img
-        src="{{ $sources->jpegSrc() }}"
+        src="{{ $sources->displaySrc() }}"
         @class([$class])
         @if ($sources->jpegSrcset() !== '')
             srcset="{{ $sources->jpegSrcset() }}"
