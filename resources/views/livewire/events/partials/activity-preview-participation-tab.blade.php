@@ -1,48 +1,18 @@
 <div class="space-y-6 pt-2" data-ui="event-activity-preview-participation">
     @auth
-        <div class="mx-auto w-full max-w-xl space-y-2">
-            @if (filled($participation?->signupBlockedMessage) && ! $participation?->isParticipant && ! $participation?->onWaitlist && ! $participation?->canJoin)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ $participation->signupBlockedMessage }}"
-                    icon="o-home"
-                    data-ui="event-activity-preview-signup-blocked"
-                    class="alert-neutral"
-                />
-            @endif
-
-            @if (filled($participation?->stateBlockedMessage))
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ $participation->stateBlockedMessage }}"
-                    icon="o-home"
-                    data-ui="event-activity-preview-state-blocked"
-                    class="alert-neutral"
-                />
-            @endif
-
-            @if (($participation?->activeWindowRemainingForActivity ?? null) !== null)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ __('ui.events.enrollment_window_activity_spots_remaining', [
-                        'remaining' => $participation->activeWindowRemainingForActivity,
-                        'max' => $participation->activeWindowPerActivityMax,
-                    ]) }}"
-                    icon="o-home"
-                    data-ui="event-activity-preview-window-activity-cap"
-                    class="alert-neutral"
-                />
-            @endif
-
-            @if (($participation?->activeWindowUserRemaining ?? null) !== null)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $participation->activeWindowUserRemaining]) }}"
-                    icon="o-home"
-                    data-ui="event-activity-preview-window-user-cap"
-                    class="alert-neutral"
-                />
-            @endif
+        <div class="mx-auto w-full max-w-xl">
+            @include('livewire.activities.partials.participation-notices', [
+                'noticesContainerDataUi' => 'event-activity-preview-participation-notices',
+                'noticeDataUiPrefix' => 'event-activity-preview',
+                'signupBlockedMessage' => $participation?->signupBlockedMessage,
+                'stateBlockedMessage' => $participation?->stateBlockedMessage,
+                'isParticipant' => $participation?->isParticipant ?? false,
+                'onWaitlist' => $participation?->onWaitlist ?? false,
+                'canJoin' => $participation?->canJoin ?? false,
+                'activeWindowRemainingForActivity' => $participation?->activeWindowRemainingForActivity,
+                'activeWindowPerActivityMax' => $participation?->activeWindowPerActivityMax,
+                'activeWindowUserRemaining' => $participation?->activeWindowUserRemaining,
+            ])
         </div>
     @endauth
 
