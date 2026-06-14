@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Actions;
 
 use App\Actions\Images\StoreCroppedPublicImage;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +36,7 @@ final class StoreCroppedPublicImageTest extends TestCase
     #[Test]
     public function it_throws_when_public_disk_write_fails(): void
     {
-        $disk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $disk = \Mockery::mock(Filesystem::class);
         $disk->shouldReceive('put')->once()->andReturn(false);
 
         Storage::shouldReceive('disk')->with('public')->andReturn($disk);
