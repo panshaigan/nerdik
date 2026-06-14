@@ -1,11 +1,13 @@
 <?php
 
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     public string $email = '';
 
     public string $discord_handle = '';
@@ -19,17 +21,19 @@ new class extends Component
 
     public function updateContactInformation(): void
     {
-        $validated = $this->validate([
-            'discord_handle' => ['nullable', 'string', 'max:255'],
-        ]);
+        $this->reportProfileTabValidation('contact', function (): void {
+            $validated = $this->validate([
+                'discord_handle' => ['nullable', 'string', 'max:255'],
+            ]);
 
-        $user = Auth::user();
+            $user = Auth::user();
 
-        $profile = $user->profile()->firstOrCreate();
-        $profile->discord_handle = $validated['discord_handle'] ?: null;
-        $profile->save();
+            $profile = $user->profile()->firstOrCreate();
+            $profile->discord_handle = $validated['discord_handle'] ?: null;
+            $profile->save();
 
-        $this->dispatch('profile-contact-updated');
+            $this->dispatch('profile-contact-updated');
+        });
     }
 
     public function sendVerification(): void
@@ -48,7 +52,8 @@ new class extends Component
 }; ?>
 
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
-    <form id="ui-profile-contact-form" wire:submit="updateContactInformation" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <form id="ui-profile-contact-form" wire:submit="updateContactInformation" novalidate class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
         <x-input wire:model="email" label="{{ __('ui.common.email') }}" type="email" name="email" error-field="email" required readonly disabled />
         <x-input wire:model="discord_handle" label="{{ __('ui.profile.discord_optional') }}" type="text" name="discord_handle" error-field="discord_handle" />
 

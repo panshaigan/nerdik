@@ -3,6 +3,7 @@
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Actions\Avatars\StoreUploadedAvatar;
 use App\Enums\AvatarSource;
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -11,6 +12,7 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     use WithFileUploads;
 
     public string $avatar_source = 'generated';
@@ -74,113 +76,115 @@ new class extends Component
 
     public function updateAvatar(): void
     {
-        $user = Auth::user();
-        $uploadedPath = 'avatars/'.$user->id.'.webp';
-        $hasExistingUpload = Storage::disk('public')->exists($uploadedPath);
-        $rawPrev = $user->profile?->avatar_source;
-        $previousSource = $rawPrev instanceof AvatarSource ? $rawPrev->value : (string) ($rawPrev ?? AvatarSource::Generated->value);
+        $this->reportProfileTabValidation('avatar', function (): void {
+            $user = Auth::user();
+            $uploadedPath = 'avatars/'.$user->id.'.webp';
+            $hasExistingUpload = Storage::disk('public')->exists($uploadedPath);
+            $rawPrev = $user->profile?->avatar_source;
+            $previousSource = $rawPrev instanceof AvatarSource ? $rawPrev->value : (string) ($rawPrev ?? AvatarSource::Generated->value);
 
-        $validated = $this->validate([
-            'avatar_source' => ['required', 'string', Rule::in(array_map(static fn (AvatarSource $s) => $s->value, AvatarSource::cases()))],
-            'avatar_bg_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'avatar_text_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'avatar_initials' => ['nullable', 'string', 'max:3', 'regex:/^[A-Za-z]{1,3}$/'],
-            'croppedAvatar' => [
-                Rule::requiredIf(fn (): bool => $this->avatar_source === 'uploaded'
-                    && ($previousSource !== AvatarSource::Uploaded->value || ! $hasExistingUpload)),
-                'nullable',
-                'image',
-                'max:5120',
-                'mimes:jpeg,jpg,png,webp',
-            ],
-        ]);
+            $validated = $this->validate([
+                'avatar_source' => ['required', 'string', Rule::in(array_map(static fn (AvatarSource $s) => $s->value, AvatarSource::cases()))],
+                'avatar_bg_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'avatar_text_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+                'avatar_initials' => ['nullable', 'string', 'max:3', 'regex:/^[A-Za-z]{1,3}$/'],
+                'croppedAvatar' => [
+                    Rule::requiredIf(fn (): bool => $this->avatar_source === 'uploaded'
+                        && ($previousSource !== AvatarSource::Uploaded->value || ! $hasExistingUpload)),
+                    'nullable',
+                    'image',
+                    'max:5120',
+                    'mimes:jpeg,jpg,png,webp',
+                ],
+            ]);
 
-        $source = AvatarSource::from($validated['avatar_source']);
-        $profile = $user->profile()->firstOrCreate();
+            $source = AvatarSource::from($validated['avatar_source']);
+            $profile = $user->profile()->firstOrCreate();
 
-        if ($source === AvatarSource::Generated) {
-            $profile->avatar_source = AvatarSource::Generated;
-            $profile->avatar_bg_color = $validated['avatar_bg_color'];
-            $profile->avatar_text_color = $validated['avatar_text_color'];
-            $rawInitials = trim((string) ($validated['avatar_initials'] ?? ''));
-            $profile->avatar_initials = $rawInitials !== '' ? strtoupper($rawInitials) : null;
-            $this->deleteStoredAvatarIfPresent($user->id);
-            $profile->avatar_path = null;
-            $profile->avatar_cache_signature = null;
-            $profile->save();
-            $this->dispatchProfileAvatarUpdated();
-
-            return;
-        }
-
-        if ($source === AvatarSource::Uploaded) {
-            if ($this->croppedAvatar !== null) {
-                $path = app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
-                $profile->avatar_path = $path;
+            if ($source === AvatarSource::Generated) {
+                $profile->avatar_source = AvatarSource::Generated;
+                $profile->avatar_bg_color = $validated['avatar_bg_color'];
+                $profile->avatar_text_color = $validated['avatar_text_color'];
+                $rawInitials = trim((string) ($validated['avatar_initials'] ?? ''));
+                $profile->avatar_initials = $rawInitials !== '' ? strtoupper($rawInitials) : null;
+                $this->deleteStoredAvatarIfPresent($user->id);
+                $profile->avatar_path = null;
                 $profile->avatar_cache_signature = null;
-            }
-            $profile->avatar_source = AvatarSource::Uploaded;
-            $profile->avatar_bg_color = $validated['avatar_bg_color'] ?? $profile->avatar_bg_color;
-            $profile->avatar_text_color = $validated['avatar_text_color'] ?? $profile->avatar_text_color;
-            $profile->save();
-            $this->reset('croppedAvatar');
-            $this->dispatchProfileAvatarUpdated();
-
-            return;
-        }
-
-        if ($source === AvatarSource::Gravatar) {
-            $profile->avatar_source = AvatarSource::Gravatar;
-            $profile->save();
-            try {
-                app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Gravatar);
-            } catch (\Throwable $e) {
-                $this->addError('avatar', $e->getMessage());
+                $profile->save();
+                $this->dispatchProfileAvatarUpdated();
 
                 return;
             }
-            $this->dispatchProfileAvatarUpdated();
 
-            return;
-        }
-
-        if ($source === AvatarSource::Google) {
-            if ($profile->google_id === null || $profile->google_id === '') {
-                $this->addError('avatar_source', __('Link your Google account first using the button below.'));
-
-                return;
-            }
-            $profile->avatar_source = AvatarSource::Google;
-            $profile->save();
-            try {
-                app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Google);
-            } catch (\Throwable $e) {
-                $this->addError('avatar', $e->getMessage());
+            if ($source === AvatarSource::Uploaded) {
+                if ($this->croppedAvatar !== null) {
+                    $path = app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
+                    $profile->avatar_path = $path;
+                    $profile->avatar_cache_signature = null;
+                }
+                $profile->avatar_source = AvatarSource::Uploaded;
+                $profile->avatar_bg_color = $validated['avatar_bg_color'] ?? $profile->avatar_bg_color;
+                $profile->avatar_text_color = $validated['avatar_text_color'] ?? $profile->avatar_text_color;
+                $profile->save();
+                $this->reset('croppedAvatar');
+                $this->dispatchProfileAvatarUpdated();
 
                 return;
             }
-            $this->dispatchProfileAvatarUpdated();
 
-            return;
-        }
+            if ($source === AvatarSource::Gravatar) {
+                $profile->avatar_source = AvatarSource::Gravatar;
+                $profile->save();
+                try {
+                    app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Gravatar);
+                } catch (\Throwable $e) {
+                    $this->addError('avatar', $e->getMessage());
 
-        if ($source === AvatarSource::Facebook) {
-            if ($profile->facebook_id === null || $profile->facebook_id === '') {
-                $this->addError('avatar_source', __('Link your Facebook account first using the button below.'));
-
-                return;
-            }
-            $profile->avatar_source = AvatarSource::Facebook;
-            $profile->save();
-            try {
-                app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Facebook);
-            } catch (\Throwable $e) {
-                $this->addError('avatar', $e->getMessage());
+                    return;
+                }
+                $this->dispatchProfileAvatarUpdated();
 
                 return;
             }
-            $this->dispatchProfileAvatarUpdated();
-        }
+
+            if ($source === AvatarSource::Google) {
+                if ($profile->google_id === null || $profile->google_id === '') {
+                    $this->addError('avatar_source', __('Link your Google account first using the button below.'));
+
+                    return;
+                }
+                $profile->avatar_source = AvatarSource::Google;
+                $profile->save();
+                try {
+                    app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Google);
+                } catch (\Throwable $e) {
+                    $this->addError('avatar', $e->getMessage());
+
+                    return;
+                }
+                $this->dispatchProfileAvatarUpdated();
+
+                return;
+            }
+
+            if ($source === AvatarSource::Facebook) {
+                if ($profile->facebook_id === null || $profile->facebook_id === '') {
+                    $this->addError('avatar_source', __('Link your Facebook account first using the button below.'));
+
+                    return;
+                }
+                $profile->avatar_source = AvatarSource::Facebook;
+                $profile->save();
+                try {
+                    app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Facebook);
+                } catch (\Throwable $e) {
+                    $this->addError('avatar', $e->getMessage());
+
+                    return;
+                }
+                $this->dispatchProfileAvatarUpdated();
+            }
+        });
     }
 
     private function dispatchProfileAvatarUpdated(): void
@@ -209,7 +213,8 @@ new class extends Component
 }; ?>
 
 <section id="ui-profile-avatar-section" class="ui-profile-section ui-profile-avatar" data-ui="profile-avatar-section">
-    <form id="ui-profile-avatar-form" wire:submit="updateAvatar" class="ui-form ui-form-profile-avatar space-y-6" data-ui="profile-avatar-form">
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <form id="ui-profile-avatar-form" wire:submit="updateAvatar" novalidate class="ui-form ui-form-profile-avatar space-y-6" data-ui="profile-avatar-form">
         <x-field-error :messages="$errors->get('avatar')" class="mt-2" />
         <x-field-error :messages="$errors->get('avatar_source')" class="mt-2" />
 

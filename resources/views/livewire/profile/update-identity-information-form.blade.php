@@ -1,11 +1,13 @@
 <?php
 
+use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
+    use ReportsProfileTabValidation;
     public string $name = '';
 
     public string $nickname = '';
@@ -34,31 +36,34 @@ new class extends Component
 
     public function updateIdentityInformation(): void
     {
-        $validated = $this->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:255'],
-            'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
-            'timezone' => ['nullable', 'string', 'timezone'],
-        ]);
+        $this->reportProfileTabValidation('identity', function (): void {
+            $validated = $this->validate([
+                'name' => ['nullable', 'string', 'max:255'],
+                'nickname' => ['required', 'string', 'max:255'],
+                'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
+                'timezone' => ['nullable', 'string', 'timezone'],
+            ]);
 
-        $user = Auth::user();
-        $user->fill([
-            'name' => $validated['name'],
-            'nickname' => $validated['nickname'],
-            'organization_id' => $validated['organization_id'] ?? null,
-        ]);
-        $user->save();
+            $user = Auth::user();
+            $user->fill([
+                'name' => $validated['name'],
+                'nickname' => $validated['nickname'],
+                'organization_id' => $validated['organization_id'] ?? null,
+            ]);
+            $user->save();
 
-        $profile = $user->profile()->firstOrCreate();
-        $profile->timezone = $validated['timezone'] ?: null;
-        $profile->save();
+            $profile = $user->profile()->firstOrCreate();
+            $profile->timezone = $validated['timezone'] ?: null;
+            $profile->save();
 
-        $this->dispatch('profile-identity-updated');
+            $this->dispatch('profile-identity-updated');
+        });
     }
 }; ?>
 
 <section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity" data-ui="profile-identity-section">
-    <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" novalidate class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
         <x-input wire:model="nickname" label="{{ __('ui.auth.nickname') }}" type="text" name="nickname" error-field="nickname" required />
         <x-input wire:model="name" label="{{ __('ui.profile.name_optional') }}" type="text" name="name" error-field="name" />
         <x-select
