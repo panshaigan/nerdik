@@ -66,7 +66,7 @@
     </x-page-header>
 
     <div class="grid grid-cols-3 gap-3 px-4 pb-5 sm:px-6 sm:pb-6 lg:px-8">
-        <div class="ui-activity-show-info-panel flex items-center rounded-2xl">
+        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_activities') }}"
                 value="{{ $confirmedActivitiesCount }}"
@@ -74,7 +74,7 @@
                 class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
-        <div class="ui-activity-show-info-panel flex items-center rounded-2xl">
+        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_participants') }}"
                 value="{{ $confirmedParticipantsCount }}"
@@ -82,13 +82,15 @@
                 class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
-        <x-ui.interested-stat-card
-            :title="__('ui.events.interested_people_count')"
-            :value="$interestedPeopleCount"
-            :has-interest="$hasInterest"
-            class="ui-activity-show-info-panel min-w-0"
-            data-ui="event-show-interested-stat"
-        />
+        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-0 items-center rounded-2xl">
+            <x-ui.interested-stat-card
+                :title="__('ui.events.interested_people_count')"
+                :value="$interestedPeopleCount"
+                :has-interest="$hasInterest"
+                class="w-full rounded-2xl"
+                data-ui="event-show-interested-stat"
+            />
+        </div>
     </div>
 
     <div

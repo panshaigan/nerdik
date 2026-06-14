@@ -17,7 +17,7 @@
 <div
     {{ $attributes->class([
         'rounded-2xl',
-        'relative overflow-hidden cursor-pointer select-none transition-transform duration-150 ease-out hover:box-glow-primary active:scale-[0.98]' => $isAuthenticated,
+        'relative overflow-hidden cursor-pointer select-none transition-transform duration-150 ease-out active:scale-[0.98]' => $isAuthenticated,
     ]) }}
     @if ($isAuthenticated)
         wire:click="{{ $hasInterest ? $clickRemoveAction : $clickAddAction }}"

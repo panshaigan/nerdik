@@ -114,12 +114,12 @@
     >
         <x-ui.activity-badge-group
             :items="$badgeItems"
-            class="ui-activity-show-info-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
+            class="ui-activity-show-info-panel ui-activity-show-stat-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
             data-ui="activity-show-badge-group"
         />
         <div class="grid shrink-0 grid-cols-2 gap-3 sm:w-auto">
             <div
-                class="ui-activity-show-info-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]"
+                class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]"
                 data-ui="activity-show-participants-stat"
             >
                 <x-stat
@@ -130,15 +130,17 @@
                     class="ui-stat-embed ui-activity-show-stat"
                 />
             </div>
-            <x-ui.interested-stat-card
-                :title="__('ui.interests.interested_in_short')"
-                :value="$interestedPeopleCount"
-                :has-interest="$hasInterest"
-                icon="s-star"
-                icon-color="text-warning"
-                class="ui-activity-show-info-panel min-w-[8.75rem] sm:min-w-[10rem]"
-                data-ui="activity-show-interested-stat"
-            />
+            <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]">
+                <x-ui.interested-stat-card
+                    :title="__('ui.interests.interested_in_short')"
+                    :value="$interestedPeopleCount"
+                    :has-interest="$hasInterest"
+                    icon="s-star"
+                    icon-color="text-warning"
+                    class="w-full rounded-2xl"
+                    data-ui="activity-show-interested-stat"
+                />
+            </div>
         </div>
     </div>
 

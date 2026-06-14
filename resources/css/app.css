@@ -479,6 +479,43 @@
             10px 18px 18px -18px color-mix(in oklab, var(--color-primary) 32%, transparent);
     }
 
+    /** Softer glow for numeric stat tiles under show headers (badge panel unchanged). */
+    .ui-activity-show-info-panel.ui-activity-show-stat-panel {
+        box-shadow:
+            inset 0 18px 30px -26px color-mix(in oklab, var(--color-primary) 12%, transparent);
+    }
+
+    .ui-activity-show-info-panel.ui-activity-show-stat-panel::before {
+        background: conic-gradient(
+            from 205deg at 38% 24%,
+            color-mix(in oklab, var(--color-primary) 45%, transparent) 0deg,
+            color-mix(in oklab, var(--color-primary) 8%, transparent) 48deg,
+            color-mix(in oklab, var(--color-primary) 38%, transparent) 104deg,
+            color-mix(in oklab, var(--color-primary) 6%, transparent) 168deg,
+            color-mix(in oklab, var(--color-primary) 42%, transparent) 224deg,
+            color-mix(in oklab, var(--color-primary) 10%, transparent) 286deg,
+            color-mix(in oklab, var(--color-primary) 32%, transparent) 332deg,
+            color-mix(in oklab, var(--color-primary) 45%, transparent) 360deg
+        );
+        box-shadow:
+            inset -10px -6px 14px -12px color-mix(in oklab, var(--color-primary) 32%, transparent),
+            inset 12px 8px 16px -14px color-mix(in oklab, var(--color-primary) 18%, transparent),
+            inset 4px -10px 12px -13px color-mix(in oklab, var(--color-primary) 26%, transparent);
+    }
+
+    .ui-activity-show-info-panel.ui-activity-show-stat-panel::after {
+        opacity: 0.55;
+        filter: blur(1px);
+        box-shadow:
+            -12px -8px 26px -8px color-mix(in oklab, var(--color-primary) 42%, transparent),
+            16px -12px 32px -12px color-mix(in oklab, var(--color-primary) 20%, transparent),
+            -8px 16px 28px -10px color-mix(in oklab, var(--color-primary) 32%, transparent),
+            14px 12px 24px -14px color-mix(in oklab, var(--color-primary) 14%, transparent),
+            -16px 6px 22px -16px color-mix(in oklab, var(--color-primary) 28%, transparent),
+            6px -14px 20px -12px color-mix(in oklab, var(--color-primary) 38%, transparent),
+            10px 18px 18px -18px color-mix(in oklab, var(--color-primary) 18%, transparent);
+    }
+
     .ui-activity-show-hero.ui-content-card,
     .ui-event-show-hero.ui-content-card {
         padding: 0;
@@ -1096,7 +1133,9 @@
         box-shadow:
             0 32px 48px color-mix(in oklch, black 88%, transparent),
             0 14px 28px color-mix(in oklch, black 72%, transparent);
-        transition: transform var(--ui-listing-card-duration) var(--ui-listing-card-ease);
+        transition:
+            transform var(--ui-listing-card-duration) var(--ui-listing-card-ease),
+            box-shadow var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
             box-shadow:
@@ -1115,13 +1154,17 @@
         pointer-events: none;
         opacity: 0;
         box-shadow:
-            0 40px 56px color-mix(in oklch, black 90%, transparent),
-            0 18px 36px color-mix(in oklch, black 76%, transparent),
+            0 24px 40px color-mix(in oklch, black 72%, transparent),
+            0 12px 24px color-mix(in oklch, black 58%, transparent),
             0 0 64px color-mix(in oklch, var(--brand-accent) 58%, transparent),
             0 0 40px color-mix(in oklch, var(--brand-primary) 48%, transparent),
             0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
             0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent),
+            0 18px 36px color-mix(in oklch, var(--brand-accent) 52%, transparent),
+            0 28px 52px color-mix(in oklch, var(--brand-primary) 44%, transparent),
+            0 38px 68px color-mix(in oklch, var(--brand-accent) 36%, transparent),
+            0 48px 84px color-mix(in oklch, var(--brand-primary) 28%, transparent);
         transition: opacity var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
@@ -1129,13 +1172,25 @@
                 0 0 52px color-mix(in oklch, var(--brand-primary) 36%, transparent),
                 0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
                 0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-                0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+                0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent),
+                0 16px 32px color-mix(in oklch, var(--brand-accent) 38%, transparent),
+                0 26px 48px color-mix(in oklch, var(--brand-primary) 32%, transparent),
+                0 36px 64px color-mix(in oklch, var(--brand-accent) 24%, transparent);
         }
     }
 
     .card.ui-listing-card:is(:hover, :focus-within),
     .card.ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) {
         transform: translate3d(0, -5px, 0);
+        box-shadow:
+            0 18px 28px color-mix(in oklch, black 52%, transparent),
+            0 8px 16px color-mix(in oklch, black 38%, transparent);
+
+        @variant light {
+            box-shadow:
+                0 16px 24px color-mix(in oklch, var(--brand-neutral-content-dark) 22%, transparent),
+                0 6px 12px color-mix(in oklch, var(--brand-neutral-content-dark) 16%, transparent);
+        }
     }
 
     .card.ui-listing-card:is(:hover, :focus-within)::after,
