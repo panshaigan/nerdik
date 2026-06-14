@@ -23,18 +23,20 @@
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >
+        <x-app-shell-background :enabled="! request()->routeIs('activities.show', 'events.show')" />
+
         <x-environment-indicator />
 
         <div class="min-h-screen flex flex-col">
             <livewire:layout.navigation />
 
-            <div class="bg-gradient flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
+            <div class="flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
                 <x-main full-width with-nav>
                     <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0 max-w-7xl mx-auto mb-4 sm:mb-6">
                         {{ $slot }}
                     </x-slot:content>
 
-                    <x-slot:footer class="border-t border-base-300 bg-base-100/90">
+                    <x-slot:footer class="border-t border-white/10 bg-black/35 backdrop-blur-md">
                         <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                             <p class="opacity-70">{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-1">

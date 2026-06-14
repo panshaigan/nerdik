@@ -13,11 +13,12 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-base-200 font-sans text-base-content antialiased">
+    <body class="min-h-screen font-sans text-base-content antialiased">
+        <x-app-shell-background />
+
         <x-environment-indicator />
 
         <div class="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
-            <div class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-gradient-to-b from-primary/15 via-secondary/10 to-transparent blur-3xl"></div>
 
             <header class="flex items-center justify-between gap-4 pb-6">
                 <div class="flex items-center gap-3">
@@ -105,7 +106,7 @@
                 </section>
             </main>
 
-            <footer class="mt-10 border-t border-base-300 px-4 py-5 text-sm opacity-70 sm:px-6 lg:px-8">
+            <footer class="mt-10 border-t border-white/10 bg-black/35 px-4 py-5 text-sm opacity-70 backdrop-blur-md sm:px-6 lg:px-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
