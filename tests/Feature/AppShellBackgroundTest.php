@@ -26,6 +26,7 @@ final class AppShellBackgroundTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
         $response->assertSee('images/app/background.webp', false);
+        $response->assertSee('images/app/background-light.webp', false);
         $response->assertSee('fixed inset-0 z-0', false);
         $response->assertSee('relative z-10 flex min-h-screen flex-col', false);
         $response->assertSee('<footer class="border-t border-white/10 backdrop-blur-md">', false);
@@ -40,6 +41,7 @@ final class AppShellBackgroundTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
         $response->assertSee('images/app/background.webp', false);
+        $response->assertSee('images/app/background-light.webp', false);
     }
 
     #[Test]
@@ -50,6 +52,7 @@ final class AppShellBackgroundTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
         $response->assertSee('images/app/background.webp', false);
+        $response->assertSee('images/app/background-light.webp', false);
     }
 
     #[Test]
