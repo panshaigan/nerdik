@@ -9,10 +9,10 @@
     <x-page-header :title="$title" :user="$creator" :back-url="$backUrl">
     </x-page-header>
 
-    <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] min-w-0 rounded-2xl">
-        <x-form wire:submit.prevent="save" class="" data-activity-form>
+        <x-form wire:submit.prevent="save" novalidate class="" data-activity-form>
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity min-w-0" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar
                 wire:model.live="tab"
@@ -23,19 +23,19 @@
                 data-ui="activity-manage-tabs"
                 class="rounded-2xl"
             >
-                <x-tab name="main-details" :label="__('ui.activities.tab_main_details')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
+                <x-tab name="main-details" :label="$this->tabLabel('main-details', __('ui.activities.tab_main_details'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-main-details" icon="o-pencil-square">
                     @include('livewire.activities.partials.manage-main-details-tab')
                 </x-tab>
 
-                <x-tab name="tags" :label="__('ui.activities.tags')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-tags" icon="o-tag">
+                <x-tab name="tags" :label="$this->tabLabel('tags', __('ui.activities.tags'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-tags" icon="o-tag">
                     @include('livewire.activities.partials.manage-tags-tab')
                 </x-tab>
 
-                <x-tab name="image" :label="__('ui.activities.image')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-image" icon="o-photo">
+                <x-tab name="image" :label="$this->tabLabel('image', __('ui.activities.image'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-image" icon="o-photo">
                     @include('livewire.activities.partials.manage-image-tab')
                 </x-tab>
 
-                <x-tab name="hosting-mode" :label="__('ui.activities.hosting_mode_label')" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
+                <x-tab name="hosting-mode" :label="$this->tabLabel('hosting-mode', __('ui.activities.hosting_mode_label'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-hosting" icon="o-map-pin">
                     @include('livewire.activities.partials.manage-hosting-mode-tab')
                 </x-tab>
             </x-ui.tabs-with-toolbar>

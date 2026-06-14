@@ -25,6 +25,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -37,6 +38,9 @@ class ManageActivityForm extends Component
     }
 
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
+
+    /** @var list<string> */
+    private const FORM_TAB_ORDER = ['main-details', 'tags', 'image', 'hosting-mode'];
 
     public ?int $editingActivityId = null;
 
@@ -227,7 +231,71 @@ class ManageActivityForm extends Component
 
     private function normalizeFormTab(?string $value): string
     {
-        return in_array($value, ['main-details', 'tags', 'image', 'hosting-mode'], true) ? $value : 'main-details';
+        return in_array($value, self::FORM_TAB_ORDER, true) ? $value : 'main-details';
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    public function tabsWithValidationErrors(): array
+    {
+        $tabs = [];
+
+        foreach ($this->getErrorBag()->keys() as $key) {
+            $tabs[$this->validationAttributeTab($key)] = true;
+        }
+
+        return $tabs;
+    }
+
+    public function tabLabel(string $tab, string $label): string
+    {
+        $escapedLabel = e($label);
+
+        if (! isset($this->tabsWithValidationErrors()[$tab])) {
+            return $escapedLabel;
+        }
+
+        return $escapedLabel.' <span class="badge badge-error badge-xs ms-1" aria-hidden="true">!</span>';
+    }
+
+    private function validationAttributeTab(string $attribute): string
+    {
+        $root = str_contains($attribute, '.') ? explode('.', $attribute, 2)[0] : $attribute;
+
+        return match ($root) {
+            'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
+            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours',
+            'requires_approval', 'allows_observers' => 'main-details',
+            'tag_ids', 'new_tags' => 'tags',
+            'logo_source', 'selected_tag_media_id', 'croppedLogo' => 'image',
+            default => 'hosting-mode',
+        };
+    }
+
+    private function focusTabForValidationErrors(ValidationException $exception): void
+    {
+        $this->focusTabForValidationErrorKeys(array_keys($exception->validator->errors()->messages()));
+    }
+
+    /**
+     * @param  list<string>  $errorKeys
+     */
+    private function focusTabForValidationErrorKeys(array $errorKeys): void
+    {
+        $tabsWithErrors = [];
+
+        foreach ($errorKeys as $key) {
+            $tabsWithErrors[$this->validationAttributeTab($key)] = true;
+        }
+
+        foreach (self::FORM_TAB_ORDER as $tab) {
+            if (isset($tabsWithErrors[$tab])) {
+                $this->tab = $tab;
+
+                break;
+            }
+        }
     }
 
     private function hydrateLogoFieldsFromActivity(Activity $activity): void
@@ -675,14 +743,26 @@ class ManageActivityForm extends Component
         LocationResolver $locationResolver,
         ActivityFormService $activityForm,
     ) {
-        $validated = $this->validate($this->rules());
+        try {
+            $validated = $this->withValidator(function ($validator): void {
+                $validator->after(function ($validator): void {
+                    if ($validator->errors()->isNotEmpty()) {
+                        $this->focusTabForValidationErrorKeys(array_keys($validator->errors()->messages()));
+                    }
+                });
+            })->validate($this->rules());
 
-        if ($this->editingActivityId !== null) {
-            $activity = Activity::query()->findOrFail($this->editingActivityId);
-            $this->authorizeCreatedBy($activity);
+            if ($this->editingActivityId !== null) {
+                $activity = Activity::query()->findOrFail($this->editingActivityId);
+                $this->authorizeCreatedBy($activity);
+            }
+
+            return $activityForm->persist($this, $validated, $tagSelectionService, $hostingModes, $locationResolver);
+        } catch (ValidationException $exception) {
+            $this->focusTabForValidationErrors($exception);
+
+            throw $exception;
         }
-
-        return $activityForm->persist($this, $validated, $tagSelectionService, $hostingModes, $locationResolver);
     }
 
     /**
