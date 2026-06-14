@@ -248,6 +248,7 @@ class ProfileTest extends TestCase
     {
         $organization = Organization::factory()->create([
             'name' => 'Org Display Name',
+            'acronym' => null,
         ]);
         $user = User::factory()->create([
             'nickname' => 'User Display Name',

@@ -2,7 +2,7 @@
     'title' => __('ui.common.crop_image'),
 ])
 
-<dialog id="ui-image-crop-modal" class="modal backdrop-blur">
+<dialog id="ui-image-crop-modal" class="modal backdrop-blur z-[100030]">
     <div class="modal-box max-w-lg ui-modal-surface">
         <h3 class="text-lg font-semibold" data-image-crop-modal-title>{{ $title }}</h3>
         <div class="ui-image-crop-crop mt-4 w-full" wire:ignore>

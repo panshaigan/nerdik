@@ -1,5 +1,6 @@
 @props([
     'aspect' => 'square',
+    'compact' => false,
     'wireProperty' => 'croppedImage',
     'clearMethod' => 'clearCroppedImage',
     'errorField' => 'croppedImage',
@@ -27,16 +28,26 @@
         : __('ui.common.crop_upload_help_square'));
     $previewClasses = $isVideo
         ? 'aspect-video w-full max-w-md rounded-2xl object-cover ring-2 ring-base-300/50'
-        : 'h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56';
+        : ($compact
+            ? 'h-20 w-20 rounded-full object-cover ring-2 ring-base-300/50'
+            : 'h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56');
     $placeholderClasses = $isVideo
         ? 'flex aspect-video w-full max-w-md items-center justify-center rounded-2xl bg-base-300/40 ring-2 ring-base-300/50'
-        : 'flex h-48 w-48 items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50 sm:h-56 sm:w-56';
+        : ($compact
+            ? 'flex h-20 w-20 items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50'
+            : 'flex h-48 w-48 items-center justify-center rounded-xl bg-base-300/40 ring-2 ring-base-300/50 sm:h-56 sm:w-56');
+    $dropzoneLayoutClass = $compact
+        ? 'grid gap-4 rounded-lg border border-base-200 bg-base-200/40 p-4 md:grid-cols-2 md:items-center'
+        : 'grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8';
+    $uploadAreaClass = $compact
+        ? 'ui-image-crop-dropzone-upload flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-base-300/80 bg-base-100/30 p-4 text-center'
+        : 'ui-image-crop-dropzone-upload flex min-h-64 cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-base-300/80 bg-base-100/30 p-8 text-center';
     $resolvedFileInputId = $fileInputId ?? 'ui-image-crop-file-'.md5($wireProperty.$formSelector);
     $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('ui.events.image_crop_title') : __('ui.profile.crop_avatar'));
 @endphp
 
 <div
-    {{ $attributes->class(['ui-image-crop-dropzone grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8']) }}
+    {{ $attributes->class(['ui-image-crop-dropzone', $dropzoneLayoutClass]) }}
     data-image-crop-dropzone
     data-image-crop-aspect="{{ $aspect }}"
     data-image-crop-wire-property="{{ $wireProperty }}"
@@ -60,7 +71,7 @@
         />
         <label
             for="{{ $resolvedFileInputId }}"
-            class="ui-image-crop-dropzone-upload flex min-h-64 cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-base-300/80 bg-base-100/30 p-8 text-center"
+            class="{{ $uploadAreaClass }}"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 text-base-content/50" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
