@@ -19,6 +19,7 @@ use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -30,6 +31,9 @@ class ManageEventForm extends Component
     private const NAME_SUGGESTIONS_LIMIT = 40;
 
     private const ORGANIZATION_SUGGESTIONS_LIMIT = 500;
+
+    /** @var list<string> */
+    private const FORM_TAB_ORDER = ['main-details', 'image', 'location', 'enrollment-windows'];
 
     public ?int $editingEventId = null;
 
@@ -130,7 +134,7 @@ class ManageEventForm extends Component
 
     private function normalizeFormTab(?string $value): string
     {
-        if (! in_array($value, ['main-details', 'image', 'location', 'enrollment-windows'], true)) {
+        if (! in_array($value, self::FORM_TAB_ORDER, true)) {
             return 'main-details';
         }
         if ($value === 'enrollment-windows' && ! $this->eventDatesReadyForEnrollmentWindows()) {
@@ -138,6 +142,70 @@ class ManageEventForm extends Component
         }
 
         return $value;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    public function tabsWithValidationErrors(): array
+    {
+        $tabs = [];
+
+        foreach ($this->getErrorBag()->keys() as $key) {
+            $tabs[$this->validationAttributeTab($key)] = true;
+        }
+
+        return $tabs;
+    }
+
+    public function tabLabel(string $tab, string $label): string
+    {
+        $escapedLabel = e($label);
+
+        if (! isset($this->tabsWithValidationErrors()[$tab])) {
+            return $escapedLabel;
+        }
+
+        return $escapedLabel.' <span class="badge badge-error badge-xs ms-1" aria-hidden="true">!</span>';
+    }
+
+    private function validationAttributeTab(string $attribute): string
+    {
+        $root = str_contains($attribute, '.') ? explode('.', $attribute, 2)[0] : $attribute;
+
+        return match ($root) {
+            'name', 'organization_id', 'organization_name', 'description', 'is_public',
+            'starts_at', 'ends_at' => 'main-details',
+            'logo_source', 'listing_media_id', 'croppedLogo' => 'image',
+            'place_ids', 'new_places' => 'location',
+            'enrollment_windows' => 'enrollment-windows',
+            default => 'main-details',
+        };
+    }
+
+    private function focusTabForValidationErrors(ValidationException $exception): void
+    {
+        $this->focusTabForValidationErrorKeys(array_keys($exception->validator->errors()->messages()));
+    }
+
+    /**
+     * @param  list<string>  $errorKeys
+     */
+    private function focusTabForValidationErrorKeys(array $errorKeys): void
+    {
+        $tabsWithErrors = [];
+
+        foreach ($errorKeys as $key) {
+            $tabsWithErrors[$this->validationAttributeTab($key)] = true;
+        }
+
+        foreach (self::FORM_TAB_ORDER as $tab) {
+            if (isset($tabsWithErrors[$tab])) {
+                $this->tab = $tab;
+
+                break;
+            }
+        }
     }
 
     protected function eventDatesReadyForEnrollmentWindows(): bool
@@ -394,62 +462,74 @@ class ManageEventForm extends Component
 
     public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService, EventEmptySlotCloneService $slotCloneService)
     {
-        $validated = $this->validate($this->rules());
+        try {
+            $validated = $this->withValidator(function ($validator): void {
+                $validator->after(function ($validator): void {
+                    if ($validator->errors()->isNotEmpty()) {
+                        $this->focusTabForValidationErrorKeys(array_keys($validator->errors()->messages()));
+                    }
+                });
+            })->validate($this->rules());
 
-        $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
-        $validated['is_public'] = (bool) ($validated['is_public'] ?? true);
+            $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
+            $validated['is_public'] = (bool) ($validated['is_public'] ?? true);
 
-        $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
-        $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+            $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
+            $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
 
-        $orgName = isset($validated['organization_name']) ? trim((string) $validated['organization_name']) : '';
-        $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
-            $validated['organization_id'] ?? null,
-            $orgName !== '' ? $orgName : null
-        );
-        unset($validated['organization_name']);
+            $orgName = isset($validated['organization_name']) ? trim((string) $validated['organization_name']) : '';
+            $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
+                $validated['organization_id'] ?? null,
+                $orgName !== '' ? $orgName : null
+            );
+            unset($validated['organization_name']);
 
-        $placeIds = $this->place_ids;
-        unset($validated['place_ids'], $validated['new_places']);
+            $placeIds = $this->place_ids;
+            unset($validated['place_ids'], $validated['new_places']);
 
-        unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo']);
+            unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo']);
 
-        if ($this->editingEventId !== null) {
-            $event = Event::query()->findOrFail($this->editingEventId);
-            $this->authorizeCreatedBy($event);
-            $event->update($validated);
+            if ($this->editingEventId !== null) {
+                $event = Event::query()->findOrFail($this->editingEventId);
+                $this->authorizeCreatedBy($event);
+                $event->update($validated);
+                $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+                $event->refresh();
+                $this->syncEnrollmentWindows($event, $signupService);
+                $this->applyEventLogoFromForm($event);
+                session()->flash('status', __('Event updated.'));
+
+                return redirect()->route('events.show', $event);
+            }
+
+            abort_unless(Auth::user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
+
+            $validated['created_by'] = Auth::id();
+            $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
+
+            $event = Event::create($validated);
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
             $event->refresh();
             $this->syncEnrollmentWindows($event, $signupService);
             $this->applyEventLogoFromForm($event);
-            session()->flash('status', __('Event updated.'));
 
-            return redirect()->route('events.show', $event);
-        }
-
-        abort_unless(Auth::user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
-
-        $validated['created_by'] = Auth::id();
-        $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
-
-        $event = Event::create($validated);
-        $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
-        $event->refresh();
-        $this->syncEnrollmentWindows($event, $signupService);
-        $this->applyEventLogoFromForm($event);
-
-        if ($duplicateSlotsFrom !== null) {
-            $source = Event::query()->find($duplicateSlotsFrom);
-            if ($source !== null && Auth::user()?->canModifyEntity($source)) {
-                $slotCloneService->cloneEmptySlots($source, $event);
+            if ($duplicateSlotsFrom !== null) {
+                $source = Event::query()->find($duplicateSlotsFrom);
+                if ($source !== null && Auth::user()?->canModifyEntity($source)) {
+                    $slotCloneService->cloneEmptySlots($source, $event);
+                }
             }
+
+            $this->duplicateSlotsFromEventId = null;
+
+            session()->flash('status', __('Event created.'));
+
+            return redirect()->route('search.index');
+        } catch (ValidationException $exception) {
+            $this->focusTabForValidationErrors($exception);
+
+            throw $exception;
         }
-
-        $this->duplicateSlotsFromEventId = null;
-
-        session()->flash('status', __('Event created.'));
-
-        return redirect()->route('search.index');
     }
 
     protected function syncEnrollmentWindows(Event $event, EventActivitySignupService $signupService): void

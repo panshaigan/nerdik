@@ -53,7 +53,7 @@
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
-        <x-form wire:submit.prevent="save" data-event-form>
+        <x-form wire:submit.prevent="save" novalidate data-event-form>
             <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
                 <x-ui.tabs-with-toolbar
                     wire:model.live="tab"
@@ -65,21 +65,21 @@
                     class="rounded-2xl"
                 >
 
-                    <x-tab name="main-details" :label="__('ui.events.tab_main_details')" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
+                    <x-tab name="main-details" :label="$this->tabLabel('main-details', __('ui.events.tab_main_details'))" class="px-6 pt-6" data-ui="event-manage-tab-main-details" icon="o-pencil-square">
                         @include('livewire.events.partials.manage-main-details-tab')
                     </x-tab>
 
-                    <x-tab name="image" :label="__('ui.events.image')" class="px-6 pt-6" data-ui="event-manage-tab-image" icon="o-photo">
+                    <x-tab name="image" :label="$this->tabLabel('image', __('ui.events.image'))" class="px-6 pt-6" data-ui="event-manage-tab-image" icon="o-photo">
                         @include('livewire.events.partials.manage-image-tab')
                     </x-tab>
 
-                    <x-tab name="location" :label="__('ui.events.tab_location')" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
+                    <x-tab name="location" :label="$this->tabLabel('location', __('ui.events.tab_location'))" class="px-6 pt-6" data-ui="event-manage-tab-location" icon="o-map-pin">
                         @include('livewire.events.partials.manage-location-tab')
                     </x-tab>
 
                     <x-tab
                         name="enrollment-windows"
-                        :label="__('ui.events.tab_enrollment_windows')"
+                        :label="$this->tabLabel('enrollment-windows', __('ui.events.tab_enrollment_windows'))"
                         :disabled="$enrollmentWindowsTabDisabled"
                         class="px-6 pt-6"
                         data-ui="event-manage-tab-enrollment-windows"
@@ -466,17 +466,71 @@
 
             const form = startsAtEl.closest('form');
             if (form) {
-                form.addEventListener('submit', (e) => {
+                form.addEventListener('submit', () => {
                     syncDateGuards();
-                    if (!form.checkValidity()) {
-                        e.preventDefault();
-                        form.reportValidity();
-                    }
                 }, { signal });
             }
         }
 
+        eventFormRegisterValidationScrollHook();
     }
+
+    let eventFormValidationScrollHooked = false;
+    let eventFormSubmitAt = 0;
+    let eventFormSubmitClearTimer = null;
+
+    function eventFormRegisterValidationScrollHook() {
+        if (eventFormValidationScrollHooked) {
+            return;
+        }
+        if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
+            return;
+        }
+        eventFormValidationScrollHooked = true;
+        document.addEventListener(
+            'submit',
+            (e) => {
+                if (e.target?.matches?.('form[data-event-form]')) {
+                    eventFormSubmitAt = Date.now();
+                    clearTimeout(eventFormSubmitClearTimer);
+                    eventFormSubmitClearTimer = setTimeout(() => {
+                        eventFormSubmitAt = 0;
+                    }, 5000);
+                }
+            },
+            true,
+        );
+        window.Livewire.hook('morphed', () => {
+            if (!eventFormSubmitAt) {
+                return;
+            }
+            requestAnimationFrame(() => {
+                if (!eventFormSubmitAt) {
+                    return;
+                }
+                const form = document.querySelector('form[data-event-form]');
+                if (!form) {
+                    return;
+                }
+                const err =
+                    form.querySelector('ul.text-error')
+                    || form.querySelector('fieldset .text-error')
+                    || form.querySelector('.label.text-error')
+                    || form.querySelector('[class*="input-error"]')
+                    || form.querySelector('.text-error');
+                if (err) {
+                    err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    clearTimeout(eventFormSubmitClearTimer);
+                    eventFormSubmitAt = 0;
+                }
+            });
+        });
+    }
+
+    document.addEventListener('livewire:init', eventFormRegisterValidationScrollHook);
+    document.addEventListener('DOMContentLoaded', eventFormRegisterValidationScrollHook);
+    window.addEventListener('load', eventFormRegisterValidationScrollHook);
+    eventFormRegisterValidationScrollHook();
 
     document.addEventListener('livewire:navigating', () => {
         manageEventFormScriptsAbort?.abort();
