@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
+use App\Support\Browse\BrowseSearchState;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -87,6 +88,8 @@ class BrowseOnlyMineFilterTest extends TestCase
         $creatorEventNames = $this->browseEventNames($creatorComponent);
         $this->assertContains('Only Mine Private Event Creator', $creatorEventNames);
         $this->assertNotContains('Only Mine Public Event Other', $creatorEventNames);
+
+        BrowseSearchState::forget();
 
         $otherComponent = Livewire::withoutLazyLoading()
             ->actingAs($other)
@@ -215,6 +218,8 @@ class BrowseOnlyMineFilterTest extends TestCase
         $this->assertContains('Only Mine Own Self Hosted', $creatorActivityNames);
         $this->assertContains('Only Mine Joined Scheduled Activity', $creatorActivityNames);
         $this->assertNotContains('Only Mine Stranger Self Hosted', $creatorActivityNames);
+
+        BrowseSearchState::forget();
 
         $participantComponent = Livewire::withoutLazyLoading()
             ->actingAs($participant)
