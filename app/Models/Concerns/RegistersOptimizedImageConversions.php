@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
+use App\Support\Media\ImageFormatCapabilities;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -42,23 +43,15 @@ trait RegistersOptimizedImageConversions
     protected function conversionFormatsForEnvironment(): array
     {
         if (! app()->environment('testing')) {
-            return [
-                ['name' => 'avif', 'extension' => 'avif'],
-                ['name' => 'webp', 'extension' => 'webp'],
-                ['name' => 'jpeg', 'extension' => 'jpg'],
-            ];
+            return ImageFormatCapabilities::productionConversionFormats();
         }
 
         $formats = config('media.test_profile', 'minimal') === 'full'
             ? config('media.full_test_formats', ['avif', 'webp', 'jpeg'])
             : config('media.testing.conversion_formats', ['webp']);
 
-        return array_map(
-            fn (string $name): array => [
-                'name' => $name,
-                'extension' => $name === 'jpeg' ? 'jpg' : $name,
-            ],
-            $formats,
+        return ImageFormatCapabilities::mapFormatNamesToDefinitions(
+            ImageFormatCapabilities::filterSupportedFormatNames($formats),
         );
     }
 
