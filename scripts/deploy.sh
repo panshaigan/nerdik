@@ -151,6 +151,10 @@ if ! "${COMPOSE[@]}" exec -T app php -r 'exit((gd_info()["WebP Support"] ?? fals
     echo "WARN: GD WebP support missing — image uploads will fail until the image is rebuilt." >&2
 fi
 
+if ! "${COMPOSE[@]}" exec -T app php -r 'exit(function_exists("imageavif") ? 0 : 1);'; then
+    echo "WARN: GD AVIF support missing — AVIF conversions are skipped until the image is rebuilt." >&2
+fi
+
 printf 'NERDIK_IMAGE=%s\n' "${NERDIK_IMAGE}" > .nerdik-image
 chmod 600 .nerdik-image
 
