@@ -50,7 +50,7 @@
                 :hint="__('ui.events.public_event_hint')"
             />
     </div>
-    <x-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" />
 
     <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
         <x-form wire:submit.prevent="save" data-event-form>
