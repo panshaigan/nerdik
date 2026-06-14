@@ -99,6 +99,16 @@
                         inline
                     />
 
+                    <x-input
+                        wire:model.live="acronym"
+                        label="{{ __('ui.organizations.acronym') }}"
+                        type="text"
+                        name="acronym"
+                        error-field="acronym"
+                        maxlength="5"
+                    />
+                    <p class="-mt-2 text-xs text-base-content/70">{{ __('ui.organizations.acronym_hint') }}</p>
+
                     <div wire:key="org-modal-editor-{{ $modalRenderKey }}">
                         <x-editor
                             id="org-description-{{ $modalRenderKey }}"
@@ -135,15 +145,6 @@
                         <div class="grid gap-4 rounded-lg border border-base-200 bg-base-200/40 p-4 md:grid-cols-2 md:items-center">
                             <div class="flex flex-col gap-3">
                                 <p class="text-sm text-base-content/80">{{ __('ui.organizations.logo_colors_hint') }}</p>
-                                <x-input
-                                    wire:model.live="acronym"
-                                    label="{{ __('ui.organizations.acronym') }}"
-                                    type="text"
-                                    name="acronym"
-                                    error-field="acronym"
-                                    maxlength="12"
-                                />
-                                <p class="text-xs text-base-content/70">{{ __('ui.organizations.acronym_hint') }}</p>
                                 <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.organizations.logo_bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" required />
                                 <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.organizations.logo_text_color') }}" name="logo_text_color" error-field="logo_text_color" required />
                             </div>

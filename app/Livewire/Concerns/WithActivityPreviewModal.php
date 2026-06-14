@@ -190,8 +190,8 @@ trait WithActivityPreviewModal
             if ($this->normalizeActivityPreviewTab($this->activityPreviewTab) === 'participation'
                 && $previewActivityHasActiveEnrollmentWindow) {
                 $previewActivity->loadMissing([
-                    'participants.user',
-                    'waitlist.user',
+                    'participants.user.organization',
+                    'waitlist.user.organization',
                 ]);
             }
             $previewActivityBadgeItems = $badgeGroupBuilder->build(

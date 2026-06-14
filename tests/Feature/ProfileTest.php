@@ -265,6 +265,56 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('alt="Org Display Name"', $html);
     }
 
+    public function test_user_badge_shows_organization_acronym_after_nickname(): void
+    {
+        $organization = Organization::factory()->create([
+            'acronym' => 'CGN',
+        ]);
+        $user = User::factory()->create([
+            'nickname' => 'pixel_mage',
+            'organization_id' => $organization->id,
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" />', [
+            'user' => $user->fresh('organization'),
+        ]);
+
+        $this->assertStringContainsString('pixel_mage [CGN]', $html);
+    }
+
+    public function test_user_badge_shows_nickname_only_when_organization_has_no_acronym(): void
+    {
+        $organization = Organization::factory()->create([
+            'acronym' => null,
+        ]);
+        $user = User::factory()->create([
+            'nickname' => 'solo_player',
+            'organization_id' => $organization->id,
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" />', [
+            'user' => $user->fresh('organization'),
+        ]);
+
+        $this->assertStringContainsString('solo_player', $html);
+        $this->assertStringNotContainsString('[', $html);
+    }
+
+    public function test_user_badge_shows_nickname_only_when_user_has_no_organization(): void
+    {
+        $user = User::factory()->create([
+            'nickname' => 'free_agent',
+            'organization_id' => null,
+        ]);
+
+        $html = Blade::render('<x-user-badge :user="$user" />', [
+            'user' => $user,
+        ]);
+
+        $this->assertStringContainsString('free_agent', $html);
+        $this->assertStringNotContainsString('[', $html);
+    }
+
     public function test_profile_page_has_tab_query_parameter(): void
     {
         $user = User::factory()->create();

@@ -15,7 +15,9 @@
     use App\Models\User;
 
     $usesOrganization = $organization !== null;
-    $resolvedName = trim((string) ($name ?? $organization?->name ?? $user?->displayName() ?? __('ui.common.unknown_user')));
+    $resolvedName = trim((string) ($name ?? ($usesOrganization
+        ? $organization?->name
+        : ($user !== null ? $user->badgeDisplayName() : null)) ?? __('ui.common.unknown_user')));
     $resolvedAvatarUrl = is_string($avatarUrl) && $avatarUrl !== ''
         ? $avatarUrl
         : ($usesOrganization && $organization !== null

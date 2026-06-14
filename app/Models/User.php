@@ -75,6 +75,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return (string) $this->nickname;
     }
 
+    /**
+     * Display name for user badges, including organization acronym when set.
+     */
+    public function badgeDisplayName(): string
+    {
+        $name = $this->displayName();
+        $acronym = trim((string) ($this->organization?->acronym ?? ''));
+
+        return $acronym !== '' ? "{$name} [{$acronym}]" : $name;
+    }
+
     public function generatedAvatarName(): string
     {
         $initials = trim((string) ($this->profile?->avatar_initials ?? ''));

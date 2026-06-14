@@ -127,6 +127,45 @@ final class OrganizationIndexLogoTest extends TestCase
     }
 
     #[Test]
+    public function save_persists_acronym_with_uploaded_logo(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
+
+        Livewire::actingAs($user)
+            ->test(OrganizationIndex::class)
+            ->set('modalOpen', true)
+            ->set('modalMode', 'create')
+            ->set('name', 'Uploaded With Acronym Org')
+            ->set('acronym', 'uwa')
+            ->set('logo_source', OrganizationLogoSource::Upload->value)
+            ->set('croppedLogo', $file)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $organization = Organization::query()->where('name', 'Uploaded With Acronym Org')->first();
+        $this->assertNotNull($organization);
+        $this->assertSame('UWA', $organization->acronym);
+    }
+
+    #[Test]
+    public function validation_rejects_acronym_longer_than_five_characters(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(OrganizationIndex::class)
+            ->set('modalOpen', true)
+            ->set('modalMode', 'create')
+            ->set('name', 'Long Acronym Org')
+            ->set('acronym', 'TOOLONG')
+            ->set('logo_source', OrganizationLogoSource::Generated->value)
+            ->call('save')
+            ->assertHasErrors(['acronym' => 'max']);
+    }
+
+    #[Test]
     public function organization_list_renders_logo_thumbnail(): void
     {
         $user = User::factory()->create();

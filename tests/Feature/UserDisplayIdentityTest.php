@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,6 +11,34 @@ use Tests\TestCase;
 class UserDisplayIdentityTest extends TestCase
 {
     use RefreshDatabase;
+
+    #[Test]
+    public function badge_display_name_includes_organization_acronym_when_set(): void
+    {
+        $organization = Organization::factory()->create([
+            'acronym' => 'OOF',
+        ]);
+        $user = User::factory()->create([
+            'nickname' => 'cool_handle',
+            'organization_id' => $organization->id,
+        ]);
+
+        $this->assertSame('cool_handle [OOF]', $user->fresh('organization')->badgeDisplayName());
+    }
+
+    #[Test]
+    public function badge_display_name_returns_nickname_when_organization_has_no_acronym(): void
+    {
+        $organization = Organization::factory()->create([
+            'acronym' => null,
+        ]);
+        $user = User::factory()->create([
+            'nickname' => 'cool_handle',
+            'organization_id' => $organization->id,
+        ]);
+
+        $this->assertSame('cool_handle', $user->fresh('organization')->badgeDisplayName());
+    }
 
     #[Test]
     public function display_name_returns_nickname_only(): void
