@@ -9,9 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libjpeg62-turbo-dev \
         libfreetype6-dev \
         libpng-dev \
+        libwebp-dev \
         libzip-dev \
         libpq-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j"$(nproc)" \
         exif \
         gd \
@@ -75,9 +76,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         libjpeg62-turbo-dev \
         libpng-dev \
+        libwebp-dev \
         libpq-dev \
         libzip-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         bcmath \
         exif \

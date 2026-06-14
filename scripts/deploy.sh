@@ -147,6 +147,10 @@ log_retention_days="${LOG_DAILY_DAYS:-14}"
 
 "${COMPOSE[@]}" restart worker scheduler reverb
 
+if ! "${COMPOSE[@]}" exec -T app php -r 'exit((gd_info()["WebP Support"] ?? false) ? 0 : 1);'; then
+    echo "WARN: GD WebP support missing — image uploads will fail until the image is rebuilt." >&2
+fi
+
 printf 'NERDIK_IMAGE=%s\n' "${NERDIK_IMAGE}" > .nerdik-image
 chmod 600 .nerdik-image
 

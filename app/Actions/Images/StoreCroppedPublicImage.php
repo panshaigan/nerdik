@@ -29,9 +29,13 @@ final class StoreCroppedPublicImage
         $image = $this->manager->read($file->getRealPath())->cover($width, $height);
         $encoded = $image->toWebp(self::WEBP_QUALITY);
 
-        Storage::disk('public')->put($relativePath, $encoded->toString(), [
+        $written = Storage::disk('public')->put($relativePath, $encoded->toString(), [
             'visibility' => 'public',
         ]);
+
+        if ($written !== true) {
+            throw new \RuntimeException("Failed to write image to public disk at [{$relativePath}].");
+        }
 
         return $relativePath;
     }
