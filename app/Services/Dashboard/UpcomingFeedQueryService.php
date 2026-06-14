@@ -10,12 +10,60 @@ use Illuminate\Support\Facades\DB;
 class UpcomingFeedQueryService
 {
     /**
+     * @return array{
+     *     interested: int,
+     *     participating: int,
+     *     created: int,
+     * }
+     */
+    public function upcomingActivityStatsForUser(int $userId): array
+    {
+        return [
+            'interested' => $this->countUpcomingInterestedActivities($userId),
+            'participating' => $this->countUpcomingParticipatingActivities($userId),
+            'created' => $this->countUpcomingCreatedActivities($userId),
+        ];
+    }
+
+    public function countUpcomingInterestedActivities(int $userId): int
+    {
+        $activitySortExpr = $this->activitySortExpression();
+
+        return (int) DB::table('user_interests')
+            ->join('activities', 'activities.id', '=', 'user_interests.interest_id')
+            ->where('user_interests.user_id', $userId)
+            ->where('user_interests.interest_type', (new Activity)->getMorphClass())
+            ->whereRaw($activitySortExpr.' >= ?', [now()])
+            ->count();
+    }
+
+    public function countUpcomingParticipatingActivities(int $userId): int
+    {
+        $activitySortExpr = $this->activitySortExpression();
+
+        return Activity::query()
+            ->whereHas('participants', fn ($query) => $query->where('user_id', $userId)->where('is_absent', false))
+            ->whereRaw($activitySortExpr.' >= ?', [now()])
+            ->count();
+    }
+
+    public function countUpcomingCreatedActivities(int $userId): int
+    {
+        $activitySortExpr = $this->activitySortExpression();
+
+        return Activity::query()
+            ->where('created_by', $userId)
+            ->whereRaw($activitySortExpr.' >= ?', [now()])
+            ->count();
+    }
+
+    /**
      * @return Collection<int, array{kind: string, id: int, sort_at: mixed}>
      */
     public function buildUnifiedUpcomingRows(int $userId): Collection
     {
-        $eventSortExpr = 'COALESCE(events.ends_at, events.starts_at)';
-        $activitySortExpr = 'COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id ORDER BY slots.id ASC LIMIT 1), COALESCE(activities.ends_at, activities.starts_at))';
+        $eventSortExpr = $this->eventSortExpression();
+        $activitySortExpr = $this->activitySortExpression();
 
         $rows = collect();
 
@@ -94,5 +142,15 @@ class UpcomingFeedQueryService
         return collect(array_values($deduped))
             ->sortBy(fn (array $row) => $row['sort_at'])
             ->values();
+    }
+
+    private function eventSortExpression(): string
+    {
+        return 'COALESCE(events.ends_at, events.starts_at)';
+    }
+
+    private function activitySortExpression(): string
+    {
+        return 'COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id ORDER BY slots.id ASC LIMIT 1), COALESCE(activities.ends_at, activities.starts_at))';
     }
 }

@@ -87,6 +87,9 @@ return [
     'dashboard' => [
         'title' => 'Dashboard',
         'empty' => 'No upcoming events or activities yet.',
+        'stats_interested_activities' => 'Interested activities',
+        'stats_participating_activities' => 'Activities you\'re in',
+        'stats_created_activities' => 'Activities you created',
     ],
     'auth' => [
         'log_in_with_google' => 'Log in with Google',

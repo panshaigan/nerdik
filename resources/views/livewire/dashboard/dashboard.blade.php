@@ -1,6 +1,33 @@
 <div class="p-1">
     <x-page-header :title="__('ui.dashboard.title')"/>
     <div class="max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-3 gap-3 px-4 sm:px-0" data-ui="dashboard-activity-stats">
+            <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl" data-ui="dashboard-stat-interested-activities">
+                <x-stat
+                    :title="__('ui.dashboard.stats_interested_activities')"
+                    :value="$upcomingInterestedActivitiesCount"
+                    icon="o-star"
+                    class="ui-stat-embed ui-activity-show-stat"
+                />
+            </div>
+            <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl" data-ui="dashboard-stat-participating-activities">
+                <x-stat
+                    :title="__('ui.dashboard.stats_participating_activities')"
+                    :value="$upcomingParticipatingActivitiesCount"
+                    icon="o-users"
+                    class="ui-stat-embed ui-activity-show-stat"
+                />
+            </div>
+            <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl" data-ui="dashboard-stat-created-activities">
+                <x-stat
+                    :title="__('ui.dashboard.stats_created_activities')"
+                    :value="$upcomingCreatedActivitiesCount"
+                    icon="o-plus-circle"
+                    class="ui-stat-embed ui-activity-show-stat"
+                />
+            </div>
+        </div>
+
         <section class="space-y-4">
             @php
                 $now = now();
