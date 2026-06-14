@@ -27,7 +27,7 @@ final class ProfileAvatarCropModalTest extends TestCase
             ->test(ProfileTabs::class)
             ->set('tab', 'avatar')
             ->assertSeeHtml('id="ui-image-crop-modal"')
-            ->assertSeeHtml('class="modal backdrop-blur"')
+            ->assertSeeHtml('class="modal backdrop-blur z-[100030]"')
             ->assertSeeHtml('ui-modal-surface')
             ->assertSeeHtml('data-image-crop-croppie')
             ->assertSeeHtml('ui-image-crop-crop');
