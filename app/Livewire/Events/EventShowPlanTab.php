@@ -13,6 +13,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
+use App\Services\UserInterestService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
@@ -138,7 +139,7 @@ class EventShowPlanTab extends Component
         $this->showEmptySlots = ! ((bool) $this->showEmptySlots);
     }
 
-    public function addActivityInterest(int $activityId): void
+    public function addActivityInterest(int $activityId, UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         if ($event->isCancelled()) {
@@ -153,16 +154,16 @@ class EventShowPlanTab extends Component
 
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
-        $user->interestedEvents()->syncWithoutDetaching([$event->id]);
+        $interests->addActivityInterest($user, $activity);
         $id = (int) $activity->id;
         if (! in_array($id, $this->interestedActivityIds, true)) {
             $this->interestedActivityIds[] = $id;
         }
+        $this->dispatch('event-show-shell-refresh');
         $this->success(__('ui.interests.added_activity'));
     }
 
-    public function removeActivityInterest(int $activityId): void
+    public function removeActivityInterest(int $activityId, UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
         $activity = Activity::query()
@@ -172,7 +173,7 @@ class EventShowPlanTab extends Component
 
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedActivities()->detach($activity->id);
+        $interests->removeActivityInterest($user, $activity);
         $id = (int) $activity->id;
         $this->interestedActivityIds = array_values(array_filter(
             $this->interestedActivityIds,

@@ -45,11 +45,15 @@ class ShowEventPlanTabActivityInterestTest extends TestCase
 
         $component
             ->call('addActivityInterest', $activity->id)
+            ->assertDispatched('event-show-shell-refresh')
             ->assertSeeHtml('data-ui="event-show-slot-interest-remove"')
             ->assertDontSeeHtml('data-ui="event-show-slot-interest-add"');
 
         $this->assertTrue(
             $user->fresh()->interestedActivities()->whereKey($activity->id)->exists()
+        );
+        $this->assertTrue(
+            $user->fresh()->interestedEvents()->whereKey($event->id)->exists()
         );
 
         $component

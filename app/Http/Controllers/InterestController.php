@@ -4,37 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Event;
-use App\Services\EventShowReadCache;
+use App\Services\UserInterestService;
 use Illuminate\Support\Facades\Auth;
 
 class InterestController extends Controller
 {
-    public function addEvent(Event $event)
+    public function addEvent(Event $event, UserInterestService $interests)
     {
-        Auth::user()->interestedEvents()->syncWithoutDetaching([$event->id]);
-        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
+        $interests->addEventInterest(Auth::user(), $event);
 
         return redirect()->back()->with('status', __('ui.interests.added_event'));
     }
 
-    public function removeEvent(Event $event)
+    public function removeEvent(Event $event, UserInterestService $interests)
     {
-        Auth::user()->interestedEvents()->detach($event->id);
-        app(EventShowReadCache::class)->forgetEventInterestedCount((int) $event->id);
+        $interests->removeEventInterest(Auth::user(), $event);
 
         return redirect()->back()->with('status', __('ui.interests.removed_event'));
     }
 
-    public function addActivity(Activity $activity)
+    public function addActivity(Activity $activity, UserInterestService $interests)
     {
-        Auth::user()->interestedActivities()->syncWithoutDetaching([$activity->id]);
+        $interests->addActivityInterest(Auth::user(), $activity);
 
         return redirect()->back()->with('status', __('ui.interests.added_activity'));
     }
 
-    public function removeActivity(Activity $activity)
+    public function removeActivity(Activity $activity, UserInterestService $interests)
     {
-        Auth::user()->interestedActivities()->detach($activity->id);
+        $interests->removeActivityInterest(Auth::user(), $activity);
 
         return redirect()->back()->with('status', __('ui.interests.removed_activity'));
     }

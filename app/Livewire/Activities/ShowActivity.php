@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
+use App\Services\UserInterestService;
 use App\Support\Ui\ActivityListingImageResolver;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -178,25 +179,21 @@ class ShowActivity extends Component
         $this->redirect(route('search.index'), navigate: true);
     }
 
-    public function addInterest(): void
+    public function addInterest(UserInterestService $interests): void
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedActivities()->syncWithoutDetaching([$activity->id]);
-        $eventId = $activity->slot?->event_id;
-        if ($eventId !== null) {
-            $user->interestedEvents()->syncWithoutDetaching([(int) $eventId]);
-        }
+        $interests->addActivityInterest($user, $activity);
         $this->success(__('ui.interests.added_activity'));
     }
 
-    public function removeInterest(): void
+    public function removeInterest(UserInterestService $interests): void
     {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $user->interestedActivities()->detach($activity->id);
+        $interests->removeActivityInterest($user, $activity);
         $this->warning(__('ui.interests.removed_activity'));
     }
 
