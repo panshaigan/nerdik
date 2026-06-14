@@ -41,6 +41,9 @@ return [
     |
     | When false, conversions run synchronously (PHPUnit sets MEDIA_QUEUE_CONVERSIONS=false).
     |
+    | Backfill conversions for library media attached before this pipeline existed:
+    | php artisan media-library:regenerate --only-missing --with-responsive-images
+    |
     */
     'queue_conversions' => env('MEDIA_QUEUE_CONVERSIONS', env('QUEUE_CONVERSIONS_BY_DEFAULT', true)),
 
@@ -84,7 +87,8 @@ return [
             'max_srcset_width' => 768,
         ],
         'listing_card' => [
-            'sizes' => '(max-width: 767px) 100vw, 320px',
+            'sizes' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
+            'display_width' => 286,
             'max_srcset_width' => 512,
         ],
         'listing_hero' => [
@@ -102,6 +106,6 @@ return [
         'tag_chip' => '64px',
         'tag_card' => '(max-width: 640px) 100vw, 384px',
         'tag_hero' => '(max-width: 1024px) 100vw, 640px',
-        'listing_card' => '(max-width: 767px) 100vw, 320px',
+        'listing_card' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
     ],
 ];

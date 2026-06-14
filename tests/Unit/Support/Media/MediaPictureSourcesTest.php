@@ -71,6 +71,63 @@ final class MediaPictureSourcesTest extends TestCase
         $this->assertStringNotContainsString('768w', $webpSrcset);
         $this->assertStringNotContainsString('1024w', $webpSrcset);
         $this->assertStringContainsString('512w', $webpSrcset);
+        $this->assertSame(
+            '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
+            $sources->sizes(),
+        );
+    }
+
+    #[Test]
+    public function display_src_picks_smallest_fitting_responsive_candidate(): void
+    {
+        $tag = Tag::factory()->create();
+        $fixturePath = 'images/tag-game/fixture-display-src.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+
+        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
+
+        $media = $tag->refresh()->getFirstMedia('images');
+        $this->assertNotNull($media);
+
+        $sources = MediaPictureSources::fromMedia(
+            $media,
+            sizes: '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
+            maxSrcsetWidth: 512,
+            displayWidth: 150,
+        );
+
+        $displayWidth = $this->widthForSrcsetUrl($sources->jpegSrcset(), $sources->displaySrc());
+        $jpegWidth = $this->widthForSrcsetUrl($sources->jpegSrcset(), $sources->jpegSrc());
+
+        $this->assertNotNull($displayWidth);
+        $this->assertNotNull($jpegWidth);
+        $this->assertLessThan($jpegWidth, $displayWidth);
+        $this->assertSame(384, $displayWidth);
+        $this->assertSame(512, $jpegWidth);
+    }
+
+    #[Test]
+    public function media_picture_component_uses_display_src_for_img_fallback(): void
+    {
+        $tag = Tag::factory()->create();
+
+        $fixturePath = 'images/tag-game/fixture-blade-display-src.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+
+        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
+
+        $media = $tag->refresh()->getFirstMedia('images');
+        $sources = MediaPictureSources::fromMedia(
+            $media,
+            maxSrcsetWidth: 512,
+            displayWidth: 150,
+        );
+
+        $html = view('components.media-picture', ['sources' => $sources])->render();
+
+        $this->assertStringContainsString('src="'.$sources->displaySrc().'"', $html);
+        $this->assertStringContainsString('responsive-images', $sources->displaySrc());
+        $this->assertNotSame($sources->jpegSrc(), $sources->displaySrc());
     }
 
     #[Test]
@@ -117,5 +174,23 @@ final class MediaPictureSourcesTest extends TestCase
         $this->assertStringContainsString('type="image/avif"', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
         $this->assertStringContainsString('<img', $html);
+    }
+
+    private function widthForSrcsetUrl(string $srcset, string $url): ?int
+    {
+        preg_match_all(
+            '/((?:https?:\/\/|\/)?\S+)\s+(\d+w)/',
+            $srcset,
+            $matches,
+            PREG_SET_ORDER,
+        );
+
+        foreach ($matches as $match) {
+            if ($match[1] === $url) {
+                return (int) rtrim($match[2], 'w');
+            }
+        }
+
+        return null;
     }
 }
