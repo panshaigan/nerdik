@@ -519,7 +519,28 @@
     .ui-activity-show-hero.ui-content-card,
     .ui-event-show-hero.ui-content-card {
         padding: 0;
+        overflow: visible;
+    }
+
+    .ui-activity-show-hero.ui-content-card [role='tablist'],
+    .ui-event-show-hero.ui-content-card [role='tablist'] {
         overflow: hidden;
+        border-bottom-left-radius: inherit;
+        border-bottom-right-radius: inherit;
+    }
+
+    .ui-activity-show-hero [data-ui$='-tabs'] > .border-b,
+    .ui-event-show-hero [data-ui$='-tabs'] > .border-b {
+        overflow: visible;
+        position: relative;
+        z-index: 1;
+    }
+
+    [data-ui='activity-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='activity-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::after,
+    [data-ui='event-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='event-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::after {
+        z-index: 50;
     }
 
     .ui-activity-show-stat .text-base-content\/50,

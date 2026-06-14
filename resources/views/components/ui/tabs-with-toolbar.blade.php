@@ -14,7 +14,6 @@
                 @endif
         }"
     class="{{ $tabsClass }}"
-    x-class="font-semibold pb-1 border-b-[length:var(--border)] border-b-base-content/50 border-b-base-content/10 flex overflow-x-auto scrollbar-hide relative w-full"
 >
     <div class="{{ $labelBarClass }}">
         <div class="{{ $labelDivClass }} min-w-0 flex-1">
