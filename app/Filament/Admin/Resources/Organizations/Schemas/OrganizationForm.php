@@ -17,7 +17,8 @@ class OrganizationForm
                 TextInput::make('logo_path'),
                 TextInput::make('slug')
                     ->required(),
-                TextInput::make('acronym'),
+                TextInput::make('acronym')
+                    ->maxLength(5),
                 Textarea::make('description')
                     ->columnSpanFull(),
                 TextInput::make('created_by')

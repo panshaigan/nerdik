@@ -720,7 +720,7 @@ return [
         'description' => 'Opis',
         'create_title' => 'Utwórz organizację',
         'acronym' => 'Skrót',
-        'acronym_hint' => 'Krótkie inicjały do generowanego logo (opcjonalnie).',
+        'acronym_hint' => 'Krótkie inicjały do generowanego logo i odznak użytkowników (opcjonalnie, maks. 5 znaków).',
         'logo_source' => 'Źródło logo',
         'logo_generated' => 'Generowane (inicjały)',
         'logo_generated_hint' => 'Kolory dla ui-avatars.com',

@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Support\RichText;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -125,7 +126,7 @@ class OrganizationIndex extends Component
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'acronym' => ['nullable', 'string', 'max:12'],
+            'acronym' => ['nullable', 'string', 'max:5'],
             'description' => ['nullable', 'string'],
             'logo_source' => ['required', 'string', Rule::in(array_map(static fn (OrganizationLogoSource $s) => $s->value, OrganizationLogoSource::cases()))],
             'logo_bg_color' => ['required_if:logo_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -142,7 +143,9 @@ class OrganizationIndex extends Component
 
         $payload = [
             'name' => $validated['name'],
-            'acronym' => filled($validated['acronym'] ?? null) ? $validated['acronym'] : null,
+            'acronym' => filled($validated['acronym'] ?? null)
+                ? Str::upper(trim((string) $validated['acronym']))
+                : null,
             'description' => RichText::sanitize($validated['description'] ?? null),
             'logo_source' => OrganizationLogoSource::from($validated['logo_source']),
             'logo_bg_color' => $validated['logo_bg_color'] ?? $this->logo_bg_color,

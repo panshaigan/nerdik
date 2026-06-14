@@ -720,7 +720,7 @@ return [
         'description' => 'Description',
         'create_title' => 'Create organization',
         'acronym' => 'Acronym',
-        'acronym_hint' => 'Short initials for the generated logo (optional).',
+        'acronym_hint' => 'Short initials for generated logos and user badges (optional, max 5 characters).',
         'logo_source' => 'Logo source',
         'logo_generated' => 'Generated (initials)',
         'logo_generated_hint' => 'Colors for ui-avatars.com',
