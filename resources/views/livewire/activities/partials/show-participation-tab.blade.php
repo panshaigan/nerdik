@@ -8,47 +8,20 @@
 
 <div data-ui="activity-show-participation">
     @auth
-            <div class="mb-6 max-w-xl mx-auto w-full">
-            @if (filled($signupBlockedMessage ?? null) && ! $isParticipant && ! $onWaitlist && ! $canJoin)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ $signupBlockedMessage }}"
-                    icon="o-home"
-                    data-ui="activity-show-signup-blocked"
-                    class="alert-neutral"
-                />
-            @endif
-            @if (filled($stateBlockedMessage ?? null))
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ $stateBlockedMessage }}"
-                    icon="o-home"
-                    data-ui="activity-show-state-blocked"
-                    class="alert-neutral"
-                />
-            @endif
-            @if (($activeWindowRemainingForActivity ?? null) !== null)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ __('ui.events.enrollment_window_activity_spots_remaining', [
-                        'remaining' => $activeWindowRemainingForActivity,
-                        'max' => $activeWindowPerActivityMax,
-                    ]) }}"
-                    icon="o-home"
-                    data-ui="activity-show-window-activity-cap"
-                    class="alert-neutral"
-                />
-            @endif
-            @if (($activeWindowUserRemaining ?? null) !== null)
-                <x-alert
-                    title="{{ __('ui.common.attention') }}"
-                    description="{{ __('ui.events.enrollment_window_user_spots_remaining', ['remaining' => $activeWindowUserRemaining]) }}"
-                    icon="o-home"
-                    data-ui="activity-show-window-user-cap"
-                    class="alert-neutral"
-                />
-            @endif
-            </div>
+        <div class="mb-6 max-w-xl mx-auto w-full">
+            @include('livewire.activities.partials.participation-notices', [
+                'noticesContainerDataUi' => 'activity-show-participation-notices',
+                'noticeDataUiPrefix' => 'activity-show',
+                'signupBlockedMessage' => $signupBlockedMessage ?? null,
+                'stateBlockedMessage' => $stateBlockedMessage ?? null,
+                'isParticipant' => $isParticipant,
+                'onWaitlist' => $onWaitlist,
+                'canJoin' => $canJoin,
+                'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity ?? null,
+                'activeWindowPerActivityMax' => $activeWindowPerActivityMax ?? null,
+                'activeWindowUserRemaining' => $activeWindowUserRemaining ?? null,
+            ])
+        </div>
     @endauth
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0" data-ui="activity-show-participants">
