@@ -77,23 +77,12 @@ class Dashboard extends Component
         EventActivitySignupService $signupService,
         BrowseListingCardPresenter $listingCardPresenter,
         DashboardFeedPresentationService $feedPresentation,
+        UpcomingFeedQueryService $upcomingFeedQuery,
     ) {
         $user = Auth::user();
         $this->toastFromSessionStatus();
 
-        $hostedActivitiesCount = Activity::query()
-            ->where('created_by', $user->id)
-            ->count();
-
-        $hostedEventsCount = Event::query()
-            ->where('created_by', $user->id)
-            ->count();
-
-        $participatedActivitiesCount = ActivityUser::query()
-            ->where('user_id', $user->id)
-            ->where('is_absent', false)
-            ->distinct('activity_id')
-            ->count('activity_id');
+        $upcomingActivityStats = $upcomingFeedQuery->upcomingActivityStatsForUser($user->id);
 
         $sortedRows = $this->buildSortedUpcomingRows($user->id);
 
@@ -179,9 +168,9 @@ class Dashboard extends Component
 
         return view('livewire.dashboard.dashboard', [
             'browsingReturnUrl' => $browsingReturnUrl,
-            'hostedActivitiesCount' => $hostedActivitiesCount,
-            'hostedEventsCount' => $hostedEventsCount,
-            'participatedActivitiesCount' => $participatedActivitiesCount,
+            'upcomingInterestedActivitiesCount' => $upcomingActivityStats['interested'],
+            'upcomingParticipatingActivitiesCount' => $upcomingActivityStats['participating'],
+            'upcomingCreatedActivitiesCount' => $upcomingActivityStats['created'],
             'feedHourGroups' => $feedHourGroups,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,

@@ -87,6 +87,9 @@ return [
     'dashboard' => [
         'title' => 'Dashboard',
         'empty' => 'Brak nadchodzących wydarzeń lub aktywności.',
+        'stats_interested_activities' => 'Aktywności zainteresowania',
+        'stats_participating_activities' => 'Aktywności, w których uczestniczysz',
+        'stats_created_activities' => 'Utworzone aktywności',
     ],
     'auth' => [
         'log_in_with_google' => 'Zaloguj się przez Google',
