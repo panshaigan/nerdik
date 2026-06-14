@@ -1133,9 +1133,7 @@
         box-shadow:
             0 32px 48px color-mix(in oklch, black 88%, transparent),
             0 14px 28px color-mix(in oklch, black 72%, transparent);
-        transition:
-            transform var(--ui-listing-card-duration) var(--ui-listing-card-ease),
-            box-shadow var(--ui-listing-card-duration) var(--ui-listing-card-ease);
+        transition: transform var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
             box-shadow:
@@ -1154,17 +1152,13 @@
         pointer-events: none;
         opacity: 0;
         box-shadow:
-            0 24px 40px color-mix(in oklch, black 72%, transparent),
-            0 12px 24px color-mix(in oklch, black 58%, transparent),
+            0 40px 56px color-mix(in oklch, black 90%, transparent),
+            0 18px 36px color-mix(in oklch, black 76%, transparent),
             0 0 64px color-mix(in oklch, var(--brand-accent) 58%, transparent),
             0 0 40px color-mix(in oklch, var(--brand-primary) 48%, transparent),
             0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
             0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent),
-            0 18px 36px color-mix(in oklch, var(--brand-accent) 52%, transparent),
-            0 28px 52px color-mix(in oklch, var(--brand-primary) 44%, transparent),
-            0 38px 68px color-mix(in oklch, var(--brand-accent) 36%, transparent),
-            0 48px 84px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
         transition: opacity var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
@@ -1172,25 +1166,13 @@
                 0 0 52px color-mix(in oklch, var(--brand-primary) 36%, transparent),
                 0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
                 0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-                0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent),
-                0 16px 32px color-mix(in oklch, var(--brand-accent) 38%, transparent),
-                0 26px 48px color-mix(in oklch, var(--brand-primary) 32%, transparent),
-                0 36px 64px color-mix(in oklch, var(--brand-accent) 24%, transparent);
+                0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
         }
     }
 
     .card.ui-listing-card:is(:hover, :focus-within),
     .card.ui-listing-card:has([data-ui$="-open-preview"]:focus-visible) {
         transform: translate3d(0, -5px, 0);
-        box-shadow:
-            0 18px 28px color-mix(in oklch, black 52%, transparent),
-            0 8px 16px color-mix(in oklch, black 38%, transparent);
-
-        @variant light {
-            box-shadow:
-                0 16px 24px color-mix(in oklch, var(--brand-neutral-content-dark) 22%, transparent),
-                0 6px 12px color-mix(in oklch, var(--brand-neutral-content-dark) 16%, transparent);
-        }
     }
 
     .card.ui-listing-card:is(:hover, :focus-within)::after,
