@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\DiscordAuthController;
 use App\Http\Controllers\Auth\FacebookAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\VerifyPendingEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
+
+    Route::get('profile/email/verify/{id}/{hash}', VerifyPendingEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('profile.email.verify');
 
     Volt::route('confirm-password', 'pages.auth.confirm-password')
         ->name('password.confirm');

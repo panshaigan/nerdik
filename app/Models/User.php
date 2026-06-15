@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Actions\Avatars\ResolveAvatarUrl;
 use App\Enums\NotificationPreferenceKey;
+use App\Notifications\VerifyPendingEmailNotification;
 use Database\Factories\UserFactory;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -30,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'nickname',
         'email',
+        'pending_email',
         'password',
         'organization_id',
         'is_admin',
@@ -165,6 +168,21 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $base.'_'.$suffix;
+    }
+
+    public function hasPendingEmailChange(): bool
+    {
+        return $this->pending_email !== null && $this->pending_email !== '';
+    }
+
+    public function sendPendingEmailVerificationNotification(): void
+    {
+        if (! $this->hasPendingEmailChange()) {
+            return;
+        }
+
+        Notification::route('mail', $this->pending_email)
+            ->notify(new VerifyPendingEmailNotification($this));
     }
 
     public function canCreateEvents(): bool

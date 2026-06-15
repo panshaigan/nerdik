@@ -31,6 +31,7 @@
 
             <x-tab name="advanced" :label="$this->tabLabel('advanced', __('ui.profile.tab_advanced'))" class="px-6 py-6" data-ui="profile-tab-advanced" icon="o-cog-6-tooth">
                 <div class="space-y-8">
+                    <livewire:profile.update-email-form />
                     <livewire:profile.update-password-form />
                     <livewire:profile.delete-user-form />
                 </div>
