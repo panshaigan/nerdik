@@ -23,7 +23,7 @@ class FacebookAuthController extends Controller
 
     public function redirect(): SymfonyRedirectResponse
     {
-        $this->captureAvatarLinkIntent();
+        $this->captureOAuthLinkIntent();
         $this->captureBrowserTimezoneFromRequest();
 
         request()->session()->save();
@@ -100,8 +100,9 @@ class FacebookAuthController extends Controller
             }
         }
 
-        if (session()->pull('socialite.return_tab') === 'avatar') {
-            return redirect()->to($this->profileAvatarUrl());
+        $returnTab = session()->pull('socialite.return_tab');
+        if (is_string($returnTab) && in_array($returnTab, ['avatar', 'contact'], true)) {
+            return redirect()->to($this->profileUrlForTab($returnTab));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
@@ -109,18 +110,21 @@ class FacebookAuthController extends Controller
 
     private function completeAccountLinking(AbstractUser $facebookUser): RedirectResponse
     {
-        $linkUserId = $this->resolveLinkUserId();
-        $profileUrl = $this->profileAvatarUrl();
+        $linkContext = $this->resolveLinkContext();
+        $returnTab = $linkContext['returnTab'] ?? 'avatar';
+        $profileUrl = $this->profileUrlForTab($returnTab);
 
-        if ($linkUserId === null) {
+        if ($linkContext === null) {
             return redirect()->to($profileUrl);
         }
 
+        $linkUserId = $linkContext['userId'];
         $facebookId = (string) $facebookUser->getId();
         $hasAvatar = is_string($facebookUser->getAvatar()) && $facebookUser->getAvatar() !== '';
 
         if ($facebookId === '' && ! $hasAvatar) {
-            return $this->redirectToProfileAvatarWithToast(
+            return $this->redirectToProfileTabWithToast(
+                $returnTab,
                 __('ui.profile.oauth_link_facebook_failed'),
                 'error',
             );
@@ -141,7 +145,8 @@ class FacebookAuthController extends Controller
                 ->exists();
 
             if ($alreadyLinked) {
-                return $this->redirectToProfileAvatarWithToast(
+                return $this->redirectToProfileTabWithToast(
+                    $returnTab,
                     __('ui.profile.oauth_link_facebook_taken'),
                     'error',
                 );
@@ -153,7 +158,9 @@ class FacebookAuthController extends Controller
             $profile->facebook_id = $facebookId;
         }
         $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
-        $profile->avatar_source = AvatarSource::Facebook;
+        if ($returnTab === 'avatar') {
+            $profile->avatar_source = AvatarSource::Facebook;
+        }
         $profile->save();
         $user->setRelation('profile', $profile);
 
@@ -168,7 +175,7 @@ class FacebookAuthController extends Controller
             }
         }
 
-        return $this->redirectToProfileAvatarWithToast(__('ui.profile.oauth_link_facebook_success'));
+        return $this->redirectToProfileTabWithToast($returnTab, __('ui.profile.oauth_link_facebook_success'));
     }
 
     private function syncFacebookAvatarUrl(UserProfile $profile, mixed $avatarUrl): void

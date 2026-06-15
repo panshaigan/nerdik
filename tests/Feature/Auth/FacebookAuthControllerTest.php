@@ -48,6 +48,53 @@ class FacebookAuthControllerTest extends TestCase
     }
 
     #[Test]
+    public function authenticated_user_can_start_facebook_redirect_for_contact_linking(): void
+    {
+        $user = User::factory()->create();
+
+        $this->mockSocialiteRedirect();
+
+        $response = $this->actingAs($user)->get(route('facebook.redirect', ['return_tab' => 'contact']));
+
+        $response->assertRedirect('https://facebook.com/oauth');
+        $response->assertCookie('oauth_link_user_id', (string) $user->id);
+        $this->assertSame($user->id, session('socialite.link_user_id'));
+        $this->assertSame('contact', session('socialite.return_tab'));
+    }
+
+    #[Test]
+    public function callback_links_facebook_from_contact_tab_without_changing_avatar_source(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'contact-linker@example.com',
+        ]);
+        $user->profile()->update([
+            'avatar_source' => AvatarSource::Generated,
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'fb-contact-link',
+            email: 'contact-linker@example.com',
+        ));
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'contact',
+            ])
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=contact');
+        $response->assertSessionHas('ui.toast', [
+            'type' => 'success',
+            'title' => __('ui.profile.oauth_link_facebook_success'),
+        ]);
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('fb-contact-link', $user->fresh()->profile?->facebook_id);
+        $this->assertSame(AvatarSource::Generated, $user->fresh()->profile?->avatar_source);
+    }
+
+    #[Test]
     public function authenticated_user_can_start_facebook_redirect_for_avatar_linking(): void
     {
         $user = User::factory()->create();
