@@ -3,6 +3,7 @@
 namespace Tests\Feature\Livewire;
 
 use App\Livewire\Profile\ProfileTabs;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -54,6 +55,34 @@ class ProfileFormUiTest extends TestCase
             ->call('updatePassword')
             ->assertHasErrors(['current_password'])
             ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
+    }
+
+    public function test_organization_select_is_disabled_when_user_has_no_organizations(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-identity-information-form')
+            ->assertSeeHtml('disabled')
+            ->assertSee(__('ui.organizations.empty'));
+    }
+
+    public function test_organization_select_is_enabled_when_user_has_organizations(): void
+    {
+        $user = User::factory()->create();
+        Organization::factory()->create([
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-identity-information-form')
+            ->html();
+
+        $this->assertStringNotContainsString(__('ui.organizations.empty'), $html);
+        $this->assertMatchesRegularExpression('/<select[^>]*wire:model="organization_id"[^>]*>/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<select[^>]*wire:model="organization_id"[^>]*disabled[^>]*>/', $html);
     }
 
     public function test_successful_identity_update_clears_tab_validation_state(): void
