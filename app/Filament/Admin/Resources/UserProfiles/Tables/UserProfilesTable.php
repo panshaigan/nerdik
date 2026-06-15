@@ -20,6 +20,8 @@ class UserProfilesTable
                     ->searchable(),
                 TextColumn::make('facebook_id')
                     ->searchable(),
+                TextColumn::make('discord_id')
+                    ->searchable(),
                 TextColumn::make('avatar_path')
                     ->searchable(),
                 TextColumn::make('avatar_source')

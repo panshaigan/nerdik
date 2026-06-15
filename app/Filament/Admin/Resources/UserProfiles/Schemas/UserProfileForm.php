@@ -19,6 +19,7 @@ class UserProfileForm
                     ->required(),
                 TextInput::make('google_id'),
                 TextInput::make('facebook_id'),
+                TextInput::make('discord_id'),
                 TextInput::make('avatar_path'),
                 Select::make('avatar_source')
                     ->options(AvatarSource::class)
@@ -28,6 +29,8 @@ class UserProfileForm
                 Textarea::make('google_avatar_url')
                     ->columnSpanFull(),
                 Textarea::make('facebook_avatar_url')
+                    ->columnSpanFull(),
+                Textarea::make('discord_avatar_url')
                     ->columnSpanFull(),
                 TextInput::make('avatar_bg_color'),
                 TextInput::make('avatar_text_color'),

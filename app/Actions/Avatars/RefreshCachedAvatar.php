@@ -87,6 +87,7 @@ final class RefreshCachedAvatar
             AvatarSource::Gravatar => $this->gravatarUrlForEmail((string) $user->email),
             AvatarSource::Google => $profile?->google_avatar_url,
             AvatarSource::Facebook => $profile?->facebook_avatar_url,
+            AvatarSource::Discord => $profile?->discord_avatar_url,
             default => null,
         };
     }

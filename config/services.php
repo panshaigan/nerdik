@@ -47,6 +47,16 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI', env('APP_URL').'/auth/facebook/callback'),
     ],
 
+    'discord' => [
+        'client_id' => env('DISCORD_CLIENT_ID'),
+        'client_secret' => env('DISCORD_CLIENT_SECRET'),
+        'redirect' => env('DISCORD_REDIRECT_URI', env('APP_URL').'/auth/discord/callback'),
+
+        // optional
+        'allow_gif_avatars' => (bool) env('DISCORD_AVATAR_GIF', false),
+        'avatar_default_extension' => env('DISCORD_EXTENSION_DEFAULT', 'webp'), // only pick from jpg, png, webp
+    ],
+
     /*
     | Google reCAPTCHA v2 (checkbox). Set RECAPTCHA_ENABLED=true in production plus NOCAPTCHA_* keys.
     | Disabled by default locally so Sail works without Google keys (see ".env.example").

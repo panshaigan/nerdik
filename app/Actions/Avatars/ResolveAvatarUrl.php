@@ -37,6 +37,10 @@ final class ResolveAvatarUrl
             return $profile->facebook_avatar_url;
         }
 
+        if ($source === AvatarSource::Discord && is_string($profile?->discord_avatar_url) && $profile->discord_avatar_url !== '') {
+            return $profile->discord_avatar_url;
+        }
+
         if ($source === AvatarSource::Gravatar) {
             $hash = md5(strtolower(trim((string) $user->email)));
 

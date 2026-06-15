@@ -11,13 +11,14 @@ enum AvatarSource: string
     case Gravatar = 'gravatar';
     case Google = 'google';
     case Facebook = 'facebook';
+    case Discord = 'discord';
 
     /**
      * @return list<self>
      */
     public static function remoteCacheable(): array
     {
-        return [self::Gravatar, self::Google, self::Facebook];
+        return [self::Gravatar, self::Google, self::Facebook, self::Discord];
     }
 
     public function usesRemoteCache(): bool
