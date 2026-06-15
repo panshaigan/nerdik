@@ -137,13 +137,14 @@ new class extends Component
             <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_facebook') }}</p>
 
             @if ($facebook_id !== '')
-                <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_facebook_connected_hint') }}</p>
+                <div class="grid grid-cols-2 gap-4">
                     <x-input
                         wire:model="facebook_id"
                         label="{{ __('ui.profile.integrations_facebook_id_label') }}"
+                        placeholder="{{ __('ui.profile.integrations_facebook_id_label') }}"
                         type="text"
                         name="facebook_id"
+                        inline
                         readonly
                         disabled
                     />
