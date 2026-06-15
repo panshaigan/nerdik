@@ -52,6 +52,23 @@ class GoogleOAuthLinkUsesFullNavigationTest extends TestCase
         $this->assertOAuthLinkDoesNotUseWireNavigate($html, '/auth/google', 'profile avatar');
     }
 
+    #[Test]
+    public function profile_contact_google_link_does_not_use_wire_navigate(): void
+    {
+        config([
+            'services.google.client_id' => 'stub-client.apps.googleusercontent.com',
+            'services.google.client_secret' => 'stub-secret',
+            'services.facebook.client_id' => null,
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertOAuthLinkDoesNotUseWireNavigate($html, '/auth/google', 'profile contact');
+    }
+
     private function assertOAuthLinkDoesNotUseWireNavigate(string $html, string $pathFragment, string $context): void
     {
         $dom = new DOMDocument;
