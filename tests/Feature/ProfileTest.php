@@ -95,11 +95,97 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->email_verified_at);
     }
 
+    public function test_contact_form_shows_google_link_when_not_connected(): void
+    {
+        config([
+            'services.google.client_id' => 'stub-client.apps.googleusercontent.com',
+            'services.google.client_secret' => 'stub-secret',
+            'services.facebook.client_id' => null,
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('/auth/google', $html);
+        $this->assertStringContainsString('return_tab=contact', $html);
+        $this->assertStringContainsString(__('ui.profile.avatar_link_google'), $html);
+        $this->assertStringNotContainsString(__('ui.profile.integrations_google_unlink'), $html);
+    }
+
+    public function test_contact_form_shows_google_id_when_connected(): void
+    {
+        config(['services.facebook.client_id' => null]);
+
+        $user = User::factory()->create();
+        $user->profile()->update(['google_id' => 'google-connected-99']);
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('google-connected-99', $html);
+        $this->assertStringContainsString(__('ui.profile.integrations_google_unlink'), $html);
+        $this->assertStringNotContainsString('/auth/google', $html);
+    }
+
+    public function test_unlink_google_clears_google_id(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'google_id' => 'google-to-unlink',
+            'google_avatar_url' => 'https://google.com/avatar.jpg',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkGoogle')
+            ->assertHasNoErrors()
+            ->assertSet('google_id', '');
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->google_id);
+        $this->assertNull($profile?->google_avatar_url);
+    }
+
+    public function test_unlink_google_resets_avatar_source_when_google(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $path = 'avatars/'.$user->id.'.webp';
+        Storage::disk('public')->put($path, 'fake-webp-bytes');
+        $user->profile()->update([
+            'google_id' => 'google-avatar-user',
+            'google_avatar_url' => 'https://google.com/avatar.jpg',
+            'avatar_source' => AvatarSource::Google,
+            'avatar_path' => $path,
+            'avatar_cache_signature' => 'sig',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkGoogle')
+            ->assertHasNoErrors();
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->google_id);
+        $this->assertSame(AvatarSource::Generated, $profile?->avatar_source);
+        $this->assertNull($profile?->avatar_path);
+        $this->assertNull($profile?->avatar_cache_signature);
+        Storage::disk('public')->assertMissing($path);
+    }
+
     public function test_contact_form_shows_facebook_link_when_not_connected(): void
     {
         config([
             'services.facebook.client_id' => 'stub-fb-client-id',
             'services.facebook.client_secret' => 'stub-fb-secret',
+            'services.google.client_id' => null,
         ]);
 
         $user = User::factory()->create();
@@ -116,6 +202,8 @@ class ProfileTest extends TestCase
 
     public function test_contact_form_shows_facebook_id_when_connected(): void
     {
+        config(['services.google.client_id' => null]);
+
         $user = User::factory()->create();
         $user->profile()->update(['facebook_id' => 'fb-connected-99']);
 
@@ -125,7 +213,7 @@ class ProfileTest extends TestCase
 
         $this->assertStringContainsString('fb-connected-99', $html);
         $this->assertStringContainsString(__('ui.profile.integrations_facebook_unlink'), $html);
-        $this->assertStringNotContainsString('return_tab=contact', $html);
+        $this->assertStringNotContainsString('/auth/facebook', $html);
     }
 
     public function test_unlink_facebook_clears_facebook_id(): void

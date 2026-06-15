@@ -17,12 +17,15 @@ new class extends Component
 
     public string $facebook_id = '';
 
+    public string $google_id = '';
+
     public function mount(): void
     {
         $user = Auth::user();
         $this->email = $user->email;
         $this->discord_handle = $user->profile?->discord_handle ?? '';
         $this->facebook_id = (string) ($user->profile?->facebook_id ?? '');
+        $this->google_id = (string) ($user->profile?->google_id ?? '');
     }
 
     public function updateContactInformation(): void
@@ -40,6 +43,43 @@ new class extends Component
 
             $this->dispatch('profile-contact-updated');
         });
+    }
+
+    public function unlinkGoogle(): void
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+
+        if ($profile === null || $profile->google_id === null || $profile->google_id === '') {
+            return;
+        }
+
+        $avatarSourceChanged = $profile->avatar_source === AvatarSource::Google;
+
+        $profile->google_id = null;
+        $profile->google_avatar_url = null;
+
+        if ($avatarSourceChanged) {
+            $profile->avatar_source = AvatarSource::Generated;
+            $this->deleteStoredAvatarIfPresent($user->id);
+            $profile->avatar_path = null;
+            $profile->avatar_cache_signature = null;
+        }
+
+        $profile->save();
+
+        $this->google_id = '';
+
+        $this->dispatch('profile-contact-updated');
+
+        if ($avatarSourceChanged) {
+            $user = $user->fresh(['profile']);
+            $url = $user->avatarUrl();
+            $version = $user->profile?->updated_at?->getTimestamp() ?? time();
+            $separator = str_contains($url, '?') ? '&' : '?';
+
+            $this->dispatch('profile-avatar-updated', avatarUrl: $url.$separator.'v='.$version);
+        }
     }
 
     public function unlinkFacebook(): void
@@ -133,7 +173,39 @@ new class extends Component
     <fieldset class="fieldset mt-8 py-0" data-ui="profile-integrations">
         <legend class="fieldset-legend mb-2">{{ __('ui.profile.integrations_title') }}</legend>
 
-        <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
+        <div class="space-y-4">
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-google">
+                <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_google') }}</p>
+
+                @if ($google_id !== '')
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-input
+                            wire:model="google_id"
+                            label="{{ __('ui.profile.integrations_google_id_label') }}"
+                            placeholder="{{ __('ui.profile.integrations_google_id_label') }}"
+                            type="text"
+                            name="google_id"
+                            inline
+                            readonly
+                            disabled
+                        />
+                        <x-button
+                            type="button"
+                            class="btn-outline btn-error w-full max-w-sm"
+                            wire:click="unlinkGoogle"
+                            wire:confirm="{{ __('ui.profile.integrations_google_unlink_confirm') }}"
+                        >{{ __('ui.profile.integrations_google_unlink') }}</x-button>
+                    </div>
+                @elseif (config('services.google.client_id'))
+                    <div class="flex flex-col gap-4">
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_google_link_hint') }}</p>
+                        {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on accounts.google.com --}}
+                        <x-button :link="route('google.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
+                    </div>
+                @endif
+            </div>
+
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
             <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_facebook') }}</p>
 
             @if ($facebook_id !== '')
@@ -162,6 +234,7 @@ new class extends Component
                     <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
                 </div>
             @endif
+        </div>
         </div>
     </fieldset>
 </section>
