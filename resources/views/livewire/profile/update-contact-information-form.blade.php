@@ -145,8 +145,18 @@ new class extends Component
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
     <form id="ui-profile-contact-form" wire:submit="updateContactInformation" novalidate class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
-        <x-input wire:model="email" label="{{ __('ui.common.email') }}" type="email" name="email" error-field="email" required readonly disabled />
-        <x-input wire:model="discord_handle" label="{{ __('ui.profile.discord_optional') }}" type="text" name="discord_handle" error-field="discord_handle" />
+        <x-input
+            wire:model="email"
+            label="{{ __('ui.common.email') }}"
+            placeholder="{{ __('ui.common.email') }}"
+            type="email"
+            name="email"
+            error-field="email"
+            required
+            readonly
+            disabled
+            inline
+        />
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
             <div class="mt-2">
