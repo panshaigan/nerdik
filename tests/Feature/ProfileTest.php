@@ -265,6 +265,92 @@ class ProfileTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_contact_form_shows_discord_link_when_not_connected(): void
+    {
+        config([
+            'services.discord.client_id' => 'stub-dc-client-id',
+            'services.discord.client_secret' => 'stub-dc-secret',
+            'services.google.client_id' => null,
+            'services.facebook.client_id' => null,
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('/auth/discord', $html);
+        $this->assertStringContainsString('return_tab=contact', $html);
+        $this->assertStringContainsString(__('ui.profile.avatar_link_discord'), $html);
+        $this->assertStringNotContainsString(__('ui.profile.integrations_discord_unlink'), $html);
+    }
+
+    public function test_contact_form_shows_discord_id_when_connected(): void
+    {
+        config(['services.google.client_id' => null, 'services.facebook.client_id' => null]);
+
+        $user = User::factory()->create();
+        $user->profile()->update(['discord_id' => 'dc-connected-99']);
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('dc-connected-99', $html);
+        $this->assertStringContainsString(__('ui.profile.integrations_discord_unlink'), $html);
+        $this->assertStringNotContainsString('/auth/discord', $html);
+    }
+
+    public function test_unlink_discord_clears_discord_id(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'discord_id' => 'dc-to-unlink',
+            'discord_avatar_url' => 'https://cdn.discordapp.com/avatars/1/abc.webp',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkDiscord')
+            ->assertHasNoErrors()
+            ->assertSet('discord_id', '');
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->discord_id);
+        $this->assertNull($profile?->discord_avatar_url);
+    }
+
+    public function test_unlink_discord_resets_avatar_source_when_discord(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $path = 'avatars/'.$user->id.'.webp';
+        Storage::disk('public')->put($path, 'fake-webp-bytes');
+        $user->profile()->update([
+            'discord_id' => 'dc-avatar-user',
+            'discord_avatar_url' => 'https://cdn.discordapp.com/avatars/1/abc.webp',
+            'avatar_source' => AvatarSource::Discord,
+            'avatar_path' => $path,
+            'avatar_cache_signature' => 'sig',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkDiscord')
+            ->assertHasNoErrors();
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->discord_id);
+        $this->assertSame(AvatarSource::Generated, $profile?->avatar_source);
+        $this->assertNull($profile?->avatar_path);
+        $this->assertNull($profile?->avatar_cache_signature);
+        Storage::disk('public')->assertMissing($path);
+    }
+
     public function test_generated_avatar_colors_can_be_saved(): void
     {
         $user = User::factory()->create();

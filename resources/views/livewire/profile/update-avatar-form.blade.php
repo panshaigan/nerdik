@@ -62,9 +62,11 @@ new class extends Component
     {
         $user = Auth::user();
         $profile = $user->profile;
-        $url = $provider === 'facebook'
-            ? $profile?->facebook_avatar_url
-            : $profile?->google_avatar_url;
+        $url = match ($provider) {
+            'facebook' => $profile?->facebook_avatar_url,
+            'discord' => $profile?->discord_avatar_url,
+            default => $profile?->google_avatar_url,
+        };
 
         return (is_string($url) && $url !== '') ? $url : $user->avatarUrl();
     }
@@ -195,6 +197,24 @@ new class extends Component
                 }
                 $this->dispatchProfileAvatarUpdated();
             }
+
+            if ($source === AvatarSource::Discord) {
+                if ($profile->discord_id === null || $profile->discord_id === '') {
+                    $this->addError('avatar_source', __('Link your Discord account first using the button below.'));
+
+                    return;
+                }
+                $profile->avatar_source = AvatarSource::Discord;
+                $profile->save();
+                try {
+                    app(RefreshCachedAvatar::class)($user->fresh(), AvatarSource::Discord);
+                } catch (\Throwable $e) {
+                    $this->addError('avatar', $e->getMessage());
+
+                    return;
+                }
+                $this->dispatchProfileAvatarUpdated();
+            }
         });
     }
 
@@ -260,11 +280,18 @@ new class extends Component
                         <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_google_hint') }}</span>
                     </span>
                 </label>
-                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5 sm:col-span-2">
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="facebook" class="radio radio-primary mt-0.5" />
                     <span>
                         <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_facebook') }}</span>
                         <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_facebook_hint') }}</span>
+                    </span>
+                </label>
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="discord" class="radio radio-primary mt-0.5" />
+                    <span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_discord') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_discord_hint') }}</span>
                     </span>
                 </label>
             </div>
@@ -377,6 +404,30 @@ new class extends Component
                     <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->facebook_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
                     <img
                         src="{{ $this->remoteAvatarPreviewUrl('facebook') }}"
+                        alt=""
+                        class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
+                        loading="lazy"
+                    />
+                </div>
+            </div>
+        @endif
+
+        @if ($avatar_source === 'discord')
+            <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
+                <div class="flex flex-col gap-4">
+                    @if (auth()->user()->profile?->discord_id)
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_discord_linked_hint') }}</p>
+                        <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_discord') }}</x-button>
+                    @elseif (config('services.discord.client_id'))
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_discord_link_hint') }}</p>
+                        {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on discord.com --}}
+                        <x-button :link="route('discord.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
+                    @endif
+                </div>
+                <div class="flex flex-col items-center justify-center gap-3">
+                    <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->discord_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
+                    <img
+                        src="{{ $this->remoteAvatarPreviewUrl('discord') }}"
                         alt=""
                         class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"

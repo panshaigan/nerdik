@@ -19,6 +19,8 @@ new class extends Component
 
     public string $google_id = '';
 
+    public string $discord_id = '';
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -26,6 +28,7 @@ new class extends Component
         $this->discord_handle = $user->profile?->discord_handle ?? '';
         $this->facebook_id = (string) ($user->profile?->facebook_id ?? '');
         $this->google_id = (string) ($user->profile?->google_id ?? '');
+        $this->discord_id = (string) ($user->profile?->discord_id ?? '');
     }
 
     public function updateContactInformation(): void
@@ -106,6 +109,43 @@ new class extends Component
         $profile->save();
 
         $this->facebook_id = '';
+
+        $this->dispatch('profile-contact-updated');
+
+        if ($avatarSourceChanged) {
+            $user = $user->fresh(['profile']);
+            $url = $user->avatarUrl();
+            $version = $user->profile?->updated_at?->getTimestamp() ?? time();
+            $separator = str_contains($url, '?') ? '&' : '?';
+
+            $this->dispatch('profile-avatar-updated', avatarUrl: $url.$separator.'v='.$version);
+        }
+    }
+
+    public function unlinkDiscord(): void
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+
+        if ($profile === null || $profile->discord_id === null || $profile->discord_id === '') {
+            return;
+        }
+
+        $avatarSourceChanged = $profile->avatar_source === AvatarSource::Discord;
+
+        $profile->discord_id = null;
+        $profile->discord_avatar_url = null;
+
+        if ($avatarSourceChanged) {
+            $profile->avatar_source = AvatarSource::Generated;
+            $this->deleteStoredAvatarIfPresent($user->id);
+            $profile->avatar_path = null;
+            $profile->avatar_cache_signature = null;
+        }
+
+        $profile->save();
+
+        $this->discord_id = '';
 
         $this->dispatch('profile-contact-updated');
 
@@ -245,6 +285,37 @@ new class extends Component
                 </div>
             @endif
         </div>
+
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-discord">
+                <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_discord') }}</p>
+
+                @if ($discord_id !== '')
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-input
+                            wire:model="discord_id"
+                            label="{{ __('ui.profile.integrations_discord_id_label') }}"
+                            placeholder="{{ __('ui.profile.integrations_discord_id_label') }}"
+                            type="text"
+                            name="discord_id"
+                            inline
+                            readonly
+                            disabled
+                        />
+                        <x-button
+                            type="button"
+                            class="btn-outline btn-error w-full max-w-sm"
+                            wire:click="unlinkDiscord"
+                            wire:confirm="{{ __('ui.profile.integrations_discord_unlink_confirm') }}"
+                        >{{ __('ui.profile.integrations_discord_unlink') }}</x-button>
+                    </div>
+                @elseif (config('services.discord.client_id'))
+                    <div class="flex flex-col gap-4">
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_discord_link_hint') }}</p>
+                        {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on discord.com --}}
+                        <x-button :link="route('discord.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
+                    </div>
+                @endif
+            </div>
         </div>
     </fieldset>
 </section>

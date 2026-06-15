@@ -217,6 +217,50 @@ final class AvatarSourceTest extends TestCase
     }
 
     #[Test]
+    public function test_discord_avatar_preview_uses_discord_avatar_url_when_linked(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'avatar_source' => AvatarSource::Generated,
+            'discord_id' => 'dc-preview-1',
+            'discord_avatar_url' => 'https://cdn.discordapp.com/avatars/dc-preview-1/abc.webp',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'discord')
+            ->assertSee('https://cdn.discordapp.com/avatars/dc-preview-1/abc.webp', false);
+    }
+
+    #[Test]
+    public function test_discord_avatar_save_when_linked_and_remote_ok(): void
+    {
+        Storage::fake('public');
+        $png = self::tinyPng();
+        Http::fake([
+            'https://cdn.discordapp.com/*' => Http::response($png, 200, ['Content-Type' => 'image/png']),
+        ]);
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'discord_id' => 'dc-123',
+            'discord_avatar_url' => 'https://cdn.discordapp.com/avatars/dc-123/abc.webp',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'discord')
+            ->call('updateAvatar')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame(AvatarSource::Discord, $user->profile?->avatar_source);
+        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+    }
+
+    #[Test]
     public function test_login_listener_refreshes_gravatar_cache(): void
     {
         Storage::fake('public');

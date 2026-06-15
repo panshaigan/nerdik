@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\DiscordAuthController;
 use App\Http\Controllers\Auth\FacebookAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
@@ -11,6 +12,9 @@ Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->n
 
 Route::get('auth/facebook', [FacebookAuthController::class, 'redirect'])->name('facebook.redirect');
 Route::get('auth/facebook/callback', [FacebookAuthController::class, 'callback'])->name('facebook.callback');
+
+Route::get('auth/discord', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
+Route::get('auth/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
 
 Route::middleware('guest')->group(function () {
     Volt::route('register', 'pages.auth.register')

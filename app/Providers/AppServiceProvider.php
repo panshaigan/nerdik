@@ -37,6 +37,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use SocialiteProviders\Discord\Provider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
 class AppServiceProvider extends ServiceProvider
@@ -110,6 +112,9 @@ class AppServiceProvider extends ServiceProvider
         EventFacade::listen(NotificationSent::class, RecordNotificationDispatchThrottle::class);
         EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
         EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);
+        EventFacade::listen(function (SocialiteWasCalled $event): void {
+            $event->extendSocialite('discord', Provider::class);
+        });
 
         RateLimiter::for('registration', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
