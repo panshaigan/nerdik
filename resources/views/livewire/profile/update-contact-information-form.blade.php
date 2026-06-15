@@ -221,12 +221,8 @@ new class extends Component
     </form>
 
     <fieldset class="fieldset mt-8 py-0" data-ui="profile-integrations">
-        <legend class="fieldset-legend mb-2">{{ __('ui.profile.integrations_title') }}</legend>
-
         <div class="space-y-4">
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-google">
-                <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_google') }}</p>
-
                 @if ($google_id !== '')
                     <div class="grid grid-cols-2 gap-4">
                         <x-input
@@ -256,8 +252,6 @@ new class extends Component
             </div>
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
-            <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_facebook') }}</p>
-
             @if ($facebook_id !== '')
                 <div class="grid grid-cols-2 gap-4">
                     <x-input
@@ -287,8 +281,6 @@ new class extends Component
         </div>
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-discord">
-                <p class="mb-4 text-sm font-semibold text-base-content">{{ __('ui.profile.integrations_discord') }}</p>
-
                 @if ($discord_id !== '')
                     <div class="grid grid-cols-2 gap-4">
                         <x-input
