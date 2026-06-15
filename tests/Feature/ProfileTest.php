@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AvatarSource;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,6 +93,88 @@ class ProfileTest extends TestCase
 
         $this->assertSame('nerdik-user', $user->refresh()->profile?->discord_handle);
         $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_contact_form_shows_facebook_link_when_not_connected(): void
+    {
+        config([
+            'services.facebook.client_id' => 'stub-fb-client-id',
+            'services.facebook.client_secret' => 'stub-fb-secret',
+        ]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('/auth/facebook', $html);
+        $this->assertStringContainsString('return_tab=contact', $html);
+        $this->assertStringContainsString(__('ui.profile.avatar_link_facebook'), $html);
+        $this->assertStringNotContainsString(__('ui.profile.integrations_facebook_unlink'), $html);
+    }
+
+    public function test_contact_form_shows_facebook_id_when_connected(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['facebook_id' => 'fb-connected-99']);
+
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertStringContainsString('fb-connected-99', $html);
+        $this->assertStringContainsString(__('ui.profile.integrations_facebook_unlink'), $html);
+        $this->assertStringNotContainsString('return_tab=contact', $html);
+    }
+
+    public function test_unlink_facebook_clears_facebook_id(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'facebook_id' => 'fb-to-unlink',
+            'facebook_avatar_url' => 'https://facebook.com/avatar.jpg',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkFacebook')
+            ->assertHasNoErrors()
+            ->assertSet('facebook_id', '');
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->facebook_id);
+        $this->assertNull($profile?->facebook_avatar_url);
+    }
+
+    public function test_unlink_facebook_resets_avatar_source_when_facebook(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $path = 'avatars/'.$user->id.'.webp';
+        Storage::disk('public')->put($path, 'fake-webp-bytes');
+        $user->profile()->update([
+            'facebook_id' => 'fb-avatar-user',
+            'facebook_avatar_url' => 'https://facebook.com/avatar.jpg',
+            'avatar_source' => AvatarSource::Facebook,
+            'avatar_path' => $path,
+            'avatar_cache_signature' => 'sig',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('unlinkFacebook')
+            ->assertHasNoErrors();
+
+        $profile = $user->fresh()->profile;
+        $this->assertNull($profile?->facebook_id);
+        $this->assertSame(AvatarSource::Generated, $profile?->avatar_source);
+        $this->assertNull($profile?->avatar_path);
+        $this->assertNull($profile?->avatar_cache_signature);
+        Storage::disk('public')->assertMissing($path);
     }
 
     public function test_generated_avatar_colors_can_be_saved(): void

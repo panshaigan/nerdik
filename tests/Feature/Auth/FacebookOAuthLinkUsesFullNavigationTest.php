@@ -52,6 +52,22 @@ class FacebookOAuthLinkUsesFullNavigationTest extends TestCase
         $this->assertOAuthLinkDoesNotUseWireNavigate($html, '/auth/facebook', 'profile avatar');
     }
 
+    #[Test]
+    public function profile_contact_facebook_link_does_not_use_wire_navigate(): void
+    {
+        config([
+            'services.facebook.client_id' => 'stub-fb-client-id',
+            'services.facebook.client_secret' => 'stub-fb-secret',
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $html = Volt::test('profile.update-contact-information-form')->html();
+
+        $this->assertOAuthLinkDoesNotUseWireNavigate($html, '/auth/facebook', 'profile contact');
+    }
+
     private function assertOAuthLinkDoesNotUseWireNavigate(string $html, string $pathFragment, string $context): void
     {
         $dom = new DOMDocument;

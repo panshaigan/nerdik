@@ -24,7 +24,7 @@ class GoogleAuthController extends Controller
 
     public function redirect(): SymfonyRedirectResponse
     {
-        $this->captureAvatarLinkIntent();
+        $this->captureOAuthLinkIntent();
         $this->captureBrowserTimezoneFromRequest();
 
         request()->session()->save();
@@ -96,8 +96,9 @@ class GoogleAuthController extends Controller
             }
         }
 
-        if (session()->pull('socialite.return_tab') === 'avatar') {
-            return redirect()->to($this->profileAvatarUrl());
+        $returnTab = session()->pull('socialite.return_tab');
+        if (is_string($returnTab) && in_array($returnTab, ['avatar', 'contact'], true)) {
+            return redirect()->to($this->profileUrlForTab($returnTab));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
@@ -105,19 +106,22 @@ class GoogleAuthController extends Controller
 
     private function completeAccountLinking(AbstractUser $googleUser): RedirectResponse
     {
-        $linkUserId = $this->resolveLinkUserId();
-        $profileUrl = $this->profileAvatarUrl();
+        $linkContext = $this->resolveLinkContext();
+        $returnTab = $linkContext['returnTab'] ?? 'avatar';
+        $profileUrl = $this->profileUrlForTab($returnTab);
 
-        if ($linkUserId === null) {
+        if ($linkContext === null) {
             return redirect()->to($profileUrl);
         }
 
+        $linkUserId = $linkContext['userId'];
         $googleId = (string) $googleUser->getId();
         $avatarUrl = $this->resolveGoogleAvatarUrl($googleUser);
         $hasAvatar = is_string($avatarUrl) && $avatarUrl !== '';
 
         if ($googleId === '' && ! $hasAvatar) {
-            return $this->redirectToProfileAvatarWithToast(
+            return $this->redirectToProfileTabWithToast(
+                $returnTab,
                 __('ui.profile.oauth_link_google_failed'),
                 'error',
             );
@@ -138,7 +142,8 @@ class GoogleAuthController extends Controller
                 ->exists();
 
             if ($alreadyLinked) {
-                return $this->redirectToProfileAvatarWithToast(
+                return $this->redirectToProfileTabWithToast(
+                    $returnTab,
                     __('ui.profile.oauth_link_google_taken'),
                     'error',
                 );
@@ -150,7 +155,9 @@ class GoogleAuthController extends Controller
             $profile->google_id = $googleId;
         }
         $this->syncGoogleAvatarUrl($profile, $avatarUrl);
-        $profile->avatar_source = AvatarSource::Google;
+        if ($returnTab === 'avatar') {
+            $profile->avatar_source = AvatarSource::Google;
+        }
         $profile->save();
         $user->setRelation('profile', $profile);
 
@@ -165,7 +172,7 @@ class GoogleAuthController extends Controller
             }
         }
 
-        return $this->redirectToProfileAvatarWithToast(__('ui.profile.oauth_link_google_success'));
+        return $this->redirectToProfileTabWithToast($returnTab, __('ui.profile.oauth_link_google_success'));
     }
 
     private function syncGoogleAvatarUrl(UserProfile $profile, mixed $avatarUrl): void
