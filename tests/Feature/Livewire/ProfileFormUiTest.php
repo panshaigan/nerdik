@@ -57,6 +57,23 @@ class ProfileFormUiTest extends TestCase
             ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
     }
 
+    public function test_email_change_validation_reports_advanced_tab(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'current@example.com',
+            'password' => bcrypt('correct-password'),
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-email-form')
+            ->set('new_email', 'new@example.com')
+            ->set('current_password', 'wrong-password')
+            ->call('requestEmailChange')
+            ->assertHasErrors(['current_password'])
+            ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
+    }
+
     public function test_organization_select_is_disabled_when_user_has_no_organizations(): void
     {
         $user = User::factory()->create();
