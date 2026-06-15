@@ -6,6 +6,12 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+
+Route::get('auth/facebook', [FacebookAuthController::class, 'redirect'])->name('facebook.redirect');
+Route::get('auth/facebook/callback', [FacebookAuthController::class, 'callback'])->name('facebook.callback');
+
 Route::middleware('guest')->group(function () {
     Volt::route('register', 'pages.auth.register')
         ->middleware(['throttle:registration'])
@@ -13,12 +19,6 @@ Route::middleware('guest')->group(function () {
 
     Volt::route('login', 'pages.auth.login')
         ->name('login');
-
-    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
-    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
-
-    Route::get('auth/facebook', [FacebookAuthController::class, 'redirect'])->name('facebook.redirect');
-    Route::get('auth/facebook/callback', [FacebookAuthController::class, 'callback'])->name('facebook.callback');
 
     Volt::route('forgot-password', 'pages.auth.forgot-password')
         ->middleware(['throttle:password.request'])

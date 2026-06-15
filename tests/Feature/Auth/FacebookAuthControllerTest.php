@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\AvatarSource;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +36,158 @@ class FacebookAuthControllerTest extends TestCase
         $provider->shouldReceive('user')->andReturn($facebookUser);
 
         Socialite::shouldReceive('driver')->with('facebook')->andReturn($provider);
+    }
+
+    private function mockSocialiteRedirect(): void
+    {
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('scopes')->with(['email'])->andReturnSelf();
+        $provider->shouldReceive('redirect')->andReturn(redirect('https://facebook.com/oauth'));
+
+        Socialite::shouldReceive('driver')->with('facebook')->andReturn($provider);
+    }
+
+    #[Test]
+    public function authenticated_user_can_start_facebook_redirect_for_avatar_linking(): void
+    {
+        $user = User::factory()->create();
+
+        $this->mockSocialiteRedirect();
+
+        $response = $this->actingAs($user)->get(route('facebook.redirect', ['return_tab' => 'avatar']));
+
+        $response->assertRedirect('https://facebook.com/oauth');
+        $response->assertCookie('oauth_link_user_id', (string) $user->id);
+        $this->assertSame($user->id, session('socialite.link_user_id'));
+        $this->assertSame('avatar', session('socialite.return_tab'));
+    }
+
+    #[Test]
+    public function callback_links_facebook_to_authenticated_user_when_linking_from_profile(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'linker@example.com',
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'fb-link-1',
+            email: 'linker@example.com',
+        ));
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'avatar',
+            ])
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('fb-link-1', $user->fresh()->profile?->facebook_id);
+        $this->assertSame(AvatarSource::Facebook, $user->fresh()->profile?->avatar_source);
+    }
+
+    #[Test]
+    public function callback_links_facebook_when_email_differs_from_account_during_profile_linking(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'fb-mismatch',
+            email: 'other@example.com',
+        ));
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'avatar',
+            ])
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
+        $response->assertSessionHas('ui.toast', [
+            'type' => 'success',
+            'title' => __('ui.profile.oauth_link_facebook_success'),
+        ]);
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('fb-mismatch', $user->fresh()->profile?->facebook_id);
+        $this->assertSame(AvatarSource::Facebook, $user->fresh()->profile?->avatar_source);
+    }
+
+    #[Test]
+    public function callback_links_facebook_using_cookie_when_session_link_user_id_is_missing(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'fb-cookie-link',
+            email: 'other@example.com',
+        ));
+
+        $response = $this
+            ->withCookie('oauth_link_user_id', (string) $user->id)
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('fb-cookie-link', $user->fresh()->profile?->facebook_id);
+    }
+
+    #[Test]
+    public function callback_links_facebook_without_email_when_provider_id_is_present(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'fb-no-email',
+            email: null,
+        ));
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'avatar',
+            ])
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
+        $this->assertSame('fb-no-email', $user->fresh()->profile?->facebook_id);
+    }
+
+    #[Test]
+    public function callback_rejects_facebook_linking_when_id_belongs_to_another_user(): void
+    {
+        $other = User::factory()->create();
+        $other->profile()->update(['facebook_id' => 'taken-fb-id']);
+
+        $user = User::factory()->create([
+            'email' => 'linker@example.com',
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'taken-fb-id',
+            email: 'linker@example.com',
+        ));
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'avatar',
+            ])
+            ->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
+        $response->assertSessionHas('ui.toast', [
+            'type' => 'error',
+            'title' => __('ui.profile.oauth_link_facebook_taken'),
+        ]);
+        $this->assertNull($user->fresh()->profile?->facebook_id);
     }
 
     #[Test]

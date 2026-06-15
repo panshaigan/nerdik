@@ -4,35 +4,44 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
+use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 class GoogleAuthController extends Controller
 {
-    public function redirect()
-    {
-        if (request()->query('return_tab') === 'avatar') {
-            session(['socialite.return_tab' => 'avatar']);
-        }
+    use PersistsOAuthLinkIntent;
 
+    public function redirect(): SymfonyRedirectResponse
+    {
+        $this->captureAvatarLinkIntent();
         $this->captureBrowserTimezoneFromRequest();
+
+        request()->session()->save();
 
         return Socialite::driver('google')
             ->scopes(['openid', 'profile', 'email'])
             ->redirect();
     }
 
-    public function callback()
+    public function callback(): RedirectResponse
     {
         $googleUser = Socialite::driver('google')->user();
+
+        if ($this->shouldCompleteAccountLinking()) {
+            return $this->completeAccountLinking($googleUser);
+        }
+
         $googleEmailVerified = $this->isGoogleEmailMarkedVerified($googleUser);
         $browserTimezone = $this->resolveBrowserTimezone();
 
@@ -88,10 +97,75 @@ class GoogleAuthController extends Controller
         }
 
         if (session()->pull('socialite.return_tab') === 'avatar') {
-            return redirect()->to(route('profile', absolute: false).'?tab=avatar');
+            return redirect()->to($this->profileAvatarUrl());
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    private function completeAccountLinking(AbstractUser $googleUser): RedirectResponse
+    {
+        $linkUserId = $this->resolveLinkUserId();
+        $profileUrl = $this->profileAvatarUrl();
+
+        if ($linkUserId === null) {
+            return redirect()->to($profileUrl);
+        }
+
+        $googleId = (string) $googleUser->getId();
+        $avatarUrl = $this->resolveGoogleAvatarUrl($googleUser);
+        $hasAvatar = is_string($avatarUrl) && $avatarUrl !== '';
+
+        if ($googleId === '' && ! $hasAvatar) {
+            return $this->redirectToProfileAvatarWithToast(
+                __('ui.profile.oauth_link_google_failed'),
+                'error',
+            );
+        }
+
+        $user = User::find($linkUserId);
+        if ($user === null) {
+            return redirect()->route('login')->with(
+                'status',
+                __('ui.profile.oauth_link_session_expired')
+            );
+        }
+
+        if ($googleId !== '') {
+            $alreadyLinked = User::query()
+                ->where('id', '!=', $user->id)
+                ->whereHas('profile', fn ($query) => $query->where('google_id', $googleId))
+                ->exists();
+
+            if ($alreadyLinked) {
+                return $this->redirectToProfileAvatarWithToast(
+                    __('ui.profile.oauth_link_google_taken'),
+                    'error',
+                );
+            }
+        }
+
+        $profile = $user->profile()->firstOrCreate();
+        if ($googleId !== '') {
+            $profile->google_id = $googleId;
+        }
+        $this->syncGoogleAvatarUrl($profile, $avatarUrl);
+        $profile->avatar_source = AvatarSource::Google;
+        $profile->save();
+        $user->setRelation('profile', $profile);
+
+        Auth::login($user, true);
+
+        $user->refresh();
+        $user->load('profile');
+        if ($user->profile?->avatar_source === AvatarSource::Google) {
+            try {
+                app(RefreshCachedAvatar::class)($user, AvatarSource::Google);
+            } catch (\Throwable) {
+            }
+        }
+
+        return $this->redirectToProfileAvatarWithToast(__('ui.profile.oauth_link_google_success'));
     }
 
     private function syncGoogleAvatarUrl(UserProfile $profile, mixed $avatarUrl): void
