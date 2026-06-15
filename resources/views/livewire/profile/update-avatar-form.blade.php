@@ -273,19 +273,19 @@ new class extends Component
         @if ($avatar_source === 'generated')
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_colors_hint') }}</p>
                     <x-input
                         wire:model.live="avatar_initials"
                         label="{{ __('ui.profile.avatar_initials') }}"
+                        placeholder="{{ __('ui.profile.avatar_initials') }}"
                         type="text"
                         name="avatar_initials"
                         error-field="avatar_initials"
-                        placeholder="{{ auth()->user()->displayName() }}"
                         maxlength="3"
+                        inline
                     />
-                    <p class="text-xs text-base-content/70">{{ __('ui.profile.avatar_initials_hint') }}</p>
-                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.profile.avatar_bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required />
-                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.profile.avatar_text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required />
+                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_colors_hint') }}</p>
+                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.profile.avatar_bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required inline />
+                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.profile.avatar_text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required inline />
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>

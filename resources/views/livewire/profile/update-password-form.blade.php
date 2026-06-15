@@ -59,31 +59,37 @@ new class extends Component
         <x-password
             wire:model="current_password"
             label="{{ __('ui.profile.current_password') }}"
+            placeholder="{{ __('ui.profile.current_password') }}"
             name="current_password"
             error-field="current_password"
             autocomplete="current-password"
             class="ui-field ui-field-current-password"
             data-ui="profile-current-password"
+            inline
         />
 
         <x-password
             wire:model="password"
             label="{{ __('ui.profile.new_password') }}"
+            placeholder="{{ __('ui.profile.new_password') }}"
             name="password"
             error-field="password"
             autocomplete="new-password"
             class="ui-field ui-field-new-password"
             data-ui="profile-new-password"
+            inline
         />
 
         <x-password
             wire:model="password_confirmation"
             label="{{ __('ui.common.confirm_password') }}"
+            placeholder="{{ __('ui.common.confirm_password') }}"
             name="password_confirmation"
             error-field="password_confirmation"
             autocomplete="new-password"
             class="ui-field ui-field-password-confirmation"
             data-ui="profile-password-confirmation"
+            inline
         />
 
         <div class="flex items-center justify-end gap-4">
