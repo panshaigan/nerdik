@@ -134,7 +134,7 @@ return [
         'name_optional' => 'Name (optional)',
         'organization' => 'Organization',
         'select_organization_optional' => 'Select an organization (optional)',
-        'timezone_label' => 'Timezone (for displaying dates)',
+        'timezone_label' => 'Timezone',
         'timezone_server_default' => 'Use server default (UTC)',
         'discord_optional' => 'Discord (optional)',
         'email_unverified' => 'Your email address is unverified.',

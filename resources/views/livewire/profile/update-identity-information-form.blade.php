@@ -18,13 +18,19 @@ new class extends Component
 
     public $organizationOptions = null;
 
+    /** @var list<array{id: string, name: string}> */
+    public array $timezoneOptions = [];
+
     public function mount(): void
     {
         $user = Auth::user();
         $this->name = $user->name ?? '';
         $this->nickname = $user->nickname ?? '';
         $this->organization_id = $user->organization_id;
-        $this->timezone = $user->profile?->timezone ?? '';
+        $this->timezone = in_array($user->profile?->timezone, profile_timezone_ids(), true)
+            ? (string) $user->profile?->timezone
+            : '';
+        $this->timezoneOptions = profile_timezone_options();
         $this->organizationOptions = Organization::query()
             ->where('created_by', $user->id)
             ->orderBy('name')
@@ -64,38 +70,42 @@ new class extends Component
 <section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity" data-ui="profile-identity-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
     <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" novalidate class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
-        <x-input wire:model="nickname" label="{{ __('ui.auth.nickname') }}" type="text" name="nickname" error-field="nickname" required />
-        <x-input wire:model="name" label="{{ __('ui.profile.name_optional') }}" type="text" name="name" error-field="name" />
+        <x-input
+            wire:model="nickname"
+            label="{{ __('ui.auth.nickname') }}"
+            placeholder="{{ __('ui.auth.nickname') }}"
+            type="text"
+            name="nickname"
+            error-field="nickname"
+            inline
+            required />
+        <x-input
+            wire:model="name"
+            label="{{ __('ui.profile.name_optional') }}"
+            placeholder="{{ __('ui.profile.name_optional') }}"
+            type="text"
+            name="name"
+            error-field="name"
+            inline
+        />
         <x-select
             wire:model="organization_id"
             label="{{ __('ui.profile.organization') }}"
-            placeholder="{{ __('ui.profile.select_organization_optional') }}"
             :options="$organizationOptions"
             error-field="organization_id"
+            inline
         />
 
-        <div>
-            <fieldset class="fieldset py-0">
-                <legend class="fieldset-legend mb-0.5">{{ __('ui.profile.timezone_label') }}</legend>
-                <select wire:model="timezone" name="timezone" class="select select-bordered w-full">
-                    <option value="">{{ __('ui.profile.timezone_server_default') }}</option>
-                    @if ($timezone && ! in_array($timezone, ['UTC', 'Europe/Warsaw', 'Europe/London', 'Europe/Berlin', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney'], true))
-                        <option value="{{ $timezone }}" selected>{{ $timezone }}</option>
-                    @endif
-                    <option value="UTC">UTC</option>
-                    <option value="Europe/Warsaw">Europe/Warsaw</option>
-                    <option value="Europe/London">Europe/London</option>
-                    <option value="Europe/Berlin">Europe/Berlin</option>
-                    <option value="Europe/Paris">Europe/Paris</option>
-                    <option value="America/New_York">America/New_York</option>
-                    <option value="America/Chicago">America/Chicago</option>
-                    <option value="America/Los_Angeles">America/Los_Angeles</option>
-                    <option value="Asia/Tokyo">Asia/Tokyo</option>
-                    <option value="Australia/Sydney">Australia/Sydney</option>
-                </select>
-            </fieldset>
-            <x-field-error :messages="$errors->get('timezone')" class="mt-2" />
-        </div>
+        <x-select
+            wire:model="timezone"
+            name="timezone"
+            label="{{ __('ui.profile.timezone_label') }}"
+            :options="$timezoneOptions"
+            :placeholder="__('ui.profile.timezone_server_default')"
+            placeholder-value=""
+            error-field="timezone"
+            inline
+        />
 
         <div class="flex items-center justify-end gap-4">
             <x-action-message class="me-3" on="profile-identity-updated">{{ __('ui.common.saved') }}</x-action-message>

@@ -541,3 +541,40 @@ if (! function_exists('legal_replace')) {
         return $result;
     }
 }
+
+if (! function_exists('profile_timezone_ids')) {
+    /**
+     * @return list<string>
+     */
+    function profile_timezone_ids(): array
+    {
+        return [
+            'UTC',
+            'Europe/Warsaw',
+            'Europe/London',
+            'Europe/Berlin',
+            'Europe/Paris',
+            'America/New_York',
+            'America/Chicago',
+            'America/Los_Angeles',
+            'Asia/Tokyo',
+            'Australia/Sydney',
+        ];
+    }
+}
+
+if (! function_exists('profile_timezone_options')) {
+    /**
+     * @return list<array{id: string, name: string}>
+     */
+    function profile_timezone_options(): array
+    {
+        return array_map(
+            fn (string $timezoneId): array => [
+                'id' => $timezoneId,
+                'name' => $timezoneId,
+            ],
+            profile_timezone_ids(),
+        );
+    }
+}
