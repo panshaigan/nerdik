@@ -2,6 +2,8 @@
     <x-page-header :title="__('ui.profile.title')">
     </x-page-header>
 
+    <x-ui.toast-from-session />
+
     <div class="ui-content-card rounded-2xl mt-4" data-ui="profile-tabs-shell">
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"

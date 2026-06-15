@@ -182,6 +182,11 @@ final class AvatarSourceTest extends TestCase
     #[Test]
     public function test_google_avatar_shows_link_when_not_linked(): void
     {
+        config([
+            'services.google.client_id' => 'stub-client.apps.googleusercontent.com',
+            'services.google.client_secret' => 'stub-secret',
+        ]);
+
         $user = User::factory()->create();
         $user->profile()->update([
             'google_id' => null,
@@ -192,6 +197,23 @@ final class AvatarSourceTest extends TestCase
         Volt::test('profile.update-avatar-form')
             ->set('avatar_source', 'google')
             ->assertSee('Link Google account', false);
+    }
+
+    #[Test]
+    public function test_facebook_avatar_preview_uses_facebook_avatar_url_when_linked(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'avatar_source' => AvatarSource::Generated,
+            'facebook_id' => 'fb-preview-1',
+            'facebook_avatar_url' => 'https://facebook.com/avatar-preview.jpg',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'facebook')
+            ->assertSee('https://facebook.com/avatar-preview.jpg', false);
     }
 
     #[Test]

@@ -31,6 +31,27 @@ class ProfileTest extends TestCase
             ->assertSeeVolt('profile.delete-user-form');
     }
 
+    public function test_profile_page_fires_toast_from_oauth_linking_session(): void
+    {
+        $user = User::factory()->create();
+        $message = __('ui.profile.oauth_link_facebook_success');
+
+        $response = $this
+            ->actingAs($user)
+            ->withSession([
+                'ui.toast' => [
+                    'type' => 'success',
+                    'title' => $message,
+                ],
+            ])
+            ->get('/profile?tab=avatar');
+
+        $response
+            ->assertOk()
+            ->assertSee($message, false)
+            ->assertSee('window.toast', false);
+    }
+
     public function test_identity_information_can_be_updated(): void
     {
         $user = User::factory()->create();

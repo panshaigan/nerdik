@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
+use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -12,18 +13,20 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 class FacebookAuthController extends Controller
 {
+    use PersistsOAuthLinkIntent;
+
     public function redirect(): SymfonyRedirectResponse
     {
-        if (request()->query('return_tab') === 'avatar') {
-            session(['socialite.return_tab' => 'avatar']);
-        }
-
+        $this->captureAvatarLinkIntent();
         $this->captureBrowserTimezoneFromRequest();
+
+        request()->session()->save();
 
         return Socialite::driver('facebook')->scopes(['email'])->redirect();
     }
@@ -32,6 +35,11 @@ class FacebookAuthController extends Controller
     {
         $facebookUser = Socialite::driver('facebook')->user();
         $facebookEmail = $facebookUser->getEmail();
+
+        if ($this->shouldCompleteAccountLinking()) {
+            return $this->completeAccountLinking($facebookUser);
+        }
+
         $browserTimezone = $this->resolveBrowserTimezone();
 
         if ($facebookEmail === null || $facebookEmail === '') {
@@ -93,10 +101,74 @@ class FacebookAuthController extends Controller
         }
 
         if (session()->pull('socialite.return_tab') === 'avatar') {
-            return redirect()->to(route('profile', absolute: false).'?tab=avatar');
+            return redirect()->to($this->profileAvatarUrl());
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    private function completeAccountLinking(AbstractUser $facebookUser): RedirectResponse
+    {
+        $linkUserId = $this->resolveLinkUserId();
+        $profileUrl = $this->profileAvatarUrl();
+
+        if ($linkUserId === null) {
+            return redirect()->to($profileUrl);
+        }
+
+        $facebookId = (string) $facebookUser->getId();
+        $hasAvatar = is_string($facebookUser->getAvatar()) && $facebookUser->getAvatar() !== '';
+
+        if ($facebookId === '' && ! $hasAvatar) {
+            return $this->redirectToProfileAvatarWithToast(
+                __('ui.profile.oauth_link_facebook_failed'),
+                'error',
+            );
+        }
+
+        $user = User::find($linkUserId);
+        if ($user === null) {
+            return redirect()->route('login')->with(
+                'status',
+                __('ui.profile.oauth_link_session_expired')
+            );
+        }
+
+        if ($facebookId !== '') {
+            $alreadyLinked = User::query()
+                ->where('id', '!=', $user->id)
+                ->whereHas('profile', fn ($query) => $query->where('facebook_id', $facebookId))
+                ->exists();
+
+            if ($alreadyLinked) {
+                return $this->redirectToProfileAvatarWithToast(
+                    __('ui.profile.oauth_link_facebook_taken'),
+                    'error',
+                );
+            }
+        }
+
+        $profile = $user->profile()->firstOrCreate();
+        if ($facebookId !== '') {
+            $profile->facebook_id = $facebookId;
+        }
+        $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
+        $profile->avatar_source = AvatarSource::Facebook;
+        $profile->save();
+        $user->setRelation('profile', $profile);
+
+        Auth::login($user, true);
+
+        $user->refresh();
+        $user->load('profile');
+        if ($user->profile?->avatar_source === AvatarSource::Facebook) {
+            try {
+                app(RefreshCachedAvatar::class)($user, AvatarSource::Facebook);
+            } catch (\Throwable) {
+            }
+        }
+
+        return $this->redirectToProfileAvatarWithToast(__('ui.profile.oauth_link_facebook_success'));
     }
 
     private function syncFacebookAvatarUrl(UserProfile $profile, mixed $avatarUrl): void

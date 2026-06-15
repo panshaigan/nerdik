@@ -58,6 +58,17 @@ new class extends Component
         $this->reset('croppedAvatar');
     }
 
+    public function remoteAvatarPreviewUrl(string $provider): string
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+        $url = $provider === 'facebook'
+            ? $profile?->facebook_avatar_url
+            : $profile?->google_avatar_url;
+
+        return (is_string($url) && $url !== '') ? $url : $user->avatarUrl();
+    }
+
     public function refreshRemoteAvatar(): void
     {
         $user = Auth::user();
@@ -332,15 +343,16 @@ new class extends Component
                     @if (auth()->user()->profile?->google_id)
                         <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_linked_hint') }}</p>
                         <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_google') }}</x-button>
-                    @else
+                    @elseif (config('services.google.client_id'))
                         <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_link_hint') }}</p>
-                        <a href="{{ route('google.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</a>
+                        {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on accounts.google.com --}}
+                        <x-button :link="route('google.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
                     @endif
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->google_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
                     <img
-                        src="{{ auth()->user()->avatarUrl() }}"
+                        src="{{ $this->remoteAvatarPreviewUrl('google') }}"
                         alt=""
                         class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"
@@ -355,15 +367,16 @@ new class extends Component
                     @if (auth()->user()->profile?->facebook_id)
                         <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_linked_hint') }}</p>
                         <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_facebook') }}</x-button>
-                    @else
+                    @elseif (config('services.facebook.client_id'))
                         <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_link_hint') }}</p>
-                        <a href="{{ route('facebook.redirect', ['return_tab' => 'avatar']) }}" class="btn btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</a>
+                        {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
+                        <x-button :link="route('facebook.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
                     @endif
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ auth()->user()->profile?->facebook_id ? __('ui.profile.avatar_current') : __('ui.common.preview') }}</span>
                     <img
-                        src="{{ auth()->user()->avatarUrl() }}"
+                        src="{{ $this->remoteAvatarPreviewUrl('facebook') }}"
                         alt=""
                         class="h-48 w-48 rounded-full object-cover ring-2 ring-base-300/50 sm:h-56 sm:w-56"
                         loading="lazy"
