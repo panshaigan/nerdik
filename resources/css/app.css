@@ -49,7 +49,7 @@
         --brand-neutral-content-light:  oklch(95%  0.01  242);
         --brand-base-100-light:         oklch(97%  0.015 242);
         --brand-base-200-light:         oklch(92%  0.025 242);
-        --brand-base-300-light:         oklch(86%  0.035 242);
+        --brand-base-300-light: oklch(0.93 0.007 17.274);
         --brand-base-content-light:     oklch(18%  0.04  242);
 
         /* Neutrals (Dark) */
