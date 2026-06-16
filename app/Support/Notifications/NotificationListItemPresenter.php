@@ -40,6 +40,7 @@ final class NotificationListItemPresenter
             'event_cancelled' => [__('ui.notifications.event_cancelled_list'), 'o-calendar-days'],
             'activity_reopened' => [__('ui.notifications.activity_reopened_list'), 'o-arrow-path'],
             'event_reopened' => [__('ui.notifications.event_reopened_list'), 'o-arrow-path'],
+            'scheduled_periodic_digest' => [$this->scheduledDigestTitle($data), 'o-clock'],
             default => [$this->fallbackTitle($data), 'o-bell'],
         };
     }
@@ -55,6 +56,7 @@ final class NotificationListItemPresenter
         return match ($type) {
             'event_cancelled', 'event_reopened' => $event !== '' ? $event : null,
             'waitlist_promoted' => $activity !== '' ? $activity : null,
+            'scheduled_periodic_digest' => $this->scheduledDigestSubtitle($data),
             default => $this->joinLabelParts($activity, $event),
         };
     }
@@ -64,6 +66,47 @@ final class NotificationListItemPresenter
         $parts = array_values(array_filter($parts, static fn (string $part): bool => $part !== ''));
 
         return $parts === [] ? null : implode(' · ', $parts);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function scheduledDigestTitle(array $data): string
+    {
+        $toastTitle = trim((string) ($data['toast_title'] ?? ''));
+
+        return $toastTitle !== ''
+            ? $toastTitle
+            : __('ui.notifications.scheduled.digest_toast_title');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function scheduledDigestSubtitle(array $data): ?string
+    {
+        /** @var list<mixed> $items */
+        $items = is_array($data['items'] ?? null) ? $data['items'] : [];
+
+        $titles = [];
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $title = trim((string) ($item['title'] ?? ''));
+            if ($title !== '') {
+                $titles[] = $title;
+            }
+        }
+
+        if ($titles !== []) {
+            return implode(' · ', $titles);
+        }
+
+        $toastDescription = trim((string) ($data['toast_description'] ?? ''));
+
+        return $toastDescription !== '' ? $toastDescription : null;
     }
 
     /**
