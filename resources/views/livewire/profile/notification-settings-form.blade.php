@@ -83,13 +83,12 @@ new class extends Component
             <div class="space-y-3">
                 <h3 class="font-medium text-base-content">{{ __('ui.profile.notifications.'.$section['group_key']) }}</h3>
                 <div class="overflow-x-auto rounded-lg border border-base-300 bg-base-200/40">
-                    <table class="table table-sm">
+                    <table class="table table-sm table-fixed w-full">
                         <thead class="[&_tr]:border-base-300">
                             <tr>
                                 <th class="text-base-content">{{ __('ui.profile.notifications.col_kind') }}</th>
-                                <th class="text-center text-base-content">{{ __('ui.profile.notifications.every_join_short') }}</th>
-                                <th class="text-center text-base-content">{{ __('ui.profile.notifications.in_app_short') }}</th>
-                                <th class="text-center text-base-content">{{ __('ui.profile.notifications.email_short') }}</th>
+                                <th class="w-24 text-center text-base-content">{{ __('ui.profile.notifications.in_app_short') }}</th>
+                                <th class="w-24 text-center text-base-content">{{ __('ui.profile.notifications.email_short') }}</th>
                             </tr>
                         </thead>
                         <tbody class="[&_tr]:border-base-300">
@@ -99,19 +98,7 @@ new class extends Component
                                 @endphp
                                 <tr wire:key="{{ $pkey }}">
                                     <td class="max-w-xl text-sm text-base-content">{{ __('ui.profile.notifications.keys.'.$pkey) }}</td>
-                                    <td class="text-center">
-                                        @if ($pkey === \App\Enums\NotificationPreferenceKey::ActivityParticipantJoined->value)
-                                            <input
-                                                type="checkbox"
-                                                wire:model="preferences.{{ $pkey }}.every_join"
-                                                class="checkbox checkbox-sm ui-field ui-field-notification-every-join"
-                                                aria-label="{{ __('ui.profile.notifications.every_join_short') }}"
-                                            />
-                                        @else
-                                            <span class="text-base-content/40" aria-hidden="true">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-center">
+                                    <td class="w-24 text-center">
                                         <input
                                             type="checkbox"
                                             wire:model="preferences.{{ $pkey }}.in_app"
@@ -119,7 +106,7 @@ new class extends Component
                                             aria-label="{{ __('ui.profile.notifications.in_app_short') }}"
                                         />
                                     </td>
-                                    <td class="text-center">
+                                    <td class="w-24 text-center">
                                         <input
                                             type="checkbox"
                                             wire:model="preferences.{{ $pkey }}.email"

@@ -11,6 +11,17 @@ class ProfileNotificationPreferencesTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_notification_settings_table_hides_every_join_column(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Volt::test('profile.notification-settings-form')
+            ->assertDontSeeHtml('<th class="text-center text-base-content">'.__('ui.profile.notifications.every_join_short').'</th>')
+            ->assertSee(__('ui.profile.notifications.in_app_short'))
+            ->assertSee(__('ui.profile.notifications.email_short'));
+    }
+
     public function test_join_notification_defaults_to_milestones_only(): void
     {
         $user = User::factory()->create();
