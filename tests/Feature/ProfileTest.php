@@ -687,19 +687,35 @@ class ProfileTest extends TestCase
         $this->assertFalse((bool) $profile?->show_contact_discord);
     }
 
-    public function test_user_badge_contact_renders_modal_trigger(): void
+    public function test_user_badge_contact_renders_modal_trigger_for_authenticated_viewer(): void
     {
-        $user = User::factory()->create();
+        $viewer = User::factory()->create();
+        $target = User::factory()->create();
+
+        $this->actingAs($viewer);
 
         $html = Blade::render(
-            '<x-user-badge :user="$user" :contact-popover="true" :contact-context-activity-id="1" />',
-            ['user' => $user],
+            '<x-user-badge :user="$user" />',
+            ['user' => $target],
         );
 
         $this->assertStringContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
         $this->assertStringContainsString('cursor-pointer', $html);
+    }
+
+    public function test_user_badge_contact_does_not_render_modal_trigger_for_guest(): void
+    {
+        $target = User::factory()->create();
+
+        $html = Blade::render(
+            '<x-user-badge :user="$user" />',
+            ['user' => $target],
+        );
+
+        $this->assertStringNotContainsString('data-ui="user-badge-contact"', $html);
+        $this->assertStringNotContainsString('wire:click.stop="openModal"', $html);
     }
 
     public function test_user_badge_contact_modal_opens_and_loads_popover_content(): void
@@ -724,7 +740,6 @@ class ProfileTest extends TestCase
         Livewire::actingAs($host)
             ->test(UserBadgeContact::class, [
                 'user' => $participant,
-                'activityId' => $activity->id,
             ])
             ->assertSet('modalOpen', false)
             ->call('openModal')
@@ -750,7 +765,6 @@ class ProfileTest extends TestCase
         Livewire::actingAs($host)
             ->test(UserBadgeContact::class, [
                 'user' => $participant,
-                'activityId' => $activity->id,
                 'containerClass' => 'inline-flex min-w-0 min-w-0 flex-1',
             ])
             ->call('openModal')
@@ -785,7 +799,6 @@ class ProfileTest extends TestCase
 
         $html = Livewire::actingAs($host)
             ->test(UserContactPopover::class, [
-                'activityId' => $activity->id,
                 'targetUserId' => $participant->id,
             ])
             ->html();
@@ -821,7 +834,6 @@ class ProfileTest extends TestCase
 
         $html = Livewire::actingAs($stranger)
             ->test(UserContactPopover::class, [
-                'activityId' => $activity->id,
                 'targetUserId' => $participant->id,
             ])
             ->html();

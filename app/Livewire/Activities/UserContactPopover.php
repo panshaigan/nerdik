@@ -10,8 +10,6 @@ use Livewire\Component;
 
 class UserContactPopover extends Component
 {
-    public int $activityId;
-
     public int $targetUserId;
 
     /**
@@ -35,14 +33,13 @@ class UserContactPopover extends Component
             return $this->emptyState();
         }
 
-        $activity = Activity::query()->whereKey($this->activityId)->first();
         $targetUser = User::query()->with('profile', 'organization')->whereKey($this->targetUserId)->first();
 
-        if (! $activity instanceof Activity || ! $targetUser instanceof User) {
+        if (! $targetUser instanceof User) {
             return $this->emptyState();
         }
 
-        $canViewContact = $contactVisibility->canViewContactInfo($viewer, $targetUser, $activity);
+        $canViewContact = $contactVisibility->canViewContactInfo($viewer, $targetUser);
 
         $statsByType = ActivityUser::query()
             ->selectRaw('activity_types.slug as type_slug, count(*) as total')

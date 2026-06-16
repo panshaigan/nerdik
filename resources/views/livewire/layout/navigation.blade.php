@@ -144,6 +144,7 @@ new class extends Component
                             size="sm"
                             avatar-only
                             track-nav-avatar
+                            :contact-popover="false"
                         />
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
@@ -262,6 +263,7 @@ new class extends Component
                                 size="lg"
                                 :subline="auth()->user()->email"
                                 track-nav-avatar
+                                :contact-popover="false"
                             />
                             <p class="mt-2 px-1 text-xs font-medium uppercase tracking-wide text-primary">
                                 {{ __('ui.nav.account_settings') }}
