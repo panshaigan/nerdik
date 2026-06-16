@@ -34,6 +34,24 @@ class SwitchEmailFromProviderTest extends TestCase
             ->assertSet('confirmingProviderEmailSwitch', true);
     }
 
+    public function test_selecting_different_account_email_opens_confirmation_modal(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('selected_email', 'facebook@example.com')
+            ->assertSet('selected_provider_email', 'facebook@example.com')
+            ->assertSet('confirmingProviderEmailSwitch', true);
+    }
+
     public function test_provider_email_modal_renders_without_static_id(): void
     {
         $user = User::factory()->create([
@@ -144,7 +162,7 @@ class SwitchEmailFromProviderTest extends TestCase
             ->providerEmailOptions();
 
         $this->assertSame([], $options);
-        $this->assertStringNotContainsString('profile-provider-email-switch', Volt::test('profile.update-contact-information-form')->html());
+        $this->assertStringContainsString('data-ui="profile-contact-email-row"', Volt::test('profile.update-contact-information-form')->html());
     }
 
     public function test_google_unverified_email_is_not_stored_or_offered(): void
@@ -223,6 +241,7 @@ class SwitchEmailFromProviderTest extends TestCase
 
         $html = Volt::test('profile.update-contact-information-form')->html();
 
-        $this->assertStringNotContainsString('data-ui="profile-provider-email-switch"', $html);
+        $this->assertStringContainsString('data-ui="profile-contact-email-row"', $html);
+        $this->assertStringContainsString('disabled', $html);
     }
 }

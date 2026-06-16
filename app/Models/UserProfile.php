@@ -30,6 +30,10 @@ class UserProfile extends Model
         'facebook_email',
         'discord_avatar_url',
         'discord_email',
+        'show_contact_email',
+        'show_contact_facebook',
+        'show_contact_google',
+        'show_contact_discord',
         'avatar_bg_color',
         'avatar_text_color',
         'avatar_initials',
@@ -49,6 +53,10 @@ class UserProfile extends Model
             'avatar_source' => AvatarSource::class,
             'languages' => 'array',
             'notification_preferences' => 'array',
+            'show_contact_email' => 'boolean',
+            'show_contact_facebook' => 'boolean',
+            'show_contact_google' => 'boolean',
+            'show_contact_discord' => 'boolean',
         ];
     }
 

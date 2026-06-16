@@ -3,11 +3,17 @@
 namespace Tests\Feature;
 
 use App\Enums\AvatarSource;
+use App\Livewire\Activities\UserBadgeContact;
+use App\Livewire\Activities\UserContactPopover;
+use App\Models\Activity;
+use App\Models\ActivityType;
+use App\Models\ActivityUser;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -595,5 +601,176 @@ class ProfileTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="profile-tabs"', false);
+    }
+
+    public function test_contact_visibility_preferences_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('show_contact_email', true)
+            ->assertHasNoErrors();
+
+        $user->profile()->update([
+            'facebook_id' => 'fb-linked',
+            'discord_id' => 'dc-linked',
+            'google_id' => 'g-linked',
+        ]);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('show_contact_facebook', false)
+            ->set('show_contact_google', false)
+            ->set('show_contact_discord', false)
+            ->assertHasNoErrors();
+
+        $profile = $user->fresh()->profile;
+        $this->assertTrue((bool) $profile?->show_contact_email);
+        $this->assertFalse((bool) $profile?->show_contact_facebook);
+        $this->assertFalse((bool) $profile?->show_contact_google);
+        $this->assertFalse((bool) $profile?->show_contact_discord);
+    }
+
+    public function test_user_badge_contact_renders_modal_trigger(): void
+    {
+        $user = User::factory()->create();
+
+        $html = Blade::render(
+            '<x-user-badge :user="$user" :contact-popover="true" :contact-context-activity-id="1" />',
+            ['user' => $user],
+        );
+
+        $this->assertStringContainsString('data-ui="user-badge-contact"', $html);
+        $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
+        $this->assertStringContainsString('wire:click.stop="openModal"', $html);
+        $this->assertStringContainsString('cursor-pointer', $html);
+    }
+
+    public function test_user_badge_contact_modal_opens_and_loads_popover_content(): void
+    {
+        $host = User::factory()->create(['email' => 'host@example.test']);
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'show_contact_email' => true,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(UserBadgeContact::class, [
+                'user' => $participant,
+                'activityId' => $activity->id,
+            ])
+            ->assertSet('modalOpen', false)
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSee('mailto:participant@example.test');
+    }
+
+    public function test_user_badge_contact_modal_opens_with_container_class_from_attributes(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $activity = Activity::factory()->create(['created_by' => $host->id]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'show_contact_email' => true,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(UserBadgeContact::class, [
+                'user' => $participant,
+                'activityId' => $activity->id,
+                'containerClass' => 'inline-flex min-w-0 min-w-0 flex-1',
+            ])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSee('mailto:participant@example.test');
+    }
+
+    public function test_user_contact_popover_shows_contact_methods_for_host_and_participant(): void
+    {
+        $host = User::factory()->create(['email' => 'host@example.test']);
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'facebook_id' => '12345',
+            'discord_id' => '67890',
+            'google_email' => 'participant-google@example.test',
+            'show_contact_email' => true,
+            'show_contact_facebook' => true,
+            'show_contact_google' => true,
+            'show_contact_discord' => true,
+        ]);
+
+        $html = Livewire::actingAs($host)
+            ->test(UserContactPopover::class, [
+                'activityId' => $activity->id,
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('mailto:participant@example.test', $html);
+        $this->assertStringContainsString('https://m.me/12345', $html);
+        $this->assertStringContainsString('https://discord.com/users/67890', $html);
+        $this->assertStringContainsString('participant-google@example.test', $html);
+    }
+
+    public function test_user_contact_popover_hides_contact_methods_for_unauthorized_viewer(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $stranger = User::factory()->create();
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'show_contact_email' => true,
+            'show_contact_facebook' => true,
+            'show_contact_google' => true,
+            'show_contact_discord' => true,
+        ]);
+
+        $html = Livewire::actingAs($stranger)
+            ->test(UserContactPopover::class, [
+                'activityId' => $activity->id,
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString(__('ui.profile.contact_not_allowed'), $html);
+        $this->assertStringNotContainsString('mailto:participant@example.test', $html);
     }
 }

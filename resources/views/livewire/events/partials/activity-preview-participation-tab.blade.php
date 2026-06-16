@@ -26,6 +26,8 @@
                             <x-user-badge
                                 :user="$participant->user"
                                 size="sm"
+                                :contact-popover="true"
+                                :contact-context-activity-id="$activity->id"
                                 :subline="((int) $participant->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
                                 name-class="truncate text-sm font-medium text-base-content"
                                 class="min-w-0 flex-1"
@@ -53,6 +55,8 @@
                                 <x-user-badge
                                     :user="$entry->user"
                                     size="sm"
+                                    :contact-popover="true"
+                                    :contact-context-activity-id="$activity->id"
                                     name-class="truncate text-sm font-medium text-base-content"
                                     class="min-w-0 flex-1"
                                 />

@@ -23,7 +23,17 @@ new class extends Component
 
     public string $discord_id = '';
 
+    public bool $show_contact_email = false;
+
+    public bool $show_contact_facebook = true;
+
+    public bool $show_contact_google = true;
+
+    public bool $show_contact_discord = true;
+
     public ?string $selected_provider_email = null;
+
+    public string $selected_email = '';
 
     public bool $confirmingProviderEmailSwitch = false;
 
@@ -34,6 +44,11 @@ new class extends Component
         $this->facebook_id = (string) ($user->profile?->facebook_id ?? '');
         $this->google_id = (string) ($user->profile?->google_id ?? '');
         $this->discord_id = (string) ($user->profile?->discord_id ?? '');
+        $this->show_contact_email = (bool) ($user->profile?->show_contact_email ?? false);
+        $this->show_contact_facebook = (bool) ($user->profile?->show_contact_facebook ?? true);
+        $this->show_contact_google = (bool) ($user->profile?->show_contact_google ?? true);
+        $this->show_contact_discord = (bool) ($user->profile?->show_contact_discord ?? true);
+        $this->selected_email = $user->email;
     }
 
     /**
@@ -53,6 +68,21 @@ new class extends Component
         $this->confirmingProviderEmailSwitch = true;
     }
 
+    public function updatedSelectedEmail(string $value): void
+    {
+        $selected = trim($value);
+        if ($selected === '' || strcasecmp($selected, $this->email) === 0) {
+            $this->selected_email = $this->email;
+            $this->selected_provider_email = null;
+            $this->confirmingProviderEmailSwitch = false;
+
+            return;
+        }
+
+        $this->selected_provider_email = strtolower($selected);
+        $this->openProviderEmailSwitchModal();
+    }
+
     public function switchEmailFromProvider(): void
     {
         $this->reportProfileTabValidation('contact', function (): void {
@@ -69,6 +99,7 @@ new class extends Component
 
             $user->refresh();
             $this->email = $user->email;
+            $this->selected_email = $user->email;
             $this->selected_provider_email = null;
             $this->confirmingProviderEmailSwitch = false;
 
@@ -229,56 +260,83 @@ new class extends Component
             Storage::disk('public')->delete($path);
         }
     }
+
+    /**
+     * @return list<array{id: string, name: string}>
+     */
+    public function accountEmailOptions(): array
+    {
+        $currentEmail = strtolower((string) Auth::user()->email);
+        $options = [['id' => $currentEmail, 'name' => $currentEmail]];
+
+        foreach ($this->providerEmailOptions() as $option) {
+            $options[] = $option;
+        }
+
+        return $options;
+    }
+
+    public function hasAlternativeEmailOptions(): bool
+    {
+        return count($this->providerEmailOptions()) > 0;
+    }
+
+    public function updatedShowContactEmail(bool $value): void
+    {
+        $this->persistVisibilityToggle('show_contact_email', $value);
+    }
+
+    public function updatedShowContactFacebook(bool $value): void
+    {
+        $this->persistVisibilityToggle('show_contact_facebook', $value);
+    }
+
+    public function updatedShowContactGoogle(bool $value): void
+    {
+        $this->persistVisibilityToggle('show_contact_google', $value);
+    }
+
+    public function updatedShowContactDiscord(bool $value): void
+    {
+        $this->persistVisibilityToggle('show_contact_discord', $value);
+    }
+
+    private function persistVisibilityToggle(string $column, bool $value): void
+    {
+        $user = Auth::user();
+        $profile = $user->profile()->firstOrCreate();
+        $profile->{$column} = $value;
+        $profile->save();
+        $user->setRelation('profile', $profile);
+
+        $this->dispatch('profile-contact-visibility-updated');
+    }
 }; ?>
 
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
     <div id="ui-profile-contact-form" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
-        <x-input
-            wire:model="email"
-            label="{{ __('ui.common.email') }}"
-            placeholder="{{ __('ui.common.email') }}"
-            type="email"
-            name="email"
-            error-field="email"
-            required
-            readonly
-            disabled
-            inline
-        />
-
-        @if (count($this->providerEmailOptions()) > 0)
-            <div class="space-y-4 rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-provider-email-switch">
-                <p class="text-sm text-base-content/80">
-                    {{ __('ui.profile.use_provider_email_hint') }}
-                </p>
-
+        <div class="rounded-lg border border-base-200 bg-base-200/40 p-6 space-y-4" data-ui="profile-contact-email-row">
+            <div class="flex items-center justify-between gap-4">
                 <x-select
-                    wire:model.live="selected_provider_email"
+                    wire:model.live="selected_email"
                     label="{{ __('ui.profile.use_provider_email_label') }}"
-                    :options="$this->providerEmailOptions()"
+                    :options="$this->accountEmailOptions()"
                     :placeholder="__('ui.profile.use_provider_email_placeholder')"
                     placeholder-value=""
                     error-field="selected_provider_email"
+                    :disabled="! $this->hasAlternativeEmailOptions()"
                     inline
                 />
-
-                <div class="flex items-center justify-end gap-4">
-                    <x-action-message class="me-3" on="profile-contact-updated">{{ __('ui.common.saved') }}</x-action-message>
-                    <x-button
-                        type="button"
-                        @class([
-                            'btn-primary',
-                            'btn-disabled pointer-events-none' => blank($selected_provider_email),
-                        ])
-                        wire:click="openProviderEmailSwitchModal"
-                        data-ui="profile-provider-email-apply"
-                    >
-                        {{ __('ui.profile.use_provider_email_apply') }}
-                    </x-button>
-                </div>
+                <x-toggle
+                    id="show_contact_email"
+                    wire:model.live="show_contact_email"
+                    :label="__('ui.profile.contact_visibility_toggle_short')"
+                    right
+                />
             </div>
-        @endif
+            <p class="text-xs text-base-content/70">{{ __('ui.profile.use_provider_email_hint') }}</p>
+        </div>
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
             <div class="mt-2">
@@ -295,6 +353,10 @@ new class extends Component
                 @endif
             </div>
         @endif
+    </div>
+
+    <div class="flex items-center justify-end gap-4">
+        <x-action-message class="me-3" on="profile-contact-visibility-updated">{{ __('ui.common.saved') }}</x-action-message>
     </div>
 
     @if (count($this->providerEmailOptions()) > 0)
@@ -350,6 +412,14 @@ new class extends Component
                             wire:confirm="{{ __('ui.profile.integrations_google_unlink_confirm') }}"
                         >{{ __('ui.profile.integrations_google_unlink') }}</x-button>
                     </div>
+                    <div class="mt-3">
+                        <x-toggle
+                            id="show_contact_google"
+                            wire:model.live="show_contact_google"
+                            :label="__('ui.profile.contact_visibility_toggle_google')"
+                            right
+                        />
+                    </div>
                 @elseif (config('services.google.client_id'))
                     <div class="flex flex-col gap-4">
                         <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_google_link_hint') }}</p>
@@ -379,6 +449,14 @@ new class extends Component
                         wire:confirm="{{ __('ui.profile.integrations_facebook_unlink_confirm') }}"
                     >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
                 </div>
+                <div class="mt-3">
+                    <x-toggle
+                        id="show_contact_facebook"
+                        wire:model.live="show_contact_facebook"
+                        :label="__('ui.profile.contact_visibility_toggle_facebook')"
+                        right
+                    />
+                </div>
             @elseif (config('services.facebook.client_id'))
                 <div class="flex flex-col gap-4">
                     <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_facebook_link_hint') }}</p>
@@ -407,6 +485,14 @@ new class extends Component
                             wire:click="unlinkDiscord"
                             wire:confirm="{{ __('ui.profile.integrations_discord_unlink_confirm') }}"
                         >{{ __('ui.profile.integrations_discord_unlink') }}</x-button>
+                    </div>
+                    <div class="mt-3">
+                        <x-toggle
+                            id="show_contact_discord"
+                            wire:model.live="show_contact_discord"
+                            :label="__('ui.profile.contact_visibility_toggle_discord')"
+                            right
+                        />
                     </div>
                 @elseif (config('services.discord.client_id'))
                     <div class="flex flex-col gap-4">
