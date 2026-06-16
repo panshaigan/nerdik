@@ -10,7 +10,8 @@ SEED_DATASET ?= minimal
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
-        sync-from-prod-storage prod-to-staging-sync prod-to-staging-sync-remote ci-check \
+        sync-from-prod-storage sync-from-prod-tables prod-to-staging-sync prod-to-staging-sync-remote \
+        prod-to-staging-sync-tables prod-to-staging-sync-tables-remote ci-check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild
 
 # Data sync (prod → local / staging)
@@ -215,11 +216,35 @@ sync-from-prod-db:
 sync-from-prod-storage:
 	./scripts/sync/pull-from-prod.sh --storage-only $(SYNC_FLAGS)
 
+sync-from-prod-tables:
+	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
+	if [ -z "$$tables" ]; then \
+		echo "Usage: make sync-from-prod-tables TABLE [TABLE...] [YES=1] [DRY_RUN=1]" >&2; \
+		exit 1; \
+	fi; \
+	./scripts/sync/pull-from-prod.sh --tables $$tables $(SYNC_FLAGS)
+
 prod-to-staging-sync:
 	./scripts/sync/prod-to-staging.sh $(SYNC_FLAGS)
 
 prod-to-staging-sync-remote:
 	./scripts/sync/prod-to-staging-remote.sh $(SYNC_FLAGS)
+
+prod-to-staging-sync-tables:
+	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
+	if [ -z "$$tables" ]; then \
+		echo "Usage: make prod-to-staging-sync-tables TABLE [TABLE...] [YES=1] [BACKUP=1] [DRY_RUN=1]" >&2; \
+		exit 1; \
+	fi; \
+	./scripts/sync/prod-to-staging.sh --tables $$tables $(SYNC_FLAGS)
+
+prod-to-staging-sync-tables-remote:
+	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
+	if [ -z "$$tables" ]; then \
+		echo "Usage: make prod-to-staging-sync-tables-remote TABLE [TABLE...] [YES=1] [BACKUP=1] [DRY_RUN=1]" >&2; \
+		exit 1; \
+	fi; \
+	./scripts/sync/prod-to-staging-remote.sh --tables $$tables $(SYNC_FLAGS)
 
 backup-prod:
 	./scripts/backup/backup-prod.sh
@@ -242,3 +267,6 @@ sail-build:
 sail-rebuild: down
 	$(SAIL) build --no-cache
 	$(SAIL) up -d
+
+%:
+	@:

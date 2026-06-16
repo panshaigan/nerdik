@@ -9,6 +9,80 @@ SYNC_YES="${SYNC_YES:-0}"
 SYNC_BACKUP="${SYNC_BACKUP:-0}"
 SYNC_DB_ONLY="${SYNC_DB_ONLY:-0}"
 SYNC_STORAGE_ONLY="${SYNC_STORAGE_ONLY:-0}"
+SYNC_TABLES=()
+
+sync_validate_table_name() {
+    local name="$1"
+
+    if [[ ! "$name" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        sync_die "invalid table name: ${name}"
+    fi
+}
+
+sync_validate_table_names() {
+    local table
+
+    if [[ "${#SYNC_TABLES[@]}" -eq 0 ]]; then
+        sync_die "at least one table name is required after --tables"
+    fi
+
+    for table in "${SYNC_TABLES[@]}"; do
+        sync_validate_table_name "$table"
+    done
+}
+
+sync_tables_summary() {
+    local IFS=', '
+
+    printf '%s' "${SYNC_TABLES[*]}"
+}
+
+sync_pg_dump_table_args() {
+    local -n _out=$1
+
+    _out=()
+
+    local table
+    for table in "${SYNC_TABLES[@]}"; do
+        _out+=(--table="public.${table}")
+    done
+}
+
+sync_tables_cli_args() {
+    local table
+    local -a args=(--tables)
+
+    for table in "${SYNC_TABLES[@]}"; do
+        args+=("$table")
+    done
+
+    printf '%q ' "${args[@]}"
+}
+
+sync_append_tables_flags() {
+    local -n _out=$1
+
+    if [[ "${#SYNC_TABLES[@]}" -eq 0 ]]; then
+        return 0
+    fi
+
+    _out+=(--tables)
+    _out+=("${SYNC_TABLES[@]}")
+}
+
+sync_apply_tables_db_only() {
+    if [[ "${#SYNC_TABLES[@]}" -eq 0 ]]; then
+        return 0
+    fi
+
+    if [[ "$SYNC_STORAGE_ONLY" == "1" ]]; then
+        sync_log "ignoring --storage-only because --tables implies database-only sync"
+        SYNC_STORAGE_ONLY=0
+    fi
+
+    SYNC_DB_ONLY=1
+    sync_validate_table_names
+}
 
 sync_log() {
     printf '[sync] %s\n' "$*" >&2

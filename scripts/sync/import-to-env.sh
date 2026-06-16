@@ -12,11 +12,13 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/import-to-env.sh <local|staging|prod> <export_dir> [--yes] [--backup] [--dry-run] [--db-only] [--storage-only]
+Usage: ./scripts/sync/import-to-env.sh <local|staging|prod> <export_dir> [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Imports:
   <export_dir>/db.sql.gz
   <export_dir>/storage-app.tar.gz
+
+With --tables, only the listed tables are overwritten (implies --db-only).
 EOF
 }
 
@@ -39,6 +41,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --storage-only)
             SYNC_STORAGE_ONLY=1
+            ;;
+        --tables)
+            shift
+            while [[ $# -gt 0 && "$1" != --* ]]; do
+                SYNC_TABLES+=("$1")
+                shift
+            done
+            continue
             ;;
         -h|--help)
             usage
@@ -65,6 +75,8 @@ fi
 if [[ "$SYNC_DB_ONLY" == "1" && "$SYNC_STORAGE_ONLY" == "1" ]]; then
     sync_die "use only one of --db-only or --storage-only"
 fi
+
+sync_apply_tables_db_only
 
 case "$TARGET_ENV" in
     local|staging|prod) ;;
@@ -93,7 +105,13 @@ if [[ "$TARGET_ENV" == "staging" ]]; then
 fi
 
 if [[ "$TARGET_ENV" == "prod" ]]; then
-    sync_confirm "This will overwrite PRODUCTION database and storage. Continue?"
+    if [[ "${#SYNC_TABLES[@]}" -gt 0 ]]; then
+        sync_confirm "This will overwrite PRODUCTION tables: $(sync_tables_summary). Continue?"
+    else
+        sync_confirm "This will overwrite PRODUCTION database and storage. Continue?"
+    fi
+elif [[ "${#SYNC_TABLES[@]}" -gt 0 ]]; then
+    sync_confirm "This will overwrite ${TARGET_ENV} tables: $(sync_tables_summary). Continue?"
 else
     sync_confirm "This will overwrite ${TARGET_ENV} database and storage. Continue?"
 fi
