@@ -41,7 +41,7 @@ final class UserProfileFactory extends Factory
             'avatar_initials' => null,
             'discord_handle' => null,
             'current_location' => null,
-            'timezone' => null,
+            'timezone' => 'Europe/Warsaw',
             'languages' => null,
             'notification_preferences' => null,
         ];
