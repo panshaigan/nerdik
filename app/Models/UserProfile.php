@@ -30,6 +30,7 @@ class UserProfile extends Model
         'facebook_email',
         'discord_avatar_url',
         'discord_email',
+        'verified_email',
         'show_contact_email',
         'show_contact_facebook',
         'show_contact_google',

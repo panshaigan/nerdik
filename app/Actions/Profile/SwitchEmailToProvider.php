@@ -63,6 +63,14 @@ final class SwitchEmailToProvider
 
         $wasVerified = $user->hasVerifiedEmail();
 
+        app(RememberVerifiedEmail::class)($user);
+
+        $profile = $user->profile;
+        if ($profile !== null && is_string($profile->verified_email) && strtolower($profile->verified_email) === $normalizedEmail) {
+            $profile->verified_email = null;
+            $profile->save();
+        }
+
         $user->forceFill([
             'email' => $normalizedEmail,
             'pending_email' => null,

@@ -37,6 +37,7 @@ class VerifyPendingEmailTest extends TestCase
         $this->assertSame('new@example.com', $user->email);
         $this->assertNull($user->pending_email);
         $this->assertNotNull($user->email_verified_at);
+        $this->assertSame('current@example.com', $user->profile?->verified_email);
 
         $response
             ->assertRedirect(route('profile', ['tab' => 'advanced']))

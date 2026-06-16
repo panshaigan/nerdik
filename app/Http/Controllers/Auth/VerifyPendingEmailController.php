@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Profile\RememberVerifiedEmail;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,8 @@ class VerifyPendingEmailController extends Controller
         }
 
         $newEmail = (string) $user->pending_email;
+
+        app(RememberVerifiedEmail::class)($user);
 
         $user->forceFill([
             'email' => $newEmail,
