@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Profile\AnonymizeUser;
 use App\Livewire\Actions\Logout;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Livewire\Profile\Concerns\WithAdvancedPasswordConfirmation;
@@ -12,7 +13,7 @@ new class extends Component
     use WithAdvancedPasswordConfirmation;
 
     /**
-     * Delete the currently authenticated user.
+     * Open the password confirmation modal before deleting the account.
      */
     public function promptDeleteUser(): void
     {
@@ -20,6 +21,9 @@ new class extends Component
         $this->openPasswordConfirmation('deleteUser');
     }
 
+    /**
+     * Anonymise the currently authenticated user, then log out.
+     */
     public function deleteUser(string $password): void
     {
         $this->passwordConfirmationPassword = $password;
@@ -29,8 +33,11 @@ new class extends Component
                 'passwordConfirmationPassword' => ['required', 'string', 'current_password'],
             ]);
 
-            $logout = app(Logout::class);
-            tap(Auth::user(), $logout(...))->delete();
+            $user = Auth::user();
+
+            app(AnonymizeUser::class)($user);
+
+            app(Logout::class)();
 
             $this->redirect('/', navigate: true);
         });
@@ -48,7 +55,7 @@ new class extends Component
         </p>
     </header>
 
-    <x-button id="ui-profile-delete-open" type="button" class="btn-error ui-action ui-action-delete" wire:click="promptDeleteUser" data-ui="profile-delete-open">
+    <x-button type="button" class="btn-error ui-action ui-action-delete" wire:click="promptDeleteUser" data-ui="profile-delete-open">
         {{ __('ui.profile.delete_account_title') }}
     </x-button>
 
@@ -56,14 +63,14 @@ new class extends Component
         wire:model="confirmingPassword"
         :title="__('ui.profile.confirm_password_modal_title')"
         :subtitle="__('ui.profile.confirm_password_modal_hint')"
-        id="ui-profile-delete-modal"
         class="backdrop-blur ui-modal ui-modal-delete"
         box-class="ui-modal-surface"
         separator
         data-ui="profile-delete-modal"
     >
         <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
-        <form id="ui-profile-delete-form" wire:submit.prevent="runPasswordConfirmation" novalidate class="ui-form ui-form-profile-delete space-y-4" data-ui="profile-delete-form">
+
+        <form wire:submit.prevent="runPasswordConfirmation" novalidate class="ui-form ui-form-profile-delete space-y-4" data-ui="profile-delete-form">
             <x-password
                 wire:model="passwordConfirmationPassword"
                 label="{{ __('ui.profile.current_password') }}"
@@ -76,11 +83,11 @@ new class extends Component
             />
 
             <div class="modal-action">
-                <x-button id="ui-profile-delete-cancel" type="button" class="btn-ghost ui-action ui-action-cancel" wire:click="cancelPasswordConfirmation" data-ui="profile-delete-cancel">
+                <x-button type="button" class="btn-ghost ui-action ui-action-cancel" wire:click="cancelPasswordConfirmation" data-ui="profile-delete-cancel">
                     {{ __('ui.common.cancel') }}
                 </x-button>
-                <x-button id="ui-profile-delete-submit" type="submit" class="btn-error ui-action ui-action-submit-delete" data-ui="profile-delete-submit">
-                    {{ __('ui.profile.confirm_password_continue') }}
+                <x-button type="submit" class="btn-error ui-action ui-action-submit-delete" data-ui="profile-delete-submit">
+                    {{ __('ui.profile.delete_account_confirm_button') }}
                 </x-button>
             </div>
         </form>

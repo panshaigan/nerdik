@@ -37,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'organization_id',
         'is_admin',
         'is_event_organizer',
+        'is_deleted',
     ];
 
     /**
@@ -62,7 +63,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_event_organizer' => 'boolean',
+            'is_deleted' => 'boolean',
         ];
+    }
+
+    /**
+     * Whether the account has been deleted (anonymised) by its owner.
+     */
+    public function isDeleted(): bool
+    {
+        return $this->is_deleted === true;
     }
 
     public function profile(): HasOne
@@ -75,6 +85,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function displayName(): string
     {
+        if ($this->isDeleted()) {
+            return __('ui.common.deleted_user');
+        }
+
         return (string) $this->nickname;
     }
 
@@ -83,6 +97,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function badgeDisplayName(): string
     {
+        if ($this->isDeleted()) {
+            return __('ui.common.deleted_user');
+        }
+
         $name = $this->displayName();
         $acronym = trim((string) ($this->organization?->acronym ?? ''));
 
@@ -135,6 +153,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function avatarUrl(): string
     {
+        if ($this->isDeleted()) {
+            return self::uiAvatarsUrl(__('ui.common.deleted_user'), '#9ca3af', '#ffffff', 1);
+        }
+
         return app(ResolveAvatarUrl::class)($this);
     }
 
