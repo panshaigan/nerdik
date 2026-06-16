@@ -53,7 +53,7 @@ new class extends Component
         </p>
     </header>
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 my-4" />
 
     <form id="ui-profile-password-form" wire:submit="updatePassword" novalidate class="ui-form ui-form-profile-password mt-6 space-y-4" data-ui="profile-password-form">
         <x-password
@@ -61,7 +61,6 @@ new class extends Component
             label="{{ __('ui.profile.current_password') }}"
             placeholder="{{ __('ui.profile.current_password') }}"
             name="current_password"
-            error-field="current_password"
             autocomplete="current-password"
             class="ui-field ui-field-current-password"
             data-ui="profile-current-password"
@@ -73,7 +72,6 @@ new class extends Component
             label="{{ __('ui.profile.new_password') }}"
             placeholder="{{ __('ui.profile.new_password') }}"
             name="password"
-            error-field="password"
             autocomplete="new-password"
             class="ui-field ui-field-new-password"
             data-ui="profile-new-password"
