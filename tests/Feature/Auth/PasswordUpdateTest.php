@@ -19,10 +19,11 @@ class PasswordUpdateTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-password-form')
-            ->set('current_password', 'password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
-            ->call('updatePassword');
+            ->call('updatePassword')
+            ->set('passwordConfirmationPassword', 'password')
+            ->call('runPasswordConfirmation');
 
         $component
             ->assertHasNoErrors()
@@ -38,13 +39,14 @@ class PasswordUpdateTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-password-form')
-            ->set('current_password', 'wrong-password')
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
-            ->call('updatePassword');
+            ->call('updatePassword')
+            ->set('passwordConfirmationPassword', 'wrong-password')
+            ->call('runPasswordConfirmation');
 
         $component
-            ->assertHasErrors(['current_password'])
+            ->assertHasErrors(['passwordConfirmationPassword'])
             ->assertNoRedirect();
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
+use App\Livewire\Profile\Concerns\WithAdvancedPasswordConfirmation;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -12,12 +13,11 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     use ReportsProfileTabValidation;
+    use WithAdvancedPasswordConfirmation;
 
     public string $email = '';
 
     public string $new_email = '';
-
-    public string $current_password = '';
 
     public ?string $pending_email = null;
 
@@ -30,6 +30,26 @@ new class extends Component
 
     public function requestEmailChange(): void
     {
+        $this->validate([
+            'new_email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class, 'email'),
+                Rule::unique(User::class, 'pending_email'),
+                'different:email',
+            ],
+        ]);
+
+        $this->openPasswordConfirmation('confirmEmailChange');
+    }
+
+    public function confirmEmailChange(string $password): void
+    {
+        $this->passwordConfirmationPassword = $password;
+
         $this->reportProfileTabValidation('advanced', function (): void {
             try {
                 $validated = $this->validate([
@@ -43,10 +63,10 @@ new class extends Component
                         Rule::unique(User::class, 'pending_email'),
                         'different:email',
                     ],
-                    'current_password' => ['required', 'string', 'current_password'],
+                    'passwordConfirmationPassword' => ['required', 'string', 'current_password'],
                 ]);
             } catch (ValidationException $e) {
-                $this->reset('current_password');
+                $this->reset('passwordConfirmationPassword');
 
                 throw $e;
             }
@@ -57,7 +77,7 @@ new class extends Component
             ])->save();
 
             $this->pending_email = $user->pending_email;
-            $this->reset('new_email', 'current_password');
+            $this->reset('new_email', 'passwordConfirmationPassword');
 
             $user->sendPendingEmailVerificationNotification();
 
@@ -205,18 +225,8 @@ new class extends Component
                 error-field="new_email"
                 autocomplete="email"
                 required
-                inline
-            />
-
-            <x-password
-                wire:model="current_password"
-                label="{{ __('ui.profile.current_password') }}"
-                placeholder="{{ __('ui.profile.current_password') }}"
-                name="current_password"
-                error-field="current_password"
-                autocomplete="current-password"
-                class="ui-field ui-field-current-password"
-                data-ui="profile-email-current-password"
+                class="ui-field ui-field-new-email"
+                data-ui="profile-email-new-email"
                 inline
             />
 
@@ -227,4 +237,46 @@ new class extends Component
             </div>
         </form>
     @endif
+
+    <x-modal
+        wire:model="confirmingPassword"
+        :title="__('ui.profile.confirm_password_modal_title')"
+        :subtitle="__('ui.profile.confirm_password_modal_hint')"
+        class="backdrop-blur ui-modal ui-modal-password-confirm"
+        box-class="ui-modal-surface"
+        separator
+        data-ui="profile-email-password-modal"
+    >
+        <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+
+        <form wire:submit.prevent="runPasswordConfirmation" class="space-y-4" data-ui="profile-email-password-modal-form">
+            <x-password
+                wire:model="passwordConfirmationPassword"
+                label="{{ __('ui.profile.current_password') }}"
+                placeholder="{{ __('ui.profile.current_password') }}"
+                name="passwordConfirmationPassword"
+                error-field="passwordConfirmationPassword"
+                autocomplete="current-password"
+                class="ui-field ui-field-current-password"
+                data-ui="profile-email-password-modal-input"
+            />
+
+            <div class="modal-action">
+                <x-button type="button" class="btn-ghost" wire:click="cancelPasswordConfirmation" data-ui="profile-email-password-modal-cancel">
+                    {{ __('ui.common.cancel') }}
+                </x-button>
+                <x-button type="submit" class="btn-primary" data-ui="profile-email-password-modal-confirm">
+                    {{ __('ui.profile.confirm_password_continue') }}
+                </x-button>
+            </div>
+        </form>
+    </x-modal>
 </section>
+
+@push('styles')
+<style>
+[data-ui="profile-email-new-email"] ~ .label .text-error {
+    display: none;
+}
+</style>
+@endpush

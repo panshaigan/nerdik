@@ -451,8 +451,9 @@ class ProfileTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.delete-user-form')
-            ->set('password', 'password')
-            ->call('deleteUser');
+            ->call('promptDeleteUser')
+            ->set('passwordConfirmationPassword', 'password')
+            ->call('runPasswordConfirmation');
 
         $component
             ->assertHasNoErrors()
@@ -462,6 +463,18 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
+    public function test_delete_account_button_opens_password_confirmation_modal(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.delete-user-form')
+            ->call('promptDeleteUser')
+            ->assertSet('confirmingPassword', true)
+            ->assertSet('passwordConfirmationAction', 'deleteUser');
+    }
+
     public function test_correct_password_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
@@ -469,11 +482,12 @@ class ProfileTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.delete-user-form')
-            ->set('password', 'wrong-password')
-            ->call('deleteUser');
+            ->call('promptDeleteUser')
+            ->set('passwordConfirmationPassword', 'wrong-password')
+            ->call('runPasswordConfirmation');
 
         $component
-            ->assertHasErrors('password')
+            ->assertHasErrors('passwordConfirmationPassword')
             ->assertNoRedirect();
 
         $this->assertNotNull($user->fresh());
