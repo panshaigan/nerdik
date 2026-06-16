@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Livewire\Activities;
+
+use App\Models\User;
+use Livewire\Component;
+
+class UserBadgeContact extends Component
+{
+    public User $user;
+
+    public int $activityId;
+
+    public string $size = 'md';
+
+    public string $nameClass = '';
+
+    public ?string $subline = null;
+
+    public bool $avatarOnly = false;
+
+    public bool $trackNavAvatar = false;
+
+    public ?string $contactTooltip = null;
+
+    public string $containerClass = 'inline-flex min-w-0';
+
+    public bool $modalOpen = false;
+
+    public function openModal(): void
+    {
+        $this->modalOpen = true;
+    }
+
+    public function render()
+    {
+        return view('livewire.activities.user-badge-contact');
+    }
+}
