@@ -72,6 +72,66 @@ final class NotificationListItemPresenterTest extends TestCase
     }
 
     #[Test]
+    public function it_maps_scheduled_periodic_digest_with_item_titles(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'scheduled_periodic_digest',
+                    'local_date' => '2026-06-16',
+                    'items' => [
+                        [
+                            'category' => 'interested_enrollment_window',
+                            'title' => 'Enrollment window for ConQuest',
+                            'lines' => ['The next enrollment window starts at 2026-06-16 13:00 (in about 3 hour(s)).'],
+                            'url' => '/events/conquest',
+                            'dedupe_key' => 'interested_enrollment_window:5:2026-06-16T13:00:00Z',
+                        ],
+                    ],
+                    'toast_title' => 'Scheduled reminders',
+                    'toast_description' => '1 scheduled reminder item(s) are ready.',
+                    'url' => '/notifications',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame('Scheduled reminders', $display->title);
+        $this->assertSame('Enrollment window for ConQuest', $display->subtitle);
+        $this->assertSame('o-clock', $display->icon);
+        $this->assertTrue($display->isUnread);
+    }
+
+    #[Test]
+    public function it_maps_scheduled_periodic_digest_with_multiple_item_titles(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'scheduled_periodic_digest',
+                    'items' => [
+                        ['title' => 'Enrollment window for ConQuest'],
+                        ['title' => 'Cancellation deadline approaching: Dungeon Crawl'],
+                    ],
+                    'toast_title' => 'Scheduled reminders',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame(
+            'Enrollment window for ConQuest · Cancellation deadline approaching: Dungeon Crawl',
+            $display->subtitle,
+        );
+    }
+
+    #[Test]
     public function it_falls_back_for_unknown_types(): void
     {
         $user = User::factory()->create();

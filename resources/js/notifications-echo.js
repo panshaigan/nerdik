@@ -57,6 +57,7 @@ function subscribeToUserNotifications() {
                 event_cancelled: 'Event cancelled',
                 activity_reopened: 'Activity reopened',
                 event_reopened: 'Event reopened',
+                scheduled_periodic_digest: 'Scheduled reminders',
             };
 
             const toastTitle = payload?.toast_title
