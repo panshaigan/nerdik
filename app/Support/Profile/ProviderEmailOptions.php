@@ -45,6 +45,14 @@ final class ProviderEmailOptions
             ];
         }
 
+        $verifiedEmail = is_string($profile->verified_email) ? strtolower($profile->verified_email) : '';
+        if ($verifiedEmail !== '' && $verifiedEmail !== $currentEmail && ! isset($seen[$verifiedEmail])) {
+            $options[] = [
+                'id' => $verifiedEmail,
+                'name' => $verifiedEmail,
+            ];
+        }
+
         return $options;
     }
 

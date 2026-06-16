@@ -335,7 +335,6 @@ new class extends Component
                     right
                 />
             </div>
-            <p class="text-xs text-base-content/70">{{ __('ui.profile.use_provider_email_hint') }}</p>
         </div>
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
@@ -394,7 +393,7 @@ new class extends Component
         <div class="space-y-4">
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-google">
                 @if ($google_id !== '')
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-between gap-4">
                         <x-input
                             wire:model="google_id"
                             label="{{ __('ui.profile.integrations_google_id_label') }}"
@@ -411,12 +410,10 @@ new class extends Component
                             wire:click="unlinkGoogle"
                             wire:confirm="{{ __('ui.profile.integrations_google_unlink_confirm') }}"
                         >{{ __('ui.profile.integrations_google_unlink') }}</x-button>
-                    </div>
-                    <div class="mt-3">
                         <x-toggle
                             id="show_contact_google"
                             wire:model.live="show_contact_google"
-                            :label="__('ui.profile.contact_visibility_toggle_google')"
+                            :label="__('ui.profile.contact_visibility_toggle_short')"
                             right
                         />
                     </div>
@@ -431,7 +428,7 @@ new class extends Component
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
             @if ($facebook_id !== '')
-                <div class="grid grid-cols-2 gap-4">
+                <div class="flex items-center justify-between gap-4">
                     <x-input
                         wire:model="facebook_id"
                         label="{{ __('ui.profile.integrations_facebook_id_label') }}"
@@ -448,12 +445,10 @@ new class extends Component
                         wire:click="unlinkFacebook"
                         wire:confirm="{{ __('ui.profile.integrations_facebook_unlink_confirm') }}"
                     >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
-                </div>
-                <div class="mt-3">
                     <x-toggle
                         id="show_contact_facebook"
                         wire:model.live="show_contact_facebook"
-                        :label="__('ui.profile.contact_visibility_toggle_facebook')"
+                        :label="__('ui.profile.contact_visibility_toggle_short')"
                         right
                     />
                 </div>
@@ -468,7 +463,7 @@ new class extends Component
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-discord">
                 @if ($discord_id !== '')
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-between gap-4">
                         <x-input
                             wire:model="discord_id"
                             label="{{ __('ui.profile.integrations_discord_id_label') }}"
@@ -485,12 +480,10 @@ new class extends Component
                             wire:click="unlinkDiscord"
                             wire:confirm="{{ __('ui.profile.integrations_discord_unlink_confirm') }}"
                         >{{ __('ui.profile.integrations_discord_unlink') }}</x-button>
-                    </div>
-                    <div class="mt-3">
                         <x-toggle
                             id="show_contact_discord"
                             wire:model.live="show_contact_discord"
-                            :label="__('ui.profile.contact_visibility_toggle_discord')"
+                            :label="__('ui.profile.contact_visibility_toggle_short')"
                             right
                         />
                     </div>

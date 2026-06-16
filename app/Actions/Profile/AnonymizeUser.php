@@ -31,6 +31,7 @@ final class AnonymizeUser
                     'google_email' => null,
                     'facebook_email' => null,
                     'discord_email' => null,
+                    'verified_email' => null,
                     'avatar_path' => null,
                     'avatar_cache_signature' => null,
                     'avatar_source' => AvatarSource::Generated,

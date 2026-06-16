@@ -67,7 +67,7 @@ new class extends Component
     }
 }; ?>
 
-<section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity" data-ui="profile-identity-section">
+<section id="ui-profile-identity-section" class="ui-profile-section ui-profile-identity py-6" data-ui="profile-identity-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
     <form id="ui-profile-identity-form" wire:submit="updateIdentityInformation" novalidate class="ui-form ui-form-profile-identity space-y-4" data-ui="profile-identity-form">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

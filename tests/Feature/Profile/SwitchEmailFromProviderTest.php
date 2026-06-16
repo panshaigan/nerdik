@@ -244,4 +244,114 @@ class SwitchEmailFromProviderTest extends TestCase
         $this->assertStringContainsString('data-ui="profile-contact-email-row"', $html);
         $this->assertStringContainsString('disabled', $html);
     }
+
+    public function test_switching_from_verified_local_email_to_provider_stores_verified_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('selected_provider_email', 'facebook@example.com')
+            ->call('switchEmailFromProvider')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertSame('facebook@example.com', $user->email);
+        $this->assertSame('local@example.com', $user->profile?->verified_email);
+    }
+
+    public function test_saved_verified_email_appears_in_dropdown_after_provider_switch(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'facebook@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+            'verified_email' => 'local@example.com',
+        ]);
+
+        $this->actingAs($user);
+
+        $options = Volt::test('profile.update-contact-information-form')
+            ->instance()
+            ->providerEmailOptions();
+
+        $this->assertCount(1, $options);
+        $this->assertSame('local@example.com', $options[0]['id']);
+    }
+
+    public function test_user_can_switch_back_to_saved_verified_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'facebook@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+            'verified_email' => 'local@example.com',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('selected_provider_email', 'local@example.com')
+            ->call('switchEmailFromProvider')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertSame('local@example.com', $user->email);
+        $this->assertNull($user->profile?->verified_email);
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_switching_from_unverified_local_email_does_not_store_verified_email(): void
+    {
+        Event::fake([Verified::class]);
+
+        $user = User::factory()->unverified()->create([
+            'email' => 'local@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+        ]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('selected_provider_email', 'facebook@example.com')
+            ->call('switchEmailFromProvider')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertSame('facebook@example.com', $user->email);
+        $this->assertNull($user->profile?->verified_email);
+    }
+
+    public function test_verified_email_matching_provider_email_is_not_duplicated_in_dropdown(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'facebook@example.com',
+        ]);
+        $user->profile()->update([
+            'facebook_id' => 'fb-123',
+            'facebook_email' => 'facebook@example.com',
+            'verified_email' => 'facebook@example.com',
+        ]);
+
+        $options = ProviderEmailOptions::for($user);
+
+        $this->assertSame([], $options);
+    }
 }
