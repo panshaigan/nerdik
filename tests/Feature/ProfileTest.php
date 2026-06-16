@@ -666,7 +666,13 @@ class ProfileTest extends TestCase
 
         Volt::test('profile.update-contact-information-form')
             ->set('show_contact_email', true)
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->tap(function ($component): void {
+                $this->assertStringContainsString(
+                    'window.toast',
+                    $component->effects['xjs'][0]['expression'] ?? '',
+                );
+            });
 
         $user->profile()->update([
             'facebook_id' => 'fb-linked',
@@ -804,9 +810,41 @@ class ProfileTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('mailto:participant@example.test', $html);
-        $this->assertStringContainsString('https://m.me/12345', $html);
+        $this->assertStringContainsString('https://www.facebook.com/messages/t/12345', $html);
         $this->assertStringContainsString('https://discord.com/users/67890', $html);
-        $this->assertStringContainsString('participant-google@example.test', $html);
+        $this->assertStringNotContainsString('participant-google@example.test', $html);
+    }
+
+    public function test_user_contact_popover_hides_google_email_when_main_email_is_shown(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'google_email' => 'participant-google@example.test',
+            'show_contact_email' => true,
+            'show_contact_google' => true,
+        ]);
+
+        $html = Livewire::actingAs($host)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('mailto:participant@example.test', $html);
+        $this->assertStringNotContainsString('mailto:participant-google@example.test', $html);
+        $this->assertStringNotContainsString('participant-google@example.test', $html);
     }
 
     public function test_user_contact_popover_hides_contact_methods_for_unauthorized_viewer(): void
@@ -838,7 +876,8 @@ class ProfileTest extends TestCase
             ])
             ->html();
 
-        $this->assertStringContainsString(__('ui.profile.contact_not_allowed'), $html);
+        $this->assertStringNotContainsString(__('ui.profile.contact_not_allowed'), $html);
         $this->assertStringNotContainsString('mailto:participant@example.test', $html);
+        $this->assertStringNotContainsString(__('ui.profile.contact_methods_title'), $html);
     }
 }

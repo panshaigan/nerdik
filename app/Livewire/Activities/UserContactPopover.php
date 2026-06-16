@@ -66,7 +66,7 @@ class UserContactPopover extends Component
         $contacts = [
             'email' => ($canViewContact && (bool) ($profile?->show_contact_email ?? false)) ? $targetUser->email : null,
             'facebook' => ($canViewContact && (bool) ($profile?->show_contact_facebook ?? true))
-                ? (filled($profile?->facebook_id) ? 'https://m.me/'.rawurlencode((string) $profile?->facebook_id) : null)
+                ? (filled($profile?->facebook_id) ? 'https://www.facebook.com/messages/t/'.rawurlencode((string) $profile?->facebook_id) : null)
                 : null,
             'google' => ($canViewContact && (bool) ($profile?->show_contact_google ?? true))
                 ? (filled($profile?->google_email) ? (string) $profile?->google_email : null)
@@ -75,6 +75,10 @@ class UserContactPopover extends Component
                 ? (filled($profile?->discord_id) ? 'https://discord.com/users/'.rawurlencode((string) $profile?->discord_id) : null)
                 : null,
         ];
+
+        if (filled($contacts['email'])) {
+            $contacts['google'] = null;
+        }
 
         return [
             'canViewContact' => $canViewContact,
