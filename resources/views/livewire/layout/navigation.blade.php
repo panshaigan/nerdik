@@ -148,9 +148,17 @@ new class extends Component
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2">
-                            <a wire:navigate href="{{ route('profile') }}" class="-mx-1 block rounded-lg px-1 py-0.5 hover:bg-base-200">
+                            <a
+                                wire:navigate
+                                href="{{ route('profile') }}"
+                                aria-label="{{ __('ui.nav.account_settings') }}"
+                                class="-mx-1 block rounded-lg px-1 py-0.5 hover:bg-base-200"
+                            >
                                 <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                                 <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
+                                <p class="mt-1 text-[11px] tracking-wide opacity-70">
+                                    {{ __('ui.nav.account_settings') }}
+                                </p>
                             </a>
                         </li>
                         <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
@@ -241,7 +249,13 @@ new class extends Component
             >
                 @auth
                     <div class="border-b border-base-300 bg-base-200/40 px-4 py-4">
-                        <a href="{{ route('profile') }}" wire:navigate @click="close()" class="block rounded-lg transition hover:bg-base-200/60">
+                        <a
+                            href="{{ route('profile') }}"
+                            wire:navigate
+                            @click="close()"
+                            aria-label="{{ __('ui.nav.account_settings') }}"
+                            class="block rounded-lg transition hover:bg-base-200/60"
+                        >
                             <x-user-badge
                                 :user="auth()->user()"
                                 :avatar-url="$navAvatarUrl"
@@ -249,6 +263,9 @@ new class extends Component
                                 :subline="auth()->user()->email"
                                 track-nav-avatar
                             />
+                            <p class="mt-2 px-1 text-xs font-medium uppercase tracking-wide text-primary">
+                                {{ __('ui.nav.account_settings') }}
+                            </p>
                         </a>
                     </div>
                 @endauth

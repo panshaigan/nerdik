@@ -16,6 +16,7 @@ return [
         'navigation' => 'Navigation',
         'preferences' => 'Preferences',
         'account' => 'Account',
+        'account_settings' => 'Account settings',
     ],
     'me' => [
         'menu_events' => 'My events',

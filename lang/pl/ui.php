@@ -16,6 +16,7 @@ return [
         'navigation' => 'Nawigacja',
         'preferences' => 'Preferencje',
         'account' => 'Konto',
+        'account_settings' => 'Ustawienia konta',
     ],
     'me' => [
         'menu_events' => 'Moje wydarzenia',
