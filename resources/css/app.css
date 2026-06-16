@@ -449,6 +449,11 @@
             14px 12px 24px -14px color-mix(in oklab, var(--color-error) 14%, transparent);
     }
 
+    /** Hide Mary field error text when a form-errors summary panel is shown above the form. */
+    .ui-form-profile-password .fieldset > .text-error {
+        display: none;
+    }
+
     /**
      * Reusable brand gradient frames (primary → accent bold ring + glow; hairline neon ring + inner panel).
      * Use Tailwind rounded-* on the element for corner radius (bold omits radius here).
