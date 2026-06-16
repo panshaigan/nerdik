@@ -250,7 +250,7 @@ return [
         'contact_visibility_toggle_facebook' => 'Show Facebook contact in profile popovers',
         'contact_visibility_toggle_discord' => 'Show Discord contact in profile popovers',
         'use_provider_email_hint' => 'Switch your account email to an address from a connected integration without email verification.',
-        'use_provider_email_label' => 'Use email from integration',
+        'use_provider_email_label' => 'Email',
         'use_provider_email_placeholder' => 'Choose an email',
         'use_provider_email_apply' => 'Use this email',
         'use_provider_email_modal_title' => 'Change account email',

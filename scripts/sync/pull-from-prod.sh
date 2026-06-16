@@ -2,7 +2,7 @@
 # Pull production database + storage from VPS via SSH and import into local Sail.
 #
 # Usage:
-#   ./scripts/sync/pull-from-prod.sh [--yes] [--dry-run] [--db-only] [--storage-only]
+#   ./scripts/sync/pull-from-prod.sh [--yes] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -11,9 +11,11 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/pull-from-prod.sh [--yes] [--dry-run] [--db-only] [--storage-only]
+Usage: ./scripts/sync/pull-from-prod.sh [--yes] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Requires .env.sync with SYNC_SSH_HOST (and optionally SYNC_SSH_PORT, SYNC_SSH_KEY, SYNC_PROD_PATH).
+
+With --tables, only the listed tables are pulled (implies --db-only).
 EOF
 }
 
@@ -31,6 +33,14 @@ while [[ $# -gt 0 ]]; do
         --storage-only)
             SYNC_STORAGE_ONLY=1
             ;;
+        --tables)
+            shift
+            while [[ $# -gt 0 && "$1" != --* ]]; do
+                SYNC_TABLES+=("$1")
+                shift
+            done
+            continue
+            ;;
         -h|--help)
             usage
             exit 0
@@ -41,6 +51,8 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
+
+sync_apply_tables_db_only
 
 sync_load_sync_config
 
@@ -78,6 +90,7 @@ fi
 if [[ "$SYNC_DRY_RUN" == "1" ]]; then
     EXPORT_FLAGS+=(--dry-run)
 fi
+sync_append_tables_flags EXPORT_FLAGS
 
 REMOTE_CMD="cd $(printf '%q' "$SYNC_PROD_PATH") && ./scripts/sync/export-from-env.sh prod $(printf '%q' "$REMOTE_EXPORT_DIR") ${EXPORT_FLAGS[*]}"
 
@@ -93,6 +106,7 @@ if [[ "$SYNC_DRY_RUN" == "1" ]]; then
     if [[ "$SYNC_STORAGE_ONLY" == "1" ]]; then
         IMPORT_FLAGS+=(--storage-only)
     fi
+    sync_append_tables_flags IMPORT_FLAGS
     sync_run "${ROOT}/scripts/sync/import-to-env.sh" local "$LOCAL_EXPORT_DIR" "${IMPORT_FLAGS[@]}"
     exit 0
 fi
@@ -121,6 +135,7 @@ fi
 if [[ "$SYNC_STORAGE_ONLY" == "1" ]]; then
     IMPORT_FLAGS+=(--storage-only)
 fi
+sync_append_tables_flags IMPORT_FLAGS
 
 sync_run "${ROOT}/scripts/sync/import-to-env.sh" local "$LOCAL_EXPORT_DIR" "${IMPORT_FLAGS[@]}"
 

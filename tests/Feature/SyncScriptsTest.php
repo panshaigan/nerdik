@@ -103,4 +103,80 @@ class SyncScriptsTest extends TestCase
             $process->getErrorOutput().$process->getOutput(),
         );
     }
+
+    public function test_export_with_tables_dry_run_exits_successfully_when_env_is_present(): void
+    {
+        if (! is_file(base_path('.env'))) {
+            $this->markTestSkipped('Project .env is required for export dry-run.');
+        }
+
+        $process = new Process(
+            [
+                base_path('scripts/sync/export-from-env.sh'),
+                'prod',
+                '/tmp/nerdik-sync-test-dry-run-tables',
+                '--dry-run',
+                '--tables',
+                'users',
+            ],
+            base_path(),
+        );
+
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            $process->getErrorOutput().$process->getOutput(),
+        );
+    }
+
+    public function test_import_with_tables_dry_run_exits_successfully(): void
+    {
+        $fixtureDir = base_path('tests/fixtures/sync');
+
+        $this->assertDirectoryExists($fixtureDir);
+
+        $process = new Process(
+            [
+                base_path('scripts/sync/import-to-env.sh'),
+                'local',
+                $fixtureDir,
+                '--dry-run',
+                '--yes',
+                '--tables',
+                'users',
+            ],
+            base_path(),
+        );
+
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            $process->getErrorOutput().$process->getOutput(),
+        );
+    }
+
+    public function test_invalid_table_name_is_rejected(): void
+    {
+        $process = new Process(
+            [
+                base_path('scripts/sync/export-from-env.sh'),
+                'prod',
+                '/tmp/nerdik-sync-test-invalid-table',
+                '--dry-run',
+                '--tables',
+                'users;drop',
+            ],
+            base_path(),
+        );
+
+        $process->run();
+
+        $this->assertFalse($process->isSuccessful());
+        $this->assertStringContainsString(
+            'invalid table name',
+            $process->getErrorOutput().$process->getOutput(),
+        );
+    }
 }

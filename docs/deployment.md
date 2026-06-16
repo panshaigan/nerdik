@@ -440,7 +440,12 @@ make sync-from-prod YES=1        # skip prompt
 make sync-from-prod-db           # database only
 make sync-from-prod-storage      # storage only
 make sync-from-prod DRY_RUN=1    # print steps only
+make sync-from-prod-tables users activities media
+make sync-from-prod-tables users activities YES=1
+make sync-from-prod-tables users DRY_RUN=1
 ```
+
+**Selective table sync** overwrites only the named tables in your local database (still truncates volatile queue/cache/session tables afterward). Include related tables when foreign keys require them — e.g. copy `users` if the rows you need reference that table.
 
 **WSL + PuTTY keys:** OpenSSH cannot use `.ppk` files or keys stored on `/mnt/c/...` (Windows permissions cannot be tightened). Convert and keep the key in the WSL filesystem:
 
@@ -458,13 +463,17 @@ Run from the production clone (`/opt/nerdik`):
 ```bash
 make prod-to-staging-sync
 make prod-to-staging-sync BACKUP=1 YES=1
+make prod-to-staging-sync-tables users activities BACKUP=1 YES=1
 ```
 
 From your local machine (SSH into VPS and run the same; requires local `.env.sync`):
 
 ```bash
 make prod-to-staging-sync-remote BACKUP=1
+make prod-to-staging-sync-tables-remote tags YES=1
 ```
+
+**Selective table sync** on staging follows the same FK caveat as local pulls: list every table you need, including parents referenced by foreign keys.
 
 On the VPS, staging path defaults to `/opt/nerdik-staging`. Override locally via `SYNC_STAGING_PATH` in `.env.sync` if your clone lives elsewhere.
 

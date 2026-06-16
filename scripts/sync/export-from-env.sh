@@ -12,11 +12,13 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/export-from-env.sh <prod|staging> [export_dir] [--dry-run] [--db-only] [--storage-only]
+Usage: ./scripts/sync/export-from-env.sh <prod|staging> [export_dir] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Creates:
   <export_dir>/db.sql.gz
   <export_dir>/storage-app.tar.gz
+
+With --tables, only the listed tables are dumped (implies --db-only).
 EOF
 }
 
@@ -34,6 +36,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --storage-only)
             SYNC_STORAGE_ONLY=1
+            ;;
+        --tables)
+            shift
+            while [[ $# -gt 0 && "$1" != --* ]]; do
+                SYNC_TABLES+=("$1")
+                shift
+            done
+            continue
             ;;
         -h|--help)
             usage
@@ -61,6 +71,8 @@ if [[ "$SYNC_DB_ONLY" == "1" && "$SYNC_STORAGE_ONLY" == "1" ]]; then
     sync_die "use only one of --db-only or --storage-only"
 fi
 
+sync_apply_tables_db_only
+
 if [[ -z "$EXPORT_DIR" ]]; then
     EXPORT_DIR="$(sync_default_export_dir)"
 fi
@@ -81,13 +93,27 @@ if [[ "$SYNC_DRY_RUN" != "1" ]]; then
 fi
 
 if [[ "$SYNC_STORAGE_ONLY" != "1" ]]; then
-    sync_log "dumping database ${DB_DATABASE} as ${DB_USERNAME}"
+    if [[ "${#SYNC_TABLES[@]}" -gt 0 ]]; then
+        sync_log "dumping tables $(sync_tables_summary) from ${DB_DATABASE} as ${DB_USERNAME}"
+    else
+        sync_log "dumping database ${DB_DATABASE} as ${DB_USERNAME}"
+    fi
 
     if [[ "$SYNC_DRY_RUN" == "1" ]]; then
-        sync_log "[dry-run] pg_dump ${DB_DATABASE} → ${EXPORT_DIR}/db.sql.gz"
+        if [[ "${#SYNC_TABLES[@]}" -gt 0 ]]; then
+            sync_log "[dry-run] pg_dump ${DB_DATABASE} (tables: $(sync_tables_summary)) → ${EXPORT_DIR}/db.sql.gz"
+        else
+            sync_log "[dry-run] pg_dump ${DB_DATABASE} → ${EXPORT_DIR}/db.sql.gz"
+        fi
     else
+        pg_dump_table_args=()
+        if [[ "${#SYNC_TABLES[@]}" -gt 0 ]]; then
+            sync_pg_dump_table_args pg_dump_table_args
+        fi
+
         sync_compose_cmd "$DEPLOY_ENV" "$ROOT" exec -T pgsql \
             pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" --no-owner --no-acl --clean --if-exists \
+            "${pg_dump_table_args[@]}" \
             | gzip > "${EXPORT_DIR}/db.sql.gz"
     fi
 fi

@@ -2,7 +2,7 @@
 # Export production data on the VPS and import into staging (same host).
 #
 # Usage (from /opt/nerdik on VPS):
-#   ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only]
+#   ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -11,9 +11,11 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only]
+Usage: ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Run from the production clone (e.g. /opt/nerdik). Uses SYNC_STAGING_PATH for the staging clone.
+
+With --tables, only the listed tables are synced (implies --db-only).
 EOF
 }
 
@@ -34,6 +36,14 @@ while [[ $# -gt 0 ]]; do
         --storage-only)
             SYNC_STORAGE_ONLY=1
             ;;
+        --tables)
+            shift
+            while [[ $# -gt 0 && "$1" != --* ]]; do
+                SYNC_TABLES+=("$1")
+                shift
+            done
+            continue
+            ;;
         -h|--help)
             usage
             exit 0
@@ -44,6 +54,8 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
+
+sync_apply_tables_db_only
 
 sync_load_sync_config
 
@@ -69,6 +81,8 @@ fi
 if [[ "$SYNC_BACKUP" == "1" ]]; then
     IMPORT_FLAGS+=(--backup)
 fi
+sync_append_tables_flags EXPORT_FLAGS
+sync_append_tables_flags IMPORT_FLAGS
 
 sync_log "exporting production to ${EXPORT_DIR}"
 EXPORT_DIR="$("${ROOT}/scripts/sync/export-from-env.sh" prod "$EXPORT_DIR" "${EXPORT_FLAGS[@]}")"
