@@ -110,12 +110,17 @@ new class extends Component
 
     protected function toastProviderEmailSwitched(string $email): void
     {
+        $this->toastSuccess(__('ui.profile.use_provider_email_success', [
+            'email' => $email,
+        ]));
+    }
+
+    protected function toastSuccess(string $title): void
+    {
         $this->js('window.toast('.Js::from([
             'toast' => [
                 'type' => 'success',
-                'title' => __('ui.profile.use_provider_email_success', [
-                    'email' => $email,
-                ]),
+                'title' => $title,
                 'description' => '',
                 'icon' => '',
                 'css' => 'alert-success',
@@ -309,7 +314,7 @@ new class extends Component
         $profile->save();
         $user->setRelation('profile', $profile);
 
-        $this->dispatch('profile-contact-visibility-updated');
+        $this->toastSuccess(__('ui.common.saved'));
     }
 }; ?>
 
@@ -352,10 +357,6 @@ new class extends Component
                 @endif
             </div>
         @endif
-    </div>
-
-    <div class="flex items-center justify-end gap-4">
-        <x-action-message class="me-3" on="profile-contact-visibility-updated">{{ __('ui.common.saved') }}</x-action-message>
     </div>
 
     @if (count($this->providerEmailOptions()) > 0)

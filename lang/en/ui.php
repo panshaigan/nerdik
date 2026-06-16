@@ -242,7 +242,7 @@ return [
         'contact_email_compose' => 'Email',
         'contact_email_gmail' => 'Open in Gmail',
         'contact_email_copy' => 'Copy email',
-        'contact_facebook_message' => 'Message on Messenger',
+        'contact_facebook_message' => 'Message on Facebook',
         'contact_discord_message' => 'Open Discord profile',
         'contact_google_email' => 'Google email',
         'contact_visibility_toggle_short' => 'Visible',
