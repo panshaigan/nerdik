@@ -236,7 +236,7 @@ return [
         'contact_stats_title' => 'Statystyki aktywności',
         'contact_hosted_activities' => 'Prowadzone aktywności',
         'contact_no_played_activities' => 'Brak rozegranych aktywności.',
-        'contact_not_allowed' => 'Dane kontaktowe są dostępne tylko między gospodarzem i uczestnikami.',
+        'contact_not_allowed' => 'Dane kontaktowe są dostępne tylko wtedy, gdy łączy was relacja uczestnictwa w aktywności lub propozycji wydarzenia.',
         'contact_methods_title' => 'Metody kontaktu',
         'contact_methods_empty' => 'Brak dostępnych metod kontaktu.',
         'contact_email_compose' => 'Napisz e-mail',

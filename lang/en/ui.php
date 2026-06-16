@@ -236,7 +236,7 @@ return [
         'contact_stats_title' => 'Activity stats',
         'contact_hosted_activities' => 'Hosted activities',
         'contact_no_played_activities' => 'No played activities yet.',
-        'contact_not_allowed' => 'Contact details are available only between host and participants.',
+        'contact_not_allowed' => 'Contact details are available only when you share an activity or event proposal relationship with this user.',
         'contact_methods_title' => 'Contact methods',
         'contact_methods_empty' => 'No contact methods are available.',
         'contact_email_compose' => 'Email',

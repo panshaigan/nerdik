@@ -389,7 +389,7 @@ new class extends Component
         </x-modal>
     @endif
 
-    <fieldset class="fieldset mt-8 py-0" data-ui="profile-integrations">
+    <fieldset class="fieldset mt-4 py-0" data-ui="profile-integrations">
         <div class="space-y-4">
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-google">
                 @if ($google_id !== '')

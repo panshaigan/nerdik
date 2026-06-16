@@ -9,8 +9,6 @@ class UserBadgeContact extends Component
 {
     public User $user;
 
-    public int $activityId;
-
     public string $size = 'md';
 
     public string $nameClass = '';

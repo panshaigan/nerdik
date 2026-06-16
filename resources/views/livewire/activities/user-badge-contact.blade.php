@@ -18,6 +18,7 @@
             :subline="$subline"
             :avatar-only="$avatarOnly"
             :track-nav-avatar="$trackNavAvatar"
+            :contact-popover="false"
         />
     </div>
 
@@ -31,9 +32,8 @@
     >
         @if ($modalOpen)
             <livewire:activities.user-contact-popover
-                :activity-id="$activityId"
                 :target-user-id="$user->id"
-                :key="'user-contact-popover-'.$activityId.'-'.$user->id"
+                :key="'user-contact-popover-'.$user->id"
             />
         @endif
     </x-modal>

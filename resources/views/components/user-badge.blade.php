@@ -9,8 +9,7 @@
     'subline' => null,
     'avatarOnly' => false,
     'trackNavAvatar' => false,
-    'contactPopover' => false,
-    'contactContextActivityId' => null,
+    'contactPopover' => true,
     'contactTooltip' => null,
 ])
 
@@ -34,7 +33,7 @@
         'lg' => 'h-11 w-11 text-base',
         default => 'h-9 w-9 text-sm',
     };
-    $canRenderContactPopover = $contactPopover && $user !== null && $contactContextActivityId !== null;
+    $canRenderContactPopover = auth()->check() && $contactPopover && $user !== null && ! $usesOrganization;
     $resolvedContactTooltip = is_string($contactTooltip) && $contactTooltip !== ''
         ? $contactTooltip
         : __('ui.profile.contact_popover_tooltip');
@@ -46,7 +45,6 @@
     @endphp
     <livewire:activities.user-badge-contact
         :user="$user"
-        :activity-id="$contactContextActivityId"
         :size="$size"
         :name-class="$nameClass"
         :subline="$subline"
@@ -54,7 +52,7 @@
         :track-nav-avatar="$trackNavAvatar"
         :contact-tooltip="$resolvedContactTooltip"
         :container-class="$containerClass"
-        :key="'user-badge-contact-'.$contactContextActivityId.'-'.$user->id"
+        :key="'user-badge-contact-'.$user->id"
     />
 @elseif ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>
