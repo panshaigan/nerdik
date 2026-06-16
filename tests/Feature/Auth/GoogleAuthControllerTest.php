@@ -92,6 +92,7 @@ class GoogleAuthControllerTest extends TestCase
         ]);
         $this->assertAuthenticatedAs($user);
         $this->assertSame('google-contact-link', $user->fresh()->profile?->google_id);
+        $this->assertSame('contact-linker@example.com', $user->fresh()->profile?->google_email);
         $this->assertSame(AvatarSource::Generated, $user->fresh()->profile?->avatar_source);
     }
 
@@ -161,7 +162,35 @@ class GoogleAuthControllerTest extends TestCase
         ]);
         $this->assertAuthenticatedAs($user);
         $this->assertSame('google-mismatch', $user->fresh()->profile?->google_id);
+        $this->assertSame('other@example.com', $user->fresh()->profile?->google_email);
         $this->assertSame(AvatarSource::Google, $user->fresh()->profile?->avatar_source);
+    }
+
+    #[Test]
+    public function callback_does_not_store_google_email_when_provider_marks_it_unverified(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'local@example.com',
+        ]);
+
+        $googleUser = $this->fakeGoogleUser(
+            id: 'google-unverified',
+            email: 'unverified@example.com',
+        );
+        $googleUser->user = ['verified_email' => false];
+
+        $this->mockSocialiteWith($googleUser);
+
+        $response = $this
+            ->withSession([
+                'socialite.link_user_id' => $user->id,
+                'socialite.return_tab' => 'contact',
+            ])
+            ->get(route('google.callback'));
+
+        $response->assertRedirect(route('profile', absolute: false).'?tab=contact');
+        $this->assertSame('google-unverified', $user->fresh()->profile?->google_id);
+        $this->assertNull($user->fresh()->profile?->google_email);
     }
 
     #[Test]

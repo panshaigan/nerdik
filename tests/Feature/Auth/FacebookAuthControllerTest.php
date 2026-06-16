@@ -160,6 +160,7 @@ class FacebookAuthControllerTest extends TestCase
         ]);
         $this->assertAuthenticatedAs($user);
         $this->assertSame('fb-mismatch', $user->fresh()->profile?->facebook_id);
+        $this->assertSame('other@example.com', $user->fresh()->profile?->facebook_email);
         $this->assertSame(AvatarSource::Facebook, $user->fresh()->profile?->avatar_source);
     }
 

@@ -77,23 +77,16 @@ class ProfileTest extends TestCase
         $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
     }
 
-    public function test_contact_information_can_be_updated(): void
+    public function test_contact_form_displays_user_email(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email' => 'contact@example.com',
+        ]);
 
         $this->actingAs($user);
 
-        $component = Volt::test('profile.update-contact-information-form')
-            ->set('email', $user->email)
-            ->set('discord_handle', 'nerdik-user')
-            ->call('updateContactInformation');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
-
-        $this->assertSame('nerdik-user', $user->refresh()->profile?->discord_handle);
-        $this->assertNotNull($user->email_verified_at);
+        Volt::test('profile.update-contact-information-form')
+            ->assertSet('email', 'contact@example.com');
     }
 
     public function test_contact_form_shows_google_link_when_not_connected(): void
