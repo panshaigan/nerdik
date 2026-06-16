@@ -1,10 +1,14 @@
 <?php
 
+use App\Actions\Profile\SwitchEmailToProvider;
 use App\Enums\AvatarSource;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
+use App\Support\Profile\ProviderEmailOptions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Js;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -13,39 +17,81 @@ new class extends Component
 
     public string $email = '';
 
-    public string $discord_handle = '';
-
     public string $facebook_id = '';
 
     public string $google_id = '';
 
     public string $discord_id = '';
 
+    public ?string $selected_provider_email = null;
+
+    public bool $confirmingProviderEmailSwitch = false;
+
     public function mount(): void
     {
         $user = Auth::user();
         $this->email = $user->email;
-        $this->discord_handle = $user->profile?->discord_handle ?? '';
         $this->facebook_id = (string) ($user->profile?->facebook_id ?? '');
         $this->google_id = (string) ($user->profile?->google_id ?? '');
         $this->discord_id = (string) ($user->profile?->discord_id ?? '');
     }
 
-    public function updateContactInformation(): void
+    /**
+     * @return list<array{id: string, name: string}>
+     */
+    public function providerEmailOptions(): array
+    {
+        return ProviderEmailOptions::for(Auth::user());
+    }
+
+    public function openProviderEmailSwitchModal(): void
+    {
+        if (! filled($this->selected_provider_email)) {
+            return;
+        }
+
+        $this->confirmingProviderEmailSwitch = true;
+    }
+
+    public function switchEmailFromProvider(): void
     {
         $this->reportProfileTabValidation('contact', function (): void {
-            $validated = $this->validate([
-                'discord_handle' => ['nullable', 'string', 'max:255'],
+            $availableEmails = ProviderEmailOptions::availableEmails(Auth::user());
+
+            $this->validate([
+                'selected_provider_email' => ['required', Rule::in($availableEmails)],
             ]);
 
             $user = Auth::user();
+            $email = (string) $this->selected_provider_email;
 
-            $profile = $user->profile()->firstOrCreate();
-            $profile->discord_handle = $validated['discord_handle'] ?: null;
-            $profile->save();
+            app(SwitchEmailToProvider::class)($user, $email);
+
+            $user->refresh();
+            $this->email = $user->email;
+            $this->selected_provider_email = null;
+            $this->confirmingProviderEmailSwitch = false;
 
             $this->dispatch('profile-contact-updated');
+            $this->toastProviderEmailSwitched($user->email);
         });
+    }
+
+    protected function toastProviderEmailSwitched(string $email): void
+    {
+        $this->js('window.toast('.Js::from([
+            'toast' => [
+                'type' => 'success',
+                'title' => __('ui.profile.use_provider_email_success', [
+                    'email' => $email,
+                ]),
+                'description' => '',
+                'icon' => '',
+                'css' => 'alert-success',
+                'timeout' => 4000,
+                'noProgress' => false,
+            ],
+        ]).')');
     }
 
     public function unlinkGoogle(): void
@@ -61,6 +107,7 @@ new class extends Component
 
         $profile->google_id = null;
         $profile->google_avatar_url = null;
+        $profile->google_email = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;
@@ -98,6 +145,7 @@ new class extends Component
 
         $profile->facebook_id = null;
         $profile->facebook_avatar_url = null;
+        $profile->facebook_email = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;
@@ -135,6 +183,7 @@ new class extends Component
 
         $profile->discord_id = null;
         $profile->discord_avatar_url = null;
+        $profile->discord_email = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;
@@ -184,7 +233,7 @@ new class extends Component
 
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
-    <form id="ui-profile-contact-form" wire:submit="updateContactInformation" novalidate class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
+    <div id="ui-profile-contact-form" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
         <x-input
             wire:model="email"
             label="{{ __('ui.common.email') }}"
@@ -197,6 +246,39 @@ new class extends Component
             disabled
             inline
         />
+
+        @if (count($this->providerEmailOptions()) > 0)
+            <div class="space-y-4 rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-provider-email-switch">
+                <p class="text-sm text-base-content/80">
+                    {{ __('ui.profile.use_provider_email_hint') }}
+                </p>
+
+                <x-select
+                    wire:model.live="selected_provider_email"
+                    label="{{ __('ui.profile.use_provider_email_label') }}"
+                    :options="$this->providerEmailOptions()"
+                    :placeholder="__('ui.profile.use_provider_email_placeholder')"
+                    placeholder-value=""
+                    error-field="selected_provider_email"
+                    inline
+                />
+
+                <div class="flex items-center justify-end gap-4">
+                    <x-action-message class="me-3" on="profile-contact-updated">{{ __('ui.common.saved') }}</x-action-message>
+                    <x-button
+                        type="button"
+                        @class([
+                            'btn-primary',
+                            'btn-disabled pointer-events-none' => blank($selected_provider_email),
+                        ])
+                        wire:click="openProviderEmailSwitchModal"
+                        data-ui="profile-provider-email-apply"
+                    >
+                        {{ __('ui.profile.use_provider_email_apply') }}
+                    </x-button>
+                </div>
+            </div>
+        @endif
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
             <div class="mt-2">
@@ -213,12 +295,38 @@ new class extends Component
                 @endif
             </div>
         @endif
+    </div>
 
-        <div class="flex items-center justify-end gap-4">
-            <x-action-message class="me-3" on="profile-contact-updated">{{ __('ui.common.saved') }}</x-action-message>
-            <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
-        </div>
-    </form>
+    @if (count($this->providerEmailOptions()) > 0)
+        <x-modal
+            wire:model="confirmingProviderEmailSwitch"
+            :title="__('ui.profile.use_provider_email_modal_title')"
+            :subtitle="filled($selected_provider_email) ? __('ui.profile.use_provider_email_confirm', ['email' => $selected_provider_email]) : null"
+            class="backdrop-blur ui-modal ui-modal-provider-email"
+            box-class="ui-modal-surface"
+            separator
+            data-ui="profile-provider-email-modal"
+        >
+            <div class="modal-action">
+                <x-button
+                    type="button"
+                    class="btn-ghost"
+                    wire:click="$set('confirmingProviderEmailSwitch', false)"
+                    data-ui="profile-provider-email-cancel"
+                >
+                    {{ __('ui.common.cancel') }}
+                </x-button>
+                <x-button
+                    type="button"
+                    class="btn-primary"
+                    wire:click="switchEmailFromProvider"
+                    data-ui="profile-provider-email-confirm"
+                >
+                    {{ __('ui.profile.use_provider_email_apply') }}
+                </x-button>
+            </div>
+        </x-modal>
+    @endif
 
     <fieldset class="fieldset mt-8 py-0" data-ui="profile-integrations">
         <div class="space-y-4">
