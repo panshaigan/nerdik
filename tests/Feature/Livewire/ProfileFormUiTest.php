@@ -49,11 +49,12 @@ class ProfileFormUiTest extends TestCase
         $this->actingAs($user);
 
         Volt::test('profile.update-password-form')
-            ->set('current_password', 'wrong-password')
             ->set('password', 'new-secure-password')
             ->set('password_confirmation', 'new-secure-password')
             ->call('updatePassword')
-            ->assertHasErrors(['current_password'])
+            ->set('passwordConfirmationPassword', 'wrong-password')
+            ->call('runPasswordConfirmation')
+            ->assertHasErrors(['passwordConfirmationPassword'])
             ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
     }
 
@@ -68,9 +69,10 @@ class ProfileFormUiTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'new@example.com')
-            ->set('current_password', 'wrong-password')
             ->call('requestEmailChange')
-            ->assertHasErrors(['current_password'])
+            ->set('passwordConfirmationPassword', 'wrong-password')
+            ->call('runPasswordConfirmation')
+            ->assertHasErrors(['passwordConfirmationPassword'])
             ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
     }
 

@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'current_password',
             'password',
             'password_confirmation',
+            'passwordConfirmationPassword',
             '_token',
         ]);
 

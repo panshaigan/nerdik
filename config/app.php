@@ -68,6 +68,7 @@ return [
             'password',
             'password_confirmation',
             'current_password',
+            'passwordConfirmationPassword',
             '_token',
         ],
         '_COOKIE' => [

@@ -27,8 +27,9 @@ class UpdateEmailTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'new@example.com')
-            ->set('current_password', 'password')
             ->call('requestEmailChange')
+            ->set('passwordConfirmationPassword', 'password')
+            ->call('runPasswordConfirmation')
             ->assertHasNoErrors();
 
         $user->refresh();
@@ -57,9 +58,10 @@ class UpdateEmailTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'new@example.com')
-            ->set('current_password', 'wrong-password')
             ->call('requestEmailChange')
-            ->assertHasErrors(['current_password'])
+            ->set('passwordConfirmationPassword', 'wrong-password')
+            ->call('runPasswordConfirmation')
+            ->assertHasErrors(['passwordConfirmationPassword'])
             ->assertDispatched('profile-tab-validation-failed', tab: 'advanced');
 
         $this->assertNull($user->fresh()->pending_email);
@@ -78,7 +80,6 @@ class UpdateEmailTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'taken@example.com')
-            ->set('current_password', 'password')
             ->call('requestEmailChange')
             ->assertHasErrors(['new_email']);
     }
@@ -96,7 +97,6 @@ class UpdateEmailTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'pending@example.com')
-            ->set('current_password', 'password')
             ->call('requestEmailChange')
             ->assertHasErrors(['new_email']);
     }
@@ -112,7 +112,6 @@ class UpdateEmailTest extends TestCase
 
         Volt::test('profile.update-email-form')
             ->set('new_email', 'current@example.com')
-            ->set('current_password', 'password')
             ->call('requestEmailChange')
             ->assertHasErrors(['new_email']);
     }
