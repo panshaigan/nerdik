@@ -24,19 +24,19 @@
         />
     </div>
 
-    <x-modal
-        wire:model="modalOpen"
-        :title="$user->displayName()"
-        box-class="max-w-lg overflow-x-hidden ui-modal-surface"
-        class="backdrop-blur"
-        separator
-        data-ui="user-badge-contact-modal"
-    >
-        @if ($modalOpen)
+    @if ($modalOpen)
+        <x-modal
+            wire:model="modalOpen"
+            :title="$user->displayName()"
+            box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+            class="backdrop-blur"
+            separator
+            data-ui="user-badge-contact-modal"
+        >
             <livewire:activities.user-contact-popover
                 :target-user-id="$user->id"
                 :key="'user-contact-popover-'.$user->id"
             />
-        @endif
-    </x-modal>
+        </x-modal>
+    @endif
 </div>
