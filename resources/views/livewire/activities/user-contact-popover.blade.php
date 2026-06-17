@@ -18,7 +18,6 @@
                 </div>
             </div>
             <div class="min-w-0 space-y-2">
-                <p class="truncate text-lg font-semibold text-base-content">{{ $targetUser->displayName() }}</p>
                 @if ($targetUser->organization !== null)
                     @php
                         $organization = $targetUser->organization;

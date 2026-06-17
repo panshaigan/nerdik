@@ -93,6 +93,8 @@ new class extends Component
                 wire:model="organization_id"
                 label="{{ __('ui.profile.organization') }}"
                 :options="$organizationOptions"
+                :placeholder="__('ui.common.none')"
+                placeholder-value=""
                 error-field="organization_id"
                 inline
                 :disabled="count($organizationOptions) === 0"
