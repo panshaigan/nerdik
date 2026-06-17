@@ -185,6 +185,25 @@ class ProfileTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_unlink_google_opens_confirm_modal_before_unlinking(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['google_id' => 'google-to-unlink']);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('confirmUnlinkGoogle')
+            ->assertSet('confirmModalOpen', true)
+            ->assertSet('confirmModalTitle', __('ui.profile.integrations_google_unlink'))
+            ->assertSet('confirmModalMessage', __('ui.profile.integrations_google_unlink_confirm'))
+            ->call('runConfirmedAction')
+            ->assertSet('confirmModalOpen', false)
+            ->assertSet('google_id', '');
+
+        $this->assertNull($user->fresh()->profile?->google_id);
+    }
+
     public function test_contact_form_shows_facebook_link_when_not_connected(): void
     {
         config([
@@ -324,6 +343,25 @@ class ProfileTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_unlink_facebook_opens_confirm_modal_before_unlinking(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['facebook_id' => 'fb-to-unlink']);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('confirmUnlinkFacebook')
+            ->assertSet('confirmModalOpen', true)
+            ->assertSet('confirmModalTitle', __('ui.profile.integrations_facebook_unlink'))
+            ->assertSet('confirmModalMessage', __('ui.profile.integrations_facebook_unlink_confirm'))
+            ->call('runConfirmedAction')
+            ->assertSet('confirmModalOpen', false)
+            ->assertSet('facebook_id', '');
+
+        $this->assertNull($user->fresh()->profile?->facebook_id);
+    }
+
     public function test_contact_form_shows_discord_link_when_not_connected(): void
     {
         config([
@@ -408,6 +446,25 @@ class ProfileTest extends TestCase
         $this->assertNull($profile?->avatar_path);
         $this->assertNull($profile?->avatar_cache_signature);
         Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_unlink_discord_opens_confirm_modal_before_unlinking(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['discord_id' => 'dc-to-unlink']);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->call('confirmUnlinkDiscord')
+            ->assertSet('confirmModalOpen', true)
+            ->assertSet('confirmModalTitle', __('ui.profile.integrations_discord_unlink'))
+            ->assertSet('confirmModalMessage', __('ui.profile.integrations_discord_unlink_confirm'))
+            ->call('runConfirmedAction')
+            ->assertSet('confirmModalOpen', false)
+            ->assertSet('discord_id', '');
+
+        $this->assertNull($user->fresh()->profile?->discord_id);
     }
 
     public function test_generated_avatar_colors_can_be_saved(): void
@@ -1121,13 +1178,13 @@ class ProfileTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('mailto:participant@example.test', $html);
-        $this->assertStringContainsString('https://www.facebook.com/profile.php?id=12345', $html);
-        $this->assertStringContainsString('https://www.facebook.com/messages/t/12345', $html);
-        $this->assertStringContainsString('https://m.me/12345', $html);
+        $this->assertStringNotContainsString('https://www.facebook.com/profile.php?id=12345', $html);
+        $this->assertStringNotContainsString('https://www.facebook.com/messages/t/12345', $html);
+        $this->assertStringNotContainsString('https://m.me/12345', $html);
         $this->assertStringContainsString('https://discord.com/users/67890', $html);
         $this->assertStringContainsString('discord://-/users/67890', $html);
         $this->assertStringContainsString(__('ui.profile.contact_section_email'), $html);
-        $this->assertStringContainsString(__('ui.profile.contact_section_facebook'), $html);
+        $this->assertStringNotContainsString(__('ui.profile.contact_section_facebook'), $html);
         $this->assertStringContainsString(__('ui.profile.contact_section_discord'), $html);
         $this->assertStringNotContainsString('participant-google@example.test', $html);
         $this->assertStringContainsString(
@@ -1199,9 +1256,10 @@ class ProfileTest extends TestCase
             ])
             ->html();
 
-        $this->assertStringContainsString('https://www.facebook.com/zuck', $html);
-        $this->assertStringContainsString('https://www.facebook.com/messages/t/zuck', $html);
-        $this->assertStringContainsString('https://m.me/zuck', $html);
+        $this->assertStringNotContainsString(__('ui.profile.contact_section_facebook'), $html);
+        $this->assertStringNotContainsString('https://www.facebook.com/zuck', $html);
+        $this->assertStringNotContainsString('https://www.facebook.com/messages/t/zuck', $html);
+        $this->assertStringNotContainsString('https://m.me/zuck', $html);
         $this->assertStringNotContainsString('https://www.facebook.com/profile.php?id=app-scoped-id', $html);
     }
 
