@@ -45,6 +45,7 @@ return [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI', env('APP_URL').'/auth/facebook/callback'),
+        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v23.0'),
     ],
 
     'discord' => [

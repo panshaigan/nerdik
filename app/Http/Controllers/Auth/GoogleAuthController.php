@@ -6,6 +6,7 @@ use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
+use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -23,6 +24,7 @@ class GoogleAuthController extends Controller
 {
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
+    use SyncsProviderOAuthData;
 
     public function redirect(): SymfonyRedirectResponse
     {
@@ -58,6 +60,7 @@ class GoogleAuthController extends Controller
                 $profile->google_id = $googleUser->getId();
                 $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 $this->syncGoogleProviderEmail($profile, $googleUser);
+                $this->syncGoogleOAuthData($profile, $googleUser);
                 if ($profile->timezone === null && $browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -75,6 +78,7 @@ class GoogleAuthController extends Controller
                 $profile->google_id = $googleUser->getId();
                 $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 $this->syncGoogleProviderEmail($profile, $googleUser);
+                $this->syncGoogleOAuthData($profile, $googleUser);
                 if ($browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -86,6 +90,7 @@ class GoogleAuthController extends Controller
             $profile = $user->profile()->firstOrCreate();
             $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
             $this->syncGoogleProviderEmail($profile, $googleUser);
+            $this->syncGoogleOAuthData($profile, $googleUser);
             $profile->save();
             $user->setRelation('profile', $profile);
         }
@@ -161,6 +166,7 @@ class GoogleAuthController extends Controller
         }
         $this->syncGoogleAvatarUrl($profile, $avatarUrl);
         $this->syncGoogleProviderEmail($profile, $googleUser);
+        $this->syncGoogleOAuthData($profile, $googleUser);
         if ($returnTab === 'avatar') {
             $profile->avatar_source = AvatarSource::Google;
         }

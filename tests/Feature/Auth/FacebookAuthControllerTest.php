@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -18,12 +19,30 @@ class FacebookAuthControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function fakeFacebookUser(string $id = '123456789', ?string $email = 'jane@example.com', string $name = 'Jane Doe'): SocialiteUser
-    {
+    private function fakeFacebookUser(
+        string $id = '123456789',
+        ?string $email = 'jane@example.com',
+        string $name = 'Jane Doe',
+        ?string $link = null,
+    ): SocialiteUser {
         $facebookUser = new SocialiteUser;
-        $facebookUser->id = $id;
-        $facebookUser->name = $name;
-        $facebookUser->email = $email;
+        $raw = [
+            'id' => $id,
+            'name' => $name,
+            'email' => $email,
+        ];
+
+        if ($link !== null) {
+            $raw['link'] = $link;
+        }
+
+        $facebookUser->setRaw($raw)->map([
+            'id' => $id,
+            'name' => $name,
+            'email' => $email,
+            'avatar' => null,
+            'profileUrl' => $link,
+        ]);
         $facebookUser->token = 'fake-token';
 
         return $facebookUser;
@@ -32,7 +51,8 @@ class FacebookAuthControllerTest extends TestCase
     private function mockSocialiteWith(SocialiteUser $facebookUser): void
     {
         $provider = Mockery::mock(Provider::class);
-        $provider->shouldReceive('scopes')->with(['email'])->andReturnSelf();
+        $provider->shouldReceive('scopes')->with(['email', 'public_profile'])->andReturnSelf();
+        $provider->shouldReceive('fields')->with(['name', 'email', 'link', 'short_name', 'picture.width(1920)'])->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($facebookUser);
 
         Socialite::shouldReceive('driver')->with('facebook')->andReturn($provider);
@@ -41,7 +61,8 @@ class FacebookAuthControllerTest extends TestCase
     private function mockSocialiteRedirect(): void
     {
         $provider = Mockery::mock(Provider::class);
-        $provider->shouldReceive('scopes')->with(['email'])->andReturnSelf();
+        $provider->shouldReceive('scopes')->with(['email', 'public_profile'])->andReturnSelf();
+        $provider->shouldReceive('fields')->with(['name', 'email', 'link', 'short_name', 'picture.width(1920)'])->andReturnSelf();
         $provider->shouldReceive('redirect')->andReturn(redirect('https://facebook.com/oauth'));
 
         Socialite::shouldReceive('driver')->with('facebook')->andReturn($provider);
@@ -367,5 +388,63 @@ class FacebookAuthControllerTest extends TestCase
         $response->assertSessionHas('status');
         $this->assertGuest();
         $this->assertSame(0, User::whereHas('profile', fn ($query) => $query->where('facebook_id', '111222333'))->count());
+    }
+
+    #[Test]
+    public function callback_persists_facebook_provider_data_from_profile_link(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response([
+                'name' => 'Jane Doe',
+                'link' => 'https://www.facebook.com/janedoe',
+            ]),
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'app-scoped-facebook-id',
+            email: 'jane@example.com',
+            name: 'Jane Doe',
+            link: 'https://www.facebook.com/janedoe',
+        ));
+
+        $response = $this->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertAuthenticated();
+
+        $profile = User::query()->where('email', 'jane@example.com')->first()?->profile;
+        $this->assertNotNull($profile);
+        $this->assertSame('app-scoped-facebook-id', $profile->facebook_id);
+        $this->assertSame('https://www.facebook.com/janedoe', $profile->facebook_data['profile_url'] ?? null);
+        $this->assertSame('janedoe', $profile->facebook_data['vanity'] ?? null);
+        $this->assertSame('https://m.me/janedoe', $profile->facebook_data['messenger_url'] ?? null);
+    }
+
+    #[Test]
+    public function callback_persists_public_facebook_id_from_graph_profile_link(): void
+    {
+        Http::fake([
+            'graph.facebook.com/*' => Http::response([
+                'name' => 'Jane Doe',
+                'link' => 'https://www.facebook.com/profile.php?id=1234567890',
+            ]),
+        ]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: 'app-scoped-facebook-id',
+            email: 'jane@example.com',
+            name: 'Jane Doe',
+        ));
+
+        $response = $this->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $profile = User::query()->where('email', 'jane@example.com')->first()?->profile;
+        $this->assertSame('1234567890', $profile->facebook_data['public_id'] ?? null);
+        $this->assertSame(
+            'https://www.facebook.com/profile.php?id=1234567890',
+            $profile->facebook_data['profile_url'] ?? null,
+        );
     }
 }

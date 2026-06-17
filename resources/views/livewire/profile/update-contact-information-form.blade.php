@@ -144,6 +144,7 @@ new class extends Component
         $profile->google_id = null;
         $profile->google_avatar_url = null;
         $profile->google_email = null;
+        $profile->google_data = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;
@@ -182,6 +183,7 @@ new class extends Component
         $profile->facebook_id = null;
         $profile->facebook_avatar_url = null;
         $profile->facebook_email = null;
+        $profile->facebook_data = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;
@@ -220,6 +222,8 @@ new class extends Component
         $profile->discord_id = null;
         $profile->discord_avatar_url = null;
         $profile->discord_email = null;
+        $profile->discord_data = null;
+        $profile->discord_handle = null;
 
         if ($avatarSourceChanged) {
             $profile->avatar_source = AvatarSource::Generated;

@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\User;
 use App\Services\ContactVisibilityService;
+use App\Support\Profile\ProviderContactUrls;
 use Livewire\Component;
 
 class UserContactPopover extends Component
@@ -74,6 +75,7 @@ class UserContactPopover extends Component
         }
 
         $profile = $targetUser->profile;
+        $contactUrls = app(ProviderContactUrls::class);
 
         $emailAddress = null;
         if ((bool) ($profile?->show_contact_email ?? false) && filled($targetUser->email)) {
@@ -90,27 +92,14 @@ class UserContactPopover extends Component
             ]
             : null;
 
-        $facebookId = filled($profile?->facebook_id) && (bool) ($profile?->show_contact_facebook ?? true)
-            ? (string) $profile?->facebook_id
+        $facebook = $profile !== null
+            && (bool) ($profile->show_contact_facebook ?? true)
+            ? $contactUrls->facebook($profile)
             : null;
 
-        $facebook = $facebookId !== null
-            ? [
-                'profileUrl' => 'https://www.facebook.com/profile.php?id='.rawurlencode($facebookId),
-                'messagesUrl' => 'https://www.facebook.com/messages/t/'.rawurlencode($facebookId),
-                'messengerUrl' => 'https://m.me/'.rawurlencode($facebookId),
-            ]
-            : null;
-
-        $discordId = filled($profile?->discord_id) && (bool) ($profile?->show_contact_discord ?? true)
-            ? (string) $profile?->discord_id
-            : null;
-
-        $discord = $discordId !== null
-            ? [
-                'webUrl' => 'https://discord.com/users/'.rawurlencode($discordId),
-                'appUrl' => 'discord://-/users/'.rawurlencode($discordId),
-            ]
+        $discord = $profile !== null
+            && (bool) ($profile->show_contact_discord ?? true)
+            ? $contactUrls->discord($profile)
             : null;
 
         return [

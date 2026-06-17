@@ -43,6 +43,9 @@ class UserProfile extends Model
         'timezone',
         'languages',
         'notification_preferences',
+        'google_data',
+        'facebook_data',
+        'discord_data',
     ];
 
     /**
@@ -54,6 +57,9 @@ class UserProfile extends Model
             'avatar_source' => AvatarSource::class,
             'languages' => 'array',
             'notification_preferences' => 'array',
+            'google_data' => 'array',
+            'facebook_data' => 'array',
+            'discord_data' => 'array',
             'show_contact_email' => 'boolean',
             'show_contact_facebook' => 'boolean',
             'show_contact_google' => 'boolean',
