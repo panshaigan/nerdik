@@ -33,13 +33,33 @@
         'lg' => 'h-11 w-11 text-base',
         default => 'h-9 w-9 text-sm',
     };
+    $canRenderOrganizationPopover = auth()->check() && $contactPopover && $organization !== null;
     $canRenderContactPopover = auth()->check() && $contactPopover && $user !== null && ! $usesOrganization;
     $resolvedContactTooltip = is_string($contactTooltip) && $contactTooltip !== ''
         ? $contactTooltip
         : __('ui.profile.contact_popover_tooltip');
+    $resolvedOrganizationTooltip = is_string($contactTooltip) && $contactTooltip !== ''
+        ? $contactTooltip
+        : __('ui.organizations.popover_tooltip');
 @endphp
 
-@if ($canRenderContactPopover)
+@if ($canRenderOrganizationPopover)
+    @php
+        $containerClass = trim('inline-flex min-w-0 overflow-visible '.(string) ($attributes->get('class') ?? ''));
+    @endphp
+    <livewire:activities.organization-badge-contact
+        :organization="$organization"
+        :user="$user"
+        :size="$size"
+        :name-class="$nameClass"
+        :subline="$subline"
+        :avatar-only="$avatarOnly"
+        :track-nav-avatar="$trackNavAvatar"
+        :contact-tooltip="$resolvedOrganizationTooltip"
+        :container-class="$containerClass"
+        :key="'organization-badge-contact-'.$organization->id"
+    />
+@elseif ($canRenderContactPopover)
     @php
         $containerClass = trim('inline-flex min-w-0 overflow-visible '.(string) ($attributes->get('class') ?? ''));
     @endphp

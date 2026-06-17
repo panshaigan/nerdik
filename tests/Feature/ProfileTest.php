@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Actions\Profile\AnonymizeUser;
 use App\Enums\AvatarSource;
+use App\Livewire\Activities\OrganizationBadgeContact;
+use App\Livewire\Activities\OrganizationContactPopover;
 use App\Livewire\Activities\UserBadgeContact;
 use App\Livewire\Activities\UserContactPopover;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
+use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
@@ -794,6 +798,241 @@ class ProfileTest extends TestCase
             ->call('openModal')
             ->assertSet('modalOpen', true)
             ->assertSee('mailto:participant@example.test');
+    }
+
+    public function test_organization_badge_contact_renders_modal_trigger_for_authenticated_viewer(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $organization = Organization::factory()->create([
+            'name' => 'Test Guild',
+        ]);
+
+        $this->actingAs($viewer);
+
+        $html = Blade::render(
+            '<x-user-badge :user="$user" :organization="$organization" />',
+            [
+                'user' => $host,
+                'organization' => $organization,
+            ],
+        );
+
+        $this->assertStringContainsString('data-ui="organization-badge-contact"', $html);
+        $this->assertStringContainsString('data-ui="organization-badge-contact-trigger"', $html);
+        $this->assertStringContainsString('wire:click.stop="openModal"', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
+        $this->assertStringNotContainsString('data-ui="user-badge-contact"', $html);
+        $this->assertStringNotContainsString('data-ui="organization-badge-contact-modal"', $html);
+        $this->assertStringNotContainsString('data-ui="organization-contact-popover"', $html);
+    }
+
+    public function test_organization_badge_contact_does_not_render_modal_trigger_for_guest(): void
+    {
+        $host = User::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $html = Blade::render(
+            '<x-user-badge :user="$user" :organization="$organization" />',
+            [
+                'user' => $host,
+                'organization' => $organization,
+            ],
+        );
+
+        $this->assertStringNotContainsString('data-ui="organization-badge-contact"', $html);
+        $this->assertStringNotContainsString('wire:click.stop="openModal"', $html);
+    }
+
+    public function test_organization_badge_contact_close_modal_resets_state(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $organization = Organization::factory()->create();
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationBadgeContact::class, [
+                'organization' => $organization,
+                'user' => $host,
+            ])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->call('closeModal')
+            ->assertSet('modalOpen', false);
+    }
+
+    public function test_organization_badge_contact_modal_opens_and_loads_popover_content(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $organization = Organization::factory()->create([
+            'name' => 'Guild of Nerds',
+            'description' => '<p>We run tabletop events.</p>',
+        ]);
+        $member = User::factory()->create([
+            'nickname' => 'guild_member',
+            'organization_id' => $organization->id,
+        ]);
+        $rpgType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $boardType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_BOARD]);
+        $event = Event::factory()->create([
+            'organization_id' => $organization->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $rpgActivity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $rpgType->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        $boardActivity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $boardType->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $rpgActivity->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $boardActivity->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $rpgActivity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $boardActivity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationBadgeContact::class, [
+                'organization' => $organization,
+                'user' => $host,
+            ])
+            ->assertSet('modalOpen', false)
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSee('We run tabletop events.')
+            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
+            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.board')]))
+            ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.rpg')]))
+            ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.board')]))
+            ->assertSee('guild_member');
+    }
+
+    public function test_organization_contact_popover_lists_members_with_organization_id(): void
+    {
+        $viewer = User::factory()->create();
+        $organization = Organization::factory()->create();
+        $firstMember = User::factory()->create([
+            'nickname' => 'alpha_member',
+            'organization_id' => $organization->id,
+        ]);
+        $secondMember = User::factory()->create([
+            'nickname' => 'beta_member',
+            'organization_id' => $organization->id,
+        ]);
+        User::factory()->create([
+            'nickname' => 'outsider',
+            'organization_id' => null,
+        ]);
+        User::factory()->create([
+            'nickname' => 'former_member',
+            'organization_id' => $organization->id,
+            'is_deleted' => true,
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationContactPopover::class, [
+                'targetOrganizationId' => $organization->id,
+            ])
+            ->assertSee('alpha_member')
+            ->assertSee('beta_member')
+            ->assertDontSee('outsider')
+            ->assertDontSee('former_member')
+            ->assertSee(__('ui.organizations.members_section'));
+    }
+
+    public function test_organization_contact_popover_shows_empty_members_message(): void
+    {
+        $viewer = User::factory()->create();
+        $organization = Organization::factory()->create();
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationContactPopover::class, [
+                'targetOrganizationId' => $organization->id,
+            ])
+            ->assertSee(__('ui.organizations.no_members'));
+    }
+
+    public function test_organization_badge_contact_popover_resolves_stats_by_type(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $organization = Organization::factory()->create();
+        $rpgType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $event = Event::factory()->create([
+            'organization_id' => $organization->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $rpgType->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationContactPopover::class, [
+                'targetOrganizationId' => $organization->id,
+            ])
+            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
+            ->assertSee('1', false);
+    }
+
+    public function test_organization_badge_with_contact_popover_disabled_does_not_render_trigger(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $this->actingAs($viewer);
+
+        $html = Blade::render(
+            '<x-user-badge :user="$user" :organization="$organization" :contact-popover="false" />',
+            [
+                'user' => $host,
+                'organization' => $organization,
+            ],
+        );
+
+        $this->assertStringNotContainsString('data-ui="organization-badge-contact"', $html);
+        $this->assertStringNotContainsString('wire:click.stop="openModal"', $html);
     }
 
     public function test_user_contact_popover_shows_contact_methods_for_host_and_participant(): void
