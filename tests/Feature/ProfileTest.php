@@ -710,6 +710,8 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
         $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
         $this->assertStringContainsString('livewire:navigating', $html);
+        $this->assertStringNotContainsString('data-ui="user-badge-contact-modal"', $html);
+        $this->assertStringNotContainsString('data-ui="user-contact-popover"', $html);
     }
 
     public function test_user_badge_contact_close_modal_resets_state(): void
