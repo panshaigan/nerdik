@@ -19,6 +19,7 @@ use App\Observers\ActivityObserver;
 use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
+use App\View\Components\Editor;
 use App\View\Composers\SeoComposer;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Login;
@@ -98,6 +99,10 @@ class AppServiceProvider extends ServiceProvider
         ActivityProposal::observe(ActivityProposalObserver::class);
         ActivityUser::observe(ActivityUserObserver::class);
         Slot::observe(SlotObserver::class);
+
+        $this->app->booted(static function (): void {
+            Blade::component('editor', Editor::class);
+        });
 
         Blade::if('canModifyEntity', static function (mixed $entity): bool {
             if (! $entity instanceof Model) {

@@ -849,6 +849,9 @@ return [
         'members_section' => 'Członkowie',
         'no_members' => 'Brak członków.',
     ],
+    'editor' => [
+        'block_formats' => 'Akapit=p; Nagłówek 2=h2; Nagłówek 3=h3',
+    ],
     'tags' => [
         'placeholder_search_or_create' => 'Szukaj tagów (lub utwórz nowy)',
         'create_tag' => 'Utwórz tag',
