@@ -227,6 +227,9 @@ class ProfileTest extends TestCase
         $user->profile()->update([
             'facebook_id' => 'fb-to-unlink',
             'facebook_avatar_url' => 'https://facebook.com/avatar.jpg',
+            'facebook_data' => [
+                'profile_url' => 'https://www.facebook.com/zuck',
+            ],
         ]);
 
         $this->actingAs($user);
@@ -239,6 +242,7 @@ class ProfileTest extends TestCase
         $profile = $user->fresh()->profile;
         $this->assertNull($profile?->facebook_id);
         $this->assertNull($profile?->facebook_avatar_url);
+        $this->assertNull($profile?->facebook_data);
     }
 
     public function test_unlink_facebook_resets_avatar_source_when_facebook(): void
@@ -1082,6 +1086,43 @@ class ProfileTest extends TestCase
         );
         $this->assertStringContainsString('window.copyToClipboard', $html);
         $this->assertStringNotContainsString('navigator.clipboard?.writeText', $html);
+    }
+
+    public function test_user_contact_popover_uses_stored_facebook_provider_data_urls(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'facebook_id' => 'app-scoped-id',
+            'facebook_data' => [
+                'profile_url' => 'https://www.facebook.com/zuck',
+                'messages_url' => 'https://www.facebook.com/messages/t/zuck',
+                'messenger_url' => 'https://m.me/zuck',
+            ],
+            'show_contact_facebook' => true,
+        ]);
+
+        $html = Livewire::actingAs($host)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('https://www.facebook.com/zuck', $html);
+        $this->assertStringContainsString('https://www.facebook.com/messages/t/zuck', $html);
+        $this->assertStringContainsString('https://m.me/zuck', $html);
+        $this->assertStringNotContainsString('https://www.facebook.com/profile.php?id=app-scoped-id', $html);
     }
 
     public function test_app_layout_exposes_copy_to_clipboard_ui_strings(): void

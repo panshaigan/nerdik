@@ -6,6 +6,7 @@ use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
+use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -22,6 +23,7 @@ class DiscordAuthController extends Controller
 {
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
+    use SyncsProviderOAuthData;
 
     public function redirect(): SymfonyRedirectResponse
     {
@@ -63,6 +65,7 @@ class DiscordAuthController extends Controller
                 $this->syncDiscordAvatarUrl($profile, $discordUser->getAvatar());
                 $this->syncDiscordHandle($profile, $discordUser->getNickname());
                 $this->syncDiscordProviderEmail($profile, $discordUser);
+                $this->syncDiscordOAuthData($profile, $discordUser);
                 if ($profile->timezone === null && $browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -81,6 +84,7 @@ class DiscordAuthController extends Controller
                 $this->syncDiscordAvatarUrl($profile, $discordUser->getAvatar());
                 $this->syncDiscordHandle($profile, $discordUser->getNickname());
                 $this->syncDiscordProviderEmail($profile, $discordUser);
+                $this->syncDiscordOAuthData($profile, $discordUser);
                 if ($browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -93,6 +97,7 @@ class DiscordAuthController extends Controller
             $this->syncDiscordAvatarUrl($profile, $discordUser->getAvatar());
             $this->syncDiscordHandle($profile, $discordUser->getNickname());
             $this->syncDiscordProviderEmail($profile, $discordUser);
+            $this->syncDiscordOAuthData($profile, $discordUser);
             $profile->save();
             $user->setRelation('profile', $profile);
         }
@@ -168,6 +173,7 @@ class DiscordAuthController extends Controller
         $this->syncDiscordAvatarUrl($profile, $discordUser->getAvatar());
         $this->syncDiscordHandle($profile, $discordUser->getNickname());
         $this->syncDiscordProviderEmail($profile, $discordUser);
+        $this->syncDiscordOAuthData($profile, $discordUser);
         if ($returnTab === 'avatar') {
             $profile->avatar_source = AvatarSource::Discord;
         }

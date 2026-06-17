@@ -6,6 +6,7 @@ use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
+use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -22,6 +23,7 @@ class FacebookAuthController extends Controller
 {
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
+    use SyncsProviderOAuthData;
 
     public function redirect(): SymfonyRedirectResponse
     {
@@ -30,7 +32,10 @@ class FacebookAuthController extends Controller
 
         request()->session()->save();
 
-        return Socialite::driver('facebook')->scopes(['email'])->redirect();
+        return Socialite::driver('facebook')
+            ->scopes(['email', 'public_profile'])
+            ->fields(['name', 'email', 'link', 'short_name', 'picture.width(1920)'])
+            ->redirect();
     }
 
     public function callback(): RedirectResponse
@@ -62,6 +67,7 @@ class FacebookAuthController extends Controller
                 $profile->facebook_id = $facebookUser->getId();
                 $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 $this->syncFacebookProviderEmail($profile, $facebookUser);
+                $this->syncFacebookOAuthData($profile, $facebookUser);
                 if ($profile->timezone === null && $browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -79,6 +85,7 @@ class FacebookAuthController extends Controller
                 $profile->facebook_id = $facebookUser->getId();
                 $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 $this->syncFacebookProviderEmail($profile, $facebookUser);
+                $this->syncFacebookOAuthData($profile, $facebookUser);
                 if ($browserTimezone !== null) {
                     $profile->timezone = $browserTimezone;
                 }
@@ -90,6 +97,7 @@ class FacebookAuthController extends Controller
             $profile = $user->profile()->firstOrCreate();
             $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
             $this->syncFacebookProviderEmail($profile, $facebookUser);
+            $this->syncFacebookOAuthData($profile, $facebookUser);
             $profile->save();
             $user->setRelation('profile', $profile);
         }
@@ -164,6 +172,7 @@ class FacebookAuthController extends Controller
         }
         $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
         $this->syncFacebookProviderEmail($profile, $facebookUser);
+        $this->syncFacebookOAuthData($profile, $facebookUser);
         if ($returnTab === 'avatar') {
             $profile->avatar_source = AvatarSource::Facebook;
         }
