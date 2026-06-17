@@ -203,6 +203,9 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('return_tab=contact', $html);
         $this->assertStringContainsString(__('ui.profile.avatar_link_facebook'), $html);
         $this->assertStringNotContainsString(__('ui.profile.integrations_facebook_unlink'), $html);
+        $this->assertStringContainsString(__('ui.profile.integrations_facebook_profile_url_label'), $html);
+        $this->assertStringContainsString('data-ui="profile-facebook-profile-url"', $html);
+        $this->assertStringContainsString('data-ui="profile-facebook-profile-url-save"', $html);
     }
 
     public function test_contact_form_shows_facebook_id_when_connected(): void
@@ -219,6 +222,50 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('fb-connected-99', $html);
         $this->assertStringContainsString(__('ui.profile.integrations_facebook_unlink'), $html);
         $this->assertStringNotContainsString('/auth/facebook', $html);
+        $this->assertStringContainsString(__('ui.profile.integrations_facebook_profile_url_label'), $html);
+        $this->assertStringContainsString('data-ui="profile-facebook-profile-url"', $html);
+        $this->assertStringContainsString('data-ui="profile-facebook-profile-url-save"', $html);
+    }
+
+    public function test_contact_form_persists_facebook_profile_url_on_save(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('facebook_profile_url', 'https://www.facebook.com/janedoe')
+            ->call('saveFacebookProfileUrl')
+            ->assertHasNoErrors();
+
+        $this->assertSame(
+            'https://www.facebook.com/janedoe',
+            $user->fresh()->profile?->facebook_profile_url,
+        );
+    }
+
+    public function test_contact_form_rejects_non_facebook_profile_url_host(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('facebook_profile_url', 'https://example.com/profile')
+            ->call('saveFacebookProfileUrl')
+            ->assertHasErrors(['facebook_profile_url']);
+    }
+
+    public function test_contact_form_rejects_invalid_facebook_profile_url(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('facebook_profile_url', 'not-a-url')
+            ->call('saveFacebookProfileUrl')
+            ->assertHasErrors(['facebook_profile_url']);
     }
 
     public function test_unlink_facebook_clears_facebook_id(): void
@@ -227,6 +274,7 @@ class ProfileTest extends TestCase
         $user->profile()->update([
             'facebook_id' => 'fb-to-unlink',
             'facebook_avatar_url' => 'https://facebook.com/avatar.jpg',
+            'facebook_profile_url' => 'https://www.facebook.com/janedoe',
             'facebook_data' => [
                 'profile_url' => 'https://www.facebook.com/zuck',
             ],
@@ -237,11 +285,13 @@ class ProfileTest extends TestCase
         Volt::test('profile.update-contact-information-form')
             ->call('unlinkFacebook')
             ->assertHasNoErrors()
-            ->assertSet('facebook_id', '');
+            ->assertSet('facebook_id', '')
+            ->assertSet('facebook_profile_url', '');
 
         $profile = $user->fresh()->profile;
         $this->assertNull($profile?->facebook_id);
         $this->assertNull($profile?->facebook_avatar_url);
+        $this->assertNull($profile?->facebook_profile_url);
         $this->assertNull($profile?->facebook_data);
     }
 
@@ -1086,6 +1136,36 @@ class ProfileTest extends TestCase
         );
         $this->assertStringContainsString('window.copyToClipboard', $html);
         $this->assertStringNotContainsString('navigator.clipboard?.writeText', $html);
+    }
+
+    public function test_user_contact_popover_uses_manual_facebook_profile_url_without_oauth_link(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'facebook_profile_url' => 'https://www.facebook.com/manual-only',
+            'show_contact_facebook' => true,
+        ]);
+
+        $html = Livewire::actingAs($host)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('https://www.facebook.com/manual-only', $html);
+        $this->assertStringContainsString(__('ui.profile.contact_facebook_profile'), $html);
     }
 
     public function test_user_contact_popover_uses_stored_facebook_provider_data_urls(): void

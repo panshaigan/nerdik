@@ -100,8 +100,12 @@
                             <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_section_facebook') }}</p>
                             <div class="flex flex-wrap items-center gap-2">
                                 <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['profileUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_profile') }}</a>
-                                <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messagesUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_message') }}</a>
-                                <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messengerUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_messenger_message') }}</a>
+                                @if (filled($contacts['facebook']['messagesUrl'] ?? null))
+                                    <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messagesUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_message') }}</a>
+                                @endif
+                                @if (filled($contacts['facebook']['messengerUrl'] ?? null))
+                                    <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messengerUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_messenger_message') }}</a>
+                                @endif
                             </div>
                         </div>
                     @endif

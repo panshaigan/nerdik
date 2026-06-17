@@ -28,6 +28,7 @@ class UserProfile extends Model
         'google_email',
         'facebook_avatar_url',
         'facebook_email',
+        'facebook_profile_url',
         'discord_avatar_url',
         'discord_email',
         'verified_email',
