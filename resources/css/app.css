@@ -1680,3 +1680,21 @@
 ) :is(button, [role='option']) {
     cursor: pointer;
 }
+
+/**
+ * Dashboard feed groups: DaisyUI .collapse sets overflow:hidden (utilities layer),
+ * which clips listing-card hover glow. Unlayered rules must beat layered DaisyUI.
+ */
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) {
+    overflow: visible !important;
+}
+
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .collapse-content,
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .ui-dashboard-feed-collapse-content {
+    overflow: visible !important;
+}
+
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) .ui-dashboard-feed-listings {
+    margin: -2rem -1rem;
+    padding: 2rem 1rem;
+}

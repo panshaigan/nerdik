@@ -46,7 +46,10 @@ class DashboardTimelineFeedTest extends TestCase
             ->assertSee($expectedLabel)
             ->assertSee('Timeline Same Hour Event')
             ->assertSee('Timeline Same Hour Activity')
-            ->assertSeeHtml('data-ui="dashboard-feed-group-'.$sharedStart->getTimestamp().'"');
+            ->assertSeeHtml('data-ui="dashboard-feed-group-'.$sharedStart->getTimestamp().'"')
+            ->assertSeeHtml('ui-dashboard-feed-collapse')
+            ->assertSeeHtml('ui-dashboard-feed-collapse-content')
+            ->assertSeeHtml('ui-dashboard-feed-listings');
     }
 
     public function test_dashboard_shows_separate_timeline_headings_for_different_hours(): void
