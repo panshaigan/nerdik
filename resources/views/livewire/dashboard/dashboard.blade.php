@@ -51,15 +51,16 @@
                         @endphp
                         <li class="list-none">
                             @if ($groupItems->isNotEmpty())
+                                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                                    {{ $group['label'] }}
+                                </p>
                                 <x-collapse
                                     :data-ui="$groupStartsAt ? 'dashboard-feed-group-'.$groupStartsAt->getTimestamp() : 'dashboard-feed-group-no-time'"
                                     separator
                                     :open="$shouldAutoOpen"
                                 >
                                     <x-slot:heading>
-                                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
-                                            {{ $group['label'] }}
-                                        </p>
+                                        <span class="sr-only">{{ $group['label'] }}</span>
                                     </x-slot:heading>
                                     <x-slot:content>
                                         <div class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
