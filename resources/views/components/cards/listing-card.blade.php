@@ -78,13 +78,12 @@
                 <span class="ui-link ui-link-title" data-ui="{{ $d->dataUiPrefix }}-title-link">{{ $d->name }}</span>
             </h3>
             @if ($d->hostUser)
-                <div class="mt-1 pb-2 mb-3">
+                <div class="mt-1 mb-3 pb-2" data-ui="{{ $d->dataUiPrefix }}-host">
                     <x-user-badge
                         :user="$d->hostUser"
                         :organization="$d->hostOrganization"
                         size="sm"
                         nameClass="truncate text-xs font-medium text-slate-400"
-                        data-ui="{{ $d->dataUiPrefix }}-host"
                     />
                 </div>
             @endif

@@ -63,15 +63,15 @@ final class ActivityPreviewAboutPresenter
     private function formatClockRange(mixed $startsAt, mixed $endsAt): string
     {
         if ($startsAt instanceof CarbonInterface && $endsAt instanceof CarbonInterface) {
-            return format_in_user_tz($startsAt, 'H:i').' – '.format_in_user_tz($endsAt, 'H:i');
+            return $startsAt->format('H:i').' – '.$endsAt->format('H:i');
         }
 
         if ($startsAt instanceof CarbonInterface) {
-            return format_in_user_tz($startsAt, 'H:i');
+            return $startsAt->format('H:i');
         }
 
         if ($endsAt instanceof CarbonInterface) {
-            return format_in_user_tz($endsAt, 'H:i');
+            return $endsAt->format('H:i');
         }
 
         return '';
