@@ -58,7 +58,7 @@ class UserContactPopover extends Component
     /**
      * @return array{
      *     email: ?array{address: string, mailto: string, gmail: string},
-     *     facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *     facebook: ?array{profileUrl: string, messagesUrl: ?string, messengerUrl: ?string},
      *     discord: ?array{webUrl: string, appUrl: string},
      * }
      */
@@ -117,7 +117,7 @@ class UserContactPopover extends Component
      *     participationStatsByType: array<int, array{label: string, count: int}>,
      *     contacts: array{
      *         email: ?array{address: string, mailto: string, gmail: string},
-     *         facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *         facebook: ?array{profileUrl: string, messagesUrl: ?string, messengerUrl: ?string},
      *         discord: ?array{webUrl: string, appUrl: string},
      *     },
      * }
@@ -154,7 +154,7 @@ class UserContactPopover extends Component
      *     participationStatsByType: array<int, array{label: string, count: int}>,
      *     contacts: array{
      *         email: ?array{address: string, mailto: string, gmail: string},
-     *         facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *         facebook: ?array{profileUrl: string, messagesUrl: ?string, messengerUrl: ?string},
      *         discord: ?array{webUrl: string, appUrl: string},
      *     },
      * }

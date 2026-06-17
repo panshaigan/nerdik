@@ -19,6 +19,8 @@ new class extends Component
 
     public string $facebook_id = '';
 
+    public string $facebook_profile_url = '';
+
     public string $google_id = '';
 
     public string $discord_id = '';
@@ -42,6 +44,11 @@ new class extends Component
         $user = Auth::user();
         $this->email = $user->email;
         $this->facebook_id = (string) ($user->profile?->facebook_id ?? '');
+        $this->facebook_profile_url = (string) (
+            $user->profile?->facebook_profile_url
+            ?? $user->profile?->facebook_data['profile_url']
+            ?? ''
+        );
         $this->google_id = (string) ($user->profile?->google_id ?? '');
         $this->discord_id = (string) ($user->profile?->discord_id ?? '');
         $this->show_contact_email = (bool) ($user->profile?->show_contact_email ?? false);
@@ -183,6 +190,7 @@ new class extends Component
         $profile->facebook_id = null;
         $profile->facebook_avatar_url = null;
         $profile->facebook_email = null;
+        $profile->facebook_profile_url = null;
         $profile->facebook_data = null;
 
         if ($avatarSourceChanged) {
@@ -195,6 +203,7 @@ new class extends Component
         $profile->save();
 
         $this->facebook_id = '';
+        $this->facebook_profile_url = '';
 
         $this->dispatch('profile-contact-updated');
 
@@ -308,6 +317,48 @@ new class extends Component
     public function updatedShowContactDiscord(bool $value): void
     {
         $this->persistVisibilityToggle('show_contact_discord', $value);
+    }
+
+    public function saveFacebookProfileUrl(): void
+    {
+        $this->reportProfileTabValidation('contact', function (): void {
+            $normalized = trim($this->facebook_profile_url);
+
+            $this->validate([
+                'facebook_profile_url' => [
+                    'nullable',
+                    'string',
+                    'max:2048',
+                    function (string $attribute, mixed $url, \Closure $fail): void {
+                        if (! is_string($url) || $url === '') {
+                            return;
+                        }
+
+                        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+                            $fail(__('validation.url'));
+
+                            return;
+                        }
+
+                        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+                        if (! in_array($host, ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'fb.com'], true)) {
+                            $fail(__('ui.profile.integrations_facebook_profile_url_invalid_host'));
+                        }
+                    },
+                ],
+            ]);
+
+            $user = Auth::user();
+            $profile = $user->profile()->firstOrCreate();
+            $profile->facebook_profile_url = $normalized !== '' ? $normalized : null;
+            $profile->save();
+            $user->setRelation('profile', $profile);
+
+            $this->facebook_profile_url = $normalized;
+
+            $this->toastSuccess(__('ui.common.saved'));
+        });
     }
 
     private function persistVisibilityToggle(string $column, bool $value): void
@@ -432,39 +483,61 @@ new class extends Component
             </div>
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
-            @if ($facebook_id !== '')
-                <div class="flex items-center justify-between gap-4">
-                    <x-input
-                        wire:model="facebook_id"
-                        label="{{ __('ui.profile.integrations_facebook_id_label') }}"
-                        placeholder="{{ __('ui.profile.integrations_facebook_id_label') }}"
-                        type="text"
-                        name="facebook_id"
-                        inline
-                        readonly
-                        disabled
-                    />
-                    <x-button
-                        type="button"
-                        class="btn-outline btn-error w-full max-w-sm"
-                        wire:click="unlinkFacebook"
-                        wire:confirm="{{ __('ui.profile.integrations_facebook_unlink_confirm') }}"
-                    >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
-                    <x-toggle
-                        id="show_contact_facebook"
-                        wire:model.live="show_contact_facebook"
-                        :label="__('ui.profile.contact_visibility_toggle_short')"
-                        right
-                    />
+                <div class="space-y-4">
+                    @if ($facebook_id !== '')
+                        <div class="flex items-center justify-between gap-4">
+                            <x-input
+                                wire:model="facebook_id"
+                                label="{{ __('ui.profile.integrations_facebook_id_label') }}"
+                                placeholder="{{ __('ui.profile.integrations_facebook_id_label') }}"
+                                type="text"
+                                name="facebook_id"
+                                inline
+                                readonly
+                                disabled
+                            />
+                            <x-button
+                                type="button"
+                                class="btn-outline btn-error w-full max-w-sm"
+                                wire:click="unlinkFacebook"
+                                wire:confirm="{{ __('ui.profile.integrations_facebook_unlink_confirm') }}"
+                            >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
+                            <x-toggle
+                                id="show_contact_facebook"
+                                wire:model.live="show_contact_facebook"
+                                :label="__('ui.profile.contact_visibility_toggle_short')"
+                                right
+                            />
+                        </div>
+                    @elseif (config('services.facebook.client_id'))
+                        <div class="flex flex-col gap-4">
+                            <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_facebook_link_hint') }}</p>
+                            {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
+                            <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
+                        </div>
+                    @endif
+
+                    <div class="grid grid-cols-2 items-end gap-4">
+                        <x-input
+                            wire:model="facebook_profile_url"
+                            label="{{ __('ui.profile.integrations_facebook_profile_url_label') }}"
+                            placeholder="{{ __('ui.profile.integrations_facebook_profile_url_placeholder') }}"
+                            type="url"
+                            name="facebook_profile_url"
+                            error-field="facebook_profile_url"
+                            class="min-w-0"
+                            inline
+                            data-ui="profile-facebook-profile-url"
+                        />
+                        <x-button
+                            type="button"
+                            class="btn-primary shrink-0"
+                            wire:click="saveFacebookProfileUrl"
+                            data-ui="profile-facebook-profile-url-save"
+                        >{{ __('ui.common.save') }}</x-button>
+                    </div>
                 </div>
-            @elseif (config('services.facebook.client_id'))
-                <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_facebook_link_hint') }}</p>
-                    {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
-                    <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
-                </div>
-            @endif
-        </div>
+            </div>
 
             <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-discord">
                 @if ($discord_id !== '')

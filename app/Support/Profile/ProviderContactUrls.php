@@ -10,17 +10,19 @@ use Illuminate\Support\Arr;
 final class ProviderContactUrls
 {
     /**
-     * @return array{profileUrl: string, messagesUrl: string, messengerUrl: string}|null
+     * @return array{profileUrl: string, messagesUrl: ?string, messengerUrl: ?string}|null
      */
     public function facebook(UserProfile $profile): ?array
     {
-        if (! filled($profile->facebook_id)) {
+        $userProfileUrl = $this->stringOrNull($profile->facebook_profile_url);
+
+        if (! filled($profile->facebook_id) && $userProfileUrl === null) {
             return null;
         }
 
         $data = is_array($profile->facebook_data) ? $profile->facebook_data : [];
 
-        $profileUrl = $this->stringOrNull(Arr::get($data, 'profile_url'));
+        $profileUrl = $userProfileUrl ?? $this->stringOrNull(Arr::get($data, 'profile_url'));
         $publicId = $this->stringOrNull(Arr::get($data, 'public_id'));
         $messagesUrl = $this->stringOrNull(Arr::get($data, 'messages_url'));
         $messengerUrl = $this->stringOrNull(Arr::get($data, 'messenger_url'));
@@ -29,17 +31,25 @@ final class ProviderContactUrls
             $profileUrl = 'https://www.facebook.com/profile.php?id='.rawurlencode($publicId);
         }
 
-        if ($profileUrl !== null) {
-            $identifier = $publicId ?? $this->stringOrNull(Arr::get($data, 'vanity')) ?? (string) $profile->facebook_id;
-
-            return [
-                'profileUrl' => $profileUrl,
-                'messagesUrl' => $messagesUrl ?? $this->legacyFacebookMessagesUrl($identifier),
-                'messengerUrl' => $messengerUrl ?? $this->legacyFacebookMessengerUrl($identifier),
-            ];
+        if ($profileUrl === null && filled($profile->facebook_id)) {
+            return $this->legacyFacebookUrls((string) $profile->facebook_id);
         }
 
-        return $this->legacyFacebookUrls((string) $profile->facebook_id);
+        if ($profileUrl === null) {
+            return null;
+        }
+
+        $parsed = $this->parseProfileUrl($profileUrl);
+        $identifier = $publicId
+            ?? $parsed['public_id']
+            ?? $parsed['vanity']
+            ?? (filled($profile->facebook_id) ? (string) $profile->facebook_id : null);
+
+        return [
+            'profileUrl' => $profileUrl,
+            'messagesUrl' => $messagesUrl ?? ($identifier !== null ? $this->legacyFacebookMessagesUrl($identifier) : null),
+            'messengerUrl' => $messengerUrl ?? ($identifier !== null ? $this->legacyFacebookMessengerUrl($identifier) : null),
+        ];
     }
 
     /**
@@ -96,6 +106,45 @@ final class ProviderContactUrls
         return [
             'webUrl' => 'https://discord.com/users/'.rawurlencode($discordId),
             'appUrl' => 'discord://-/users/'.rawurlencode($discordId),
+        ];
+    }
+
+    /**
+     * @return array{vanity: ?string, public_id: ?string}|null
+     */
+    private function parseProfileUrl(string $profileUrl): ?array
+    {
+        $parts = parse_url($profileUrl);
+        if (! is_array($parts)) {
+            return null;
+        }
+
+        $path = $parts['path'] ?? '';
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        if (str_contains($path, 'profile.php')) {
+            parse_str($parts['query'] ?? '', $query);
+
+            $publicId = $query['id'] ?? null;
+
+            return [
+                'vanity' => null,
+                'public_id' => is_string($publicId) && $publicId !== '' ? $publicId : null,
+            ];
+        }
+
+        $segments = array_values(array_filter(explode('/', trim($path, '/'))));
+        $vanity = $segments[0] ?? null;
+
+        if (! is_string($vanity) || $vanity === '' || in_array($vanity, ['people', 'pages', 'groups', 'app_scoped_user_id'], true)) {
+            return null;
+        }
+
+        return [
+            'vanity' => $vanity,
+            'public_id' => null,
         ];
     }
 

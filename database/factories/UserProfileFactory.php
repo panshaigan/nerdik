@@ -30,6 +30,7 @@ final class UserProfileFactory extends Factory
             'google_email' => null,
             'facebook_avatar_url' => null,
             'facebook_email' => null,
+            'facebook_profile_url' => null,
             'discord_avatar_url' => null,
             'discord_email' => null,
             'show_contact_email' => false,

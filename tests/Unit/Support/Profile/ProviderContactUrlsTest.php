@@ -73,6 +73,47 @@ final class ProviderContactUrlsTest extends TestCase
     }
 
     #[Test]
+    public function facebook_prefers_user_profile_url_over_oauth_profile_url(): void
+    {
+        $profile = $this->profileWithFacebookData([
+            'profile_url' => 'https://www.facebook.com/zuck',
+            'messages_url' => 'https://www.facebook.com/messages/t/zuck',
+            'messenger_url' => 'https://m.me/zuck',
+        ]);
+        $profile->forceFill([
+            'facebook_profile_url' => 'https://www.facebook.com/janedoe',
+        ])->save();
+
+        $urls = $this->resolver->facebook($profile->fresh());
+
+        $this->assertSame([
+            'profileUrl' => 'https://www.facebook.com/janedoe',
+            'messagesUrl' => 'https://www.facebook.com/messages/t/zuck',
+            'messengerUrl' => 'https://m.me/zuck',
+        ], $urls);
+    }
+
+    #[Test]
+    public function facebook_uses_manual_profile_url_without_oauth_link(): void
+    {
+        $user = User::factory()->create();
+        $profile = $user->profile;
+        $profile->forceFill([
+            'facebook_id' => null,
+            'facebook_data' => null,
+            'facebook_profile_url' => 'https://www.facebook.com/manual-only',
+        ])->save();
+
+        $urls = $this->resolver->facebook($profile->fresh());
+
+        $this->assertSame([
+            'profileUrl' => 'https://www.facebook.com/manual-only',
+            'messagesUrl' => 'https://www.facebook.com/messages/t/manual-only',
+            'messengerUrl' => 'https://m.me/manual-only',
+        ], $urls);
+    }
+
+    #[Test]
     public function discord_prefers_stored_provider_data_urls(): void
     {
         $profile = $this->profileWithDiscordData([
