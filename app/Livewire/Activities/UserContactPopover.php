@@ -94,6 +94,7 @@ class UserContactPopover extends Component
 
         $facebook = $profile !== null
             && (bool) ($profile->show_contact_facebook ?? true)
+            && filled($profile->facebook_profile_url)
             ? $contactUrls->facebook($profile)
             : null;
 

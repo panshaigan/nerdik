@@ -2,6 +2,7 @@
 
 use App\Actions\Profile\SwitchEmailToProvider;
 use App\Enums\AvatarSource;
+use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Support\Profile\ProviderEmailOptions;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     use ReportsProfileTabValidation;
+    use WithUiConfirmModal;
 
     public string $email = '';
 
@@ -135,6 +137,50 @@ new class extends Component
                 'noProgress' => false,
             ],
         ]).')');
+    }
+
+    public function confirmUnlinkGoogle(): void
+    {
+        $this->openConfirm(
+            'unlink_google',
+            __('ui.profile.integrations_google_unlink'),
+            __('ui.profile.integrations_google_unlink_confirm'),
+        );
+    }
+
+    public function confirmUnlinkFacebook(): void
+    {
+        $this->openConfirm(
+            'unlink_facebook',
+            __('ui.profile.integrations_facebook_unlink'),
+            __('ui.profile.integrations_facebook_unlink_confirm'),
+        );
+    }
+
+    public function confirmUnlinkDiscord(): void
+    {
+        $this->openConfirm(
+            'unlink_discord',
+            __('ui.profile.integrations_discord_unlink'),
+            __('ui.profile.integrations_discord_unlink_confirm'),
+        );
+    }
+
+    public function runConfirmedAction(): void
+    {
+        $action = $this->pendingAction;
+        $this->closeConfirm();
+
+        if ($action === null) {
+            return;
+        }
+
+        match ($action) {
+            'unlink_google' => $this->unlinkGoogle(),
+            'unlink_facebook' => $this->unlinkFacebook(),
+            'unlink_discord' => $this->unlinkDiscord(),
+            default => null,
+        };
     }
 
     public function unlinkGoogle(): void
@@ -463,8 +509,8 @@ new class extends Component
                         <x-button
                             type="button"
                             class="btn-outline btn-error w-full max-w-sm"
-                            wire:click="unlinkGoogle"
-                            wire:confirm="{{ __('ui.profile.integrations_google_unlink_confirm') }}"
+                            wire:click="confirmUnlinkGoogle"
+                            data-ui="profile-google-unlink"
                         >{{ __('ui.profile.integrations_google_unlink') }}</x-button>
                         <x-toggle
                             id="show_contact_google"
@@ -499,8 +545,8 @@ new class extends Component
                             <x-button
                                 type="button"
                                 class="btn-outline btn-error w-full max-w-sm"
-                                wire:click="unlinkFacebook"
-                                wire:confirm="{{ __('ui.profile.integrations_facebook_unlink_confirm') }}"
+                                wire:click="confirmUnlinkFacebook"
+                                data-ui="profile-facebook-unlink"
                             >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
                             <x-toggle
                                 id="show_contact_facebook"
@@ -517,21 +563,23 @@ new class extends Component
                         </div>
                     @endif
 
-                    <div class="grid grid-cols-2 items-end gap-4">
-                        <x-input
-                            wire:model="facebook_profile_url"
-                            label="{{ __('ui.profile.integrations_facebook_profile_url_label') }}"
-                            placeholder="{{ __('ui.profile.integrations_facebook_profile_url_placeholder') }}"
-                            type="url"
-                            name="facebook_profile_url"
-                            error-field="facebook_profile_url"
-                            class="min-w-0"
-                            inline
-                            data-ui="profile-facebook-profile-url"
-                        />
+                    <div class="flex items-center gap-4">
+                        <div class="w-1/2">
+                            <x-input
+                                wire:model="facebook_profile_url"
+                                label="{{ __('ui.profile.integrations_facebook_profile_url_label') }}"
+                                placeholder="{{ __('ui.profile.integrations_facebook_profile_url_placeholder') }}"
+                                type="url"
+                                name="facebook_profile_url"
+                                error-field="facebook_profile_url"
+                                class="min-w-0"
+                                inline
+                                data-ui="profile-facebook-profile-url"
+                            />
+                        </div>
                         <x-button
                             type="button"
-                            class="btn-primary shrink-0"
+                            class="btn-primary"
                             wire:click="saveFacebookProfileUrl"
                             data-ui="profile-facebook-profile-url-save"
                         >{{ __('ui.common.save') }}</x-button>
@@ -555,8 +603,8 @@ new class extends Component
                         <x-button
                             type="button"
                             class="btn-outline btn-error w-full max-w-sm"
-                            wire:click="unlinkDiscord"
-                            wire:confirm="{{ __('ui.profile.integrations_discord_unlink_confirm') }}"
+                            wire:click="confirmUnlinkDiscord"
+                            data-ui="profile-discord-unlink"
                         >{{ __('ui.profile.integrations_discord_unlink') }}</x-button>
                         <x-toggle
                             id="show_contact_discord"
@@ -575,4 +623,12 @@ new class extends Component
             </div>
         </div>
     </fieldset>
+
+    <x-ui.confirm-modal
+        wire:model="confirmModalOpen"
+        :title="$confirmModalTitle"
+        :message="$confirmModalMessage"
+        confirm-action="runConfirmedAction"
+        data-ui="profile-integration-unlink-modal"
+    />
 </section>
