@@ -15,6 +15,13 @@ class Editor extends MaryEditor
             'statusbar' => false,
             'quickbars_selection_toolbar' => false,
             'block_formats' => __('ui.editor.block_formats'),
+            'mobile' => [
+                'toolbar' => 'undo redo | blocks | bold italic underline | bullist numlist | link',
+                'toolbar_mode' => 'scrolling',
+                'statusbar' => false,
+                'quickbars_selection_toolbar' => false,
+                'plugins' => 'advlist autolink lists link quickbars',
+            ],
         ], $this->config ?? []);
 
         return parent::setup();
