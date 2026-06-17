@@ -12,11 +12,38 @@
 nerdik.app {
 	encode gzip
 
+	@maintenance file /etc/caddy/state/maintenance
+
+	handle @maintenance {
+		root * /etc/caddy/maintenance
+		rewrite * /index.html
+		header Cache-Control "no-store"
+		header Retry-After "300"
+		file_server
+	}
+
 	handle /app/* {
 		reverse_proxy nerdik-prod-reverb:8080
 	}
 
-	reverse_proxy nerdik-prod-app:80
+	handle {
+		reverse_proxy nerdik-prod-app:80 {
+			transport http {
+				read_timeout 30s
+				dial_timeout 5s
+			}
+		}
+	}
+
+	handle_errors {
+		@upstream expression {http.error.status_code} >= 502 && {http.error.status_code} <= 504
+		handle @upstream {
+			root * /etc/caddy/maintenance
+			rewrite * /index.html
+			header Cache-Control "no-store"
+			file_server
+		}
+	}
 }
 
 staging.nerdik.app {

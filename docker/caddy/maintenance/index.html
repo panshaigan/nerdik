@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Nerdik — Maintenance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Figtree:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: oklch(0.722 0.126 225.422);
+            --primary-dark: oklch(0.6 0.126 225.422);
+            --base-100: oklch(97% 0.015 242);
+            --base-200: oklch(94% 0.02 242);
+            --base-content: oklch(25% 0.04 242);
+            --muted: oklch(45% 0.03 242);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+            background: var(--base-100);
+            color: var(--base-content);
+            line-height: 1.6;
+        }
+
+        .card {
+            max-width: 28rem;
+            width: 100%;
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: white;
+            border-radius: 1rem;
+            border: 1px solid var(--base-200);
+            box-shadow: 0 4px 24px oklch(25% 0.04 242 / 0.08);
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto 1.5rem;
+            width: 4rem;
+            height: 4rem;
+            color: var(--primary);
+        }
+
+        h1 {
+            font-family: 'Cinzel', ui-serif, Georgia, serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--base-content);
+        }
+
+        p {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .spinner {
+            margin: 1.75rem auto 0;
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid var(--base-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="271 153 827 809" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M 685 157 L 683 159 L 681 161 L 680 163 L 678 167 L 676 171 L 673 176 L 670 182 L 666 189 L 662 196 L 658 204 L 654 211 L 650 218 L 646 225 L 642 233 L 638 240 L 634 248 L 630 255 L 626 262 L 622 269 L 618 277 L 614 284 L 610 291 L 606 298 L 602 306 L 598 313 L 594 320 L 590 328 L 586 335 L 582 342 L 578 350 L 574 357 L 570 364 L 566 371 L 562 378 L 558 386 L 554 393 L 550 400 L 546 408 L 542 416 L 538 422 L 534 429 L 530 436 L 526 444 L 522 451 L 518 458 L 514 466 L 510 473 L 506 480 L 502 487 L 498 495 L 494 502 L 490 509 L 486 516 L 482 524 L 478 531 L 474 538 L 470 546 L 466 553 L 462 560 L 458 567 L 454 574 L 450 582 L 446 589 L 442 596 L 438 604 L 434 611 L 430 618 L 426 625 L 422 632 L 418 640 L 414 647 L 410 654 L 406 662 L 402 669 L 398 677 L 394 684 L 390 691 L 386 698 L 382 705 L 378 713 L 374 720 L 370 727 L 366 734 L 362 742 L 358 749 L 354 756 L 350 764 L 346 771 L 342 778 L 338 786 L 334 793 L 330 800 L 326 807 L 322 814 L 318 822 L 314 829 L 310 836 L 306 844 L 302 851 L 298 858 L 294 866 L 290 873 L 286 880 L 282 888 L 278 895 L 275 901 L 276 902 L 576 902 L 607 901 L 617 902 L 624 903 L 635 905 L 642 907 L 650 910 L 657 913 L 662 916 L 673 926 L 678 935 L 680 941 L 682 952 L 685 958 L 686 952 L 688 939 L 691 932 L 695 927 L 702 919 L 710 914 L 720 910 L 732 907 L 743 904 L 756 903 L 767 902 L 1069 902 L 1094 901 L 1089 893 L 1084 883 L 1079 874 L 1074 865 L 1069 856 L 1064 847 L 1059 838 L 1054 829 L 1049 820 L 1044 811 L 1039 802 L 1034 793 L 1029 784 L 1024 775 L 1019 766 L 1014 757 L 1009 748 L 1004 739 L 999 730 L 994 721 L 989 712 L 984 703 L 979 694 L 974 685 L 969 676 L 964 667 L 959 658 L 954 649 L 949 640 L 944 631 L 939 622 L 934 613 L 929 604 L 924 595 L 919 586 L 914 577 L 909 568 L 904 559 L 899 550 L 894 541 L 889 532 L 884 523 L 879 514 L 874 505 L 869 496 L 864 487 L 859 478 L 854 469 L 849 460 L 844 451 L 839 442 L 834 433 L 829 424 L 824 415 L 819 406 L 814 397 L 809 388 L 804 379 L 799 370 L 794 361 L 789 352 L 784 343 L 779 334 L 774 325 L 769 316 L 764 307 L 759 298 L 754 289 L 749 280 L 744 271 L 739 262 L 734 253 L 729 244 L 724 235 L 719 226 L 714 217 L 709 208 L 704 199 L 699 190 L 694 181 L 689 172 L 686 161 L 685 159 Z"/>
+            <path d="M 848 618 L 850 618 L 851 620 L 850 623 L 848 628 L 846 636 L 844 643 L 842 650 L 840 656 L 838 661 L 836 665 L 832 672 L 829 678 L 825 685 L 820 693 L 815 700 L 808 708 L 797 720 L 791 725 L 784 730 L 778 734 L 773 737 L 767 740 L 764 742 L 759 744 L 754 746 L 750 747 L 746 749 L 743 750 L 737 754 L 731 758 L 726 762 L 719 768 L 716 772 L 713 776 L 710 781 L 708 785 L 706 790 L 705 793 L 704 796 L 703 803 L 702 809 L 701 831 L 702 838 L 704 845 L 706 850 L 709 855 L 713 862 L 718 869 L 728 880 L 735 885 L 740 888 L 746 891 L 752 894 L 753 896 L 743 897 L 733 899 L 725 901 L 716 904 L 709 907 L 703 911 L 697 915 L 690 921 L 688 924 L 686 928 L 684 931 L 682 929 L 677 921 L 670 913 L 664 909 L 659 906 L 653 904 L 648 902 L 643 900 L 639 899 L 635 899 L 631 892 L 638 881 L 650 870 L 655 863 L 658 858 L 660 853 L 661 851 L 662 848 L 663 844 L 664 841 L 665 837 L 666 832 L 667 808 L 666 803 L 665 798 L 664 795 L 663 791 L 662 789 L 661 786 L 660 784 L 659 782 L 658 780 L 656 777 L 653 773 L 650 769 L 647 766 L 644 762 L 639 758 L 636 756 L 633 754 L 630 753 L 627 751 L 624 750 L 621 748 L 618 747 L 615 746 L 612 744 L 609 743 L 606 742 L 603 740 L 600 739 L 597 738 L 594 736 L 591 735 L 588 732 L 585 731 L 581 728 L 578 726 L 573 722 L 555 705 L 551 700 L 547 694 L 543 688 L 539 681 L 535 673 L 531 665 L 527 655 L 525 646 L 523 640 L 522 636 L 521 632 L 520 628 L 519 623 L 518 618 L 519 621 L 522 622 L 525 623 L 528 625 L 531 626 L 534 627 L 537 628 L 540 629 L 543 629 L 546 630 L 551 631 L 556 632 L 562 633 L 568 634 L 575 635 L 581 636 L 589 637 L 599 638 L 614 639 L 631 640 L 671 641 L 711 642 L 737 641 L 751 640 L 767 639 L 775 638 L 783 637 L 790 636 L 797 635 L 803 634 L 808 633 L 812 632 L 817 631 L 821 630 L 824 629 L 827 628 L 831 627 L 834 625 L 837 624 L 839 623 L 841 623 L 843 621 L 845 620 L 846 620 Z"/>
+        </svg>
+        <h1>We'll be right back</h1>
+        <p>We're updating Nerdik and will be back shortly. Thanks for your patience.</p>
+        <div class="spinner" role="status" aria-label="Loading"></div>
+    </main>
+</body>
+</html>
