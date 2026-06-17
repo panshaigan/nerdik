@@ -41,7 +41,7 @@
 
 @if ($canRenderContactPopover)
     @php
-        $containerClass = trim('inline-flex min-w-0 '.(string) ($attributes->get('class') ?? ''));
+        $containerClass = trim('inline-flex min-w-0 overflow-visible '.(string) ($attributes->get('class') ?? ''));
     @endphp
     <livewire:activities.user-badge-contact
         :user="$user"
@@ -67,7 +67,7 @@
         </div>
     </div>
 @else
-    <div {{ $attributes->class('flex items-center gap-2 min-w-0') }}>
+    <div {{ $attributes->class('flex items-center gap-2 min-w-0 overflow-visible') }}>
         <div class="avatar">
             <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
                 <img

@@ -1457,17 +1457,35 @@
     }
 
     /**
-     * Clickable user badge contact trigger: avatar glow on hover/focus only.
+     * Clickable user badge contact trigger: inset avatar glow (never clipped by list rows).
      */
     .ui-user-badge-contact-trigger .avatar > div {
-        transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        transition:
+            border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ui-user-badge-contact-trigger .avatar > div img {
+        transition: filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .ui-user-badge-contact-trigger:is(:hover, :focus-visible) .avatar > div {
+        border-color: color-mix(in oklab, var(--color-primary) 55%, var(--color-base-300));
         box-shadow:
-            0 0 0 2px color-mix(in oklab, var(--color-primary) 35%, transparent),
-            0 0 16px color-mix(in oklch, var(--color-accent) 28%, transparent),
-            0 0 24px color-mix(in oklch, var(--color-primary) 18%, transparent);
+            inset 0 0 10px 2px color-mix(in oklch, var(--color-primary) 42%, transparent),
+            inset 0 0 18px 4px color-mix(in oklch, var(--color-accent) 28%, transparent);
+    }
+
+    .ui-user-badge-contact-trigger:is(:hover, :focus-visible) .avatar > div img {
+        filter: brightness(1.12);
+    }
+
+    /**
+     * Participant / waitlist rows: Mary list-item content uses overflow-hidden + truncate.
+     */
+    .ui-participant-list-item .mary-hideable,
+    .ui-participant-list-item .mary-hideable .truncate {
+        overflow: visible !important;
     }
 
     /**
