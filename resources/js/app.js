@@ -1,4 +1,6 @@
 import './bootstrap';
+import './close-modals-on-navigate';
+import './copy-to-clipboard';
 import './tinymce-field-chrome';
 import './image-cropper';
 import './notifications-echo';

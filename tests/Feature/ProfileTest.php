@@ -708,7 +708,23 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
-        $this->assertStringContainsString('cursor-pointer', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
+        $this->assertStringContainsString('livewire:navigating', $html);
+    }
+
+    public function test_user_badge_contact_close_modal_resets_state(): void
+    {
+        $viewer = User::factory()->create();
+        $target = User::factory()->create();
+
+        Livewire::actingAs($viewer)
+            ->test(UserBadgeContact::class, [
+                'user' => $target,
+            ])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->call('closeModal')
+            ->assertSet('modalOpen', false);
     }
 
     public function test_user_badge_contact_does_not_render_modal_trigger_for_guest(): void
@@ -810,9 +826,123 @@ class ProfileTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('mailto:participant@example.test', $html);
+        $this->assertStringContainsString('https://www.facebook.com/profile.php?id=12345', $html);
         $this->assertStringContainsString('https://www.facebook.com/messages/t/12345', $html);
+        $this->assertStringContainsString('https://m.me/12345', $html);
         $this->assertStringContainsString('https://discord.com/users/67890', $html);
+        $this->assertStringContainsString('discord://-/users/67890', $html);
+        $this->assertStringContainsString(__('ui.profile.contact_section_email'), $html);
+        $this->assertStringContainsString(__('ui.profile.contact_section_facebook'), $html);
+        $this->assertStringContainsString(__('ui.profile.contact_section_discord'), $html);
         $this->assertStringNotContainsString('participant-google@example.test', $html);
+        $this->assertStringContainsString(
+            __('ui.profile.contact_participation_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_RPG)]),
+            $html,
+        );
+        $this->assertStringContainsString('window.copyToClipboard', $html);
+        $this->assertStringNotContainsString('navigator.clipboard?.writeText', $html);
+    }
+
+    public function test_app_layout_exposes_copy_to_clipboard_ui_strings(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('window.__ui', false)
+            ->assertSee(__('ui.common.copied'), false)
+            ->assertSee(__('ui.common.copy_failed'), false);
+    }
+
+    public function test_user_contact_popover_shows_hosted_stats_by_type(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $rpgType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $boardType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_BOARD]);
+
+        Activity::factory()->count(2)->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $rpgType->id,
+        ]);
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $boardType->id,
+        ]);
+
+        $html = Livewire::actingAs($viewer)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $host->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString(__('ui.profile.contact_hosted_section'), $html);
+        $this->assertStringContainsString(
+            __('ui.profile.contact_hosted_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_RPG)]),
+            $html,
+        );
+        $this->assertStringContainsString(
+            __('ui.profile.contact_hosted_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_BOARD)]),
+            $html,
+        );
+    }
+
+    public function test_user_contact_popover_shows_hero_with_organization(): void
+    {
+        $viewer = User::factory()->create();
+        $organization = Organization::factory()->create([
+            'name' => 'Castle Games Night',
+            'acronym' => 'CGN',
+        ]);
+        $target = User::factory()->create([
+            'nickname' => 'pixel_mage',
+            'organization_id' => $organization->id,
+        ]);
+
+        $html = Livewire::actingAs($viewer)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('data-ui="user-contact-popover-hero"', $html);
+        $this->assertStringContainsString('h-28 w-28', $html);
+        $this->assertStringContainsString('pixel_mage', $html);
+        $this->assertStringContainsString('data-ui="user-contact-popover-organization"', $html);
+        $this->assertStringContainsString('CGN', $html);
+        $this->assertStringNotContainsString('pixel_mage [CGN]', $html);
+    }
+
+    public function test_user_contact_popover_uses_google_email_when_main_email_hidden(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create(['email' => 'participant@example.test']);
+        $type = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $type->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+        $participant->profile()->update([
+            'google_email' => 'participant-google@example.test',
+            'show_contact_email' => false,
+            'show_contact_google' => true,
+        ]);
+
+        $html = Livewire::actingAs($host)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $participant->id,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('mailto:participant-google@example.test', $html);
+        $this->assertStringNotContainsString('mailto:participant@example.test', $html);
     }
 
     public function test_user_contact_popover_hides_google_email_when_main_email_is_shown(): void

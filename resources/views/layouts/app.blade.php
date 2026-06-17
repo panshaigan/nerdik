@@ -13,6 +13,14 @@
 
         <x-theme-script />
 
+        <script>
+            window.__ui = {
+                ...(window.__ui ?? {}),
+                copied: @json(__('ui.common.copied')),
+                copy_failed: @json(__('ui.common.copy_failed')),
+            };
+        </script>
+
         @stack('head')
 
         <!-- Scripts -->
