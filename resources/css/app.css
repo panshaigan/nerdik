@@ -1447,6 +1447,30 @@
     }
 
     /**
+     * Hide Mary modals during wire:navigate swaps (prevents cached snapshot flash on browser back).
+     */
+    html.ui-navigating dialog.modal,
+    html.ui-navigating dialog.modal-open {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /**
+     * Clickable user badge contact trigger: avatar glow on hover/focus only.
+     */
+    .ui-user-badge-contact-trigger .avatar > div {
+        transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ui-user-badge-contact-trigger:is(:hover, :focus-visible) .avatar > div {
+        box-shadow:
+            0 0 0 2px color-mix(in oklab, var(--color-primary) 35%, transparent),
+            0 0 16px color-mix(in oklch, var(--color-accent) 28%, transparent),
+            0 0 24px color-mix(in oklch, var(--color-primary) 18%, transparent);
+    }
+
+    /**
      * Surface: stable border + inset only (no outer glow — that snaps; glow is on ::after).
      */
     .card.ui-listing-card .ui-listing-card__surface {

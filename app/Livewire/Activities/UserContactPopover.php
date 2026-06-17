@@ -13,16 +13,123 @@ class UserContactPopover extends Component
     public int $targetUserId;
 
     /**
+     * @return array<int, array{label: string, count: int}>
+     */
+    private function participationStatsByType(int $userId): array
+    {
+        return ActivityUser::query()
+            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
+            ->join('activities', 'activities.id', '=', 'activity_user.activity_id')
+            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
+            ->where('activity_user.user_id', $userId)
+            ->whereNull('activity_user.deleted_at')
+            ->whereNull('activities.deleted_at')
+            ->groupBy('activity_types.slug')
+            ->orderByRaw('count(*) desc')
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
+                'count' => (int) $row->total,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{label: string, count: int}>
+     */
+    private function hostedStatsByType(int $userId): array
+    {
+        return Activity::query()
+            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
+            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
+            ->where('activities.created_by', $userId)
+            ->whereNull('activities.deleted_at')
+            ->groupBy('activity_types.slug')
+            ->orderByRaw('count(*) desc')
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
+                'count' => (int) $row->total,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array{
+     *     email: ?array{address: string, mailto: string, gmail: string},
+     *     facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *     discord: ?array{webUrl: string, appUrl: string},
+     * }
+     */
+    private function resolveContactSections(User $targetUser, bool $canViewContact): array
+    {
+        $empty = [
+            'email' => null,
+            'facebook' => null,
+            'discord' => null,
+        ];
+
+        if (! $canViewContact) {
+            return $empty;
+        }
+
+        $profile = $targetUser->profile;
+
+        $emailAddress = null;
+        if ((bool) ($profile?->show_contact_email ?? false) && filled($targetUser->email)) {
+            $emailAddress = (string) $targetUser->email;
+        } elseif ((bool) ($profile?->show_contact_google ?? true) && filled($profile?->google_email)) {
+            $emailAddress = (string) $profile?->google_email;
+        }
+
+        $email = $emailAddress !== null
+            ? [
+                'address' => $emailAddress,
+                'mailto' => 'mailto:'.$emailAddress,
+                'gmail' => 'https://mail.google.com/mail/?view=cm&to='.rawurlencode($emailAddress),
+            ]
+            : null;
+
+        $facebookId = filled($profile?->facebook_id) && (bool) ($profile?->show_contact_facebook ?? true)
+            ? (string) $profile?->facebook_id
+            : null;
+
+        $facebook = $facebookId !== null
+            ? [
+                'profileUrl' => 'https://www.facebook.com/profile.php?id='.rawurlencode($facebookId),
+                'messagesUrl' => 'https://www.facebook.com/messages/t/'.rawurlencode($facebookId),
+                'messengerUrl' => 'https://m.me/'.rawurlencode($facebookId),
+            ]
+            : null;
+
+        $discordId = filled($profile?->discord_id) && (bool) ($profile?->show_contact_discord ?? true)
+            ? (string) $profile?->discord_id
+            : null;
+
+        $discord = $discordId !== null
+            ? [
+                'webUrl' => 'https://discord.com/users/'.rawurlencode($discordId),
+                'appUrl' => 'discord://-/users/'.rawurlencode($discordId),
+            ]
+            : null;
+
+        return [
+            'email' => $email,
+            'facebook' => $facebook,
+            'discord' => $discord,
+        ];
+    }
+
+    /**
      * @return array{
      *     canViewContact: bool,
      *     targetUser: ?User,
-     *     statsByType: array<int, array{label: string, count: int}>,
-     *     hostedActivitiesCount: int,
+     *     hostedStatsByType: array<int, array{label: string, count: int}>,
+     *     participationStatsByType: array<int, array{label: string, count: int}>,
      *     contacts: array{
-     *         email: ?string,
-     *         facebook: ?string,
-     *         google: ?string,
-     *         discord: ?string,
+     *         email: ?array{address: string, mailto: string, gmail: string},
+     *         facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *         discord: ?array{webUrl: string, appUrl: string},
      *     },
      * }
      */
@@ -41,51 +148,12 @@ class UserContactPopover extends Component
 
         $canViewContact = $contactVisibility->canViewContactInfo($viewer, $targetUser);
 
-        $statsByType = ActivityUser::query()
-            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
-            ->join('activities', 'activities.id', '=', 'activity_user.activity_id')
-            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
-            ->where('activity_user.user_id', $targetUser->id)
-            ->whereNull('activity_user.deleted_at')
-            ->whereNull('activities.deleted_at')
-            ->groupBy('activity_types.slug')
-            ->orderByRaw('count(*) desc')
-            ->get()
-            ->map(fn ($row): array => [
-                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
-                'count' => (int) $row->total,
-            ])
-            ->all();
-
-        $hostedActivitiesCount = Activity::query()
-            ->where('created_by', $targetUser->id)
-            ->whereNull('deleted_at')
-            ->count();
-
-        $profile = $targetUser->profile;
-        $contacts = [
-            'email' => ($canViewContact && (bool) ($profile?->show_contact_email ?? false)) ? $targetUser->email : null,
-            'facebook' => ($canViewContact && (bool) ($profile?->show_contact_facebook ?? true))
-                ? (filled($profile?->facebook_id) ? 'https://www.facebook.com/messages/t/'.rawurlencode((string) $profile?->facebook_id) : null)
-                : null,
-            'google' => ($canViewContact && (bool) ($profile?->show_contact_google ?? true))
-                ? (filled($profile?->google_email) ? (string) $profile?->google_email : null)
-                : null,
-            'discord' => ($canViewContact && (bool) ($profile?->show_contact_discord ?? true))
-                ? (filled($profile?->discord_id) ? 'https://discord.com/users/'.rawurlencode((string) $profile?->discord_id) : null)
-                : null,
-        ];
-
-        if (filled($contacts['email'])) {
-            $contacts['google'] = null;
-        }
-
         return [
             'canViewContact' => $canViewContact,
             'targetUser' => $targetUser,
-            'statsByType' => $statsByType,
-            'hostedActivitiesCount' => $hostedActivitiesCount,
-            'contacts' => $contacts,
+            'hostedStatsByType' => $this->hostedStatsByType($targetUser->id),
+            'participationStatsByType' => $this->participationStatsByType($targetUser->id),
+            'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
         ];
     }
 
@@ -93,9 +161,13 @@ class UserContactPopover extends Component
      * @return array{
      *     canViewContact: bool,
      *     targetUser: ?User,
-     *     statsByType: array<int, array{label: string, count: int}>,
-     *     hostedActivitiesCount: int,
-     *     contacts: array{email: ?string, facebook: ?string, google: ?string, discord: ?string},
+     *     hostedStatsByType: array<int, array{label: string, count: int}>,
+     *     participationStatsByType: array<int, array{label: string, count: int}>,
+     *     contacts: array{
+     *         email: ?array{address: string, mailto: string, gmail: string},
+     *         facebook: ?array{profileUrl: string, messagesUrl: string, messengerUrl: string},
+     *         discord: ?array{webUrl: string, appUrl: string},
+     *     },
      * }
      */
     private function emptyState(): array
@@ -103,12 +175,11 @@ class UserContactPopover extends Component
         return [
             'canViewContact' => false,
             'targetUser' => null,
-            'statsByType' => [],
-            'hostedActivitiesCount' => 0,
+            'hostedStatsByType' => [],
+            'participationStatsByType' => [],
             'contacts' => [
                 'email' => null,
                 'facebook' => null,
-                'google' => null,
                 'discord' => null,
             ],
         ];

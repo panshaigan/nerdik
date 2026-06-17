@@ -30,6 +30,11 @@ class UserBadgeContact extends Component
         $this->modalOpen = true;
     }
 
+    public function closeModal(): void
+    {
+        $this->modalOpen = false;
+    }
+
     public function render()
     {
         return view('livewire.activities.user-badge-contact');
