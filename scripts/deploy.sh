@@ -136,6 +136,10 @@ if [[ "$PULL_ONLY" == "1" ]]; then
     exit 0
 fi
 
+if [[ "$DEPLOY_ENV" == "prod" && "${SKIP_MAINTENANCE:-0}" != "1" ]]; then
+    "${ROOT}/scripts/maintenance.sh" on
+fi
+
 "${COMPOSE[@]}" up -d
 "${COMPOSE[@]}" exec -T app php artisan migrate --force
 "${COMPOSE[@]}" exec -T app php artisan config:cache
@@ -157,5 +161,9 @@ fi
 
 printf 'NERDIK_IMAGE=%s\n' "${NERDIK_IMAGE}" > .nerdik-image
 chmod 600 .nerdik-image
+
+if [[ "$DEPLOY_ENV" == "prod" && "${SKIP_MAINTENANCE:-0}" != "1" ]]; then
+    "${ROOT}/scripts/maintenance.sh" off
+fi
 
 echo "Deploy complete for ${DEPLOY_ENV}. Verify: curl -fsS \"${APP_URL:-https://localhost}/up\""

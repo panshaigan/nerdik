@@ -286,6 +286,28 @@ IMAGE_TAG=<git-sha> make prod-deploy
 
 Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image you want.
 
+### Maintenance mode
+
+Production serves a branded static page from Caddy when maintenance is enabled. This covers deploy downtime (app container restarting) and manual maintenance windows.
+
+| Command | Action |
+|---------|--------|
+| `make prod-maintenance-on` | Show maintenance page immediately |
+| `make prod-maintenance-off` | Return to normal traffic |
+| `make prod-maintenance-status` | Print `ON` or `OFF` |
+
+`make vps-deploy` and `make prod-deploy` **enable maintenance automatically** before containers restart and disable it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
+
+Emergency bypass (skip auto maintenance during deploy):
+
+```bash
+SKIP_MAINTENANCE=1 make prod-deploy
+```
+
+The flag file lives at `docker/caddy/state/maintenance` on the VPS host. Caddy reads it per request — no reload needed when toggling manually.
+
+After pulling this feature for the first time, run `make vps-deploy` once so Caddy is recreated with the maintenance volume mounts.
+
 ### Promote the same SHA from staging to production
 
 ```bash

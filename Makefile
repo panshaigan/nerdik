@@ -8,7 +8,8 @@ SEED_DATASET ?= minimal
         npm-install npm-dev npm-build tinker serve composer-install composer-require \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
-        staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan deploy vps-deploy \
+        staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan prod-maintenance-on \
+        prod-maintenance-off prod-maintenance-status deploy vps-deploy \
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
         sync-from-prod-storage sync-from-prod-tables prod-to-staging-sync prod-to-staging-sync-remote \
         prod-to-staging-sync-tables prod-to-staging-sync-tables-remote ci-check \
@@ -183,6 +184,15 @@ prod-deploy:
 
 prod-artisan:
 	./scripts/compose-exec.sh prod exec -T app php artisan $(filter-out $@,$(MAKECMDGOALS))
+
+prod-maintenance-on:
+	./scripts/maintenance.sh on
+
+prod-maintenance-off:
+	./scripts/maintenance.sh off
+
+prod-maintenance-status:
+	./scripts/maintenance.sh status
 
 prod-refresh:
 	./scripts/compose-exec.sh prod exec -T app php artisan migrate:refresh --seed --force

@@ -25,6 +25,8 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
     volumes:
       - ./docker/caddy/entrypoint.sh:/etc/caddy/entrypoint.sh:ro
+      - ./docker/caddy/maintenance:/etc/caddy/maintenance:ro
+      - ./docker/caddy/state:/etc/caddy/state
       - caddy_data:/data
       - caddy_config:/config
     entrypoint: ["/bin/sh", "/etc/caddy/entrypoint.sh"]
