@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Profile;
 
+use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Enums\AvatarSource;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,9 @@ final class AnonymizeUser
                     'show_contact_discord' => false,
                 ])->save();
             }
+
+            $user->clearMediaCollection('avatar');
+            AttachUserAvatarFromPath::deleteLegacyAvatarFile($user);
 
             $user->forceFill([
                 'name' => null,

@@ -1,7 +1,9 @@
 <?php
 
+use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Profile\SwitchEmailToProvider;
 use App\Enums\AvatarSource;
+use App\Models\User;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Support\Profile\ProviderEmailOptions;
@@ -319,10 +321,15 @@ new class extends Component
 
     private function deleteStoredAvatarIfPresent(int $userId): void
     {
-        $path = 'avatars/'.$userId.'.webp';
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        $user = Auth::user();
+
+        if ($user !== null && (int) $user->id === $userId) {
+            $user->clearMediaCollection('avatar');
+        } elseif (($resolved = User::query()->find($userId)) !== null) {
+            $resolved->clearMediaCollection('avatar');
         }
+
+        AttachUserAvatarFromPath::deleteLegacyAvatarFileForUserId($userId);
     }
 
     /**

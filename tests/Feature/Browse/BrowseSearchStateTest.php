@@ -42,12 +42,31 @@ final class BrowseSearchStateTest extends TestCase
             ->assertSet('q', 'explicit');
     }
 
-    public function test_render_persists_filter_state_to_session(): void
+    public function test_render_does_not_persist_filter_state_to_session(): void
     {
         Livewire::test(BrowseEvents::class, ['q' => 'persist-me'])
             ->assertOk();
 
+        $this->assertNull(session(BrowseSearchState::SESSION_KEY));
+    }
+
+    public function test_save_search_params_persists_filter_state_to_session(): void
+    {
+        Livewire::test(BrowseEvents::class, ['q' => 'persist-me'])
+            ->call('saveSearchParams')
+            ->assertOk();
+
         $this->assertSame('/search?q=persist-me', session(BrowseSearchState::SESSION_KEY));
+    }
+
+    public function test_clear_filters_forgets_saved_search_state(): void
+    {
+        Livewire::test(BrowseEvents::class, ['q' => 'persist-me'])
+            ->call('saveSearchParams')
+            ->call('clearFilters')
+            ->assertRedirect(route('search.index'));
+
+        $this->assertNull(session(BrowseSearchState::SESSION_KEY));
     }
 
     public function test_forget_clears_cached_search_url(): void

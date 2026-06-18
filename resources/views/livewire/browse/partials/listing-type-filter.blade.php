@@ -38,12 +38,5 @@
                 />
             @endauth
         </div>
-        <x-button
-            type="button"
-            label="{{ __('Reset') }}"
-            class="btn btn-sm ml-auto shrink-0 rounded-2xl ui-browse-filter-toggle ui-browse-filter-toggle--reset"
-            wire:click="clearFilters"
-            wire:loading.attr="disabled"
-        />
     </div>
 </div>

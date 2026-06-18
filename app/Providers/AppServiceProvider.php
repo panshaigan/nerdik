@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\BackfillMediaDimensions;
 use App\Listeners\LogNotificationEmail;
+use App\Listeners\NotifyUserAvatarReady;
 use App\Listeners\RecordNotificationDispatchThrottle;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
@@ -40,6 +41,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use SocialiteProviders\Discord\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
 class AppServiceProvider extends ServiceProvider
@@ -117,6 +119,7 @@ class AppServiceProvider extends ServiceProvider
         EventFacade::listen(NotificationSent::class, RecordNotificationDispatchThrottle::class);
         EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
         EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);
+        EventFacade::listen(ConversionHasBeenCompletedEvent::class, NotifyUserAvatarReady::class);
         EventFacade::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('discord', Provider::class);
         });

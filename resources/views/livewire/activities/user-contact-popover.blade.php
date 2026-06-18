@@ -8,9 +8,12 @@
     @if ($targetUser !== null)
         <div class="flex flex-col items-center gap-3 text-center" data-ui="user-contact-popover-hero">
             <div class="avatar">
-                <div class="h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-base-300 bg-base-300 shadow-[0_0_24px_color-mix(in_oklch,var(--color-primary)_28%,transparent)]">
+                <div class="h-[118px] w-[118px] shrink-0 overflow-hidden rounded-full border-2 border-base-300 bg-base-300 shadow-[0_0_24px_color-mix(in_oklch,var(--color-primary)_28%,transparent)]">
+                    @php
+                        $heroPicture = $targetUser->avatarPicture(\App\Support\Ui\AvatarSlot::Hero);
+                    @endphp
                     <img
-                        src="{{ $targetUser->avatarUrl() }}"
+                        src="{{ $heroPicture->resolvedUrl($targetUser, \App\Support\Ui\AvatarSlot::Hero) }}"
                         alt="{{ $targetUser->displayName() }}"
                         class="h-full w-full object-cover"
                         loading="lazy"
@@ -21,9 +24,7 @@
                 @if ($targetUser->organization !== null)
                     @php
                         $organization = $targetUser->organization;
-                        $orgLabel = filled($organization->acronym)
-                            ? (string) $organization->acronym
-                            : (string) $organization->name;
+                        $orgLabel = $organization->name;
                     @endphp
                     <div
                         class="inline-flex max-w-full items-center gap-2 rounded-full border border-base-300 bg-base-200/60 px-3 py-1"

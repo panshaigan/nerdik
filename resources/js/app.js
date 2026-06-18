@@ -10,6 +10,7 @@ import './maps-init';
 import './tags-init';
 import './browse-search-state';
 import './session-invalidated-echo';
+import './avatar-ready-echo';
 import { bootActivityTagPickers } from './activity-tag-picker';
 import { bootDateTimePickers } from './datetime-picker';
 import { initEventShowSlotForms } from './event-show-slot-forms';
