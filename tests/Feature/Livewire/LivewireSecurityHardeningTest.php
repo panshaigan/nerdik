@@ -151,12 +151,12 @@ class LivewireSecurityHardeningTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(NotificationList::class)
-            ->call('markReadAndGo', $externalId)
+            ->call('handleNotificationClick', $externalId)
             ->assertRedirect(route('dashboard'));
 
         Livewire::actingAs($user)
             ->test(NotificationList::class)
-            ->call('markReadAndGo', $internalId)
+            ->call('handleNotificationClick', $internalId)
             ->assertRedirect('/profile');
     }
 }
