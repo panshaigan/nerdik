@@ -1,6 +1,13 @@
 <div class="py-12 max-w-lg mx-auto">
     <livewire:notifications.respond-to-user-request />
 
+    <livewire:user-requests.incoming-user-request-list />
+    <livewire:user-requests.outgoing-user-request-list />
+
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+        {{ __('ui.notifications.timeline_heading') }}
+    </h3>
+
     @if ($notifications->total() > 0)
         <div class="mb-4">
             <x-button type="button" class="btn-ghost btn-sm" wire:click="markAllRead" wire:loading.attr="disabled">
@@ -41,6 +48,4 @@
         @if ($notifications->hasPages())
             <div class="border-t border-base-300 p-4">{{ $notifications->links() }}</div>
         @endif
-
-    <livewire:user-requests.outgoing-user-request-list />
 </div>
