@@ -83,6 +83,7 @@ class SendUserRequest extends Component
         $this->success(__('ui.user_requests.sent'));
         $this->closeModal();
         $this->dispatch('user-request-sent');
+        $this->dispatch('user-requests-updated');
     }
 
     public function canSend(UserRequestHandlerRegistry $handlers): bool

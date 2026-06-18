@@ -139,6 +139,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('activities/{activity}/interests', [InterestController::class, 'addActivity'])->name('interests.activities.add');
     Route::delete('activities/{activity}/interests', [InterestController::class, 'removeActivity'])->name('interests.activities.remove');
 
+    Route::view('requests', 'requests.index')->name('requests.index');
     Route::view('notifications', 'notifications.index')->name('notifications.index');
 });
 

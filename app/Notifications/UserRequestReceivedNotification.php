@@ -41,7 +41,7 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
             ->subject($this->mailSubject())
             ->line($this->mailIntro($requesterName, $subjectLabel))
             ->when($this->request->message, fn (MailMessage $mail) => $mail->line($this->request->message))
-            ->action(__('ui.user_requests.review_request'), route('notifications.index', ['request' => $this->request->id]));
+            ->action(__('ui.user_requests.review_request'), route('requests.index', ['request' => $this->request->id]));
     }
 
     /**
@@ -62,7 +62,7 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
             'subject_label' => $subjectLabel,
             'message' => $this->request->message,
             'expires_at' => $this->request->expires_at?->toIso8601String(),
-            'url' => route('notifications.index', ['request' => $this->request->id], false),
+            'url' => route('requests.index', ['request' => $this->request->id], false),
             'toast_title' => $this->listTitle(),
             'toast_description' => $subjectLabel,
         ];

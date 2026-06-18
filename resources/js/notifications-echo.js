@@ -47,6 +47,13 @@ function subscribeToUserNotifications() {
         window.Livewire.dispatch('database-notifications-updated');
 
         const payload = parseEchoNotificationPayload(notification);
+
+        if (
+            payload?.type === 'user_request_received'
+            || payload?.type === 'user_request_resolved'
+        ) {
+            window.Livewire.dispatch('user-requests-updated');
+        }
         if (typeof window.toast === 'function') {
             const fallbackTitleByType = {
                 proposal_submitted: 'Proposal submitted',

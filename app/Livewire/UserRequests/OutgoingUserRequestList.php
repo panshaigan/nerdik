@@ -17,6 +17,7 @@ class OutgoingUserRequestList extends Component
     use Toast;
 
     #[On('user-request-sent')]
+    #[On('user-requests-updated')]
     #[On('database-notifications-updated')]
     public function refreshList(): void
     {
@@ -30,6 +31,7 @@ class OutgoingUserRequestList extends Component
 
         $this->success(__('ui.user_requests.cancelled'));
         $this->dispatch('database-notifications-updated', resetPagination: false);
+        $this->dispatch('user-requests-updated');
     }
 
     public function render(UserRequestSubjectLabelResolver $labels)
