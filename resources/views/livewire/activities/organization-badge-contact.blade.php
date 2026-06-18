@@ -1,8 +1,6 @@
 <div
     @class([$containerClass])
     data-ui="organization-badge-contact"
-    x-on:livewire:navigating.window="$wire.closeModal()"
-    x-on:livewire:navigated.window="$wire.closeModal()"
 >
     <div
         role="button"

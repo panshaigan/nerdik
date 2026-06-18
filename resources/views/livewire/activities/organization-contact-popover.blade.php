@@ -66,4 +66,18 @@
             </div>
         </div>
     @endif
+
+    @if ($targetOrganization !== null)
+        <div class="border-t border-base-300 pt-4" data-ui="organization-contact-popover-requests">
+            @if (! auth()->user()?->canModifyEntity($targetOrganization) && (int) auth()->id() !== (int) $targetOrganization->created_by && (int) auth()->user()?->organization_id !== (int) $targetOrganization->id)
+                <livewire:user-requests.send-user-request
+                    type="organization_join_request"
+                    subject-type="organization"
+                    :subject-id="$targetOrganization->id"
+                    :recipient-id="$targetOrganization->created_by"
+                    :key="'organization-join-'.$targetOrganization->id"
+                />
+            @endif
+        </div>
+    @endif
 </div>

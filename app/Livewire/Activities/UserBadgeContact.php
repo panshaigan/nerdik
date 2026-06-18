@@ -23,6 +23,10 @@ class UserBadgeContact extends Component
 
     public string $containerClass = 'inline-flex min-w-0';
 
+    public ?int $contextActivityId = null;
+
+    public ?int $contextOrganizationId = null;
+
     public bool $modalOpen = false;
 
     public function openModal(): void

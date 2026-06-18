@@ -11,6 +11,8 @@
     'trackNavAvatar' => false,
     'contactPopover' => true,
     'contactTooltip' => null,
+    'contextActivityId' => null,
+    'contextOrganizationId' => null,
 ])
 
 @php
@@ -81,7 +83,9 @@
         :track-nav-avatar="$trackNavAvatar"
         :contact-tooltip="$resolvedContactTooltip"
         :container-class="$containerClass"
-        :key="'user-badge-contact-'.$user->id"
+        :context-activity-id="$contextActivityId"
+        :context-organization-id="$contextOrganizationId"
+        :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0')"
     />
 @elseif ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>

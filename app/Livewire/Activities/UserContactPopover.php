@@ -4,6 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Models\Organization;
 use App\Models\User;
 use App\Services\ContactVisibilityService;
 use App\Support\Profile\ProviderContactUrls;
@@ -11,6 +12,10 @@ use Livewire\Component;
 
 class UserContactPopover extends Component
 {
+    public ?int $contextActivityId = null;
+
+    public ?int $contextOrganizationId = null;
+
     public int $targetUserId;
 
     /**
@@ -144,7 +149,61 @@ class UserContactPopover extends Component
             'hostedStatsByType' => $this->hostedStatsByType($targetUser->id),
             'participationStatsByType' => $this->participationStatsByType($targetUser->id),
             'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
+            'activityInviteSubjectId' => $this->contextActivityId,
+            'organizationInviteSubjectId' => $this->resolveOrganizationInviteSubjectId($viewer, $targetUser),
+            'organizationJoinSubjectId' => $this->resolveOrganizationJoinSubjectId($viewer, $targetUser),
+            'organizationJoinRecipientId' => $this->resolveOrganizationJoinRecipientId($viewer, $targetUser),
         ];
+    }
+
+    private function resolveOrganizationInviteSubjectId(User $viewer, User $targetUser): ?int
+    {
+        if ($this->contextOrganizationId !== null) {
+            $organization = Organization::query()->find($this->contextOrganizationId);
+            if ($organization instanceof Organization
+                && $viewer->canModifyEntity($organization)
+                && (int) $targetUser->organization_id !== (int) $organization->id) {
+                return $organization->id;
+            }
+        }
+
+        $ownedOrganizationId = Organization::query()
+            ->where('created_by', $viewer->id)
+            ->whereKeyNot($targetUser->organization_id)
+            ->orderBy('name')
+            ->value('id');
+
+        return $ownedOrganizationId !== null ? (int) $ownedOrganizationId : null;
+    }
+
+    private function resolveOrganizationJoinSubjectId(User $viewer, User $targetUser): ?int
+    {
+        $organization = $targetUser->organization;
+        if (! $organization instanceof Organization) {
+            return null;
+        }
+
+        if ((int) $viewer->organization_id === (int) $organization->id) {
+            return null;
+        }
+
+        if ($viewer->canModifyEntity($organization)) {
+            return null;
+        }
+
+        return $organization->id;
+    }
+
+    private function resolveOrganizationJoinRecipientId(User $viewer, User $targetUser): ?int
+    {
+        $organizationId = $this->resolveOrganizationJoinSubjectId($viewer, $targetUser);
+        if ($organizationId === null) {
+            return null;
+        }
+
+        $ownerId = Organization::query()->whereKey($organizationId)->value('created_by');
+
+        return $ownerId !== null ? (int) $ownerId : null;
     }
 
     /**

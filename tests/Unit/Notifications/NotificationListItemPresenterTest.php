@@ -163,4 +163,26 @@ final class NotificationListItemPresenterTest extends TestCase
         $this->assertSame($proposal->activity->name.' · '.$proposal->event->name, $display->subtitle);
         $this->assertNotSame('', $display->timeAgo);
     }
+
+    #[Test]
+    public function it_maps_user_request_received_notification(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'user_request_received',
+                    'request_type' => 'activity_invite',
+                    'requester_name' => 'Host User',
+                    'subject_label' => 'Friday RPG',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame(__('ui.user_requests.received_activity_invite'), $display->title);
+        $this->assertSame('Host User · Friday RPG', $display->subtitle);
+    }
 }

@@ -41,6 +41,8 @@ final class NotificationListItemPresenter
             'activity_reopened' => [__('ui.notifications.activity_reopened_list'), 'o-arrow-path'],
             'event_reopened' => [__('ui.notifications.event_reopened_list'), 'o-arrow-path'],
             'scheduled_periodic_digest' => [$this->scheduledDigestTitle($data), 'o-clock'],
+            'user_request_received' => [$this->userRequestReceivedTitle($data), 'o-inbox-arrow-down'],
+            'user_request_resolved' => [$this->userRequestResolvedTitle($data), 'o-check-circle'],
             default => [$this->fallbackTitle($data), 'o-bell'],
         };
     }
@@ -57,6 +59,7 @@ final class NotificationListItemPresenter
             'event_cancelled', 'event_reopened' => $event !== '' ? $event : null,
             'waitlist_promoted' => $activity !== '' ? $activity : null,
             'scheduled_periodic_digest' => $this->scheduledDigestSubtitle($data),
+            'user_request_received', 'user_request_resolved' => $this->userRequestSubtitle($data),
             default => $this->joinLabelParts($activity, $event),
         };
     }
@@ -107,6 +110,54 @@ final class NotificationListItemPresenter
         $toastDescription = trim((string) ($data['toast_description'] ?? ''));
 
         return $toastDescription !== '' ? $toastDescription : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function userRequestReceivedTitle(array $data): string
+    {
+        return match ((string) ($data['request_type'] ?? '')) {
+            'organization_invite' => __('ui.user_requests.received_organization_invite'),
+            'organization_join_request' => __('ui.user_requests.received_organization_join'),
+            'activity_invite' => __('ui.user_requests.received_activity_invite'),
+            'event_organizer_flag' => __('ui.user_requests.received_organizer_flag'),
+            default => __('Notification'),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function userRequestResolvedTitle(array $data): string
+    {
+        $status = (string) ($data['request_status'] ?? '');
+        $outcome = (string) ($data['resolution_outcome'] ?? '');
+
+        if ($status === 'accepted' && (string) ($data['request_type'] ?? '') === 'activity_invite') {
+            return $outcome === 'waitlisted'
+                ? __('ui.user_requests.resolved_activity_waitlisted')
+                : __('ui.user_requests.resolved_activity_joined');
+        }
+
+        return match ($status) {
+            'accepted' => __('ui.user_requests.resolved_accepted'),
+            'declined' => __('ui.user_requests.resolved_declined'),
+            'cancelled' => __('ui.user_requests.resolved_cancelled'),
+            'expired' => __('ui.user_requests.resolved_expired'),
+            default => __('ui.user_requests.resolved_generic'),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function userRequestSubtitle(array $data): ?string
+    {
+        $requester = trim((string) ($data['requester_name'] ?? ''));
+        $subject = trim((string) ($data['subject_label'] ?? ''));
+
+        return $this->joinLabelParts($requester, $subject);
     }
 
     /**

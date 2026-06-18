@@ -62,36 +62,106 @@ document.addEventListener('livewire:navigated', () => bootActivityTagPickers());
 document.addEventListener('livewire:init', registerActivityTagPickerMorphHook);
 document.addEventListener('livewire:initialized', registerActivityTagPickerMorphHook);
 
-function registerSessionExpiredInterceptor() {
-    if (
-        typeof window.Livewire === 'undefined'
-        || typeof window.Livewire.interceptRequest !== 'function'
-    ) {
-        return;
+function handleLivewireAuthFailure(preventDefault) {
+    if (window.__nerdikSessionExpiredHandled) {
+        preventDefault();
+
+        return true;
     }
 
-    if (window.__nerdikSessionExpiredInterceptorRegistered) {
-        return;
-    }
+    window.__nerdikSessionExpiredHandled = true;
+    preventDefault();
+    window.dispatchEvent(new CustomEvent('session-expired'));
 
-    window.__nerdikSessionExpiredInterceptorRegistered = true;
-
-    window.Livewire.interceptRequest(({ onError }) => {
-        onError(({ response, preventDefault }) => {
-            if (
-                !response
-                || window.__nerdikSessionExpiredHandled
-                || (response.status !== 401 && response.status !== 419)
-            ) {
-                return;
-            }
-
-            preventDefault();
-            window.__nerdikSessionExpiredHandled = true;
-            window.dispatchEvent(new CustomEvent('session-expired'));
-        });
-    });
+    return true;
 }
 
-document.addEventListener('livewire:init', registerSessionExpiredInterceptor);
-document.addEventListener('DOMContentLoaded', registerSessionExpiredInterceptor);
+function isAuthRelatedLivewireError(status, content) {
+    if (status === 401 || status === 419) {
+        return true;
+    }
+
+    if (status !== 403 || typeof content !== 'string' || content.trim() === '') {
+        return false;
+    }
+
+    try {
+        const payload = JSON.parse(content);
+        const message = typeof payload?.message === 'string' ? payload.message.toLowerCase() : '';
+
+        return message.includes('unauthorized')
+            || message.includes('unauthenticated')
+            || message.includes('csrf')
+            || message.includes('session');
+    } catch {
+        return content.toLowerCase().includes('unauthorized')
+            || content.toLowerCase().includes('unauthenticated');
+    }
+}
+
+function shouldSuppressLivewireErrorModal(status, content) {
+    if (isAuthRelatedLivewireError(status, content)) {
+        return true;
+    }
+
+    if (typeof content !== 'string' || content.trim() === '') {
+        return false;
+    }
+
+    const trimmed = content.trim();
+
+    return trimmed.startsWith('{') || trimmed.startsWith('[');
+}
+
+function registerLivewireRequestFailureHandlers() {
+    if (typeof window.Livewire === 'undefined') {
+        return;
+    }
+
+    if (window.__nerdikLivewireFailureHandlersRegistered) {
+        return;
+    }
+
+    window.__nerdikLivewireFailureHandlersRegistered = true;
+
+    if (typeof window.Livewire.interceptRequest === 'function') {
+        window.Livewire.interceptRequest(({ onError }) => {
+            onError(({ response, body, preventDefault }) => {
+                if (!response) {
+                    return;
+                }
+
+                if (isAuthRelatedLivewireError(response.status, body)) {
+                    handleLivewireAuthFailure(preventDefault);
+
+                    return;
+                }
+
+                if (shouldSuppressLivewireErrorModal(response.status, body)) {
+                    preventDefault();
+                    console.error('Livewire request failed', response.status, body);
+                }
+            });
+        });
+    }
+
+    if (typeof window.Livewire.hook === 'function') {
+        window.Livewire.hook('request', ({ fail }) => {
+            fail(({ status, content, preventDefault }) => {
+                if (isAuthRelatedLivewireError(status, content)) {
+                    handleLivewireAuthFailure(preventDefault);
+
+                    return;
+                }
+
+                if (shouldSuppressLivewireErrorModal(status, content)) {
+                    preventDefault();
+                    console.error('Livewire request failed', status, content);
+                }
+            });
+        });
+    }
+}
+
+document.addEventListener('livewire:init', registerLivewireRequestFailureHandlers);
+document.addEventListener('DOMContentLoaded', registerLivewireRequestFailureHandlers);

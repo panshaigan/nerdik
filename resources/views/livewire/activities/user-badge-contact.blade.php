@@ -1,8 +1,6 @@
 <div
     @class([$containerClass])
     data-ui="user-badge-contact"
-    x-on:livewire:navigating.window="$wire.closeModal()"
-    x-on:livewire:navigated.window="$wire.closeModal()"
 >
     <div
         role="button"
@@ -35,7 +33,9 @@
         >
             <livewire:activities.user-contact-popover
                 :target-user-id="$user->id"
-                :key="'user-contact-popover-'.$user->id"
+                :context-activity-id="$contextActivityId"
+                :context-organization-id="$contextOrganizationId"
+                :key="'user-contact-popover-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0')"
             />
         </x-modal>
     @endif

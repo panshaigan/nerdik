@@ -46,6 +46,33 @@ class ProfileTest extends TestCase
             ->assertSeeVolt('profile.delete-user-form');
     }
 
+    public function test_non_organizer_sees_organizer_request_on_identity_tab(): void
+    {
+        $user = User::factory()->create([
+            'is_event_organizer' => false,
+            'is_admin' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertSee('data-ui="profile-organizer-request"', false)
+            ->assertSee(__('ui.user_requests.request_organizer_access'), false);
+    }
+
+    public function test_event_organizer_does_not_see_organizer_request_on_identity_tab(): void
+    {
+        $user = User::factory()->organizer()->create([
+            'is_admin' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertDontSee('data-ui="profile-organizer-request"', false)
+            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false);
+    }
+
     public function test_profile_page_fires_toast_from_oauth_linking_session(): void
     {
         $user = User::factory()->create();
@@ -834,7 +861,6 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
         $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
-        $this->assertStringContainsString('livewire:navigating', $html);
         $this->assertStringNotContainsString('data-ui="user-badge-contact-modal"', $html);
         $this->assertStringNotContainsString('data-ui="user-contact-popover"', $html);
     }

@@ -1,4 +1,6 @@
 <div class="py-12 max-w-lg mx-auto">
+    <livewire:notifications.respond-to-user-request />
+
     @if ($notifications->total() > 0)
         <div class="mb-4">
             <x-button type="button" class="btn-ghost btn-sm" wire:click="markAllRead" wire:loading.attr="disabled">
@@ -16,9 +18,9 @@
                 <x-button
                     type="button"
                     class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-0 px-4 py-0 font-normal normal-case text-start shadow-none hover:bg-base-200/50"
-                    wire:click="markReadAndGo('{{ $notification->id }}')"
+                    wire:click="handleNotificationClick('{{ $notification->id }}')"
                     wire:loading.attr="disabled"
-                    wire:target="markReadAndGo"
+                    wire:target="handleNotificationClick"
                 >
                     <x-timeline-item
                         :id="$notification->id"
@@ -39,4 +41,6 @@
         @if ($notifications->hasPages())
             <div class="border-t border-base-300 p-4">{{ $notifications->links() }}</div>
         @endif
+
+    <livewire:user-requests.outgoing-user-request-list />
 </div>
