@@ -50,7 +50,7 @@ final class ProfileAvatarCropModalTest extends TestCase
         $this->assertStringContainsString('data-image-crop-remove', $html);
         $this->assertStringContainsString('data-default-src', $html);
         $this->assertMatchesRegularExpression(
-            '/id="ui-profile-avatar-form"[\s\S]*?type="submit"[\s\S]*?<\/form>\s*<\/section>/',
+            '/id="ui-profile-avatar-form"[\s\S]*?type="submit"[\s\S]*?<\/form>[\s\S]*?<\/section>/',
             $html,
         );
         $this->assertStringNotContainsString('id="ui-image-crop-modal"', $html);
