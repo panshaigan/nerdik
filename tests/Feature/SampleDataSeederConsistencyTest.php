@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
+use App\Models\Slot;
 use Database\Seeders\BaseDataSeeder;
 use Database\Seeders\SampleDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -64,6 +65,75 @@ final class SampleDataSeederConsistencyTest extends TestCase
             $this->assertNotContains($slot->id, $acceptedSlotIds);
 
             $acceptedSlotIds[] = $slot->id;
+        }
+    }
+
+    #[Test]
+    public function it_creates_per_event_slot_counts_within_dataset_bounds(): void
+    {
+        $this->seedSampleData();
+
+        $dataset = SampleDataSeeder::DATASETS[SampleDataSeeder::DATASET_MINIMAL];
+
+        Event::query()->withCount('slots')->each(function (Event $event) use ($dataset): void {
+            $this->assertGreaterThanOrEqual(
+                $dataset['minSlotsPerEvent'],
+                $event->slots_count,
+                "Event {$event->id} has too few slots.",
+            );
+            $this->assertLessThanOrEqual(
+                $dataset['maxSlotsPerEvent'],
+                $event->slots_count,
+                "Event {$event->id} has too many slots.",
+            );
+        });
+    }
+
+    #[Test]
+    public function it_leaves_some_slots_unfilled(): void
+    {
+        $this->seedSampleData();
+
+        $totalSlots = Slot::query()->count();
+        $filledSlots = Slot::query()->whereNotNull('activity_id')->count();
+
+        $this->assertGreaterThan(1, $totalSlots);
+        $this->assertLessThan($totalSlots, $filledSlots);
+    }
+
+    #[Test]
+    public function it_varies_slot_counts_across_events(): void
+    {
+        $this->seedSampleData();
+
+        $slotCounts = Event::query()
+            ->withCount('slots')
+            ->pluck('slots_count');
+
+        $this->assertGreaterThan(1, $slotCounts->unique()->count());
+    }
+
+    #[Test]
+    public function it_leaves_at_least_one_empty_slot_per_event_with_multiple_slots(): void
+    {
+        $this->seedSampleData();
+
+        $events = Event::query()
+            ->withCount([
+                'slots',
+                'slots as filled_slots_count' => fn ($query) => $query->whereNotNull('activity_id'),
+            ])
+            ->get()
+            ->filter(fn (Event $event): bool => $event->slots_count >= 2);
+
+        $this->assertNotEmpty($events);
+
+        foreach ($events as $event) {
+            $this->assertLessThan(
+                $event->slots_count,
+                $event->filled_slots_count,
+                "Event {$event->id} should have at least one empty slot.",
+            );
         }
     }
 
