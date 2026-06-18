@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\UserRequestReceivedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -247,6 +248,28 @@ class UserRequestNotificationsInboxTest extends TestCase
             ->assertSee('Test Org');
     }
 
+    public function test_respond_modal_does_not_show_dismiss_cancel_button(): void
+    {
+        $host = User::factory()->create();
+        $recipient = User::factory()->create();
+        $organization = Organization::factory()->create(['name' => 'Test Org']);
+
+        $request = UserRequest::factory()->organizationInvite()->create([
+            'requester_id' => $host->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'organization',
+            'subject_id' => $organization->id,
+        ]);
+
+        Livewire::actingAs($recipient)
+            ->test(RespondToUserRequest::class)
+            ->dispatch('open-user-request-modal', requestId: $request->id)
+            ->assertSet('open', true)
+            ->assertDontSee(__('ui.common.cancel'))
+            ->assertSee(__('ui.user_requests.decline'))
+            ->assertSee(__('ui.user_requests.accept'));
+    }
+
     public function test_actionable_notification_click_redirects_to_requests_page(): void
     {
         $host = User::factory()->create();
@@ -263,8 +286,13 @@ class UserRequestNotificationsInboxTest extends TestCase
             'subject_id' => $activity->id,
         ]);
 
-        $recipient->notify(new UserRequestReceivedNotification($request));
-        $notification = $recipient->fresh()->notifications()->firstOrFail();
+        $payload = (new UserRequestReceivedNotification($request))->toArray($recipient);
+
+        $notification = $recipient->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => UserRequestReceivedNotification::class,
+            'data' => $payload,
+        ]);
 
         Livewire::actingAs($recipient)
             ->test(NotificationList::class)

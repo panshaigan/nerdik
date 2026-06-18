@@ -30,7 +30,7 @@
                         :subtitle="$display->timeAgo"
                         :description="$display->subtitle"
                         :icon="$display->icon"
-                        :pending="$display->isUnread"
+                        :pending="! $display->isUnread"
                         :first="$loop->first"
                         :last="$loop->last"
                     />

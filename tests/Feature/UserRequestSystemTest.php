@@ -22,6 +22,7 @@ use App\Services\UserRequests\UserRequestDecisionService;
 use App\Services\UserRequests\UserRequestService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -94,6 +95,81 @@ class UserRequestSystemTest extends TestCase
         $this->assertSame($organization->id, $requester->fresh()->organization_id);
     }
 
+    public function test_received_request_notification_is_email_only_without_bell_entry(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        app(UserRequestService::class)->send(
+            UserRequestType::OrganizationInvite,
+            $owner,
+            $recipient,
+            $organization,
+        );
+
+        Notification::assertSentTo(
+            $recipient,
+            UserRequestReceivedNotification::class,
+            fn (UserRequestReceivedNotification $notification, array $channels): bool => in_array('broadcast', $channels, true)
+                && in_array('mail', $channels, true)
+                && ! in_array('database', $channels, true),
+        );
+    }
+
+    public function test_received_request_notification_does_not_create_bell_entry(): void
+    {
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        app(UserRequestService::class)->send(
+            UserRequestType::OrganizationInvite,
+            $owner,
+            $recipient,
+            $organization,
+        );
+
+        $this->assertSame(0, $recipient->fresh()->notifications()->count());
+        $this->assertSame(0, $recipient->fresh()->unreadNotifications()->count());
+
+        $emailLog = DB::table('notification_email_logs')
+            ->where('recipient_user_id', $recipient->id)
+            ->where('notification_type', UserRequestReceivedNotification::class)
+            ->first();
+
+        $this->assertNotNull($emailLog);
+        $this->assertSame($recipient->email, $emailLog->recipient_email);
+    }
+
+    public function test_resolved_request_notification_stays_unread(): void
+    {
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        $request = app(UserRequestService::class)->send(
+            UserRequestType::OrganizationInvite,
+            $owner,
+            $recipient,
+            $organization,
+        );
+
+        app(UserRequestDecisionService::class)->accept($request, $recipient);
+
+        $resolvedNotification = $owner->fresh()->notifications()
+            ->where('type', UserRequestResolvedNotification::class)
+            ->firstOrFail();
+
+        $this->assertNull($resolvedNotification->read_at);
+        $this->assertSame(1, $owner->fresh()->unreadNotifications()->count());
+    }
+
     public function test_duplicate_pending_request_is_blocked(): void
     {
         $organization = Organization::factory()->create();
@@ -137,6 +213,55 @@ class UserRequestSystemTest extends TestCase
 
         $this->assertSame(UserRequestStatus::Cancelled, $request->fresh()->status);
         Notification::assertSentTo($recipient, UserRequestResolvedNotification::class);
+    }
+
+    public function test_cancelled_request_broadcasts_to_recipient_without_bell_entry(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        $request = app(UserRequestService::class)->send(
+            UserRequestType::OrganizationInvite,
+            $owner,
+            $recipient,
+            $organization,
+        );
+
+        app(UserRequestService::class)->cancel($request, $owner);
+
+        Notification::assertSentTo(
+            $recipient,
+            UserRequestResolvedNotification::class,
+            fn (UserRequestResolvedNotification $notification, array $channels): bool => in_array('broadcast', $channels, true)
+                && ! in_array('database', $channels, true),
+        );
+    }
+
+    public function test_cancelled_request_does_not_create_in_app_notification_for_recipient(): void
+    {
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        $request = app(UserRequestService::class)->send(
+            UserRequestType::OrganizationInvite,
+            $owner,
+            $recipient,
+            $organization,
+        );
+
+        app(UserRequestService::class)->cancel($request, $owner);
+
+        $this->assertSame(0, $recipient->fresh()->notifications()->count());
+        $this->assertDatabaseHas('notification_email_logs', [
+            'recipient_user_id' => $recipient->id,
+            'notification_type' => UserRequestResolvedNotification::class,
+        ]);
     }
 
     public function test_activity_invite_accept_joins_when_rules_allow(): void
@@ -306,5 +431,26 @@ class UserRequestSystemTest extends TestCase
         $this->assertSame(UserRequestStatus::Expired, $request->fresh()->status);
         Notification::assertSentTo($owner, UserRequestResolvedNotification::class);
         Notification::assertSentTo($recipient, UserRequestResolvedNotification::class);
+    }
+
+    public function test_expired_request_does_not_create_in_app_notifications(): void
+    {
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        UserRequest::factory()->organizationInvite()->create([
+            'requester_id' => $owner->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'organization',
+            'subject_id' => $organization->id,
+            'expires_at' => now()->subMinute(),
+        ]);
+
+        $this->artisan(ExpireUserRequestsCommand::class)->assertSuccessful();
+
+        $this->assertSame(0, $owner->fresh()->notifications()->count());
+        $this->assertSame(0, $recipient->fresh()->notifications()->count());
     }
 }
