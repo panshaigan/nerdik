@@ -6,6 +6,7 @@ namespace App\Livewire\UserRequests;
 
 use App\Models\UserRequest;
 use App\Services\UserRequests\UserRequestService;
+use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -31,7 +32,7 @@ class OutgoingUserRequestList extends Component
         $this->dispatch('database-notifications-updated', resetPagination: false);
     }
 
-    public function render()
+    public function render(UserRequestSubjectLabelResolver $labels)
     {
         $requests = UserRequest::query()
             ->with(['recipient', 'subject'])
@@ -43,6 +44,7 @@ class OutgoingUserRequestList extends Component
 
         return view('livewire.user-requests.outgoing-user-request-list', [
             'requests' => $requests,
+            'labels' => $labels,
         ]);
     }
 }

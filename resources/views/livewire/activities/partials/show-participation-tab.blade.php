@@ -25,7 +25,12 @@
     @endauth
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0" data-ui="activity-show-participants">
-            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
+                @if ($canManageActivity)
+                    <livewire:activities.invite-activity-participant :activity-id="$activity->id" :key="'invite-activity-'.$activity->id" />
+                @endif
+            </div>
             @forelse ($activity->participants as $p)
                 <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 ">
                     <x-slot:value class="truncate text-sm font-medium text-base-content">
