@@ -170,7 +170,9 @@ new class extends Component
                                 </p>
                             </a>
                         </li>
-                        <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
+                        @if (auth()->user()->canCreateEvents())
+                            <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
+                        @endif
                         @if (auth()->user()->canCreateEvents())
                             <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
                         @endif
@@ -333,16 +335,18 @@ new class extends Component
                                 {{ __('ui.nav.account') }}
                             </p>
                             <ul class="menu menu-lg w-full px-0">
-                                <li>
-                                    <a
-                                        href="{{ route('organizations.index') }}"
-                                        wire:navigate
-                                        @click="close()"
-                                        class="{{ $mobileNavLink(request()->routeIs('organizations.index')) }}"
-                                    >
-                                        {{ __('ui.nav.organizations') }}
-                                    </a>
-                                </li>
+                                @if (auth()->user()->canCreateEvents())
+                                    <li>
+                                        <a
+                                            href="{{ route('organizations.index') }}"
+                                            wire:navigate
+                                            @click="close()"
+                                            class="{{ $mobileNavLink(request()->routeIs('organizations.index')) }}"
+                                        >
+                                            {{ __('ui.nav.organizations') }}
+                                        </a>
+                                    </li>
+                                @endif
                                 @if (auth()->user()->canCreateEvents())
                                     <li>
                                         <a

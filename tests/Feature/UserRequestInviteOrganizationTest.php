@@ -20,7 +20,7 @@ class UserRequestInviteOrganizationTest extends TestCase
 
     public function test_owner_sees_invite_action_on_organization_row(): void
     {
-        $owner = User::factory()->create();
+        $owner = User::factory()->create(['is_event_organizer' => true]);
         $organization = Organization::factory()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
@@ -34,7 +34,7 @@ class UserRequestInviteOrganizationTest extends TestCase
 
     public function test_search_excludes_existing_organization_member(): void
     {
-        $owner = User::factory()->create();
+        $owner = User::factory()->create(['is_event_organizer' => true]);
         $organization = Organization::factory()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
@@ -58,7 +58,7 @@ class UserRequestInviteOrganizationTest extends TestCase
 
     public function test_send_creates_pending_organization_invite(): void
     {
-        $owner = User::factory()->create();
+        $owner = User::factory()->create(['is_event_organizer' => true]);
         $invitee = User::factory()->create(['organization_id' => null]);
         $organization = Organization::factory()->create([
             'created_by' => $owner->id,

@@ -224,6 +224,12 @@ class ShowActivityActionsTest extends TestCase
             ->assertSeeHtml('wire:target="join"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
 
+        Livewire::actingAs($host)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertDontSeeHtml('wire:target="join"')
+            ->assertDontSeeHtml('wire:target="joinWaitlist"');
+
         $participant = ActivityUser::query()->create([
             'activity_id' => $activity->id,
             'user_id' => $member->id,

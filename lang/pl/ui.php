@@ -832,6 +832,7 @@ return [
         'edit' => 'Edytuj organizację',
         'delete_confirm' => 'Na pewno usunąć tę organizację?',
         'empty' => 'Nie masz jeszcze żadnych organizacji.',
+        'only_event_organizers_can_manage' => 'Tylko użytkownicy oznaczeni jako organizatorzy wydarzeń mogą tworzyć i zarządzać organizacjami.',
         'description' => 'Opis',
         'create_title' => 'Utwórz organizację',
         'acronym' => 'Skrót',

@@ -76,7 +76,11 @@ Route::view('profile', 'profile')
 Route::middleware(['auth'])->group(function () {
     Route::redirect('slots', '/dashboard', 301);
 
-    Route::view('organizations', 'organizations.index')->name('organizations.index');
+    Route::get('organizations', function () {
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.organizations.only_event_organizers_can_manage'));
+
+        return view('organizations.index');
+    })->name('organizations.index');
 
     Route::resource('organizations', OrganizationController::class)
         ->except(['show', 'index']);

@@ -67,6 +67,23 @@ class ActivityParticipationViewServiceTest extends TestCase
     }
 
     #[Test]
+    public function activity_host_cannot_join_own_activity(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity, $host);
+
+        $this->assertFalse($vm->canJoin);
+        $this->assertTrue($vm->canManageActivity);
+    }
+
+    #[Test]
     public function active_enrollment_window_exposes_per_activity_remaining(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-06-15 12:00:00', 'UTC'));

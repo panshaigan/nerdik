@@ -45,6 +45,8 @@ class OrganizationIndex extends Component
 
     public function mount(): void
     {
+        $this->assertCanManageOrganizations();
+
         $editSlug = request()->query('edit');
         if (is_string($editSlug) && $editSlug !== '') {
             $organization = Organization::query()
@@ -65,6 +67,8 @@ class OrganizationIndex extends Component
 
     public function openCreateModal(): void
     {
+        $this->assertCanManageOrganizations();
+
         $this->resetForm();
         $this->modalRenderKey++;
         $this->modalMode = 'create';
@@ -121,6 +125,10 @@ class OrganizationIndex extends Component
 
     public function save(): void
     {
+        if ($this->modalMode === 'create') {
+            $this->assertCanManageOrganizations();
+        }
+
         $previousSource = $this->resolvePreviousLogoSourceValue();
         $hasExistingUpload = $this->hasExistingUploadedLogo();
 
@@ -296,6 +304,11 @@ class OrganizationIndex extends Component
             $organization->save();
             $this->reset('croppedLogo');
         }
+    }
+
+    protected function assertCanManageOrganizations(): void
+    {
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.organizations.only_event_organizers_can_manage'));
     }
 
     public function render()

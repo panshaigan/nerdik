@@ -571,7 +571,11 @@ class ProfileTest extends TestCase
 
     public function test_user_can_clear_organization_from_profile(): void
     {
-        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization = Organization::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
         $user = User::factory()->create([
             'organization_id' => $organization->id,
         ]);
@@ -579,6 +583,7 @@ class ProfileTest extends TestCase
         $this->actingAs($user);
 
         $component = Volt::test('profile.update-identity-information-form')
+            ->assertSet('organization_id', $organization->id)
             ->set('organization_id', null)
             ->call('updateIdentityInformation');
 
@@ -587,6 +592,46 @@ class ProfileTest extends TestCase
             ->assertNoRedirect();
 
         $this->assertNull($user->refresh()->organization_id);
+    }
+
+    public function test_assigned_organization_appears_in_profile_identity_options(): void
+    {
+        $owner = User::factory()->create(['is_event_organizer' => true]);
+        $organization = Organization::factory()->create([
+            'name' => 'Assigned Org',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $member = User::factory()->create([
+            'organization_id' => $organization->id,
+        ]);
+
+        $this->actingAs($member);
+
+        Volt::test('profile.update-identity-information-form')
+            ->assertSet('organization_id', $organization->id)
+            ->assertSet('organizationOptions', fn (array $options): bool => collect($options)->contains(
+                fn (array $option): bool => $option['id'] === $organization->id && $option['name'] === 'Assigned Org',
+            ));
+    }
+
+    public function test_assigned_organization_enables_profile_identity_select(): void
+    {
+        $owner = User::factory()->create(['is_event_organizer' => true]);
+        $organization = Organization::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $member = User::factory()->create([
+            'organization_id' => $organization->id,
+        ]);
+
+        $this->actingAs($member);
+
+        $html = Volt::test('profile.update-identity-information-form')->html();
+
+        $this->assertStringNotContainsString(__('ui.organizations.empty'), $html);
+        $this->assertDoesNotMatchRegularExpression('/<select[^>]*wire:model="organization_id"[^>]*disabled[^>]*>/', $html);
     }
 
     public function test_user_can_delete_their_account(): void
