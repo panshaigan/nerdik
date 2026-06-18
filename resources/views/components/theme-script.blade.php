@@ -34,6 +34,13 @@
             document.documentElement.setAttribute('class', cls);
 
             localStorage.setItem('theme', saved);
+
+            if (parseMary('mary-theme') == null) {
+                localStorage.setItem('mary-theme', JSON.stringify(saved));
+            }
+            if (parseMary('mary-class') == null) {
+                localStorage.setItem('mary-class', JSON.stringify(cls));
+            }
             window.dispatchEvent(new CustomEvent('nerdik:theme-applied'));
         };
 

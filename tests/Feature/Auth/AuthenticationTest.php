@@ -21,7 +21,11 @@ class AuthenticationTest extends TestCase
             ->assertOk()
             ->assertSeeVolt('pages.auth.login')
             ->assertSee(__('ui.auth.not_registered'))
-            ->assertSee(route('register'), false);
+            ->assertSee(route('register'), false)
+            ->assertSee('wire:ignore', false)
+            ->assertSee('id="ui-auth-login-submit"', false)
+            ->assertSee('x-bind:disabled="isLocked"', false)
+            ->assertSee('x-on:submit="submitting = true"', false);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
@@ -53,7 +57,9 @@ class AuthenticationTest extends TestCase
 
         $component
             ->assertHasErrors()
-            ->assertNoRedirect();
+            ->assertNoRedirect()
+            ->assertSee('id="ui-auth-login-submit"', false)
+            ->assertSee('wire:ignore', false);
 
         $this->assertGuest();
     }

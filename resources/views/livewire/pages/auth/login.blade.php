@@ -64,7 +64,21 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     @endif
 
-    <form id="ui-auth-login-form" wire:submit="login" class="ui-form ui-form-auth-login space-y-4" data-ui="auth-login-form">
+    <form
+        id="ui-auth-login-form"
+        wire:submit="login"
+        class="ui-form ui-form-auth-login space-y-4"
+        data-ui="auth-login-form"
+        x-data="{
+            submitting: false,
+            navigating: false,
+            get isLocked() {
+                return this.submitting || this.navigating || document.documentElement.classList.contains('ui-navigating');
+            },
+        }"
+        x-on:submit="submitting = true"
+        x-on:livewire:navigate.window="navigating = true"
+    >
         <x-input
             wire:model="form.email"
             label="{{ __('ui.common.email') }}"
@@ -113,57 +127,22 @@ new #[Layout('layouts.guest')] class extends Component
                 @endif
             </div>
 
-            <x-button id="ui-auth-login-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="auth-login-submit">{{ __('ui.auth.log_in') }}</x-button>
+            <div wire:ignore>
+                <button
+                    id="ui-auth-login-submit"
+                    type="submit"
+                    class="btn btn-primary ui-action ui-action-submit"
+                    data-ui="auth-login-submit"
+                    x-bind:disabled="isLocked"
+                    x-bind:aria-busy="isLocked"
+                >
+                    <span x-show="! isLocked">{{ __('ui.auth.log_in') }}</span>
+                    <span x-show="isLocked" x-cloak class="inline-flex items-center gap-2">
+                        <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+                        {{ __('ui.common.loading') }}
+                    </span>
+                </button>
+            </div>
         </div>
     </form>
 </div>
-
-@push('scripts')
-<script>
-(() => {
-    let authLoginTimezoneAbort;
-    function initAuthLoginTimezone() {
-        authLoginTimezoneAbort?.abort();
-        authLoginTimezoneAbort = new AbortController();
-        const signal = authLoginTimezoneAbort.signal;
-
-        const timezone = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone || '';
-        if (timezone === '') {
-            return;
-        }
-
-        document.cookie = `browser_timezone=${encodeURIComponent(timezone)}; path=/; max-age=31536000; samesite=lax`;
-
-        const enhanceLink = (selector) => {
-            const button = document.querySelector(selector);
-            if (!button) {
-                return;
-            }
-            button.addEventListener('click', () => {
-                const href = button.getAttribute('href');
-                if (!href) {
-                    return;
-                }
-                const url = new URL(href, window.location.origin);
-                if (!url.searchParams.has('tz')) {
-                    url.searchParams.set('tz', timezone);
-                    button.setAttribute('href', url.pathname + url.search);
-                }
-            }, { signal });
-        };
-
-        enhanceLink('[data-ui="auth-login-google"]');
-        enhanceLink('[data-ui="auth-login-facebook"]');
-        enhanceLink('[data-ui="auth-login-discord"]');
-    }
-
-    document.addEventListener('livewire:navigating', () => authLoginTimezoneAbort?.abort());
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAuthLoginTimezone, { once: true });
-    } else {
-        initAuthLoginTimezone();
-    }
-    document.addEventListener('livewire:navigated', initAuthLoginTimezone);
-})();
-</script>
-@endpush

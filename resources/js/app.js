@@ -1,5 +1,6 @@
 import './bootstrap';
 import './close-modals-on-navigate';
+import './auth-login-form';
 import './copy-to-clipboard';
 import './tinymce-field-chrome';
 import './image-cropper';
