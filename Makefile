@@ -183,7 +183,10 @@ prod-deploy:
 	$(MAKE) deploy DEPLOY_ENV=prod IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
 
 prod-artisan:
-	./scripts/compose-exec.sh prod exec -T app php artisan $(filter-out $@,$(MAKECMDGOALS))
+	./scripts/compose-exec.sh prod exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
+
+prod-shell:
+	./scripts/compose-exec.sh prod exec app bash
 
 prod-maintenance-on:
 	./scripts/maintenance.sh on
@@ -199,7 +202,7 @@ prod-refresh:
 	./scripts/compose-exec.sh prod exec -T app php artisan tags:recalculate-popularity
 
 staging-artisan:
-	./scripts/compose-exec.sh staging exec -T app php artisan $(filter-out $@,$(MAKECMDGOALS))
+	./scripts/compose-exec.sh staging exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
 
 staging-refresh:
 	./scripts/compose-exec.sh staging exec -T app php artisan migrate:refresh --seed --force
