@@ -28,7 +28,12 @@
             <div class="mb-3 flex items-center justify-between gap-3">
                 <h3 class="text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
                 @if ($canManageActivity)
-                    <livewire:activities.invite-activity-participant :activity-id="$activity->id" :key="'invite-activity-'.$activity->id" />
+                    <livewire:user-requests.invite-user-request
+                        type="activity_invite"
+                        :subject-id="$activity->id"
+                        data-ui="activity-invite-participant"
+                        :key="'invite-activity-'.$activity->id"
+                    />
                 @endif
             </div>
             @forelse ($activity->participants as $p)

@@ -6,8 +6,8 @@ namespace Tests\Feature;
 
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
-use App\Livewire\Activities\InviteActivityParticipant;
 use App\Livewire\Activities\ShowActivity;
+use App\Livewire\UserRequests\InviteUserRequest;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\User;
@@ -33,7 +33,7 @@ class UserRequestInviteParticipantTest extends TestCase
         Livewire::actingAs($host)
             ->test(ShowActivity::class, ['activity' => $activity])
             ->set('tab', 'participation')
-            ->assertSeeHtml('wire:name="activities.invite-activity-participant"');
+            ->assertSeeHtml('wire:name="user-requests.invite-user-request"');
     }
 
     public function test_non_host_does_not_see_invite_button(): void
@@ -51,7 +51,7 @@ class UserRequestInviteParticipantTest extends TestCase
         Livewire::actingAs($visitor)
             ->test(ShowActivity::class, ['activity' => $activity])
             ->set('tab', 'participation')
-            ->assertDontSeeHtml('wire:name="activities.invite-activity-participant"');
+            ->assertDontSeeHtml('wire:name="user-requests.invite-user-request"');
     }
 
     public function test_search_finds_user_by_nickname(): void
@@ -67,10 +67,35 @@ class UserRequestInviteParticipantTest extends TestCase
         ]);
 
         Livewire::actingAs($host)
-            ->test(InviteActivityParticipant::class, ['activityId' => $activity->id])
+            ->test(InviteUserRequest::class, [
+                'type' => 'activity_invite',
+                'subjectId' => $activity->id,
+            ])
             ->call('openModal')
-            ->set('searchTerm', 'uniqueinv')
-            ->assertSee($invitee->nickname);
+            ->call('search', 'uniqueinv')
+            ->assertSet('lastSearchTerm', 'uniqueinv')
+            ->assertSet('userOptions', fn (array $options): bool => collect($options)->contains(
+                fn (array $option): bool => $option['id'] === $invitee->id
+                    && $option['name'] === $invitee->nickname
+                    && isset($option['avatar']),
+            ));
+    }
+
+    public function test_selected_user_id_is_cast_to_integer(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(InviteUserRequest::class, [
+                'type' => 'activity_invite',
+                'subjectId' => $activity->id,
+            ])
+            ->set('selectedUserId', '42')
+            ->assertSet('selectedUserId', 42);
     }
 
     public function test_send_creates_pending_activity_invite(): void
@@ -87,7 +112,10 @@ class UserRequestInviteParticipantTest extends TestCase
         ]);
 
         Livewire::actingAs($host)
-            ->test(InviteActivityParticipant::class, ['activityId' => $activity->id])
+            ->test(InviteUserRequest::class, [
+                'type' => 'activity_invite',
+                'subjectId' => $activity->id,
+            ])
             ->set('selectedUserId', $invitee->id)
             ->set('message', 'Join us!')
             ->call('send')
@@ -122,9 +150,11 @@ class UserRequestInviteParticipantTest extends TestCase
         ]);
 
         Livewire::actingAs($host)
-            ->test(InviteActivityParticipant::class, ['activityId' => $activity->id])
-            ->call('openModal')
-            ->set('searchTerm', 'alreadyjoined')
-            ->assertDontSee($participant->nickname);
+            ->test(InviteUserRequest::class, [
+                'type' => 'activity_invite',
+                'subjectId' => $activity->id,
+            ])
+            ->call('search', 'alreadyjoined')
+            ->assertSet('userOptions', []);
     }
 }
