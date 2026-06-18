@@ -135,7 +135,6 @@
 /* ─── Dark theme — only neutrals change ───────────────────────────── */
 @plugin "daisyui/theme" {
     name: "dark";
-    prefersdark: true;
     default: true;
     color-scheme: dark;
 

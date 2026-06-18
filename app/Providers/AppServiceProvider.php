@@ -21,6 +21,7 @@ use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
 use App\View\Components\Editor;
+use App\View\Components\ThemeToggle;
 use App\View\Composers\SeoComposer;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Login;
@@ -104,6 +105,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->booted(static function (): void {
             Blade::component('editor', Editor::class);
+            Blade::component('theme-toggle', ThemeToggle::class);
         });
 
         Blade::if('canModifyEntity', static function (mixed $entity): bool {
