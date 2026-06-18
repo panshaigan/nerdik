@@ -104,7 +104,7 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
             'decline_note' => $this->declineNote,
             'url' => route('notifications.index', [], false),
             'toast_title' => $this->listTitle(),
-            'toast_description' => $subjectLabel,
+            'toast_description' => $this->listSubtitle($responderName, $subjectLabel),
         ];
     }
 
@@ -129,10 +129,29 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
         };
     }
 
+    private function listSubtitle(string $responderName, string $subjectLabel): string
+    {
+        $typeLabel = match ($this->request->type) {
+            UserRequestType::OrganizationInvite => __('ui.user_requests.received_organization_invite'),
+            UserRequestType::OrganizationJoinRequest => __('ui.user_requests.received_organization_join'),
+            UserRequestType::ActivityInvite => __('ui.user_requests.received_activity_invite'),
+            UserRequestType::EventOrganizerFlag => __('ui.user_requests.received_organizer_flag'),
+        };
+
+        $parts = array_values(array_filter(
+            [$responderName, $typeLabel, $subjectLabel],
+            static fn (string $part): bool => trim($part) !== '',
+        ));
+
+        return implode(' · ', $parts);
+    }
+
     private function bodyLine(): string
     {
         $subjectLabel = app(UserRequestSubjectLabelResolver::class)->resolve($this->request);
-        $responderName = $this->request->respondedBy?->displayName() ?? __('ui.common.unknown_user');
+        $responderName = $this->request->respondedBy?->displayName()
+            ?? $this->request->recipient?->displayName()
+            ?? __('ui.common.unknown_user');
 
         return match ($this->request->status) {
             UserRequestStatus::Accepted => __('ui.user_requests.resolved_accepted_body', [

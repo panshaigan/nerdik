@@ -168,6 +168,14 @@ class UserRequestSystemTest extends TestCase
 
         $this->assertNull($resolvedNotification->read_at);
         $this->assertSame(1, $owner->fresh()->unreadNotifications()->count());
+
+        $data = $resolvedNotification->data;
+        $this->assertSame('user_request_resolved', $data['type']);
+        $this->assertSame($recipient->displayName(), $data['responder_name']);
+        $this->assertSame($organization->name, $data['subject_label']);
+        $this->assertStringContainsString($recipient->displayName(), $data['toast_description']);
+        $this->assertStringContainsString(__('ui.user_requests.received_organization_invite'), $data['toast_description']);
+        $this->assertStringContainsString($organization->name, $data['toast_description']);
     }
 
     public function test_duplicate_pending_request_is_blocked(): void

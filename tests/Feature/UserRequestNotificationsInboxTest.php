@@ -80,6 +80,7 @@ class UserRequestNotificationsInboxTest extends TestCase
 
         Livewire::actingAs($recipient)
             ->test(IncomingUserRequestList::class)
+            ->assertSee(__('ui.user_requests.from_label').':')
             ->assertSee($host->displayName())
             ->assertSee('Board Game Night')
             ->assertSee('Come play with us');
@@ -123,6 +124,8 @@ class UserRequestNotificationsInboxTest extends TestCase
 
         Livewire::actingAs($recipient)
             ->test(IncomingUserRequestList::class)
+            ->assertSee(__('ui.user_requests.from_label').':')
+            ->assertSee(__('ui.user_requests.organization_label').':')
             ->assertSeeHtml('data-ui="organization-badge-contact"')
             ->assertSee('Test Org');
     }
@@ -245,6 +248,8 @@ class UserRequestNotificationsInboxTest extends TestCase
             ->dispatch('open-user-request-modal', requestId: $request->id)
             ->assertSet('open', true)
             ->assertSet('requestId', $request->id)
+            ->assertSee(__('ui.user_requests.from_label').':')
+            ->assertSee(__('ui.user_requests.organization_label').':')
             ->assertSee('Test Org');
     }
 
