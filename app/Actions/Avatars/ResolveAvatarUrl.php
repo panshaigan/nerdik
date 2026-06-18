@@ -6,14 +6,19 @@ namespace App\Actions\Avatars;
 
 use App\Enums\AvatarSource;
 use App\Models\User;
+use App\Support\Ui\AvatarSlot;
 use Illuminate\Support\Facades\Storage;
 
 final class ResolveAvatarUrl
 {
-    public function __invoke(User $user): string
+    public function __invoke(User $user, AvatarSlot|int|null $slotOrSize = null): string
     {
+        $slot = $slotOrSize instanceof AvatarSlot
+            ? $slotOrSize
+            : AvatarSlot::fromDisplaySize(is_int($slotOrSize) ? $slotOrSize : null);
+
         $profile = $user->profile;
-        $generated = $user->generatedAvatarUrl();
+        $generated = $user->generatedAvatarUrl($slot->displaySize());
 
         $rawSource = $profile?->avatar_source;
         $source = $rawSource instanceof AvatarSource
@@ -22,6 +27,22 @@ final class ResolveAvatarUrl
 
         if ($source === AvatarSource::Generated) {
             return $generated;
+        }
+
+        if ($user->avatarConversionsPending()) {
+            $originalUrl = $user->pendingAvatarOriginalUrl();
+
+            if (is_string($originalUrl) && $originalUrl !== '') {
+                return $originalUrl;
+            }
+
+            return $generated;
+        }
+
+        $media = $user->getFirstMedia('avatar');
+
+        if ($media !== null && $media->hasGeneratedConversion($slot->conversionName())) {
+            return $media->getUrl($slot->conversionName());
         }
 
         $path = $profile?->avatar_path;
@@ -44,7 +65,7 @@ final class ResolveAvatarUrl
         if ($source === AvatarSource::Gravatar) {
             $hash = md5(strtolower(trim((string) $user->email)));
 
-            return 'https://www.gravatar.com/avatar/'.$hash.'?s=512&d=mp';
+            return 'https://www.gravatar.com/avatar/'.$hash.'?s='.$slot->displaySize().'&d=mp';
         }
 
         return $generated;

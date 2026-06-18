@@ -15,18 +15,27 @@
 
 @php
     use App\Models\User;
+    use App\Support\Ui\AvatarPicture;
+    use App\Support\Ui\AvatarSlot;
 
     $usesOrganization = $organization !== null;
     $resolvedName = trim((string) ($name ?? ($usesOrganization
         ? $organization?->name
         : ($user !== null ? $user->badgeDisplayName() : null)) ?? __('ui.common.unknown_user')));
+
+    $avatarPicture = $user !== null && ! $usesOrganization
+        ? $user->avatarPicture(AvatarSlot::Badge)
+        : null;
+
     $resolvedAvatarUrl = is_string($avatarUrl) && $avatarUrl !== ''
         ? $avatarUrl
-        : ($usesOrganization && $organization !== null
-            ? $organization->logoUrl()
-            : ($user !== null
-                ? $user->avatarUrl()
-                : User::uiAvatarsUrl($resolvedName, '#1d4ed8', '#ffffff', 2)));
+        : ($avatarPicture !== null
+            ? $avatarPicture->resolvedUrl($user, AvatarSlot::Badge)
+            : ($usesOrganization && $organization !== null
+                ? $organization->logoUrl()
+                : ($user !== null
+                    ? $user->avatarUrl(AvatarSlot::Badge)
+                    : User::uiAvatarsUrl($resolvedName, '#1d4ed8', '#ffffff', 2, AvatarSlot::Badge->displaySize()))));
 
     $avatarSizeClass = match ($size) {
         'sm' => 'h-8 w-8 text-xs',

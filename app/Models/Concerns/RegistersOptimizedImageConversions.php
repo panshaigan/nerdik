@@ -13,8 +13,11 @@ trait RegistersOptimizedImageConversions
     /**
      * @param  list<string>  $collections
      */
-    protected function registerOptimizedConversionsForCollections(array $collections): void
-    {
+    protected function registerOptimizedConversionsForCollections(
+        array $collections,
+        int $maxWidth = 1536,
+        int $maxHeight = 1536,
+    ): void {
         $queued = (bool) config('media.queue_conversions', true)
             && ! $this->shouldRunConversionsSynchronously();
 
@@ -22,7 +25,7 @@ trait RegistersOptimizedImageConversions
             $conversion = $this->addMediaConversion($format['name'])
                 ->format($format['extension'])
                 ->quality((int) config("media.conversion_qualities.{$format['name']}", 85))
-                ->fit(Fit::Max, 1536, 1536)
+                ->fit(Fit::Max, $maxWidth, $maxHeight)
                 ->performOnCollections(...$collections);
 
             if ($this->shouldGenerateResponsiveImages()) {

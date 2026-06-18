@@ -21,10 +21,11 @@ final class RefreshCachedAvatar
 
     public function __construct(
         private ImageManager $manager,
+        private AttachUserAvatarFromPath $attachUserAvatarFromPath,
     ) {}
 
     /**
-     * Downloads the remote avatar, re-encodes to WEBP, and updates the user's profile.
+     * Downloads the remote avatar, re-encodes to WEBP, and attaches it to the user's media library.
      *
      * @throws RuntimeException When the remote image is missing or invalid
      */
@@ -58,22 +59,29 @@ final class RefreshCachedAvatar
         }
 
         $newSig = hash('sha256', $body);
-        $relativePath = 'avatars/'.$user->id.'.webp';
 
         if ($newSig === (string) $profile->avatar_cache_signature
-            && $profile->avatar_path === $relativePath
-            && Storage::disk('public')->exists($relativePath)) {
+            && $user->getFirstMedia('avatar') !== null
+            && ! $user->avatarConversionsPending()) {
             return;
         }
 
         $image = $this->manager->read($body)->cover(self::AVATAR_SIZE, self::AVATAR_SIZE);
         $encoded = $image->toWebp(self::WEBP_QUALITY);
 
-        Storage::disk('public')->put($relativePath, $encoded->toString(), [
+        $tempRelativePath = 'media/temp/avatars/temp-'.$user->id.'-'.uniqid('', true).'.webp';
+
+        Storage::disk('public')->put($tempRelativePath, $encoded->toString(), [
             'visibility' => 'public',
         ]);
 
-        $profile->avatar_path = $relativePath;
+        $absolutePath = Storage::disk('public')->path($tempRelativePath);
+
+        ($this->attachUserAvatarFromPath)($user, $absolutePath);
+
+        Storage::disk('public')->delete($tempRelativePath);
+
+        $profile->avatar_path = null;
         $profile->avatar_cache_signature = $newSig;
         $profile->save();
         $user->setRelation('profile', $profile);

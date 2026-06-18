@@ -1,12 +1,16 @@
 <?php
 
+use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Actions\Avatars\StoreUploadedAvatar;
 use App\Enums\AvatarSource;
+use App\Models\User;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
+use App\Support\Ui\AvatarSlot;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Livewire\Volt\Component;
 
@@ -27,6 +31,8 @@ new class extends Component
     public $croppedAvatar = null;
 
     public string $userEmail = '';
+
+    public bool $avatarProcessingModalOpen = false;
 
     public function mount(): void
     {
@@ -68,7 +74,18 @@ new class extends Component
             default => $profile?->google_avatar_url,
         };
 
-        return (is_string($url) && $url !== '') ? $url : $user->avatarUrl();
+        return (is_string($url) && $url !== '') ? $url : $user->avatarUrl(AvatarSlot::Preview);
+    }
+
+    public function dismissAvatarProcessingModal(): void
+    {
+        $this->avatarProcessingModalOpen = false;
+    }
+
+    #[On('profile-avatar-updated')]
+    public function handleProfileAvatarUpdated(): void
+    {
+        $this->syncAvatarProcessingModal();
     }
 
     public function refreshRemoteAvatar(): void
@@ -92,7 +109,8 @@ new class extends Component
         $this->reportProfileTabValidation('avatar', function (): void {
             $user = Auth::user();
             $uploadedPath = 'avatars/'.$user->id.'.webp';
-            $hasExistingUpload = Storage::disk('public')->exists($uploadedPath);
+            $hasExistingUpload = $user->getFirstMedia('avatar') !== null
+                || Storage::disk('public')->exists($uploadedPath);
             $rawPrev = $user->profile?->avatar_source;
             $previousSource = $rawPrev instanceof AvatarSource ? $rawPrev->value : (string) ($rawPrev ?? AvatarSource::Generated->value);
 
@@ -131,8 +149,8 @@ new class extends Component
 
             if ($source === AvatarSource::Uploaded) {
                 if ($this->croppedAvatar !== null) {
-                    $path = app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
-                    $profile->avatar_path = $path;
+                    app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
+                    $profile->avatar_path = null;
                     $profile->avatar_cache_signature = null;
                 }
                 $profile->avatar_source = AvatarSource::Uploaded;
@@ -220,11 +238,19 @@ new class extends Component
 
     private function dispatchProfileAvatarUpdated(): void
     {
-        $user = Auth::user()->fresh(['profile']);
-        $url = $user->avatarUrl();
+        $user = Auth::user()->fresh(['profile', 'media']);
+        $url = $user->avatarUrl(AvatarSlot::Preview);
         $version = $user->profile?->updated_at?->getTimestamp() ?? time();
 
         $this->dispatch('profile-avatar-updated', avatarUrl: $this->cacheBustedAvatarUrl($url, $version));
+        $this->syncAvatarProcessingModal();
+    }
+
+    private function syncAvatarProcessingModal(): void
+    {
+        $user = Auth::user()?->fresh(['media']);
+
+        $this->avatarProcessingModalOpen = $user?->avatarConversionsPending() ?? false;
     }
 
     private function cacheBustedAvatarUrl(string $url, int $version): string
@@ -236,10 +262,15 @@ new class extends Component
 
     private function deleteStoredAvatarIfPresent(int $userId): void
     {
-        $path = 'avatars/'.$userId.'.webp';
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        $user = Auth::user();
+
+        if ($user !== null && (int) $user->id === $userId) {
+            $user->clearMediaCollection('avatar');
+        } elseif (($resolved = User::query()->find($userId)) !== null) {
+            $resolved->clearMediaCollection('avatar');
         }
+
+        AttachUserAvatarFromPath::deleteLegacyAvatarFileForUserId($userId);
     }
 }; ?>
 
@@ -339,7 +370,7 @@ new class extends Component
                 error-field="croppedAvatar"
                 form-selector="#ui-profile-avatar-form"
                 file-input-id="ui-profile-avatar-file"
-                :preview-url="auth()->user()->avatarUrl()"
+                :preview-url="auth()->user()->avatarUrl(\App\Support\Ui\AvatarSlot::Preview)"
                 output-size="512,512"
                 file-name="avatar.webp"
                 :modal-title="__('ui.profile.crop_avatar')"
@@ -441,4 +472,22 @@ new class extends Component
             <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
+
+    <x-modal
+        wire:model="avatarProcessingModalOpen"
+        :title="__('ui.profile.avatar_processing_title')"
+        class="backdrop-blur ui-modal ui-modal-avatar-processing"
+        box-class="ui-modal-surface max-w-md"
+        separator
+        data-ui="profile-avatar-processing-modal"
+    >
+        <div class="flex flex-col items-center gap-4 py-2 text-center">
+            <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_processing_body') }}</p>
+        </div>
+        <div class="modal-action">
+            <x-button type="button" class="btn-primary" wire:click="dismissAvatarProcessingModal" data-ui="profile-avatar-processing-dismiss">
+                {{ __('ui.profile.avatar_processing_dismiss') }}
+            </x-button>
+        </div>
+    </x-modal>
 </section>

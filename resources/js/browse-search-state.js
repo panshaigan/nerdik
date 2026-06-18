@@ -14,8 +14,8 @@ function isEphemeralSearchVisit() {
     return preset !== null && EPHEMERAL_PRESETS.has(preset);
 }
 
-function hasSearchQueryString() {
-    const params = new URLSearchParams(window.location.search);
+function hasSearchQueryString(queryString) {
+    const params = new URLSearchParams(queryString.startsWith('?') ? queryString.slice(1) : queryString);
 
     for (const key of params.keys()) {
         if (!IGNORED_QUERY_KEYS.has(key)) {
@@ -24,27 +24,6 @@ function hasSearchQueryString() {
     }
 
     return false;
-}
-
-function syncBrowseSearchState() {
-    if (!isSearchPage()) {
-        return;
-    }
-
-    if (isEphemeralSearchVisit()) {
-        localStorage.removeItem(STORAGE_KEY);
-
-        return;
-    }
-
-    const query = window.location.search;
-    if (query && hasSearchQueryString()) {
-        localStorage.setItem(STORAGE_KEY, query);
-
-        return;
-    }
-
-    localStorage.removeItem(STORAGE_KEY);
 }
 
 function restoreBrowseSearchStateIfNeeded() {
@@ -70,10 +49,31 @@ export function clearBrowseSearchState() {
     localStorage.removeItem(STORAGE_KEY);
 }
 
+export function persistBrowseSearchState(queryString) {
+    if (!isSearchPage()) {
+        return;
+    }
+
+    if (isEphemeralSearchVisit()) {
+        localStorage.removeItem(STORAGE_KEY);
+
+        return;
+    }
+
+    const query = queryString ?? '';
+    if (query && hasSearchQueryString(query)) {
+        localStorage.setItem(STORAGE_KEY, query.startsWith('?') ? query : '?' + query);
+
+        return;
+    }
+
+    localStorage.removeItem(STORAGE_KEY);
+}
+
 export function initBrowseSearchState() {
     window.__nerdikClearBrowseSearchState = clearBrowseSearchState;
+    window.__nerdikPersistBrowseSearchState = persistBrowseSearchState;
 
-    syncBrowseSearchState();
     restoreBrowseSearchStateIfNeeded();
 }
 
@@ -84,6 +84,5 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('livewire:navigated', () => {
-    syncBrowseSearchState();
     restoreBrowseSearchStateIfNeeded();
 });

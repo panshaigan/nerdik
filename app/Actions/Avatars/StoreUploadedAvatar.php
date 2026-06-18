@@ -7,6 +7,7 @@ namespace App\Actions\Avatars;
 use App\Actions\Images\StoreCroppedPublicImage;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 final class StoreUploadedAvatar
@@ -15,20 +16,24 @@ final class StoreUploadedAvatar
 
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private AttachUserAvatarFromPath $attachUserAvatarFromPath,
     ) {}
 
-    /**
-     * Writes `avatars/{user_id}.webp` on the public disk and returns the relative path.
-     */
-    public function __invoke(User $user, TemporaryUploadedFile|UploadedFile $file): string
+    public function __invoke(User $user, TemporaryUploadedFile|UploadedFile $file): void
     {
-        $relativePath = 'avatars/'.$user->id.'.webp';
+        $tempRelativePath = 'media/temp/avatars/temp-'.$user->id.'-'.uniqid('', true).'.webp';
 
-        return ($this->storeCroppedPublicImage)(
-            $relativePath,
+        ($this->storeCroppedPublicImage)(
+            $tempRelativePath,
             $file,
             self::AVATAR_SIZE,
             self::AVATAR_SIZE,
         );
+
+        $absolutePath = Storage::disk('public')->path($tempRelativePath);
+
+        ($this->attachUserAvatarFromPath)($user, $absolutePath);
+
+        Storage::disk('public')->delete($tempRelativePath);
     }
 }

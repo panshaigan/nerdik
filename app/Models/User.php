@@ -4,7 +4,10 @@ namespace App\Models;
 
 use App\Actions\Avatars\ResolveAvatarUrl;
 use App\Enums\NotificationPreferenceKey;
+use App\Models\Concerns\InteractsWithAvatarImage;
 use App\Notifications\VerifyPendingEmailNotification;
+use App\Support\Ui\AvatarPicture;
+use App\Support\Ui\AvatarSlot;
 use Database\Factories\UserFactory;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -17,11 +20,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, InteractsWithAvatarImage, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -125,21 +129,32 @@ class User extends Authenticatable implements MustVerifyEmail
         return 2;
     }
 
-    public static function uiAvatarsUrl(string $name, string $backgroundColor, string $textColor, int $length): string
-    {
+    public static function uiAvatarsUrl(
+        string $name,
+        string $backgroundColor,
+        string $textColor,
+        int $length,
+        ?int $size = null,
+    ): string {
         $bg = ltrim($backgroundColor, '#');
         $fg = ltrim($textColor, '#');
 
-        return sprintf(
-            'https://ui-avatars.com/api/?name=%s&background=%s&color=%s&length=%d&rounded=true&bold=true',
+        $query = sprintf(
+            'name=%s&background=%s&color=%s&length=%d&rounded=true&bold=true',
             rawurlencode($name),
             rawurlencode($bg),
             rawurlencode($fg),
             $length,
         );
+
+        if ($size !== null && $size > 0) {
+            $query .= '&size='.$size;
+        }
+
+        return 'https://ui-avatars.com/api/?'.$query;
     }
 
-    public function generatedAvatarUrl(): string
+    public function generatedAvatarUrl(?int $size = null): string
     {
         $profile = $this->profile;
 
@@ -148,16 +163,26 @@ class User extends Authenticatable implements MustVerifyEmail
             (string) ($profile?->avatar_bg_color ?? '#1d4ed8'),
             (string) ($profile?->avatar_text_color ?? '#ffffff'),
             $this->generatedAvatarLength(),
+            $size,
         );
     }
 
-    public function avatarUrl(): string
+    public function avatarPicture(AvatarSlot $slot = AvatarSlot::Badge): AvatarPicture
+    {
+        return AvatarPicture::fromUser($this, $slot);
+    }
+
+    public function avatarUrl(AvatarSlot|int|null $slotOrSize = null): string
     {
         if ($this->isDeleted()) {
-            return self::uiAvatarsUrl(__('ui.common.deleted_user'), '#9ca3af', '#ffffff', 1);
+            $size = $slotOrSize instanceof AvatarSlot
+                ? $slotOrSize->displaySize()
+                : (is_int($slotOrSize) ? $slotOrSize : AvatarSlot::Badge->displaySize());
+
+            return self::uiAvatarsUrl(__('ui.common.deleted_user'), '#9ca3af', '#ffffff', 1, $size);
         }
 
-        return app(ResolveAvatarUrl::class)($this);
+        return app(ResolveAvatarUrl::class)($this, $slotOrSize);
     }
 
     /**

@@ -3,6 +3,7 @@
 use App\Livewire\Actions\Logout;
 use App\Support\Browse\BrowseSearchState;
 use App\Support\Browse\BrowseSearchUrl;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
@@ -17,9 +18,16 @@ new class extends Component
     }
 
     #[On('profile-avatar-updated')]
-    public function refreshNavigationAvatar(string $avatarUrl): void
+    public function refreshNavigationAvatar(?string $avatarUrl = null): void
     {
-        $this->navAvatarUrl = $avatarUrl;
+        $this->navAvatarUrl = is_string($avatarUrl) && $avatarUrl !== '' ? $avatarUrl : null;
+
+        $user = Auth::user();
+
+        if ($user !== null) {
+            $user->unsetRelation('media');
+            $user->load('media');
+        }
     }
 
     /**

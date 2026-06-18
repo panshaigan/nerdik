@@ -97,11 +97,17 @@ class NavigationMenuTest extends TestCase
 
         $this->actingAs($user);
 
-        $avatarUrl = 'https://example.test/storage/avatars/'.$user->id.'.webp?v=123456';
+        $pendingUrl = 'https://example.test/storage/media/1/pending.webp?v=123456';
 
         Volt::test('layout.navigation')
-            ->dispatch('profile-avatar-updated', avatarUrl: $avatarUrl)
-            ->assertSet('navAvatarUrl', $avatarUrl);
+            ->set('navAvatarUrl', 'https://example.test/storage/avatars/'.$user->id.'.webp?v=old')
+            ->dispatch('profile-avatar-updated', avatarUrl: $pendingUrl)
+            ->assertSet('navAvatarUrl', $pendingUrl);
+
+        Volt::test('layout.navigation')
+            ->set('navAvatarUrl', $pendingUrl)
+            ->dispatch('profile-avatar-updated')
+            ->assertSet('navAvatarUrl', null);
     }
 
     public function test_navigation_shows_branded_app_name_next_to_logo(): void

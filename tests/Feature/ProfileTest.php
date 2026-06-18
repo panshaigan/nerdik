@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Profile\AnonymizeUser;
 use App\Enums\AvatarSource;
 use App\Livewire\Activities\OrganizationBadgeContact;
@@ -16,6 +17,7 @@ use App\Models\Organization;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -673,24 +675,32 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('color=ddeeff', $html);
     }
 
-    public function test_user_badge_uses_storage_url_for_uploaded_source(): void
+    public function test_user_badge_uses_avatar_32_img_for_uploaded_source(): void
     {
         Storage::fake('public');
         $user = User::factory()->create([
             'nickname' => 'Disk User',
         ]);
-        $path = 'avatars/'.$user->id.'.webp';
-        Storage::disk('public')->put($path, 'fake-webp-bytes');
+
+        $file = UploadedFile::fake()->image('avatar.jpg', 512, 512);
+        $tempPath = Storage::disk('public')->path('media/temp/avatars/badge-user.webp');
+        Storage::disk('public')->makeDirectory('media/temp/avatars');
+        copy($file->getRealPath(), $tempPath);
+
+        app(AttachUserAvatarFromPath::class)($user, $tempPath);
         $user->profile()->update([
             'avatar_source' => 'uploaded',
-            'avatar_path' => $path,
+            'avatar_path' => null,
         ]);
 
         $html = Blade::render('<x-user-badge :user="$user" avatar-only />', [
-            'user' => $user->fresh('profile'),
+            'user' => $user->fresh(['profile', 'media']),
         ]);
 
-        $this->assertStringContainsString('/storage/'.$path, $html);
+        $this->assertStringContainsString('<img', $html);
+        $this->assertStringContainsString('avatar_32', $html);
+        $this->assertStringNotContainsString('<picture', $html);
+        $this->assertStringNotContainsString('srcset=', $html);
     }
 
     public function test_user_badge_prefers_organization_when_provided(): void

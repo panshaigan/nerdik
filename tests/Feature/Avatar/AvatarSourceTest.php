@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Avatar;
 
+use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Enums\AvatarSource;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\User;
@@ -14,10 +15,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsResponsiveMedia;
 use Tests\TestCase;
 
 final class AvatarSourceTest extends TestCase
 {
+    use AssertsResponsiveMedia;
     use RefreshDatabase;
 
     private static function tinyPng(): string
@@ -50,8 +53,11 @@ final class AvatarSourceTest extends TestCase
 
         $user->refresh();
         $this->assertSame(AvatarSource::Uploaded, $user->profile?->avatar_source);
-        $this->assertSame('avatars/'.$user->id.'.webp', $user->profile?->avatar_path);
-        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+        $this->assertNull($user->profile?->avatar_path);
+        $media = $user->getFirstMedia('avatar');
+        $this->assertNotNull($media);
+        $this->assertAvatarMediaIsReady($media);
+        Storage::disk('public')->assertMissing('avatars/'.$user->id.'.webp');
     }
 
     #[Test]
@@ -115,7 +121,12 @@ final class AvatarSourceTest extends TestCase
             'avatar_path' => 'avatars/'.$user->id.'.webp',
             'avatar_cache_signature' => 'old',
         ]);
-        Storage::disk('public')->put('avatars/'.$user->id.'.webp', 'x');
+        Storage::disk('public')->put('avatars/'.$user->id.'.webp', self::tinyPng());
+        $user->refresh();
+        app(AttachUserAvatarFromPath::class)(
+            $user,
+            Storage::disk('public')->path('avatars/'.$user->id.'.webp'),
+        );
 
         $this->actingAs($user);
 
@@ -149,7 +160,7 @@ final class AvatarSourceTest extends TestCase
         $user->refresh();
         $this->assertSame(AvatarSource::Gravatar, $user->profile?->avatar_source);
         $this->assertNotNull($user->profile?->avatar_cache_signature);
-        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+        $this->assertNotNull($user->getFirstMedia('avatar'));
     }
 
     #[Test]
@@ -176,7 +187,7 @@ final class AvatarSourceTest extends TestCase
 
         $user->refresh();
         $this->assertSame(AvatarSource::Google, $user->profile?->avatar_source);
-        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+        $this->assertNotNull($user->getFirstMedia('avatar'));
     }
 
     #[Test]
@@ -257,7 +268,7 @@ final class AvatarSourceTest extends TestCase
 
         $user->refresh();
         $this->assertSame(AvatarSource::Discord, $user->profile?->avatar_source);
-        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+        $this->assertNotNull($user->getFirstMedia('avatar'));
     }
 
     #[Test]
@@ -280,7 +291,7 @@ final class AvatarSourceTest extends TestCase
         $listener = new RefreshUserAvatarCache;
         $listener->handle(new Login('web', $user, false));
 
-        Storage::disk('public')->assertExists('avatars/'.$user->id.'.webp');
+        $this->assertNotNull($user->fresh()->getFirstMedia('avatar'));
     }
 
     #[Test]

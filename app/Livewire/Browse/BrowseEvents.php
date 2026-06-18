@@ -172,6 +172,32 @@ class BrowseEvents extends Component
         return $this->redirectRoute('search.index');
     }
 
+    public function saveSearchParams(): void
+    {
+        if (BrowseSearchUrl::isEphemeralPreset(request())) {
+            return;
+        }
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag(
+            $this->browseFilterBag(),
+            $this->map_view,
+            $this->browseSortKey(),
+            $this->browseSortDirection(),
+        );
+
+        BrowseSearchState::syncFromFilterBag(
+            $this->browseFilterBag(),
+            $this->map_view,
+            $this->browseSortKey(),
+            $this->browseSortDirection(),
+        );
+
+        $query = parse_url($url, PHP_URL_QUERY);
+        $this->js('window.__nerdikPersistBrowseSearchState?.('.json_encode($query ?: '').')');
+
+        $this->success(__('ui.browse.save_search_success'));
+    }
+
     public function hasActiveFilters(): bool
     {
         return $this->q !== ''
@@ -446,14 +472,6 @@ class BrowseEvents extends Component
             $this->browseSortDirection(),
         );
         remember_browsing_return_url($browsingReturnUrl);
-        if (! BrowseSearchUrl::isEphemeralPreset(request())) {
-            BrowseSearchState::syncFromFilterBag(
-                $this->browseFilterBag(),
-                $this->map_view,
-                $this->browseSortKey(),
-                $this->browseSortDirection(),
-            );
-        }
 
         return view('livewire.browse.browse-events', [
             'browsingReturnUrl' => $browsingReturnUrl,
