@@ -892,6 +892,8 @@ return [
         'outgoing_empty' => 'Brak oczekujących wysłanych próśb.',
         'incoming_heading' => 'Prośby do Ciebie',
         'incoming_empty' => 'Brak oczekujących próśb do odpowiedzi.',
+        'from_label' => 'Od',
+        'organization_label' => 'Organizacja',
         'respond' => 'Odpowiedz',
         'invite_participant' => 'Zaproś użytkownika',
         'invite_participant_title' => 'Zaproś użytkownika do aktywności',

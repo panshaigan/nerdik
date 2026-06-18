@@ -902,6 +902,8 @@ return [
         'outgoing_empty' => 'No pending outgoing requests.',
         'incoming_heading' => 'Requests for you',
         'incoming_empty' => 'No pending requests to respond to.',
+        'from_label' => 'From',
+        'organization_label' => 'Organization',
         'respond' => 'Respond',
         'invite_participant' => 'Invite user',
         'invite_participant_title' => 'Invite user to activity',

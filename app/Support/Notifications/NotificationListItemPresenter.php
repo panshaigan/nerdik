@@ -59,7 +59,8 @@ final class NotificationListItemPresenter
             'event_cancelled', 'event_reopened' => $event !== '' ? $event : null,
             'waitlist_promoted' => $activity !== '' ? $activity : null,
             'scheduled_periodic_digest' => $this->scheduledDigestSubtitle($data),
-            'user_request_received', 'user_request_resolved' => $this->userRequestSubtitle($data),
+            'user_request_received' => $this->userRequestReceivedSubtitle($data),
+            'user_request_resolved' => $this->userRequestResolvedSubtitle($data),
             default => $this->joinLabelParts($activity, $event),
         };
     }
@@ -117,7 +118,12 @@ final class NotificationListItemPresenter
      */
     private function userRequestReceivedTitle(array $data): string
     {
-        return match ((string) ($data['request_type'] ?? '')) {
+        return $this->userRequestTypeLabel((string) ($data['request_type'] ?? ''));
+    }
+
+    private function userRequestTypeLabel(string $requestType): string
+    {
+        return match ($requestType) {
             'organization_invite' => __('ui.user_requests.received_organization_invite'),
             'organization_join_request' => __('ui.user_requests.received_organization_join'),
             'activity_invite' => __('ui.user_requests.received_activity_invite'),
@@ -152,12 +158,24 @@ final class NotificationListItemPresenter
     /**
      * @param  array<string, mixed>  $data
      */
-    private function userRequestSubtitle(array $data): ?string
+    private function userRequestReceivedSubtitle(array $data): ?string
     {
         $requester = trim((string) ($data['requester_name'] ?? ''));
         $subject = trim((string) ($data['subject_label'] ?? ''));
 
         return $this->joinLabelParts($requester, $subject);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function userRequestResolvedSubtitle(array $data): ?string
+    {
+        $responder = trim((string) ($data['responder_name'] ?? ''));
+        $typeLabel = $this->userRequestTypeLabel((string) ($data['request_type'] ?? ''));
+        $subject = trim((string) ($data['subject_label'] ?? ''));
+
+        return $this->joinLabelParts($responder, $typeLabel, $subject);
     }
 
     /**

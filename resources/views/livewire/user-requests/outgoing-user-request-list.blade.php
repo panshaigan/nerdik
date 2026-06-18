@@ -4,7 +4,7 @@
     </h3>
 
     @forelse ($requests as $request)
-        <div class="mb-2 flex items-center justify-between gap-3 rounded-lg border border-base-300 px-3 py-2 text-sm">
+        <div class="mb-3 flex items-center justify-between gap-4 rounded-lg border border-base-300 p-4 text-sm">
             <div class="min-w-0">
                 <p class="font-medium">{{ $request->type->label() }}</p>
                 <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 truncate text-base-content/70">
