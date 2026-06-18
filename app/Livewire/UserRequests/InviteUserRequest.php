@@ -34,6 +34,9 @@ class InviteUserRequest extends Component
     /** @var list<array{id: int, name: string, display_name: string, avatar: string}> */
     public array $userOptions = [];
 
+    /** @var array{id: int, name: string, display_name: string, avatar: string}|null */
+    public ?array $selectedUserOption = null;
+
     public string $lastSearchTerm = '';
 
     public function mount(string $type, int $subjectId, ?string $dataUi = null): void
@@ -46,6 +49,7 @@ class InviteUserRequest extends Component
     public function openModal(): void
     {
         $this->selectedUserId = null;
+        $this->selectedUserOption = null;
         $this->message = '';
         $this->userOptions = [];
         $this->lastSearchTerm = '';
@@ -56,6 +60,7 @@ class InviteUserRequest extends Component
     {
         $this->modalOpen = false;
         $this->selectedUserId = null;
+        $this->selectedUserOption = null;
         $this->message = '';
         $this->userOptions = [];
         $this->lastSearchTerm = '';
@@ -64,6 +69,11 @@ class InviteUserRequest extends Component
     public function updatedSelectedUserId(mixed $value): void
     {
         $this->selectedUserId = filled($value) ? (int) $value : null;
+    }
+
+    public function updatedLastSearchTerm(UserInviteSearchService $search): void
+    {
+        $this->search($this->lastSearchTerm, $search);
     }
 
     public function search(string $value, UserInviteSearchService $search): void
@@ -75,6 +85,28 @@ class InviteUserRequest extends Component
             $value,
             Auth::user(),
         );
+    }
+
+    public function selectUser(int $userId): void
+    {
+        $option = collect($this->userOptions)->firstWhere('id', $userId);
+
+        if ($option === null) {
+            return;
+        }
+
+        $this->selectedUserId = $userId;
+        $this->selectedUserOption = $option;
+        $this->lastSearchTerm = '';
+        $this->userOptions = [];
+    }
+
+    public function clearSelectedUser(): void
+    {
+        $this->selectedUserId = null;
+        $this->selectedUserOption = null;
+        $this->lastSearchTerm = '';
+        $this->userOptions = [];
     }
 
     public function send(UserRequestService $requests): void

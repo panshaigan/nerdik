@@ -1706,23 +1706,13 @@ dialog.modal:has(.ui-invite-user-request-modal) {
     overflow: visible;
 }
 
-.ui-invite-user-choices [wire\:key^='options-list-'] > div {
-    background-color: var(--ui-field-bg) !important;
-    border-color: var(--ui-field-border-color) !important;
-    border-radius: 1rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+.ui-invite-user-suggestions {
+    background-color: var(--ui-field-bg);
+    border-color: var(--ui-field-border-color);
 }
 
-.ui-invite-user-choices [wire\:key^='no-results-'] {
-    border-inline-start-width: 0 !important;
-    border-color: transparent !important;
-    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
-    font-weight: 400;
-    text-decoration: none;
-}
-
-.ui-invite-user-choices[data-has-user-options='1'] [wire\:key^='no-results-'] {
-    display: none !important;
+.ui-invite-user-suggestions :is(button, [role='option']) {
+    cursor: pointer;
 }
 
 /**

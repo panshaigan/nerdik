@@ -81,6 +81,30 @@ class UserRequestInviteParticipantTest extends TestCase
             ));
     }
 
+    public function test_select_user_stores_selection_and_clears_search(): void
+    {
+        $host = User::factory()->create();
+        $invitee = User::factory()->create(['nickname' => 'pickmeuser']);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(InviteUserRequest::class, [
+                'type' => 'activity_invite',
+                'subjectId' => $activity->id,
+            ])
+            ->call('search', 'pickme')
+            ->call('selectUser', $invitee->id)
+            ->assertSet('selectedUserId', $invitee->id)
+            ->assertSet('selectedUserOption', fn (?array $option): bool => $option !== null
+                && $option['id'] === $invitee->id
+                && $option['name'] === $invitee->nickname)
+            ->assertSet('lastSearchTerm', '')
+            ->assertSet('userOptions', []);
+    }
+
     public function test_selected_user_id_is_cast_to_integer(): void
     {
         $host = User::factory()->create();

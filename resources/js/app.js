@@ -15,6 +15,7 @@ import { bootActivityTagPickers } from './activity-tag-picker';
 import { bootDateTimePickers } from './datetime-picker';
 import { initEventShowSlotForms } from './event-show-slot-forms';
 import { bootProposalEventAutocomplete } from './activities/proposal-event-autocomplete';
+import './invite-user-search';
 import { initSlotEditForm } from './slot-form-modal';
 import { initSlotMassForm } from './slot-mass-form';
 
