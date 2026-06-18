@@ -46,6 +46,12 @@
                     </div>
                     @canModifyEntity($organization)
                     <div class="flex shrink-0 items-center gap-1">
+                        <livewire:user-requests.invite-user-request
+                            type="organization_invite"
+                            :subject-id="$organization->id"
+                            data-ui="organization-invite-user"
+                            :key="'invite-org-'.$organization->id"
+                        />
                         <x-button
                             type="button"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
