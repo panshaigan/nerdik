@@ -7,6 +7,7 @@ return [
         'create_activity' => 'Utwórz aktywność',
         'dashboard' => 'Pulpit',
         'notifications' => 'Powiadomienia',
+        'requests' => 'Prośby',
         'organizations' => 'Organizacje',
         'log_out' => 'Wyloguj',
         'open_menu' => 'Otwórz menu',
@@ -720,7 +721,7 @@ return [
     ],
     'notifications' => [
         'page_title' => 'Powiadomienia',
-        'page_subtitle' => 'Oczekujące prośby są na górze; poniżej znajduje się historia powiadomień.',
+        'page_subtitle' => 'Historia powiadomień.',
         'timeline_heading' => 'Historia powiadomień',
         'mark_all_read' => 'Oznacz wszystkie jako przeczytane',
         'updating' => 'Aktualizowanie…',
@@ -868,6 +869,10 @@ return [
         'auto' => 'auto',
         'empty_system' => 'W systemie nie ma jeszcze tagów. Zacznij pisać, aby utworzyć pierwsze.',
         'new_to_create' => 'Nowe tagi do utworzenia',
+    ],
+    'requests' => [
+        'page_title' => 'Prośby',
+        'page_subtitle' => 'Oczekujące zaproszenia i prośby wymagające odpowiedzi znajdują się na górze.',
     ],
     'user_requests' => [
         'organizer_flag_subject' => 'Dostęp organizatora wydarzeń',

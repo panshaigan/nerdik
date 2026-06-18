@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Activity;
 use App\Models\User;
+use App\Models\UserRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
@@ -136,12 +138,57 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee('id="mobile-nav-drawer"', false)
             ->assertSee(route('notifications.index'), false)
+            ->assertSee(route('requests.index'), false)
+            ->assertSee('data-ui="nav-requests"', false)
             ->assertDontSee(route('organizations.index'), false)
             ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
             ->assertDontSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.me.menu_activities'), false)
             ->assertSee(__('Log Out'), false)
             ->assertDontSee('window.toggleTheme()', false);
+    }
+
+    public function test_navigation_shows_requests_badge_for_pending_incoming_requests(): void
+    {
+        $host = User::factory()->create();
+        $recipient = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        UserRequest::factory()->activityInvite()->create([
+            'requester_id' => $host->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'activity',
+            'subject_id' => $activity->id,
+        ]);
+
+        $response = $this->actingAs($recipient)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('data-ui="nav-requests"', false)
+            ->assertSee('bg-secondary', false);
+
+        $this->assertMatchesRegularExpression(
+            '/bg-secondary[^>]*>\s*1\s*<\/span>/',
+            $response->getContent(),
+        );
+    }
+
+    public function test_navigation_hides_requests_badge_when_no_pending_incoming_requests(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('data-ui="nav-requests"', false);
+
+        $this->assertSame(
+            0,
+            substr_count($response->getContent(), 'bg-secondary text-[10px] font-medium text-secondary-content'),
+        );
     }
 
     public function test_navigation_is_fixed_with_layout_spacer(): void

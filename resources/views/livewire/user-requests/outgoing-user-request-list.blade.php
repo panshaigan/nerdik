@@ -7,11 +7,15 @@
         <div class="mb-2 flex items-center justify-between gap-3 rounded-lg border border-base-300 px-3 py-2 text-sm">
             <div class="min-w-0">
                 <p class="font-medium">{{ $request->type->label() }}</p>
-                <p class="truncate text-base-content/70">
-                    {{ $request->recipient?->displayName() ?? __('ui.user_requests.organizer_flag_subject') }}
+                <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 truncate text-base-content/70">
+                    @if ($request->recipient)
+                        <x-user-badge :user="$request->recipient" size="sm" class="min-w-0" />
+                    @else
+                        <span>{{ __('ui.user_requests.organizer_flag_subject') }}</span>
+                    @endif
                     <span class="text-base-content/50">·</span>
-                    {{ $labels->resolve($request) }}
-                </p>
+                    <x-user-request.subject :request="$request" />
+                </div>
                 @if ($request->expires_at)
                     <p class="mt-1 text-xs text-base-content/50">
                         {{ __('ui.user_requests.expires_at', ['time' => $request->expires_at->diffForHumans()]) }}
@@ -20,7 +24,7 @@
             </div>
             <x-button
                 type="button"
-                class="btn-ghost btn-xs shrink-0"
+                class="btn-ghost btn-xs shrink-0 self-center"
                 wire:click="cancel({{ $request->id }})"
                 wire:loading.attr="disabled"
             >

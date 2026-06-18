@@ -7,7 +7,6 @@ namespace App\Livewire\Notifications;
 use App\Enums\UserRequestType;
 use App\Models\UserRequest;
 use App\Services\UserRequests\UserRequestDecisionService;
-use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
@@ -61,6 +60,7 @@ class RespondToUserRequest extends Component
         $this->success(__('ui.user_requests.accepted'));
         $this->closeModal();
         $this->dispatch('database-notifications-updated', resetPagination: false);
+        $this->dispatch('user-requests-updated');
     }
 
     public function decline(UserRequestDecisionService $decisions): void
@@ -76,9 +76,10 @@ class RespondToUserRequest extends Component
         $this->success(__('ui.user_requests.declined'));
         $this->closeModal();
         $this->dispatch('database-notifications-updated', resetPagination: false);
+        $this->dispatch('user-requests-updated');
     }
 
-    public function render(UserRequestSubjectLabelResolver $labels)
+    public function render()
     {
         $request = null;
         $canRespond = false;
@@ -101,7 +102,6 @@ class RespondToUserRequest extends Component
 
         return view('livewire.notifications.respond-to-user-request', [
             'request' => $request,
-            'subjectLabel' => $request !== null ? $labels->resolve($request) : '',
             'canRespond' => $canRespond,
         ]);
     }

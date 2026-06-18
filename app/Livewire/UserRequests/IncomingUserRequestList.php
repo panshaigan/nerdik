@@ -14,6 +14,7 @@ use Livewire\Component;
 class IncomingUserRequestList extends Component
 {
     #[On('user-request-sent')]
+    #[On('user-requests-updated')]
     #[On('database-notifications-updated')]
     public function refreshList(): void
     {

@@ -9,10 +9,15 @@
         >
             @if ($request)
                 <div class="space-y-4">
-                    <p class="text-sm">
-                        <span class="font-semibold">{{ $request->requester?->displayName() }}</span>
-                        <span class="text-base-content/70">· {{ $subjectLabel }}</span>
-                    </p>
+                    <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
+                        @if ($request->requester)
+                            <x-user-badge :user="$request->requester" size="sm" class="min-w-0" />
+                        @else
+                            <span class="font-semibold">{{ __('ui.common.unknown_user') }}</span>
+                        @endif
+                        <span class="text-base-content/50">·</span>
+                        <x-user-request.subject :request="$request" />
+                    </div>
 
                     @if ($request->message)
                         <blockquote class="rounded-lg border border-base-300 bg-base-200/40 px-3 py-2 text-sm italic">

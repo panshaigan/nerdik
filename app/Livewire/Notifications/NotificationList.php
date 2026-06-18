@@ -6,7 +6,6 @@ use App\Support\Notifications\NotificationListItemPresenter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
@@ -15,16 +14,6 @@ class NotificationList extends Component
 {
     use Toast;
     use WithPagination;
-
-    #[Url(as: 'request')]
-    public ?int $openRequestId = null;
-
-    public function mount(): void
-    {
-        if ($this->openRequestId !== null) {
-            $this->openRequestModal((string) $this->openRequestId);
-        }
-    }
 
     #[On('database-notifications-updated')]
     public function refreshNotificationList(bool $resetPagination = true): void
@@ -53,8 +42,9 @@ class NotificationList extends Component
             && isset($data['request_id']);
 
         if ($isActionable) {
-            $this->openRequestModal((string) $data['request_id']);
             $this->dispatch('database-notifications-updated', resetPagination: false);
+
+            $this->redirect(route('requests.index', ['request' => $data['request_id']]));
 
             return;
         }
@@ -65,11 +55,6 @@ class NotificationList extends Component
             : route('dashboard');
 
         $this->redirect($safeUrl);
-    }
-
-    public function openRequestModal(string $requestId): void
-    {
-        $this->dispatch('open-user-request-modal', requestId: (int) $requestId);
     }
 
     public function render(NotificationListItemPresenter $presenter)

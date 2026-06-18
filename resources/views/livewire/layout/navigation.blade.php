@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Services\UserRequests\PendingIncomingUserRequestCounter;
 use App\Support\Browse\BrowseSearchState;
 use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,12 @@ new class extends Component
 
     #[On('database-notifications-updated')]
     public function refreshNotificationIndicators(): void
+    {
+        //
+    }
+
+    #[On('user-requests-updated')]
+    public function refreshRequestIndicators(): void
     {
         //
     }
@@ -55,6 +62,10 @@ new class extends Component
         : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
 
     $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
+
+    $pendingIncomingRequestCount = auth()->check()
+        ? app(PendingIncomingUserRequestCounter::class)->displayCountFor(auth()->user())
+        : null;
 @endphp
 
 <div
@@ -133,7 +144,21 @@ new class extends Component
                 </a>
                 <x-theme-toggle class="btn btn-circle btn-ghost"/>
                 @auth
-                <a href="{{ route('notifications.index') }}" wire:navigate class="relative btn btn-circle btn-ghost">
+                <a
+                    href="{{ route('requests.index') }}"
+                    wire:navigate
+                    class="relative btn btn-circle btn-ghost"
+                    aria-label="{{ __('ui.nav.requests') }}"
+                    data-ui="nav-requests"
+                >
+                    <x-mary-icon name="o-inbox-arrow-down" class="h-5 w-5" />
+                    @if ($pendingIncomingRequestCount !== null)
+                        <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-content">
+                            {{ $pendingIncomingRequestCount }}
+                        </span>
+                    @endif
+                </a>
+                <a href="{{ route('notifications.index') }}" wire:navigate class="relative btn btn-circle btn-ghost" aria-label="{{ __('ui.nav.notifications') }}">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
@@ -191,6 +216,20 @@ new class extends Component
 
             <div class="-me-2 flex items-center gap-1 sm:hidden">
                 @auth
+                    <a
+                        href="{{ route('requests.index') }}"
+                        wire:navigate
+                        class="relative btn btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none"
+                        aria-label="{{ __('ui.nav.requests') }}"
+                        data-ui="nav-requests"
+                    >
+                        <x-mary-icon name="o-inbox-arrow-down" class="h-6 w-6" />
+                        @if ($pendingIncomingRequestCount !== null)
+                            <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-content">
+                                {{ $pendingIncomingRequestCount }}
+                            </span>
+                        @endif
+                    </a>
                     <a
                         href="{{ route('notifications.index') }}"
                         wire:navigate

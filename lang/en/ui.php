@@ -7,6 +7,7 @@ return [
         'create_activity' => 'Create Activity',
         'dashboard' => 'Dashboard',
         'notifications' => 'Notifications',
+        'requests' => 'Requests',
         'organizations' => 'Organizations',
         'log_out' => 'Log Out',
         'open_menu' => 'Open menu',
@@ -720,7 +721,7 @@ return [
     ],
     'notifications' => [
         'page_title' => 'Notifications',
-        'page_subtitle' => 'Pending requests appear at the top; the timeline below is your notification history.',
+        'page_subtitle' => 'Your notification history.',
         'timeline_heading' => 'Notification history',
         'mark_all_read' => 'Mark all as read',
         'updating' => 'Updating…',
@@ -878,6 +879,10 @@ return [
         'auto' => 'auto',
         'empty_system' => 'No tags in the system yet. Start typing to create the first ones.',
         'new_to_create' => 'New tags to create',
+    ],
+    'requests' => [
+        'page_title' => 'Requests',
+        'page_subtitle' => 'Pending invitations and requests that need your response appear at the top.',
     ],
     'user_requests' => [
         'organizer_flag_subject' => 'Event organizer access',
