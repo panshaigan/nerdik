@@ -832,6 +832,7 @@ return [
         'edit' => 'Edit organization',
         'delete_confirm' => 'Are you sure you want to delete this organization?',
         'empty' => 'You have no organizations yet.',
+        'only_event_organizers_can_manage' => 'Only users marked as event organizers can create and manage organizations.',
         'description' => 'Description',
         'create_title' => 'Create organization',
         'acronym' => 'Acronym',

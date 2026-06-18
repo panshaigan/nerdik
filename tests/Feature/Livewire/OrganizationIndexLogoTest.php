@@ -22,7 +22,7 @@ final class OrganizationIndexLogoTest extends TestCase
     #[Test]
     public function save_persists_generated_logo_settings(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -51,7 +51,7 @@ final class OrganizationIndexLogoTest extends TestCase
     public function save_persists_uploaded_logo(): void
     {
         Storage::fake('public');
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
         $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
 
         Livewire::actingAs($user)
@@ -76,7 +76,7 @@ final class OrganizationIndexLogoTest extends TestCase
     public function switching_to_generated_deletes_uploaded_logo_file(): void
     {
         Storage::fake('public');
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
         $organization = Organization::factory()->create([
             'created_by' => $user->id,
             'logo_source' => OrganizationLogoSource::Upload,
@@ -100,7 +100,7 @@ final class OrganizationIndexLogoTest extends TestCase
     #[Test]
     public function validation_requires_crop_when_upload_selected_on_create(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -115,7 +115,7 @@ final class OrganizationIndexLogoTest extends TestCase
     #[Test]
     public function clear_cropped_logo_resets_pending_upload(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
         $file = UploadedFile::fake()->image('logo.jpg', 64, 64);
 
         Livewire::actingAs($user)
@@ -130,7 +130,7 @@ final class OrganizationIndexLogoTest extends TestCase
     public function save_persists_acronym_with_uploaded_logo(): void
     {
         Storage::fake('public');
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
         $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
 
         Livewire::actingAs($user)
@@ -152,7 +152,7 @@ final class OrganizationIndexLogoTest extends TestCase
     #[Test]
     public function validation_rejects_acronym_longer_than_five_characters(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -168,7 +168,7 @@ final class OrganizationIndexLogoTest extends TestCase
     #[Test]
     public function organization_list_renders_logo_thumbnail(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
         $organization = Organization::factory()->create([
             'created_by' => $user->id,
             'name' => 'Listed Org',

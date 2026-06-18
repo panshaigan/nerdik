@@ -73,12 +73,17 @@ class ActivityParticipationViewService
             }
         }
 
-        $canJoin = $user !== null && ! $isParticipant && ! $onWaitlist && $signupGateOk && $stateBlockedMessage === null;
+        $canManageActivity = $user?->canModifyEntity($activity) ?? false;
+        $canJoin = $user !== null
+            && ! $canManageActivity
+            && ! $isParticipant
+            && ! $onWaitlist
+            && $signupGateOk
+            && $stateBlockedMessage === null;
         $isFull = $activity->max_participants !== null
             && $activity->participants()->count() >= $activity->max_participants;
         $hasInterest = $user !== null
             && $user->interestedActivities()->where('activities.id', $activity->id)->exists();
-        $canManageActivity = $user?->canModifyEntity($activity) ?? false;
 
         return new ActivityParticipationViewData(
             isParticipant: $isParticipant,

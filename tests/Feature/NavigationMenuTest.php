@@ -136,7 +136,7 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee('id="mobile-nav-drawer"', false)
             ->assertSee(route('notifications.index'), false)
-            ->assertSee(route('organizations.index'), false)
+            ->assertDontSee(route('organizations.index'), false)
             ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
             ->assertDontSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.me.menu_activities'), false)

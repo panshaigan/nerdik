@@ -68,6 +68,30 @@ class EventOrganizerAccessTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_non_organizer_cannot_open_organizations_page(): void
+    {
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'is_event_organizer' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('organizations.index'))
+            ->assertForbidden();
+    }
+
+    public function test_event_organizer_can_open_organizations_page(): void
+    {
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'is_event_organizer' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('organizations.index'))
+            ->assertOk();
+    }
+
     public function test_user_can_open_propose_page_for_public_event_they_do_not_own(): void
     {
         $owner = User::factory()->create();

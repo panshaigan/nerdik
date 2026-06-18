@@ -16,6 +16,8 @@ class OrganizationController extends Controller
      */
     public function create()
     {
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.organizations.only_event_organizers_can_manage'));
+
         return redirect()->route('organizations.index', ['create' => '1']);
     }
 
@@ -24,6 +26,8 @@ class OrganizationController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.organizations.only_event_organizers_can_manage'));
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],

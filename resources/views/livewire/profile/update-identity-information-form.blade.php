@@ -3,6 +3,7 @@
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -32,7 +33,13 @@ new class extends Component
             : '';
         $this->timezoneOptions = profile_timezone_options();
         $this->organizationOptions = Organization::query()
-            ->where('created_by', $user->id)
+            ->where(function ($query) use ($user): void {
+                $query->where('created_by', $user->id);
+
+                if ($user->organization_id !== null) {
+                    $query->orWhere('id', $user->organization_id);
+                }
+            })
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (Organization $organization) => ['id' => $organization->id, 'name' => $organization->name])
@@ -43,10 +50,18 @@ new class extends Component
     public function updateIdentityInformation(): void
     {
         $this->reportProfileTabValidation('identity', function (): void {
+            $allowedOrganizationIds = collect($this->organizationOptions)
+                ->pluck('id')
+                ->all();
+
             $validated = $this->validate([
                 'name' => ['nullable', 'string', 'max:255'],
                 'nickname' => ['required', 'string', 'max:255'],
-                'organization_id' => ['nullable', 'integer', 'exists:organizations,id'],
+                'organization_id' => [
+                    'nullable',
+                    'integer',
+                    Rule::in($allowedOrganizationIds),
+                ],
                 'timezone' => ['nullable', 'string', 'timezone'],
             ]);
 

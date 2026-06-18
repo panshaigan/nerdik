@@ -18,7 +18,7 @@ final class OrganizationLogoCropModalTest extends TestCase
     #[Test]
     public function organization_index_renders_crop_modal_outside_org_form(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -33,7 +33,7 @@ final class OrganizationLogoCropModalTest extends TestCase
     #[Test]
     public function org_form_has_crop_upload_hooks_and_without_trap_focus_modal(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_event_organizer' => true]);
 
         $component = Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
