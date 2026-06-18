@@ -6,9 +6,10 @@ namespace App\Notifications;
 
 use App\Enums\NotificationPreferenceKey;
 use App\Enums\UserRequestType;
+use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
-use App\Notifications\Concerns\RespectsNotificationPreferences;
+use App\Services\Notifications\NotificationDispatchThrottle;
 use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,7 +21,6 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
-    use RespectsNotificationPreferences;
 
     public function __construct(
         public UserRequest $request
@@ -29,6 +29,30 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
     protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
         return NotificationPreferenceKey::UserRequests;
+    }
+
+    /**
+     * Incoming requests use the requests inbox in-app (via broadcast refresh), not the bell.
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        if (! $notifiable instanceof User) {
+            return ['mail', 'broadcast'];
+        }
+
+        if (app(NotificationDispatchThrottle::class)->shouldSuppress($this, $notifiable)) {
+            return [];
+        }
+
+        $channels = ['broadcast'];
+
+        if ($notifiable->wantsNotificationChannel($this->notificationPreferenceKey(), 'email')) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -49,7 +49,6 @@
                         </div>
 
                         <x-slot:actions>
-                            <x-button type="button" class="btn-ghost" wire:click="closeModal">{{ __('ui.common.cancel') }}</x-button>
                             <x-button type="button" class="btn-outline btn-error" wire:click="decline" wire:loading.attr="disabled">
                                 {{ __('ui.user_requests.decline') }}
                             </x-button>

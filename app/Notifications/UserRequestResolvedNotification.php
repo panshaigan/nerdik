@@ -8,9 +8,10 @@ use App\Enums\NotificationPreferenceKey;
 use App\Enums\UserRequestResolutionOutcome;
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
+use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
-use App\Notifications\Concerns\RespectsNotificationPreferences;
+use App\Services\Notifications\NotificationDispatchThrottle;
 use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,6 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
 {
     use BroadcastsWithDatabasePayload;
     use Queueable;
-    use RespectsNotificationPreferences;
 
     public function __construct(
         public UserRequest $request,
@@ -32,6 +32,40 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
     protected function notificationPreferenceKey(): NotificationPreferenceKey
     {
         return NotificationPreferenceKey::UserRequests;
+    }
+
+    /**
+     * Only the request issuer sees accept/decline outcomes on the bell; broadcast always refreshes requests UI.
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
+    {
+        if (! $notifiable instanceof User) {
+            return ['database', 'broadcast', 'mail'];
+        }
+
+        if (app(NotificationDispatchThrottle::class)->shouldSuppress($this, $notifiable)) {
+            return [];
+        }
+
+        $this->request->loadMissing('requester');
+
+        $isRequesterDecisionInApp = $this->request->requester !== null
+            && (int) $notifiable->id === (int) $this->request->requester_id
+            && in_array($this->request->status, [UserRequestStatus::Accepted, UserRequestStatus::Declined], true);
+
+        $channels = ['broadcast'];
+
+        if ($isRequesterDecisionInApp && $notifiable->wantsNotificationChannel($this->notificationPreferenceKey(), 'in_app')) {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->wantsNotificationChannel($this->notificationPreferenceKey(), 'email')) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage
