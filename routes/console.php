@@ -14,6 +14,7 @@ Schedule::command('telescope:prune')
     ->when(fn (): bool => class_exists(Telescope::class)
         && (bool) config('telescope.enabled', false));
 Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
+Schedule::command('user-requests:expire')->hourly()->withoutOverlapping();
 Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
 
 Schedule::command('queue:prune-failed', [

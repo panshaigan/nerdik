@@ -37,7 +37,7 @@
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
-<div class="relative" data-show-activity-id="{{ $activity->id }}">
+<div class="relative" data-show-activity-id="{{ $activity->id }}" data-ui-activity-invite-context="{{ $activity->id }}">
     <x-listing-show-page-background
         :picture="$coverPicture"
         data-ui="activity-show-page-background"

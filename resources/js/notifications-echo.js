@@ -58,6 +58,8 @@ function subscribeToUserNotifications() {
                 activity_reopened: 'Activity reopened',
                 event_reopened: 'Event reopened',
                 scheduled_periodic_digest: 'Scheduled reminders',
+                user_request_received: 'New request',
+                user_request_resolved: 'Request updated',
             };
 
             const toastTitle = payload?.toast_title

@@ -36,6 +36,7 @@
                                     :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
                                     name-class="truncate text-sm font-medium text-base-content"
                                     class="min-w-0 flex-1"
+                                    :context-activity-id="$canManageActivity ? $activity->id : null"
                                 />
                                 @if ($p->is_absent)
                                     <span class="badge badge-warning badge-sm shrink-0">{{ __('ui.activities.absent') }}</span>
@@ -130,6 +131,7 @@
                                         size="sm"
                                         name-class="truncate text-sm font-medium text-base-content"
                                         class="min-w-0 flex-1"
+                                        :context-activity-id="$canManageActivity ? $activity->id : null"
                                     />
                                 </div>
                             </x-slot:value>

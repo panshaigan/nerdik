@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\UserRequestResolutionOutcome;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
@@ -242,6 +243,48 @@ class ActivityParticipationService
         $this->roster->removeParticipant($participant);
 
         return redirect()->back()->with('status', __('ui.activities.participant_removed'));
+    }
+
+    /**
+     * Apply the same join / waitlist rules as the public participation UI when accepting an activity invite.
+     *
+     * @throws ValidationException when participation is not currently allowed
+     */
+    public function participateAsInvitedUser(Activity $activity, User $user): UserRequestResolutionOutcome
+    {
+        $block = $this->signupStateBlockMessage($activity);
+        if ($block !== null) {
+            throw ValidationException::withMessages(['_' => [(string) $block]]);
+        }
+
+        if ($activity->participants()->where('user_id', $user->id)->exists()) {
+            return UserRequestResolutionOutcome::Joined;
+        }
+
+        if ($activity->waitlist()->where('user_id', $user->id)->exists()) {
+            return UserRequestResolutionOutcome::Waitlisted;
+        }
+
+        $isFull = $activity->max_participants !== null
+            && $activity->participants()->count() >= $activity->max_participants;
+
+        if (! $activity->requires_approval && ! $isFull) {
+            $this->signupService->assertCanSignup($activity, $user);
+            $this->signupService->userJoinActivity($activity, $user);
+
+            return UserRequestResolutionOutcome::Joined;
+        }
+
+        if ($activity->requires_approval || $isFull) {
+            $this->signupService->assertCanSignup($activity, $user);
+            $this->signupService->userJoinWaitlist($activity, $user);
+
+            return UserRequestResolutionOutcome::Waitlisted;
+        }
+
+        throw ValidationException::withMessages([
+            '_' => [__('ui.activities.waitlist_only_when_approval_or_full')],
+        ]);
     }
 
     protected function signupStateBlockMessage(Activity $activity): array|string|null

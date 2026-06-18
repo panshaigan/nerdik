@@ -171,7 +171,9 @@ new class extends Component
                             </a>
                         </li>
                         <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
-                        <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
+                        @if (auth()->user()->canCreateEvents())
+                            <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
+                        @endif
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
                         @if (auth()->user()->canCreateEvents())
                             <li><a wire:navigate href="{{ url_with_return(route('events.create')) }}">{{ __('ui.nav.create_event') }}</a></li>
@@ -341,16 +343,18 @@ new class extends Component
                                         {{ __('ui.nav.organizations') }}
                                     </a>
                                 </li>
-                                <li>
-                                    <a
-                                        href="{{ BrowseSearchUrl::myEvents() }}"
-                                        wire:navigate
-                                        @click="close()"
-                                        class="{{ $mobileNavLink(BrowseSearchUrl::isMyEvents(request())) }}"
-                                    >
-                                        {{ __('ui.me.menu_events') }}
-                                    </a>
-                                </li>
+                                @if (auth()->user()->canCreateEvents())
+                                    <li>
+                                        <a
+                                            href="{{ BrowseSearchUrl::myEvents() }}"
+                                            wire:navigate
+                                            @click="close()"
+                                            class="{{ $mobileNavLink(BrowseSearchUrl::isMyEvents(request())) }}"
+                                        >
+                                            {{ __('ui.me.menu_events') }}
+                                        </a>
+                                    </li>
+                                @endif
                                 <li>
                                     <a
                                         href="{{ BrowseSearchUrl::myActivities() }}"

@@ -26,6 +26,7 @@ enum NotificationPreferenceKey: string
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
     case ScheduledParticipantCancellationDeadline = 'scheduled_participant_cancellation_deadline';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
+    case UserRequests = 'user_requests';
 
     /**
      * @return array<string, array{in_app: bool, email: bool, every_join?: bool}>
@@ -97,6 +98,12 @@ enum NotificationPreferenceKey: string
                     self::ActivityReopened,
                     self::EventCancelled,
                     self::EventReopened,
+                ],
+            ],
+            [
+                'group_key' => 'requests_group',
+                'keys' => [
+                    self::UserRequests,
                 ],
             ],
             [

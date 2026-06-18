@@ -30,6 +30,8 @@ class NavigationMenuTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertDontSee(__('ui.nav.create_event'), false)
+            ->assertDontSee(__('ui.me.menu_events'), false)
+            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
             ->assertSee(__('ui.nav.create_activity'), false)
             ->assertSee(route('activities.create'), false);
     }
@@ -44,7 +46,9 @@ class NavigationMenuTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee(__('ui.nav.create_event'), false)
+            ->assertSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.nav.create_activity'), false)
+            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
             ->assertSee(route('events.create'), false)
             ->assertSee(route('activities.create'), false);
     }
@@ -123,7 +127,9 @@ class NavigationMenuTest extends TestCase
 
     public function test_authenticated_mobile_drawer_includes_account_and_notification_links(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'is_event_organizer' => false,
+        ]);
 
         $this->actingAs($user)
             ->get(route('dashboard'))
@@ -131,7 +137,8 @@ class NavigationMenuTest extends TestCase
             ->assertSee('id="mobile-nav-drawer"', false)
             ->assertSee(route('notifications.index'), false)
             ->assertSee(route('organizations.index'), false)
-            ->assertSee(__('ui.me.menu_events'), false)
+            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
+            ->assertDontSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.me.menu_activities'), false)
             ->assertSee(__('Log Out'), false)
             ->assertDontSee('window.toggleTheme()', false);

@@ -118,4 +118,13 @@ new class extends Component
             <x-button class="btn-primary" type="submit">{{ __('ui.common.save') }}</x-button>
         </div>
     </form>
+
+    @if (! auth()->user()->canCreateEvents())
+        <div class="mt-8 border-t border-base-300 pt-6" data-ui="profile-organizer-request">
+            <livewire:user-requests.send-user-request
+                type="event_organizer_flag"
+                :key="'profile-organizer-request-'.auth()->id()"
+            />
+        </div>
+    @endif
 </section>

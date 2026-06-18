@@ -129,4 +129,36 @@
             @endif
         </div>
     @endif
+
+    @if ($targetUser !== null)
+        <div class="flex flex-wrap gap-2 border-t border-base-300 pt-4" data-ui="user-contact-popover-requests">
+            @if ($activityInviteSubjectId)
+                <livewire:user-requests.send-user-request
+                    type="activity_invite"
+                    subject-type="activity"
+                    :subject-id="$activityInviteSubjectId"
+                    :recipient-id="$targetUser->id"
+                    :key="'activity-invite-'.$targetUser->id.'-'.$activityInviteSubjectId"
+                />
+            @endif
+            @if ($organizationInviteSubjectId)
+                <livewire:user-requests.send-user-request
+                    type="organization_invite"
+                    subject-type="organization"
+                    :subject-id="$organizationInviteSubjectId"
+                    :recipient-id="$targetUser->id"
+                    :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteSubjectId"
+                />
+            @endif
+            @if ($organizationJoinSubjectId && $organizationJoinRecipientId)
+                <livewire:user-requests.send-user-request
+                    type="organization_join_request"
+                    subject-type="organization"
+                    :subject-id="$organizationJoinSubjectId"
+                    :recipient-id="$organizationJoinRecipientId"
+                    :key="'organization-join-'.$targetUser->id.'-'.$organizationJoinSubjectId"
+                />
+            @endif
+        </div>
+    @endif
 </div>
