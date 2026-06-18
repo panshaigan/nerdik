@@ -137,7 +137,7 @@ class SampleDataSeeder extends Seeder
             ->predefined()
             ->withSameCreatorAsOrganization()
             ->has(EventEnrollmentWindow::factory()->consistentWithEvent())
-            ->withSlots(fake()->numberBetween($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent']), $activityTypes)
+            ->withRandomSlotsPerEvent($dataset['minSlotsPerEvent'], $dataset['maxSlotsPerEvent'], $activityTypes)
             ->withVenues($venues)
             ->withRandomRooms()
             ->create();
@@ -166,8 +166,9 @@ class SampleDataSeeder extends Seeder
             ->proposed()
             ->create();
 
-        $availableSlotCount = $events->sum(fn (Event $event): int => $event->slots->count());
-        $scheduledCount = min($dataset['scheduledActivities'], $availableSlotCount);
+        $fillBudgetsByEventId = $this->resolveScheduledFillBudgetsByEvent($events);
+        $fillBudgetsByEventId = $this->capScheduledFillBudgets($fillBudgetsByEventId, $dataset['scheduledActivities']);
+        $scheduledCount = array_sum($fillBudgetsByEventId);
 
         $scheduledActivities = Activity::factory($scheduledCount)
             ->recycle($allUsers)
@@ -177,7 +178,7 @@ class SampleDataSeeder extends Seeder
 
         $this->assignSelfHostedProposals($selfHostedActivities, $events);
         $this->assignProposedActivities($proposedActivities, $events);
-        $this->assignScheduledActivities($scheduledActivities, $events);
+        $this->assignScheduledActivities($scheduledActivities, $events, $fillBudgetsByEventId);
 
         $activities = $proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities);
 
@@ -191,6 +192,56 @@ class SampleDataSeeder extends Seeder
         }
 
         $this->seedNotifications($dataset, $allUsers, $activities, $events);
+    }
+
+    /**
+     * @param  Collection<int, Event>  $events
+     * @return array<int, int>
+     */
+    private function resolveScheduledFillBudgetsByEvent(Collection $events): array
+    {
+        /** @var array<int, int> $budgets */
+        $budgets = [];
+
+        foreach ($events as $event) {
+            $slotCount = $event->slots->count();
+
+            if ($slotCount <= 1) {
+                $budgets[$event->id] = 0;
+
+                continue;
+            }
+
+            $minFill = max(1, (int) floor($slotCount * 0.3));
+            $maxFill = $slotCount - 1;
+
+            $budgets[$event->id] = fake()->numberBetween($minFill, $maxFill);
+        }
+
+        return $budgets;
+    }
+
+    /**
+     * @param  array<int, int>  $budgets
+     * @return array<int, int>
+     */
+    private function capScheduledFillBudgets(array $budgets, int $cap): array
+    {
+        while (array_sum($budgets) > $cap) {
+            $reducibleEventIds = collect($budgets)
+                ->filter(fn (int $budget): bool => $budget > 0)
+                ->keys()
+                ->all();
+
+            if ($reducibleEventIds === []) {
+                break;
+            }
+
+            $eventId = fake()->randomElement($reducibleEventIds);
+            $budgets[$eventId]--;
+        }
+
+        return $budgets;
     }
 
     /**
@@ -245,13 +296,20 @@ class SampleDataSeeder extends Seeder
     /**
      * @param  Collection<int, Activity>  $activities
      * @param  Collection<int, Event>  $events
+     * @param  array<int, int>  $fillBudgetsByEventId
      */
-    private function assignScheduledActivities(Collection $activities, Collection $events): void
-    {
+    private function assignScheduledActivities(
+        Collection $activities,
+        Collection $events,
+        array $fillBudgetsByEventId,
+    ): void {
         $resolveParticipantBounds = app(ResolveParticipantBoundsForSlot::class);
 
         /** @var list<int> $usedSlotIds */
         $usedSlotIds = [];
+
+        /** @var array<int, int> $remainingFillBudgetsByEventId */
+        $remainingFillBudgetsByEventId = $fillBudgetsByEventId;
 
         $freeSlots = $events
             ->flatMap(fn (Event $event) => $event->slots)
@@ -259,7 +317,16 @@ class SampleDataSeeder extends Seeder
             ->values();
 
         foreach ($activities->shuffle() as $activity) {
-            $candidateSlots = $freeSlots->filter(function (Slot $slot) use ($activity, $usedSlotIds, $resolveParticipantBounds): bool {
+            $candidateSlots = $freeSlots->filter(function (Slot $slot) use (
+                $activity,
+                $usedSlotIds,
+                $resolveParticipantBounds,
+                $remainingFillBudgetsByEventId,
+            ): bool {
+                if (($remainingFillBudgetsByEventId[$slot->event_id] ?? 0) <= 0) {
+                    return false;
+                }
+
                 if (in_array($slot->id, $usedSlotIds, true)) {
                     return false;
                 }
@@ -291,6 +358,7 @@ class SampleDataSeeder extends Seeder
             ]);
 
             $usedSlotIds[] = $slot->id;
+            $remainingFillBudgetsByEventId[$slot->event_id]--;
         }
     }
 

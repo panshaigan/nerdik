@@ -105,6 +105,22 @@ final class EventFactory extends Factory
         );
     }
 
+    public function withRandomSlotsPerEvent(int $min, int $max, Collection $activityTypes): self
+    {
+        return $this->afterCreating(function (Event $event) use ($min, $max, $activityTypes) {
+            $count = fake()->numberBetween($min, $max);
+
+            Slot::factory($count)
+                ->for($event)
+                ->consistentWithEventAndPlace()
+                ->sequence(fn (Sequence $sequence): array => [
+                    'name' => 'Stół '.($sequence->index + 1),
+                ])
+                ->withActivityTypesAttached($activityTypes)
+                ->create();
+        });
+    }
+
     public function withVenues(Collection $venues): self
     {
         return $this->afterCreating(function (Event $event) use ($venues) {
