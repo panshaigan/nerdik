@@ -4,8 +4,7 @@
     class="ui-event-show-pending-proposals p-4 sm:p-6"
     data-ui="event-show-pending-proposals"
 >
-    <h3 class="mb-1 text-lg font-semibold text-base-content">{{ __('ui.events.pending_proposals') }}</h3>
-    <p class="mb-3 text-sm text-base-content/80">{{ __('ui.events.pending_proposals_help') }}</p>
+    <h3 class="mb-4 text-lg font-semibold text-base-content">{{ __('ui.events.pending_proposals') }}</h3>
     <ul class="divide-y divide-primary/15">
         @foreach ($pendingProposals as $proposal)
             @php

@@ -528,7 +528,6 @@ new class extends Component
                     </div>
                 @elseif (config('services.google.client_id'))
                     <div class="flex flex-col gap-4">
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_google_link_hint') }}</p>
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on accounts.google.com --}}
                         <x-button :link="route('google.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
                     </div>
@@ -564,7 +563,6 @@ new class extends Component
                         </div>
                     @elseif (config('services.facebook.client_id'))
                         <div class="flex flex-col gap-4">
-                            <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_facebook_link_hint') }}</p>
                             {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
                             <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
                         </div>
@@ -574,8 +572,8 @@ new class extends Component
                         <div class="w-1/2">
                             <x-input
                                 wire:model="facebook_profile_url"
-                                label="{{ __('ui.profile.integrations_facebook_profile_url_label') }}"
-                                placeholder="{{ __('ui.profile.integrations_facebook_profile_url_placeholder') }}"
+                                label="{{ __('ui.profile.integrations_facebook_profile_url_label') }} (https://www.facebook.com/your.name)"
+                                placeholder="{{ __('ui.profile.integrations_facebook_profile_url_label') }}  (https://www.facebook.com/your.name)"
                                 type="url"
                                 name="facebook_profile_url"
                                 error-field="facebook_profile_url"
@@ -622,7 +620,6 @@ new class extends Component
                     </div>
                 @elseif (config('services.discord.client_id'))
                     <div class="flex flex-col gap-4">
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.integrations_discord_link_hint') }}</p>
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on discord.com --}}
                         <x-button :link="route('discord.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
                     </div>
