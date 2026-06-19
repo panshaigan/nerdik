@@ -24,18 +24,20 @@
     </div>
 
     @if ($modalOpen)
-        <x-modal
-            wire:model="modalOpen"
-            :title="$organization->name"
-            box-class="max-w-lg overflow-x-hidden ui-modal-surface"
-            class="backdrop-blur"
-            separator
-            data-ui="organization-badge-contact-modal"
-        >
-            <livewire:activities.organization-contact-popover
-                :target-organization-id="$organization->id"
-                :key="'organization-contact-popover-'.$organization->id"
-            />
-        </x-modal>
+        @teleport('body')
+            <x-modal
+                wire:model="modalOpen"
+                :title="$organization->name"
+                box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+                class="backdrop-blur"
+                separator
+                data-ui="organization-badge-contact-modal"
+            >
+                <livewire:activities.organization-contact-popover
+                    :target-organization-id="$organization->id"
+                    :key="'organization-contact-popover-'.$organization->id"
+                />
+            </x-modal>
+        @endteleport
     @endif
 </div>
