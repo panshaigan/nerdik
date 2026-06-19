@@ -11,11 +11,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 use function fake;
-use function min;
 
 /**
  * @extends Factory<Activity>
@@ -42,8 +40,8 @@ final class ActivityFactory extends Factory
             'activity_type_id' => ActivityType::findBySlug('rpg'),
             'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
 
-            'min_participants' => fake()->numberBetween(0, 3),
-            'max_participants' => fake()->numberBetween(3, 10),
+            'min_participants' => fake()->numberBetween(1, 3),
+            'max_participants' => fake()->numberBetween(6, 12),
             'minimum_age' => fake()->optional(0.3)->randomElement([
                 12,
                 16, 16,
@@ -70,9 +68,9 @@ final class ActivityFactory extends Factory
         ];
     }
 
-    public function selfHosted(Collection $users): self
+    public function selfHosted(): self
     {
-        return $this->afterCreating(function (Activity $activity) use ($users) {
+        return $this->afterCreating(function (Activity $activity): void {
             $startsAt = fake()->dateTimeBetween('+1 week', '+6 months')
                 ->setTime(fake()->numberBetween(9, 17), 0);
 
@@ -87,14 +85,7 @@ final class ActivityFactory extends Factory
                 'ends_at' => $endsAt,
                 'place_id' => Place::inRandomOrder()->first()?->id,
             ]);
-
-            $users = collect($users);
-
-            $activity->users()->attach(
-                $users->random(random_int(1, min(3, $activity->max_participants)))->pluck('id')
-            );
         });
-        //        select activity_waitlist_entries
     }
 
     public function proposed(): self
