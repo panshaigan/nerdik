@@ -34,7 +34,7 @@ final class ResolveParticipantBoundsForSlot
             ? 0
             : fake()->numberBetween(1, min(4, $maxParticipants));
 
-        if ($maxParticipants >= 5) {
+        if ($maxParticipants >= 5 && ! $activity->is_host_passive) {
             $maxParticipants = fake()->numberBetween(5, min(12, $maxParticipants));
             $minParticipants = fake()->numberBetween(1, min(4, $maxParticipants));
         }
