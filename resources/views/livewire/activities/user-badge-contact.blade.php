@@ -23,20 +23,22 @@
     </div>
 
     @if ($modalOpen)
-        <x-modal
-            wire:model="modalOpen"
-            :title="$user->displayName()"
-            box-class="max-w-lg overflow-x-hidden ui-modal-surface"
-            class="backdrop-blur"
-            separator
-            data-ui="user-badge-contact-modal"
-        >
-            <livewire:activities.user-contact-popover
-                :target-user-id="$user->id"
-                :context-activity-id="$contextActivityId"
-                :context-organization-id="$contextOrganizationId"
-                :key="'user-contact-popover-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0')"
-            />
-        </x-modal>
+        @teleport('body')
+            <x-modal
+                wire:model="modalOpen"
+                :title="$user->displayName()"
+                box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+                class="backdrop-blur"
+                separator
+                data-ui="user-badge-contact-modal"
+            >
+                <livewire:activities.user-contact-popover
+                    :target-user-id="$user->id"
+                    :context-activity-id="$contextActivityId"
+                    :context-organization-id="$contextOrganizationId"
+                    :key="'user-contact-popover-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0')"
+                />
+            </x-modal>
+        @endteleport
     @endif
 </div>
