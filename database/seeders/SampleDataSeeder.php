@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Actions\Seeders\AttachGameTagChainUntilGenre;
+use App\Actions\Seeders\AttachSampleActivityTags;
 use App\Actions\Seeders\ResolveParticipantBoundsForSlot;
+use App\Actions\Seeders\SampleActivityTagPools;
+use App\Actions\Seeders\SeedActivityParticipants;
 use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -21,6 +23,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Random\RandomException;
+use RuntimeException;
 
 use function fake;
 
@@ -104,25 +107,24 @@ class SampleDataSeeder extends Seeder
     }
 
     /**
-     * Seed sample data for local testing: users, orgs, events, slots, activities, proposals.
-     * All entities get created_by set. Safe to run multiple times (use firstOrCreate by slug/email).
+     * Seed sample data for local testing: orgs, events, slots, activities, proposals.
+     * Requires BaseDataSeeder, UserSeeder, and PlaceSeeder to run first.
      *
      * @throws RandomException
      */
     public function run(int $chosenDataset = self::DATASET_MINIMAL): void
     {
         $dataset = self::DATASETS[$chosenDataset];
-        $this->callWith(UserSeeder::class, ['dataset' => $dataset]);
-        $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
+
+        $this->assertSeederPrerequisites();
 
         $activityTypes = ActivityType::where('slug', ActivityType::SLUG_RPG)->get();
         $organizers = User::where('is_event_organizer', 1)->get();
         $allUsers = User::all();
         $venues = Place::where('type', Place::TYPE_VENUE)->get();
-        $gameTags = Tag::query()->games()->get();
-        $formatTags = Tag::query()->formats()->get();
-        $otherTags = Tag::query()->others()->get();
-        $triggerTags = Tag::query()->triggers()->get();
+        $tagPools = $this->resolveTagPools();
+        $attachTags = app(AttachSampleActivityTags::class);
+        $seedParticipants = app(SeedActivityParticipants::class);
 
         $organizations = Organization::factory($dataset['organizations'])
             ->recycle($allUsers)
@@ -147,13 +149,23 @@ class SampleDataSeeder extends Seeder
         $selfHostedActivities = Activity::factory($dataset['selfHostedActivities'])
             ->recycle($allUsers)
             ->predefined()
-            ->selfHosted($allUsers)
+            ->selfHosted()
             ->create();
 
-        Activity::factory($dataset['draftActivities'])
+        foreach ($selfHostedActivities as $activity) {
+            $attachTags($activity, $tagPools);
+        }
+
+        $seedParticipants->seedSelfHosted($allUsers, $selfHostedActivities);
+
+        $draftActivities = Activity::factory($dataset['draftActivities'])
             ->recycle($allUsers)
             ->predefined()
             ->create();
+
+        foreach ($draftActivities as $activity) {
+            $attachTags($activity, $tagPools);
+        }
 
         $proposedCount = min(
             $dataset['proposedActivities'],
@@ -165,6 +177,10 @@ class SampleDataSeeder extends Seeder
             ->predefined()
             ->proposed()
             ->create();
+
+        foreach ($proposedActivities as $activity) {
+            $attachTags($activity, $tagPools);
+        }
 
         $fillBudgetsByEventId = $this->resolveScheduledFillBudgetsByEvent($events);
         $fillBudgetsByEventId = $this->capScheduledFillBudgets($fillBudgetsByEventId, $dataset['scheduledActivities']);
@@ -180,11 +196,16 @@ class SampleDataSeeder extends Seeder
         $this->assignProposedActivities($proposedActivities, $events);
         $this->assignScheduledActivities($scheduledActivities, $events, $fillBudgetsByEventId);
 
-        $activities = $proposedActivities->merge($scheduledActivities)->merge($selfHostedActivities);
-
-        foreach ($activities as $activity) {
-            $this->attachActivityTags($activity, $gameTags, $formatTags, $otherTags, $triggerTags);
+        foreach ($scheduledActivities as $activity) {
+            $attachTags($activity->fresh(), $tagPools);
         }
+
+        $seedParticipants->seedScheduledOnSlot($allUsers, $scheduledActivities);
+
+        $activities = $proposedActivities
+            ->merge($scheduledActivities)
+            ->merge($selfHostedActivities)
+            ->merge($draftActivities);
 
         foreach ($allUsers as $user) {
             $user->interestedActivities()->attach($activities->random(fake()->numberBetween(0, 10)));
@@ -192,6 +213,47 @@ class SampleDataSeeder extends Seeder
         }
 
         $this->seedNotifications($dataset, $allUsers, $activities, $events);
+    }
+
+    private function assertSeederPrerequisites(): void
+    {
+        if (ActivityType::query()->doesntExist()) {
+            throw new RuntimeException('SampleDataSeeder requires ActivityTypeSeeder to run first.');
+        }
+
+        if (User::query()->doesntExist()) {
+            throw new RuntimeException('SampleDataSeeder requires UserSeeder to run first.');
+        }
+
+        if (Place::query()->where('type', Place::TYPE_VENUE)->doesntExist()) {
+            throw new RuntimeException('SampleDataSeeder requires PlaceSeeder to run first.');
+        }
+
+        $pools = $this->resolveTagPools();
+
+        if ($pools->gameTags->isEmpty()) {
+            throw new RuntimeException('SampleDataSeeder requires TagSeeder to run first (no game tags found).');
+        }
+
+        if ($pools->genreTags->isEmpty()) {
+            throw new RuntimeException('SampleDataSeeder requires TagSeeder to run first (no genre tags found).');
+        }
+
+        if ($pools->mechanicTags->isEmpty()) {
+            throw new RuntimeException('SampleDataSeeder requires TagSeeder to run first (no mechanic tags found).');
+        }
+    }
+
+    private function resolveTagPools(): SampleActivityTagPools
+    {
+        return new SampleActivityTagPools(
+            gameTags: Tag::query()->games()->get(),
+            genreTags: Tag::query()->genres()->get(),
+            mechanicTags: Tag::query()->mechanics()->get(),
+            formatTags: Tag::query()->formats()->get(),
+            otherTags: Tag::query()->others()->get(),
+            triggerTags: Tag::query()->triggers()->get(),
+        );
     }
 
     /**
@@ -360,26 +422,6 @@ class SampleDataSeeder extends Seeder
             $usedSlotIds[] = $slot->id;
             $remainingFillBudgetsByEventId[$slot->event_id]--;
         }
-    }
-
-    /**
-     * @param  Collection<int, Tag>  $gameTags
-     * @param  Collection<int, Tag>  $formatTags
-     * @param  Collection<int, Tag>  $otherTags
-     * @param  Collection<int, Tag>  $triggerTags
-     */
-    private function attachActivityTags(
-        Activity $activity,
-        Collection $gameTags,
-        Collection $formatTags,
-        Collection $otherTags,
-        Collection $triggerTags,
-    ): void {
-        $activity->tags()->attach($otherTags->random(1));
-        $activity->tags()->attach($formatTags->random(1));
-        $activity->tags()->attach($triggerTags->random(fake()->numberBetween(1, 3)));
-
-        app(AttachGameTagChainUntilGenre::class)($activity, $gameTags->random());
     }
 
     /**

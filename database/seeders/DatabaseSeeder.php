@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(BaseDataSeeder::class);
 
+        $dataset = SampleDataSeeder::DATASETS[SampleDataSeeder::resolveDatasetFromEnv()];
+
+        $this->callWith(UserSeeder::class, ['dataset' => $dataset]);
+        $this->callWith(PlaceSeeder::class, ['dataset' => $dataset]);
         $this->callWith(SampleDataSeeder::class, [
             'chosenDataset' => SampleDataSeeder::resolveDatasetFromEnv(),
         ]);

@@ -17,8 +17,8 @@ final class ResolveParticipantBoundsForSlot
     public function __invoke(Slot $slot, Activity $activity): array
     {
         if ($slot->max_capacity === null) {
-            $maxParticipants = fake()->numberBetween(3, 8);
-            $minParticipants = fake()->numberBetween(1, min(3, $maxParticipants));
+            $maxParticipants = fake()->numberBetween(5, 12);
+            $minParticipants = fake()->numberBetween(1, min(4, $maxParticipants));
 
             return [
                 'min_participants' => $minParticipants,
@@ -32,7 +32,12 @@ final class ResolveParticipantBoundsForSlot
             : max(0, $capacity - 1);
         $minParticipants = $maxParticipants === 0
             ? 0
-            : fake()->numberBetween(1, min(3, $maxParticipants));
+            : fake()->numberBetween(1, min(4, $maxParticipants));
+
+        if ($maxParticipants >= 5) {
+            $maxParticipants = fake()->numberBetween(5, min(12, $maxParticipants));
+            $minParticipants = fake()->numberBetween(1, min(4, $maxParticipants));
+        }
 
         return [
             'min_participants' => $minParticipants,

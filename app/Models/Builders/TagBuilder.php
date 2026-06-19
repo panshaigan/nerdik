@@ -42,6 +42,16 @@ class TagBuilder extends Builder
         return $this->ofCategory(TagCategory::KEY_OTHER);
     }
 
+    public function genres(): self
+    {
+        return $this->ofCategory(TagCategory::KEY_GENRE);
+    }
+
+    public function mechanics(): self
+    {
+        return $this->ofCategory(TagCategory::KEY_MECHANIC);
+    }
+
     public function withRelated(): self
     {
         return $this->with('relatedTags');
