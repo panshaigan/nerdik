@@ -118,7 +118,7 @@ test:
 	$(SAIL) artisan test --filter $(filter-out $@,$(MAKECMDGOALS))
 
 test-all:
-	$(SAIL) artisan test
+	$(SAIL) artisan test --parallel
 
 tags-recalculate:
 	$(SAIL) artisan tags:recalculate-popularity
