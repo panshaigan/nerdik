@@ -84,9 +84,9 @@ final class ResolveParticipantBoundsForSlotTest extends TestCase
         $bounds = ($this->action)($slot, $activity);
 
         $this->assertGreaterThanOrEqual(1, $bounds['min_participants']);
-        $this->assertLessThanOrEqual(3, $bounds['min_participants']);
-        $this->assertGreaterThanOrEqual(3, $bounds['max_participants']);
-        $this->assertLessThanOrEqual(8, $bounds['max_participants']);
+        $this->assertLessThanOrEqual(4, $bounds['min_participants']);
+        $this->assertGreaterThanOrEqual(5, $bounds['max_participants']);
+        $this->assertLessThanOrEqual(12, $bounds['max_participants']);
         $this->assertLessThanOrEqual($bounds['max_participants'], $bounds['min_participants']);
     }
 }
