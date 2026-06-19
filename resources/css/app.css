@@ -1715,6 +1715,42 @@ dialog.modal:has(.ui-invite-user-request-modal) {
 }
 
 /**
+ * Timeline collapses (dashboard feed, event plan): shared header hover feedback.
+ * DaisyUI places an invisible checkbox above .collapse-title (z-index: 1), so title :hover never fires.
+ */
+.ui-timeline-collapse {
+    transition: border-color 0.2s ease;
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover),
+.ui-timeline-collapse:has(> input[type='checkbox']:focus-visible) {
+    border-color: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-content) 10%);
+}
+
+.ui-timeline-collapse > .collapse-title {
+    cursor: pointer;
+    border-radius: 0.75rem;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover) > .collapse-title {
+    background-color: color-mix(in oklab, var(--color-primary) 6%, transparent);
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover) > .collapse-title :is(span, p) {
+    color: color-mix(in oklab, var(--color-base-content) 70%, var(--color-primary) 30%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-timeline-collapse,
+    .ui-timeline-collapse > .collapse-title {
+        transition: none;
+    }
+}
+
+/**
  * Dashboard feed groups: DaisyUI .collapse sets overflow:hidden (utilities layer),
  * which clips listing-card hover glow. Unlayered rules must beat layered DaisyUI.
  */
@@ -1730,37 +1766,4 @@ dialog.modal:has(.ui-invite-user-request-modal) {
 .ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) .ui-dashboard-feed-listings {
     margin: -2rem -1rem;
     padding: 2rem 1rem;
-}
-
-.ui-dashboard-feed-collapse {
-    transition: border-color 0.2s ease;
-}
-
-/* DaisyUI places an invisible checkbox above .collapse-title (z-index: 1), so title :hover never fires. */
-.ui-dashboard-feed-collapse:has(> input[type='checkbox']:hover),
-.ui-dashboard-feed-collapse:has(> input[type='checkbox']:focus-visible) {
-    border-color: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-content) 10%);
-}
-
-.ui-dashboard-feed-collapse > .collapse-title {
-    cursor: pointer;
-    border-radius: 0.75rem;
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease;
-}
-
-.ui-dashboard-feed-collapse:has(> input[type='checkbox']:hover) > .collapse-title {
-    background-color: color-mix(in oklab, var(--color-primary) 6%, transparent);
-}
-
-.ui-dashboard-feed-collapse:has(> input[type='checkbox']:hover) > .collapse-title :is(span, p) {
-    color: color-mix(in oklab, var(--color-base-content) 70%, var(--color-primary) 30%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .ui-dashboard-feed-collapse,
-    .ui-dashboard-feed-collapse > .collapse-title {
-        transition: none;
-    }
 }

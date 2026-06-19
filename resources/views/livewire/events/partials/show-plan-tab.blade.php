@@ -111,6 +111,7 @@
                         }
                     @endphp
                     <x-collapse
+                        class="ui-timeline-collapse"
                         :data-ui="$groupStartsAt ? 'event-slot-group-'.$groupStartsAt->getTimestamp() : null"
                         separator
                         :open="$shouldAutoOpen"

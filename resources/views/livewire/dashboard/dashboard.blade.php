@@ -52,7 +52,7 @@
                         <li class="list-none">
                             @if ($groupItems->isNotEmpty())
                                 <x-collapse
-                                    class="ui-dashboard-feed-collapse"
+                                    class="ui-timeline-collapse ui-dashboard-feed-collapse"
                                     :data-ui="$groupStartsAt ? 'dashboard-feed-group-'.$groupStartsAt->getTimestamp() : 'dashboard-feed-group-no-time'"
                                     separator
                                     :open="$shouldAutoOpen"
