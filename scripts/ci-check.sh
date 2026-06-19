@@ -66,8 +66,8 @@ run_test_job() {
     step "php artisan migrate --force"
     "$SAIL" artisan migrate --force
 
-    step "php artisan test --compact"
-    "$SAIL" artisan test --compact
+    step "php artisan test --compact -parallel"
+    "$SAIL" artisan test --compact -parallel
 
     step "composer audit"
     "$SAIL" composer audit
