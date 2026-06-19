@@ -341,7 +341,6 @@ new class extends Component
                         maxlength="3"
                         inline
                     />
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_colors_hint') }}</p>
                     <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.profile.avatar_bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required inline />
                     <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.profile.avatar_text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required inline />
                 </div>
@@ -380,7 +379,6 @@ new class extends Component
         @if ($avatar_source === 'gravatar')
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_gravatar_cache_hint') }}</p>
                     <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_gravatar') }}</x-button>
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
@@ -399,10 +397,8 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     @if (auth()->user()->profile?->google_id)
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_linked_hint') }}</p>
                         <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_google') }}</x-button>
                     @elseif (config('services.google.client_id'))
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_google_link_hint') }}</p>
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on accounts.google.com --}}
                         <x-button :link="route('google.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
                     @endif
@@ -423,10 +419,8 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     @if (auth()->user()->profile?->facebook_id)
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_linked_hint') }}</p>
                         <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_facebook') }}</x-button>
                     @elseif (config('services.facebook.client_id'))
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_facebook_link_hint') }}</p>
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
                         <x-button :link="route('facebook.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
                     @endif
@@ -447,10 +441,8 @@ new class extends Component
             <div class="ui-profile-avatar-source-panel grid gap-6 rounded-lg border border-base-200 bg-base-200/40 p-6 md:grid-cols-2 md:items-center md:gap-8">
                 <div class="flex flex-col gap-4">
                     @if (auth()->user()->profile?->discord_id)
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_discord_linked_hint') }}</p>
                         <x-button type="button" class="btn-outline btn-md w-full max-w-sm" wire:click="refreshRemoteAvatar">{{ __('ui.profile.avatar_refresh_discord') }}</x-button>
                     @elseif (config('services.discord.client_id'))
-                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_discord_link_hint') }}</p>
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on discord.com --}}
                         <x-button :link="route('discord.redirect', ['return_tab' => 'avatar'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
                     @endif

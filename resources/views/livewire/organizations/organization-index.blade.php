@@ -150,9 +150,8 @@
                     @if ($logo_source === 'generated')
                         <div class="grid gap-4 rounded-lg border border-base-200 bg-base-200/40 p-4 md:grid-cols-2 md:items-center">
                             <div class="flex flex-col gap-3">
-                                <p class="text-sm text-base-content/80">{{ __('ui.organizations.logo_colors_hint') }}</p>
-                                <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.organizations.logo_bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" required />
-                                <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.organizations.logo_text_color') }}" name="logo_text_color" error-field="logo_text_color" required />
+                                <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.organizations.logo_bg_color') }}" placeholder="{{ __('ui.organizations.logo_bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" inline required />
+                                <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.organizations.logo_text_color') }}" placeholder="{{ __('ui.organizations.logo_text_color') }}" name="logo_text_color" error-field="logo_text_color" inline required />
                             </div>
                             <div class="flex flex-col items-center justify-center gap-2">
                                 <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>
