@@ -1378,7 +1378,7 @@ class ProfileTest extends TestCase
             ])
             ->html();
 
-        $this->assertStringContainsString(__('ui.profile.contact_hosted_section'), $html);
+        $this->assertStringContainsString(__('ui.common.activity_stats_title'), $html);
         $this->assertStringContainsString(
             __('ui.profile.contact_hosted_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_RPG)]),
             $html,

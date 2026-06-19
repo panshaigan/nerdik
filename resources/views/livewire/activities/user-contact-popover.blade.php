@@ -51,7 +51,7 @@
     @endif
 
     <div class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.profile.contact_stats_title') }}</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.common.activity_stats_title') }}</p>
 
         <div class="space-y-2" data-ui="user-contact-popover-hosted-stats">
             @forelse ($hostedStatsByType as $stat)

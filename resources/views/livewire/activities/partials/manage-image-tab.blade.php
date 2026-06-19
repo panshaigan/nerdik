@@ -90,10 +90,10 @@
             file-input-id="ui-activity-logo-file"
             :preview-url="$logoPreviewUrl ?? null"
             :upload-title="__('ui.activities.image_upload')"
-            :upload-help="__('ui.activities.image_upload_crop_help')"
+            :upload-help="__('ui.common.cover_image_upload_help', ['max' => '5 MB'])"
             output-size="1280,720"
             file-name="logo.webp"
-            :modal-title="__('ui.activities.image_crop_title')"
+            :modal-title="__('ui.common.crop_cover_image')"
         />
     @endif
 </div>

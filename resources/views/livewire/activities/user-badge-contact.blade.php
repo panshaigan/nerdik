@@ -8,7 +8,7 @@
         wire:click.stop="openModal"
         wire:keydown.enter.stop="openModal"
         class="ui-user-badge-contact-trigger cursor-pointer overflow-visible text-left min-w-0 w-full"
-        title="{{ $contactTooltip ?? __('ui.profile.contact_popover_tooltip') }}"
+        title="{{ $contactTooltip ?? __('ui.common.click_for_details') }}"
         data-ui="user-badge-contact-trigger"
     >
         <x-user-badge

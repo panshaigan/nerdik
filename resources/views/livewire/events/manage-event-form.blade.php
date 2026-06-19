@@ -93,7 +93,7 @@
         </x-form>
     </div>
 
-    <x-image-crop-modal :title="__('ui.events.image_crop_title')" />
+    <x-image-crop-modal :title="__('ui.common.crop_cover_image')" />
 </div>
 @push('scripts')
 <script>

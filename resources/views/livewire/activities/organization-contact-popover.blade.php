@@ -15,7 +15,7 @@
     @endif
 
     <div class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.stats_title') }}</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.common.activity_stats_title') }}</p>
 
         <div class="space-y-2" data-ui="organization-contact-popover-scheduled-stats">
             <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.scheduled_section') }}</p>

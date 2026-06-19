@@ -23,9 +23,7 @@
 
 @php
     $isVideo = $aspect === 'video';
-    $uploadHelpText = $uploadHelp ?? ($isVideo
-        ? __('ui.common.crop_upload_help_video')
-        : __('ui.common.crop_upload_help_square'));
+    $uploadHelpText = $uploadHelp ?? __('ui.common.crop_upload_help');
     $previewClasses = $isVideo
         ? 'aspect-video w-full max-w-md rounded-2xl object-cover ring-2 ring-base-300/50'
         : ($compact
@@ -43,7 +41,7 @@
         ? 'ui-image-crop-dropzone-upload flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-base-300/80 bg-base-100/30 p-4 text-center'
         : 'ui-image-crop-dropzone-upload flex min-h-64 cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-base-300/80 bg-base-100/30 p-8 text-center';
     $resolvedFileInputId = $fileInputId ?? 'ui-image-crop-file-'.md5($wireProperty.$formSelector);
-    $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('ui.events.image_crop_title') : __('ui.profile.crop_avatar'));
+    $resolvedModalTitle = $modalTitle ?? ($isVideo ? __('ui.common.crop_cover_image') : __('ui.profile.crop_avatar'));
 @endphp
 
 <div
