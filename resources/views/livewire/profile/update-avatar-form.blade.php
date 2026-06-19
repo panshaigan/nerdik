@@ -287,14 +287,14 @@ new class extends Component
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="generated" class="radio radio-primary mt-0.5" />
                     <span>
                         <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_generated') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_generated_hint') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.initials_source_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                     <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="uploaded" class="radio radio-primary mt-0.5" />
                     <span>
                         <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_uploaded') }}</span>
-                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_uploaded_hint') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.uploaded_image_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -341,8 +341,8 @@ new class extends Component
                         maxlength="3"
                         inline
                     />
-                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.profile.avatar_bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required inline />
-                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.profile.avatar_text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required inline />
+                    <x-colorpicker wire:model.live="avatar_bg_color" label="{{ __('ui.common.bg_color') }}" name="avatar_bg_color" error-field="avatar_bg_color" required inline />
+                    <x-colorpicker wire:model.live="avatar_text_color" label="{{ __('ui.common.text_color') }}" name="avatar_text_color" error-field="avatar_text_color" required inline />
                 </div>
                 <div class="flex flex-col items-center justify-center gap-3">
                     <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>

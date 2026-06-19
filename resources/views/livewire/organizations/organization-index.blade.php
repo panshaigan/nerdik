@@ -133,14 +133,14 @@
                                 <input type="radio" wire:model.live="logo_source" name="logo_source" value="generated" class="radio radio-primary mt-0.5" />
                                 <span>
                                     <span class="block text-sm font-semibold text-base-content">{{ __('ui.organizations.logo_generated') }}</span>
-                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.organizations.logo_generated_hint') }}</span>
+                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.initials_source_hint') }}</span>
                                 </span>
                             </label>
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                                 <input type="radio" wire:model.live="logo_source" name="logo_source" value="upload" class="radio radio-primary mt-0.5" />
                                 <span>
                                     <span class="block text-sm font-semibold text-base-content">{{ __('ui.organizations.logo_uploaded') }}</span>
-                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.organizations.logo_uploaded_hint') }}</span>
+                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.uploaded_image_hint') }}</span>
                                 </span>
                             </label>
                         </div>
@@ -150,8 +150,8 @@
                     @if ($logo_source === 'generated')
                         <div class="grid gap-4 rounded-lg border border-base-200 bg-base-200/40 p-4 md:grid-cols-2 md:items-center">
                             <div class="flex flex-col gap-3">
-                                <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.organizations.logo_bg_color') }}" placeholder="{{ __('ui.organizations.logo_bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" inline required />
-                                <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.organizations.logo_text_color') }}" placeholder="{{ __('ui.organizations.logo_text_color') }}" name="logo_text_color" error-field="logo_text_color" inline required />
+                                <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.common.bg_color') }}" placeholder="{{ __('ui.common.bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" inline required />
+                                <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.common.text_color') }}" placeholder="{{ __('ui.common.text_color') }}" name="logo_text_color" error-field="logo_text_color" inline required />
                             </div>
                             <div class="flex flex-col items-center justify-center gap-2">
                                 <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>

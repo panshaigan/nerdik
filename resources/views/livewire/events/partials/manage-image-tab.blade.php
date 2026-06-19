@@ -82,10 +82,10 @@
             file-input-id="ui-event-logo-file"
             :preview-url="$logoPreviewUrl ?? null"
             :upload-title="__('ui.events.image_upload')"
-            :upload-help="__('ui.events.image_upload_crop_help')"
+            :upload-help="__('ui.common.cover_image_upload_help', ['max' => '5 MB'])"
             output-size="1280,720"
             file-name="logo.webp"
-            :modal-title="__('ui.events.image_crop_title')"
+            :modal-title="__('ui.common.crop_cover_image')"
         />
     @endif
 </div>

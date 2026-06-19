@@ -48,10 +48,10 @@
     $canRenderContactPopover = auth()->check() && $contactPopover && $user !== null && ! $usesOrganization;
     $resolvedContactTooltip = is_string($contactTooltip) && $contactTooltip !== ''
         ? $contactTooltip
-        : __('ui.profile.contact_popover_tooltip');
+        : __('ui.common.click_for_details');
     $resolvedOrganizationTooltip = is_string($contactTooltip) && $contactTooltip !== ''
         ? $contactTooltip
-        : __('ui.organizations.popover_tooltip');
+        : __('ui.common.click_for_details');
 @endphp
 
 @if ($canRenderOrganizationPopover)

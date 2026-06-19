@@ -50,12 +50,12 @@
                 <span wire:loading.remove wire:target="save">
                     {{
                         ($editingActivityId && ($proposalFieldsReadonly ?? false)
-                            ? __('ui.activities.update')
+                            ? __('ui.common.update')
                             : ($hosting_mode === \App\Models\Activity::HOSTING_MODE_PROPOSED_TO_EVENT
                                 ? __('ui.proposals.submit_proposal')
                                 : ($editingActivityId
-                                    ? __('ui.activities.update')
-                                    : __('ui.activities.create')))
+                                    ? __('ui.common.update')
+                                    : __('ui.common.create')))
                         )
                     }}
                 </span>
@@ -72,7 +72,7 @@
         confirm-action="runConfirmedAction"
     />
 
-    <x-image-crop-modal :title="__('ui.activities.image_crop_title')" />
+    <x-image-crop-modal :title="__('ui.common.crop_cover_image')" />
 </div>
 
 @push('scripts')

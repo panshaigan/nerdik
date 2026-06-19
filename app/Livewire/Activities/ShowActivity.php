@@ -63,7 +63,7 @@ class ShowActivity extends Component
 
     public function confirmDeleteActivity(): void
     {
-        $this->openConfirm('delete_activity', __('ui.activities.delete'), __('ui.activities.delete_confirm'));
+        $this->openConfirm('delete_activity', __('ui.common.delete'), __('ui.activities.delete_confirm'));
     }
 
     public function confirmCancelActivity(): void

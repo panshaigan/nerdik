@@ -152,8 +152,8 @@
                                 <x-button
                                     :link="url_with_return(route('activities.edit', $activity))"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :tooltip="__('ui.activities.edit')"
-                                    :aria-label="__('ui.activities.edit').': '.$activity->name"
+                                    :tooltip="__('ui.common.edit')"
+                                    :aria-label="__('ui.common.edit').': '.$activity->name"
                                     data-ui="activity-show-edit"
                                     icon="o-pencil"
                                 />
@@ -169,8 +169,8 @@
                                     <x-button
                                         type="button"
                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        :tooltip="__('ui.activities.delete')"
-                                        :aria-label="__('ui.activities.delete').': '.$activity->name"
+                                        :tooltip="__('ui.common.delete')"
+                                        :aria-label="__('ui.common.delete').': '.$activity->name"
                                         wire:click="confirmDeleteActivity"
                                         data-ui="activity-show-delete"
                                         icon="o-trash"

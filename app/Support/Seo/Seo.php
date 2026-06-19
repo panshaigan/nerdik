@@ -73,7 +73,7 @@ final class Seo
         $description = rich_text_excerpt($event->description, 160);
 
         if ($description === '') {
-            $description = (string) __('ui.seo.event_fallback_description', ['name' => $event->name]);
+            $description = (string) __('ui.seo.entity_fallback_description', ['name' => $event->name]);
         }
 
         return new SeoMetadata(
@@ -90,7 +90,7 @@ final class Seo
         $description = rich_text_excerpt($activity->description, 160);
 
         if ($description === '') {
-            $description = (string) __('ui.seo.activity_fallback_description', ['name' => $activity->name]);
+            $description = (string) __('ui.seo.entity_fallback_description', ['name' => $activity->name]);
         }
 
         return new SeoMetadata(
