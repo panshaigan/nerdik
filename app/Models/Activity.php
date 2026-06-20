@@ -241,6 +241,19 @@ class Activity extends Model implements HasMedia
     }
 
     /**
+     * Activities that still accept participants (no cap, or active roster below max_participants).
+     */
+    public function scopeWithAvailablePlaces(Builder $query): void
+    {
+        $query->where(function (Builder $outer): void {
+            $outer->whereNull('activities.max_participants')
+                ->orWhereRaw(
+                    '(SELECT COUNT(*) FROM activity_user WHERE activity_user.activity_id = activities.id AND activity_user.is_absent = false) < activities.max_participants'
+                );
+        });
+    }
+
+    /**
      * Headcount that must fit in the physical slot ({@see Slot::$max_capacity}).
      *
      * `max_participants` is the number of players/attendees (the host does not count).

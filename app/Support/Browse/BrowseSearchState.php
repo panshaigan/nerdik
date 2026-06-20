@@ -73,6 +73,7 @@ final class BrowseSearchState
             'only_events',
             'only_activities',
             'only_mine',
+            'only_free_places',
             'map_view',
         ] as $key) {
             if (filter_var($request->input($key, false), FILTER_VALIDATE_BOOLEAN)) {

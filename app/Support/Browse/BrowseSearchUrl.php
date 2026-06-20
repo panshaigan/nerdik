@@ -119,6 +119,10 @@ final class BrowseSearchUrl
             $params['only_mine'] = true;
         }
 
+        if ($bag->onlyFreePlaces) {
+            $params['only_free_places'] = true;
+        }
+
         if ($mapView) {
             $params['map_view'] = true;
         }

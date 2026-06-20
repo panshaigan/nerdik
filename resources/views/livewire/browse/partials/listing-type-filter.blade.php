@@ -30,6 +30,11 @@
                 :label="__('ui.browse.only_activities')"
                 data-ui="browse-only-activities"
             />
+            <x-checkbox
+                wire:model.live="only_free_places"
+                :label="__('ui.browse.only_free_places')"
+                data-ui="browse-only-free-places"
+            />
             @auth
                 <x-checkbox
                     wire:model.live="only_mine"

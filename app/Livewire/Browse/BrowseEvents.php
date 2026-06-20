@@ -70,6 +70,9 @@ class BrowseEvents extends Component
     public bool $only_mine = false;
 
     #[Url]
+    public bool $only_free_places = false;
+
+    #[Url]
     public bool $map_view = false;
 
     public function mount(): void
@@ -147,6 +150,11 @@ class BrowseEvents extends Component
         $this->resetPage();
     }
 
+    public function updatedOnlyFreePlaces(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedMapView(): void
     {
         $this->resetPage();
@@ -166,7 +174,7 @@ class BrowseEvents extends Component
         $this->js('window.__nerdikClearBrowseSearchState?.()');
 
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'map_view']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'only_free_places', 'map_view']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('search.index');
@@ -208,7 +216,8 @@ class BrowseEvents extends Component
             || filled($this->max_lng)
             || $this->only_events
             || $this->only_activities
-            || $this->only_mine;
+            || $this->only_mine
+            || $this->only_free_places;
     }
 
     public function hasBBox(): bool
@@ -283,6 +292,7 @@ class BrowseEvents extends Component
             onlyEvents: $this->only_events,
             onlyActivities: $this->only_activities,
             onlyMine: $this->only_mine,
+            onlyFreePlaces: $this->only_free_places,
             minLat: $this->min_lat !== null && $this->min_lat !== '' ? (string) $this->min_lat : null,
             maxLat: $this->max_lat !== null && $this->max_lat !== '' ? (string) $this->max_lat : null,
             minLng: $this->min_lng !== null && $this->min_lng !== '' ? (string) $this->min_lng : null,
