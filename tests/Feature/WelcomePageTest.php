@@ -4,28 +4,48 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
+use App\Models\Tag;
+use App\Models\TagCategory;
+use App\Models\TagTranslation;
 use App\Models\User;
+use App\Services\Welcome\WelcomePageDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class WelcomePageTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::forget('welcome.platform_stats');
+        Cache::forget('welcome.hero_tag_image');
+    }
+
+    #[Test]
     public function test_home_page_uses_invitation_first_content_without_technical_footer_details(): void
     {
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Find your next unforgettable session.', false);
+        $response->assertSee('Discover sessions. Build programs. Play together.', false);
         $response->assertSee('Closest activities &amp; events', false);
+        $response->assertSee('From scattered plans to one living calendar', false);
+        $response->assertSee('How it works', false);
+        $response->assertSee('Ready to find your next session?', false);
         $response->assertDontSee('Laravel v', false);
         $response->assertDontSee('PHP v', false);
     }
 
+    #[Test]
     public function test_home_page_shows_nearest_upcoming_public_listings_only(): void
     {
         $user = User::factory()->create();
@@ -64,5 +84,67 @@ class WelcomePageTest extends TestCase
         $response->assertDontSee('Past Gathering', false);
         $response->assertSee(route('search.index'), false);
         $response->assertSee(route('events.show', $upcomingEvent), false);
+    }
+
+    #[Test]
+    public function test_home_page_shows_platform_stats(): void
+    {
+        User::factory()->count(2)->create();
+        $host = User::factory()->create();
+        $place = Place::factory()->venue()->create();
+
+        Event::factory()->public()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+        ]);
+
+        $stats = app(WelcomePageDataService::class)->data()['stats'];
+        $expectedUsers = User::query()->where('is_deleted', false)->count();
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('data-ui="welcome-platform-stats"', false);
+        $response->assertSee('Community members', false);
+        $response->assertSee('Upcoming listings', false);
+        $response->assertSee('Happening now', false);
+        $response->assertSee((string) $stats->usersCount, false);
+        $response->assertSee((string) $stats->upcomingListingsCount, false);
+        $response->assertSee((string) $stats->ongoingListingsCount, false);
+        $this->assertSame($expectedUsers, $stats->usersCount);
+        $this->assertSame(1, $stats->upcomingListingsCount);
+        $this->assertSame(1, $stats->ongoingListingsCount);
+    }
+
+    #[Test]
+    public function test_home_page_renders_hero_tag_image_when_available(): void
+    {
+        $category = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $tag = Tag::factory()->create(['tag_category_id' => $category->id]);
+        TagTranslation::factory()->create([
+            'tag_id' => $tag->id,
+            'locale' => 'en',
+            'label' => 'Hero Tag Label',
+        ]);
+
+        $fixture = 'images/tag-game/welcome-hero.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
+        app(AttachTagMediaFromPublic::class)($tag, [$fixture]);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('Hero Tag Label', false);
+        $response->assertSee('<picture', false);
     }
 }
