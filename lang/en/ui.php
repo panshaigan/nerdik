@@ -612,6 +612,7 @@ return [
         'activity_label' => 'Activity: :name',
         'event_label' => 'Event: :name',
         'view_event' => 'View event',
+        'view_dashboard' => 'View dashboard',
         'waitlist_promoted_subject' => 'You got a place on :activity',
         'waitlist_promoted_line_1' => 'You have been moved from the waitlist and are now a participant in the activity:',
         'view_activity' => 'View activity',
@@ -654,7 +655,6 @@ return [
         'scheduled' => [
             'digest_subject' => 'Your scheduled reminders for :date',
             'digest_intro' => 'Here is your daily overview of upcoming reminders.',
-            'digest_view_link' => 'Open: :url',
             'digest_toast_title' => 'Scheduled reminders',
             'digest_toast_description' => ':count scheduled reminder item(s) are ready.',
             'enrollment_window_title' => 'Enrollment window for :event',

@@ -8,6 +8,7 @@ use App\Enums\NotificationPreferenceKey;
 use App\Enums\UserRequestResolutionOutcome;
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
+use App\Models\Activity;
 use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
@@ -78,7 +79,7 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
             $mail->line($this->declineNote);
         }
 
-        return $mail;
+        return $mail->action(__('ui.user_requests.review_request'), $this->mailActionUrl());
     }
 
     /**
@@ -170,5 +171,19 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
             ]),
             default => $subjectLabel,
         };
+    }
+
+    private function mailActionUrl(): string
+    {
+        if ($this->request->type === UserRequestType::ActivityInvite
+            && $this->request->subject_type === 'activity'
+            && $this->request->subject_id !== null) {
+            $activity = Activity::query()->find($this->request->subject_id);
+            if ($activity !== null) {
+                return route('activities.show', $activity);
+            }
+        }
+
+        return route('requests.index');
     }
 }

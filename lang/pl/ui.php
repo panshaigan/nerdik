@@ -612,6 +612,7 @@ return [
         'activity_label' => 'Aktywność: :name',
         'event_label' => 'Wydarzenie: :name',
         'view_event' => 'Zobacz wydarzenie',
+        'view_dashboard' => 'Zobacz pulpit',
         'waitlist_promoted_subject' => 'Masz miejsce w: :activity',
         'waitlist_promoted_line_1' => 'Zostałeś(-aś) przeniesiony(-a) z listy oczekujących i jesteś teraz uczestnikiem aktywności:',
         'view_activity' => 'Zobacz aktywność',
@@ -654,7 +655,6 @@ return [
         'scheduled' => [
             'digest_subject' => 'Twoje zaplanowane przypomnienia na :date',
             'digest_intro' => 'Oto dzienny przegląd nadchodzących przypomnień.',
-            'digest_view_link' => 'Otwórz: :url',
             'digest_toast_title' => 'Zaplanowane przypomnienia',
             'digest_toast_description' => ':count zaplanowanych przypomnień jest gotowych.',
             'enrollment_window_title' => 'Okno zapisów: :event',

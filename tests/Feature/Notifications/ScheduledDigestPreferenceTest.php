@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Livewire\Notifications\NotificationList;
 use App\Models\User;
 use App\Notifications\Scheduled\ScheduledPeriodicDigestNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ScheduledDigestPreferenceTest extends TestCase
@@ -82,5 +85,63 @@ class ScheduledDigestPreferenceTest extends TestCase
         $notification = new ScheduledPeriodicDigestNotification([$this->sampleInterestedEnrollmentItem()], '2026-06-01');
 
         $this->assertSame([], $notification->via($user));
+    }
+
+    public function test_single_item_digest_click_redirects_to_item_url(): void
+    {
+        $user = User::factory()->create();
+        $itemUrl = '/events/one-more-game';
+        $payload = (new ScheduledPeriodicDigestNotification([
+            [
+                'category' => 'interested_enrollment_window',
+                'title' => 'Enrollment window',
+                'lines' => ['line'],
+                'url' => $itemUrl,
+                'dedupe_key' => 'test:1',
+            ],
+        ], '2026-06-01'))->toArray($user);
+
+        $notification = $user->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => ScheduledPeriodicDigestNotification::class,
+            'data' => $payload,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('handleNotificationClick', $notification->id)
+            ->assertRedirect($itemUrl);
+    }
+
+    public function test_multi_item_digest_click_redirects_to_notifications_index(): void
+    {
+        $user = User::factory()->create();
+        $payload = (new ScheduledPeriodicDigestNotification([
+            [
+                'category' => 'interested_enrollment_window',
+                'title' => 'Enrollment window',
+                'lines' => ['line'],
+                'url' => '/events/one',
+                'dedupe_key' => 'test:1',
+            ],
+            [
+                'category' => 'participant_cancellation_deadline',
+                'title' => 'Deadline',
+                'lines' => ['line'],
+                'url' => '/activities/two',
+                'dedupe_key' => 'test:2',
+            ],
+        ], '2026-06-01'))->toArray($user);
+
+        $notification = $user->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => ScheduledPeriodicDigestNotification::class,
+            'data' => $payload,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('handleNotificationClick', $notification->id)
+            ->assertRedirect(route('notifications.index'));
     }
 }
