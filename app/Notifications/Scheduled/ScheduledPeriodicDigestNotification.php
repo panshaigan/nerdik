@@ -59,10 +59,22 @@ class ScheduledPeriodicDigestNotification extends Notification implements Should
             foreach ($item['lines'] as $line) {
                 $mail->line('- '.$line);
             }
-            $mail->line(__('ui.notifications.scheduled.digest_view_link', ['url' => $item['url']]));
+            $absoluteUrl = url($item['url']);
+            $label = $this->digestLinkLabel((string) ($item['category'] ?? ''));
+            $mail->line("[{$label}]({$absoluteUrl})");
         }
 
         return $mail;
+    }
+
+    private function digestLinkLabel(string $category): string
+    {
+        return match ($category) {
+            'interested_enrollment_window' => __('ui.notifications.view_event'),
+            'dashboard_feed' => __('ui.notifications.view_dashboard'),
+            'participant_cancellation_deadline', 'host_low_participation' => __('ui.notifications.view_activity'),
+            default => __('ui.notifications.view_activity'),
+        };
     }
 
     /**

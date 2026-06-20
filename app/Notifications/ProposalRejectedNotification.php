@@ -37,7 +37,8 @@ class ProposalRejectedNotification extends Notification implements ShouldQueue, 
             ->line(__('ui.notifications.proposal_rejected_line_1'))
             ->line(__('ui.notifications.activity_label', ['name' => $activity->name]))
             ->line(__('ui.notifications.event_label', ['name' => $eventName]))
-            ->line(__('ui.notifications.proposal_rejected_line_2'));
+            ->line(__('ui.notifications.proposal_rejected_line_2'))
+            ->action(__('ui.notifications.view_activity'), route('activities.show', $activity));
     }
 
     /**

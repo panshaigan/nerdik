@@ -49,6 +49,19 @@ class NotificationList extends Component
             return;
         }
 
+        if (($data['type'] ?? '') === 'scheduled_periodic_digest') {
+            $items = $data['items'] ?? [];
+            if (count($items) === 1) {
+                $itemUrl = $items[0]['url'] ?? '';
+                if (is_string($itemUrl) && Str::startsWith($itemUrl, '/') && ! Str::startsWith($itemUrl, '//')) {
+                    $this->dispatch('database-notifications-updated', resetPagination: false);
+                    $this->redirect($itemUrl);
+
+                    return;
+                }
+            }
+        }
+
         $url = $data['url'] ?? '';
         $safeUrl = is_string($url) && Str::startsWith($url, '/') && ! Str::startsWith($url, '//')
             ? $url

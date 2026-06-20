@@ -24,7 +24,7 @@
 © {{ date('Y') }} {{ config('app.name') }}. {{ __('All rights reserved.') }}
 
 @php
-    $notificationsSettingsHref = route('profile', [], true).'#ui-profile-notifications-section';
+    $notificationsSettingsHref = route('profile', ['tab' => 'notifications'], true);
 @endphp
 
 [{{ __('ui.notifications.mail_manage_notification_settings') }}]({{ $notificationsSettingsHref }})

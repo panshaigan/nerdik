@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\UserRequestStatus;
 use App\Livewire\Notifications\NotificationList;
 use App\Livewire\Notifications\RespondToUserRequest;
 use App\Livewire\UserRequests\IncomingUserRequestList;
@@ -303,5 +304,91 @@ class UserRequestNotificationsInboxTest extends TestCase
             ->test(NotificationList::class)
             ->call('handleNotificationClick', $notification->id)
             ->assertRedirect(route('requests.index', ['request' => $request->id]));
+    }
+
+    public function test_missing_request_url_shows_invalid_request_without_empty_modal(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->withQueryParams(['request' => 99999])
+            ->test(UserRequestInbox::class)
+            ->assertNotDispatched('open-user-request-modal');
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(RespondToUserRequest::class)
+            ->dispatch('open-user-request-modal', requestId: 99999)
+            ->assertSet('open', true)
+            ->assertSee(__('ui.user_requests.invalid_request'))
+            ->assertSee(__('ui.common.close'));
+    }
+
+    public function test_expired_pending_request_shows_expired_message_in_modal(): void
+    {
+        $host = User::factory()->create();
+        $recipient = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        $request = UserRequest::factory()->activityInvite()->create([
+            'requester_id' => $host->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'activity',
+            'subject_id' => $activity->id,
+            'status' => UserRequestStatus::Pending,
+            'expires_at' => now()->subHour(),
+        ]);
+
+        Livewire::actingAs($recipient)
+            ->test(RespondToUserRequest::class)
+            ->dispatch('open-user-request-modal', requestId: $request->id)
+            ->assertSee(__('ui.user_requests.expired'))
+            ->assertDontSee(__('ui.user_requests.already_resolved'));
+    }
+
+    public function test_resolved_request_shows_status_message_in_modal(): void
+    {
+        $host = User::factory()->create();
+        $recipient = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        $request = UserRequest::factory()->activityInvite()->create([
+            'requester_id' => $host->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'activity',
+            'subject_id' => $activity->id,
+            'status' => UserRequestStatus::Declined,
+        ]);
+
+        Livewire::actingAs($recipient)
+            ->test(RespondToUserRequest::class)
+            ->dispatch('open-user-request-modal', requestId: $request->id)
+            ->assertSee(__('ui.user_requests.resolved_declined'));
+    }
+
+    public function test_unauthorized_user_sees_respond_unauthorized_in_modal(): void
+    {
+        $host = User::factory()->create();
+        $recipient = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        $request = UserRequest::factory()->activityInvite()->create([
+            'requester_id' => $host->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'activity',
+            'subject_id' => $activity->id,
+        ]);
+
+        Livewire::actingAs($otherUser)
+            ->test(RespondToUserRequest::class)
+            ->dispatch('open-user-request-modal', requestId: $request->id)
+            ->assertSee(__('ui.user_requests.respond_unauthorized'));
     }
 }

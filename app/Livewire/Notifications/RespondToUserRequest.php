@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Notifications;
 
+use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
 use App\Models\UserRequest;
 use App\Services\UserRequests\UserRequestDecisionService;
@@ -40,6 +41,7 @@ class RespondToUserRequest extends Component
         $this->requestId = null;
         $this->declineNote = '';
         $this->errorMessage = null;
+        $this->dispatch('user-request-modal-closed');
     }
 
     public function accept(UserRequestDecisionService $decisions): void
@@ -83,6 +85,8 @@ class RespondToUserRequest extends Component
     {
         $request = null;
         $canRespond = false;
+        $modalState = 'not_found';
+        $resolvedMessage = null;
 
         if ($this->requestId !== null) {
             $request = UserRequest::query()
@@ -97,13 +101,37 @@ class RespondToUserRequest extends Component
                         (int) $request->recipient_id === (int) $user?->id
                         || ($request->type === UserRequestType::EventOrganizerFlag && $user?->is_admin === true)
                     );
+
+                if ($canRespond) {
+                    $modalState = 'actionable';
+                } elseif ($request->isPending() && $request->isExpiredByTime()) {
+                    $modalState = 'expired';
+                } elseif ($request->isPending()) {
+                    $modalState = 'unauthorized';
+                } else {
+                    $modalState = 'already_resolved';
+                    $resolvedMessage = $this->resolvedMessageFor($request);
+                }
             }
         }
 
         return view('livewire.notifications.respond-to-user-request', [
             'request' => $request,
             'canRespond' => $canRespond,
+            'modalState' => $modalState,
+            'resolvedMessage' => $resolvedMessage,
         ]);
+    }
+
+    private function resolvedMessageFor(UserRequest $request): string
+    {
+        return match ($request->status) {
+            UserRequestStatus::Accepted => __('ui.user_requests.resolved_accepted'),
+            UserRequestStatus::Declined => __('ui.user_requests.resolved_declined'),
+            UserRequestStatus::Cancelled => __('ui.user_requests.resolved_cancelled'),
+            UserRequestStatus::Expired => __('ui.user_requests.resolved_expired'),
+            default => __('ui.user_requests.already_resolved'),
+        };
     }
 
     private function authorizedRequest(): ?UserRequest
