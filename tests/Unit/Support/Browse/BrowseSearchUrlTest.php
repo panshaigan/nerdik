@@ -82,6 +82,7 @@ final class BrowseSearchUrlTest extends TestCase
             onlyEvents: true,
             onlyActivities: false,
             onlyMine: true,
+            onlyFreePlaces: false,
             minLat: null,
             maxLat: null,
             minLng: null,
@@ -123,6 +124,7 @@ final class BrowseSearchUrlTest extends TestCase
             onlyEvents: false,
             onlyActivities: false,
             onlyMine: false,
+            onlyFreePlaces: false,
             minLat: null,
             maxLat: null,
             minLng: null,
@@ -145,6 +147,7 @@ final class BrowseSearchUrlTest extends TestCase
             onlyEvents: false,
             onlyActivities: false,
             onlyMine: false,
+            onlyFreePlaces: false,
             minLat: null,
             maxLat: null,
             minLng: null,
@@ -156,5 +159,36 @@ final class BrowseSearchUrlTest extends TestCase
         $this->assertStringContainsString('q=term', $url);
         $this->assertStringNotContainsString('sort=', $url);
         $this->assertStringNotContainsString('sort_dir=', $url);
+    }
+
+    public function test_return_url_from_filter_bag_includes_only_free_places(): void
+    {
+        $bag = new BrowseListingFilterBag(
+            q: '',
+            tagIds: [],
+            tagsMatchAll: false,
+            includePastEvents: false,
+            onlyEvents: false,
+            onlyActivities: true,
+            onlyMine: false,
+            onlyFreePlaces: true,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+        );
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag($bag);
+
+        $this->assertStringContainsString('only_free_places=1', $url);
+        $this->assertStringContainsString('only_activities=1', $url);
+    }
+
+    public function test_filter_bag_from_request_parses_only_free_places(): void
+    {
+        $request = Request::create('/search?only_free_places=1');
+        $bag = BrowseListingFilterBag::fromRequest($request);
+
+        $this->assertTrue($bag->onlyFreePlaces);
     }
 }

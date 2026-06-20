@@ -308,6 +308,7 @@ return [
         'participants_filled_no_cap' => ':filled (no limit)',
         'only_events' => 'Only events',
         'only_activities' => 'Only activities',
+        'only_free_places' => 'Activities with free places',
         'only_mine' => 'Only mine',
         'from' => 'From',
         'to' => 'To',

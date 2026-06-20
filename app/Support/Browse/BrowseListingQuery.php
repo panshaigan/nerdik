@@ -78,6 +78,10 @@ final class BrowseListingQuery
 
         BrowseTagFilter::apply($query, $filters->tagIds, $filters->tagsMatchAll, 'tags');
 
+        if ($filters->onlyFreePlaces) {
+            $query->withAvailablePlaces();
+        }
+
         if ($filters->hasBBox()) {
             [$minLat, $maxLat, $minLng, $maxLng] = $filters->normalizedBBox();
             $query->where(function (Builder $outer) use ($minLat, $maxLat, $minLng, $maxLng): void {
