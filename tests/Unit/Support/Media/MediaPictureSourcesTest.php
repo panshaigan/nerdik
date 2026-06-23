@@ -49,6 +49,32 @@ final class MediaPictureSourcesTest extends TestCase
     }
 
     #[Test]
+    public function tag_hero_preset_allows_high_resolution_srcset_for_full_width_hero(): void
+    {
+        $tag = Tag::factory()->create();
+        $fixturePath = 'images/tag-game/fixture-tag-hero.jpg';
+        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+
+        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
+
+        $media = $tag->refresh()->getFirstMedia('images');
+        $this->assertNotNull($media);
+
+        $sources = MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', 'Hero tag');
+        $webpSrcset = $sources->webpSrcset();
+
+        $this->assertSame(
+            '(max-width: 1024px) calc(100vw - 3rem), calc(min(80rem, 100vw) - 4rem)',
+            $sources->sizes(),
+        );
+        $this->assertStringContainsString('1024w', $webpSrcset);
+        $this->assertGreaterThanOrEqual(
+            1024,
+            $this->largestSrcsetWidth($webpSrcset),
+        );
+    }
+
+    #[Test]
     public function listing_card_preset_caps_srcset_widths(): void
     {
         config([
@@ -174,6 +200,17 @@ final class MediaPictureSourcesTest extends TestCase
         $this->assertStringContainsString('type="image/avif"', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
         $this->assertStringContainsString('<img', $html);
+    }
+
+    private function largestSrcsetWidth(string $srcset): int
+    {
+        preg_match_all('/\s(\d+)w/', $srcset, $matches);
+
+        if ($matches[1] === []) {
+            return 0;
+        }
+
+        return max(array_map(intval(...), $matches[1]));
     }
 
     private function widthForSrcsetUrl(string $srcset, string $url): ?int

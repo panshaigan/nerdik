@@ -17,37 +17,22 @@ final class WelcomeHeroTagImageResolver
 
     public function resolve(): ?WelcomeHeroTagImage
     {
-        /** @var array{media_id: int, label: string}|null $cached */
-        $cached = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function (): ?array {
+        /** @var int|null $mediaId */
+        $mediaId = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function (): ?int {
             $media = Media::query()
                 ->where('model_type', Tag::class)
                 ->where('collection_name', 'images')
                 ->inRandomOrder()
                 ->first();
 
-            if ($media === null) {
-                return null;
-            }
-
-            $tag = Tag::query()
-                ->with('translations')
-                ->find($media->model_id);
-
-            if ($tag === null) {
-                return null;
-            }
-
-            return [
-                'media_id' => (int) $media->id,
-                'label' => $this->tagLabel($tag, app()->getLocale()),
-            ];
+            return $media !== null ? (int) $media->id : null;
         });
 
-        if ($cached === null) {
+        if ($mediaId === null) {
             return null;
         }
 
-        $media = Media::query()->find($cached['media_id']);
+        $media = Media::query()->find($mediaId);
 
         if ($media === null) {
             Cache::forget(self::CACHE_KEY);
@@ -55,9 +40,21 @@ final class WelcomeHeroTagImageResolver
             return null;
         }
 
+        $tag = Tag::query()
+            ->with('translations')
+            ->find($media->model_id);
+
+        if ($tag === null) {
+            Cache::forget(self::CACHE_KEY);
+
+            return null;
+        }
+
+        $label = $this->tagLabel($tag, app()->getLocale());
+
         return new WelcomeHeroTagImage(
-            sources: MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', $cached['label']),
-            label: $cached['label'],
+            sources: MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', $label),
+            label: $label,
         );
     }
 
