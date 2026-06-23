@@ -94,8 +94,9 @@ return [
             'max_srcset_width' => 512,
         ],
         'tag_hero' => [
-            'sizes' => '(max-width: 1024px) 100vw, 640px',
-            'max_srcset_width' => 768,
+            'sizes' => '(max-width: 1024px) calc(100vw - 3rem), calc(min(80rem, 100vw) - 4rem)',
+            'display_width' => 550,
+            'max_srcset_width' => 1536,
         ],
         'listing_card' => [
             'sizes' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
@@ -116,7 +117,7 @@ return [
     'sizes' => [
         'tag_chip' => '64px',
         'tag_card' => '(max-width: 640px) 100vw, 384px',
-        'tag_hero' => '(max-width: 1024px) 100vw, 640px',
+        'tag_hero' => '(max-width: 1024px) calc(100vw - 3rem), calc(min(80rem, 100vw) - 4rem)',
         'listing_card' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
     ],
 ];

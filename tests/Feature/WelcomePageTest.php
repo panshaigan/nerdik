@@ -13,8 +13,10 @@ use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use App\Models\User;
 use App\Services\Welcome\WelcomePageDataService;
+use App\Services\Welcome\WelcomeUpcomingQueryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -28,6 +30,7 @@ class WelcomePageTest extends TestCase
 
         Cache::forget('welcome.platform_stats');
         Cache::forget('welcome.hero_tag_image');
+        Cache::forget('welcome.upcoming_listing_ids.6');
     }
 
     #[Test]
@@ -36,9 +39,9 @@ class WelcomePageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Discover nerdy activities around or create events yourself', false);
+        $response->assertSee('Discover nerdy activities near you, or create your own events', false);
         $response->assertSee('Closest activities &amp; events', false);
-        $response->assertSee('From scattered and improvised signing-ups to one place', false);
+        $response->assertSee('Bring scattered, improvised sign-ups into one place', false);
         $response->assertSee('How it works', false);
         $response->assertSee('Ready to find your next session?', false);
         $response->assertDontSee('Laravel v', false);
@@ -146,6 +149,35 @@ class WelcomePageTest extends TestCase
         $response->assertOk();
         $response->assertSee('<picture', false);
         $response->assertDontSee('absolute bottom-4 left-4 rounded-lg bg-base-100/90', false);
+    }
+
+    #[Test]
+    public function test_upcoming_listings_query_is_cached_within_ttl(): void
+    {
+        $user = User::factory()->create();
+        $place = Place::factory()->venue()->create();
+
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Cached Convention',
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+        $event = Event::query()->where('name', 'Cached Convention')->firstOrFail();
+        $event->places()->sync([$place->id]);
+
+        $service = app(WelcomeUpcomingQueryService::class);
+
+        DB::enableQueryLog();
+        $service->nearestPublicListings();
+        $firstCallQueries = count(DB::getQueryLog());
+
+        DB::flushQueryLog();
+        $service->nearestPublicListings();
+        $secondCallQueries = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertGreaterThan($secondCallQueries, $firstCallQueries);
     }
 
     #[Test]
