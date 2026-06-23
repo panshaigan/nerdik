@@ -36,9 +36,9 @@ class WelcomePageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Discover sessions. Build programs. Play together.', false);
+        $response->assertSee('Discover nerdy activities around or create events yourself', false);
         $response->assertSee('Closest activities &amp; events', false);
-        $response->assertSee('From scattered plans to one living calendar', false);
+        $response->assertSee('From scattered and improvised signing-ups to one place', false);
         $response->assertSee('How it works', false);
         $response->assertSee('Ready to find your next session?', false);
         $response->assertDontSee('Laravel v', false);
@@ -115,8 +115,8 @@ class WelcomePageTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="welcome-platform-stats"', false);
-        $response->assertSee('Community members', false);
-        $response->assertSee('Upcoming listings', false);
+        $response->assertSee('Members', false);
+        $response->assertSee('Happening soon', false);
         $response->assertSee('Happening now', false);
         $response->assertSee((string) $stats->usersCount, false);
         $response->assertSee((string) $stats->upcomingListingsCount, false);
@@ -144,7 +144,7 @@ class WelcomePageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Hero Tag Label', false);
         $response->assertSee('<picture', false);
+        $response->assertDontSee('absolute bottom-4 left-4 rounded-lg bg-base-100/90', false);
     }
 }

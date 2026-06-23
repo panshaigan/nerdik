@@ -1,4 +1,32 @@
-<nav class="-mx-3 flex flex-1 justify-end gap-2">
+@php
+    $localeLink = fn (bool $active): string => $active
+        ? 'font-display border-b-2 border-primary text-base-content'
+        : 'font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
+@endphp
+
+<nav
+    x-data="{
+        localeSwitchUrl(base) {
+            return base + '?redirect=' + encodeURIComponent(
+                window.location.pathname + window.location.search + window.location.hash,
+            );
+        },
+    }"
+    class="-mx-3 flex flex-1 items-center justify-end gap-2"
+>
+    <a
+        x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
+        class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'en') }}"
+    >
+        {{ __('ui.common.language_en') }}
+    </a>
+    <a
+        x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
+        class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'pl') }}"
+    >
+        {{ __('ui.common.language_pl') }}
+    </a>
+
     @auth
         <x-button :link="url('/dashboard')" class="btn-primary btn-sm">
             {{ __('ui.nav.dashboard') }}

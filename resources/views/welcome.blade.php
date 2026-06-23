@@ -40,13 +40,11 @@
                 ])
 
                 @include('welcome.problem-solution')
-                @include('welcome.features')
-                @include('welcome.how-it-works')
-                @include('welcome.benefits')
-
                 @include('welcome.closest-listings', [
                     'upcomingListings' => $upcomingListings ?? collect(),
                 ])
+                @include('welcome.features')
+                @include('welcome.how-it-works')
 
                 @include('welcome.final-cta')
             </main>
