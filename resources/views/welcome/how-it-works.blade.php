@@ -3,7 +3,6 @@
         ['title' => 'step_1_title', 'description' => 'step_1_description'],
         ['title' => 'step_2_title', 'description' => 'step_2_description'],
         ['title' => 'step_3_title', 'description' => 'step_3_description'],
-        ['title' => 'step_4_title', 'description' => 'step_4_description'],
     ];
 @endphp
 
@@ -15,7 +14,7 @@
 
     <x-ui.hr class="my-8" icon="o-map" />
 
-    <ol class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <ol class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         @foreach ($steps as $index => $step)
             <li class="relative rounded-2xl border border-base-300 bg-base-100/80 p-6">
                 <span class="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-content">
