@@ -296,6 +296,6 @@ final class BrowseListingCardPresenterTest extends TestCase
 
         $this->assertCount(1, $viewData->badgeItems);
         $this->assertSame(ActivityBadgeKind::ActivityType, $viewData->badgeItems[0]->kind);
-        $this->assertSame(BadgeSemantic::Secondary, $viewData->badgeItems[0]->semantic);
+        $this->assertSame(BadgeSemantic::Accent, $viewData->badgeItems[0]->semantic);
     }
 }
