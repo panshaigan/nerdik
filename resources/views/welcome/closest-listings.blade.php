@@ -31,6 +31,15 @@
                         @if ($listing->locationSummary !== '')
                             <p class="mt-1 text-sm opacity-70">{{ $listing->locationSummary }}</p>
                         @endif
+                        @if ($listing->badgeItems !== [])
+                            <div class="pt-2">
+                                <x-ui.activity-badge-group
+                                    :items="$listing->badgeItems"
+                                    class="!my-0 gap-2"
+                                    :data-ui="$listing->badgeGroupDataUi"
+                                />
+                            </div>
+                        @endif
                     </div>
                 </a>
             @endforeach

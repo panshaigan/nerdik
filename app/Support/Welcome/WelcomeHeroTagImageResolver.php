@@ -56,7 +56,7 @@ final class WelcomeHeroTagImageResolver
         }
 
         return new WelcomeHeroTagImage(
-            sources: MediaPictureSources::fromMediaWithPreset($media, 'tag_card', $cached['label']),
+            sources: MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', $cached['label']),
             label: $cached['label'],
         );
     }
