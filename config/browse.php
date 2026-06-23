@@ -51,4 +51,14 @@ return [
         'limit' => 5,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Browse listing cards per page
+    |--------------------------------------------------------------------------
+    |
+    | Number of event/activity cards shown per page on the unified search page.
+    |
+    */
+    'listings_per_page' => 20,
+
 ];

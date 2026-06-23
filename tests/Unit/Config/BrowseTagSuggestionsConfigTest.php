@@ -50,4 +50,9 @@ class BrowseTagSuggestionsConfigTest extends TestCase
         $this->assertSame(7, config('browse.tag_suggestions.preload_per_category'));
         $this->assertSame(30, config('browse.tag_suggestions.search_limit'));
     }
+
+    public function test_listings_per_page_is_twenty(): void
+    {
+        $this->assertSame(20, config('browse.listings_per_page'));
+    }
 }
