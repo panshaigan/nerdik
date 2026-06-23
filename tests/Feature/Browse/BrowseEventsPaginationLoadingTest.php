@@ -24,11 +24,12 @@ final class BrowseEventsPaginationLoadingTest extends TestCase
     #[Test]
     public function browse_events_listings_include_pagination_loading_overlay_markup(): void
     {
+        $perPage = (int) config('browse.listings_per_page', 20);
         $owner = User::factory()->create();
         $startsAt = now()->addDays(5)->setSecond(0);
         $endsAt = (clone $startsAt)->addHours(4);
 
-        for ($i = 1; $i <= 13; $i++) {
+        for ($i = 1; $i <= $perPage + 1; $i++) {
             Event::factory()->public()->create([
                 'created_by' => $owner->id,
                 'name' => sprintf('Browse Paginate Event %02d', $i),
@@ -41,11 +42,11 @@ final class BrowseEventsPaginationLoadingTest extends TestCase
             ->test(BrowseEvents::class)
             ->set('only_events', true)
             ->assertSee('Browse Paginate Event 01')
-            ->assertSee('Browse Paginate Event 12')
-            ->assertDontSee('Browse Paginate Event 13')
+            ->assertSee(sprintf('Browse Paginate Event %02d', $perPage))
+            ->assertDontSee(sprintf('Browse Paginate Event %02d', $perPage + 1))
             ->assertSeeHtml('data-ui="browse-events-listings-loading"')
             ->call('gotoPage', 2)
-            ->assertSee('Browse Paginate Event 13')
+            ->assertSee(sprintf('Browse Paginate Event %02d', $perPage + 1))
             ->assertDontSee('Browse Paginate Event 01');
     }
 

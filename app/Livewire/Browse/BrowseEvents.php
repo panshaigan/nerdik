@@ -37,8 +37,6 @@ class BrowseEvents extends Component
     use WithEventPreviewModal;
     use WithPagination;
 
-    private const PER_PAGE = 12;
-
     #[Url]
     public string $q = '';
 
@@ -300,6 +298,11 @@ class BrowseEvents extends Component
         );
     }
 
+    protected function browseListingsPerPage(): int
+    {
+        return (int) config('browse.listings_per_page', 20);
+    }
+
     /**
      * @return ConcreteLengthAwarePaginator<int, array{kind: string, event?: Event, activity?: Activity}>
      */
@@ -308,7 +311,7 @@ class BrowseEvents extends Component
         return new ConcreteLengthAwarePaginator(
             collect(),
             0,
-            self::PER_PAGE,
+            $this->browseListingsPerPage(),
             1,
             ['path' => request()->url(), 'pageName' => 'page']
         );
@@ -337,7 +340,7 @@ class BrowseEvents extends Component
     {
         $query = $this->baseEventQuery()->with(Event::listingCardEagerLoad());
         $this->applyBrowseEventSort($query);
-        $paginator = $query->paginate(self::PER_PAGE);
+        $paginator = $query->paginate($this->browseListingsPerPage());
         $paginator->setCollection(
             $paginator->getCollection()->map(fn (Event $event) => ['kind' => 'event', 'event' => $event])->values()
         );
@@ -353,7 +356,7 @@ class BrowseEvents extends Component
         $query = $this->baseActivityQuery()->with(Activity::listingCardEagerLoad())
             ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
         $this->applyBrowseActivitySort($query);
-        $paginator = $query->paginate(self::PER_PAGE);
+        $paginator = $query->paginate($this->browseListingsPerPage());
         $paginator->setCollection(
             $paginator->getCollection()->map(fn (Activity $activity) => ['kind' => 'activity', 'activity' => $activity])->values()
         );
@@ -391,7 +394,7 @@ class BrowseEvents extends Component
         }
         $outer->orderBy('listing_kind')->orderBy('listing_id');
 
-        $paginator = $outer->paginate(self::PER_PAGE);
+        $paginator = $outer->paginate($this->browseListingsPerPage());
 
         $eventIds = [];
         $activityIds = [];
