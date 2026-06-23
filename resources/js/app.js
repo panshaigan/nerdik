@@ -1,5 +1,6 @@
 import './bootstrap';
 import './close-modals-on-navigate';
+import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
 import './copy-to-clipboard';
 import './tinymce-field-chrome';
@@ -167,3 +168,15 @@ function registerLivewireRequestFailureHandlers() {
 
 document.addEventListener('livewire:init', registerLivewireRequestFailureHandlers);
 document.addEventListener('DOMContentLoaded', registerLivewireRequestFailureHandlers);
+
+function bootBrowserTimezone() {
+    captureBrowserTimezone();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootBrowserTimezone);
+} else {
+    bootBrowserTimezone();
+}
+
+document.addEventListener('livewire:navigated', bootBrowserTimezone);

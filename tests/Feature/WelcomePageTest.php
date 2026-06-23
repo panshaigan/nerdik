@@ -147,4 +147,14 @@ class WelcomePageTest extends TestCase
         $response->assertSee('<picture', false);
         $response->assertDontSee('absolute bottom-4 left-4 rounded-lg bg-base-100/90', false);
     }
+
+    #[Test]
+    public function test_welcome_locale_links_match_main_navigation_styling(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('ui-nav-locale', false);
+        $response->assertSee('wire:navigate', false);
+    }
 }

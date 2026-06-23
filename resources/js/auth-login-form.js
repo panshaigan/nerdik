@@ -1,3 +1,5 @@
+import { captureBrowserTimezone } from './browser-timezone';
+
 const LOGIN_FORM_ID = 'ui-auth-login-form';
 const LOGIN_SUBMIT_ID = 'ui-auth-login-submit';
 
@@ -87,13 +89,11 @@ function initAuthLoginTimezone() {
     authLoginTimezoneAbort = new AbortController();
     const signal = authLoginTimezoneAbort.signal;
 
-    const timezone = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone ?? '';
+    const timezone = captureBrowserTimezone();
 
     if (timezone === '') {
         return;
     }
-
-    document.cookie = `browser_timezone=${encodeURIComponent(timezone)}; path=/; max-age=31536000; samesite=lax`;
 
     const enhanceLink = (selector) => {
         const button = document.querySelector(selector);

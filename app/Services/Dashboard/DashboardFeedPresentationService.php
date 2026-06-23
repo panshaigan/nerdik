@@ -52,7 +52,7 @@ class DashboardFeedPresentationService
     private function hourBucketKey(CarbonInterface $startsAt): string
     {
         $carbon = $startsAt->copy()
-            ->setTimezone(config('app.timezone'))
+            ->setTimezone(display_timezone())
             ->locale(app()->getLocale());
 
         return $carbon->format('Y-m-d H');
@@ -65,7 +65,7 @@ class DashboardFeedPresentationService
         }
 
         $carbon = $startsAt->copy()
-            ->setTimezone(config('app.timezone'))
+            ->setTimezone(display_timezone())
             ->locale(app()->getLocale());
 
         return $carbon->translatedFormat('D, j M').' · '.$carbon->format('H').':00';

@@ -255,9 +255,7 @@ class ManageEventForm extends Component
 
     protected function userTimezone(): string
     {
-        return auth()->check() && auth()->user()?->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
+        return display_timezone();
     }
 
     private function duplicateEventQuerySlug(): ?string
