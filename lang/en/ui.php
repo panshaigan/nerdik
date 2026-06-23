@@ -265,7 +265,6 @@ return [
         'integrations_discord_id_label' => 'Discord profile ID',
         'integrations_discord_unlink' => 'Unlink Discord account',
         'integrations_discord_unlink_confirm' => 'Unlink your Discord account from this profile?',
-        'contact_hosted_section' => 'Hosted',
         'contact_hosted_type' => ':type hosted',
         'contact_participation_type' => ':type participations',
         'contact_no_hosted_activities' => 'No hosted activities yet.',

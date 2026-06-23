@@ -265,7 +265,6 @@ return [
         'integrations_discord_id_label' => 'ID profilu Discord',
         'integrations_discord_unlink' => 'Odłącz konto Discord',
         'integrations_discord_unlink_confirm' => 'Odłączyć konto Discord od tego profilu?',
-        'contact_hosted_section' => 'Prowadzone',
         'contact_hosted_type' => ':type — prowadzone',
         'contact_participation_type' => ':type — uczestnictwa',
         'contact_no_hosted_activities' => 'Brak prowadzonych aktywności.',

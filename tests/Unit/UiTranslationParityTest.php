@@ -221,6 +221,7 @@ class UiTranslationParityTest extends TestCase
             'activities.types.' => 'activities.types.',
             'activities.host_title.' => 'activities.host_title.',
             'profile.notifications.keys.' => 'profile.notifications.keys.',
+            'welcome.' => 'welcome.',
         ];
     }
 
