@@ -235,14 +235,11 @@ class GoogleAuthController extends Controller
     private function resolveBrowserTimezone(): ?string
     {
         $raw = request()->query('tz');
-        if (! is_string($raw) || $raw === '') {
-            $raw = request()->cookie('browser_timezone');
-        }
-        if (! is_string($raw) || $raw === '') {
-            return null;
+        if (is_string($raw) && $raw !== '' && in_array($raw, timezone_identifiers_list(), true)) {
+            return $raw;
         }
 
-        return in_array($raw, timezone_identifiers_list(), true) ? $raw : null;
+        return browser_timezone_from_request();
     }
 
     private function captureBrowserTimezoneFromRequest(): void

@@ -21,6 +21,53 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee(__('ui.nav.create_activity'), false);
     }
 
+    public function test_guest_sees_login_and_register_in_navigation(): void
+    {
+        $this->get(route('search.index'))
+            ->assertOk()
+            ->assertSee(__('ui.nav.log_in'), false)
+            ->assertSee(__('ui.nav.register'), false)
+            ->assertSee(route('login'), false)
+            ->assertSee(route('register'), false);
+    }
+
+    public function test_guest_brand_links_to_landing_page(): void
+    {
+        $response = $this->get(route('search.index'))
+            ->assertOk();
+
+        $content = $response->getContent();
+        $landingUrl = preg_quote(url('/'), '/');
+
+        $this->assertMatchesRegularExpression(
+            '/href="'.$landingUrl.'"[^>]*class="[^"]*\bui-nav-brand\b/',
+            $content,
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/href="'.$landingUrl.'"[^>]*class="[^"]*\bui-nav-brand-name\b/',
+            $content,
+        );
+
+        $response->assertDontSee('href="'.route('dashboard').'"', false);
+    }
+
+    public function test_authenticated_brand_links_to_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk();
+
+        $dashboardUrl = preg_quote(route('dashboard'), '/');
+
+        $this->assertMatchesRegularExpression(
+            '/href="'.$dashboardUrl.'"[^>]*class="[^"]*\bui-nav-brand\b/',
+            $response->getContent(),
+        );
+    }
+
     public function test_logged_in_user_sees_create_activity_in_profile_menu_but_not_create_event_when_not_organizer(): void
     {
         $user = User::factory()->create([

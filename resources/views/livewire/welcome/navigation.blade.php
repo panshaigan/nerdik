@@ -1,7 +1,7 @@
 @php
     $localeLink = fn (bool $active): string => $active
-        ? 'font-display border-b-2 border-primary text-base-content'
-        : 'font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
+        ? 'ui-nav-locale is-active font-display border-b-2 border-primary text-base-content'
+        : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
 @endphp
 
 <nav
@@ -12,15 +12,17 @@
             );
         },
     }"
-    class="-mx-3 flex flex-1 items-center justify-end gap-2"
+    class="ui-app-navigation -mx-3 flex flex-1 items-center justify-end gap-2"
 >
     <a
+        wire:navigate
         x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
         class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'en') }}"
     >
         {{ __('ui.common.language_en') }}
     </a>
     <a
+        wire:navigate
         x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
         class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'pl') }}"
     >

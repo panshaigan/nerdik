@@ -63,6 +63,9 @@ new class extends Component
 
     $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
 
+    $brandUrl = auth()->check() ? route('dashboard') : url('/');
+    $brandActive = auth()->check() && request()->routeIs('dashboard');
+
     $pendingIncomingRequestCount = auth()->check()
         ? app(PendingIncomingUserRequestCounter::class)->displayCountFor(auth()->user())
         : null;
@@ -102,7 +105,7 @@ new class extends Component
             <div class="flex">
                 <div class="flex shrink-0 items-center gap-3">
                     <a
-                        href="{{ route('dashboard') }}"
+                        href="{{ $brandUrl }}"
                         wire:navigate
                         class="ui-nav-brand shrink-0"
                         aria-label="{{ config('app.name') }}"
@@ -110,9 +113,9 @@ new class extends Component
                         <x-brand-logo class="block h-9 w-auto shrink-0 text-base-content" />
                     </a>
                     <a
-                        href="{{ route('dashboard') }}"
+                        href="{{ $brandUrl }}"
                         wire:navigate
-                        class="{{ $navLink(request()->routeIs('dashboard')) }} ui-nav-brand-name text-base"
+                        class="{{ $navLink($brandActive) }} ui-nav-brand-name text-base"
                     >
                         {{ config('app.name') }}
                     </a>
@@ -143,6 +146,17 @@ new class extends Component
                     {{ __('ui.common.language_pl') }}
                 </a>
                 <x-theme-toggle class="btn btn-circle btn-ghost"/>
+                @guest
+                    <x-button :link="route('login')" class="btn-ghost btn-sm">
+                        {{ __('ui.nav.log_in') }}
+                    </x-button>
+
+                    @if (Route::has('register'))
+                        <x-button :link="route('register')" class="btn-primary btn-sm">
+                            {{ __('ui.nav.register') }}
+                        </x-button>
+                    @endif
+                @endguest
                 @auth
                 <a
                     href="{{ route('requests.index') }}"
@@ -438,6 +452,36 @@ new class extends Component
                             </ul>
                         </div>
                     @endauth
+
+                    @guest
+                        <div class="border-t border-base-300 px-4 pb-4 pt-2">
+                            <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                {{ __('ui.nav.account') }}
+                            </p>
+                            <ul class="menu menu-lg w-full px-0">
+                                <li>
+                                    <a
+                                        href="{{ route('login') }}"
+                                        @click="close()"
+                                        class="font-display"
+                                    >
+                                        {{ __('ui.nav.log_in') }}
+                                    </a>
+                                </li>
+                                @if (Route::has('register'))
+                                    <li>
+                                        <a
+                                            href="{{ route('register') }}"
+                                            @click="close()"
+                                            class="font-display"
+                                        >
+                                            {{ __('ui.nav.register') }}
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
+                    @endguest
                 </div>
             </aside>
         </div>

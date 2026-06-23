@@ -20,6 +20,38 @@ if (! function_exists('auth_recaptcha_enforced')) {
     }
 }
 
+if (! function_exists('browser_timezone_from_request')) {
+    /**
+     * Read and validate the browser timezone cookie set by client-side JS.
+     */
+    function browser_timezone_from_request(): ?string
+    {
+        $raw = request()->cookie('browser_timezone');
+        if (! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        $decoded = rawurldecode($raw);
+
+        return in_array($decoded, timezone_identifiers_list(), true) ? $decoded : null;
+    }
+}
+
+if (! function_exists('display_timezone')) {
+    /**
+     * Timezone used for displaying datetimes in the UI.
+     * Profile timezone wins for authenticated users; guests use the browser cookie; fallback is Europe/Warsaw.
+     */
+    function display_timezone(): string
+    {
+        if (auth()->check() && auth()->user()->timezone) {
+            return auth()->user()->timezone;
+        }
+
+        return browser_timezone_from_request() ?? 'Europe/Warsaw';
+    }
+}
+
 if (! function_exists('parse_datetime_to_utc')) {
     /**
      * Parse a datetime string (e.g. from datetime-local input) as the current user's timezone and return Carbon in UTC.
@@ -30,17 +62,14 @@ if (! function_exists('parse_datetime_to_utc')) {
         if ($value === null || $value === '') {
             return null;
         }
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
 
-        return Carbon::parse($value, $tz)->setTimezone('UTC');
+        return Carbon::parse($value, display_timezone())->setTimezone('UTC');
     }
 }
 
 if (! function_exists('format_in_user_tz')) {
     /**
-     * Format a date/time in the current user's timezone (or app timezone for guests).
+     * Format a date/time in the display timezone (profile, browser cookie, or Europe/Warsaw fallback).
      * All datetimes are stored in UTC in the database.
      *
      * @param  Carbon|DateTimeInterface|string|null  $date
@@ -51,11 +80,8 @@ if (! function_exists('format_in_user_tz')) {
             return '';
         }
         $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
 
-        $carbon = $carbon->setTimezone($tz)->locale(app()->getLocale());
+        $carbon = $carbon->setTimezone(display_timezone())->locale(app()->getLocale());
 
         // Support translated month/day names when format uses textual tokens.
         // Falls back to PHP date formatting for numeric-only formats.
@@ -78,11 +104,8 @@ if (! function_exists('format_datetime_in_user_tz')) {
         }
 
         $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
 
-        return $carbon->setTimezone($tz)->locale(app()->getLocale())->isoFormat($isoFormat);
+        return $carbon->setTimezone(display_timezone())->locale(app()->getLocale())->isoFormat($isoFormat);
     }
 }
 
@@ -99,9 +122,7 @@ if (! function_exists('format_date_in_user_tz')) {
         }
 
         $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
+        $tz = display_timezone();
 
         $carbon = $carbon->setTimezone($tz)->locale(app()->getLocale());
         if (! class_exists(IntlDateFormatter::class)) {
@@ -165,9 +186,7 @@ if (! function_exists('format_date_range_localized')) {
             return '';
         }
 
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
+        $tz = display_timezone();
         $locale = app()->getLocale();
 
         $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz)->locale($locale);
@@ -220,9 +239,7 @@ if (! function_exists('format_datetime_range_compact')) {
             return '';
         }
 
-        $tz = auth()->check() && auth()->user()->timezone
-            ? auth()->user()->timezone
-            : config('app.timezone');
+        $tz = display_timezone();
 
         $locale = app()->getLocale();
         $s = ($start instanceof Carbon ? $start->copy() : Carbon::parse($start))->setTimezone($tz)->locale($locale);
