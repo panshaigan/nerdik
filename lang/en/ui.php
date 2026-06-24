@@ -573,7 +573,7 @@ return [
         'enrollment_window_activity_max_invalid' => 'Enter a non-negative activity cap or leave empty for unlimited.',
         'enrollment_windows_must_not_overlap' => 'Enrollment windows must not overlap each other.',
         'enrollment_open_now' => 'Activity sign-ups are open for this event right now.',
-        'enrollment_window_active_badge' => 'Now',
+        'enrollment_window_active_badge' => 'Sign-ups',
         'cancel_action' => 'Cancel event',
         'cancel_confirm' => 'Cancel this event for all participants? Scheduled activities with sign-ups will be affected.',
         'reopen_action' => 'Reopen event',

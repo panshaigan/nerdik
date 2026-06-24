@@ -54,6 +54,7 @@ final readonly class WelcomeUpcomingQueryService
                     'places.city.translations',
                     'slots.activity.activityType',
                     'slots.activityTypes',
+                    'enrollmentWindows',
                 ])
                 ->whereIn('id', $eventIds)
                 ->get()

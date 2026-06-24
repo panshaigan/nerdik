@@ -43,5 +43,6 @@ final readonly class BrowseListingCardViewData
         public string $previewWireMethod,
         public bool $showDetailsLink,
         public ?int $confirmedActivitiesCount = null,
+        public bool $hasActiveEnrollmentWindow = false,
     ) {}
 }

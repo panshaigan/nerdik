@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Browse\BrowseEvents;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +51,41 @@ class ListingCardEventPreviewTest extends TestCase
             ->test(BrowseEvents::class)
             ->assertSee(__('ui.events.confirmed_activities'))
             ->assertSeeHtml('data-ui="event-card-confirmed-activities"');
+    }
+
+    public function test_listing_event_card_shows_enrollment_open_badge_when_window_is_active(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(BrowseEvents::class)
+            ->assertSee(__('ui.events.enrollment_window_active_badge'))
+            ->assertSeeHtml('data-ui="event-card-enrollment-open"');
+    }
+
+    public function test_listing_event_card_hides_enrollment_open_badge_when_window_is_closed(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subDays(2),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($owner)
+            ->test(BrowseEvents::class)
+            ->assertDontSeeHtml('data-ui="event-card-enrollment-open"');
     }
 
     public function test_open_listing_event_preview_shows_description_and_details_link(): void

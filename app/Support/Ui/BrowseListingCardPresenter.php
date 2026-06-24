@@ -84,6 +84,13 @@ final class BrowseListingCardPresenter
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
         [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
+        $event->loadMissing('enrollmentWindows');
+        $now = now();
+        $hasActiveEnrollmentWindow = $event->enrollmentWindows->contains(function ($window) use ($now): bool {
+            return $window->starts_at !== null
+                && $window->ends_at !== null
+                && $now->between($window->starts_at, $window->ends_at);
+        });
 
         return new BrowseListingCardViewData(
             kind: 'event',
@@ -115,6 +122,7 @@ final class BrowseListingCardPresenter
             previewWireMethod: 'openListingEventPreview',
             showDetailsLink: true,
             confirmedActivitiesCount: $confirmedActivitiesCount,
+            hasActiveEnrollmentWindow: $hasActiveEnrollmentWindow,
         );
     }
 

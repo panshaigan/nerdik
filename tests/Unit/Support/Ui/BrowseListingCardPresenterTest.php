@@ -11,6 +11,7 @@ use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
@@ -72,6 +73,7 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertSame('toggleActivityInterest', $viewData->interestWireMethod);
         $this->assertFalse($viewData->isInterested);
         $this->assertFalse($viewData->showDetailsLink);
+        $this->assertFalse($viewData->hasActiveEnrollmentWindow);
     }
 
     #[Test]
@@ -297,5 +299,40 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertCount(1, $viewData->badgeItems);
         $this->assertSame(ActivityBadgeKind::ActivityType, $viewData->badgeItems[0]->kind);
         $this->assertSame(BadgeSemantic::Accent, $viewData->badgeItems[0]->semantic);
+    }
+
+    #[Test]
+    public function from_event_exposes_active_enrollment_window_when_one_is_open(): void
+    {
+        $event = Event::factory()->create();
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+        ]);
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertTrue($viewData->hasActiveEnrollmentWindow);
+    }
+
+    #[Test]
+    public function from_event_does_not_expose_active_enrollment_window_when_only_closed_windows_exist(): void
+    {
+        $event = Event::factory()->create();
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subDays(2),
+            'ends_at' => now()->subDay(),
+        ]);
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertFalse($viewData->hasActiveEnrollmentWindow);
     }
 }

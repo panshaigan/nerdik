@@ -68,10 +68,18 @@
                 :picture="$d->coverPicture"
                 class="ui-card-media-fade absolute inset-0 block size-full object-cover"
             />
-            <span
-                class="absolute left-2 top-2 z-20 max-w-[min(100%,12rem)] truncate rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
-                data-ui="{{ $d->dataUiPrefix }}-kind-label"
-            >{{ $d->kindCornerLabel }}</span>
+            <div class="absolute left-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-row flex-wrap items-center gap-1">
+                <span
+                    class="shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
+                    data-ui="{{ $d->dataUiPrefix }}-kind-label"
+                >{{ $d->kindCornerLabel }}</span>
+                @if ($d->hasActiveEnrollmentWindow)
+                    <span
+                        class="shrink-0 rounded-md border border-accent/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-accent/95"
+                        data-ui="event-card-enrollment-open"
+                    >{{ __('ui.events.enrollment_window_active_badge') }}</span>
+                @endif
+            </div>
         </div>
         <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
             <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">
