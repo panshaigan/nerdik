@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityType;
@@ -30,7 +31,7 @@ class ActivityDuplicatePrefillTest extends TestCase
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
             'place_id' => null,
             'starts_at' => now()->addDay(),
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'allows_observers' => true,
             'is_host_passive' => true,
             'min_participants' => 2,

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Notifications;
 
 use App\Enums\ActivityProposalStatus;
+use App\Enums\ParticipationMode;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -100,7 +101,7 @@ class CancellationNotificationsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
         ]);
 
         ActivityWaitlistEntry::query()->create([
@@ -173,7 +174,7 @@ class CancellationNotificationsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'max_participants' => 1,
         ]);
 

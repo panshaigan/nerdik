@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
@@ -159,7 +160,7 @@ class AppNotificationsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 2,
         ]);
 
@@ -190,7 +191,7 @@ class AppNotificationsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'max_participants' => 2,
         ]);
 
@@ -368,7 +369,7 @@ class AppNotificationsTest extends TestCase
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
             'updated_by' => $host->id,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'min_participants' => 2,
             'max_participants' => 2,
         ]);

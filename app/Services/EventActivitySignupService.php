@@ -49,7 +49,7 @@ class EventActivitySignupService
         DB::transaction(function () use ($participant, $activity, &$promotedUser): void {
             $participant->delete();
 
-            if (! $activity->requires_approval) {
+            if ($activity->isOpenParticipationMode()) {
                 $first = $activity->waitlist()->orderBy('position')->with('user')->first();
                 if ($first) {
                     $promotedUser = $first->user;
@@ -64,9 +64,13 @@ class EventActivitySignupService
             }
         });
 
+        if ($activity->isLotteryMode() && $activity->isLotteryResolved()) {
+            $promotedUser = app(ActivityLotteryService::class)->promoteRandomEligibleEntry($activity->fresh());
+        }
+
         $fresh = $activity->fresh();
 
-        if ($promotedUser instanceof User && $fresh !== null) {
+        if ($promotedUser instanceof User && $fresh !== null && $activity->isOpenParticipationMode()) {
             $promotedUser->notify(new WaitlistPromotedNotification($fresh));
         }
 
@@ -307,7 +311,7 @@ class EventActivitySignupService
     /**
      * @throws ValidationException
      */
-    public function assertCanSignup(Activity $activity, User $user, bool $hostApprovingParticipant = false): void
+    public function assertCanSignup(Activity $activity, User $user, bool $hostApprovingParticipant = false, bool $forLotteryResolution = false): void
     {
         $activity->loadMissing('slot.event.enrollmentWindows');
 
@@ -321,6 +325,12 @@ class EventActivitySignupService
             throw ValidationException::withMessages([
                 '_' => [__('ui.activities.signup_blocked_not_joinable_mode')],
             ]);
+        }
+
+        if ($forLotteryResolution) {
+            $this->assertNoScheduleOverlap($activity, $user, $hostApprovingParticipant);
+
+            return;
         }
 
         $slot = $activity->slot;

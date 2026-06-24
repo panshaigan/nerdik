@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
@@ -68,7 +69,7 @@ class ActivityParticipantRosterTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'max_participants' => 2,
         ]);
 
@@ -115,7 +116,7 @@ class ActivityParticipantRosterTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'max_participants' => 2,
         ]);
 

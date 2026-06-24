@@ -3,6 +3,7 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\ActivityProposalStatus;
+use App\Enums\ParticipationMode;
 use App\Livewire\Events\EventShowPlanTab;
 use App\Livewire\Events\EventShowProposalsTab;
 use App\Livewire\Events\ShowEvent;
@@ -99,7 +100,7 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 4,
         ]);
 

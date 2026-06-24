@@ -328,6 +328,8 @@ class ShowActivity extends Component
             'activeWindowPerActivityMax' => $vm->activeWindowPerActivityMax,
             'activeWindowRemainingForActivity' => $vm->activeWindowRemainingForActivity,
             'activeWindowUserRemaining' => $vm->activeWindowUserRemaining,
+            'isLotteryPending' => $vm->isLotteryPending,
+            'isLotteryResolved' => $vm->isLotteryResolved,
         ]);
     }
 

@@ -9,6 +9,7 @@ enum ActivityBadgeKind: int
     case MinimumAge = 3;
     case RequiresApproval = 4;
     case AllowsObservers = 5;
+    case Lottery = 6;
 
     /** Key under `config('activity-badges.semantic_by_kind')`. */
     public function semanticConfigKey(): string
@@ -19,6 +20,7 @@ enum ActivityBadgeKind: int
             self::MinimumAge => 'minimum_age',
             self::RequiresApproval => 'requires_approval',
             self::AllowsObservers => 'allows_observers',
+            self::Lottery => 'lottery',
         };
     }
 }

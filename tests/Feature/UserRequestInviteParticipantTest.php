@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
 use App\Livewire\Activities\ShowActivity;
@@ -130,7 +131,7 @@ class UserRequestInviteParticipantTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'starts_at' => now()->addWeek(),
             'ends_at' => now()->addWeek()->addHours(3),
         ]);

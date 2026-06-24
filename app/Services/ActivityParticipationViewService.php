@@ -97,6 +97,8 @@ class ActivityParticipationViewService
             activeWindowPerActivityMax: $activeWindowPerActivityMax,
             activeWindowRemainingForActivity: $activeWindowRemainingForActivity,
             activeWindowUserRemaining: $activeWindowUserRemaining,
+            isLotteryPending: $activity->isLotteryPending(),
+            isLotteryResolved: $activity->isLotteryResolved(),
         );
     }
 }

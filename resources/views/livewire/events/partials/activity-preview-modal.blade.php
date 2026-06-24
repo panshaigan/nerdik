@@ -6,9 +6,9 @@
             .$previewParticipantCount.'/'.($previewActivity->max_participants ?? '∞')
             .'</span>';
         $previewCanJoinWaitlist = $previewActivityParticipation?->canJoin
-            && ($previewActivity->requires_approval || $previewActivityParticipation?->isFull);
+            && ($previewActivity->isHostApprovalMode() || $previewActivity->isLotteryMode() || $previewActivityParticipation?->isFull);
         $previewCanJoinDirectly = $previewActivityParticipation?->canJoin
-            && ! $previewActivity->requires_approval
+            && $previewActivity->isOpenParticipationMode()
             && ! $previewActivityParticipation?->isFull;
     @endphp
 

@@ -46,8 +46,9 @@ class ActivitiesTable
                     ->boolean(),
                 IconColumn::make('is_host_passive')
                     ->boolean(),
-                IconColumn::make('requires_approval')
-                    ->boolean(),
+                TextColumn::make('participation_mode')
+                    ->badge()
+                    ->sortable(),
                 TextColumn::make('price')
                     ->money()
                     ->sortable(),

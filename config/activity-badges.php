@@ -27,6 +27,7 @@ return [
         'tags:'.TagCategory::KEY_OTHER,
         'tags:'.TagCategory::KEY_TRIGGER,
         'meta:requires_approval',
+        'meta:lottery',
         'meta:allows_observers',
 
     ],
@@ -39,7 +40,7 @@ return [
                 TagCategory::KEY_GENRE,
                 TagCategory::KEY_TOPIC,
             ],
-            'requires_approval' => false,
+            'participation_mode' => false,
             'allows_observers' => false,
             'minimum_age' => true,
         ],
@@ -55,7 +56,7 @@ return [
                 TagCategory::KEY_OTHER,
                 TagCategory::KEY_TRIGGER,
             ],
-            'requires_approval' => true,
+            'participation_mode' => true,
             'allows_observers' => true,
             'minimum_age' => true,
         ],
@@ -66,7 +67,7 @@ return [
                 TagCategory::KEY_GENRE,
                 TagCategory::KEY_TOPIC,
             ],
-            'requires_approval' => false,
+            'participation_mode' => false,
             'allows_observers' => false,
             'minimum_age' => false,
         ],
@@ -80,7 +81,7 @@ return [
                 TagCategory::KEY_OTHER,
                 TagCategory::KEY_TRIGGER,
             ],
-            'requires_approval' => true,
+            'participation_mode' => true,
             'allows_observers' => true,
             'minimum_age' => true,
         ],
@@ -101,8 +102,9 @@ return [
         'taxonomy_tag' => 'neutral',   // was primary
         'activity_type' => 'accent',    // was info → teal is more distinctive
         'minimum_age' => 'warning',   // keep
-        'requires_approval' => 'neutral',   // was accent → needs more attention
-        'allows_observers' => 'neutral',   // was accent → it's just a property
+        'requires_approval' => 'neutral',
+        'lottery' => 'neutral',
+        'allows_observers' => 'neutral',
     ],
 
     'icon_by_tag_category' => [
@@ -121,6 +123,7 @@ return [
         'activity_type' => 'o-star',
         'minimum_age' => 'o-clock',
         'requires_approval' => 'o-shield-check',
+        'lottery' => 'o-sparkles',
         'allows_observers' => 'o-eye',
     ],
 ];

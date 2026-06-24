@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Place;
@@ -60,7 +61,12 @@ final class ActivityFactory extends Factory
             ]),
             'allows_observers' => 0,
             'is_host_passive' => 0,
-            'requires_approval' => fake()->boolean(0.3),
+            'participation_mode' => fake()->randomElement([
+                ParticipationMode::Open,
+                ParticipationMode::Open,
+                ParticipationMode::Open,
+                ParticipationMode::HostApproval,
+            ]),
             'price' => null,
             'slug' => Str::slug($name),
             'description' => fake()->text(2000),
@@ -112,6 +118,19 @@ final class ActivityFactory extends Factory
             'cancelled_at' => fake()->dateTime(),
             'cancelled_by' => User::factory(),
             'cancel_reason' => fake()->optional()->text,
+        ]);
+    }
+
+    public function hostApproval(): self
+    {
+        return $this->state(['participation_mode' => ParticipationMode::HostApproval]);
+    }
+
+    public function lottery(): self
+    {
+        return $this->state([
+            'participation_mode' => ParticipationMode::Lottery,
+            'cancellation_deadline_in_hours' => 24,
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Activities\ShowActivity;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -23,7 +24,7 @@ class ShowActivityActionsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
         ]);
 
         $participant = ActivityUser::query()->create([
@@ -54,7 +55,7 @@ class ShowActivityActionsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 5,
         ]);
 
@@ -214,7 +215,7 @@ class ShowActivityActionsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 5,
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
+use App\Enums\ParticipationMode;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -39,7 +40,8 @@ class ActivityForm
                     ->required(),
                 Toggle::make('is_host_passive')
                     ->required(),
-                Toggle::make('requires_approval')
+                Select::make('participation_mode')
+                    ->options(ParticipationMode::class)
                     ->required(),
                 TextInput::make('price')
                     ->numeric()
