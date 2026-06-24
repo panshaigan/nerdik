@@ -85,6 +85,8 @@ Hosts can approve waitlist entries (for approval-required activities), subject t
 - capacity checks,
 - signup validation checks.
 
+When a participant leaves, waitlist auto-promotion happens only when approval is not required; approval-required activities leave the spot open for host selection.
+
 ## Host Roster Controls
 
 Hosts can:

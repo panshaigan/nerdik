@@ -49,16 +49,18 @@ class EventActivitySignupService
         DB::transaction(function () use ($participant, $activity, &$promotedUser): void {
             $participant->delete();
 
-            $first = $activity->waitlist()->orderBy('position')->with('user')->first();
-            if ($first) {
-                $promotedUser = $first->user;
-                $first->delete();
-                $activity->participants()->create([
-                    'user_id' => $promotedUser->id,
-                ]);
-                $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index): void {
-                    $entry->update(['position' => $index + 1]);
-                });
+            if (! $activity->requires_approval) {
+                $first = $activity->waitlist()->orderBy('position')->with('user')->first();
+                if ($first) {
+                    $promotedUser = $first->user;
+                    $first->delete();
+                    $activity->participants()->create([
+                        'user_id' => $promotedUser->id,
+                    ]);
+                    $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index): void {
+                        $entry->update(['position' => $index + 1]);
+                    });
+                }
             }
         });
 
