@@ -573,7 +573,7 @@ return [
         'enrollment_window_activity_max_invalid' => 'Podaj nieujemny limit aktywności albo zostaw puste (bez limitu).',
         'enrollment_windows_must_not_overlap' => 'Okna zapisów nie mogą na siebie nachodzić.',
         'enrollment_open_now' => 'Trwa teraz okno zapisów na aktywności przy tym wydarzeniu.',
-        'enrollment_window_active_badge' => 'Teraz',
+        'enrollment_window_active_badge' => 'Zapisy',
         'cancel_action' => 'Anuluj wydarzenie',
         'cancel_confirm' => 'Anulować to wydarzenie dla wszystkich uczestników? Dotyczy zaplanowanych aktywności z zapisami.',
         'reopen_action' => 'Wznów wydarzenie',

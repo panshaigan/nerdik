@@ -71,6 +71,7 @@ class Event extends Model implements HasMedia
             'places.city.translations',
             'slots.activity.activityType',
             'slots.activityTypes',
+            'enrollmentWindows',
         ];
     }
 
