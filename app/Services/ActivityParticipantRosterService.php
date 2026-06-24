@@ -9,12 +9,18 @@ use Illuminate\Support\Facades\DB;
 
 class ActivityParticipantRosterService
 {
+    public function __construct(
+        private readonly EventActivitySignupService $signupService,
+    ) {}
+
     public function removeParticipant(ActivityUser $participant): void
     {
         $user = $participant->user;
         $activity = $participant->activity;
 
         $participant->delete();
+
+        $this->signupService->promoteWaitlistReplacement($activity);
 
         if ($user instanceof User && $activity !== null) {
             $user->notify(new ActivityRemovedByHostNotification(
