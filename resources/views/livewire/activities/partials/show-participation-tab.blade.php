@@ -4,8 +4,8 @@
         : $activity->slot?->starts_at;
     $canMarkAbsentNow = $activityStartsAtGmt !== null
         && $activityStartsAtGmt->clone()->utc()->lte(now('UTC'));
+    $usesWaitlistSignup = $activity->isHostApprovalMode() || $activity->isLotteryMode();
 @endphp
-
 <div data-ui="activity-show-participation">
     @auth
         <div class="mb-6 max-w-xl mx-auto w-full">
@@ -20,6 +20,8 @@
                 'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity ?? null,
                 'activeWindowPerActivityMax' => $activeWindowPerActivityMax ?? null,
                 'activeWindowUserRemaining' => $activeWindowUserRemaining ?? null,
+                'isLotteryPending' => $isLotteryPending ?? false,
+                'isLotteryResolved' => $isLotteryResolved ?? false,
             ])
         </div>
     @endauth
@@ -85,7 +87,7 @@
                                 :spinner="'confirmRemoveParticipant('.$p->id.')'"
                                 icon="o-trash"
                             />
-                            @if ($activity->requires_approval)
+                            @if ($activity->isHostApprovalMode())
                             <x-button
                                 type="button"
                                 class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
@@ -107,7 +109,7 @@
                     <div class="mt-6 flex flex-wrap gap-2" data-ui="activity-show-participants-actions">
                         @if ($isParticipant)
                             <x-button type="button" class="btn-error mx-auto" wire:click="leave" spinner="leave">{{ __('ui.activities.leave') }}</x-button>
-                        @elseif ($canJoin && ! $activity->requires_approval && ! $isFull)
+                        @elseif ($canJoin && $activity->isOpenParticipationMode() && ! $isFull)
                             <x-button type="button" class="btn-primary mx-auto" wire:click="join" spinner="join">{{ __('ui.activities.join') }}</x-button>
                         @endif
                     </div>
@@ -124,7 +126,7 @@
                         <x-list-item :item="$entry" :avatar="false" value="position" class="ui-participant-list-item px-3 py-3">
                             <x-slot:value class="truncate text-sm font-medium text-base-content">
                                 <div class="flex min-w-0 items-center gap-2">
-                                    @if ($canManageActivity && $activity->requires_approval)
+                                    @if ($canManageActivity && $activity->isHostApprovalMode())
                                         <x-button
                                             type="button"
                                             class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
@@ -154,7 +156,7 @@
                     <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-waitlist-actions">
                         @if ($onWaitlist)
                             <x-button type="button" class="btn-neutral" wire:click="leaveWaitlist" spinner="leaveWaitlist">{{ __('ui.activities.leave_waitlist') }}</x-button>
-                        @elseif ($canJoin && ($activity->requires_approval || $isFull))
+                        @elseif ($canJoin && ($usesWaitlistSignup || $isFull))
                             <x-button type="button" class="btn-primary" wire:click="joinWaitlist" spinner="joinWaitlist">{{ __('ui.activities.join_waitlist') }}</x-button>
                         @endif
                     </div>

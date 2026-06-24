@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Browse\BrowseActivities;
 use App\Livewire\Dashboard\Dashboard;
 use App\Models\Activity;
@@ -161,7 +162,7 @@ class ListingCardActivityPreviewTest extends TestCase
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 4,
         ]);
 

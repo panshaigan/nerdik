@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -42,7 +43,7 @@ class EventCopyPlaceIdTest extends TestCase
             'name' => 'Slot A',
             'created_by' => $user->id,
             'place_id' => $venue->id,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
         ]);
 
         $response = $this->post(route('events.copy', $event));

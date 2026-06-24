@@ -222,6 +222,8 @@
                         'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,
                         'activeWindowPerActivityMax' => $activeWindowPerActivityMax,
                         'activeWindowUserRemaining' => $activeWindowUserRemaining,
+                        'isLotteryPending' => $isLotteryPending,
+                        'isLotteryResolved' => $isLotteryResolved,
                     ])
                 </x-tab>
             </x-ui.tabs-with-toolbar>

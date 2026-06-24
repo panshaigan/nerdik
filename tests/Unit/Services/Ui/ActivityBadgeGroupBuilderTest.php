@@ -10,6 +10,7 @@ use App\Domain\ActivityBadges\ActivityBadgeItem;
 use App\Domain\ActivityBadges\ActivityBadgeKind;
 use App\Domain\ActivityBadges\ActivityBadgePreset;
 use App\Enums\BadgeSemantic;
+use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
@@ -42,7 +43,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         TagTranslation::factory()->create(['tag_id' => $tagB->id, 'locale' => 'en', 'label' => 'Beta']);
 
         $activity = Activity::factory()->create([
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'allows_observers' => false,
             'minimum_age' => 16,
         ]);
@@ -121,7 +122,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
     public function browse_card_shows_type_allowed_tags(): void
     {
         $activity = Activity::factory()->create([
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'minimum_age' => 18,
         ]);
         $game = TagCategory::factory()->create(['key' => 'game']);
@@ -184,7 +185,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Zed']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -204,7 +205,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         TagTranslation::factory()->create(['tag_id' => $tagGame->id, 'locale' => 'en', 'label' => 'G']);
         $tagGenre = Tag::factory()->create(['tag_category_id' => $genre->id]);
         TagTranslation::factory()->create(['tag_id' => $tagGenre->id, 'locale' => 'en', 'label' => 'R']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
         $activity->tags()->attach([$tagGame->id, $tagGenre->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -227,7 +228,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'X']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -247,7 +248,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Iconic']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -266,7 +267,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $game = TagCategory::factory()->create(['key' => 'game']);
         $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
         TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Override']);
-        $activity = Activity::factory()->create(['minimum_age' => null, 'requires_approval' => false, 'allows_observers' => false]);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
         $activity->tags()->attach([$tag->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 

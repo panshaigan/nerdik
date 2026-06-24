@@ -15,6 +15,7 @@ Schedule::command('telescope:prune')
         && (bool) config('telescope.enabled', false));
 Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
 Schedule::command('user-requests:expire')->hourly()->withoutOverlapping();
+Schedule::command('activities:resolve-lotteries')->everyMinute()->withoutOverlapping();
 Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
 
 Schedule::command('queue:prune-failed', [

@@ -6,6 +6,7 @@ use App\Actions\Activities\DeleteUploadedActivityLogo;
 use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
+use App\Enums\ParticipationMode;
 use App\Jobs\RecalculateTagPopularityJob;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
@@ -34,7 +35,8 @@ class ActivityFormService
         LocationResolver $locationResolver,
     ): mixed {
         $validated['description'] = RichText::sanitize($validated['description'] ?? null);
-        $validated['requires_approval'] = (bool) ($validated['requires_approval'] ?? false);
+        $validated['participation_mode'] = ParticipationMode::tryFrom((string) ($validated['participation_mode'] ?? ''))
+            ?? ParticipationMode::Open;
         $validated['allows_observers'] = (bool) ($validated['allows_observers'] ?? false);
         $validated['is_host_passive'] = (bool) ($validated['is_host_passive'] ?? false);
 
@@ -60,6 +62,9 @@ class ActivityFormService
         if ($form->editingActivityId !== null) {
             $activity = Activity::query()->findOrFail($form->editingActivityId);
             $activity->loadMissing('slot.activityTypes');
+            if ($activity->participation_mode !== $validated['participation_mode']) {
+                $payload['lottery_resolved_at'] = null;
+            }
             $slot = $activity->slot;
             if ($slot !== null) {
                 $merged = $activity->replicate();

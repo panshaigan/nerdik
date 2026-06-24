@@ -37,8 +37,8 @@
             />
         </div>
 
-        <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-6">
-            <div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-8">
+            <div class="grid min-w-0 grid-cols-1 gap-4 space-y-4 md:grid-cols-1">
                 <x-range-dual
                     class="min-w-0"
                     :label="__('ui.activities.participants')"
@@ -110,7 +110,7 @@
                     </label>
                     <x-range
                         x-model="value"
-                        min="0"
+                        min="1"
                         max="48"
                         step="6"
                         class="range-xs w-full"
@@ -119,14 +119,17 @@
             </div>
         </div>
 
-        <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-6">
-            <x-toggle
-                id="requires_approval"
-                :label="__('ui.activities.requires_approval_badge')"
-                wire:model="requires_approval"
-                :hint="__('ui.activities.requires_approval')"
+        <div class="ui-tile-empty min-w-0 rounded-2xl space-y-6 p-4 sm:p-6">
+            <x-radio
+                wire:model="participation_mode"
+                :label="__('ui.activities.participation_mode')"
+                :options="[
+                    ['id' => 'open', 'name' => __('ui.activities.participation_mode_open'), 'hint' => __('ui.activities.participation_mode_open_hint')],
+                    ['id' => 'host_approval', 'name' => __('ui.activities.participation_mode_host_approval'), 'hint' => __('ui.activities.participation_mode_host_approval_hint')],
+                    ['id' => 'lottery', 'name' => __('ui.activities.participation_mode_lottery'), 'hint' => __('ui.activities.participation_mode_lottery_hint')],
+                ]"
+                error-field="participation_mode"
                 class="mb-3"
-                right
             />
             <x-toggle
                 id="allows_observers"

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ActivityLogoSource;
+use App\Enums\ParticipationMode;
 use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
@@ -55,7 +56,8 @@ class Activity extends Model implements HasMedia
         'is_host_passive',
         'created_by',
         'updated_by',
-        'requires_approval',
+        'participation_mode',
+        'lottery_resolved_at',
         'cancellation_deadline_in_hours',
         'logo_path',
         'logo_source',
@@ -71,7 +73,8 @@ class Activity extends Model implements HasMedia
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'cancelled_at' => 'datetime',
-        'requires_approval' => 'boolean',
+        'participation_mode' => ParticipationMode::class,
+        'lottery_resolved_at' => 'datetime',
         'allows_observers' => 'boolean',
         'is_host_passive' => 'boolean',
         'logo_source' => ActivityLogoSource::class,
@@ -178,6 +181,36 @@ class Activity extends Model implements HasMedia
             self::HOSTING_MODE_SELF_HOSTED,
             self::HOSTING_MODE_SCHEDULED_ON_EVENT,
         ], true);
+    }
+
+    public function participationMode(): ParticipationMode
+    {
+        return $this->participation_mode ?? ParticipationMode::Open;
+    }
+
+    public function isOpenParticipationMode(): bool
+    {
+        return $this->participationMode() === ParticipationMode::Open;
+    }
+
+    public function isHostApprovalMode(): bool
+    {
+        return $this->participationMode() === ParticipationMode::HostApproval;
+    }
+
+    public function isLotteryMode(): bool
+    {
+        return $this->participationMode() === ParticipationMode::Lottery;
+    }
+
+    public function isLotteryResolved(): bool
+    {
+        return $this->isLotteryMode() && $this->lottery_resolved_at !== null;
+    }
+
+    public function isLotteryPending(): bool
+    {
+        return $this->isLotteryMode() && $this->lottery_resolved_at === null;
     }
 
     public function isPubliclyShowable(): bool

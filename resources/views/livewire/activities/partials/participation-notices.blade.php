@@ -33,6 +33,20 @@
             'dataUi' => "{$noticeDataUiPrefix}-window-user-cap",
         ]);
     }
+
+    if (($isLotteryPending ?? false) && ! $isParticipant) {
+        $participationNotices->push([
+            'message' => __('ui.activities.lottery_pending_notice'),
+            'dataUi' => "{$noticeDataUiPrefix}-lottery-pending",
+        ]);
+    }
+
+    if (($isLotteryResolved ?? false) && $onWaitlist) {
+        $participationNotices->push([
+            'message' => __('ui.activities.lottery_resolved_waitlist_notice'),
+            'dataUi' => "{$noticeDataUiPrefix}-lottery-resolved",
+        ]);
+    }
 @endphp
 
 @if ($participationNotices->isNotEmpty())

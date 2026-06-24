@@ -36,7 +36,7 @@ class ActivityParticipationService
             return redirect()->back()->with('status', __('You are on the waitlist. Leave it first if you want to join directly.'));
         }
 
-        if ($activity->requires_approval) {
+        if ($activity->isHostApprovalMode() || $activity->isLotteryMode()) {
             return redirect()->back()->with('status', __('ui.activities.join_requires_waitlist'));
         }
 
@@ -100,7 +100,7 @@ class ActivityParticipationService
 
         $isFull = $activity->max_participants !== null
             && $activity->participants()->count() >= $activity->max_participants;
-        if (! $activity->requires_approval && ! $isFull) {
+        if (! $activity->isHostApprovalMode() && ! $activity->isLotteryMode() && ! $isFull) {
             return redirect()->back()->with('status', __('ui.activities.waitlist_only_when_approval_or_full'));
         }
 
@@ -145,7 +145,7 @@ class ActivityParticipationService
 
         abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_approve_waitlist'));
 
-        if (! $activity->requires_approval) {
+        if (! $activity->isHostApprovalMode()) {
             return redirect()->back()->with('status', __('ui.activities.approval_not_required_for_activity'));
         }
 
@@ -268,14 +268,14 @@ class ActivityParticipationService
         $isFull = $activity->max_participants !== null
             && $activity->participants()->count() >= $activity->max_participants;
 
-        if (! $activity->requires_approval && ! $isFull) {
+        if (! $activity->isHostApprovalMode() && ! $activity->isLotteryMode() && ! $isFull) {
             $this->signupService->assertCanSignup($activity, $user);
             $this->signupService->userJoinActivity($activity, $user);
 
             return UserRequestResolutionOutcome::Joined;
         }
 
-        if ($activity->requires_approval || $isFull) {
+        if ($activity->isHostApprovalMode() || $activity->isLotteryMode() || $isFull) {
             $this->signupService->assertCanSignup($activity, $user);
             $this->signupService->userJoinWaitlist($activity, $user);
 

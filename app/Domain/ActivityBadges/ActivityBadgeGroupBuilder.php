@@ -72,7 +72,7 @@ class ActivityBadgeGroupBuilder
             ];
         }
 
-        if (($surfaceCfg['requires_approval'] ?? false) && $activity->requires_approval) {
+        if (($surfaceCfg['participation_mode'] ?? $surfaceCfg['requires_approval'] ?? false) && $activity->isHostApprovalMode()) {
             $rows[] = [
                 'order' => $orderIndices['meta:requires_approval'] ?? 50,
                 'tie' => 0,
@@ -82,6 +82,21 @@ class ActivityBadgeGroupBuilder
                     __('ui.activities.requires_approval_badge'),
                     $config->semanticFor(ActivityBadgeKind::RequiresApproval),
                     $config->iconFor(ActivityBadgeKind::RequiresApproval),
+                    false,
+                    true,
+                ),
+            ];
+        }
+        if (($surfaceCfg['participation_mode'] ?? false) && $activity->isLotteryMode()) {
+            $rows[] = [
+                'order' => $orderIndices['meta:lottery'] ?? 50,
+                'tie' => 1,
+                'item' => new ActivityBadgeItem(
+                    ActivityBadgeKind::Lottery,
+                    'meta:lottery',
+                    __('ui.activities.participation_mode_lottery_badge'),
+                    $config->semanticFor(ActivityBadgeKind::Lottery),
+                    $config->iconFor(ActivityBadgeKind::Lottery),
                     false,
                     true,
                 ),

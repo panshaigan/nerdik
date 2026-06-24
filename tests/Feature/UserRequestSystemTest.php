@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Console\Commands\ExpireUserRequestsCommand;
+use App\Enums\ParticipationMode;
 use App\Enums\UserRequestResolutionOutcome;
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
@@ -282,7 +283,7 @@ class UserRequestSystemTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'starts_at' => now()->addWeek(),
             'ends_at' => now()->addWeek()->addHours(3),
             'max_participants' => 6,
@@ -311,7 +312,7 @@ class UserRequestSystemTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => true,
+            'participation_mode' => ParticipationMode::HostApproval,
             'starts_at' => now()->addWeek(),
             'ends_at' => now()->addWeek()->addHours(3),
         ]);
@@ -349,7 +350,7 @@ class UserRequestSystemTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
         ]);
         Slot::factory()->create([
             'event_id' => $event->id,

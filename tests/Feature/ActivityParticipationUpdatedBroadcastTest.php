@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Events\ActivityParticipationUpdated;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -38,7 +39,7 @@ class ActivityParticipationUpdatedBroadcastTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
         ]);
 
         app(EventActivitySignupService::class)->userJoinActivity($activity, $participant);
@@ -58,7 +59,7 @@ class ActivityParticipationUpdatedBroadcastTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
         ]);
 
         ActivityUser::query()->create([

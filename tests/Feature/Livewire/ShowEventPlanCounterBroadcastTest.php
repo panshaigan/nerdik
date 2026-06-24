@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Events\EventShowPlanTab;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
@@ -161,7 +162,7 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 4,
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -296,7 +297,7 @@ class DeletionAndCancelGatesTest extends TestCase
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
             'max_participants' => 10,
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
         ]);
         Slot::factory()->create([
             'event_id' => $event->id,

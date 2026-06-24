@@ -4,6 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
+use App\Enums\ParticipationMode;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -83,7 +84,7 @@ class ManageActivityForm extends Component
 
     public bool $is_host_passive = false;
 
-    public bool $requires_approval = false;
+    public string $participation_mode = 'open';
 
     public bool $allows_observers = false;
 
@@ -149,7 +150,7 @@ class ManageActivityForm extends Component
             $this->duration_in_minutes = $activity->duration_in_minutes;
             $this->cancellation_deadline_in_hours = $activity->cancellation_deadline_in_hours;
             $this->is_host_passive = (bool) $activity->is_host_passive;
-            $this->requires_approval = (bool) $activity->requires_approval;
+            $this->participation_mode = $activity->participationMode()->value;
             $this->allows_observers = (bool) $activity->allows_observers;
             $this->hosting_mode = (int) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
             $this->initialHostingMode = $this->hosting_mode;
@@ -266,7 +267,7 @@ class ManageActivityForm extends Component
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
             'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours',
-            'requires_approval', 'allows_observers' => 'main-details',
+            'participation_mode', 'allows_observers' => 'main-details',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'croppedLogo' => 'image',
             default => 'hosting-mode',
@@ -406,7 +407,7 @@ class ManageActivityForm extends Component
         $this->duration_in_minutes = $source->duration_in_minutes;
         $this->cancellation_deadline_in_hours = $source->cancellation_deadline_in_hours;
         $this->is_host_passive = (bool) $source->is_host_passive;
-        $this->requires_approval = (bool) $source->requires_approval;
+        $this->participation_mode = $source->participationMode()->value;
         $this->allows_observers = (bool) $source->allows_observers;
         $this->tag_ids = $source->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $this->new_tags = [];
@@ -670,7 +671,7 @@ class ManageActivityForm extends Component
         foreach (['minimum_age', 'cancellation_deadline_in_hours'] as $key) {
             if ($this->{$key} !== null) {
                 $value = (int) $this->{$key};
-                $this->{$key} = $value > 0 ? $value : null;
+                $this->{$key} = $value >= 1 ? $value : null;
             }
         }
 
@@ -814,8 +815,8 @@ class ManageActivityForm extends Component
             ],
             'minimum_age' => ['nullable', 'integer', 'min:0'],
             'duration_in_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
-            'cancellation_deadline_in_hours' => ['nullable', 'integer', 'min:0'],
-            'requires_approval' => ['nullable', 'boolean'],
+            'cancellation_deadline_in_hours' => ['nullable', 'integer', 'min:1'],
+            'participation_mode' => ['required', 'string', Rule::in(ParticipationMode::values())],
             'allows_observers' => ['nullable', 'boolean'],
             'is_host_passive' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],

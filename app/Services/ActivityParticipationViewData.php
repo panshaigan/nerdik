@@ -19,5 +19,7 @@ final class ActivityParticipationViewData
         public readonly ?int $activeWindowPerActivityMax,
         public readonly ?int $activeWindowRemainingForActivity,
         public readonly ?int $activeWindowUserRemaining,
+        public readonly bool $isLotteryPending = false,
+        public readonly bool $isLotteryResolved = false,
     ) {}
 }

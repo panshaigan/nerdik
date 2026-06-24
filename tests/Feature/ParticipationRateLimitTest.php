@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Place;
@@ -32,7 +33,7 @@ class ParticipationRateLimitTest extends TestCase
             'starts_at' => now()->addDay(),
             'created_by' => User::factory(),
             'updated_by' => User::factory(),
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 10,
         ]);
 
@@ -75,7 +76,7 @@ class ParticipationRateLimitTest extends TestCase
             'starts_at' => now()->addDay(),
             'created_by' => User::factory(),
             'updated_by' => User::factory(),
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 10,
         ]);
         $activityB = Activity::factory()->create([
@@ -84,7 +85,7 @@ class ParticipationRateLimitTest extends TestCase
             'starts_at' => now()->addDays(2),
             'created_by' => User::factory(),
             'updated_by' => User::factory(),
-            'requires_approval' => false,
+            'participation_mode' => ParticipationMode::Open,
             'max_participants' => 10,
         ]);
 
