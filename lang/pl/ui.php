@@ -131,7 +131,7 @@ return [
         'benefit_community_title' => 'Jeden dom dla kalendarza',
         'benefit_community_description' => 'W przeciwieństwie do generycznych narzędzi eventowych, nerdik rozumie aktywności, sloty i prowadzenie gier.',
         'benefits_contrast' => 'Stworzony dla wieczorów RPG, spotkań planszowych i programów konwentów—nie korporacyjnych webinarów.',
-        'final_cta_heading' => 'Gotowy na kolejną sesję?',
+        'final_cta_heading' => 'Gotowa na kolejną sesję?',
         'final_cta_description' => 'Dołącz do społeczności lub przeglądaj to, co jest już w kalendarzu.',
         'final_cta_primary_guest' => 'Załóż darmowe konto',
         'final_cta_primary_auth' => 'Przejdź do pulpitu',

@@ -159,6 +159,7 @@ class AppNotificationsTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'requires_approval' => false,
             'max_participants' => 2,
         ]);
 
@@ -174,6 +175,47 @@ class AppNotificationsTest extends TestCase
 
         Notification::assertSentTo($carol, WaitlistPromotedNotification::class);
         Notification::assertNotSentTo($bob, WaitlistPromotedNotification::class);
+    }
+
+    public function test_user_leave_activity_does_not_promote_waitlist_when_approval_required(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $carol = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'requires_approval' => true,
+            'max_participants' => 2,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $alice->id]);
+        $bobParticipant = ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $bob->id]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $carol->id,
+            'position' => 1,
+        ]);
+
+        app(EventActivitySignupService::class)->userLeaveActivity($activity->fresh(), $bobParticipant);
+
+        Notification::assertNotSentTo($carol, WaitlistPromotedNotification::class);
+        Notification::assertSentTo(
+            $host,
+            ActivityParticipantLeftNotification::class,
+            function (ActivityParticipantLeftNotification $notification) use ($bob): bool {
+                $payload = $notification->toArray($notification->activity);
+
+                return $notification->leaver->is($bob)
+                    && $notification->promotedFromWaitlist === null
+                    && $payload['promoted_user_id'] === null;
+            }
+        );
     }
 
     public function test_user_join_activity_does_not_notify_host_below_minimum_when_every_join_disabled(): void
@@ -326,6 +368,7 @@ class AppNotificationsTest extends TestCase
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
             'updated_by' => $host->id,
+            'requires_approval' => false,
             'min_participants' => 2,
             'max_participants' => 2,
         ]);

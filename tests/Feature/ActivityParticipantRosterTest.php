@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\User;
+use App\Services\ActivityParticipationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -101,6 +102,48 @@ class ActivityParticipantRosterTest extends TestCase
             'Waitlist should not be auto-promoted when the host moves someone to the waitlist.'
         );
         $this->assertSame(2, (int) ActivityWaitlistEntry::query()->where('activity_id', $activity->id)->count());
+    }
+
+    public function test_leave_does_not_auto_promote_waitlist_when_approval_required(): void
+    {
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $carol = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'requires_approval' => true,
+            'max_participants' => 2,
+        ]);
+
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $alice->id]);
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $bob->id]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $carol->id,
+            'position' => 1,
+        ]);
+
+        $this->actingAs($bob);
+        app(ActivityParticipationService::class)->leave($activity->fresh(), $bob);
+
+        $this->assertFalse(
+            ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $bob->id)->exists()
+        );
+        $this->assertTrue(
+            ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $alice->id)->exists()
+        );
+        $this->assertFalse(
+            ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $carol->id)->exists(),
+            'Waitlist should not be auto-promoted when approval is required and a participant leaves.'
+        );
+        $this->assertTrue(
+            ActivityWaitlistEntry::query()->where('activity_id', $activity->id)->where('user_id', $carol->id)->exists()
+        );
+        $this->assertSame(1, (int) ActivityWaitlistEntry::query()->where('activity_id', $activity->id)->value('position'));
     }
 
     public function test_cannot_move_host_to_waitlist(): void
