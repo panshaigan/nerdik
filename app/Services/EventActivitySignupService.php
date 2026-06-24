@@ -43,30 +43,13 @@ class EventActivitySignupService
 
     public function userLeaveActivity(Activity $activity, ActivityUser $participant): void
     {
-        $promotedUser = null;
         $leavingUser = $participant->user;
 
-        DB::transaction(function () use ($participant, $activity, &$promotedUser): void {
+        DB::transaction(function () use ($participant): void {
             $participant->delete();
-
-            if ($activity->isOpenParticipationMode()) {
-                $first = $activity->waitlist()->orderBy('position')->with('user')->first();
-                if ($first) {
-                    $promotedUser = $first->user;
-                    $first->delete();
-                    $activity->participants()->create([
-                        'user_id' => $promotedUser->id,
-                    ]);
-                    $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index): void {
-                        $entry->update(['position' => $index + 1]);
-                    });
-                }
-            }
         });
 
-        if ($activity->isLotteryMode() && $activity->isLotteryResolved()) {
-            $promotedUser = app(ActivityLotteryService::class)->promoteRandomEligibleEntry($activity->fresh());
-        }
+        $promotedUser = $this->promoteWaitlistReplacement($activity);
 
         $fresh = $activity->fresh();
 
@@ -87,6 +70,47 @@ class EventActivitySignupService
         }
 
         ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+    }
+
+    public function promoteWaitlistReplacement(Activity $activity): ?User
+    {
+        $activity = $activity->fresh();
+        if ($activity === null) {
+            return null;
+        }
+
+        if ($activity->isLotteryMode() && $activity->isLotteryResolved()) {
+            return app(ActivityLotteryService::class)->promoteRandomEligibleEntry($activity);
+        }
+
+        if ($activity->isOpenParticipationMode()) {
+            return $this->promoteFirstWaitlistEntry($activity);
+        }
+
+        return null;
+    }
+
+    protected function promoteFirstWaitlistEntry(Activity $activity): ?User
+    {
+        $promotedUser = null;
+
+        DB::transaction(function () use ($activity, &$promotedUser): void {
+            $first = $activity->waitlist()->orderBy('position')->with('user')->first();
+            if ($first === null) {
+                return;
+            }
+
+            $promotedUser = $first->user;
+            $first->delete();
+            $activity->participants()->create([
+                'user_id' => $first->user_id,
+            ]);
+            $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index): void {
+                $entry->update(['position' => $index + 1]);
+            });
+        });
+
+        return $promotedUser;
     }
 
     public function userJoinWaitlist(Activity $activity, User $user): void

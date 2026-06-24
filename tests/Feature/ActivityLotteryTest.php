@@ -11,6 +11,7 @@ use App\Models\Slot;
 use App\Models\User;
 use App\Notifications\WaitlistPromotedNotification;
 use App\Services\ActivityLotteryService;
+use App\Services\ActivityParticipantRosterService;
 use App\Services\ActivityParticipationService;
 use App\Services\EventActivitySignupService;
 use Carbon\Carbon;
@@ -197,6 +198,43 @@ class ActivityLotteryTest extends TestCase
         $this->assertNotNull($activity->lottery_resolved_at);
         $this->assertTrue(ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $winner->id)->exists());
         Notification::assertSentTo($winner, WaitlistPromotedNotification::class);
+    }
+
+    public function test_host_remove_after_lottery_resolved_promotes_random_waitlist_entry(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $carol = User::factory()->create();
+        $dave = User::factory()->create();
+
+        $activity = $this->createSelfHostedLotteryActivity($host, maxParticipants: 2);
+        ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $alice->id]);
+        $bobRow = ActivityUser::query()->create(['activity_id' => $activity->id, 'user_id' => $bob->id]);
+        foreach ([$carol, $dave] as $index => $waitlistUser) {
+            ActivityWaitlistEntry::query()->create([
+                'activity_id' => $activity->id,
+                'user_id' => $waitlistUser->id,
+                'position' => $index + 1,
+            ]);
+        }
+
+        $activity->update(['lottery_resolved_at' => now()]);
+
+        app(ActivityParticipantRosterService::class)->removeParticipant($bobRow);
+
+        $this->assertFalse(ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $bob->id)->exists());
+        $this->assertSame(2, ActivityUser::query()->where('activity_id', $activity->id)->count());
+
+        $promotedCount = ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->whereIn('user_id', [$carol->id, $dave->id])
+            ->count();
+        $this->assertSame(1, $promotedCount);
+
+        Notification::assertSentTimes(WaitlistPromotedNotification::class, 1);
     }
 
     private function createSelfHostedLotteryActivity(User $host, ?int $maxParticipants = 4): Activity
