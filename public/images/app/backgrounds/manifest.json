@@ -1,0 +1,90 @@
+{
+    "dark": {
+        "sizes": "100vw",
+        "width": 1716,
+        "height": 916,
+        "variants": {
+            "webp": [
+                {
+                    "width": 384,
+                    "path": "images/app/backgrounds/dark/384w.webp",
+                    "bytes": 826
+                },
+                {
+                    "width": 512,
+                    "path": "images/app/backgrounds/dark/512w.webp",
+                    "bytes": 1248
+                },
+                {
+                    "width": 640,
+                    "path": "images/app/backgrounds/dark/640w.webp",
+                    "bytes": 1802
+                },
+                {
+                    "width": 768,
+                    "path": "images/app/backgrounds/dark/768w.webp",
+                    "bytes": 2320
+                },
+                {
+                    "width": 1024,
+                    "path": "images/app/backgrounds/dark/1024w.webp",
+                    "bytes": 3744
+                },
+                {
+                    "width": 1536,
+                    "path": "images/app/backgrounds/dark/1536w.webp",
+                    "bytes": 7712
+                },
+                {
+                    "width": 1716,
+                    "path": "images/app/backgrounds/dark/1716w.webp",
+                    "bytes": 10096
+                }
+            ]
+        }
+    },
+    "light": {
+        "sizes": "100vw",
+        "width": 1716,
+        "height": 916,
+        "variants": {
+            "webp": [
+                {
+                    "width": 384,
+                    "path": "images/app/backgrounds/light/384w.webp",
+                    "bytes": 826
+                },
+                {
+                    "width": 512,
+                    "path": "images/app/backgrounds/light/512w.webp",
+                    "bytes": 1238
+                },
+                {
+                    "width": 640,
+                    "path": "images/app/backgrounds/light/640w.webp",
+                    "bytes": 1758
+                },
+                {
+                    "width": 768,
+                    "path": "images/app/backgrounds/light/768w.webp",
+                    "bytes": 2310
+                },
+                {
+                    "width": 1024,
+                    "path": "images/app/backgrounds/light/1024w.webp",
+                    "bytes": 3754
+                },
+                {
+                    "width": 1536,
+                    "path": "images/app/backgrounds/light/1536w.webp",
+                    "bytes": 7718
+                },
+                {
+                    "width": 1716,
+                    "path": "images/app/backgrounds/light/1716w.webp",
+                    "bytes": 10060
+                }
+            ]
+        }
+    }
+}

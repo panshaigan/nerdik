@@ -111,6 +111,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | App shell full-page background (static public assets)
+    |--------------------------------------------------------------------------
+    |
+    | Regenerate variants after changing originals:
+    | php artisan app:generate-shell-backgrounds
+    |
+    */
+    'app_shell_background' => [
+        'sizes' => '100vw',
+        'widths' => [384, 512, 640, 768, 1024, 1536, 1716],
+        'desktop_min_width' => 1025,
+        'mobile_widths' => [384, 512, 640, 768, 1024],
+        'desktop_widths' => [1536, 1716],
+        'mobile_max_width' => 640,
+        'large_min_width' => 1536,
+        'qualities' => [
+            'mobile' => ['webp' => 82],
+            'desktop' => ['webp' => 92],
+            'large' => ['webp' => 98],
+        ],
+        'sources' => [
+            'dark' => 'images/app/background-dark-original.png',
+            'light' => 'images/app/background-light-original.png',
+        ],
+        'output_dir' => 'images/app/backgrounds',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Legacy sizes map (deprecated — use media.presets)
     |--------------------------------------------------------------------------
     */

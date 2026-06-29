@@ -1,7 +1,7 @@
-@props(['sources', 'class' => null, 'loading' => 'lazy'])
+@props(['sources', 'class' => null, 'loading' => 'lazy', 'fetchpriority' => null])
 
 @php
-    /** @var \App\Support\Media\MediaPictureSources $sources */
+    /** @var \App\Support\Media\MediaPictureSources|\App\Support\Media\StaticPictureSources $sources */
 @endphp
 
 <picture @class(['block', $class, 'overflow-hidden'])>
@@ -26,6 +26,9 @@
             height="{{ $sources->height() }}"
         @endif
         loading="{{ $loading }}"
+        @if ($fetchpriority)
+            fetchpriority="{{ $fetchpriority }}"
+        @endif
         decoding="async"
     >
 </picture>
