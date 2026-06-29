@@ -25,8 +25,16 @@ final class AppShellBackgroundTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
-        $response->assertSee('images/app/background.webp', false);
-        $response->assertSee('images/app/background-light.webp', false);
+        $response->assertSee('srcset=', false);
+        $response->assertSee('images/app/backgrounds/dark/384w.webp', false);
+        $response->assertSee('images/app/backgrounds/dark/1716w.webp', false);
+        $response->assertSee('type="image/webp"', false);
+        $response->assertSee('(min-width: 1025px)', false);
+        $response->assertSee('(max-width: 1024px)', false);
+        $response->assertSee('sizes="100vw"', false);
+        $response->assertDontSee('images/app/backgrounds/light/', false);
+        $response->assertDontSee('background-light.webp', false);
+        $response->assertDontSee('1280w', false);
         $response->assertSee('fixed inset-0 z-0', false);
         $response->assertSee('relative z-10 flex min-h-screen flex-col', false);
         $response->assertSee('<footer class="border-t border-white/10 backdrop-blur-xs">', false);
@@ -40,8 +48,14 @@ final class AppShellBackgroundTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
-        $response->assertSee('images/app/background.webp', false);
-        $response->assertSee('images/app/background-light.webp', false);
+        $response->assertSee('srcset=', false);
+        $response->assertSee('images/app/backgrounds/dark/384w.webp', false);
+        $response->assertSee('images/app/backgrounds/dark/1716w.webp', false);
+        $response->assertSee('type="image/webp"', false);
+        $response->assertSee('(min-width: 1025px)', false);
+        $response->assertDontSee('images/app/backgrounds/light/', false);
+        $response->assertDontSee('background-light.webp', false);
+        $response->assertDontSee('1280w', false);
     }
 
     #[Test]
@@ -51,8 +65,14 @@ final class AppShellBackgroundTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="app-shell-background"', false);
-        $response->assertSee('images/app/background.webp', false);
-        $response->assertSee('images/app/background-light.webp', false);
+        $response->assertSee('srcset=', false);
+        $response->assertSee('images/app/backgrounds/dark/384w.webp', false);
+        $response->assertSee('images/app/backgrounds/dark/1716w.webp', false);
+        $response->assertSee('type="image/webp"', false);
+        $response->assertSee('(min-width: 1025px)', false);
+        $response->assertDontSee('images/app/backgrounds/light/', false);
+        $response->assertDontSee('background-light.webp', false);
+        $response->assertDontSee('1280w', false);
     }
 
     #[Test]
