@@ -200,6 +200,7 @@ class WelcomePageTest extends TestCase
         $response->assertSee('id="mobile-welcome-nav-drawer"', false);
         $response->assertSee(route('login'), false);
         $response->assertSee(route('register'), false);
+        $response->assertSee(__('ui.nav.browse_events'), false);
         $response->assertSee('ui-nav-locale', false);
     }
 }
