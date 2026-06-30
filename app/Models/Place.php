@@ -125,6 +125,27 @@ class Place extends Model
     }
 
     /**
+     * Compact venue label for listing cards and event headers: "Venue (City)".
+     */
+    public function compactVenueSummary(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+        $this->loadMissing(['city', 'parent']);
+
+        $venueName = trim($this->venueName());
+        if ($venueName === '') {
+            return '';
+        }
+
+        $cityName = trim((string) ($this->city?->name($locale) ?? ''));
+        if ($cityName === '') {
+            return $venueName;
+        }
+
+        return sprintf('%s (%s)', $venueName, $cityName);
+    }
+
+    /**
      * For slot UIs: "Venue · Room" when this place is a room under a venue; otherwise the place name.
      */
     public function venueRoomLabel(): string

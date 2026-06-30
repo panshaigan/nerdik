@@ -6,6 +6,9 @@ use App\Enums\ParticipationMode;
 use App\Livewire\Browse\BrowseActivities;
 use App\Livewire\Dashboard\Dashboard;
 use App\Models\Activity;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Place;
@@ -116,7 +119,11 @@ class ListingCardActivityPreviewTest extends TestCase
     {
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
-        $venue = Place::factory()->venue()->create(['name' => 'Preview Venue']);
+        $city = $this->createCity('Wroclaw');
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Preview Venue',
+            'city_id' => $city->id,
+        ]);
         $room = Place::factory()->room($venue)->create(['name' => 'Room B']);
         $startsAt = now()->addDay()->setTime(10, 0);
         $endsAt = (clone $startsAt)->setTime(12, 0);
@@ -144,7 +151,8 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee('Unique preview body for listing modal')
             ->assertSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSee('Slot Alpha')
-            ->assertSee('Preview Venue · Room B')
+            ->assertSee('Preview Venue (Wroclaw)')
+            ->assertDontSee('Preview Venue · Room B')
             ->assertSee('10:00')
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
             ->assertSee(__('ui.activities.show_details'));
@@ -247,5 +255,20 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee(__('ui.activities.edit_activity'))
             ->assertDontSee(__('ui.activities.show_details'))
             ->assertSeeHtml('activities/'.$activity->slug.'/edit');
+    }
+
+    private function createCity(string $name): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create([
+            'country_id' => $country->id,
+        ]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => app()->getLocale(),
+            'name' => $name,
+        ]);
+
+        return $city;
     }
 }

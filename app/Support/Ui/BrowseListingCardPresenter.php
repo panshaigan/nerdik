@@ -37,7 +37,7 @@ final class BrowseListingCardPresenter
         $timeSourceStartsAt = $activity->slot?->starts_at ?? $activity->starts_at;
         $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
         $place = $activity->slot?->place ?? $activity->place;
-        $venueName = $place?->venueName() ?? '';
+        $place?->loadMissing(['city', 'parent']);
 
         return new BrowseListingCardViewData(
             kind: 'activity',
@@ -50,7 +50,7 @@ final class BrowseListingCardPresenter
             isInterested: in_array((int) $activity->id, $interestedIds, true),
             interestWireMethod: 'toggleActivityInterest',
             timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
-            locationSummary: filled($venueName) ? (string) $venueName : '',
+            locationSummary: $place?->compactVenueSummary() ?? '',
             kindCornerLabel: __('ui.browse.listing_kind_activity'),
             hostUser: $activity->creator,
             hostOrganization: null,

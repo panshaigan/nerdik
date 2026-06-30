@@ -173,4 +173,9 @@ class BrowseActivities extends Component
             'includeEventPreviewModal' => false,
         ]);
     }
+
+    protected function useListingCardLocationInActivityPreview(): bool
+    {
+        return true;
+    }
 }

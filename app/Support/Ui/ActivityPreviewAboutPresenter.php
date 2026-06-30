@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Support\Ui;
 
 use App\Models\Activity;
+use App\Models\Place;
 use Carbon\CarbonInterface;
 
 final class ActivityPreviewAboutPresenter
 {
-    public function build(Activity $activity): ActivityPreviewAboutViewData
+    public function build(Activity $activity, bool $useListingCardLocation = false): ActivityPreviewAboutViewData
     {
         $activity->loadMissing([
             'slot.place.parent',
@@ -35,8 +36,23 @@ final class ActivityPreviewAboutPresenter
         return new ActivityPreviewAboutViewData(
             slotName: (! $selfHosted && filled($slot?->name)) ? (string) $slot->name : null,
             timeLabel: $this->formatTimeLabel($startsAt, $endsAt, $useSlotClockFormat),
-            locationLabel: $schedulePlace !== null ? $schedulePlace->venueRoomLabel() : '',
+            locationLabel: $this->locationLabel($schedulePlace, $useListingCardLocation),
         );
+    }
+
+    private function locationLabel(?Place $place, bool $useListingCardLocation): string
+    {
+        if ($place === null) {
+            return '';
+        }
+
+        if ($useListingCardLocation) {
+            $place->loadMissing(['city', 'parent']);
+
+            return $place->compactVenueSummary();
+        }
+
+        return $place->venueRoomLabel();
     }
 
     private function formatTimeLabel(mixed $startsAt, mixed $endsAt, bool $useSlotClockFormat): string

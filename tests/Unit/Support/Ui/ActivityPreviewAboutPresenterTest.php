@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Support\Ui;
 
 use App\Models\Activity;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -83,5 +86,44 @@ final class ActivityPreviewAboutPresenterTest extends TestCase
         $this->assertNull($about->slotName);
         $this->assertSame('Tavern Hall', $about->locationLabel);
         $this->assertNotSame('', $about->timeLabel);
+    }
+
+    #[Test]
+    public function build_uses_compact_venue_summary_for_listing_card_location(): void
+    {
+        $city = $this->createCity('Wroclaw');
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Convention Center',
+            'city_id' => $city->id,
+        ]);
+        $room = Place::factory()->room($venue)->create(['name' => 'Hall A']);
+        $event = Event::factory()->create();
+        $activity = Activity::factory()->scheduled()->create();
+
+        $slot = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'place_id' => $room->id,
+        ]);
+        $activity->setRelation('slot', $slot->load(['place.parent', 'place.city']));
+
+        $about = $this->presenter->build($activity, useListingCardLocation: true);
+
+        $this->assertSame('Convention Center (Wroclaw)', $about->locationLabel);
+    }
+
+    private function createCity(string $name): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create([
+            'country_id' => $country->id,
+        ]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => app()->getLocale(),
+            'name' => $name,
+        ]);
+
+        return $city;
     }
 }
