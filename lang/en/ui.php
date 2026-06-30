@@ -418,6 +418,7 @@ return [
         'min_participants_lte_max' => 'Minimum participants cannot be greater than maximum.',
         'max_participants' => 'Max participants',
         'minimum_age' => 'Minimum age',
+        'minimum_age_no_limit' => 'No limit',
         'duration_in_minutes' => 'Duration (minutes)',
         'cancellation_deadline_in_hours' => 'Cancellation deadline',
         'cancellation_deadline_description' => 'If set, participants cannot cancel on their own during the last configured hours before the activity starts.',

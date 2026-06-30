@@ -418,6 +418,7 @@ return [
         'min_participants_lte_max' => 'Minimum uczestników nie może być większe niż maksimum.',
         'max_participants' => 'Maks. liczba uczestników',
         'minimum_age' => 'Minimalny wiek',
+        'minimum_age_no_limit' => 'Bez limitu',
         'duration_in_minutes' => 'Czas trwania (minuty)',
         'cancellation_deadline_in_hours' => 'Termin rezygnacji',
         'cancellation_deadline_description' => 'Jeśli ustawisz tę wartość, uczestnicy nie mogą sami zrezygnować w ostatnich skonfigurowanych godzinach przed startem aktywności.',

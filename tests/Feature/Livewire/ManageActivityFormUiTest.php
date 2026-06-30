@@ -114,4 +114,53 @@ class ManageActivityFormUiTest extends TestCase
             ->assertSet('tab', 'hosting-mode')
             ->assertHasErrors(['hosting_mode']);
     }
+
+    public function test_minimum_age_zero_saves_as_null(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('name', 'No Age Limit Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('minimum_age', 0)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity = Activity::query()->where('name', 'No Age Limit Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertNull($activity->minimum_age);
+    }
+
+    public function test_edit_form_loads_duration_and_cancellation_deadline(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'duration_in_minutes' => 180,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('duration_in_minutes', 180)
+            ->assertSet('cancellation_deadline_in_hours', 24);
+    }
+
+    public function test_main_details_tab_renders_minimum_age_no_limit_label(): void
+    {
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->assertSeeHtml("noLimitLabel: 'No limit'");
+    }
 }
