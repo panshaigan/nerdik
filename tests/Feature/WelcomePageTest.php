@@ -189,4 +189,17 @@ class WelcomePageTest extends TestCase
         $response->assertSee('ui-nav-locale', false);
         $response->assertSee('wire:navigate', false);
     }
+
+    #[Test]
+    public function test_welcome_page_renders_mobile_navigation_drawer_markup(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('aria-controls="mobile-welcome-nav-drawer"', false);
+        $response->assertSee('id="mobile-welcome-nav-drawer"', false);
+        $response->assertSee(route('login'), false);
+        $response->assertSee(route('register'), false);
+        $response->assertSee('ui-nav-locale', false);
+    }
 }
