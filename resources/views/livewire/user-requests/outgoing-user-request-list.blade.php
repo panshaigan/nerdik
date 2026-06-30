@@ -1,4 +1,4 @@
-<div class="mb-8 border-b border-base-300 pb-6" data-ui="outgoing-user-requests">
+<div class="mb-8 border-b border-base-300 pb-6 px-4" data-ui="outgoing-user-requests">
     <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
         {{ __('ui.user_requests.outgoing_heading') }}
     </h3>

@@ -1,5 +1,5 @@
 <div class="py-12 max-w-lg mx-auto">
-    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60 px-3">
         {{ __('ui.notifications.timeline_heading') }}
     </h3>
 
@@ -19,7 +19,7 @@
             <div @class(['border-b border-base-300 last:border-b-0', 'bg-primary/5' => $display->isUnread])>
                 <x-button
                     type="button"
-                    class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-0 px-4 py-0 font-normal normal-case text-start shadow-none hover:bg-base-200/50"
+                    class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-0 px-6 py-0 font-normal normal-case text-start shadow-none hover:bg-base-200/50"
                     wire:click="handleNotificationClick('{{ $notification->id }}')"
                     wire:loading.attr="disabled"
                     wire:target="handleNotificationClick"
