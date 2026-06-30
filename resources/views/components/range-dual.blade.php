@@ -57,9 +57,9 @@
             top: 50%;
             z-index: 1;
             --travel: calc(100% - var(--range-thumb-size));
-            left: calc(var(--min-p) / 100 * var(--travel) + var(--range-thumb-size) / 2);
-            width: calc((var(--max-p) - var(--min-p)) / 100 * var(--travel));
-            max-width: calc(100% - var(--range-thumb-size) / 2);
+            --fill-overshoot: calc(var(--range-thumb-size) / 2);
+            left: calc(var(--min-p) / 100 * var(--travel) + var(--range-thumb-size) / 2 - var(--fill-overshoot));
+            width: calc((var(--max-p) - var(--min-p)) / 100 * var(--travel) + var(--range-thumb-size));
             height: var(--range-thumb-size);
             transform: translateY(-50%);
             border-radius: var(--brand-radius-field);
