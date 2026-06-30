@@ -1,6 +1,6 @@
 @if ($items !== [])
     <div
-        {{ $attributes->class(['my-2', 'flex', 'flex-wrap', 'gap-x-1', 'gap-y-2', 'ui-activity-badge-tags']) }}
+        {{ $attributes->class(['my-2', 'flex', 'flex-wrap', 'gap-x-1', 'gap-y-3', 'ui-activity-badge-tags']) }}
         @if (filled($dataUi)) data-ui="{{ $dataUi }}" @endif
     >
         @foreach ($items as $item)
