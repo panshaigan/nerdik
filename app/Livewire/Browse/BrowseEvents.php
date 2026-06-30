@@ -500,4 +500,9 @@ class BrowseEvents extends Component
             'includeEventPreviewModal' => true,
         ]);
     }
+
+    protected function useListingCardLocationInActivityPreview(): bool
+    {
+        return true;
+    }
 }

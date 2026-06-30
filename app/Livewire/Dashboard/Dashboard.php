@@ -216,4 +216,9 @@ class Dashboard extends Component
             $this->info($status);
         }
     }
+
+    protected function useListingCardLocationInActivityPreview(): bool
+    {
+        return true;
+    }
 }

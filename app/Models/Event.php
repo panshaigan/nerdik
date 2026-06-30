@@ -240,16 +240,7 @@ class Event extends Model implements HasMedia
         }
 
         return $venues
-            ->map(function ($place): string {
-                $venueName = trim((string) $place->name);
-                $cityName = trim((string) ($place->city?->name(app()->getLocale()) ?? ''));
-
-                if ($cityName === '') {
-                    return $venueName;
-                }
-
-                return sprintf('%s (%s)', $venueName, $cityName);
-            })
+            ->map(fn (Place $place): string => $place->compactVenueSummary())
             ->filter()
             ->implode(', ');
     }

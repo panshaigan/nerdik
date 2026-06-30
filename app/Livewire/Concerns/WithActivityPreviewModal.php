@@ -201,7 +201,10 @@ trait WithActivityPreviewModal
             $user = auth()->user();
             $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
             $showPreviewParticipationActions = $this->showPreviewParticipationActions($previewActivity);
-            $previewAbout = $aboutPresenter->build($previewActivity);
+            $previewAbout = $aboutPresenter->build(
+                $previewActivity,
+                $this->useListingCardLocationInActivityPreview(),
+            );
             $previewActivityShowDetailsLink = $previewActivity->isPubliclyShowable();
             $previewActivityIsOwner = $user !== null && (int) ($previewActivity->created_by ?? 0) === (int) $user->id;
             $previewActivityEditUrl = $previewActivityIsOwner
@@ -232,6 +235,11 @@ trait WithActivityPreviewModal
     }
 
     protected function showPreviewParticipationActions(?Activity $activity): bool
+    {
+        return false;
+    }
+
+    protected function useListingCardLocationInActivityPreview(): bool
     {
         return false;
     }

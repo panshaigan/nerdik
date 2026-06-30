@@ -10,6 +10,9 @@ use App\Enums\ActivityLogoSource;
 use App\Enums\BadgeSemantic;
 use App\Models\Activity;
 use App\Models\ActivityType;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Organization;
@@ -34,6 +37,28 @@ final class BrowseListingCardPresenterTest extends TestCase
     {
         parent::setUp();
         $this->presenter = app(BrowseListingCardPresenter::class);
+    }
+
+    #[Test]
+    public function from_activity_includes_city_in_location_summary(): void
+    {
+        $user = User::factory()->create();
+        $city = $this->createCity('Wroclaw');
+        $place = Place::factory()->venue()->create([
+            'name' => 'Tavern Hall',
+            'city_id' => $city->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+        ]);
+        $activity->setRelation('place', $place->load('city'));
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertSame('Tavern Hall (Wroclaw)', $viewData->locationSummary);
     }
 
     #[Test]
@@ -112,7 +137,11 @@ final class BrowseListingCardPresenterTest extends TestCase
     public function from_activity_uses_venue_name_when_slot_place_is_a_room(): void
     {
         $user = User::factory()->create();
-        $venue = Place::factory()->venue()->create(['name' => 'Convention Center']);
+        $city = $this->createCity('Wroclaw');
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Convention Center',
+            'city_id' => $city->id,
+        ]);
         $room = Place::factory()->room($venue)->create(['name' => 'Hall A']);
         $event = Event::factory()->create(['created_by' => $user->id, 'name' => 'Mega Con']);
         $activity = Activity::factory()->scheduled()->create([
@@ -125,13 +154,13 @@ final class BrowseListingCardPresenterTest extends TestCase
             'activity_id' => $activity->id,
             'place_id' => $room->id,
         ]);
-        $slot->setRelation('place', $room->load('parent'));
+        $slot->setRelation('place', $room->load(['parent', 'city']));
         $slot->setRelation('event', $event);
         $activity->setRelation('slot', $slot);
 
         $viewData = $this->presenter->fromActivity($activity, []);
 
-        $this->assertSame('Convention Center', $viewData->locationSummary);
+        $this->assertSame('Convention Center (Wroclaw)', $viewData->locationSummary);
         $this->assertNotSame('Hall A', $viewData->locationSummary);
         $this->assertSame('Mega Con', $viewData->parentEventName);
         $this->assertSame(route('events.show', $event), $viewData->parentEventUrl);
@@ -334,5 +363,20 @@ final class BrowseListingCardPresenterTest extends TestCase
         $viewData = $this->presenter->fromEvent($event, []);
 
         $this->assertFalse($viewData->hasActiveEnrollmentWindow);
+    }
+
+    private function createCity(string $name): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create([
+            'country_id' => $country->id,
+        ]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => app()->getLocale(),
+            'name' => $name,
+        ]);
+
+        return $city;
     }
 }
