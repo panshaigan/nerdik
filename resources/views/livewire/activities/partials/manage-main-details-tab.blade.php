@@ -51,12 +51,15 @@
                 />
 
                 <div
-                    x-data="{ value: @entangle('minimum_age') }"
+                    x-data="{
+                        value: @entangle('minimum_age'),
+                        noLimitLabel: @js(__('ui.activities.minimum_age_no_limit')),
+                    }"
                     x-init="$nextTick(() => value = value ?? 0)"
                     class="min-w-0 space-y-1"
                 >
                     <label class="text-sm font-medium flex justify-between">
-                        <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value"></span></span>
+                        <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value == 0 ? noLimitLabel : value"></span></span>
                     </label>
                     <x-range
                         x-model="value"
@@ -66,20 +69,63 @@
                     />
                 </div>
 
-                <div x-data="{ value: @entangle('duration_in_minutes') }" class="min-w-0 space-y-1">
+                <div
+                    x-data="{
+                        value: @entangle('duration_in_minutes'),
+                        localValue: 30,
+                        min: 30,
+                        max: 720,
+                        step: 30,
+                        hoursShort: @js(__('ui.activities.duration_hours_short')),
+                        minutesShort: @js(__('ui.activities.duration_minutes_short')),
+                        snapToStep(raw, min, max, step) {
+                            const snapped = Math.round((raw - min) / step) * step + min;
+                            return Math.min(max, Math.max(min, snapped));
+                        },
+                        coerceSliderValue(wire) {
+                            if (wire !== null && wire !== '') {
+                                return Number(wire);
+                            }
+                            return this.snapToStep((this.min + this.max) / 2, this.min, this.max, this.step);
+                        },
+                        formatDuration() {
+                            const v = Number(this.localValue);
+                            const h = Math.floor(v / 60);
+                            const m = v % 60;
+                            let parts = [];
+                            if (h > 0) {
+                                parts.push(`${h}${this.hoursShort}`);
+                            }
+                            if (m > 0) {
+                                parts.push(`${m}${this.minutesShort}`);
+                            }
+                            return parts.join(' ') || `0${this.hoursShort}`;
+                        },
+                        onSliderInput() {
+                            this.value = Number(this.localValue);
+                        },
+                        init() {
+                            this.$nextTick(() => {
+                                this.localValue = this.coerceSliderValue(this.value);
+                                this.$watch('value', (v) => {
+                                    if (v !== null && v !== '') {
+                                        this.localValue = Number(v);
+                                    }
+                                });
+                            });
+                        },
+                    }"
+                    class="min-w-0 space-y-1"
+                >
                     <label class="text-sm font-medium flex justify-between">
                         <span>
                             {{ __('ui.activities.duration_in_minutes') }}:
-                            <span class="font-semibold">
-                                <span x-text="Math.floor(value / 60)"></span>{{ __('ui.activities.duration_hours_short') }}
-                                <span x-show="value % 60 > 0">
-                                    <span x-text="value % 60"></span>{{ __('ui.activities.duration_minutes_short') }}
-                                </span>
-                            </span>
+                            <span class="font-semibold" x-text="formatDuration()"></span>
                         </span>
                     </label>
                     <x-range
-                        x-model="value"
+                        x-model.number="localValue"
+                        @input="onSliderInput()"
                         min="30"
                         max="720"
                         step="30"
@@ -87,17 +133,58 @@
                     />
                 </div>
 
-                <div x-data="{ value: @entangle('cancellation_deadline_in_hours') }" class="min-w-0 space-y-1">
+                <div
+                    x-data="{
+                        value: @entangle('cancellation_deadline_in_hours'),
+                        localValue: 1,
+                        min: 1,
+                        max: 48,
+                        step: 6,
+                        dayLabel: @js(__('ui.activities.duration_day')),
+                        daysLabel: @js(__('ui.activities.duration_days')),
+                        hoursShort: @js(__('ui.activities.duration_hours_short')),
+                        snapToStep(raw, min, max, step) {
+                            const snapped = Math.round((raw - min) / step) * step + min;
+                            return Math.min(max, Math.max(min, snapped));
+                        },
+                        coerceSliderValue(wire) {
+                            if (wire !== null && wire !== '') {
+                                return Number(wire);
+                            }
+                            return this.snapToStep((this.min + this.max) / 2, this.min, this.max, this.step);
+                        },
+                        formatDeadline() {
+                            const v = Number(this.localValue);
+                            let parts = [];
+                            if (v >= 24) {
+                                const days = Math.floor(v / 24);
+                                parts.push(`${days} ${days === 1 ? this.dayLabel : this.daysLabel}`);
+                            }
+                            if (v % 24 > 0) {
+                                parts.push(`${v % 24}${this.hoursShort}`);
+                            }
+                            return parts.join(' ');
+                        },
+                        onSliderInput() {
+                            this.value = Number(this.localValue);
+                        },
+                        init() {
+                            this.$nextTick(() => {
+                                this.localValue = this.coerceSliderValue(this.value);
+                                this.$watch('value', (v) => {
+                                    if (v !== null && v !== '') {
+                                        this.localValue = Number(v);
+                                    }
+                                });
+                            });
+                        },
+                    }"
+                    class="min-w-0 space-y-1"
+                >
                     <label class="flex min-w-0 justify-between gap-2 text-sm font-medium">
                         <span class="min-w-0">
                             {{ __('ui.activities.cancellation_deadline_in_hours') }}:
-                            <span class="font-semibold">
-                                <span x-text="Math.floor(value / 24)" x-show="value >= 24"></span>
-                                <span x-text="Math.floor(value / 24) === 1 ? '{{ __('ui.activities.duration_day') }}' : '{{ __('ui.activities.duration_days') }}'" x-show="value >= 24"></span>
-                                <span x-show="value % 24 > 0">
-                                    <span x-text="value % 24"></span>{{ __('ui.activities.duration_hours_short') }}
-                                </span>
-                            </span>
+                            <span class="font-semibold" x-text="formatDeadline()"></span>
                         </span>
                         <x-popover class="shrink-0 transition-none">
                             <x-slot:trigger>
@@ -109,7 +196,8 @@
                         </x-popover>
                     </label>
                     <x-range
-                        x-model="value"
+                        x-model.number="localValue"
+                        @input="onSliderInput()"
                         min="1"
                         max="48"
                         step="6"
