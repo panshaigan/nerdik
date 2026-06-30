@@ -1,4 +1,6 @@
 @php
+    use App\Support\Browse\BrowseSearchState;
+
     $localeLink = fn (bool $active): string => $active
         ? 'ui-nav-locale is-active font-display border-b-2 border-primary text-base-content'
         : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
@@ -112,6 +114,24 @@
                 class="absolute inset-y-0 end-0 flex w-[min(20rem,calc(100vw-3rem))] flex-col border-s border-base-300 bg-base-100 shadow-2xl"
             >
                 <div class="flex-1 overflow-y-auto">
+                    <div class="border-b border-base-300 px-4 py-4">
+                        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                            {{ __('ui.nav.navigation') }}
+                        </p>
+                        <ul class="menu menu-lg w-full px-0">
+                            <li>
+                                <a
+                                    href="{{ BrowseSearchState::indexUrl() }}"
+                                    wire:navigate
+                                    @click="close()"
+                                    class="font-display"
+                                >
+                                    {{ __('ui.nav.browse_events') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                     <div class="border-b border-base-300 px-4 py-4">
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
                             {{ __('ui.nav.preferences') }}

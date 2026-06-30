@@ -2,6 +2,7 @@
 
 return [
     'nav' => [
+        'browse_events' => 'Browse events',
         'search' => 'Search',
         'create_event' => 'Create Event',
         'create_activity' => 'Create Activity',
