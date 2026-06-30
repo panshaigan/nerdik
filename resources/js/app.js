@@ -1,3 +1,4 @@
+import '../css/app.css';
 import './bootstrap';
 import './close-modals-on-navigate';
 import { captureBrowserTimezone } from './browser-timezone';

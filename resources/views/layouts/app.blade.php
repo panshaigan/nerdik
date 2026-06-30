@@ -24,7 +24,7 @@
         @stack('head')
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/js/app.js'])
     </head>
     <body
         class="bg-transparent font-sans antialiased text-base-content"
