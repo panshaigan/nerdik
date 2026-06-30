@@ -85,7 +85,7 @@
 
     <div
         id="ui-event-show-hero"
-        class="ui-event-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl"
+        class="ui-event-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl mb-4 md:mb-6"
     >
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"

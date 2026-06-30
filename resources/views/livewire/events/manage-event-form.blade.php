@@ -44,7 +44,7 @@
     </x-page-header>
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="mb-10" />
 
-    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl">
+    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl mb-4 md:mb-6">
         <x-form wire:submit.prevent="save" novalidate data-event-form>
             <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
                 <x-ui.tabs-with-toolbar

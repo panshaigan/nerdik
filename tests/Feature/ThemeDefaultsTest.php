@@ -32,4 +32,14 @@ class ThemeDefaultsTest extends TestCase
             ->assertSee("\$persist('dark').as('mary-theme')", false)
             ->assertDontSee("matchMedia('(prefers-color-scheme: dark)')", false);
     }
+
+    public function test_theme_toggle_dispatches_nerdik_theme_applied_event(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee("window.dispatchEvent(new CustomEvent('nerdik:theme-applied'))", false);
+    }
 }
