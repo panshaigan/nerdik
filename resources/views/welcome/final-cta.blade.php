@@ -10,6 +10,6 @@
                 <x-button :link="route('register')" class="btn-primary">{{ __('ui.welcome.final_cta_primary_guest') }}</x-button>
             @endif
         @endauth
-        <x-button :link="route('search.index')" class="btn-outline">{{ __('ui.welcome.final_cta_secondary') }}</x-button>
+        <x-button :link="route('search.index')" class="btn-outline mt-4 md:mt-0">{{ __('ui.welcome.final_cta_secondary') }}</x-button>
     </div>
 </section>
