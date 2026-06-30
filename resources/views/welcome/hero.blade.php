@@ -15,7 +15,7 @@
                 loading="eager"
             />
             <div class="absolute inset-0 bg-gradient-to-r from-base-100/95 via-base-100/85 to-base-100/55"></div>
-            <div class="absolute inset-0 bg-black/55 backdrop-blur-[1px]"></div>
+            <div class="absolute inset-0 backdrop-blur-[1px]"></div>
         </div>
     @endif
 

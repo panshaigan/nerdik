@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -84,6 +85,14 @@ class AppServiceProvider extends ServiceProvider
         View::prependNamespace('livewire', resource_path('views/vendor/livewire'));
 
         View::composer(['layouts.app', 'layouts.guest', 'welcome'], SeoComposer::class);
+
+        Vite::usePreloadTagAttributes(function (?string $src, string $url, ?array $chunk, ?array $manifest): array|false {
+            if (str_ends_with($url, '.css')) {
+                return false;
+            }
+
+            return [];
+        });
 
         // Keep polymorphic type strings compact and stable across apps/packages.
         Relation::morphMap([
