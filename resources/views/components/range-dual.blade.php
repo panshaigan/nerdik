@@ -55,8 +55,11 @@
             pointer-events: none;
             position: absolute;
             top: 50%;
-            left: 0;
             z-index: 1;
+            --travel: calc(100% - var(--range-thumb-size));
+            left: calc(var(--min-p) / 100 * var(--travel) + var(--range-thumb-size) / 2);
+            width: calc((var(--max-p) - var(--min-p)) / 100 * var(--travel));
+            max-width: calc(100% - var(--range-thumb-size) / 2);
             height: var(--range-thumb-size);
             transform: translateY(-50%);
             border-radius: var(--brand-radius-field);
@@ -155,7 +158,7 @@
         <div
             class="range-dual-fill"
             aria-hidden="true"
-            :style="{ left: minPercent + '%', width: Math.max(0, maxPercent - minPercent + 3) + '%' }"
+            :style="{ '--min-p': minPercent, '--max-p': maxPercent }"
         ></div>
 
         <input

@@ -163,4 +163,16 @@ class ManageActivityFormUiTest extends TestCase
             ->test(ManageActivityForm::class)
             ->assertSeeHtml("noLimitLabel: 'No limit'");
     }
+
+    public function test_main_details_tab_renders_thumb_aware_dual_range_fill(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->assertSeeHtml('class="range-dual-fill"')
+            ->assertSeeHtml("'--min-p': minPercent")
+            ->assertSeeHtml("'--max-p': maxPercent")
+            ->assertDontSeeHtml('maxPercent - minPercent + 3');
+    }
 }
