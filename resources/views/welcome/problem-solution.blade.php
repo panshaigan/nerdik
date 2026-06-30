@@ -1,4 +1,4 @@
-<section class="mt-16">
+<section class="mt-8 md:mt-16">
     <div class="text-center mb-8">
         <h2 class="text-2xl font-semibold md:text-3xl">{{ __('ui.welcome.problem_solution_heading') }}</h2>
         <p class="mx-auto mt-2 max-w-2xl text-sm opacity-70">{{ __('ui.welcome.problem_solution_subheading') }}</p>
