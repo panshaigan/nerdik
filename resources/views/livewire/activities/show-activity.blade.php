@@ -133,7 +133,7 @@
     </div>
 
     <div
-            class="ui-activity-show-hero rounded-xl ui-content-card"
+            class="ui-activity-show-hero rounded-xl ui-content-card mb-4 md:mb-6"
             data-ui="activity-show-hero"
         >
             <x-ui.tabs-with-toolbar

@@ -11,7 +11,7 @@
 
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="mb-10" />
 
-    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] min-w-0 rounded-2xl">
+    <div class="ui-content-card relative min-h-[min(32rem,70dvh)] min-w-0 rounded-2xl mb-4 md:mb-6">
         <x-form wire:submit.prevent="save" novalidate class="" data-activity-form>
         <div id="ui-activity-form-fields" class="ui-form ui-form-activity min-w-0" data-ui="activity-form-fields">
             <x-ui.tabs-with-toolbar

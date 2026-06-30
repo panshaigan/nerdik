@@ -48,6 +48,7 @@ class ThemeToggle extends Component
                                 localStorage.setItem('theme', this.theme)
                                 this.$dispatch('theme-changed', this.theme)
                                 this.$dispatch('theme-changed-class', this.class)
+                                window.dispatchEvent(new CustomEvent('nerdik:theme-applied'))
                             },
                             toggle() {
                                 this.theme = this.theme == '{{ $lightTheme }}' ? '{{ $darkTheme }}' : '{{ $lightTheme }}'
