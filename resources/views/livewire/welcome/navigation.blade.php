@@ -51,12 +51,12 @@
                 {{ __('ui.nav.dashboard') }}
             </x-button>
         @else
-            <x-button :link="route('login')" class="btn-ghost btn-sm">
+            <x-button :link="route('login')" class="btn-ghost btn-sm font-display">
                 {{ __('ui.nav.log_in') }}
             </x-button>
 
             @if (Route::has('register'))
-                <x-button :link="route('register')" class="btn-primary btn-sm">
+                <x-button :link="route('register')" class="btn-primary btn-sm font-display">
                     {{ __('ui.nav.register') }}
                 </x-button>
             @endif

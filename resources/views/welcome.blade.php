@@ -7,7 +7,7 @@
         <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::forWelcome()" />
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=cinzel:400,500,600,700|figtree:400,600&display=swap" rel="stylesheet" />
 
         <x-theme-script />
 
@@ -24,8 +24,8 @@
                 <div class="flex items-center gap-3">
                     <x-brand-logo class="h-10 w-10 text-base-content" />
                     <div>
-                        <p class="text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
-                        <p class="text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
+                        <p class="font-display text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
+                        <p class="font-display text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
                     </div>
                 </div>
                 @if (Route::has('login'))

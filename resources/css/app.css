@@ -898,38 +898,6 @@
         box-shadow: 0 0 10px color-mix(in oklch, var(--brand-primary) 28%, transparent) !important;
     }
 
-    .ui-filter-form-events .ui-browse-filter-toggle--reset.btn {
-        border-color: transparent !important;
-        background-color: transparent !important;
-        color: color-mix(in oklab, var(--color-primary) 88%, var(--color-base-content)) !important;
-        --btn-bg: transparent !important;
-        --btn-border: transparent !important;
-        box-shadow: none !important;
-    }
-
-    .ui-filter-form-events .ui-browse-filter-toggle--reset.btn:hover:not(:disabled) {
-        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
-        border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
-        color: var(--color-base-content) !important;
-        box-shadow: 0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent) !important;
-    }
-
-    .ui-filter-form-events .ui-browse-filter-toggle--accent.btn {
-        border-color: transparent !important;
-        background-color: transparent !important;
-        color: color-mix(in oklab, var(--color-accent) 88%, var(--color-base-content)) !important;
-        --btn-bg: transparent !important;
-        --btn-border: transparent !important;
-        box-shadow: none !important;
-    }
-
-    .ui-filter-form-events .ui-browse-filter-toggle--accent.btn:hover:not(:disabled) {
-        background-color: color-mix(in oklab, var(--color-accent) 12%, transparent) !important;
-        border-color: color-mix(in oklch, var(--color-accent) 48%, transparent) !important;
-        color: var(--color-base-content) !important;
-        box-shadow: 0 0 14px color-mix(in oklch, var(--color-accent) 42%, transparent) !important;
-    }
-
     .ui-form-activity .join .ui-field-hosting-mode.join-item.btn {
         border-color: var(--ui-field-border-color) !important;
         background-color: var(--ui-field-bg) !important;

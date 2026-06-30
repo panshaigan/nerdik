@@ -1,36 +1,5 @@
 <div class="pt-4 pb-12 px-1">
-    <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
-        <div
-            class="browse-events-save-clear-toolbar flex flex-wrap items-center justify-end gap-2"
-            data-ui="browse-events-save-clear-toolbar"
-        >
-            <x-button
-                type="button"
-                wire:click="saveSearchParams"
-                wire:key="browse-events-save-search"
-                class="btn btn-sm rounded-2xl ui-browse-filter-toggle ui-browse-filter-toggle--reset"
-                :title="__('ui.browse.save_search')"
-                :aria-label="__('ui.browse.save_search')"
-                data-ui="browse-events-save-search"
-            >
-                <x-icon name="o-bookmark" class="h-4 w-4 shrink-0" />
-                {{ __('ui.browse.save_search') }}
-            </x-button>
-            <x-button
-                type="button"
-                wire:click="clearFilters"
-                wire:key="browse-events-clear"
-                wire:loading.attr="disabled"
-                class="btn btn-sm rounded-2xl ui-browse-filter-toggle ui-browse-filter-toggle--accent"
-                :title="__('ui.browse.clear')"
-                :aria-label="__('ui.browse.clear')"
-                data-ui="browse-events-clear"
-            >
-                <x-icon name="o-x-mark" class="h-4 w-4 shrink-0" />
-                {{ __('ui.browse.clear') }}
-            </x-button>
-        </div>
-
+    <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 mt-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
         <div
             class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell mb-10"
             data-ui="browse-events-form"
@@ -45,7 +14,7 @@
                         'fieldShellClass' => 'ui-browse-events-search-shell ui-gradient-frame-brand-bold rounded-2xl',
                     ])
                 </div>
-                <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0">
+                <div class="browse-events-action-toolbar flex flex-wrap items-center gap-2 shrink-0 mt-4 md:mt-0">
                     @include('livewire.browse.partials.tag-filter-toggles', [
                         'buttonClass' => 'btn btn-sm rounded-2xl ui-browse-filter-toggle',
                     ])
