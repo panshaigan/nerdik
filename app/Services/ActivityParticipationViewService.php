@@ -74,8 +74,10 @@ class ActivityParticipationViewService
         }
 
         $canManageActivity = $user?->canModifyEntity($activity) ?? false;
+        $isHost = $user !== null
+            && (int) ($activity->created_by ?? 0) === (int) $user->id;
         $canJoin = $user !== null
-            && ! $canManageActivity
+            && ! $isHost
             && ! $isParticipant
             && ! $onWaitlist
             && $signupGateOk
