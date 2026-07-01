@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TimeDisplayFormat;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,8 @@ new class extends Component
 
     public string $timezone = '';
 
+    public string $time_display_format = '24h';
+
     public $organizationOptions = null;
 
     /** @var list<array{id: string, name: string}> */
@@ -31,6 +34,7 @@ new class extends Component
         $this->timezone = in_array($user->profile?->timezone, profile_timezone_ids(), true)
             ? (string) $user->profile?->timezone
             : '';
+        $this->time_display_format = $user->time_display_format->value;
         $this->timezoneOptions = profile_timezone_options();
         $this->organizationOptions = Organization::query()
             ->where(function ($query) use ($user): void {
@@ -63,6 +67,7 @@ new class extends Component
                     Rule::in($allowedOrganizationIds),
                 ],
                 'timezone' => ['nullable', 'string', 'timezone'],
+                'time_display_format' => ['required', 'string', Rule::enum(TimeDisplayFormat::class)],
             ]);
 
             $user = Auth::user();
@@ -75,6 +80,7 @@ new class extends Component
 
             $profile = $user->profile()->firstOrCreate();
             $profile->timezone = $validated['timezone'] ?: null;
+            $profile->time_display_format = TimeDisplayFormat::from($validated['time_display_format']);
             $profile->save();
 
             $this->dispatch('profile-identity-updated');
@@ -124,6 +130,15 @@ new class extends Component
                 :placeholder="__('ui.profile.timezone_server_default')"
                 placeholder-value=""
                 error-field="timezone"
+                inline
+            />
+
+            <x-select
+                wire:model="time_display_format"
+                name="time_display_format"
+                label="{{ __('ui.profile.time_display_format_label') }}"
+                :options="TimeDisplayFormat::optionsForSelect()"
+                error-field="time_display_format"
                 inline
             />
         </div>

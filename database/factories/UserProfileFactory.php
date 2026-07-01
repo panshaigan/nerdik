@@ -43,6 +43,7 @@ final class UserProfileFactory extends Factory
             'discord_handle' => null,
             'current_location' => null,
             'timezone' => 'Europe/Warsaw',
+            'time_display_format' => '24h',
             'languages' => null,
             'notification_preferences' => null,
         ];

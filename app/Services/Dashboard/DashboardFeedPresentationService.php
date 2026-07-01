@@ -68,6 +68,6 @@ class DashboardFeedPresentationService
             ->setTimezone(display_timezone())
             ->locale(app()->getLocale());
 
-        return $carbon->translatedFormat('D, j M').' · '.$carbon->format('H').':00';
+        return $carbon->translatedFormat('D, j M').' · '.format_time_in_user_tz($carbon->copy()->startOfHour());
     }
 }

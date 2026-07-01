@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AvatarSource;
+use App\Enums\TimeDisplayFormat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,6 +43,7 @@ class UserProfile extends Model
         'discord_handle',
         'current_location',
         'timezone',
+        'time_display_format',
         'languages',
         'notification_preferences',
         'google_data',
@@ -56,6 +58,7 @@ class UserProfile extends Model
     {
         return [
             'avatar_source' => AvatarSource::class,
+            'time_display_format' => TimeDisplayFormat::class,
             'languages' => 'array',
             'notification_preferences' => 'array',
             'google_data' => 'array',

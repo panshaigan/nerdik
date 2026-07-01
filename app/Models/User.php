@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Actions\Avatars\ResolveAvatarUrl;
 use App\Enums\NotificationPreferenceKey;
+use App\Enums\TimeDisplayFormat;
 use App\Models\Concerns\InteractsWithAvatarImage;
 use App\Notifications\VerifyPendingEmailNotification;
 use App\Support\Ui\AvatarPicture;
@@ -347,5 +348,10 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     protected function getTimezoneAttribute(): ?string
     {
         return $this->profile?->timezone;
+    }
+
+    protected function getTimeDisplayFormatAttribute(): TimeDisplayFormat
+    {
+        return $this->profile?->time_display_format ?? TimeDisplayFormat::TwentyFourHour;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TimeDisplayFormat;
 use App\Support\Browse\BrowseSearchUrl;
 use App\Support\RichText;
 use Carbon\Carbon;
@@ -52,6 +53,90 @@ if (! function_exists('display_timezone')) {
     }
 }
 
+if (! function_exists('display_time_format')) {
+    /**
+     * Clock display preference for the current request.
+     * Authenticated users use profile setting; guests default to 24-hour.
+     */
+    function display_time_format(): TimeDisplayFormat
+    {
+        if (auth()->check()) {
+            return auth()->user()->time_display_format;
+        }
+
+        return TimeDisplayFormat::TwentyFourHour;
+    }
+}
+
+if (! function_exists('time_format_php_token')) {
+    function time_format_php_token(): string
+    {
+        return display_time_format() === TimeDisplayFormat::TwelveHour ? 'h:i A' : 'H:i';
+    }
+}
+
+if (! function_exists('time_format_iso_token')) {
+    function time_format_iso_token(): string
+    {
+        return display_time_format() === TimeDisplayFormat::TwelveHour ? 'h:mm A' : 'HH:mm';
+    }
+}
+
+if (! function_exists('apply_display_time_format_to_php')) {
+    /**
+     * Map PHP date-format time tokens to the user's clock preference.
+     * Skips datetime-local patterns (contain \T) which must stay 24-hour.
+     */
+    function apply_display_time_format_to_php(string $format): string
+    {
+        if (str_contains($format, '\T') || display_time_format() === TimeDisplayFormat::TwentyFourHour) {
+            return $format;
+        }
+
+        return str_replace(
+            ['H:i', 'G:i', 'H'],
+            ['h:i A', 'g:i A', 'h A'],
+            $format,
+        );
+    }
+}
+
+if (! function_exists('apply_display_time_format_to_iso')) {
+    /**
+     * Map Carbon isoFormat time tokens to the user's clock preference.
+     */
+    function apply_display_time_format_to_iso(string $isoFormat): string
+    {
+        if ($isoFormat === 'lll') {
+            return display_time_format() === TimeDisplayFormat::TwelveHour
+                ? 'D MMM YYYY, h:mm A'
+                : 'D MMM YYYY, HH:mm';
+        }
+
+        if (display_time_format() === TimeDisplayFormat::TwentyFourHour) {
+            return $isoFormat;
+        }
+
+        return str_replace(
+            ['HH:mm', 'HH:00', 'HH'],
+            ['h:mm A', 'h A', 'h'],
+            $isoFormat,
+        );
+    }
+}
+
+if (! function_exists('format_time_in_user_tz')) {
+    /**
+     * Format only the clock portion in the display timezone.
+     *
+     * @param  Carbon|DateTimeInterface|string|null  $date
+     */
+    function format_time_in_user_tz($date): string
+    {
+        return format_in_user_tz($date, 'H:i');
+    }
+}
+
 if (! function_exists('parse_datetime_to_utc')) {
     /**
      * Parse a datetime string (e.g. from datetime-local input) as the current user's timezone and return Carbon in UTC.
@@ -81,6 +166,7 @@ if (! function_exists('format_in_user_tz')) {
         }
         $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
 
+        $format = apply_display_time_format_to_php($format);
         $carbon = $carbon->setTimezone(display_timezone())->locale(app()->getLocale());
 
         // Support translated month/day names when format uses textual tokens.
@@ -104,6 +190,8 @@ if (! function_exists('format_datetime_in_user_tz')) {
         }
 
         $carbon = $date instanceof Carbon ? $date->copy() : Carbon::parse($date);
+
+        $isoFormat = apply_display_time_format_to_iso($isoFormat);
 
         return $carbon->setTimezone(display_timezone())->locale(app()->getLocale())->isoFormat($isoFormat);
     }
@@ -246,18 +334,18 @@ if (! function_exists('format_datetime_range_compact')) {
         $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz)->locale($locale);
 
         if ($s->isSameDay($e)) {
-            return $s->translatedFormat('j M Y').' · '.$s->format('H:i').' - '.$e->format('H:i');
+            return $s->translatedFormat('j M Y').' · '.format_time_in_user_tz($s).' - '.format_time_in_user_tz($e);
         }
 
         if ($s->isSameYear($e) && $s->isSameMonth($e)) {
-            return $s->translatedFormat('j M').' '.$s->format('H:i').' → '.$e->translatedFormat('j').' '.$e->format('H:i').', '.$s->translatedFormat('Y');
+            return $s->translatedFormat('j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
         }
 
         if ($s->isSameYear($e)) {
-            return $s->translatedFormat('j M').' '.$s->format('H:i').' → '.$e->translatedFormat('j M').' '.$e->format('H:i').', '.$s->translatedFormat('Y');
+            return $s->translatedFormat('j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j M').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
         }
 
-        return $s->translatedFormat('j M Y').' '.$s->format('H:i').' → '.$e->translatedFormat('j M Y').' '.$e->format('H:i');
+        return $s->translatedFormat('j M Y').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j M Y').' '.format_time_in_user_tz($e);
     }
 }
 

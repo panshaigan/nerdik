@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Profile\AnonymizeUser;
 use App\Enums\AvatarSource;
+use App\Enums\TimeDisplayFormat;
 use App\Livewire\Activities\OrganizationBadgeContact;
 use App\Livewire\Activities\OrganizationContactPopover;
 use App\Livewire\Activities\UserBadgeContact;
@@ -104,6 +105,7 @@ class ProfileTest extends TestCase
             ->set('name', 'Test User')
             ->set('nickname', 'test-user')
             ->set('timezone', 'Europe/Warsaw')
+            ->set('time_display_format', '12h')
             ->call('updateIdentityInformation');
 
         $component
@@ -115,6 +117,7 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test-user', $user->nickname);
         $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
+        $this->assertSame(TimeDisplayFormat::TwelveHour, $user->profile?->time_display_format);
     }
 
     public function test_contact_form_displays_user_email(): void
