@@ -3,37 +3,14 @@
     $activityTypeLabel = $activityTypeSlug ? __('ui.activities.types.'.$activityTypeSlug) : __('ui.common.none');
     $slot = $activity->slot;
     $event = $slot?->event;
-    $selfHosted = $activity->hosting_mode === \App\Models\Activity::HOSTING_MODE_SELF_HOSTED;
     $isCancelled = $activity->isCancelled();
-    $selfHostedPlace = $activity->place;
     $hostRoleLabel = $activityTypeSlug && \Illuminate\Support\Facades\Lang::has('ui.activities.host_title.'.$activityTypeSlug)
         ? __('ui.activities.host_title.'.$activityTypeSlug)
         : __('ui.activities.host');
     $hasOpenRunBlurb = $slot && ! $event;
     $hostUser = $activity->creator;
-    $slotPlace = $slot?->place;
-    $schedulePlace = $selfHosted ? $selfHostedPlace : $slotPlace;
-    $scheduleVenue = $schedulePlace?->parent ?? $schedulePlace;
-    $scheduleRoom = $schedulePlace?->parent ? $schedulePlace->name : null;
-    $scheduleStartsAt = $selfHosted ? $activity->starts_at : $slot?->starts_at;
-    $scheduleEndsAt = $selfHosted ? $activity->ends_at : $slot?->ends_at;
-    $scheduleDateSummary = $scheduleStartsAt && $scheduleEndsAt
-        ? format_datetime_range_compact($scheduleStartsAt, $scheduleEndsAt)
-        : ($scheduleStartsAt ? format_in_user_tz($scheduleStartsAt, 'D, M j · H:i') : null);
-    $scheduleMapConfig = [
-        'places' => ($scheduleVenue && $scheduleVenue->latitude !== null && $scheduleVenue->longitude !== null)
-            ? [[
-                'name' => (string) $scheduleVenue->name,
-                'lat' => (float) $scheduleVenue->latitude,
-                'lng' => (float) $scheduleVenue->longitude,
-            ]]
-            : [],
-    ];
     $participantsCounterValue = ((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞');
     $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.$participantsCounterValue.'</span>';
-    $venues = $event?->places->map(
-        fn ($place) => (string) $place->name.', '.$place->city->name(app()->getLocale())
-    )->join('; ');
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
 @endphp
 
@@ -202,10 +179,11 @@
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-light-bulb">
                     @include('livewire.activities.partials.show-about-tab', [
                         'activity' => $activity,
-                        'scheduleMapConfig' => $scheduleMapConfig,
-                        'scheduleVenue' => $scheduleVenue,
-                        'scheduleRoom' => $scheduleRoom,
-                        'scheduleDateSummary' => $scheduleDateSummary,
+                        'scheduleMapConfig' => $schedule->scheduleMapConfig,
+                        'scheduleVenue' => $schedule->scheduleVenue,
+                        'scheduleRoom' => $schedule->scheduleRoom,
+                        'schedulePlaceSummary' => $schedule->schedulePlaceSummary,
+                        'scheduleDateSummary' => $schedule->scheduleDateSummary,
                     ])
                 </x-tab>
 

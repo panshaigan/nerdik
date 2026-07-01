@@ -14,6 +14,7 @@ use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Services\UserInterestService;
 use App\Support\Ui\ActivityListingImageResolver;
+use App\Support\Ui\ActivityShowSchedulePresenter;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -287,6 +288,7 @@ class ShowActivity extends Component
         ActivityParticipationViewService $participationView,
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         ActivityListingImageResolver $activityListingImageResolver,
+        ActivityShowSchedulePresenter $schedulePresenter,
     ) {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
@@ -300,6 +302,7 @@ class ShowActivity extends Component
             'participants.user.organization',
             'waitlist.user.organization',
             'slot.event.enrollmentWindows',
+            'slot.event.places.city',
             'slot.place.parent.city',
             'slot.place.city',
             'place.parent.city',
@@ -310,9 +313,11 @@ class ShowActivity extends Component
         $interestedPeopleCount = (int) $activity->interestedUsers()->count();
 
         $badgeItems = $badgeGroupBuilder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $schedule = $schedulePresenter->build($activity);
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
+            'schedule' => $schedule,
             'coverPicture' => $activityListingImageResolver->resolve($activity, 'listing_hero'),
             'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
