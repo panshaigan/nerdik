@@ -35,6 +35,8 @@
                             <span>{{ $scheduleVenue->city->name(app()->getLocale()) }}</span>
                         @endif
                     </p>
+                @elseif (filled($schedulePlaceSummary ?? null))
+                    <p class="text-sm font-medium">{{ $schedulePlaceSummary }}</p>
                 @endif
                 <p class="text-xs text-white/90">
                     {{ $scheduleDateSummary ?: __('ui.activities.show_open_run') }}
