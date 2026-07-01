@@ -118,6 +118,7 @@ class ListingCardActivityPreviewTest extends TestCase
     public function test_open_listing_activity_preview_shows_description_and_details_link(): void
     {
         $owner = User::factory()->create();
+        $owner->profile()->update(['timezone' => 'UTC']);
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
         $city = $this->createCity('Wroclaw');
         $venue = Place::factory()->venue()->create([

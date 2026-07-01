@@ -33,6 +33,8 @@ final class ActivityPreviewAboutPresenterTest extends TestCase
     public function build_uses_slot_time_and_venue_room_label_for_scheduled_activity(): void
     {
         $user = User::factory()->create();
+        $user->profile()->update(['timezone' => 'UTC']);
+        $this->actingAs($user);
         $venue = Place::factory()->venue()->create(['name' => 'Convention Center']);
         $room = Place::factory()->room($venue)->create(['name' => 'Hall A']);
         $event = Event::factory()->create(['created_by' => $user->id]);
