@@ -139,7 +139,7 @@
                         localValue: 1,
                         min: 1,
                         max: 48,
-                        step: 6,
+                        step: 1,
                         dayLabel: @js(__('ui.activities.duration_day')),
                         daysLabel: @js(__('ui.activities.duration_days')),
                         hoursShort: @js(__('ui.activities.duration_hours_short')),
@@ -200,7 +200,7 @@
                         @input="onSliderInput()"
                         min="1"
                         max="48"
-                        step="6"
+                        step="1"
                         class="range-xs w-full"
                     />
                 </div>
@@ -219,12 +219,12 @@
                 error-field="participation_mode"
                 class="mb-3"
             />
+            <hr />
             <x-toggle
                 id="allows_observers"
                 :label="__('ui.activities.allows_observers_badge')"
                 wire:model="allows_observers"
                 :hint="__('ui.activities.allows_observers')"
-                right
             />
         </div>
     </div>
