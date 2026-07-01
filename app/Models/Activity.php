@@ -7,6 +7,7 @@ use App\Enums\ParticipationMode;
 use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -173,6 +174,21 @@ class Activity extends Model implements HasMedia
     public function isCancelled(): bool
     {
         return $this->cancelled_at !== null;
+    }
+
+    public function cancellationDeadlineAt(): ?Carbon
+    {
+        if ($this->cancellation_deadline_in_hours === null) {
+            return null;
+        }
+
+        $this->loadMissing('slot');
+        $activityStart = $this->slot?->starts_at ?? $this->starts_at;
+        if ($activityStart === null) {
+            return null;
+        }
+
+        return $activityStart->copy()->subHours((int) $this->cancellation_deadline_in_hours);
     }
 
     public function isJoinableMode(): bool

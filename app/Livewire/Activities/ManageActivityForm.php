@@ -218,6 +218,10 @@ class ManageActivityForm extends Component
             $this->activity_type_id = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
         }
 
+        if ($this->editingActivityId === null && $this->cancellation_deadline_in_hours === null) {
+            $this->cancellation_deadline_in_hours = 24;
+        }
+
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
         $this->hostingModeBeforeChange = $this->hosting_mode;

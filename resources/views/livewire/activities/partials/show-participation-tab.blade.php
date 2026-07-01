@@ -7,24 +7,23 @@
     $usesWaitlistSignup = $activity->isHostApprovalMode() || $activity->isLotteryMode();
 @endphp
 <div data-ui="activity-show-participation">
-    @auth
-        <div class="mb-6 max-w-xl mx-auto w-full">
-            @include('livewire.activities.partials.participation-notices', [
-                'noticesContainerDataUi' => 'activity-show-participation-notices',
-                'noticeDataUiPrefix' => 'activity-show',
-                'signupBlockedMessage' => $signupBlockedMessage ?? null,
-                'stateBlockedMessage' => $stateBlockedMessage ?? null,
-                'isParticipant' => $isParticipant,
-                'onWaitlist' => $onWaitlist,
-                'canJoin' => $canJoin,
-                'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity ?? null,
-                'activeWindowPerActivityMax' => $activeWindowPerActivityMax ?? null,
-                'activeWindowUserRemaining' => $activeWindowUserRemaining ?? null,
-                'isLotteryPending' => $isLotteryPending ?? false,
-                'isLotteryResolved' => $isLotteryResolved ?? false,
-            ])
-        </div>
-    @endauth
+    <div class="mb-6 max-w-xl mx-auto w-full">
+        @include('livewire.activities.partials.participation-notices', [
+            'activity' => $activity,
+            'noticesContainerDataUi' => 'activity-show-participation-notices',
+            'noticeDataUiPrefix' => 'activity-show',
+            'signupBlockedMessage' => $signupBlockedMessage ?? null,
+            'stateBlockedMessage' => $stateBlockedMessage ?? null,
+            'isParticipant' => $isParticipant,
+            'onWaitlist' => $onWaitlist,
+            'canJoin' => $canJoin,
+            'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity ?? null,
+            'activeWindowPerActivityMax' => $activeWindowPerActivityMax ?? null,
+            'activeWindowUserRemaining' => $activeWindowUserRemaining ?? null,
+            'isLotteryPending' => $isLotteryPending ?? false,
+            'isLotteryResolved' => $isLotteryResolved ?? false,
+        ])
+    </div>
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">
         <div class="min-w-0" data-ui="activity-show-participants">
             <div class="mb-3 flex items-center justify-between gap-3">

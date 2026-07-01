@@ -47,6 +47,16 @@
             'dataUi' => "{$noticeDataUiPrefix}-lottery-resolved",
         ]);
     }
+
+    $cancellationDeadline = ($activity ?? null)?->cancellationDeadlineAt();
+    if ($cancellationDeadline !== null) {
+        $participationNotices->push([
+            'message' => __('ui.activities.participation_cancellation_deadline_notice', [
+                'when' => format_datetime_in_user_tz($cancellationDeadline),
+            ]),
+            'dataUi' => "{$noticeDataUiPrefix}-cancellation-deadline",
+        ]);
+    }
 @endphp
 
 @if ($participationNotices->isNotEmpty())

@@ -171,6 +171,9 @@
                         init() {
                             this.$nextTick(() => {
                                 this.localValue = this.coerceSliderValue(this.value);
+                                if (this.value === null || this.value === '') {
+                                    this.value = this.localValue;
+                                }
                                 this.$watch('value', (v) => {
                                     if (v !== null && v !== '') {
                                         this.localValue = Number(v);

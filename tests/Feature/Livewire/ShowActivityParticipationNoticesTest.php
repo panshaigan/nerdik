@@ -85,4 +85,65 @@ class ShowActivityParticipationNoticesTest extends TestCase
         $this->assertStringContainsString(__('ui.activities.signup_blocked_not_joinable_mode'), $html);
         $this->assertStringNotContainsString('<ul class="mt-1 list-disc space-y-1 pl-4 text-xs">', $html);
     }
+
+    public function test_cancellation_deadline_notice_is_visible_to_guests(): void
+    {
+        $startsAt = Carbon::parse('2026-07-10 18:00:00', 'UTC');
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => $startsAt,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        $expectedMessage = __('ui.activities.participation_cancellation_deadline_notice', [
+            'when' => format_datetime_in_user_tz($activity->cancellationDeadlineAt()),
+        ]);
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringContainsString('data-ui="activity-show-cancellation-deadline"', $html);
+        $this->assertStringContainsString($expectedMessage, $html);
+    }
+
+    public function test_cancellation_deadline_notice_is_visible_to_authenticated_users(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['timezone' => 'UTC']);
+        $startsAt = Carbon::parse('2026-07-10 18:00:00', 'UTC');
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => $startsAt,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        $this->actingAs($user);
+        $expectedMessage = __('ui.activities.participation_cancellation_deadline_notice', [
+            'when' => format_datetime_in_user_tz($activity->cancellationDeadlineAt()),
+        ]);
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringContainsString('data-ui="activity-show-cancellation-deadline"', $html);
+        $this->assertStringContainsString($expectedMessage, $html);
+    }
+
+    public function test_activity_without_cancellation_deadline_hours_omits_notice(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+            'cancellation_deadline_in_hours' => null,
+        ]);
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringNotContainsString('data-ui="activity-show-cancellation-deadline"', $html);
+        $this->assertStringNotContainsString('data-ui="activity-show-participation-notices"', $html);
+    }
 }

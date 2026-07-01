@@ -422,6 +422,7 @@ return [
         'duration_in_minutes' => 'Czas trwania (minuty)',
         'cancellation_deadline_in_hours' => 'Termin rezygnacji',
         'cancellation_deadline_description' => 'Jeśli ustawisz tę wartość, uczestnicy nie mogą sami zrezygnować w ostatnich skonfigurowanych godzinach przed startem aktywności.',
+        'participation_cancellation_deadline_notice' => 'Ostatni dzień na samodzielną rezygnację: :when.',
         'duration_day' => 'dzień',
         'duration_days' => 'dni',
         'duration_hours_short' => 'h',

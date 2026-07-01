@@ -1,20 +1,19 @@
 <div class="space-y-6 pt-2" data-ui="event-activity-preview-participation">
-    @auth
-        <div class="mx-auto w-full max-w-xl">
-            @include('livewire.activities.partials.participation-notices', [
-                'noticesContainerDataUi' => 'event-activity-preview-participation-notices',
-                'noticeDataUiPrefix' => 'event-activity-preview',
-                'signupBlockedMessage' => $participation?->signupBlockedMessage,
-                'stateBlockedMessage' => $participation?->stateBlockedMessage,
-                'isParticipant' => $participation?->isParticipant ?? false,
-                'onWaitlist' => $participation?->onWaitlist ?? false,
-                'canJoin' => $participation?->canJoin ?? false,
-                'activeWindowRemainingForActivity' => $participation?->activeWindowRemainingForActivity,
-                'activeWindowPerActivityMax' => $participation?->activeWindowPerActivityMax,
-                'activeWindowUserRemaining' => $participation?->activeWindowUserRemaining,
-            ])
-        </div>
-    @endauth
+    <div class="mx-auto w-full max-w-xl">
+        @include('livewire.activities.partials.participation-notices', [
+            'activity' => $activity,
+            'noticesContainerDataUi' => 'event-activity-preview-participation-notices',
+            'noticeDataUiPrefix' => 'event-activity-preview',
+            'signupBlockedMessage' => $participation?->signupBlockedMessage,
+            'stateBlockedMessage' => $participation?->stateBlockedMessage,
+            'isParticipant' => $participation?->isParticipant ?? false,
+            'onWaitlist' => $participation?->onWaitlist ?? false,
+            'canJoin' => $participation?->canJoin ?? false,
+            'activeWindowRemainingForActivity' => $participation?->activeWindowRemainingForActivity,
+            'activeWindowPerActivityMax' => $participation?->activeWindowPerActivityMax,
+            'activeWindowUserRemaining' => $participation?->activeWindowUserRemaining,
+        ])
+    </div>
 
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="event-activity-preview-participation-columns">
         <div class="min-w-0" data-ui="event-activity-preview-participants">
