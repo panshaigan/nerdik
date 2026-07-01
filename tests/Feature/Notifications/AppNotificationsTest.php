@@ -3,6 +3,7 @@
 namespace Tests\Feature\Notifications;
 
 use App\Enums\ParticipationMode;
+use App\Livewire\Notifications\NotificationList;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
@@ -17,8 +18,10 @@ use App\Notifications\ProposalSubmittedNotification;
 use App\Notifications\WaitlistPromotedNotification;
 use App\Services\ActivityParticipantRosterService;
 use App\Services\EventActivitySignupService;
+use Database\Factories\DatabaseNotificationFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AppNotificationsTest extends TestCase
@@ -515,5 +518,38 @@ class AppNotificationsTest extends TestCase
             $this->assertContains('broadcast', $channels);
             $this->assertContains('mail', $channels);
         }
+    }
+
+    public function test_notification_list_renders_activity_participant_left_with_human_readable_title(): void
+    {
+        $host = User::factory()->create();
+        $leaver = User::factory()->create(['nickname' => 'bob']);
+        $promoted = User::factory()->create(['nickname' => 'kurpievski']);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'name' => 'loteria',
+            'min_participants' => 1,
+            'max_participants' => 3,
+        ]);
+
+        $notification = new ActivityParticipantLeftNotification(
+            $activity,
+            $leaver,
+            2,
+            $promoted,
+        );
+
+        DatabaseNotificationFactory::new()
+            ->for($host, 'notifiable')
+            ->fromNotification($notification, $host)
+            ->unread()
+            ->create();
+
+        Livewire::actingAs($host)
+            ->test(NotificationList::class)
+            ->assertSee('bob left loteria, kurpievski took the spot', false)
+            ->assertDontSee('activity_participant_left', false)
+            ->assertDontSee('{"type":', false);
     }
 }

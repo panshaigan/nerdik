@@ -43,6 +43,9 @@ final class NotificationListItemPresenter
             'scheduled_periodic_digest' => [$this->scheduledDigestTitle($data), 'o-clock'],
             'user_request_received' => [$this->userRequestReceivedTitle($data), 'o-inbox-arrow-down'],
             'user_request_resolved' => [$this->userRequestResolvedTitle($data), 'o-check-circle'],
+            'activity_participant_left' => [$this->toastTitle($data), 'o-user-minus'],
+            'activity_participant_joined' => [$this->toastTitle($data), 'o-user-plus'],
+            'activity_removed_by_host' => [$this->toastTitle($data), 'o-user-minus'],
             default => [$this->fallbackTitle($data), 'o-bell'],
         };
     }
@@ -61,7 +64,8 @@ final class NotificationListItemPresenter
             'scheduled_periodic_digest' => $this->scheduledDigestSubtitle($data),
             'user_request_received' => $this->userRequestReceivedSubtitle($data),
             'user_request_resolved' => $this->userRequestResolvedSubtitle($data),
-            default => $this->joinLabelParts($activity, $event),
+            'activity_participant_left', 'activity_participant_joined', 'activity_removed_by_host' => $this->toastSubtitle($data, $activity, $event),
+            default => $this->joinLabelParts($activity, $event) ?? $this->toastSubtitle($data, $activity, $event),
         };
     }
 
@@ -181,10 +185,32 @@ final class NotificationListItemPresenter
     /**
      * @param  array<string, mixed>  $data
      */
+    private function toastTitle(array $data): string
+    {
+        $title = trim((string) ($data['toast_title'] ?? ''));
+
+        return $title !== '' ? $title : __('Notification');
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function toastSubtitle(array $data, string $activity = '', string $event = ''): ?string
+    {
+        $toastDescription = trim((string) ($data['toast_description'] ?? ''));
+
+        if ($toastDescription !== '') {
+            return $toastDescription;
+        }
+
+        return $this->joinLabelParts($activity, $event);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
     private function fallbackTitle(array $data): string
     {
-        $encoded = json_encode($data, JSON_UNESCAPED_UNICODE);
-
-        return is_string($encoded) ? $encoded : __('Notification');
+        return $this->toastTitle($data);
     }
 }
