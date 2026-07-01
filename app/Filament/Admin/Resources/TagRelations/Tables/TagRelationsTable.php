@@ -2,22 +2,23 @@
 
 namespace App\Filament\Admin\Resources\TagRelations\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class TagRelationsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'tag.translations',
+            'relatedTag.translations',
+        ])
             ->columns([
-                TextColumn::make('tag.id')
-                    ->searchable(),
-                TextColumn::make('relatedTag.id')
-                    ->searchable(),
+                BelongsToColumn::record('tag', searchable: true),
+                BelongsToColumn::record('relatedTag', label: 'Related tag', searchable: true),
             ])
             ->filters([
                 //

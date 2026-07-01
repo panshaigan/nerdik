@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CityTranslations\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,10 +13,11 @@ class CityTranslationsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'city.translations',
+        ])
             ->columns([
-                TextColumn::make('city.id')
-                    ->searchable(),
+                BelongsToColumn::record('city', searchable: true),
                 TextColumn::make('locale')
                     ->searchable(),
                 TextColumn::make('name')

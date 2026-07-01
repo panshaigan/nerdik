@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\EventEnrollmentWindows\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,7 +14,11 @@ class EventEnrollmentWindowsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'event',
+            'creator',
+            'updater',
+        ])
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
@@ -41,12 +46,8 @@ class EventEnrollmentWindowsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
             ])
             ->filters([
                 //

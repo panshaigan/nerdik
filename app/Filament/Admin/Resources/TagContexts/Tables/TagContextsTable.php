@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagContexts\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,15 +13,15 @@ class TagContextsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'tag.translations',
+            'context',
+        ])
             ->columns([
-                TextColumn::make('tag.id')
-                    ->searchable(),
+                BelongsToColumn::record('tag', searchable: true),
                 TextColumn::make('context_type')
                     ->searchable(),
-                TextColumn::make('context_id')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::morphContext(),
             ])
             ->filters([
                 //

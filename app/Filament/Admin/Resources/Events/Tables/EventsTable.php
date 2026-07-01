@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Events\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,7 +17,10 @@ class EventsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'organization',
+            ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
+        ])
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
@@ -37,9 +41,7 @@ class EventsTable
                 TextColumn::make('cancelled_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('cancelled_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('cancelled_by'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -52,16 +54,9 @@ class EventsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('deleted_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('search_vector'),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
+                BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
                 TrashedFilter::make(),

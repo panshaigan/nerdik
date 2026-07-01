@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityProposals\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -15,14 +16,20 @@ class ActivityProposalsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'activity',
+            'event',
+            'acceptedSlot.event',
+            'creator',
+            'updater',
+            'deleter',
+        ])
             ->columns([
                 TextColumn::make('activity.name')
                     ->searchable(),
                 TextColumn::make('event.name')
                     ->searchable(),
-                TextColumn::make('acceptedSlot.name')
-                    ->searchable(),
+                BelongsToColumn::slot('acceptedSlot'),
                 TextColumn::make('status')
                     ->badge()
                     ->searchable(),
@@ -41,15 +48,9 @@ class ActivityProposalsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('deleted_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
+                BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
                 TrashedFilter::make(),

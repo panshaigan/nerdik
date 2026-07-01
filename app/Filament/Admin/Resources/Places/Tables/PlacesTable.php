@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Places\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,18 +17,20 @@ class PlacesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'parent',
+            'country.translations',
+            'city.translations',
+            'creator',
+            'updater',
+            'deleter',
+        ])
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
+                BelongsToColumn::placeName(),
                 TextColumn::make('type')
                     ->searchable(),
-                TextColumn::make('country.id')
-                    ->searchable(),
-                TextColumn::make('city.id')
-                    ->searchable(),
-                TextColumn::make('parent.name')
-                    ->searchable(),
+                BelongsToColumn::record('country', searchable: true),
+                BelongsToColumn::record('city', searchable: true),
                 TextColumn::make('address')
                     ->searchable(),
                 TextColumn::make('links')
@@ -56,15 +59,9 @@ class PlacesTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('deleted_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
+                BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
                 TrashedFilter::make(),
