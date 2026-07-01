@@ -94,8 +94,8 @@ if (! function_exists('apply_display_time_format_to_php')) {
         }
 
         return str_replace(
-            ['H:i', 'G:i', 'H'],
-            ['h:i A', 'g:i A', 'h A'],
+            ['H:i:s', 'G:i:s', 'H:i', 'G:i', 'H'],
+            ['h:i:s A', 'g:i:s A', 'h:i A', 'g:i A', 'h A'],
             $format,
         );
     }

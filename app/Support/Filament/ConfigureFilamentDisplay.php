@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Support\Filament;
+
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentTimezone;
+use Filament\Tables\Table;
+
+final class ConfigureFilamentDisplay
+{
+    public static function register(): void
+    {
+        FilamentTimezone::set(fn (): string => display_timezone());
+
+        Table::configureUsing(function (Table $table): void {
+            $table
+                ->defaultDateTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('M j, Y H:i:s'))
+                ->defaultTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('H:i:s'));
+        });
+
+        Schema::configureUsing(function (Schema $schema): void {
+            $schema
+                ->defaultDateTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('M j, Y H:i:s'))
+                ->defaultTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('H:i:s'));
+        });
+
+        DateTimePicker::configureUsing(function (DateTimePicker $picker): void {
+            $picker
+                ->defaultDateTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('M j, Y H:i'))
+                ->defaultDateTimeWithSecondsDisplayFormat(fn (): string => apply_display_time_format_to_php('M j, Y H:i:s'))
+                ->defaultTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('H:i'))
+                ->locale(fn (): string => app()->getLocale());
+        });
+    }
+}
