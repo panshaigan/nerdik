@@ -21,5 +21,7 @@ final class ActivityParticipationViewData
         public readonly ?int $activeWindowUserRemaining,
         public readonly bool $isLotteryPending = false,
         public readonly bool $isLotteryResolved = false,
+        /** @var list<array{message: string, dataUi: string}> */
+        public readonly array $lotteryDrawNotices = [],
     ) {}
 }

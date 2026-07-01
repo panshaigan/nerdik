@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ParticipationMode;
 use App\Models\Activity;
+use App\Models\ActivityLotteryDraw;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
@@ -52,8 +53,8 @@ class ActivityLotteryTest extends TestCase
 
         $host = User::factory()->create();
         $activity = $this->createSelfHostedLotteryActivity($host, maxParticipants: 2);
-        $resolveAt = app(ActivityLotteryService::class)->resolveAt($activity);
-        $this->assertNotNull($resolveAt);
+        $drawAt = app(ActivityLotteryService::class)->lotteryDrawAt($activity);
+        $this->assertNotNull($drawAt);
 
         $waitlistUsers = User::factory()->count(4)->create();
         foreach ($waitlistUsers as $index => $waitlistUser) {
@@ -64,7 +65,7 @@ class ActivityLotteryTest extends TestCase
             ]);
         }
 
-        Carbon::setTestNow($resolveAt->copy()->addMinute());
+        Carbon::setTestNow($drawAt->copy()->addMinute());
 
         $this->artisan('activities:resolve-lotteries')->assertSuccessful();
 
@@ -87,6 +88,47 @@ class ActivityLotteryTest extends TestCase
         }
     }
 
+    public function test_self_hosted_does_not_resolve_at_cancellation_deadline_when_lottery_draw_is_later(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $startsAt = now()->addDays(3);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Lottery,
+            'cancellation_deadline_in_hours' => 48,
+            'lottery_draw_in_hours' => 12,
+            'max_participants' => 2,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(3),
+        ]);
+
+        $user = User::factory()->create();
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'position' => 1,
+        ]);
+
+        Carbon::setTestNow($activity->cancellationDeadlineAt()->copy()->addMinute());
+        $this->artisan('activities:resolve-lotteries')->assertSuccessful();
+
+        $activity->refresh();
+        $this->assertNull($activity->lottery_resolved_at);
+        $this->assertSame(0, $activity->participants()->count());
+        Notification::assertNothingSent();
+
+        Carbon::setTestNow($activity->lotteryDrawAt()->copy()->addMinute());
+        $this->artisan('activities:resolve-lotteries')->assertSuccessful();
+
+        $activity->refresh();
+        $this->assertNotNull($activity->lottery_resolved_at);
+        $this->assertSame(1, $activity->participants()->count());
+    }
+
     public function test_resolve_command_is_idempotent(): void
     {
         Notification::fake();
@@ -100,13 +142,14 @@ class ActivityLotteryTest extends TestCase
             'position' => 1,
         ]);
 
-        Carbon::setTestNow(app(ActivityLotteryService::class)->resolveAt($activity)->copy()->addMinute());
+        Carbon::setTestNow(app(ActivityLotteryService::class)->lotteryDrawAt($activity)->copy()->addMinute());
 
         $this->artisan('activities:resolve-lotteries')->assertSuccessful();
         $this->artisan('activities:resolve-lotteries')->assertSuccessful();
 
         $this->assertSame(1, ActivityUser::query()->where('activity_id', $activity->id)->count());
         Notification::assertSentToTimes($user, WaitlistPromotedNotification::class, 1);
+        $this->assertSame(1, ActivityLotteryDraw::query()->where('activity_id', $activity->id)->count());
     }
 
     public function test_leave_after_lottery_resolved_promotes_random_waitlist_entry(): void
@@ -169,35 +212,113 @@ class ActivityLotteryTest extends TestCase
         $this->assertFalse(ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $carol->id)->exists());
     }
 
-    public function test_event_enrollment_window_end_triggers_resolution(): void
+    public function test_event_enrollment_window_end_triggers_intermediate_draw_without_resolving(): void
     {
         Notification::fake();
 
-        [$event, $activity] = $this->createEventLotteryActivity(maxParticipants: 1);
+        [$event, $activity] = $this->createEventLotteryActivity(maxParticipants: 4, lotteryDrawInHours: 48);
         $windowEnd = now()->addHour();
         $event->enrollmentWindows()->create([
             'name' => 'Signup',
             'starts_at' => now()->subHour(),
             'ends_at' => $windowEnd,
             'max_activities_per_user' => null,
-            'max_allowed_participants_per_activity' => null,
+            'max_allowed_participants_per_activity' => 2,
             'accumulative_activities' => false,
         ]);
 
-        $winner = User::factory()->create();
-        ActivityWaitlistEntry::query()->create([
-            'activity_id' => $activity->id,
-            'user_id' => $winner->id,
-            'position' => 1,
-        ]);
+        $waitlistUsers = User::factory()->count(3)->create();
+        foreach ($waitlistUsers as $index => $waitlistUser) {
+            ActivityWaitlistEntry::query()->create([
+                'activity_id' => $activity->id,
+                'user_id' => $waitlistUser->id,
+                'position' => $index + 1,
+            ]);
+        }
 
         Carbon::setTestNow($windowEnd->copy()->addMinute());
         $this->artisan('activities:resolve-lotteries')->assertSuccessful();
 
         $activity->refresh();
+        $this->assertNull($activity->lottery_resolved_at);
+        $this->assertSame(2, $activity->participants()->count());
+        Notification::assertSentTimes(WaitlistPromotedNotification::class, 2);
+    }
+
+    public function test_event_two_windows_draw_respects_per_window_caps(): void
+    {
+        Notification::fake();
+
+        [$event, $activity] = $this->createEventLotteryActivity(maxParticipants: 6, lotteryDrawInHours: 72);
+        $windowOneEnd = now()->addHour();
+        $windowTwoEnd = now()->addHours(3);
+
+        $event->enrollmentWindows()->create([
+            'name' => 'Window A',
+            'starts_at' => now()->subHour(),
+            'ends_at' => $windowOneEnd,
+            'max_allowed_participants_per_activity' => 1,
+            'accumulative_activities' => false,
+        ]);
+        $event->enrollmentWindows()->create([
+            'name' => 'Window B',
+            'starts_at' => $windowOneEnd->copy()->addHour(),
+            'ends_at' => $windowTwoEnd,
+            'max_allowed_participants_per_activity' => 2,
+            'accumulative_activities' => false,
+        ]);
+
+        $waitlistUsers = User::factory()->count(5)->create();
+        foreach ($waitlistUsers as $index => $waitlistUser) {
+            ActivityWaitlistEntry::query()->create([
+                'activity_id' => $activity->id,
+                'user_id' => $waitlistUser->id,
+                'position' => $index + 1,
+            ]);
+        }
+
+        Carbon::setTestNow($windowOneEnd->copy()->addMinute());
+        $this->artisan('activities:resolve-lotteries')->assertSuccessful();
+        $this->assertSame(1, ActivityUser::query()->where('activity_id', $activity->id)->count());
+
+        Carbon::setTestNow($windowTwoEnd->copy()->addMinute());
+        $this->artisan('activities:resolve-lotteries')->assertSuccessful();
+        $this->assertSame(3, ActivityUser::query()->where('activity_id', $activity->id)->count());
+        $this->assertNull($activity->fresh()->lottery_resolved_at);
+    }
+
+    public function test_final_draw_fills_remaining_spots_and_resolves_lottery(): void
+    {
+        Notification::fake();
+
+        [$event, $activity] = $this->createEventLotteryActivity(maxParticipants: 4, lotteryDrawInHours: 24);
+        $windowEnd = now()->addDays(2);
+        $event->enrollmentWindows()->create([
+            'name' => 'Late window',
+            'starts_at' => now()->subHour(),
+            'ends_at' => $windowEnd,
+            'max_allowed_participants_per_activity' => 1,
+            'accumulative_activities' => false,
+        ]);
+
+        $waitlistUsers = User::factory()->count(4)->create();
+        foreach ($waitlistUsers as $index => $waitlistUser) {
+            ActivityWaitlistEntry::query()->create([
+                'activity_id' => $activity->id,
+                'user_id' => $waitlistUser->id,
+                'position' => $index + 1,
+            ]);
+        }
+
+        $finalDrawAt = app(ActivityLotteryService::class)->lotteryDrawAt($activity->fresh('slot'));
+        $this->assertNotNull($finalDrawAt);
+
+        Carbon::setTestNow($finalDrawAt->copy()->addMinute());
+        $this->artisan('activities:resolve-lotteries')->assertSuccessful();
+
+        $activity->refresh();
         $this->assertNotNull($activity->lottery_resolved_at);
-        $this->assertTrue(ActivityUser::query()->where('activity_id', $activity->id)->where('user_id', $winner->id)->exists());
-        Notification::assertSentTo($winner, WaitlistPromotedNotification::class);
+        $this->assertSame(4, $activity->participants()->count());
     }
 
     public function test_host_remove_after_lottery_resolved_promotes_random_waitlist_entry(): void
@@ -244,6 +365,7 @@ class ActivityLotteryTest extends TestCase
             'updated_by' => $host->id,
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
             'participation_mode' => ParticipationMode::Lottery,
+            'lottery_draw_in_hours' => 24,
             'cancellation_deadline_in_hours' => 24,
             'max_participants' => $maxParticipants,
             'starts_at' => now()->addDays(3),
@@ -254,7 +376,7 @@ class ActivityLotteryTest extends TestCase
     /**
      * @return array{0: Event, 1: Activity}
      */
-    private function createEventLotteryActivity(?int $maxParticipants = 4): array
+    private function createEventLotteryActivity(?int $maxParticipants = 4, int $lotteryDrawInHours = 12): array
     {
         $owner = User::factory()->create();
         $event = Event::factory()->create([
@@ -271,6 +393,7 @@ class ActivityLotteryTest extends TestCase
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
             'participation_mode' => ParticipationMode::Lottery,
             'max_participants' => $maxParticipants,
+            'lottery_draw_in_hours' => $lotteryDrawInHours,
             'cancellation_deadline_in_hours' => 12,
         ]);
         Slot::factory()->create([

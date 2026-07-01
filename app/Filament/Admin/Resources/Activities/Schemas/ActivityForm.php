@@ -34,6 +34,8 @@ class ActivityForm
                     ->numeric(),
                 TextInput::make('cancellation_deadline_in_hours')
                     ->numeric(),
+                TextInput::make('lottery_draw_in_hours')
+                    ->numeric(),
                 TextInput::make('duration_in_minutes')
                     ->numeric(),
                 Toggle::make('allows_observers')

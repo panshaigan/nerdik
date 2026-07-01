@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\LotteryDrawTrigger;
 use App\Enums\ParticipationMode;
 use App\Models\Activity;
+use App\Models\ActivityLotteryDraw;
 use App\Models\ActivityWaitlistEntry;
+use App\Models\EventEnrollmentWindow;
 use App\Models\User;
 use App\Notifications\WaitlistPromotedNotification;
 use Carbon\Carbon;
@@ -19,25 +22,74 @@ class ActivityLotteryService
     ) {}
 
     /**
-     * When the initial lottery draw should run (earliest applicable trigger).
+     * @return Collection<int, LotteryDrawSchedule>
      */
-    public function resolveAt(Activity $activity): ?Carbon
+    public function scheduledDraws(Activity $activity): Collection
     {
-        $candidates = array_filter([
-            $this->enrollmentWindowEndAt($activity),
-            $this->cancellationDeadlineAt($activity),
-        ]);
-
-        if ($candidates === []) {
-            return null;
+        if (! $activity->isLotteryMode()) {
+            return collect();
         }
 
-        return collect($candidates)->sort()->first();
+        $finalAt = $this->lotteryDrawAt($activity);
+        $windowDraws = $this->enrollmentWindowDrawSchedules($activity);
+
+        if ($windowDraws->isEmpty()) {
+            if ($finalAt === null) {
+                return collect();
+            }
+
+            return collect([
+                new LotteryDrawSchedule($finalAt, LotteryDrawTrigger::Final),
+            ]);
+        }
+
+        $schedules = collect();
+
+        foreach ($windowDraws as $windowSchedule) {
+            if ($finalAt !== null && $windowSchedule->at->equalTo($finalAt)) {
+                continue;
+            }
+
+            $schedules->push($windowSchedule);
+        }
+
+        if ($finalAt !== null) {
+            $schedules->push(new LotteryDrawSchedule($finalAt, LotteryDrawTrigger::Final));
+        }
+
+        return $schedules->sortBy(fn (LotteryDrawSchedule $schedule): int => $schedule->at->timestamp)->values();
     }
 
     public function hasResolvableTrigger(Activity $activity): bool
     {
-        return $this->resolveAt($activity) !== null;
+        return $this->scheduledDraws($activity)->isNotEmpty();
+    }
+
+    /**
+     * @deprecated Use scheduledDraws() for multi-draw scheduling.
+     */
+    public function resolveAt(Activity $activity): ?Carbon
+    {
+        return $this->scheduledDraws($activity)->first()?->at;
+    }
+
+    /**
+     * @return Collection<int, LotteryDrawSchedule>
+     */
+    public function dueDraws(Activity $activity, ?Carbon $now = null): Collection
+    {
+        $now ??= Carbon::now();
+        $activity->loadMissing('lotteryDraws');
+
+        return $this->scheduledDraws($activity)
+            ->filter(function (LotteryDrawSchedule $schedule) use ($activity, $now): bool {
+                if ($schedule->at->gt($now)) {
+                    return false;
+                }
+
+                return ! $this->hasCompletedDraw($activity, $schedule);
+            })
+            ->values();
     }
 
     /**
@@ -45,19 +97,12 @@ class ActivityLotteryService
      */
     public function dueActivities(): Collection
     {
-        $now = Carbon::now();
-
         return Activity::query()
             ->where('participation_mode', ParticipationMode::Lottery->value)
-            ->whereNull('lottery_resolved_at')
             ->whereNull('cancelled_at')
-            ->with(['slot.event.enrollmentWindows', 'waitlist.user', 'participants'])
+            ->with(['slot.event.enrollmentWindows', 'waitlist.user', 'participants', 'lotteryDraws'])
             ->get()
-            ->filter(function (Activity $activity) use ($now): bool {
-                $resolveAt = $this->resolveAt($activity);
-
-                return $resolveAt !== null && $resolveAt->lte($now);
-            })
+            ->filter(fn (Activity $activity): bool => $this->dueDraws($activity)->isNotEmpty())
             ->values();
     }
 
@@ -75,27 +120,55 @@ class ActivityLotteryService
 
     public function resolveActivity(Activity $activity): void
     {
-        if (! $activity->isLotteryMode() || $activity->isLotteryResolved()) {
+        if (! $activity->isLotteryMode()) {
             return;
         }
 
-        DB::transaction(function () use ($activity): void {
+        $ranAny = false;
+
+        DB::transaction(function () use ($activity, &$ranAny): void {
             $fresh = Activity::query()
                 ->whereKey($activity->id)
                 ->lockForUpdate()
-                ->with(['waitlist.user', 'participants'])
+                ->with(['slot.event.enrollmentWindows', 'waitlist.user', 'participants', 'lotteryDraws'])
                 ->first();
 
-            if ($fresh === null || $fresh->isLotteryResolved()) {
+            if ($fresh === null) {
                 return;
             }
 
-            $this->fillOpenSpotsFromWaitlist($fresh, notify: true);
+            foreach ($this->dueDraws($fresh) as $schedule) {
+                if ($this->hasCompletedDraw($fresh, $schedule)) {
+                    continue;
+                }
 
-            $fresh->update(['lottery_resolved_at' => now()]);
+                $this->runDraw($fresh, $schedule);
+                $fresh->load('lotteryDraws');
+                $ranAny = true;
+            }
         });
 
-        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+        if ($ranAny) {
+            ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+        }
+    }
+
+    public function runDraw(Activity $activity, LotteryDrawSchedule $schedule): void
+    {
+        if ($schedule->trigger === LotteryDrawTrigger::Final) {
+            $this->fillOpenSpotsFromWaitlist($activity, notify: true);
+            $activity->update(['lottery_resolved_at' => now()]);
+        } else {
+            $spots = $this->spotsForWindowDraw($activity, $schedule->enrollmentWindow);
+            $this->fillSpotsFromWaitlist($activity, $spots, notify: true);
+        }
+
+        ActivityLotteryDraw::query()->create([
+            'activity_id' => $activity->id,
+            'trigger' => $schedule->trigger,
+            'enrollment_window_id' => $schedule->enrollmentWindowId(),
+            'drawn_at' => now(),
+        ]);
     }
 
     public function promoteRandomEligibleEntry(Activity $activity): ?User
@@ -131,6 +204,68 @@ class ActivityLotteryService
         return $promotedUser;
     }
 
+    public function lotteryDrawAt(Activity $activity): ?Carbon
+    {
+        return $activity->lotteryDrawAt();
+    }
+
+    /**
+     * @return Collection<int, LotteryDrawSchedule>
+     */
+    public function upcomingDraws(Activity $activity, ?Carbon $now = null): Collection
+    {
+        $now ??= Carbon::now();
+        $activity->loadMissing('lotteryDraws');
+
+        return $this->scheduledDraws($activity)
+            ->filter(fn (LotteryDrawSchedule $schedule): bool => $schedule->at->gt($now) && ! $this->hasCompletedDraw($activity, $schedule))
+            ->values();
+    }
+
+    /**
+     * @return list<array{message: string, dataUi: string}>
+     */
+    public function upcomingDrawNotices(Activity $activity, string $dataUiPrefix = 'activity-show'): array
+    {
+        if (! $activity->isLotteryMode()) {
+            return [];
+        }
+
+        $notices = [];
+
+        foreach ($this->upcomingDraws($activity) as $schedule) {
+            $when = format_datetime_in_user_tz($schedule->at);
+
+            if ($schedule->trigger === LotteryDrawTrigger::Final) {
+                $notices[] = [
+                    'message' => __('ui.activities.lottery_draw_final_notice', ['when' => $when]),
+                    'dataUi' => "{$dataUiPrefix}-lottery-draw-final",
+                ];
+
+                continue;
+            }
+
+            $window = $schedule->enrollmentWindow;
+            $max = $window?->maxAllowedParticipantsPerActivityEffective();
+
+            $notices[] = [
+                'message' => $max !== null
+                    ? __('ui.activities.lottery_draw_window_notice', [
+                        'max' => $max,
+                        'window' => $window?->name ?? '',
+                        'when' => $when,
+                    ])
+                    : __('ui.activities.lottery_draw_window_unlimited_notice', [
+                        'window' => $window?->name ?? '',
+                        'when' => $when,
+                    ]),
+                'dataUi' => "{$dataUiPrefix}-lottery-draw-window-".($window?->id ?? 'unknown'),
+            ];
+        }
+
+        return $notices;
+    }
+
     protected function fillOpenSpotsFromWaitlist(Activity $activity, bool $notify): void
     {
         while (! $this->isAtCapacity($activity)) {
@@ -140,6 +275,58 @@ class ActivityLotteryService
                 break;
             }
         }
+    }
+
+    protected function fillSpotsFromWaitlist(Activity $activity, int $spots, bool $notify): void
+    {
+        if ($spots <= 0) {
+            return;
+        }
+
+        $filled = 0;
+
+        while ($filled < $spots && ! $this->isAtCapacity($activity)) {
+            $promoted = $this->pickAndPromoteRandomEntry($activity, $notify);
+
+            if ($promoted === null) {
+                break;
+            }
+
+            $filled++;
+        }
+    }
+
+    protected function spotsForWindowDraw(Activity $activity, ?EventEnrollmentWindow $window): int
+    {
+        $openSpots = $this->openSpots($activity);
+
+        if ($openSpots <= 0) {
+            return 0;
+        }
+
+        if ($window === null) {
+            return $openSpots;
+        }
+
+        $windowCap = $window->maxAllowedParticipantsPerActivityEffective();
+
+        if ($windowCap === null) {
+            return $openSpots;
+        }
+
+        $takenInWindow = $this->signupService->activitySignupCountDuringPeriod($activity, $window);
+        $remainingInWindow = max(0, $windowCap - $takenInWindow);
+
+        return min($openSpots, $remainingInWindow);
+    }
+
+    protected function openSpots(Activity $activity): int
+    {
+        if ($activity->max_participants === null) {
+            return PHP_INT_MAX;
+        }
+
+        return max(0, $activity->max_participants - $activity->participants()->count());
     }
 
     protected function pickAndPromoteRandomEntry(Activity $activity, bool $notify): ?User
@@ -204,32 +391,44 @@ class ActivityLotteryService
         return $activity->participants()->count() >= $activity->max_participants;
     }
 
-    protected function enrollmentWindowEndAt(Activity $activity): ?Carbon
+    /**
+     * @return Collection<int, LotteryDrawSchedule>
+     */
+    protected function enrollmentWindowDrawSchedules(Activity $activity): Collection
     {
         $activity->loadMissing('slot.event.enrollmentWindows');
         $event = $activity->slot?->event;
         if ($event === null) {
-            return null;
+            return collect();
         }
 
-        $windows = $event->enrollmentWindows;
+        $windows = $event->enrollmentWindows->sortBy('ends_at');
+
         if ($windows->isEmpty()) {
-            return null;
+            return collect();
         }
 
-        $latestEnd = $windows->max('ends_at');
-
-        return $latestEnd instanceof Carbon ? $latestEnd->copy() : null;
+        return $windows
+            ->map(fn (EventEnrollmentWindow $window): LotteryDrawSchedule => new LotteryDrawSchedule(
+                $window->ends_at->copy(),
+                LotteryDrawTrigger::EnrollmentWindowEnd,
+                $window,
+            ))
+            ->values();
     }
 
-    protected function cancellationDeadlineAt(Activity $activity): ?Carbon
+    protected function hasCompletedDraw(Activity $activity, LotteryDrawSchedule $schedule): bool
     {
-        $activity->loadMissing('slot');
-        $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
-        if ($activityStart === null || $activity->cancellation_deadline_in_hours === null) {
-            return null;
-        }
+        return $activity->lotteryDraws->contains(function (ActivityLotteryDraw $draw) use ($schedule): bool {
+            if ($draw->trigger !== $schedule->trigger) {
+                return false;
+            }
 
-        return $activityStart->copy()->subHours((int) $activity->cancellation_deadline_in_hours);
+            if ($schedule->trigger === LotteryDrawTrigger::Final) {
+                return true;
+            }
+
+            return (int) $draw->enrollment_window_id === (int) $schedule->enrollmentWindowId();
+        });
     }
 }

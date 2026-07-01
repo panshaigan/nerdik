@@ -82,6 +82,8 @@ class ManageActivityForm extends Component
 
     public ?int $cancellation_deadline_in_hours = null;
 
+    public ?int $lottery_draw_in_hours = null;
+
     public bool $is_host_passive = false;
 
     public string $participation_mode = 'open';
@@ -149,6 +151,7 @@ class ManageActivityForm extends Component
             $this->minimum_age = $activity->minimum_age;
             $this->duration_in_minutes = $activity->duration_in_minutes;
             $this->cancellation_deadline_in_hours = $activity->cancellation_deadline_in_hours;
+            $this->lottery_draw_in_hours = $activity->lottery_draw_in_hours;
             $this->is_host_passive = (bool) $activity->is_host_passive;
             $this->participation_mode = $activity->participationMode()->value;
             $this->allows_observers = (bool) $activity->allows_observers;
@@ -222,11 +225,22 @@ class ManageActivityForm extends Component
             $this->cancellation_deadline_in_hours = 24;
         }
 
+        if ($this->editingActivityId === null && $this->participation_mode === ParticipationMode::Lottery->value && $this->lottery_draw_in_hours === null) {
+            $this->lottery_draw_in_hours = 24;
+        }
+
         $this->resetSelfHostedRoomTrackingFingerprints();
         $this->tab = $this->normalizeFormTab($this->tab);
         $this->hostingModeBeforeChange = $this->hosting_mode;
 
         ManageFormBackUrl::captureFromRequest();
+    }
+
+    public function updatedParticipationMode(string $value): void
+    {
+        if ($value === ParticipationMode::Lottery->value && $this->lottery_draw_in_hours === null) {
+            $this->lottery_draw_in_hours = 24;
+        }
     }
 
     public function updatedTab(string $value): void
@@ -270,7 +284,7 @@ class ManageActivityForm extends Component
 
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
-            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours',
+            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours',
             'participation_mode', 'allows_observers' => 'main-details',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'croppedLogo' => 'image',
@@ -410,6 +424,7 @@ class ManageActivityForm extends Component
         $this->minimum_age = $source->minimum_age;
         $this->duration_in_minutes = $source->duration_in_minutes;
         $this->cancellation_deadline_in_hours = $source->cancellation_deadline_in_hours;
+        $this->lottery_draw_in_hours = $source->lottery_draw_in_hours;
         $this->is_host_passive = (bool) $source->is_host_passive;
         $this->participation_mode = $source->participationMode()->value;
         $this->allows_observers = (bool) $source->allows_observers;
@@ -667,12 +682,12 @@ class ManageActivityForm extends Component
     #[\Override]
     protected function prepareForValidation($attributes)
     {
-        foreach (['min_participants', 'max_participants', 'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours'] as $key) {
+        foreach (['min_participants', 'max_participants', 'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
             if ($this->{$key} === '') {
                 $this->{$key} = null;
             }
         }
-        foreach (['minimum_age', 'cancellation_deadline_in_hours'] as $key) {
+        foreach (['minimum_age', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
             if ($this->{$key} !== null) {
                 $value = (int) $this->{$key};
                 $this->{$key} = $value >= 1 ? $value : null;
@@ -820,6 +835,12 @@ class ManageActivityForm extends Component
             'minimum_age' => ['nullable', 'integer', 'min:0'],
             'duration_in_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
             'cancellation_deadline_in_hours' => ['nullable', 'integer', 'min:1'],
+            'lottery_draw_in_hours' => [
+                Rule::requiredIf(fn (): bool => $this->participation_mode === ParticipationMode::Lottery->value),
+                'nullable',
+                'integer',
+                'min:1',
+            ],
             'participation_mode' => ['required', 'string', Rule::in(ParticipationMode::values())],
             'allows_observers' => ['nullable', 'boolean'],
             'is_host_passive' => ['nullable', 'boolean'],

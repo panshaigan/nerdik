@@ -41,6 +41,13 @@
         ]);
     }
 
+    foreach ($lotteryDrawNotices ?? [] as $lotteryDrawNotice) {
+        $participationNotices->push([
+            'message' => $lotteryDrawNotice['message'],
+            'dataUi' => $lotteryDrawNotice['dataUi'],
+        ]);
+    }
+
     if (($isLotteryResolved ?? false) && $onWaitlist) {
         $participationNotices->push([
             'message' => __('ui.activities.lottery_resolved_waitlist_notice'),

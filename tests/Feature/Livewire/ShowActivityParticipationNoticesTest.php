@@ -146,4 +146,30 @@ class ShowActivityParticipationNoticesTest extends TestCase
         $this->assertStringNotContainsString('data-ui="activity-show-cancellation-deadline"', $html);
         $this->assertStringNotContainsString('data-ui="activity-show-participation-notices"', $html);
     }
+
+    public function test_lottery_draw_notices_are_shown_for_upcoming_draws(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
+
+        $startsAt = Carbon::parse('2026-06-20 18:00:00', 'UTC');
+        $activity = Activity::factory()->lottery()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(3),
+            'lottery_draw_in_hours' => 24,
+        ]);
+
+        $expectedMessage = __('ui.activities.lottery_draw_final_notice', [
+            'when' => format_datetime_in_user_tz($activity->lotteryDrawAt()),
+        ]);
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringContainsString('data-ui="activity-show-lottery-draw-final"', $html);
+        $this->assertStringContainsString($expectedMessage, $html);
+
+        Carbon::setTestNow();
+    }
 }

@@ -11,6 +11,7 @@ class ActivityParticipationViewService
 {
     public function __construct(
         protected EventActivitySignupService $signupService,
+        protected ActivityLotteryService $lotteryService,
     ) {}
 
     /**
@@ -101,6 +102,7 @@ class ActivityParticipationViewService
             activeWindowUserRemaining: $activeWindowUserRemaining,
             isLotteryPending: $activity->isLotteryPending(),
             isLotteryResolved: $activity->isLotteryResolved(),
+            lotteryDrawNotices: $this->lotteryService->upcomingDrawNotices($activity),
         );
     }
 }

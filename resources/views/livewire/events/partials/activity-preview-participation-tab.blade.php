@@ -12,6 +12,9 @@
             'activeWindowRemainingForActivity' => $participation?->activeWindowRemainingForActivity,
             'activeWindowPerActivityMax' => $participation?->activeWindowPerActivityMax,
             'activeWindowUserRemaining' => $participation?->activeWindowUserRemaining,
+            'isLotteryPending' => $participation?->isLotteryPending ?? false,
+            'isLotteryResolved' => $participation?->isLotteryResolved ?? false,
+            'lotteryDrawNotices' => $participation?->lotteryDrawNotices ?? [],
         ])
     </div>
 
