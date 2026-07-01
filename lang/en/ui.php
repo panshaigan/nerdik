@@ -422,6 +422,7 @@ return [
         'duration_in_minutes' => 'Duration (minutes)',
         'cancellation_deadline_in_hours' => 'Cancellation deadline',
         'cancellation_deadline_description' => 'If set, participants cannot cancel on their own during the last configured hours before the activity starts.',
+        'participation_cancellation_deadline_notice' => 'Last day to cancel on your own: :when.',
         'duration_day' => 'day',
         'duration_days' => 'days',
         'duration_hours_short' => 'h',
