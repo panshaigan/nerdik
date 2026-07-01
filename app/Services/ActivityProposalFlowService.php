@@ -69,6 +69,10 @@ class ActivityProposalFlowService
             return;
         }
 
+        if (! $this->decisions->activityMatchesSlotForAccept($activity, $autoSlot)) {
+            return;
+        }
+
         $this->decisions->accept($proposal, $autoSlot->id);
     }
 }

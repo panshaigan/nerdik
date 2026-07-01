@@ -13,7 +13,8 @@ use Illuminate\Validation\ValidationException;
 class ActivityProposalDecisionService
 {
     public function __construct(
-        private readonly ActivityHostingModeService $hostingModes
+        private readonly ActivityHostingModeService $hostingModes,
+        private readonly SlotParticipationConstraintService $participationConstraints,
     ) {}
 
     /**
@@ -57,6 +58,12 @@ class ActivityProposalDecisionService
                     'slot_id' => [__('ui.status.slot_activity_type_or_duration_mismatch')],
                 ]);
             }
+
+            if (! $this->participationConstraints->activityMatchesSlot($proposal->activity, $slot)) {
+                throw ValidationException::withMessages([
+                    'slot_id' => [__('ui.slots.activity_participation_mismatch')],
+                ]);
+            }
         }
 
         $proposal->update([
@@ -65,6 +72,7 @@ class ActivityProposalDecisionService
         ]);
         $slot->update(['activity_id' => $proposal->activity_id]);
         $this->hostingModes->markScheduledOnEvent($proposal->activity);
+        $this->participationConstraints->applyForcedSettingsToActivity($slot, $proposal->activity);
 
         $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
     }
@@ -86,6 +94,11 @@ class ActivityProposalDecisionService
         return $this->hostingModes->detachAcceptedSlot($event, $slot);
     }
 
+    public function activityMatchesSlotForAccept(Activity $activity, Slot $slot): bool
+    {
+        return $this->participationConstraints->activityMatchesSlot($activity, $slot);
+    }
+
     /**
      * Random preferred fitting slot, else random fitting free slot.
      */
@@ -98,7 +111,8 @@ class ActivityProposalDecisionService
             ->whereNull('activity_id')
             ->with('activityTypes')
             ->get()
-            ->filter(fn (Slot $s) => $s->fitsProposalActivity($activity));
+            ->filter(fn (Slot $s) => $s->fitsProposalActivity($activity))
+            ->filter(fn (Slot $s) => $this->participationConstraints->activityMatchesSlot($activity, $s));
 
         if ($preferred->isNotEmpty()) {
             return $preferred->random();
@@ -109,7 +123,8 @@ class ActivityProposalDecisionService
             ->whereNull('activity_id')
             ->with('activityTypes')
             ->get()
-            ->filter(fn (Slot $s) => $s->fitsProposalActivity($activity));
+            ->filter(fn (Slot $s) => $s->fitsProposalActivity($activity))
+            ->filter(fn (Slot $s) => $this->participationConstraints->activityMatchesSlot($activity, $s));
 
         if ($candidates->isEmpty()) {
             return null;

@@ -211,17 +211,31 @@
         </div>
 
         <div class="ui-tile-empty min-w-0 rounded-2xl space-y-6 p-4 sm:p-6">
-            <x-radio
-                wire:model.live="participation_mode"
-                :label="__('ui.activities.participation_mode')"
-                :options="[
+            @php
+                $allParticipationOptions = [
                     ['id' => 'open', 'name' => __('ui.activities.participation_mode_open'), 'hint' => __('ui.activities.participation_mode_open_hint')],
                     ['id' => 'host_approval', 'name' => __('ui.activities.participation_mode_host_approval'), 'hint' => __('ui.activities.participation_mode_host_approval_hint')],
                     ['id' => 'lottery', 'name' => __('ui.activities.participation_mode_lottery'), 'hint' => __('ui.activities.participation_mode_lottery_hint')],
-                ]"
+                ];
+                $participationOptions = ($participationConstrainedBySlots ?? false)
+                    ? array_values(array_filter(
+                        $allParticipationOptions,
+                        fn (array $option): bool => in_array($option['id'], $allowedParticipationModes ?? [], true),
+                    ))
+                    : $allParticipationOptions;
+            @endphp
+            <x-radio
+                wire:model.live="participation_mode"
+                :label="__('ui.activities.participation_mode')"
+                :options="$participationOptions"
                 error-field="participation_mode"
                 class="mb-3"
+                :disabled="$participationConstrainedBySlots && count($participationOptions) === 1"
             />
+
+            @if ($participationConstrainedBySlots ?? false)
+                <p class="text-sm text-base-content/60">{{ __('ui.slots.participation_constrained_by_preferred_slots') }}</p>
+            @endif
 
             @if ($participation_mode === 'lottery')
                 <div
@@ -296,6 +310,7 @@
                         max="48"
                         step="1"
                         class="range-xs w-full"
+                        @disabled($lotteryDrawHoursLockedBySlots ?? false)
                     />
                     <x-field-error :messages="$errors->get('lottery_draw_in_hours')" class="mt-1" />
                 </div>
@@ -307,6 +322,7 @@
                 :label="__('ui.activities.allows_observers_badge')"
                 wire:model="allows_observers"
                 :hint="__('ui.activities.allows_observers')"
+                :disabled="$allowsObserversLockedBySlots ?? false"
             />
         </div>
     </div>

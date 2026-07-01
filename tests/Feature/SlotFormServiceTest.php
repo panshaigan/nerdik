@@ -22,7 +22,7 @@ class SlotFormServiceTest extends TestCase
 
     private function makeService(): SlotFormService
     {
-        return new SlotFormService;
+        return app(SlotFormService::class);
     }
 
     #[Test]
@@ -191,5 +191,72 @@ class SlotFormServiceTest extends TestCase
 
         $this->assertSame($existingRoom->id, $resolvedPlaceId);
         $this->assertSame(1, Place::query()->where('type', 'room')->where('parent_id', $venue->id)->count());
+    }
+
+    #[Test]
+    public function perform_mass_create_persists_forced_participation_settings(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $event = Event::create([
+            'name' => 'Participation Event',
+            'slug' => 'participation-event',
+            'created_by' => $user->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'is_public' => true,
+        ]);
+
+        $request = Request::create('/slots/mass', 'POST', [
+            'event_id' => $event->id,
+            'base_name' => 'Table',
+            'count' => 1,
+            'requires_approval' => 0,
+            'forces_participation_settings' => 1,
+            'participation_mode' => 'host_approval',
+            'allows_observers' => 1,
+        ]);
+
+        $this->makeService()->performMassCreate($request);
+
+        $slot = Slot::query()->where('event_id', $event->id)->firstOrFail();
+        $this->assertTrue($slot->forces_participation_settings);
+        $this->assertSame('host_approval', $slot->participation_mode?->value);
+        $this->assertTrue($slot->allows_observers);
+        $this->assertNull($slot->lottery_draw_in_hours);
+    }
+
+    #[Test]
+    public function perform_mass_create_clears_participation_when_not_forcing(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $event = Event::create([
+            'name' => 'No Force Event',
+            'slug' => 'no-force-event',
+            'created_by' => $user->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'is_public' => true,
+        ]);
+
+        $request = Request::create('/slots/mass', 'POST', [
+            'event_id' => $event->id,
+            'base_name' => 'Table',
+            'count' => 1,
+            'requires_approval' => 0,
+            'forces_participation_settings' => 0,
+            'participation_mode' => 'lottery',
+            'lottery_draw_in_hours' => 12,
+        ]);
+
+        $this->makeService()->performMassCreate($request);
+
+        $slot = Slot::query()->where('event_id', $event->id)->firstOrFail();
+        $this->assertFalse($slot->forces_participation_settings);
+        $this->assertNull($slot->participation_mode);
+        $this->assertNull($slot->lottery_draw_in_hours);
     }
 }

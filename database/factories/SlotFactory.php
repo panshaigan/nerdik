@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\ParticipationMode;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
@@ -78,5 +79,20 @@ final class SlotFactory extends Factory
         return $this->sequence(
             fn (Sequence $sequence) => ['name' => 'Stół '.$sequence->index],
         );
+    }
+
+    public function forcesParticipation(
+        ParticipationMode $mode = ParticipationMode::HostApproval,
+        ?int $lotteryDrawInHours = null,
+        bool $allowsObservers = false,
+    ): self {
+        return $this->state(fn (): array => [
+            'forces_participation_settings' => true,
+            'participation_mode' => $mode,
+            'lottery_draw_in_hours' => $mode === ParticipationMode::Lottery
+                ? ($lotteryDrawInHours ?? 24)
+                : null,
+            'allows_observers' => $allowsObservers,
+        ]);
     }
 }
