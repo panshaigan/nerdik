@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Slots\Schemas;
 
 use App\Enums\ParticipationMode;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -17,13 +18,10 @@ class SlotForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Select::make('event_id')
-                    ->relationship('event', 'name')
+                BelongsToSelect::make('event_id', 'event')
                     ->required(),
-                Select::make('activity_id')
-                    ->relationship('activity', 'name'),
-                Select::make('place_id')
-                    ->relationship('place', 'name'),
+                BelongsToSelect::make('activity_id', 'activity'),
+                BelongsToSelect::make('place_id', 'place'),
                 Toggle::make('requires_approval')
                     ->required(),
                 Toggle::make('forces_participation_settings'),
@@ -36,12 +34,9 @@ class SlotForm
                     ->numeric(),
                 DateTimePicker::make('starts_at'),
                 DateTimePicker::make('ends_at'),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
             ]);
     }
 }

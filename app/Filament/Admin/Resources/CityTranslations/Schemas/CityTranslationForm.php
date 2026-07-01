@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CityTranslations\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -12,8 +12,7 @@ class CityTranslationForm
     {
         return $schema
             ->components([
-                Select::make('city_id')
-                    ->relationship('city', 'id')
+                BelongsToSelect::city('city_id')
                     ->required(),
                 TextInput::make('locale')
                     ->required(),

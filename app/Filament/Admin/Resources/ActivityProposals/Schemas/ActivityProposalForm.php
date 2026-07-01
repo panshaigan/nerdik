@@ -3,9 +3,9 @@
 namespace App\Filament\Admin\Resources\ActivityProposals\Schemas;
 
 use App\Enums\ActivityProposalStatus;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class ActivityProposalForm
@@ -14,26 +14,20 @@ class ActivityProposalForm
     {
         return $schema
             ->components([
-                Select::make('activity_id')
-                    ->relationship('activity', 'name')
+                BelongsToSelect::make('activity_id', 'activity')
                     ->required(),
-                Select::make('event_id')
-                    ->relationship('event', 'name')
+                BelongsToSelect::make('event_id', 'event')
                     ->required(),
-                Select::make('accepted_slot_id')
-                    ->relationship('acceptedSlot', 'name'),
+                BelongsToSelect::make('accepted_slot_id', 'acceptedSlot'),
                 Select::make('status')
                     ->options(ActivityProposalStatus::class)
                     ->default('pending')
                     ->required(),
                 DateTimePicker::make('preferred_start_time'),
-                TextInput::make('created_by')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('created_by')
+                    ->required(),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
             ]);
     }
 }

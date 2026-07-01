@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Organizations\Schemas;
 
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -21,12 +22,9 @@ class OrganizationForm
                     ->maxLength(5),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
             ]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagRelations\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Schemas\Schema;
 
 class TagRelationForm
@@ -11,11 +11,9 @@ class TagRelationForm
     {
         return $schema
             ->components([
-                Select::make('tag_id')
-                    ->relationship('tag', 'id')
+                BelongsToSelect::tag('tag_id')
                     ->required(),
-                Select::make('related_tag_id')
-                    ->relationship('relatedTag', 'id')
+                BelongsToSelect::tag('related_tag_id', 'relatedTag')
                     ->required(),
             ]);
     }

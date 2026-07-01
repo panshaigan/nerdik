@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityTypeSlots\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Schemas\Schema;
 
 class ActivityTypeSlotForm
@@ -11,11 +11,9 @@ class ActivityTypeSlotForm
     {
         return $schema
             ->components([
-                Select::make('slot_id')
-                    ->relationship('slot', 'name')
+                BelongsToSelect::make('slot_id', 'slot')
                     ->required(),
-                Select::make('activity_type_id')
-                    ->relationship('activityType', 'id'),
+                BelongsToSelect::activityType('activity_type_id'),
             ]);
     }
 }

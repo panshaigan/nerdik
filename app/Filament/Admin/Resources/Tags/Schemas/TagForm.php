@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Tags\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -14,8 +14,7 @@ class TagForm
     {
         return $schema
             ->components([
-                Select::make('tag_category_id')
-                    ->relationship('tagCategory', 'id'),
+                BelongsToSelect::tagCategory('tag_category_id', 'tagCategory'),
                 Section::make('Images')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('images')
@@ -33,12 +32,9 @@ class TagForm
                     ->required()
                     ->numeric()
                     ->default(0),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
             ]);
     }
 }

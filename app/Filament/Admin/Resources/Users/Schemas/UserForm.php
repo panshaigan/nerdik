@@ -2,8 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Users\Schemas;
 
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -24,8 +24,7 @@ class UserForm
                 TextInput::make('password')
                     ->password()
                     ->required(),
-                Select::make('organization_id')
-                    ->relationship('organization', 'name'),
+                BelongsToSelect::make('organization_id', 'organization'),
                 Toggle::make('is_admin')
                     ->required(),
                 Toggle::make('is_event_organizer')
