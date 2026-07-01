@@ -330,6 +330,7 @@ class ShowActivity extends Component
             'activeWindowUserRemaining' => $vm->activeWindowUserRemaining,
             'isLotteryPending' => $vm->isLotteryPending,
             'isLotteryResolved' => $vm->isLotteryResolved,
+            'lotteryDrawNotices' => $vm->lotteryDrawNotices,
         ]);
     }
 

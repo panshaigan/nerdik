@@ -22,6 +22,7 @@
             'activeWindowUserRemaining' => $activeWindowUserRemaining ?? null,
             'isLotteryPending' => $isLotteryPending ?? false,
             'isLotteryResolved' => $isLotteryResolved ?? false,
+            'lotteryDrawNotices' => $lotteryDrawNotices ?? [],
         ])
     </div>
     <div class="grid gap-8 md:grid-cols-2 md:gap-6" data-ui="activity-show-participation-columns">

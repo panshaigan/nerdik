@@ -130,6 +130,7 @@ final class ActivityFactory extends Factory
     {
         return $this->state([
             'participation_mode' => ParticipationMode::Lottery,
+            'lottery_draw_in_hours' => 24,
             'cancellation_deadline_in_hours' => 24,
         ]);
     }

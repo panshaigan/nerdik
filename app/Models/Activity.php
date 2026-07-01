@@ -60,6 +60,7 @@ class Activity extends Model implements HasMedia
         'participation_mode',
         'lottery_resolved_at',
         'cancellation_deadline_in_hours',
+        'lottery_draw_in_hours',
         'logo_path',
         'logo_source',
         'tag_media_id',
@@ -109,6 +110,11 @@ class Activity extends Model implements HasMedia
     public function waitlist(): HasMany
     {
         return $this->hasMany(ActivityWaitlistEntry::class)->orderBy('position');
+    }
+
+    public function lotteryDraws(): HasMany
+    {
+        return $this->hasMany(ActivityLotteryDraw::class);
     }
 
     public function tags(): MorphToMany
@@ -189,6 +195,21 @@ class Activity extends Model implements HasMedia
         }
 
         return $activityStart->copy()->subHours((int) $this->cancellation_deadline_in_hours);
+    }
+
+    public function lotteryDrawAt(): ?Carbon
+    {
+        if ($this->lottery_draw_in_hours === null) {
+            return null;
+        }
+
+        $this->loadMissing('slot');
+        $activityStart = $this->slot?->starts_at ?? $this->starts_at;
+        if ($activityStart === null) {
+            return null;
+        }
+
+        return $activityStart->copy()->subHours((int) $this->lottery_draw_in_hours);
     }
 
     public function isJoinableMode(): bool

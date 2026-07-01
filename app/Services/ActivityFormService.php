@@ -10,6 +10,7 @@ use App\Enums\ParticipationMode;
 use App\Jobs\RecalculateTagPopularityJob;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
+use App\Models\ActivityLotteryDraw;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
@@ -62,7 +63,9 @@ class ActivityFormService
         if ($form->editingActivityId !== null) {
             $activity = Activity::query()->findOrFail($form->editingActivityId);
             $activity->loadMissing('slot.activityTypes');
-            if ($activity->participation_mode !== $validated['participation_mode']) {
+            $participationModeChanged = $activity->participation_mode !== $validated['participation_mode'];
+            $lotteryDrawHoursChanged = (int) ($activity->lottery_draw_in_hours ?? 0) !== (int) ($validated['lottery_draw_in_hours'] ?? 0);
+            if ($participationModeChanged || $lotteryDrawHoursChanged) {
                 $payload['lottery_resolved_at'] = null;
             }
             $slot = $activity->slot;
@@ -77,6 +80,9 @@ class ActivityFormService
                 }
             }
             $activity->update($payload);
+            if ($participationModeChanged || $lotteryDrawHoursChanged) {
+                ActivityLotteryDraw::query()->where('activity_id', $activity->id)->delete();
+            }
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
             $this->syncActivityTags($activity, $tagIds);

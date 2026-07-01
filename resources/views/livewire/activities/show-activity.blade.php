@@ -224,6 +224,7 @@
                         'activeWindowUserRemaining' => $activeWindowUserRemaining,
                         'isLotteryPending' => $isLotteryPending,
                         'isLotteryResolved' => $isLotteryResolved,
+                        'lotteryDrawNotices' => $lotteryDrawNotices ?? [],
                     ])
                 </x-tab>
             </x-ui.tabs-with-toolbar>
