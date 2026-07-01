@@ -463,6 +463,7 @@ return [
             'draft' => 'Jeszcze nie wiem',
             'self_hosted' => 'Poprowadzę samodzielnie',
             'proposed_to_event' => 'Poprowadzę na wydarzeniu',
+            'scheduled_on_event' => 'Zaplanowana na wydarzeniu',
         ],
         'hosting_mode_locked_scheduled' => 'Ta aktywność jest już zaplanowana na wydarzeniu :event. Nie można tu zmienić trybu prowadzenia.',
         'self_hosted_starts_at' => 'Start aktywności samodzielnej',

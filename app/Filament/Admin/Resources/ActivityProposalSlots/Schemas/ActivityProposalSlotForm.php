@@ -13,7 +13,7 @@ class ActivityProposalSlotForm
             ->components([
                 BelongsToSelect::activityProposal('activity_proposal_id')
                     ->required(),
-                BelongsToSelect::make('slot_id', 'slot')
+                BelongsToSelect::slot()
                     ->required(),
             ]);
     }

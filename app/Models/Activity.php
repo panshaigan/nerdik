@@ -177,6 +177,22 @@ class Activity extends Model implements HasMedia
         ];
     }
 
+    /** @return array<int, string> */
+    public static function hostingModeOptions(): array
+    {
+        return [
+            self::HOSTING_MODE_DRAFT => __('ui.activities.hosting_modes.draft'),
+            self::HOSTING_MODE_SELF_HOSTED => __('ui.activities.hosting_modes.self_hosted'),
+            self::HOSTING_MODE_PROPOSED_TO_EVENT => __('ui.activities.hosting_modes.proposed_to_event'),
+            self::HOSTING_MODE_SCHEDULED_ON_EVENT => __('ui.activities.hosting_modes.scheduled_on_event'),
+        ];
+    }
+
+    public static function hostingModeLabel(int $mode): string
+    {
+        return self::hostingModeOptions()[$mode] ?? (string) $mode;
+    }
+
     public function isCancelled(): bool
     {
         return $this->cancelled_at !== null;

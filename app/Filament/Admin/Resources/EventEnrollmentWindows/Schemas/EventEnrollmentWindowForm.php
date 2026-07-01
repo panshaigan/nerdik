@@ -16,7 +16,7 @@ class EventEnrollmentWindowForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                BelongsToSelect::make('event_id', 'event')
+                BelongsToSelect::event()
                     ->required(),
                 TextInput::make('max_activities_per_user')
                     ->numeric(),

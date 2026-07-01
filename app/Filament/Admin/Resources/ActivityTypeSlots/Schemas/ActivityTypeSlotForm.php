@@ -11,7 +11,7 @@ class ActivityTypeSlotForm
     {
         return $schema
             ->components([
-                BelongsToSelect::make('slot_id', 'slot')
+                BelongsToSelect::slot()
                     ->required(),
                 BelongsToSelect::activityType('activity_type_id'),
             ]);

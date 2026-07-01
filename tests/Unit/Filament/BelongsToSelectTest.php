@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Tests\Unit\Filament;
 
 use App\Filament\Forms\Components\BelongsToSelect;
+use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Event;
+use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\User;
@@ -27,6 +31,16 @@ final class BelongsToSelectTest extends TestCase
         parent::setUp();
 
         $this->seed(ActivityTypeSeeder::class);
+    }
+
+    #[Test]
+    public function place_preset_is_searchable_and_preloads_initial_suggestions(): void
+    {
+        $select = BelongsToSelect::place();
+
+        $this->assertTrue($select->isSearchable());
+        $this->assertTrue($select->isPreloaded());
+        $this->assertSame(20, $select->getOptionsLimit());
     }
 
     #[Test]
@@ -146,5 +160,67 @@ final class BelongsToSelectTest extends TestCase
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
 
         $this->assertSame(ActivityType::SLUG_RPG, FilamentRecordLabel::for($activityType));
+    }
+
+    #[Test]
+    public function filament_record_label_resolves_room_place_with_venue_prefix(): void
+    {
+        $venue = Place::factory()->venue()->create(['name' => 'Grand Hall']);
+        $room = Place::factory()->room($venue)->create(['name' => 'Room A']);
+
+        $this->assertSame('Grand Hall · Room A', FilamentRecordLabel::for($room));
+    }
+
+    #[Test]
+    public function filament_record_label_resolves_event_with_start_date(): void
+    {
+        $event = Event::factory()->create([
+            'name' => 'Summer Con',
+            'starts_at' => '2026-07-15 14:00:00',
+        ]);
+
+        $label = FilamentRecordLabel::for($event);
+
+        $this->assertStringContainsString('Summer Con', $label);
+        $this->assertStringContainsString('2026-07-15', $label);
+    }
+
+    #[Test]
+    public function filament_record_label_resolves_activity_with_start_date(): void
+    {
+        $activity = Activity::factory()->create([
+            'name' => 'D&D Session',
+            'starts_at' => '2026-08-01 18:30:00',
+        ]);
+
+        $label = FilamentRecordLabel::for($activity);
+
+        $this->assertStringContainsString('D&D Session', $label);
+        $this->assertStringContainsString('2026-08-01', $label);
+    }
+
+    #[Test]
+    public function filament_record_label_resolves_slot_with_event_name(): void
+    {
+        $event = Event::factory()->create(['name' => 'My Event']);
+        $slot = Slot::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Table 1',
+        ]);
+
+        $this->assertSame('My Event — Table 1', FilamentRecordLabel::for($slot));
+    }
+
+    #[Test]
+    public function activity_hosting_mode_label_uses_translation(): void
+    {
+        $this->assertSame(
+            __('ui.activities.hosting_modes.draft'),
+            Activity::hostingModeLabel(Activity::HOSTING_MODE_DRAFT),
+        );
+        $this->assertSame(
+            __('ui.activities.hosting_modes.scheduled_on_event'),
+            Activity::hostingModeLabel(Activity::HOSTING_MODE_SCHEDULED_ON_EVENT),
+        );
     }
 }

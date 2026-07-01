@@ -12,7 +12,7 @@ class ActivityWaitlistEntryForm
     {
         return $schema
             ->components([
-                BelongsToSelect::make('activity_id', 'activity')
+                BelongsToSelect::activity()
                     ->required(),
                 BelongsToSelect::user('user_id')
                     ->required(),
