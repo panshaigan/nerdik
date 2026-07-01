@@ -327,6 +327,27 @@
             black 30%
         );
         mask-size: 100% 100%;
+
+        @variant light {
+            -webkit-mask-image: linear-gradient(
+                to top,
+                transparent 0%,
+                rgb(0 0 0 / 0.10) 4%,
+                rgb(0 0 0 / 0.26) 8%,
+                rgb(0 0 0 / 0.48) 12%,
+                rgb(0 0 0 / 0.72) 15%,
+                black 18%
+            );
+            mask-image: linear-gradient(
+                to top,
+                transparent 0%,
+                rgb(0 0 0 / 0.10) 4%,
+                rgb(0 0 0 / 0.26) 8%,
+                rgb(0 0 0 / 0.48) 12%,
+                rgb(0 0 0 / 0.72) 15%,
+                black 18%
+            );
+        }
     }
 
     .ui-tile-active {
