@@ -322,14 +322,14 @@
                                         </div>
                                     </div>
                                     @if ($activity)
-                                        <div @class(['relative z-[2] mt-2', 'pointer-events-none' => $activity])>
+                                        <div @class(['relative z-[2] mt-4', 'pointer-events-none' => $activity])>
                                             <x-ui.activity-badge-group
                                                 :items="$slotBadgeItems"
                                                 data-ui="event-show-slot-badge-group"
                                             />
                                         </div>
                                     @elseif (! empty($slotTypeBadgeItems))
-                                        <div class="relative z-[2] mt-2">
+                                        <div class="relative z-[2] mt-4">
                                             <x-ui.activity-badge-group
                                                 :items="$slotTypeBadgeItems"
                                                 data-ui="event-show-slot-type-badges"
