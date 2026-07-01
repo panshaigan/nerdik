@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityWaitlistEntries\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -12,11 +12,9 @@ class ActivityWaitlistEntryForm
     {
         return $schema
             ->components([
-                Select::make('activity_id')
-                    ->relationship('activity', 'name')
+                BelongsToSelect::make('activity_id', 'activity')
                     ->required(),
-                Select::make('user_id')
-                    ->relationship('user', 'name')
+                BelongsToSelect::user('user_id')
                     ->required(),
                 TextInput::make('position')
                     ->numeric(),

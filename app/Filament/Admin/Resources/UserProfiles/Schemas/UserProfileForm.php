@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\UserProfiles\Schemas;
 
 use App\Enums\AvatarSource;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -14,8 +15,7 @@ class UserProfileForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
+                BelongsToSelect::user('user_id')
                     ->required(),
                 TextInput::make('google_id'),
                 TextInput::make('facebook_id'),

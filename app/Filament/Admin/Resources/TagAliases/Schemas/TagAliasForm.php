@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagAliases\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -12,8 +12,7 @@ class TagAliasForm
     {
         return $schema
             ->components([
-                Select::make('tag_id')
-                    ->relationship('tag', 'id')
+                BelongsToSelect::tag('tag_id')
                     ->required(),
                 TextInput::make('locale'),
                 TextInput::make('alias')

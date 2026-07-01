@@ -2,8 +2,8 @@
 
 namespace App\Filament\Admin\Resources\Events\Schemas;
 
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -16,8 +16,7 @@ class EventForm
         return $schema
             ->components([
                 TextInput::make('name'),
-                Select::make('organization_id')
-                    ->relationship('organization', 'name'),
+                BelongsToSelect::make('organization_id', 'organization'),
                 Toggle::make('is_public')
                     ->required(),
                 TextInput::make('logo_path'),
@@ -32,14 +31,10 @@ class EventForm
                 Textarea::make('cancel_reason')
                     ->columnSpanFull(),
                 DateTimePicker::make('cancelled_at'),
-                TextInput::make('cancelled_by')
-                    ->numeric(),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('cancelled_by', 'canceller'),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
                 TextInput::make('search_vector'),
             ]);
     }

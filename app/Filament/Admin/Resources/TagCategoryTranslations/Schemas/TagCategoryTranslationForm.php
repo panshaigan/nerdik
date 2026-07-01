@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagCategoryTranslations\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -12,8 +12,7 @@ class TagCategoryTranslationForm
     {
         return $schema
             ->components([
-                Select::make('tag_category_id')
-                    ->relationship('category', 'key')
+                BelongsToSelect::tagCategory('tag_category_id')
                     ->required(),
                 TextInput::make('locale')
                     ->required(),

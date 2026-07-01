@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityProposalSlots\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Schemas\Schema;
 
 class ActivityProposalSlotForm
@@ -11,11 +11,9 @@ class ActivityProposalSlotForm
     {
         return $schema
             ->components([
-                Select::make('activity_proposal_id')
-                    ->relationship('proposal', 'id')
+                BelongsToSelect::activityProposal('activity_proposal_id')
                     ->required(),
-                Select::make('slot_id')
-                    ->relationship('slot', 'name')
+                BelongsToSelect::make('slot_id', 'slot')
                     ->required(),
             ]);
     }

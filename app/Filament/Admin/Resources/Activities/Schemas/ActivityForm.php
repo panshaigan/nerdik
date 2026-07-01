@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Activities\Schemas;
 
 use App\Enums\ParticipationMode;
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,14 +19,12 @@ class ActivityForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Select::make('activity_type_id')
-                    ->relationship('activityType', 'id'),
+                BelongsToSelect::activityType('activity_type_id'),
                 TextInput::make('hosting_mode')
                     ->required()
                     ->numeric()
                     ->default(1),
-                Select::make('place_id')
-                    ->relationship('place', 'name'),
+                BelongsToSelect::make('place_id', 'place'),
                 TextInput::make('min_participants')
                     ->numeric(),
                 TextInput::make('max_participants')
@@ -57,17 +56,12 @@ class ActivityForm
                     ->columnSpanFull(),
                 DateTimePicker::make('starts_at'),
                 DateTimePicker::make('ends_at'),
-                Select::make('cancelled_with_event_id')
-                    ->relationship('cancelledWithEvent', 'name'),
+                BelongsToSelect::make('cancelled_with_event_id', 'cancelledWithEvent'),
                 DateTimePicker::make('cancelled_at'),
-                TextInput::make('cancelled_by')
-                    ->numeric(),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
-                TextInput::make('deleted_by')
-                    ->numeric(),
+                BelongsToSelect::user('cancelled_by', 'canceller'),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
+                BelongsToSelect::user('deleted_by'),
                 TextInput::make('search_vector'),
             ]);
     }

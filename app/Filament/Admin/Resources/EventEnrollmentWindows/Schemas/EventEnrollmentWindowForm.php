@@ -2,8 +2,8 @@
 
 namespace App\Filament\Admin\Resources\EventEnrollmentWindows\Schemas;
 
+use App\Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -16,8 +16,7 @@ class EventEnrollmentWindowForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                Select::make('event_id')
-                    ->relationship('event', 'name')
+                BelongsToSelect::make('event_id', 'event')
                     ->required(),
                 TextInput::make('max_activities_per_user')
                     ->numeric(),
@@ -29,10 +28,8 @@ class EventEnrollmentWindowForm
                     ->required(),
                 DateTimePicker::make('ends_at')
                     ->required(),
-                TextInput::make('created_by')
-                    ->numeric(),
-                TextInput::make('updated_by')
-                    ->numeric(),
+                BelongsToSelect::user('created_by'),
+                BelongsToSelect::user('updated_by'),
             ]);
     }
 }

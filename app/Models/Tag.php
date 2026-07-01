@@ -123,6 +123,24 @@ class Tag extends Model implements HasMedia
         return $this->tagCategory()->value('key');
     }
 
+    public function displayLabel(?string $locale = null): string
+    {
+        $locale = $locale ?? app()->getLocale();
+        $this->loadMissing('translations');
+
+        $translation = $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', 'en')
+            ?? $this->translations->first();
+
+        $label = trim((string) ($translation?->label ?? ''));
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        return '#'.$this->getKey();
+    }
+
     protected static function booted(): void
     {
         static::forceDeleting(function (Tag $tag): void {
