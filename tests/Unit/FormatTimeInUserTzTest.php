@@ -54,6 +54,22 @@ class FormatTimeInUserTzTest extends TestCase
         $this->assertSame('04:30 PM', format_time_in_user_tz(Carbon::parse('2026-07-01 14:30:00', 'UTC')));
     }
 
+    public function test_format_in_user_tz_applies_twelve_hour_to_display_formats_with_seconds(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'Europe/Warsaw',
+            'time_display_format' => TimeDisplayFormat::TwelveHour,
+        ]);
+
+        $this->actingAs($user);
+
+        $this->assertSame(
+            'Jul 1, 2026 04:30:00 PM',
+            format_in_user_tz(Carbon::parse('2026-07-01 14:30:00', 'UTC'), 'M j, Y H:i:s'),
+        );
+    }
+
     public function test_format_in_user_tz_applies_twelve_hour_to_display_formats(): void
     {
         $user = User::factory()->create();
