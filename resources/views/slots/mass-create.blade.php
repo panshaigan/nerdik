@@ -97,7 +97,21 @@
         @endif
     @endif
 
-    <div class="space-y-4">
+    @if ($embeddedInModal)
+        <x-ui.tabs-with-toolbar
+            selected="details"
+            label-div-class="flex gap-5 overflow-x-auto px-1 pt-1"
+            label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+            active-class="!text-base-content border-b border-primary text-primary"
+            tabs-class="w-full"
+            toolbar-wrapper-class="hidden"
+            data-ui="slot-mass-form-tabs"
+        >
+            <x-tab name="details" :label="__('ui.slots.tab_details')" class="!p-0 pt-2" data-ui="slot-mass-form-tab-details" icon="o-calendar-days">
+                <div class="space-y-4">
+    @else
+        <div class="space-y-4">
+    @endif
         @if ($embeddedInModal)
             <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <h3
@@ -390,7 +404,21 @@
         @if ($lockedEvent)
             <script type="application/json" data-slot-mass-rooms-locked>@json($slotMassRoomsByVenueId)</script>
         @endif
+    @if ($embeddedInModal)
+                </div>
+            </x-tab>
+
+            <x-tab name="participation" :label="__('ui.slots.tab_participation')" class="!p-0 pt-2" data-ui="slot-mass-form-tab-participation" icon="o-users">
+                @include('slots.partials.participation-settings-tab', [
+                    'editMode' => $editMode,
+                    'slot' => $slot,
+                    'fieldIdPrefix' => $editMode ? 'slot_participation_edit' : 'slot_participation_create',
+                ])
+            </x-tab>
+        </x-ui.tabs-with-toolbar>
+    @else
     </div>
+    @endif
 
     <div class="mt-6 flex justify-end gap-3">
         @if ($embeddedInModal)

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ParticipationMode;
 use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
@@ -16,6 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class SlotFormService
 {
+    public function __construct(
+        private readonly SlotParticipationConstraintService $participationConstraints,
+    ) {}
+
     private const MASS_CREATE_COUNT_MIN = 1;
 
     private const MASS_CREATE_COUNT_MAX = 100;
@@ -269,6 +274,7 @@ class SlotFormService
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => $this->activityTypeItemRules(),
+            ...$this->participationValidationRules(),
         ];
     }
 
@@ -288,6 +294,64 @@ class SlotFormService
             'max_capacity' => ['nullable', 'integer', 'min:'.self::SLOT_MAX_CAPACITY_MIN],
             'activity_types' => ['nullable', 'array'],
             'activity_types.*' => $this->activityTypeItemRules(),
+            ...$this->participationValidationRules(),
+        ];
+    }
+
+    /**
+     * @return array<string, list<mixed>>
+     */
+    protected function participationValidationRules(): array
+    {
+        return [
+            'forces_participation_settings' => ['nullable', 'boolean'],
+            'participation_mode' => [
+                Rule::requiredIf(fn (): bool => request()->boolean('forces_participation_settings')),
+                'nullable',
+                'string',
+                Rule::in(ParticipationMode::values()),
+            ],
+            'lottery_draw_in_hours' => [
+                Rule::requiredIf(fn (): bool => request()->boolean('forces_participation_settings')
+                    && request()->input('participation_mode') === ParticipationMode::Lottery->value),
+                'nullable',
+                'integer',
+                'min:1',
+                'max:48',
+            ],
+            'allows_observers' => ['nullable', 'boolean'],
+        ];
+    }
+
+    /**
+     * @return array{
+     *     forces_participation_settings: bool,
+     *     participation_mode: ?ParticipationMode,
+     *     lottery_draw_in_hours: ?int,
+     *     allows_observers: ?bool,
+     * }
+     */
+    protected function normalizeParticipationPayload(Request $request): array
+    {
+        if (! $request->boolean('forces_participation_settings')) {
+            return [
+                'forces_participation_settings' => false,
+                'participation_mode' => null,
+                'lottery_draw_in_hours' => null,
+                'allows_observers' => null,
+            ];
+        }
+
+        $mode = ParticipationMode::tryFrom((string) $request->input('participation_mode'))
+            ?? ParticipationMode::Open;
+
+        return [
+            'forces_participation_settings' => true,
+            'participation_mode' => $mode,
+            'lottery_draw_in_hours' => $mode === ParticipationMode::Lottery
+                ? (int) $request->input('lottery_draw_in_hours', 24)
+                : null,
+            'allows_observers' => $request->boolean('allows_observers'),
         ];
     }
 
@@ -408,6 +472,7 @@ class SlotFormService
         $resolvedPlaceId = $this->resolveMassSlotPlaceId($request, $event);
 
         $requiresApproval = $request->boolean('requires_approval');
+        $participationPayload = $this->normalizeParticipationPayload($request);
         $startsAtUtc = ! empty($validated['starts_at'])
             ? parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString()
             : null;
@@ -431,6 +496,7 @@ class SlotFormService
                 'requires_approval' => $requiresApproval,
                 'place_id' => $resolvedPlaceId,
                 'max_capacity' => $this->normalizeMaxCapacity($validated['max_capacity'] ?? null),
+                ...$participationPayload,
             ]);
 
             if (! empty($activityTypes)) {
@@ -478,6 +544,7 @@ class SlotFormService
 
         $data = Arr::except($validated, ['activity_types', 'venue_place_id', 'new_room_name']);
         $data['requires_approval'] = $request->boolean('requires_approval');
+        $data = array_merge($data, $this->normalizeParticipationPayload($request));
         if (! empty($data['starts_at'])) {
             $data['starts_at'] = parse_datetime_to_utc($data['starts_at'])?->toDateTimeString();
         } else {
@@ -503,6 +570,10 @@ class SlotFormService
                 throw ValidationException::withMessages([
                     'max_capacity' => [__('ui.slots.slot_update_breaks_assigned_activity')],
                 ]);
+            }
+
+            if ($slot->activity !== null && $slot->forcesParticipationSettings()) {
+                $this->participationConstraints->applyForcedSettingsToActivity($slot, $slot->activity);
             }
         });
     }

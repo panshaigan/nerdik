@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ParticipationMode;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,10 @@ class Slot extends Model
         'starts_at',
         'ends_at',
         'requires_approval',
+        'forces_participation_settings',
+        'participation_mode',
+        'lottery_draw_in_hours',
+        'allows_observers',
         'activity_id',
         'place_id',
         'max_capacity',
@@ -32,6 +37,9 @@ class Slot extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'requires_approval' => 'boolean',
+        'forces_participation_settings' => 'boolean',
+        'participation_mode' => ParticipationMode::class,
+        'allows_observers' => 'boolean',
     ];
 
     public function event(): BelongsTo
@@ -110,6 +118,39 @@ class Slot extends Model
         }
 
         return $this->acceptsActivityType((int) $activity->activity_type_id);
+    }
+
+    public function forcesParticipationSettings(): bool
+    {
+        return (bool) $this->forces_participation_settings;
+    }
+
+    public function forcedParticipationMode(): ?ParticipationMode
+    {
+        if (! $this->forcesParticipationSettings()) {
+            return null;
+        }
+
+        return $this->participation_mode;
+    }
+
+    /**
+     * @return array{participation_mode: ParticipationMode, lottery_draw_in_hours: ?int, allows_observers: bool}|null
+     */
+    public function participationSettingsPayload(): ?array
+    {
+        $mode = $this->forcedParticipationMode();
+        if ($mode === null) {
+            return null;
+        }
+
+        return [
+            'participation_mode' => $mode,
+            'lottery_draw_in_hours' => $mode === ParticipationMode::Lottery
+                ? (int) ($this->lottery_draw_in_hours ?? 24)
+                : null,
+            'allows_observers' => (bool) $this->allows_observers,
+        ];
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Slots\Schemas;
 
+use App\Enums\ParticipationMode;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -25,6 +26,12 @@ class SlotForm
                     ->relationship('place', 'name'),
                 Toggle::make('requires_approval')
                     ->required(),
+                Toggle::make('forces_participation_settings'),
+                Select::make('participation_mode')
+                    ->options(ParticipationMode::class),
+                TextInput::make('lottery_draw_in_hours')
+                    ->numeric(),
+                Toggle::make('allows_observers'),
                 TextInput::make('max_capacity')
                     ->numeric(),
                 DateTimePicker::make('starts_at'),

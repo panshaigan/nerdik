@@ -17,6 +17,7 @@ use App\Models\TagCategory;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\LocationResolver;
+use App\Services\SlotParticipationConstraintService;
 use App\Services\TagSelectionService;
 use App\Support\Activities\ActivityTagImageCatalog;
 use App\Support\Media\MediaPictureSources;
@@ -89,6 +90,21 @@ class ManageActivityForm extends Component
     public string $participation_mode = 'open';
 
     public bool $allows_observers = false;
+
+    public bool $participationConstrainedBySlots = false;
+
+    /** @var list<string> */
+    public array $allowedParticipationModes = [];
+
+    /** @var list<int> */
+    public array $allowedLotteryDrawHours = [];
+
+    /** @var list<bool> */
+    public array $allowedAllowsObservers = [];
+
+    public bool $lotteryDrawHoursLockedBySlots = false;
+
+    public bool $allowsObserversLockedBySlots = false;
 
     public ?int $proposal_event_id = null;
 
@@ -234,6 +250,7 @@ class ManageActivityForm extends Component
         $this->hostingModeBeforeChange = $this->hosting_mode;
 
         ManageFormBackUrl::captureFromRequest();
+        $this->applySlotParticipationConstraints();
     }
 
     public function updatedParticipationMode(string $value): void
@@ -241,6 +258,18 @@ class ManageActivityForm extends Component
         if ($value === ParticipationMode::Lottery->value && $this->lottery_draw_in_hours === null) {
             $this->lottery_draw_in_hours = 24;
         }
+
+        $this->applySlotParticipationConstraints();
+    }
+
+    public function updatedLotteryDrawInHours(): void
+    {
+        $this->applySlotParticipationConstraints();
+    }
+
+    public function updatedAllowsObservers(): void
+    {
+        $this->applySlotParticipationConstraints();
     }
 
     public function updatedTab(string $value): void
@@ -840,9 +869,44 @@ class ManageActivityForm extends Component
                 'nullable',
                 'integer',
                 'min:1',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $this->participationConstrainedBySlots || $this->participation_mode !== ParticipationMode::Lottery->value) {
+                        return;
+                    }
+                    if ($this->allowedLotteryDrawHours !== [] && ! in_array((int) $value, $this->allowedLotteryDrawHours, true)) {
+                        $fail(__('ui.slots.participation_lottery_hours_not_allowed'));
+                    }
+                },
             ],
-            'participation_mode' => ['required', 'string', Rule::in(ParticipationMode::values())],
-            'allows_observers' => ['nullable', 'boolean'],
+            'participation_mode' => [
+                'required',
+                'string',
+                Rule::in(ParticipationMode::values()),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $this->participationConstrainedBySlots) {
+                        return;
+                    }
+                    if (! in_array((string) $value, $this->allowedParticipationModes, true)) {
+                        $fail(__('ui.slots.participation_mode_not_allowed'));
+                    }
+                },
+            ],
+            'allows_observers' => [
+                'nullable',
+                'boolean',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $this->participationConstrainedBySlots || $this->allowedAllowsObservers === []) {
+                        return;
+                    }
+                    $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                    if ($normalized === null) {
+                        return;
+                    }
+                    if (! in_array($normalized, $this->allowedAllowsObservers, true)) {
+                        $fail(__('ui.slots.participation_allows_observers_not_allowed'));
+                    }
+                },
+            ],
             'is_host_passive' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],
@@ -1008,6 +1072,26 @@ class ManageActivityForm extends Component
     }
 
     /**
+     * Preferred slots explicitly selected for the proposal (empty when none chosen).
+     *
+     * @return Collection<int, Slot>
+     */
+    protected function proposalSelectedSlots(): Collection
+    {
+        if (! $this->proposal_event_id || $this->proposal_slot_ids === []) {
+            return new Collection;
+        }
+
+        return Slot::query()
+            ->with('activityTypes:id')
+            ->where('event_id', $this->proposal_event_id)
+            ->whereNull('activity_id')
+            ->whereIn('id', $this->proposal_slot_ids)
+            ->orderBy('starts_at')
+            ->get();
+    }
+
+    /**
      * @return Collection<int, Slot>
      */
     protected function proposalEffectiveSlots(): Collection
@@ -1072,6 +1156,69 @@ class ManageActivityForm extends Component
             $this->duration_in_minutes = $prefilledDuration;
         }
 
+        $this->applySlotParticipationConstraints();
+    }
+
+    protected function applySlotParticipationConstraints(): void
+    {
+        if ($this->editingActivityId !== null || $this->duplicateQuerySlug() !== null || ! $this->proposal_event_id) {
+            $this->resetSlotParticipationConstraints();
+
+            return;
+        }
+
+        $slots = $this->proposalSelectedSlots();
+        $forcingSlots = app(SlotParticipationConstraintService::class)->constrainingSlots($slots);
+
+        if ($forcingSlots->isEmpty()) {
+            $this->resetSlotParticipationConstraints();
+
+            return;
+        }
+
+        $state = app(SlotParticipationConstraintService::class)->resolveConstraintState(
+            $forcingSlots,
+            $this->participation_mode,
+            $this->lottery_draw_in_hours,
+            $this->allows_observers,
+        );
+
+        $this->participationConstrainedBySlots = $state['constrained'];
+        $this->allowedParticipationModes = $state['allowed_modes'];
+        $this->allowedLotteryDrawHours = $state['allowed_lottery_draw_hours'];
+        $this->allowedAllowsObservers = $state['allowed_allows_observers'];
+        $this->lotteryDrawHoursLockedBySlots = $state['lottery_draw_hours_locked'];
+        $this->allowsObserversLockedBySlots = $state['allows_observers_locked'];
+
+        if (! in_array($this->participation_mode, $this->allowedParticipationModes, true)) {
+            $this->participation_mode = $this->allowedParticipationModes[0] ?? ParticipationMode::Open->value;
+        }
+
+        if ($this->participation_mode === ParticipationMode::Lottery->value) {
+            if ($this->allowedLotteryDrawHours !== []) {
+                if ($this->lottery_draw_in_hours === null || ! in_array((int) $this->lottery_draw_in_hours, $this->allowedLotteryDrawHours, true)) {
+                    $this->lottery_draw_in_hours = $this->allowedLotteryDrawHours[0];
+                }
+            } elseif ($this->lottery_draw_in_hours === null) {
+                $this->lottery_draw_in_hours = 24;
+            }
+        }
+
+        if ($this->allowedAllowsObservers !== []) {
+            if (! in_array($this->allows_observers, $this->allowedAllowsObservers, true)) {
+                $this->allows_observers = $this->allowedAllowsObservers[0];
+            }
+        }
+    }
+
+    protected function resetSlotParticipationConstraints(): void
+    {
+        $this->participationConstrainedBySlots = false;
+        $this->allowedParticipationModes = ParticipationMode::values();
+        $this->allowedLotteryDrawHours = [];
+        $this->allowedAllowsObservers = [];
+        $this->lotteryDrawHoursLockedBySlots = false;
+        $this->allowsObserversLockedBySlots = false;
     }
 
     /**
@@ -1268,6 +1415,10 @@ class ManageActivityForm extends Component
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => $activityTypesQuery->get(),
             'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
+            'participationConstrainedBySlots' => $this->participationConstrainedBySlots,
+            'allowedParticipationModes' => $this->allowedParticipationModes,
+            'lotteryDrawHoursLockedBySlots' => $this->lotteryDrawHoursLockedBySlots,
+            'allowsObserversLockedBySlots' => $this->allowsObserversLockedBySlots,
             'editingActivity' => $editingActivity,
             'creator' => $editingActivity?->creator,
         ]);
