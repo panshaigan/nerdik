@@ -27,7 +27,7 @@ class PlaceForm
                         ? $query->where('country_id', $get('country_id'))
                         : $query,
                 ),
-                BelongsToSelect::make('parent_id', 'parent'),
+                BelongsToSelect::place('parent_id', 'parent'),
                 TextInput::make('address'),
                 TextInput::make('links'),
                 Toggle::make('is_online')

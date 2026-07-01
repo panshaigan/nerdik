@@ -23,6 +23,7 @@ class EventForm
                 TextInput::make('slug')
                     ->required(),
                 Textarea::make('description')
+                    ->rows(9)
                     ->columnSpanFull(),
                 DateTimePicker::make('starts_at')
                     ->required(),

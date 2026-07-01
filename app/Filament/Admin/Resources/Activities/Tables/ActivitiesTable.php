@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Activities\Tables;
 
+use App\Models\Activity;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -23,7 +24,8 @@ class ActivitiesTable
                 TextColumn::make('activityType.id')
                     ->searchable(),
                 TextColumn::make('hosting_mode')
-                    ->numeric()
+                    ->badge()
+                    ->formatStateUsing(fn (int $state): string => Activity::hostingModeLabel($state))
                     ->sortable(),
                 TextColumn::make('place.name')
                     ->searchable(),

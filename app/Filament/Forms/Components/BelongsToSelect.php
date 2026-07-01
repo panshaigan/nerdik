@@ -2,10 +2,14 @@
 
 namespace App\Filament\Forms\Components;
 
+use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Event;
+use App\Models\Place;
+use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\User;
@@ -276,6 +280,82 @@ final class BelongsToSelect
         );
     }
 
+    public static function place(string $name = 'place_id', string $relationship = 'place'): Select
+    {
+        return self::applyDefaults(
+            self::configurePlaceSearch(
+                Select::make($name)
+                    ->relationship(
+                        $relationship,
+                        'name',
+                        self::preloadRelationshipModifier(),
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Place $record): string => FilamentRecordLabel::for($record)),
+            ),
+        );
+    }
+
+    public static function event(string $name = 'event_id', string $relationship = 'event'): Select
+    {
+        return self::applyDefaults(
+            self::configureRelationshipSearchResults(
+                Select::make($name)
+                    ->relationship(
+                        $relationship,
+                        'name',
+                        self::orderRelationshipByTitle('name'),
+                    )
+                    ->searchable(['name'])
+                    ->getOptionLabelFromRecordUsing(fn (Event $record): string => FilamentRecordLabel::for($record)),
+            ),
+        );
+    }
+
+    public static function activity(string $name = 'activity_id', string $relationship = 'activity'): Select
+    {
+        return self::applyDefaults(
+            self::configureRelationshipSearchResults(
+                Select::make($name)
+                    ->relationship(
+                        $relationship,
+                        'name',
+                        self::orderRelationshipByTitle('name'),
+                    )
+                    ->searchable(['name'])
+                    ->getOptionLabelFromRecordUsing(fn (Activity $record): string => FilamentRecordLabel::for($record)),
+            ),
+        );
+    }
+
+    public static function slot(string $name = 'slot_id', string $relationship = 'slot'): Select
+    {
+        return self::applyDefaults(
+            self::configureTranslatedSearch(
+                Select::make($name)
+                    ->relationship(
+                        $relationship,
+                        'name',
+                        self::orderRelationshipByTitle('name'),
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Slot $record): string => FilamentRecordLabel::for($record)),
+                searchCallback: function (Builder $query, string $search): Builder {
+                    $operator = FilamentSearch::likeOperator();
+                    $term = '%'.$search.'%';
+
+                    return $query
+                        ->with('event')
+                        ->where(function (Builder $outer) use ($operator, $term): void {
+                            $outer->where('name', $operator, $term)
+                                ->orWhereHas('event', function (Builder $eventQuery) use ($operator, $term): void {
+                                    $eventQuery->where('name', $operator, $term);
+                                });
+                        });
+                },
+                modifyQuery: fn (Builder $query, ?string $search): Builder => $query->with('event'),
+            ),
+        );
+    }
+
     private static function applyDefaults(Select $select): Select
     {
         return $select
@@ -345,6 +425,86 @@ final class BelongsToSelect
             ->limit($limit)
             ->get()
             ->mapWithKeys(fn (Model $record): array => [
+                $record->getKey() => $component->getOptionLabelFromRecord($record),
+            ])
+            ->all();
+    }
+
+    private static function configurePlaceSearch(Select $select): Select
+    {
+        $select->searchable();
+
+        $select->getSearchResultsUsing(function (Select $component, string $search): array {
+            $relationship = $component->getRelationship();
+
+            if ($relationship === null) {
+                return [];
+            }
+
+            $relationshipQuery = $relationship->getRelated()->newQuery()->with('parent');
+
+            if (blank($search)) {
+                return self::mapPlaceRecordsToOptions(
+                    $component,
+                    $relationshipQuery->orderBy('name'),
+                    self::INITIAL_SUGGESTIONS_LIMIT,
+                );
+            }
+
+            $operator = FilamentSearch::likeOperator();
+            $term = '%'.$search.'%';
+
+            $relationshipQuery->where(function (Builder $outer) use ($operator, $term): void {
+                $outer->where('name', $operator, $term)
+                    ->orWhereHas('parent', function (Builder $parentQuery) use ($operator, $term): void {
+                        $parentQuery->where('name', $operator, $term);
+                    })
+                    ->orWhereIn('parent_id', Place::query()
+                        ->where('type', Place::TYPE_VENUE)
+                        ->where('name', $operator, $term)
+                        ->select('id'));
+            });
+
+            return self::mapPlaceRecordsToOptions(
+                $component,
+                $relationshipQuery,
+                self::SEARCH_OPTIONS_LIMIT,
+            );
+        });
+
+        return $select;
+    }
+
+    /**
+     * @return array<int|string, string>
+     */
+    private static function mapPlaceRecordsToOptions(Select $component, Builder $query, int $limit): array
+    {
+        $places = $query
+            ->limit($limit)
+            ->get();
+
+        $venueIds = $places
+            ->filter(fn (Place $place): bool => $place->type === Place::TYPE_VENUE)
+            ->pluck('id');
+
+        if ($venueIds->isNotEmpty()) {
+            $existingIds = $places->pluck('id');
+            $rooms = Place::query()
+                ->with('parent')
+                ->whereIn('parent_id', $venueIds)
+                ->whereNotIn('id', $existingIds)
+                ->orderBy('name')
+                ->limit(max(0, $limit - $places->count()))
+                ->get();
+
+            $places = $places->concat($rooms);
+        }
+
+        return $places
+            ->unique('id')
+            ->take($limit)
+            ->mapWithKeys(fn (Place $record): array => [
                 $record->getKey() => $component->getOptionLabelFromRecord($record),
             ])
             ->all();

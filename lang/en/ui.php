@@ -463,6 +463,7 @@ return [
             'draft' => 'Not sure yet',
             'self_hosted' => 'I\'ll run it myself',
             'proposed_to_event' => 'Run it at an event',
+            'scheduled_on_event' => 'Scheduled on event',
         ],
         'hosting_mode_locked_scheduled' => 'This activity is already scheduled on event :event. Hosting mode cannot be changed here.',
         'self_hosted_starts_at' => 'Self-hosted start time',

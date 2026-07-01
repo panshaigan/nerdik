@@ -14,11 +14,11 @@ class ActivityProposalForm
     {
         return $schema
             ->components([
-                BelongsToSelect::make('activity_id', 'activity')
+                BelongsToSelect::activity()
                     ->required(),
-                BelongsToSelect::make('event_id', 'event')
+                BelongsToSelect::event()
                     ->required(),
-                BelongsToSelect::make('accepted_slot_id', 'acceptedSlot'),
+                BelongsToSelect::slot('accepted_slot_id', 'acceptedSlot'),
                 Select::make('status')
                     ->options(ActivityProposalStatus::class)
                     ->default('pending')

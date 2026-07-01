@@ -18,10 +18,10 @@ class SlotForm
             ->components([
                 TextInput::make('name')
                     ->required(),
-                BelongsToSelect::make('event_id', 'event')
+                BelongsToSelect::event()
                     ->required(),
-                BelongsToSelect::make('activity_id', 'activity'),
-                BelongsToSelect::make('place_id', 'place'),
+                BelongsToSelect::activity(),
+                BelongsToSelect::place(),
                 Toggle::make('requires_approval')
                     ->required(),
                 Toggle::make('forces_participation_settings'),
