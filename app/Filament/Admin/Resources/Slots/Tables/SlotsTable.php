@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Slots\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,16 +17,19 @@ class SlotsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'event',
+            'activity',
+            'place.parent',
+            'creator',
+            'updater',
+            'deleter',
+        ])
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('event.name')
-                    ->searchable(),
+                BelongsToColumn::slotRecord(),
                 TextColumn::make('activity.name')
                     ->searchable(),
-                TextColumn::make('place.name')
-                    ->searchable(),
+                BelongsToColumn::place(),
                 IconColumn::make('requires_approval')
                     ->boolean(),
                 TextColumn::make('max_capacity')
@@ -49,15 +53,9 @@ class SlotsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('deleted_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
+                BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
                 TrashedFilter::make(),

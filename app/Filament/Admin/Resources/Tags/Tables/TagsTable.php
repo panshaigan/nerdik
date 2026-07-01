@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Tags\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -16,10 +17,14 @@ class TagsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'tagCategory.translations',
+            'creator',
+            'updater',
+            'deleter',
+        ])
             ->columns([
-                TextColumn::make('tagCategory.id')
-                    ->searchable(),
+                BelongsToColumn::record('tagCategory', label: 'Category', searchable: true),
                 SpatieMediaLibraryImageColumn::make('images')
                     ->collection('images')
                     ->conversion('webp')
@@ -40,15 +45,9 @@ class TagsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('updated_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('deleted_by')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::user('created_by'),
+                BelongsToColumn::user('updated_by'),
+                BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
                 TrashedFilter::make(),

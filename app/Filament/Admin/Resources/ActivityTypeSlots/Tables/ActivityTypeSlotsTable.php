@@ -2,22 +2,23 @@
 
 namespace App\Filament\Admin\Resources\ActivityTypeSlots\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ActivityTypeSlotsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'slot.event',
+            'activityType',
+        ])
             ->columns([
-                TextColumn::make('slot.name')
-                    ->searchable(),
-                TextColumn::make('activityType.id')
-                    ->searchable(),
+                BelongsToColumn::slot(),
+                BelongsToColumn::record('activityType', searchable: true),
             ])
             ->filters([
                 //

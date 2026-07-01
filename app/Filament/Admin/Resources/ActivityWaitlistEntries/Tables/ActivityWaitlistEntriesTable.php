@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityWaitlistEntries\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,12 +13,14 @@ class ActivityWaitlistEntriesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'activity',
+            'user',
+        ])
             ->columns([
                 TextColumn::make('activity.name')
                     ->searchable(),
-                TextColumn::make('user.name')
-                    ->searchable(),
+                BelongsToColumn::user('user_id'),
                 TextColumn::make('position')
                     ->numeric()
                     ->sortable(),

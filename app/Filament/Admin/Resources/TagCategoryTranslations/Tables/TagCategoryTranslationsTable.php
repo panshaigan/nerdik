@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagCategoryTranslations\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,11 +13,11 @@ class TagCategoryTranslationsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'category.translations',
+        ])
             ->columns([
-                TextColumn::make('tag_category_id')
-                    ->numeric()
-                    ->sortable(),
+                BelongsToColumn::record('category', label: 'Tag category'),
                 TextColumn::make('locale')
                     ->searchable(),
                 TextColumn::make('label')

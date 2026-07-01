@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\UserProfiles\Tables;
 
+use App\Filament\Tables\Columns\BelongsToColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,10 +13,11 @@ class UserProfilesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BelongsToColumn::withEagerLoads($table, [
+            'user',
+        ])
             ->columns([
-                TextColumn::make('user.name')
-                    ->searchable(),
+                BelongsToColumn::user('user_id'),
                 TextColumn::make('google_id')
                     ->searchable(),
                 TextColumn::make('facebook_id')
