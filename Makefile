@@ -5,7 +5,7 @@ SAIL := ./vendor/bin/sail
 SEED_DATASET ?= minimal
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal queue scheduler test \
-        npm-install npm-dev npm-build tinker serve composer-install composer-require \
+        npm-install npm-dev npm-build tinker serve composer-install composer-require composer-audit \
         dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
         docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
         staging-artisan dev-deploy prod-deploy prod-refresh prod-artisan prod-maintenance-on \
@@ -142,12 +142,16 @@ composer-require:
 	@if [ -z "$(PACKAGE)" ]; then echo "Usage: make composer-require PACKAGE=vendor/package"; exit 1; fi
 	$(SAIL) composer require $(PACKAGE)
 
+composer-audit:
+	$(SAIL) composer audit
+
 artisan:
 	$(SAIL) artisan $(filter-out $@,$(MAKECMDGOALS))
 
 pint:
 	$(SAIL) bin pint --dirty --format agent
 
+# Local CI parity: gitleaks, compose, tests, composer audit, pint; FULL=1 adds Docker build
 ci-check:
 	FULL=$(FULL) ./scripts/ci-check.sh
 

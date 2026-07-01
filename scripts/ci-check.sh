@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Run local checks that mirror GitHub CI (ci.yml + optional docker.yml build).
 #
+# Steps: gitleaks, compose, npm ci/build, migrate, tests, composer audit, pint
+#        (FULL=1 also builds the production Docker image)
+#
 # Usage:
 #   ./scripts/ci-check.sh          # all CI checks except Docker image build
 #   FULL=1 ./scripts/ci-check.sh   # include production Docker image build
@@ -68,8 +71,10 @@ run_test_job() {
 
     step "php artisan test --compact -parallel"
     "$SAIL" artisan test --compact -parallel
+}
 
-    step "composer audit"
+run_composer_audit() {
+    step "Composer audit"
     "$SAIL" composer audit
 }
 
@@ -93,6 +98,7 @@ run_gitleaks
 run_compose
 ensure_sail_running
 run_test_job
+run_composer_audit
 run_pint
 
 if [[ "$FULL" == "1" ]]; then
