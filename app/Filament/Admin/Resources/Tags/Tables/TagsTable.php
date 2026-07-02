@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Tags\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Models\Tag;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,11 +20,18 @@ class TagsTable
     {
         return BelongsToColumn::withEagerLoads($table, [
             'tagCategory.translations',
+            'translations',
             'creator',
             'updater',
             'deleter',
         ])
             ->columns([
+                TextColumn::make('label_en')
+                    ->label('English')
+                    ->state(fn (Tag $record): string => $record->displayLabel('en')),
+                TextColumn::make('label_pl')
+                    ->label('Polish')
+                    ->state(fn (Tag $record): string => $record->displayLabel('pl')),
                 BelongsToColumn::record('tagCategory', label: 'Category', searchable: true),
                 SpatieMediaLibraryImageColumn::make('images')
                     ->collection('images')
