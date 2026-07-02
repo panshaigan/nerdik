@@ -7,6 +7,7 @@ use App\Models\Slot;
 use App\Models\TagContext;
 use App\Models\User;
 use App\Support\Filament\FilamentRecordLabel;
+use App\Support\Filament\FilamentSearch;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,7 +84,7 @@ final class BelongsToColumn
             ->sortable($sortColumns ?? self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"]);
 
         if ($searchable) {
-            $column->searchable();
+            $column->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
         }
 
         return $column;
@@ -110,7 +111,7 @@ final class BelongsToColumn
                 ? FilamentRecordLabel::for($state)
                 : null)
             ->sortable(self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"])
-            ->searchable();
+            ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
     }
 
     public static function placeName(): TextColumn
@@ -119,7 +120,7 @@ final class BelongsToColumn
             ->label(__('Name'))
             ->state(fn (Place $record): string => $record->venueRoomLabel())
             ->sortable()
-            ->searchable();
+            ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::applyPlaceSearch($query, $search));
     }
 
     public static function slot(string $relationship = 'slot'): TextColumn
@@ -130,7 +131,7 @@ final class BelongsToColumn
                 ? FilamentRecordLabel::slot($state)
                 : null)
             ->sortable(self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"])
-            ->searchable();
+            ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
     }
 
     public static function slotRecord(): TextColumn
