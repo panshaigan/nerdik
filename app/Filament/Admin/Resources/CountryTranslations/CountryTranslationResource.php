@@ -7,9 +7,9 @@ use App\Filament\Admin\Resources\CountryTranslations\Pages\EditCountryTranslatio
 use App\Filament\Admin\Resources\CountryTranslations\Pages\ListCountryTranslations;
 use App\Filament\Admin\Resources\CountryTranslations\Schemas\CountryTranslationForm;
 use App\Filament\Admin\Resources\CountryTranslations\Tables\CountryTranslationsTable;
+use App\Filament\Admin\Resources\Resource;
 use App\Models\CountryTranslation;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

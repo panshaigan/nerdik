@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Activities\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Models\Activity;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -91,6 +92,7 @@ class ActivitiesTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
+                BelongsToFilter::activityType(),
                 TrashedFilter::make(),
             ])
             ->recordActions([

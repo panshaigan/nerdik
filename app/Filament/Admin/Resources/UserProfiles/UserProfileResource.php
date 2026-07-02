@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\UserProfiles;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\UserProfiles\Pages\CreateUserProfile;
 use App\Filament\Admin\Resources\UserProfiles\Pages\EditUserProfile;
 use App\Filament\Admin\Resources\UserProfiles\Pages\ListUserProfiles;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\UserProfiles\Schemas\UserProfileForm;
 use App\Filament\Admin\Resources\UserProfiles\Tables\UserProfilesTable;
 use App\Models\UserProfile;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

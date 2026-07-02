@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagRelations;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagRelations\Pages\CreateTagRelation;
 use App\Filament\Admin\Resources\TagRelations\Pages\EditTagRelation;
 use App\Filament\Admin\Resources\TagRelations\Pages\ListTagRelations;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\TagRelations\Schemas\TagRelationForm;
 use App\Filament\Admin\Resources\TagRelations\Tables\TagRelationsTable;
 use App\Models\TagRelation;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

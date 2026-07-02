@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagCategories;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagCategories\Pages\CreateTagCategory;
 use App\Filament\Admin\Resources\TagCategories\Pages\EditTagCategory;
 use App\Filament\Admin\Resources\TagCategories\Pages\ListTagCategories;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\TagCategories\Schemas\TagCategoryForm;
 use App\Filament\Admin\Resources\TagCategories\Tables\TagCategoriesTable;
 use App\Models\TagCategory;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

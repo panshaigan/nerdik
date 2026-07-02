@@ -7,9 +7,9 @@ use App\Filament\Admin\Resources\ActivityWaitlistEntries\Pages\EditActivityWaitl
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Pages\ListActivityWaitlistEntries;
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Schemas\ActivityWaitlistEntryForm;
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Tables\ActivityWaitlistEntriesTable;
+use App\Filament\Admin\Resources\Resource;
 use App\Models\ActivityWaitlistEntry;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

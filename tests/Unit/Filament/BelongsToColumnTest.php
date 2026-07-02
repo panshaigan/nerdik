@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Filament;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Models\Activity;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
@@ -106,5 +108,38 @@ final class BelongsToColumnTest extends TestCase
             TagContext::CONTEXT_TYPE_ACTIVITY_TYPE.' #999999',
             "{$tagContext->context_type} #{$tagContext->context_id}",
         );
+    }
+
+    #[Test]
+    public function record_column_configures_relationship_sort_query(): void
+    {
+        $column = BelongsToColumn::record('activityType');
+
+        $this->assertTrue($column->isSortable());
+    }
+
+    #[Test]
+    public function relationship_sort_query_orders_by_related_attribute_subquery(): void
+    {
+        $boardType = ActivityType::findBySlug(ActivityType::SLUG_BOARD);
+        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+
+        $boardActivity = Activity::factory()->create([
+            'name' => 'A Board Game',
+            'activity_type_id' => $boardType?->id,
+        ]);
+        $rpgActivity = Activity::factory()->create([
+            'name' => 'Z RPG Session',
+            'activity_type_id' => $rpgType?->id,
+        ]);
+
+        $query = Activity::query();
+        $sortQuery = BelongsToColumn::relationshipSortQuery(['activityType.slug']);
+
+        $sortQuery($query, 'asc');
+
+        $orderedIds = $query->pluck('id')->all();
+
+        $this->assertSame([$boardActivity->id, $rpgActivity->id], $orderedIds);
     }
 }

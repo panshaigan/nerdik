@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagCategoryTranslations;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagCategoryTranslations\Pages\CreateTagCategoryTranslation;
 use App\Filament\Admin\Resources\TagCategoryTranslations\Pages\EditTagCategoryTranslation;
 use App\Filament\Admin\Resources\TagCategoryTranslations\Pages\ListTagCategoryTranslations;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\TagCategoryTranslations\Schemas\TagCategoryTran
 use App\Filament\Admin\Resources\TagCategoryTranslations\Tables\TagCategoryTranslationsTable;
 use App\Models\TagCategoryTranslation;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

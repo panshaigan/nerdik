@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Slots;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\Slots\Pages\CreateSlot;
 use App\Filament\Admin\Resources\Slots\Pages\EditSlot;
 use App\Filament\Admin\Resources\Slots\Pages\ListSlots;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\Slots\Schemas\SlotForm;
 use App\Filament\Admin\Resources\Slots\Tables\SlotsTable;
 use App\Models\Slot;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
