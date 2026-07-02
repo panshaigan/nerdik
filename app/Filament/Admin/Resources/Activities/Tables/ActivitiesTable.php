@@ -2,8 +2,10 @@
 
 namespace App\Filament\Admin\Resources\Activities\Tables;
 
+use App\Enums\ParticipationMode;
 use App\Filament\Tables\Columns\BelongsToColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
+use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Activity;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -12,6 +14,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -93,6 +96,15 @@ class ActivitiesTable
             ])
             ->filters([
                 BelongsToFilter::activityType(),
+                SelectFilter::make('hosting_mode')
+                    ->options(Activity::hostingModeOptions()),
+                SelectFilter::make('participation_mode')
+                    ->options(collect(ParticipationMode::cases())
+                        ->mapWithKeys(fn (ParticipationMode $mode): array => [$mode->value => $mode->label()])
+                        ->all()),
+                CommonFilters::dateRange('starts_at'),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
                 TrashedFilter::make(),
             ])
             ->recordActions([

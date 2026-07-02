@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\EventEnrollmentWindows\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -50,7 +51,9 @@ class EventEnrollmentWindowsTable
                 BelongsToColumn::user('updated_by'),
             ])
             ->filters([
-                //
+                CommonFilters::dateRange('starts_at'),
+                ...CommonFilters::auditUserFilters(includeDeletedBy: false),
+                ...CommonFilters::auditTimestampFilters(includeDeletedAt: false),
             ])
             ->recordActions([
                 EditAction::make(),

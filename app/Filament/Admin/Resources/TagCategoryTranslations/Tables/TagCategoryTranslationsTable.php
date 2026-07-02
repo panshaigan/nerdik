@@ -3,10 +3,12 @@
 namespace App\Filament\Admin\Resources\TagCategoryTranslations\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Models\TagCategoryTranslation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TagCategoryTranslationsTable
@@ -24,7 +26,13 @@ class TagCategoryTranslationsTable
                     ->searchable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('locale')
+                    ->options(fn (): array => TagCategoryTranslation::query()
+                        ->whereNotNull('locale')
+                        ->distinct()
+                        ->orderBy('locale')
+                        ->pluck('locale', 'locale')
+                        ->all()),
             ])
             ->recordActions([
                 EditAction::make(),

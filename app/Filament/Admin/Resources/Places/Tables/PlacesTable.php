@@ -3,6 +3,9 @@
 namespace App\Filament\Admin\Resources\Places\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\BelongsToFilter;
+use App\Filament\Tables\Filters\CommonFilters;
+use App\Models\Place;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -10,6 +13,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -64,6 +68,14 @@ class PlacesTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
+                SelectFilter::make('type')
+                    ->options([
+                        Place::TYPE_VENUE => str(Place::TYPE_VENUE)->headline()->toString(),
+                        Place::TYPE_ROOM => str(Place::TYPE_ROOM)->headline()->toString(),
+                    ]),
+                BelongsToFilter::country(),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
                 TrashedFilter::make(),
             ])
             ->recordActions([

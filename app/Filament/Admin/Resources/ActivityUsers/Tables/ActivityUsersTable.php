@@ -3,11 +3,13 @@
 namespace App\Filament\Admin\Resources\ActivityUsers\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ActivityUsersTable
@@ -44,7 +46,9 @@ class ActivityUsersTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
-                //
+                TernaryFilter::make('is_absent'),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
             ])
             ->recordActions([
                 EditAction::make(),
