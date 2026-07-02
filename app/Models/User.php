@@ -40,7 +40,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'pending_email',
         'password',
         'organization_id',
-        'is_admin',
         'is_event_organizer',
         'is_deleted',
     ];
