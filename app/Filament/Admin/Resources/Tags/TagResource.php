@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Tags;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\Tags\Pages\CreateTag;
 use App\Filament\Admin\Resources\Tags\Pages\EditTag;
 use App\Filament\Admin\Resources\Tags\Pages\ListTags;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\Tags\Schemas\TagForm;
 use App\Filament\Admin\Resources\Tags\Tables\TagsTable;
 use App\Models\Tag;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

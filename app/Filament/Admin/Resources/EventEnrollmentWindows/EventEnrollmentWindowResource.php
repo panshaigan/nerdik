@@ -7,9 +7,9 @@ use App\Filament\Admin\Resources\EventEnrollmentWindows\Pages\EditEventEnrollmen
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Pages\ListEventEnrollmentWindows;
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Schemas\EventEnrollmentWindowForm;
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Tables\EventEnrollmentWindowsTable;
+use App\Filament\Admin\Resources\Resource;
 use App\Models\EventEnrollmentWindow;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

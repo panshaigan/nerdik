@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagAliases;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagAliases\Pages\CreateTagAlias;
 use App\Filament\Admin\Resources\TagAliases\Pages\EditTagAlias;
 use App\Filament\Admin\Resources\TagAliases\Pages\ListTagAliases;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\TagAliases\Schemas\TagAliasForm;
 use App\Filament\Admin\Resources\TagAliases\Tables\TagAliasesTable;
 use App\Models\TagAlias;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

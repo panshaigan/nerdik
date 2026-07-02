@@ -154,6 +154,39 @@ final class FilamentTableSearchTest extends TestCase
     }
 
     #[Test]
+    public function activities_table_filter_by_activity_type_does_not_use_invalid_column_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        $boardType = ActivityType::findBySlug(ActivityType::SLUG_BOARD);
+
+        $matchingActivity = Activity::factory()->create(['activity_type_id' => $rpgType?->id]);
+        $otherActivity = Activity::factory()->create(['activity_type_id' => $boardType?->id]);
+
+        Livewire::actingAs($admin)
+            ->test(ListActivities::class)
+            ->filterTable('activityType', $rpgType?->id)
+            ->assertCanSeeTableRecords([$matchingActivity])
+            ->assertCanNotSeeTableRecords([$otherActivity]);
+    }
+
+    #[Test]
+    public function activities_table_sort_by_activity_type_does_not_use_invalid_column_name(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        $boardType = ActivityType::findBySlug(ActivityType::SLUG_BOARD);
+
+        $boardActivity = Activity::factory()->create(['activity_type_id' => $boardType?->id]);
+        $rpgActivity = Activity::factory()->create(['activity_type_id' => $rpgType?->id]);
+
+        Livewire::actingAs($admin)
+            ->test(ListActivities::class)
+            ->sortTable('activityType', 'asc')
+            ->assertCanSeeTableRecords([$boardActivity, $rpgActivity], inOrder: true);
+    }
+
+    #[Test]
     public function tag_relations_table_search_finds_relation_by_related_tag_label(): void
     {
         $admin = User::factory()->admin()->create();

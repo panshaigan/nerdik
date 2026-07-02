@@ -7,9 +7,9 @@ use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\EditActivityProposa
 use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\ListActivityProposalSlots;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Schemas\ActivityProposalSlotForm;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Tables\ActivityProposalSlotsTable;
+use App\Filament\Admin\Resources\Resource;
 use App\Models\ActivityProposalSlot;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;

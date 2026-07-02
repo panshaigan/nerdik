@@ -8,6 +8,8 @@ use App\Models\TagContext;
 use App\Models\User;
 use App\Support\Filament\FilamentRecordLabel;
 use App\Support\Filament\FilamentSearch;
+use Closure;
+use Filament\Support\Services\RelationshipOrderer;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -76,12 +78,14 @@ final class BelongsToColumn
         ?array $sortColumns = null,
         bool $searchable = false,
     ): TextColumn {
+        $resolvedSortColumns = $sortColumns ?? self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"];
+
         $column = TextColumn::make($relationship)
             ->label($label ?? Str::headline($relationship))
             ->formatStateUsing(fn (?Model $state): ?string => $state instanceof Model
                 ? FilamentRecordLabel::for($state)
                 : null)
-            ->sortable($sortColumns ?? self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"]);
+            ->sortable(query: self::relationshipSortQuery($resolvedSortColumns));
 
         if ($searchable) {
             $column->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
@@ -95,22 +99,26 @@ final class BelongsToColumn
         $relationship = self::USER_COLUMN_RELATIONSHIPS[$column]
             ?? Str::camel(Str::beforeLast($column, '_id'));
 
+        $sortColumns = self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.nickname"];
+
         return TextColumn::make($relationship)
             ->label(Str::headline($column))
             ->formatStateUsing(fn (?User $state): ?string => $state instanceof User
                 ? FilamentRecordLabel::for($state)
                 : null)
-            ->sortable(self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.nickname"]);
+            ->sortable(query: self::relationshipSortQuery($sortColumns));
     }
 
     public static function place(string $relationship = 'place'): TextColumn
     {
+        $sortColumns = self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"];
+
         return TextColumn::make($relationship)
             ->label(Str::headline($relationship))
             ->formatStateUsing(fn (?Place $state): ?string => $state instanceof Place
                 ? FilamentRecordLabel::for($state)
                 : null)
-            ->sortable(self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"])
+            ->sortable(query: self::relationshipSortQuery($sortColumns))
             ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
     }
 
@@ -125,12 +133,14 @@ final class BelongsToColumn
 
     public static function slot(string $relationship = 'slot'): TextColumn
     {
+        $sortColumns = self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"];
+
         return TextColumn::make($relationship)
             ->label(Str::headline($relationship))
             ->formatStateUsing(fn (?Slot $state): ?string => $state instanceof Slot
                 ? FilamentRecordLabel::slot($state)
                 : null)
-            ->sortable(self::SORT_COLUMNS_BY_RELATIONSHIP[$relationship] ?? ["{$relationship}.name"])
+            ->sortable(query: self::relationshipSortQuery($sortColumns))
             ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereHasRelationship($query, $relationship, $search));
     }
 
@@ -155,5 +165,31 @@ final class BelongsToColumn
                 return "{$record->context_type} #{$record->context_id}";
             })
             ->sortable(['context_type', 'context_id']);
+    }
+
+    /**
+     * @param  list<string>  $sortColumns
+     */
+    public static function relationshipSortQuery(array $sortColumns): Closure
+    {
+        return function (Builder $query, string $direction) use ($sortColumns): Builder {
+            foreach (array_reverse($sortColumns) as $sortColumn) {
+                if (str_contains($sortColumn, '.')) {
+                    $relationship = (string) str($sortColumn)->beforeLast('.');
+                    $attribute = (string) str($sortColumn)->afterLast('.');
+
+                    $query->orderBy(
+                        app(RelationshipOrderer::class)->buildSubquery($query, $relationship, $attribute),
+                        $direction,
+                    );
+
+                    continue;
+                }
+
+                $query->orderBy($sortColumn, $direction);
+            }
+
+            return $query;
+        };
     }
 }

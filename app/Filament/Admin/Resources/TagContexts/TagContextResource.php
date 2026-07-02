@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagContexts;
 
+use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagContexts\Pages\CreateTagContext;
 use App\Filament\Admin\Resources\TagContexts\Pages\EditTagContext;
 use App\Filament\Admin\Resources\TagContexts\Pages\ListTagContexts;
@@ -9,7 +10,6 @@ use App\Filament\Admin\Resources\TagContexts\Schemas\TagContextForm;
 use App\Filament\Admin\Resources\TagContexts\Tables\TagContextsTable;
 use App\Models\TagContext;
 use BackedEnum;
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
