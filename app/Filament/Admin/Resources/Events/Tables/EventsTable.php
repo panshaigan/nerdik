@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Events\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -10,6 +11,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -59,6 +61,10 @@ class EventsTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
+                TernaryFilter::make('is_public'),
+                CommonFilters::dateRange('starts_at'),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
                 TrashedFilter::make(),
             ])
             ->recordActions([

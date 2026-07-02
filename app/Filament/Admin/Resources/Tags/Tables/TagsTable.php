@@ -3,7 +3,10 @@
 namespace App\Filament\Admin\Resources\Tags\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\BelongsToFilter;
+use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Tag;
+use App\Models\TagTranslation;
 use App\Support\Filament\FilamentSearch;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -12,6 +15,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -62,6 +66,23 @@ class TagsTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
+                BelongsToFilter::tagCategory(),
+                SelectFilter::make('locale')
+                    ->options(fn (): array => TagTranslation::query()
+                        ->whereNotNull('locale')
+                        ->distinct()
+                        ->orderBy('locale')
+                        ->pluck('locale', 'locale')
+                        ->all())
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $builder): Builder => $builder->whereHas(
+                            'translations',
+                            fn (Builder $translationQuery): Builder => $translationQuery->where('locale', $data['value']),
+                        ),
+                    )),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
                 TrashedFilter::make(),
             ])
             ->recordActions([

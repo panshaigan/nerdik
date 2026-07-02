@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityTypeSlots\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\BelongsToFilter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -21,7 +22,7 @@ class ActivityTypeSlotsTable
                 BelongsToColumn::record('activityType', searchable: true),
             ])
             ->filters([
-                //
+                BelongsToFilter::activityType(),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -2,13 +2,16 @@
 
 namespace App\Filament\Admin\Resources\ActivityProposals\Tables;
 
+use App\Enums\ActivityProposalStatus;
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -53,6 +56,13 @@ class ActivityProposalsTable
                 BelongsToColumn::user('deleted_by'),
             ])
             ->filters([
+                SelectFilter::make('status')
+                    ->options(collect(ActivityProposalStatus::cases())
+                        ->mapWithKeys(fn (ActivityProposalStatus $status): array => [$status->value => str($status->value)->headline()->toString()])
+                        ->all()),
+                CommonFilters::dateRange('preferred_start_time'),
+                ...CommonFilters::auditUserFilters(),
+                ...CommonFilters::auditTimestampFilters(),
                 TrashedFilter::make(),
             ])
             ->recordActions([
