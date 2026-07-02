@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Tags\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
 use App\Models\Tag;
+use App\Support\Filament\FilamentSearch;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,6 +14,7 @@ use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TagsTable
 {
@@ -28,10 +30,12 @@ class TagsTable
             ->columns([
                 TextColumn::make('label_en')
                     ->label('English')
-                    ->state(fn (Tag $record): string => $record->displayLabel('en')),
+                    ->state(fn (Tag $record): string => $record->displayLabel('en'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereTagHasTranslationLabel($query, $search, 'en')),
                 TextColumn::make('label_pl')
                     ->label('Polish')
-                    ->state(fn (Tag $record): string => $record->displayLabel('pl')),
+                    ->state(fn (Tag $record): string => $record->displayLabel('pl'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => FilamentSearch::whereTagHasTranslationLabel($query, $search, 'pl')),
                 BelongsToColumn::record('tagCategory', label: 'Category', searchable: true),
                 SpatieMediaLibraryImageColumn::make('images')
                     ->collection('images')

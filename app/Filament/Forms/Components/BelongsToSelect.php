@@ -92,19 +92,7 @@ final class BelongsToSelect
                         self::preloadRelationshipModifier(),
                     )
                     ->getOptionLabelFromRecordUsing(fn (Tag $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query->where(function (Builder $outer) use ($operator, $term): void {
-                        $outer->whereHas('translations', function (Builder $translationQuery) use ($operator, $term): void {
-                            $translationQuery->where('label', $operator, $term)
-                                ->orWhere('slug', $operator, $term);
-                        })->orWhereHas('aliases', function (Builder $aliasQuery) use ($operator, $term): void {
-                            $aliasQuery->where('alias', $operator, $term);
-                        });
-                    });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applyTagSearch($query, $search),
             ),
         );
     }
@@ -120,17 +108,7 @@ final class BelongsToSelect
                         self::preloadRelationshipModifier(),
                     )
                     ->getOptionLabelFromRecordUsing(fn (TagCategory $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query->where(function (Builder $outer) use ($operator, $term): void {
-                        $outer->where('key', $operator, $term)
-                            ->orWhereHas('translations', function (Builder $translationQuery) use ($operator, $term): void {
-                                $translationQuery->where('label', $operator, $term);
-                            });
-                    });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applyTagCategorySearch($query, $search),
             ),
         );
     }
@@ -146,17 +124,7 @@ final class BelongsToSelect
                         self::preloadRelationshipModifier(),
                     )
                     ->getOptionLabelFromRecordUsing(fn (Country $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query->where(function (Builder $outer) use ($operator, $term): void {
-                        $outer->where('iso_alpha2', $operator, $term)
-                            ->orWhereHas('translations', function (Builder $translationQuery) use ($operator, $term): void {
-                                $translationQuery->where('name', $operator, $term);
-                            });
-                    });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applyCountrySearch($query, $search),
             ),
         );
     }
@@ -178,17 +146,7 @@ final class BelongsToSelect
                         self::preloadRelationshipModifier($modifyQuery),
                     )
                     ->getOptionLabelFromRecordUsing(fn (City $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query->where(function (Builder $outer) use ($operator, $term): void {
-                        $outer->where('slug', $operator, $term)
-                            ->orWhereHas('translations', function (Builder $translationQuery) use ($operator, $term): void {
-                                $translationQuery->where('name', $operator, $term);
-                            });
-                    });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applyCitySearch($query, $search),
                 modifyQuery: $modifyQuery,
             ),
         );
@@ -215,8 +173,7 @@ final class BelongsToSelect
                         $limit = blank($search) ? self::INITIAL_SUGGESTIONS_LIMIT : self::SEARCH_OPTIONS_LIMIT;
 
                         if (filled($search)) {
-                            $operator = FilamentSearch::likeOperator();
-                            $query->where('slug', $operator, '%'.$search.'%');
+                            $query = FilamentSearch::applyActivityTypeSearch($query, $search);
                         }
 
                         return $query
@@ -258,24 +215,10 @@ final class BelongsToSelect
                         self::preloadRelationshipModifier(),
                     )
                     ->getOptionLabelFromRecordUsing(fn (ActivityProposal $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query
-                        ->with(['activity', 'event'])
-                        ->where(function (Builder $outer) use ($operator, $term, $search): void {
-                            if (is_numeric($search)) {
-                                $outer->whereKey((int) $search);
-                            }
-
-                            $outer->orWhereHas('activity', function (Builder $activityQuery) use ($operator, $term): void {
-                                $activityQuery->where('name', $operator, $term);
-                            })->orWhereHas('event', function (Builder $eventQuery) use ($operator, $term): void {
-                                $eventQuery->where('name', $operator, $term);
-                            });
-                        });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applyActivityProposalSearch(
+                    $query->with(['activity', 'event']),
+                    $search,
+                ),
             ),
         );
     }
@@ -338,19 +281,10 @@ final class BelongsToSelect
                         self::orderRelationshipByTitle('name'),
                     )
                     ->getOptionLabelFromRecordUsing(fn (Slot $record): string => FilamentRecordLabel::for($record)),
-                searchCallback: function (Builder $query, string $search): Builder {
-                    $operator = FilamentSearch::likeOperator();
-                    $term = '%'.$search.'%';
-
-                    return $query
-                        ->with('event')
-                        ->where(function (Builder $outer) use ($operator, $term): void {
-                            $outer->where('name', $operator, $term)
-                                ->orWhereHas('event', function (Builder $eventQuery) use ($operator, $term): void {
-                                    $eventQuery->where('name', $operator, $term);
-                                });
-                        });
-                },
+                searchCallback: fn (Builder $query, string $search): Builder => FilamentSearch::applySlotSearch(
+                    $query->with('event'),
+                    $search,
+                ),
                 modifyQuery: fn (Builder $query, ?string $search): Builder => $query->with('event'),
             ),
         );
@@ -451,19 +385,7 @@ final class BelongsToSelect
                 );
             }
 
-            $operator = FilamentSearch::likeOperator();
-            $term = '%'.$search.'%';
-
-            $relationshipQuery->where(function (Builder $outer) use ($operator, $term): void {
-                $outer->where('name', $operator, $term)
-                    ->orWhereHas('parent', function (Builder $parentQuery) use ($operator, $term): void {
-                        $parentQuery->where('name', $operator, $term);
-                    })
-                    ->orWhereIn('parent_id', Place::query()
-                        ->where('type', Place::TYPE_VENUE)
-                        ->where('name', $operator, $term)
-                        ->select('id'));
-            });
+            $relationshipQuery = FilamentSearch::applyPlaceSearch($relationshipQuery, $search);
 
             return self::mapPlaceRecordsToOptions(
                 $component,
