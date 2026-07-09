@@ -45,6 +45,7 @@
         >
             {{ __('ui.common.language_pl') }}
         </a>
+        <x-theme-toggle class="btn btn-circle btn-ghost"/>
 
         @auth
             <x-button :link="url('/dashboard')" class="btn-primary btn-sm">
@@ -136,23 +137,26 @@
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
                             {{ __('ui.nav.preferences') }}
                         </p>
-                        <div class="join">
-                            <a
-                                wire:navigate
-                                x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
-                                @click="close()"
-                                class="join-item btn btn-sm font-display {{ app()->getLocale() === 'en' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
-                            >
-                                {{ __('ui.common.language_en') }}
-                            </a>
-                            <a
-                                wire:navigate
-                                x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
-                                @click="close()"
-                                class="join-item btn btn-sm font-display {{ app()->getLocale() === 'pl' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
-                            >
-                                {{ __('ui.common.language_pl') }}
-                            </a>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="join">
+                                <a
+                                    wire:navigate
+                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
+                                    @click="close()"
+                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'en' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
+                                >
+                                    {{ __('ui.common.language_en') }}
+                                </a>
+                                <a
+                                    wire:navigate
+                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
+                                    @click="close()"
+                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'pl' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
+                                >
+                                    {{ __('ui.common.language_pl') }}
+                                </a>
+                            </div>
+                            <x-theme-toggle class="btn btn-ghost btn-sm" />
                         </div>
                     </div>
 

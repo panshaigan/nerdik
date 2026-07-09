@@ -191,6 +191,16 @@ class WelcomePageTest extends TestCase
     }
 
     #[Test]
+    public function test_welcome_page_renders_theme_toggle(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('theme-controller', false);
+        $response->assertSee("\$persist('dark').as('mary-theme')", false);
+    }
+
+    #[Test]
     public function test_welcome_page_renders_mobile_navigation_drawer_markup(): void
     {
         $response = $this->get('/');
