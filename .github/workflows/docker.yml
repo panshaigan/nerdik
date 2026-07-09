@@ -64,6 +64,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Compile-time fallbacks only (Vite must build during image creation).
+          # Browsers use runtime window.__nerdikEchoConfig from server .env — see resources/js/echo.js.
           build-args: |
             VITE_REVERB_APP_KEY=ci-placeholder
             VITE_REVERB_HOST=localhost

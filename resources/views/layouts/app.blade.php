@@ -23,6 +23,8 @@
 
         @stack('head')
 
+        <x-echo-config />
+
         <!-- Scripts -->
         @vite(['resources/js/app.js'])
     </head>
