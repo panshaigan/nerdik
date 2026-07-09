@@ -36,6 +36,8 @@ class BrowseSearchPageTest extends TestCase
         $response->assertSee('data-ui="browse-events-clear"', false);
         $response->assertDontSee('max-h-[min(60vh,28rem)]', false);
         $response->assertSee('data-browse-tag-selector', false);
+        $response->assertSee('data-browse-date-range', false);
+        $response->assertSee('data-locale="en"', false);
         $response->assertSee('ui-app-navigation', false);
     }
 
