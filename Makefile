@@ -13,7 +13,8 @@ SEED_DATASET ?= minimal
         vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
         sync-from-prod-storage sync-from-prod-tables prod-to-staging-sync prod-to-staging-sync-remote \
         prod-to-staging-sync-tables prod-to-staging-sync-tables-remote ci-check \
-        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild
+        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
+        regenerate-backgrounds regenerate-welcome-image
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -126,6 +127,12 @@ tags-recalculate:
 tags-seed-images:
 	$(SAIL) artisan tags:seed-images
 
+regenerate-backgrounds:
+	$(SAIL) artisan app:generate-shell-backgrounds
+
+regenerate-welcome-image:
+	$(SAIL) artisan cache:forget welcome.hero_tag_image
+
 npm-install:
 	$(SAIL) npm install
 
@@ -204,6 +211,9 @@ prod-maintenance-status:
 prod-refresh:
 	./scripts/compose-exec.sh prod exec -T app php artisan migrate:refresh --seed --force
 	./scripts/compose-exec.sh prod exec -T app php artisan tags:recalculate-popularity
+
+prod-regenerate-welcome-image:
+	./scripts/compose-exec.sh prod exec -T app php artisan cache:forget welcome.hero_tag_image
 
 staging-artisan:
 	./scripts/compose-exec.sh staging exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
