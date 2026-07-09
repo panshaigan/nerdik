@@ -91,7 +91,7 @@
                         :user="$d->hostUser"
                         :organization="$d->hostOrganization"
                         size="sm"
-                        nameClass="truncate text-xs font-medium text-slate-400"
+                        nameClass="truncate text-xs font-medium text-base-content"
                     />
                 </div>
             @endif
@@ -99,10 +99,10 @@
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">
                         <dt class="sr-only">{{ __('ui.browse.date_label') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-slate-500">{{ __('ui.browse.date_label') }}:</span>
+                                <span class="font-medium text-neutral">{{ __('ui.browse.date_label') }}:</span>
                                 {{ $d->timeSummary }}
                             </span>
                         </dd>
@@ -111,10 +111,10 @@
                 @if ($d->locationSummary !== '')
                     <div class="flex gap-2">
                         <dt class="sr-only">{{ __('ui.browse.location_label') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-slate-500">{{ __('ui.browse.location_label') }}:</span>
+                                <span class="font-medium text-neutral">{{ __('ui.browse.location_label') }}:</span>
                                 {{ $d->locationSummary }}
                             </span>
                         </dd>
@@ -123,10 +123,10 @@
                 @if ($d->confirmedActivitiesCount !== null)
                     <div class="flex gap-2" data-ui="{{ $d->dataUiPrefix }}-confirmed-activities">
                         <dt class="sr-only">{{ __('ui.events.confirmed_activities') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-envelope" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug tabular-nums">
-                                <span class="font-medium text-slate-500">{{ __('ui.events.confirmed_activities') }}:</span>
+                                <span class="font-medium text-neutral">{{ __('ui.events.confirmed_activities') }}:</span>
                                 {{ $d->confirmedActivitiesCount }}
                             </span>
                         </dd>
@@ -135,10 +135,10 @@
                 @if ($d->showParticipants)
                     <div class="flex gap-2" data-ui="browse-card-participants">
                         <dt class="sr-only">{{ __('ui.browse.participants_count') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug tabular-nums">
-                                <span class="font-medium text-slate-500">{{ __('ui.browse.participants_count') }}:</span>
+                                <span class="font-medium text-neutral">{{ __('ui.browse.participants_count') }}:</span>
                                 @if ($d->participantsMax !== null)
                                     {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
                                 @else
@@ -151,10 +151,10 @@
                 @if ($d->parentEventName !== null && $d->parentEventUrl !== null)
                     <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event">
                         <dt class="sr-only">{{ __('ui.browse.parent_event') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-slate-400">
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-calendar-days" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-slate-500">{{ __('ui.browse.parent_event') }}:</span>
+                                <span class="font-medium text-neutral">{{ __('ui.browse.parent_event') }}:</span>
                                 <a
                                     href="{{ $d->parentEventUrl }}"
                                     wire:navigate
