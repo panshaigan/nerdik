@@ -89,7 +89,7 @@
     />
 @elseif ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>
-        <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
+        <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
             <img
                 src="{{ $resolvedAvatarUrl }}"
                 alt="{{ $resolvedName }}"
@@ -102,7 +102,7 @@
 @else
     <div {{ $attributes->class('flex items-center gap-2 min-w-0 overflow-visible') }}>
         <div class="avatar">
-            <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80">
+            <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
                 <img
                     src="{{ $resolvedAvatarUrl }}"
                     alt="{{ $resolvedName }}"
