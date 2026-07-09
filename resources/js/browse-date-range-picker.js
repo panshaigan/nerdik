@@ -136,7 +136,7 @@ function initBrowseDateRangePicker(root) {
         enableTime: false,
         dateFormat: 'Y-m-d',
         defaultDate: defaultDates.length > 0 ? defaultDates : undefined,
-        locale: locale === 'pl' ? Polish : undefined,
+        ...(locale === 'pl' ? { locale: Polish } : {}),
         onChange(selectedDates) {
             const wire = findWire(root);
 
