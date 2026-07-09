@@ -51,6 +51,8 @@ final class BrowseListingQuery
             });
         }
 
+        BrowseDateRangeOverlap::applyToEventQuery($query, $filters->fromDate, $filters->toDate);
+
         return $query;
     }
 
@@ -104,6 +106,8 @@ final class BrowseListingQuery
                 });
             });
         }
+
+        BrowseDateRangeOverlap::applyToActivityQuery($query, $filters->fromDate, $filters->toDate);
 
         return $query;
     }

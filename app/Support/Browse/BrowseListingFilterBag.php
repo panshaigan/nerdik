@@ -27,6 +27,8 @@ final class BrowseListingFilterBag
         public readonly ?string $maxLat,
         public readonly ?string $minLng,
         public readonly ?string $maxLng,
+        public readonly ?string $fromDate = null,
+        public readonly ?string $toDate = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -62,6 +64,8 @@ final class BrowseListingFilterBag
             maxLat: self::nullableString($request->input('max_lat')),
             minLng: self::nullableString($request->input('min_lng')),
             maxLng: self::nullableString($request->input('max_lng')),
+            fromDate: self::nullableDateString($request->input('from_date')),
+            toDate: self::nullableDateString($request->input('to_date')),
         );
     }
 
@@ -144,7 +148,14 @@ final class BrowseListingFilterBag
             maxLat: null,
             minLng: null,
             maxLng: null,
+            fromDate: $this->fromDate,
+            toDate: $this->toDate,
         );
+    }
+
+    public function hasDateRange(): bool
+    {
+        return filled($this->fromDate) || filled($this->toDate);
     }
 
     private static function nullableString(mixed $v): ?string
@@ -154,5 +165,19 @@ final class BrowseListingFilterBag
         }
 
         return is_string($v) ? $v : (string) $v;
+    }
+
+    private static function nullableDateString(mixed $v): ?string
+    {
+        $raw = self::nullableString($v);
+        if ($raw === null) {
+            return null;
+        }
+
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+            return null;
+        }
+
+        return $raw;
     }
 }

@@ -81,7 +81,7 @@ final class BrowseSearchState
             }
         }
 
-        foreach (['min_lat', 'max_lat', 'min_lng', 'max_lng'] as $key) {
+        foreach (['min_lat', 'max_lat', 'min_lng', 'max_lng', 'from_date', 'to_date'] as $key) {
             if (filled($request->input($key))) {
                 return true;
             }

@@ -146,6 +146,14 @@ final class BrowseSearchUrl
             }
         }
 
+        if (filled($bag->fromDate)) {
+            $params['from_date'] = $bag->fromDate;
+        }
+
+        if (filled($bag->toDate)) {
+            $params['to_date'] = $bag->toDate;
+        }
+
         $normalizedSort = in_array($sort, ['name', 'date'], true) ? $sort : 'date';
         if ($normalizedSort !== 'date') {
             $params['sort'] = $normalizedSort;
