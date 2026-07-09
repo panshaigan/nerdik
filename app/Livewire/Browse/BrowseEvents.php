@@ -73,6 +73,12 @@ class BrowseEvents extends Component
     #[Url]
     public bool $map_view = false;
 
+    #[Url]
+    public ?string $from_date = null;
+
+    #[Url]
+    public ?string $to_date = null;
+
     public function mount(): void
     {
         if (BrowseSearchUrl::isEphemeralPreset(request())) {
@@ -153,6 +159,23 @@ class BrowseEvents extends Component
         $this->resetPage();
     }
 
+    public function updatedFromDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedToDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearDateRange(): void
+    {
+        $this->from_date = null;
+        $this->to_date = null;
+        $this->resetPage();
+    }
+
     public function updatedMapView(): void
     {
         $this->resetPage();
@@ -172,7 +195,7 @@ class BrowseEvents extends Component
         $this->js('window.__nerdikClearBrowseSearchState?.()');
 
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'only_free_places', 'map_view']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'only_free_places', 'map_view', 'from_date', 'to_date']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('search.index');
@@ -215,7 +238,9 @@ class BrowseEvents extends Component
             || $this->only_events
             || $this->only_activities
             || $this->only_mine
-            || $this->only_free_places;
+            || $this->only_free_places
+            || filled($this->from_date)
+            || filled($this->to_date);
     }
 
     public function hasBBox(): bool
@@ -295,6 +320,8 @@ class BrowseEvents extends Component
             maxLat: $this->max_lat !== null && $this->max_lat !== '' ? (string) $this->max_lat : null,
             minLng: $this->min_lng !== null && $this->min_lng !== '' ? (string) $this->min_lng : null,
             maxLng: $this->max_lng !== null && $this->max_lng !== '' ? (string) $this->max_lng : null,
+            fromDate: filled($this->from_date) ? (string) $this->from_date : null,
+            toDate: filled($this->to_date) ? (string) $this->to_date : null,
         );
     }
 

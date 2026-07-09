@@ -88,6 +88,7 @@
                 'input rounded-xl flex min-h-10 !h-auto w-full min-w-0 flex-wrap items-start gap-x-2 gap-y-1.5',
                 'input-bordered' => ! $fieldShellUsesBrandFrame,
                 $fieldShellClass => $fieldShellClass !== '',
+                'ui-browse-events-search-has-date-range' => ($browseDateRangeShellPadding ?? false) === true,
             ])
         >
             <div data-ts-chips class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"></div>

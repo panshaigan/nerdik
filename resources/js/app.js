@@ -21,12 +21,15 @@ import { bootProposalEventAutocomplete } from './activities/proposal-event-autoc
 import './invite-user-search';
 import { initSlotEditForm } from './slot-form-modal';
 import { initSlotMassForm } from './slot-mass-form';
+import { bootBrowseDateRangePickers } from './browse-date-range-picker';
+import 'flatpickr/dist/flatpickr.min.css';
 
 window.initSlotEditForm = initSlotEditForm;
 window.initSlotMassForm = initSlotMassForm;
 
 initEventShowSlotForms();
 bootDateTimePickers();
+bootBrowseDateRangePickers();
 
 function bootSlotMassForms() {
     document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
@@ -50,6 +53,7 @@ bootProposalEventAutocomplete();
 
 document.addEventListener('livewire:navigated', bootSlotMassForms);
 document.addEventListener('livewire:navigated', () => bootProposalEventAutocomplete());
+document.addEventListener('livewire:navigated', () => bootBrowseDateRangePickers());
 
 function registerActivityTagPickerMorphHook() {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {

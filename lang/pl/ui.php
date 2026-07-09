@@ -371,6 +371,8 @@ return [
         'save_search_success' => 'Wyszukiwanie zapisane',
         'filters' => 'Filtry',
         'date_label' => 'Data',
+        'date_range_toggle' => 'Filtruj według zakresu dat',
+        'date_range_clear' => 'Wyczyść daty',
         'location_label' => 'Miejsce',
         'no_activities_found' => 'Nie znaleziono aktywności.',
     ],

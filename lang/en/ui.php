@@ -371,6 +371,8 @@ return [
         'save_search_success' => 'Search saved',
         'filters' => 'Filters',
         'date_label' => 'Date',
+        'date_range_toggle' => 'Filter by date range',
+        'date_range_clear' => 'Clear dates',
         'location_label' => 'Location',
         'no_activities_found' => 'No activities found.',
     ],

@@ -815,6 +815,62 @@
         min-height: 2.5rem;
     }
 
+    .ui-browse-events-toolbar-search [data-ts-field].input.ui-browse-events-search-has-date-range {
+        padding-right: 2.75rem;
+    }
+
+    .ui-browse-date-range-trigger {
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    }
+
+    .ui-browse-date-range-trigger:hover,
+    .ui-browse-date-range-trigger:focus-visible {
+        color: var(--color-primary-dark);
+        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+    }
+
+    .ui-browse-date-range-trigger.is-active {
+        color: var(--color-primary-dark);
+        background-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
+    }
+
+    .ui-filter-form-events .flatpickr-calendar {
+        border-radius: 1rem;
+        border-color: var(--color-base-300);
+        background: var(--color-base-100);
+        box-shadow: 0 10px 30px color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    }
+
+    .ui-filter-form-events .flatpickr-day.selected,
+    .ui-filter-form-events .flatpickr-day.startRange,
+    .ui-filter-form-events .flatpickr-day.endRange {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    .ui-filter-form-events .flatpickr-day.inRange {
+        background: color-mix(in oklab, var(--color-primary) 18%, transparent);
+        border-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
+        box-shadow: none;
+    }
+
+    .ui-filter-form-events .ui-browse-date-range-clear {
+        display: block;
+        width: calc(100% - 1rem);
+        margin: 0.5rem auto 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-base-300);
+        background: transparent;
+        color: var(--color-base-content);
+        padding: 0.4rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+
+    .ui-filter-form-events .ui-browse-date-range-clear:hover {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
     @media (min-width: 64rem) {
         .ui-browse-events-toolbar .browse-events-action-toolbar {
             justify-self: end;
