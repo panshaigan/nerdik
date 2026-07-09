@@ -510,7 +510,7 @@ Scripts: [`scripts/backup/backup-prod.sh`](../scripts/backup/backup-prod.sh), [`
 Works without external storage or `.env.backup`:
 
 1. Ensure `gpg` is installed on the host.
-2. Optional: create `/opt/nerdik/.backup-gpg-passphrase` (`chmod 600`, owned by `deploy`) to include encrypted `.env` in each backup. Without it, DB + storage backups still run.
+2. Optional: create `echo 'your-passphrase' > /opt/nerdik/.backup-gpg-passphrase` (`chmod 600`, owned by `deploy`) to include encrypted `.env` in each backup. Without it, DB + storage backups still run.
 3. Run manually:
 
 ```bash
