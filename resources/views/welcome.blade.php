@@ -11,6 +11,8 @@
 
         <x-theme-script />
 
+        <x-echo-config />
+
         @vite(['resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-transparent font-sans text-base-content antialiased">

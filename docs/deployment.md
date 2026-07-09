@@ -33,7 +33,7 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 2. Copy [`.env.production.example`](../.env.production.example) to `.env` and fill secrets (`APP_KEY`, `DB_PASSWORD`, Reverb keys, mail, OAuth).
 3. Set `APP_DOMAIN`, `STAGING_DOMAIN` (e.g. `staging.nerdik.app`), `ACME_EMAIL`, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a published SHA, or leave it unset and deploy with `IMAGE_TAG=<sha>` (see below).
 4. Set `APP_URL` to `https://<APP_DOMAIN>`.
-5. Set browser Reverb vars: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https` (must match the image build).
+5. Set browser Reverb vars in server `.env`: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https`. These drive **runtime** Echo config injected into pages (same image can serve prod and staging). Docker build args are compile-time fallbacks only.
 6. Set `STAGING_DOMAIN=staging.nerdik.app` in `.env`. Caddy config is generated at container start from `APP_DOMAIN`, `STAGING_DOMAIN`, and `ACME_EMAIL` (see `docker/caddy/entrypoint.sh`).
 7. Deploy (use the SHA from CI after your first push to `main`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
 
@@ -244,7 +244,7 @@ dig +short nerdik.app
 
 Composer and frontend dependencies are installed **inside the Docker image** during CI, not on the VPS at deploy time. The [`docker/production/Dockerfile`](../docker/production/Dockerfile) runs `composer install --no-dev`, `npm ci`, and `npm run build`; [`scripts/deploy.sh`](../scripts/deploy.sh) only pulls that image and runs containers. After you push to `main`, wait for the Docker workflow to publish `ghcr.io/<owner>/nerdik:<sha>`, then deploy with that SHA.
 
-Frontend assets are baked into the image (`npm run build` in the Dockerfile). `VITE_REVERB_*` and `VITE_APP_NAME` are taken from build args.
+Frontend assets are baked into the image (`npm run build` in the Dockerfile). `VITE_REVERB_*` build args in CI are compile-time fallbacks only; browsers read **runtime** Echo config from each server's `.env` via `window.__nerdikEchoConfig` (see `resources/js/echo.js`).
 
 Publish from a machine authenticated to GHCR with write permissions:
 
@@ -419,7 +419,7 @@ Run these in addition to the web server:
 | Scheduler | `php artisan schedule:work` or cron: `* * * * * php artisan schedule:run` |
 | Reverb | `php artisan reverb:start` |
 
-Reverb is required for live participation counters and roster refresh on activity/event pages. Set `VITE_REVERB_*` to the public WebSocket endpoint (host, port, `https`/`wss` scheme) that browsers reach.
+Reverb is required for live participation counters and roster refresh on activity/event pages. Set `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME` in each environment's `.env` to the public WebSocket endpoint browsers reach (`wss` on port `443` behind Caddy). `REVERB_APP_KEY` must match between server `.env` and the key injected into pages.
 
 Do not expose Sail-only tools (Adminer, Mailpit) in **production**. Staging Mailpit is served at `STAGING_MAILPIT_DOMAIN` with `MAILPIT_UI_AUTH` — never expose Mailpit without authentication.
 

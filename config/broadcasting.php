@@ -79,4 +79,40 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Echo Client (browser)
+    |--------------------------------------------------------------------------
+    |
+    | Runtime WebSocket settings injected into page markup before Vite assets.
+    | Allows the same Docker image to serve prod and staging with per-server
+    | .env values (VITE_REVERB_* / APP_DOMAIN / REVERB_APP_KEY).
+    |
+    */
+
+    'echo_client' => (static function (): ?array {
+        if (env('BROADCAST_CONNECTION', 'null') !== 'reverb') {
+            return null;
+        }
+
+        $key = env('REVERB_APP_KEY');
+
+        if (! is_string($key) || $key === '') {
+            return null;
+        }
+
+        $host = env('VITE_REVERB_HOST') ?: env('APP_DOMAIN');
+
+        if (! is_string($host) || $host === '') {
+            return null;
+        }
+
+        return [
+            'key' => $key,
+            'host' => $host,
+            'port' => (int) env('VITE_REVERB_PORT', 443),
+            'scheme' => env('VITE_REVERB_SCHEME', 'https'),
+        ];
+    })(),
+
 ];
