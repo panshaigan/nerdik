@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Single-file migration for all application + Laravel framework tables.
  * PostgreSQL-compatible (no unsigned, no binary collation).
+ * Laravel Pulse tables live in a separate package migration.
  *
  * Creation order respects foreign-key dependencies.
  * The users <-> organizations circular dependency is resolved by:
@@ -71,6 +72,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('logo_path')->nullable();
+            $table->enum('logo_source', ['generated', 'upload'])->default('generated');
+            $table->string('logo_bg_color', 7)->nullable();
+            $table->string('logo_text_color', 7)->nullable();
             $table->string('slug')->unique();
             $table->string('acronym', 12)->nullable();
             $table->text('description')->nullable();
@@ -93,10 +97,12 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('nickname')->unique();
             $table->string('email')->unique();
+            $table->string('pending_email')->nullable();
             $table->string('password');
             $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
             $table->boolean('is_admin')->default(false);
             $table->boolean('is_event_organizer')->default(false);
+            $table->boolean('is_deleted')->default(false);
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
@@ -110,19 +116,34 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->string('google_id')->nullable();
             $table->string('facebook_id')->nullable();
+            $table->string('discord_id')->nullable();
             $table->string('avatar_path')->nullable();
-            $table->enum('avatar_source', ['generated', 'uploaded', 'gravatar', 'google', 'facebook'])->default('generated');
+            $table->enum('avatar_source', ['generated', 'uploaded', 'gravatar', 'google', 'facebook', 'discord'])->default('generated');
             $table->string('avatar_cache_signature', 64)->nullable();
             $table->text('google_avatar_url')->nullable();
+            $table->string('google_email')->nullable();
             $table->text('facebook_avatar_url')->nullable();
+            $table->string('facebook_email')->nullable();
+            $table->string('facebook_profile_url', 2048)->nullable();
+            $table->text('discord_avatar_url')->nullable();
+            $table->string('discord_email')->nullable();
+            $table->string('verified_email')->nullable();
+            $table->boolean('show_contact_email')->default(false);
+            $table->boolean('show_contact_facebook')->default(true);
+            $table->boolean('show_contact_google')->default(true);
+            $table->boolean('show_contact_discord')->default(true);
             $table->string('avatar_bg_color', 7)->nullable();
             $table->string('avatar_text_color', 7)->nullable();
             $table->string('avatar_initials', 3)->nullable();
             $table->string('discord_handle')->nullable();
             $table->string('current_location')->nullable();
             $table->string('timezone', 50)->nullable();
+            $table->string('time_display_format', 3)->default('24h');
             $table->text('languages')->nullable(); // JSON stored as text (utf8mb4_bin in MySQL)
             $table->jsonb('notification_preferences')->nullable();
+            $table->jsonb('google_data')->nullable();
+            $table->jsonb('facebook_data')->nullable();
+            $table->jsonb('discord_data')->nullable();
             $table->timestamps();
         });
 
@@ -270,10 +291,12 @@ return new class extends Migration
             $table->smallInteger('max_participants')->nullable();
             $table->smallInteger('minimum_age')->nullable();
             $table->smallInteger('cancellation_deadline_in_hours')->nullable();
+            $table->smallInteger('lottery_draw_in_hours')->nullable();
             $table->smallInteger('duration_in_minutes')->nullable();
             $table->boolean('allows_observers')->default(false);
             $table->boolean('is_host_passive')->default(false);
-            $table->boolean('requires_approval')->default(false);
+            $table->string('participation_mode', 32)->default('open');
+            $table->timestamp('lottery_resolved_at')->nullable();
             $table->decimal('price', 10, 2)->nullable();
             $table->string('logo_path')->nullable();
             $table->enum('logo_source', ['tag', 'upload'])->nullable();
@@ -315,6 +338,10 @@ return new class extends Migration
             $table->foreignId('activity_id')->nullable()->constrained('activities')->nullOnDelete();
             $table->foreignId('place_id')->nullable()->constrained('places')->nullOnDelete();
             $table->boolean('requires_approval')->default(false);
+            $table->boolean('forces_participation_settings')->default(false);
+            $table->string('participation_mode')->nullable();
+            $table->smallInteger('lottery_draw_in_hours')->nullable();
+            $table->boolean('allows_observers')->nullable();
             $table->smallInteger('max_capacity')->nullable();
             $table->dateTime('starts_at')->nullable();
             $table->dateTime('ends_at')->nullable();
@@ -323,6 +350,20 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+        });
+
+        // ------------------------------------------------------------------ //
+        // 15b. ACTIVITY LOTTERY DRAWS
+        // ------------------------------------------------------------------ //
+        Schema::create('activity_lottery_draws', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+            $table->string('trigger', 32);
+            $table->foreignId('enrollment_window_id')->nullable()->constrained('event_enrollment_windows')->nullOnDelete();
+            $table->timestamp('drawn_at');
+            $table->timestamps();
+
+            $table->unique(['activity_id', 'trigger', 'enrollment_window_id'], 'activity_lottery_draws_unique');
         });
 
         // ------------------------------------------------------------------ //
@@ -508,6 +549,39 @@ return new class extends Migration
             $table->index(['interest_type', 'interest_id'], 'user_interests_interest_lookup_idx');
             $table->index(['user_id', 'interest_type'], 'user_interests_interest_type_idx');
         });
+
+        // ------------------------------------------------------------------ //
+        // 30. USER REQUESTS
+        // ------------------------------------------------------------------ //
+        Schema::create('user_requests', function (Blueprint $table) {
+            $table->id();
+            $table->string('type', 64);
+            $table->string('status', 32)->default('pending');
+            $table->foreignId('requester_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('recipient_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->nullableMorphs('subject');
+            $table->string('message', 500)->nullable();
+            $table->timestamp('responded_at')->nullable();
+            $table->foreignId('responded_by_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('expires_at')->nullable();
+            $table->string('resolution_outcome', 32)->nullable();
+            $table->timestamps();
+
+            $table->index(['status', 'expires_at']);
+            $table->index(['recipient_id', 'status']);
+            $table->index(['requester_id', 'status']);
+        });
+
+        DB::statement("
+            CREATE UNIQUE INDEX user_requests_pending_unique_general
+            ON user_requests (type, requester_id, recipient_id, subject_type, subject_id)
+            WHERE status = 'pending' AND recipient_id IS NOT NULL
+        ");
+        DB::statement("
+            CREATE UNIQUE INDEX user_requests_pending_organizer_flag
+            ON user_requests (type, requester_id)
+            WHERE status = 'pending' AND recipient_id IS NULL
+        ");
 
         // ------------------------------------------------------------------ //
         // 31. NOTIFICATIONS  (Laravel Notifiable; UUID primary key)
@@ -696,6 +770,9 @@ return new class extends Migration
         Schema::dropIfExists('scheduled_notification_dispatches');
         Schema::dropIfExists('notification_email_logs');
         Schema::dropIfExists('notifications');
+        DB::statement('DROP INDEX IF EXISTS user_requests_pending_unique_general');
+        DB::statement('DROP INDEX IF EXISTS user_requests_pending_organizer_flag');
+        Schema::dropIfExists('user_requests');
         Schema::dropIfExists('user_interests');
         DB::statement('DROP TABLE IF EXISTS "media" CASCADE;');
         Schema::dropIfExists('taggables');
@@ -712,6 +789,7 @@ return new class extends Migration
         Schema::dropIfExists('activity_waitlist_entries');
         Schema::dropIfExists('activity_user');
         Schema::dropIfExists('slots');
+        Schema::dropIfExists('activity_lottery_draws');
 
         DB::statement('DROP INDEX IF EXISTS activities_search_vector_idx');
         Schema::dropIfExists('activities');
