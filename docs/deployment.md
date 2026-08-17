@@ -70,6 +70,14 @@ docker compose -f compose.stack.yaml -f compose.prod.yaml run --rm --no-deps app
 
 After editing `.env`, recreate containers so new values load: `docker compose … up -d --force-recreate`, then clear config cache before re-caching (see **Updates**).
 
+Initialize an empty production database (base catalog seed, tag/listing images, first admin). This is interactive and needs a TTY:
+
+```bash
+make prod-init
+```
+
+Do **not** use `make prod-refresh` for first-time production: it seeds sample users (`alice@nerdik.test`, etc.). To add another admin later without wiping, run `make prod-artisan user:create-admin`.
+
 ### Staging on the same VPS
 
 Staging runs on the **same VPS** as production, in a separate directory and Docker Compose project. Prod Caddy owns ports `80`/`443` and routes `STAGING_DOMAIN` to staging containers over the shared `nerdik-edge` network. Staging has **no local Caddy** and can be started or stopped without affecting prod.
@@ -381,7 +389,22 @@ Imports with `BACKUP=1` write snapshots under `/tmp/nerdik-prod-backup-*` or `/t
 
 VPS Artisan commands use [`scripts/compose-exec.sh`](../scripts/compose-exec.sh), which resolves the deployed image automatically from the running `app` container (or `.nerdik-image` written on each deploy). You do **not** need `NERDIK_IMAGE` in `.env`.
 
-**Refresh database (same as local `make refresh` — wipes all data):**
+**First-time / empty production database** (base data only, tag images, first admin — interactive TTY):
+
+```bash
+cd /opt/nerdik
+make prod-init
+```
+
+Staging: `make staging-init`. Local Sail: `make init`.
+
+Non-interactive (no TTY):
+
+```bash
+make prod-artisan app:init --force --no-interaction --email=you@example.com --nickname=you --password='…'
+```
+
+**Refresh database (same as local `make refresh` — wipes all data and seeds sample users):**
 
 ```bash
 cd /opt/nerdik
