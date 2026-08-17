@@ -40,6 +40,11 @@ function subscribeEventPlanCounterChannels() {
         return;
     }
 
+    if (!document.body?.dataset?.userId) {
+        teardownEventPlanCounterChannels();
+        return;
+    }
+
     const eventRoot = document.querySelector('[data-show-event-id]');
     if (!eventRoot?.dataset?.showEventId) {
         teardownEventPlanCounterChannels();
