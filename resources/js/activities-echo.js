@@ -12,6 +12,11 @@ function subscribeActivityParticipationEchoChannel() {
         return;
     }
 
+    if (!document.body?.dataset?.userId) {
+        teardownActivityParticipationEchoChannel();
+        return;
+    }
+
     const el = document.querySelector('[data-show-activity-id]');
     if (!el?.dataset.showActivityId) {
         teardownActivityParticipationEchoChannel();
