@@ -26,6 +26,21 @@ class PublicSeoTest extends TestCase
         $response->assertSee('<link rel="canonical" href="'.e(url('/')).'">', false);
         $response->assertSee('<meta property="og:title" content="'.e(Seo::pageTitle((string) __('ui.seo.welcome_title'))).'">', false);
         $response->assertSee('<meta name="twitter:card" content="summary">', false);
+        $response->assertSee('<link rel="icon" href="'.e(asset('favicon.ico')).'" sizes="32x32">', false);
+        $response->assertSee('<link rel="icon" href="'.e(asset('favicon.svg')).'" type="image/svg+xml">', false);
+        $response->assertSee('<link rel="apple-touch-icon" href="'.e(asset('apple-touch-icon.png')).'">', false);
+    }
+
+    public function test_favicon_assets_exist_in_the_public_directory(): void
+    {
+        $this->assertFileExists(public_path('favicon.ico'));
+        $this->assertGreaterThan(0, (int) filesize(public_path('favicon.ico')));
+
+        $this->assertFileExists(public_path('favicon.svg'));
+        $this->assertGreaterThan(0, (int) filesize(public_path('favicon.svg')));
+
+        $this->assertFileExists(public_path('apple-touch-icon.png'));
+        $this->assertGreaterThan(0, (int) filesize(public_path('apple-touch-icon.png')));
     }
 
     public function test_search_page_renders_seo_metadata(): void
