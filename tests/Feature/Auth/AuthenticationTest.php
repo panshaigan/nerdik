@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\AppLocale;
 use App\Events\SessionInvalidated;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +44,44 @@ class AuthenticationTest extends TestCase
             ->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertAuthenticated();
+    }
+
+    public function test_login_learns_current_locale_when_user_has_none_stored(): void
+    {
+        $user = User::factory()->create(['locale' => null]);
+
+        session(['locale' => 'pl']);
+        app()->setLocale('pl');
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertAuthenticated();
+        $this->assertSame(AppLocale::Pl, $user->fresh()->locale);
+        $this->assertSame('pl', session('locale'));
+    }
+
+    public function test_login_applies_stored_locale_to_session(): void
+    {
+        $user = User::factory()->locale(AppLocale::Pl)->create();
+
+        session(['locale' => 'en']);
+        app()->setLocale('en');
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertAuthenticated();
+        $this->assertSame(AppLocale::Pl, $user->fresh()->locale);
+        $this->assertSame('pl', session('locale'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

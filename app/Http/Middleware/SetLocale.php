@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\AppLocale;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -16,18 +18,25 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $supported = ['en', 'pl'];
         $locale = $request->session()->get('locale');
 
-        if (! is_string($locale) || ! in_array($locale, $supported, true)) {
+        if (! AppLocale::isSupported(is_string($locale) ? $locale : null)) {
             $cookieLocale = $request->cookie('locale');
-            if (is_string($cookieLocale) && in_array($cookieLocale, $supported, true)) {
+            if (AppLocale::isSupported(is_string($cookieLocale) ? $cookieLocale : null)) {
                 $locale = $cookieLocale;
                 $request->session()->put('locale', $cookieLocale);
             }
         }
 
-        if (is_string($locale) && in_array($locale, $supported, true)) {
+        if (! AppLocale::isSupported(is_string($locale) ? $locale : null)) {
+            $user = $request->user();
+            if ($user instanceof User && $user->locale instanceof AppLocale) {
+                $locale = $user->locale->value;
+                $request->session()->put('locale', $locale);
+            }
+        }
+
+        if (AppLocale::isSupported(is_string($locale) ? $locale : null)) {
             App::setLocale($locale);
         }
 

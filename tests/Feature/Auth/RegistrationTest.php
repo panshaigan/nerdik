@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use Anhskohbo\NoCaptcha\NoCaptcha;
+use App\Enums\AppLocale;
 use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +51,26 @@ class RegistrationTest extends TestCase
         $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
 
         Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_new_users_store_the_current_locale_on_register(): void
+    {
+        Notification::fake();
+
+        session(['locale' => 'pl']);
+        app()->setLocale('pl');
+
+        Volt::test('pages.auth.register')
+            ->set('nickname', 'locale-user')
+            ->set('email', 'locale-user@example.com')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->call('register')
+            ->assertRedirect(route('verification.notice', absolute: false));
+
+        $user = User::where('email', 'locale-user@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertSame(AppLocale::Pl, $user->locale);
     }
 
     public function test_registration_requires_recaptcha_response_when_recaptcha_enabled(): void
