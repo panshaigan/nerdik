@@ -11,11 +11,14 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Traits\Localizable;
 
 #[Signature('notifications:scheduled-digest')]
 #[Description('Send scheduled periodic digest notifications')]
 class SendScheduledPeriodicNotificationsCommand extends Command
 {
+    use Localizable;
+
     public function __construct(
         private readonly ScheduledNotificationCollector $collector
     ) {
@@ -31,7 +34,7 @@ class SendScheduledPeriodicNotificationsCommand extends Command
         $now = CarbonImmutable::now('UTC');
 
         User::query()
-            ->select(['id', 'email'])
+            ->select(['id', 'email', 'locale'])
             ->with('profile:user_id,timezone,notification_preferences')
             ->orderBy('id')
             ->cursor()
@@ -43,10 +46,12 @@ class SendScheduledPeriodicNotificationsCommand extends Command
                 }
 
                 $dispatchDate = $localNow->toDateString();
-                $items = collect($this->collector->collectForUser($user, $now))
-                    ->filter(fn (array $item): bool => $user->retainsScheduledDigestItem($item))
-                    ->values()
-                    ->all();
+                $items = $this->withLocale($user->preferredLocale(), function () use ($user, $now): array {
+                    return collect($this->collector->collectForUser($user, $now))
+                        ->filter(fn (array $item): bool => $user->retainsScheduledDigestItem($item))
+                        ->values()
+                        ->all();
+                });
                 if ($items === []) {
                     return;
                 }

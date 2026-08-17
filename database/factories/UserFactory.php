@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\AppLocale;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -79,6 +80,13 @@ final class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function locale(AppLocale $locale): self
+    {
+        return $this->state(fn (array $attributes) => [
+            'locale' => $locale,
         ]);
     }
 }

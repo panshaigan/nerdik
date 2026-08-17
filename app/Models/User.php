@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Actions\Avatars\ResolveAvatarUrl;
+use App\Enums\AppLocale;
 use App\Enums\NotificationPreferenceKey;
 use App\Enums\TimeDisplayFormat;
 use App\Models\Concerns\InteractsWithAvatarImage;
@@ -13,6 +14,7 @@ use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +27,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
-class User extends Authenticatable implements FilamentUser, HasMedia, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasLocalePreference, HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAvatarImage, Notifiable;
@@ -44,6 +46,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia, MustVerify
         'organization_id',
         'is_event_organizer',
         'is_deleted',
+        'locale',
     ];
 
     /**
@@ -70,6 +73,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia, MustVerify
             'is_admin' => 'boolean',
             'is_event_organizer' => 'boolean',
             'is_deleted' => 'boolean',
+            'locale' => AppLocale::class,
         ];
     }
 
@@ -236,7 +240,12 @@ class User extends Authenticatable implements FilamentUser, HasMedia, MustVerify
         }
 
         Notification::route('mail', $this->pending_email)
-            ->notify(new VerifyPendingEmailNotification($this));
+            ->notify((new VerifyPendingEmailNotification($this))->locale($this->preferredLocale()));
+    }
+
+    public function preferredLocale(): string
+    {
+        return $this->locale?->value ?? AppLocale::En->value;
     }
 
     public function canCreateEvents(): bool

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Locale\SwitchLocale;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\Browse\BrowseMapFeaturesController;
@@ -15,25 +16,13 @@ use App\Models\Activity;
 use App\Models\Event;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Support\Seo\Seo;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (WelcomePageDataService $welcome) {
     return view('welcome', $welcome->data());
 });
 
-Route::get('locale/{locale}', function (Request $request, string $locale) {
-    abort_unless(in_array($locale, ['en', 'pl'], true), 404);
-
-    session(['locale' => $locale]);
-
-    $redirectTo = (string) $request->query('redirect', '');
-    if (! str_starts_with($redirectTo, '/') || str_starts_with($redirectTo, '//')) {
-        $redirectTo = route('dashboard');
-    }
-
-    return redirect($redirectTo)->cookie('locale', $locale, 60 * 24 * 365);
-})->name('locale.switch');
+Route::get('locale/{locale}', SwitchLocale::class)->name('locale.switch');
 
 /*
 | Public unified browse (events + activities). Legacy /events and /activities redirect to /search.
