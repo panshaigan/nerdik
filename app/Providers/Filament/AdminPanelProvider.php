@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Controllers\Admin\SentEmailPreviewController;
 use App\Http\Middleware\AdminOnly;
 use App\Support\Filament\ConfigureFilamentDisplay;
 use Filament\Http\Middleware\Authenticate;
@@ -19,6 +20,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -65,6 +67,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->authenticatedRoutes(function (): void {
+                Route::get('/sent-emails/{sentEmail}/preview', SentEmailPreviewController::class)
+                    ->name('sent-emails.preview');
+            });
     }
 }
