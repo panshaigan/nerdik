@@ -596,23 +596,34 @@ return new class extends Migration
         });
 
         // ------------------------------------------------------------------ //
-        // 32. NOTIFICATION EMAIL LOGS
+        // 32. SENT EMAILS
         // ------------------------------------------------------------------ //
-        Schema::create('notification_email_logs', function (Blueprint $table) {
+        Schema::create('sent_emails', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->timestamp('sent_at');
-            $table->string('notification_type');
-            $table->nullableMorphs('notifiable');
-            $table->foreignId('recipient_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('kind');
+            $table->string('source_class')->nullable();
+            $table->string('subject');
+            $table->string('from_email')->nullable();
+            $table->string('from_name')->nullable();
             $table->string('recipient_email');
+            $table->foreignId('recipient_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->jsonb('cc')->nullable();
+            $table->jsonb('bcc')->nullable();
+            $table->string('locale', 16)->nullable();
             $table->string('mailer')->nullable();
             $table->string('provider_message_id')->nullable();
+            $table->nullableMorphs('related');
+            $table->string('html_path')->nullable();
+            $table->string('text_path')->nullable();
             $table->jsonb('metadata')->nullable();
             $table->timestamps();
 
-            $table->index('sent_at', 'notification_email_logs_sent_at_idx');
-            $table->index(['notification_type', 'sent_at'], 'notification_email_logs_type_sent_at_idx');
-            $table->index(['recipient_user_id', 'sent_at'], 'notification_email_logs_user_sent_at_idx');
+            $table->index('sent_at', 'sent_emails_sent_at_idx');
+            $table->index(['kind', 'sent_at'], 'sent_emails_kind_sent_at_idx');
+            $table->index(['recipient_user_id', 'sent_at'], 'sent_emails_user_sent_at_idx');
+            $table->index('recipient_email', 'sent_emails_recipient_email_idx');
         });
 
         // ------------------------------------------------------------------ //
@@ -768,7 +779,7 @@ return new class extends Migration
         Schema::dropIfExists('password_reset_tokens');
 
         Schema::dropIfExists('scheduled_notification_dispatches');
-        Schema::dropIfExists('notification_email_logs');
+        Schema::dropIfExists('sent_emails');
         Schema::dropIfExists('notifications');
         DB::statement('DROP INDEX IF EXISTS user_requests_pending_unique_general');
         DB::statement('DROP INDEX IF EXISTS user_requests_pending_organizer_flag');

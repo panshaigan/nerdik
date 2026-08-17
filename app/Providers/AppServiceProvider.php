@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use App\Listeners\BackfillMediaDimensions;
-use App\Listeners\LogNotificationEmail;
+use App\Listeners\CaptureSentEmailContext;
+use App\Listeners\LogSentEmail;
 use App\Listeners\NotifyUserAvatarReady;
 use App\Listeners\RecordNotificationDispatchThrottle;
 use App\Listeners\RefreshUserAvatarCache;
@@ -16,6 +17,7 @@ use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
+use App\Models\UserRequest;
 use App\Observers\ActivityObserver;
 use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
@@ -29,6 +31,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Notifications\Events\NotificationSending;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event as EventFacade;
@@ -102,6 +106,8 @@ class AppServiceProvider extends ServiceProvider
             'place' => Place::class,
             'user' => User::class,
             'activity_type' => ActivityType::class,
+            'activity_proposal' => ActivityProposal::class,
+            'user_request' => UserRequest::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.
@@ -126,7 +132,8 @@ class AppServiceProvider extends ServiceProvider
             return $user !== null && $user->canModifyEntity($entity);
         });
 
-        EventFacade::listen(NotificationSent::class, LogNotificationEmail::class);
+        EventFacade::listen(NotificationSending::class, CaptureSentEmailContext::class);
+        EventFacade::listen(MessageSent::class, LogSentEmail::class);
         EventFacade::listen(NotificationSent::class, RecordNotificationDispatchThrottle::class);
         EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
         EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);

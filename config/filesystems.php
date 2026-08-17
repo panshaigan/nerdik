@@ -38,6 +38,14 @@ return [
             'report' => false,
         ],
 
+        'email_logs' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/email-logs'),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

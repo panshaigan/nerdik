@@ -62,6 +62,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sent Email Log Retention
+    |--------------------------------------------------------------------------
+    |
+    | Days to retain sent email metadata rows and their stored HTML/text
+    | bodies under storage/app/private/email-logs.
+    |
+    */
+
+    'sent_email_retention_days' => (int) env('HOUSEKEEPING_SENT_EMAILS_DAYS', 90),
+
+    /*
+    |--------------------------------------------------------------------------
     | Sync Temp Backup Retention
     |--------------------------------------------------------------------------
     |

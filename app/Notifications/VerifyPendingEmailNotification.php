@@ -2,21 +2,34 @@
 
 namespace App\Notifications;
 
+use App\Contracts\ProvidesSentEmailContext;
+use App\Enums\SentEmailKind;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
-class VerifyPendingEmailNotification extends Notification
+class VerifyPendingEmailNotification extends Notification implements ProvidesSentEmailContext
 {
     use Queueable;
 
     public function __construct(
         public User $user
     ) {}
+
+    public function sentEmailKind(): SentEmailKind
+    {
+        return SentEmailKind::VerifyPendingEmail;
+    }
+
+    public function sentEmailRelated(): ?Model
+    {
+        return null;
+    }
 
     /**
      * @return list<string>

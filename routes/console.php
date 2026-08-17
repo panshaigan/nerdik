@@ -28,6 +28,7 @@ Schedule::command('housekeeping:prune-sessions')->dailyAt('03:30')->withoutOverl
 Schedule::command('housekeeping:prune-cache')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('housekeeping:prune-livewire-uploads')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('housekeeping:prune-logs')->dailyAt('03:30')->withoutOverlapping();
+Schedule::command('housekeeping:prune-sent-emails')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('media-library:clean', [
     '--delete-orphaned' => true,
     '--force' => true,

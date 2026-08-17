@@ -12,6 +12,7 @@ use App\Models\Activity;
 use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Notifications\Concerns\LogsSentEmailContext;
 use App\Services\Notifications\NotificationDispatchThrottle;
 use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Bus\Queueable;
@@ -23,6 +24,7 @@ use Illuminate\Notifications\Notification;
 class UserRequestResolvedNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
     use BroadcastsWithDatabasePayload;
+    use LogsSentEmailContext;
     use Queueable;
 
     public function __construct(

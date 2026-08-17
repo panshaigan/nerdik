@@ -138,9 +138,9 @@ class UserRequestSystemTest extends TestCase
         $this->assertSame(0, $recipient->fresh()->notifications()->count());
         $this->assertSame(0, $recipient->fresh()->unreadNotifications()->count());
 
-        $emailLog = DB::table('notification_email_logs')
+        $emailLog = DB::table('sent_emails')
             ->where('recipient_user_id', $recipient->id)
-            ->where('notification_type', UserRequestReceivedNotification::class)
+            ->where('source_class', UserRequestReceivedNotification::class)
             ->first();
 
         $this->assertNotNull($emailLog);
@@ -267,9 +267,9 @@ class UserRequestSystemTest extends TestCase
         app(UserRequestService::class)->cancel($request, $owner);
 
         $this->assertSame(0, $recipient->fresh()->notifications()->count());
-        $this->assertDatabaseHas('notification_email_logs', [
+        $this->assertDatabaseHas('sent_emails', [
             'recipient_user_id' => $recipient->id,
-            'notification_type' => UserRequestResolvedNotification::class,
+            'source_class' => UserRequestResolvedNotification::class,
         ]);
     }
 

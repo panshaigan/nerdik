@@ -10,11 +10,13 @@ use App\Notifications\VerifyPendingEmailNotification;
 use App\Support\Ui\AvatarPicture;
 use App\Support\Ui\AvatarSlot;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,7 +25,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
-class User extends Authenticatable implements HasMedia, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAvatarImage, Notifiable;
@@ -82,6 +84,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    public function sentEmails(): HasMany
+    {
+        return $this->hasMany(SentEmail::class, 'recipient_user_id');
     }
 
     /**

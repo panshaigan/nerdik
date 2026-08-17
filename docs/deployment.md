@@ -342,6 +342,7 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 | Daily 03:30 | `housekeeping:prune-cache` | Delete expired `cache` / `cache_locks` rows |
 | Daily 03:30 | `housekeeping:prune-livewire-uploads` | Remove abandoned Livewire temp uploads |
 | Daily 03:30 | `housekeeping:prune-logs` | Delete `storage/logs/*.log` older than `LOG_DAILY_DAYS` |
+| Daily 03:30 | `housekeeping:prune-sent-emails` | Delete sent email rows and stored bodies older than `HOUSEKEEPING_SENT_EMAILS_DAYS` |
 | Weekly Sun 04:00 | `media-library:clean --delete-orphaned --force` | Orphan media, stale conversions, orphan disk dirs |
 | Daily (if enabled) | `telescope:prune` | Telescope data (off in prod) |
 
@@ -357,6 +358,7 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 | `HOUSEKEEPING_SESSIONS_GRACE_DAYS` | `7` | Beyond `SESSION_LIFETIME` |
 | `HOUSEKEEPING_LIVEWIRE_TMP_HOURS` | `24` | Abandoned upload files |
 | `HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS` | `7` | Host `/tmp/nerdik-*-backup-*` from sync |
+| `HOUSEKEEPING_SENT_EMAILS_DAYS` | `90` | Sent email metadata + stored HTML/text bodies |
 
 ### Verify on VPS
 
@@ -441,7 +443,7 @@ Do not expose Sail-only tools (Adminer, Mailpit) in **production**. Staging Mail
 
 Scripts under [`scripts/sync/`](../scripts/sync/) copy **production PostgreSQL** and **`storage/app`** into local Sail or staging. They do **not** copy Redis, built frontend assets, Caddy TLS data, or per-environment `.env` secrets.
 
-**What is copied:** users, events, activities, Spatie `media` rows/files, avatars, FTS search vectors.
+**What is copied:** users, events, activities, Spatie `media` rows/files, avatars, sent email log rows and stored HTML/text bodies, FTS search vectors.
 
 **Post-import cleanup (automatic):** truncates `jobs`, `job_batches`, `failed_jobs`, `sessions`, `cache`, `cache_locks`; runs `storage:link`, `optimize:clear`, and `tags:recalculate-popularity`.
 

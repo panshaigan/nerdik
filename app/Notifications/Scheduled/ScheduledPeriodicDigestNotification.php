@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Scheduled;
 
+use App\Contracts\ProvidesSentEmailContext;
 use App\Enums\NotificationPreferenceKey;
+use App\Enums\SentEmailKind;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ScheduledPeriodicDigestNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
+class ScheduledPeriodicDigestNotification extends Notification implements ProvidesSentEmailContext, ShouldQueue, ShouldQueueAfterCommit
 {
     use Queueable;
 
@@ -23,6 +26,16 @@ class ScheduledPeriodicDigestNotification extends Notification implements Should
         private readonly array $items,
         private readonly string $localDateLabel
     ) {}
+
+    public function sentEmailKind(): SentEmailKind
+    {
+        return SentEmailKind::ScheduledDigest;
+    }
+
+    public function sentEmailRelated(): ?Model
+    {
+        return null;
+    }
 
     /**
      * @return array<int, string>

@@ -10,6 +10,8 @@ use App\Services\Notifications\NotificationDispatchThrottle;
 
 trait RespectsNotificationPreferences
 {
+    use LogsSentEmailContext;
+
     abstract protected function notificationPreferenceKey(): NotificationPreferenceKey;
 
     /**
