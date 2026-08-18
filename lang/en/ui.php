@@ -816,7 +816,6 @@ return [
         'placeholder_search_or_create' => 'Type to search tags (or create a new one)',
         'create_tag' => 'Create tag',
         'auto' => 'auto',
-        'empty_system' => 'No tags in the system yet. Start typing to create the first ones.',
         'new_to_create' => 'New tags to create',
     ],
     'requests' => [

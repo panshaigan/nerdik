@@ -18,7 +18,7 @@ class ShowEventPlanTabAutoOpenClosestFutureGroupTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_plan_tab_opens_closest_future_group_only(): void
+    public function test_plan_tab_opens_first_available_term_only(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-07 12:30:00'));
 
@@ -68,16 +68,16 @@ class ShowEventPlanTabAutoOpenClosestFutureGroupTest extends TestCase
         $futureWithActivityGroupId = 'event-slot-group-'.$futureWithActivity->getTimestamp();
         $pastGroupId = 'event-slot-group-'.$past->getTimestamp();
 
+        $pastPos = strpos($html, 'data-ui="'.$pastGroupId.'"');
+        $this->assertNotFalse($pastPos);
+        $this->assertStringContainsString('checked', substr($html, (int) $pastPos, 600));
+
         $futureWithoutActivityPos = strpos($html, 'data-ui="'.$futureWithoutActivityGroupId.'"');
         $this->assertNotFalse($futureWithoutActivityPos);
         $this->assertStringNotContainsString('checked', substr($html, (int) $futureWithoutActivityPos, 600));
 
         $futureWithActivityPos = strpos($html, 'data-ui="'.$futureWithActivityGroupId.'"');
         $this->assertNotFalse($futureWithActivityPos);
-        $this->assertStringContainsString('checked', substr($html, (int) $futureWithActivityPos, 600));
-
-        $pastPos = strpos($html, 'data-ui="'.$pastGroupId.'"');
-        $this->assertNotFalse($pastPos);
-        $this->assertStringNotContainsString('checked', substr($html, (int) $pastPos, 600));
+        $this->assertStringNotContainsString('checked', substr($html, (int) $futureWithActivityPos, 600));
     }
 }
