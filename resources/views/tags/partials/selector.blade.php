@@ -67,10 +67,6 @@
     }
 @endphp
 
-@if (empty($tagsForJs))
-    <p class="text-sm text-base-content/70">{{ __('ui.tags.empty_system') }}</p>
-@endif
-
 <div
     data-tag-selector
     class=""

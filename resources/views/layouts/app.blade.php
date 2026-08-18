@@ -50,7 +50,7 @@
 
             <footer class="border-t border-white/10 backdrop-blur-xs">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-                    <p class="opacity-70">&copy;{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p>
+                    <!--p class="opacity-70">&copy;{{ __('ui.footer.copyright', ['year' => date('Y')]) }}</p-->
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>

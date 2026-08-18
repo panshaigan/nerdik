@@ -59,9 +59,6 @@
 
 <div data-activity-tag-picker>
     <script type="application/json" data-atp-config>@json(array_merge($cfg, ['inputPlaceholder' => $atpInputPlaceholder]))</script>
-    @if (empty($cfg['tags'] ?? []))
-        <p class="mb-4 text-sm text-base-content/70">{{ __('ui.tags.empty_system') }}</p>
-    @endif
     <div class="{{ $rowClass }}">
         @foreach ($categoriesOrdered as $cat)
             @php
