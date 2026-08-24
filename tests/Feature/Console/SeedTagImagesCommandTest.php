@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console;
 
+use App\Console\Commands\BackfillMediaThumbnailsCommand;
+use App\Console\Commands\SeedTagImagesCommand;
 use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\TagCategory;
@@ -75,12 +77,28 @@ final class SeedTagImagesCommandTest extends TestCase
 
         $this->artisan('tags:seed-images')
             ->expectsOutputToContain('Conversions and responsive thumbnails generated for seeded media.')
+            ->expectsOutputToContain('php artisan media:backfill-thumbnails')
             ->assertSuccessful();
 
         $media = $tag->refresh()->getFirstMedia('images');
         $this->assertNotNull($media);
         $this->assertMediaHasResponsiveConversions($media);
         $this->assertTrue($media->hasResponsiveImages('webp'));
+    }
+
+    #[Test]
+    public function seed_command_regenerate_options_include_force(): void
+    {
+        $this->assertSame(
+            BackfillMediaThumbnailsCommand::REGENERATE_OPTIONS,
+            [
+                '--only-missing' => true,
+                '--with-responsive-images' => true,
+                '--force' => true,
+                '--no-interaction' => true,
+            ],
+        );
+        $this->assertStringContainsString('--force', SeedTagImagesCommand::REGENERATE_MISSING_COMMAND);
     }
 
     #[Test]

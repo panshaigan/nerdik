@@ -72,7 +72,7 @@ final class MigrateAvatarsToMediaLibraryCommand extends Command
         $this->info("Migrated: {$migrated}, skipped: {$skipped}, failed: {$failed}".($dryRun ? ' (dry run)' : ''));
 
         if (! $dryRun && $migrated > 0) {
-            $this->line('Run: php artisan media-library:regenerate --only-missing --with-responsive-images');
+            $this->line('Run: php artisan media:backfill-thumbnails');
         }
 
         return $failed > 0 ? self::FAILURE : self::SUCCESS;
