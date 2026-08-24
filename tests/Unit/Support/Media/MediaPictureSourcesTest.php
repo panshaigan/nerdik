@@ -94,7 +94,7 @@ final class MediaPictureSourcesTest extends TestCase
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card', 'Cap test');
         $webpSrcset = $sources->webpSrcset();
 
-        $this->assertStringNotContainsString('768w', $webpSrcset);
+        $this->assertStringContainsString('768w', $webpSrcset);
         $this->assertStringNotContainsString('1024w', $webpSrcset);
         $this->assertStringContainsString('512w', $webpSrcset);
         $this->assertSame(

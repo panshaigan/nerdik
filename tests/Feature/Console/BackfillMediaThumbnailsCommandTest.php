@@ -24,10 +24,30 @@ final class BackfillMediaThumbnailsCommandTest extends TestCase
         $this->assertTrue(BackfillMediaThumbnailsCommand::REGENERATE_OPTIONS['--with-responsive-images']);
         $this->assertTrue(BackfillMediaThumbnailsCommand::REGENERATE_OPTIONS['--no-interaction']);
         $this->assertStringContainsString('--force', BackfillMediaThumbnailsCommand::REGENERATE_COMMAND);
+        $this->assertArrayNotHasKey('--only-missing', BackfillMediaThumbnailsCommand::REENCODE_OPTIONS);
+        $this->assertTrue(BackfillMediaThumbnailsCommand::REENCODE_OPTIONS['--force']);
         $this->assertSame(
             BackfillMediaThumbnailsCommand::REGENERATE_COMMAND,
             SeedTagImagesCommand::REGENERATE_MISSING_COMMAND,
         );
+    }
+
+    #[Test]
+    public function conversion_qualities_keep_text_readable_on_listing_cards(): void
+    {
+        $this->assertGreaterThanOrEqual(70, (int) config('media.conversion_qualities.avif'));
+        $this->assertGreaterThanOrEqual(90, (int) config('media.conversion_qualities.webp'));
+        $this->assertGreaterThanOrEqual(90, (int) config('media.conversion_qualities.jpeg'));
+        $this->assertGreaterThanOrEqual(768, (int) config('media.presets.listing_card.max_srcset_width'));
+    }
+
+    #[Test]
+    public function reencode_option_regenerates_without_only_missing(): void
+    {
+        $this->artisan('media:backfill-thumbnails', ['--reencode' => true])
+            ->expectsOutputToContain('Running: php artisan '.BackfillMediaThumbnailsCommand::REENCODE_COMMAND.' (reencode)')
+            ->expectsOutputToContain('media:backfill-thumbnails --reencode')
+            ->assertSuccessful();
     }
 
     #[Test]
