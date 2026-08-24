@@ -15,7 +15,12 @@ function readFieldChrome() {
 function contentStyleFromChrome(existing = '') {
     const { bg, color } = readFieldChrome();
     const base = `body{background-color:${bg} !important;color:${color} !important;margin:0.5rem;}`;
-    const extra = 'img{max-width:100%;height:auto;}';
+    const extra = [
+        'img{max-width:100%;height:auto;}',
+        'img.float-left{float:left;margin:0 1rem 0.75rem 0;max-width:50%;}',
+        'img.float-right{float:right;margin:0 0 0.75rem 1rem;max-width:50%;}',
+        'table{display:block;width:100%;overflow-x:auto;}',
+    ].join('');
 
     return existing ? `${existing} ${base} ${extra}` : `${base} ${extra}`;
 }

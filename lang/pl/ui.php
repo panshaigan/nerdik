@@ -801,6 +801,9 @@ return [
     ],
     'editor' => [
         'block_formats' => 'Akapit=p; Nagłówek 2=h2; Nagłówek 3=h3',
+        'image_class_none' => 'Brak',
+        'image_float_left' => 'Opływanie z lewej',
+        'image_float_right' => 'Opływanie z prawej',
     ],
     'tags' => [
         'placeholder_search_or_create' => 'Szukaj tagów (lub utwórz nowy)',

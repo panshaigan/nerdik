@@ -811,6 +811,9 @@ return [
     ],
     'editor' => [
         'block_formats' => 'Paragraph=p; Heading 2=h2; Heading 3=h3',
+        'image_class_none' => 'None',
+        'image_float_left' => 'Float left',
+        'image_float_right' => 'Float right',
     ],
     'tags' => [
         'placeholder_search_or_create' => 'Type to search tags (or create a new one)',

@@ -23,23 +23,34 @@ final class EditorTest extends TestCase
         );
     }
 
-    public function test_setup_includes_mobile_toolbar_subset(): void
+    public function test_setup_includes_image_float_and_table_controls(): void
+    {
+        $setup = (new Editor(config: []))->setup();
+
+        $this->assertStringContainsString(
+            "'toolbar':'undo redo | blocks styles | bold italic underline strikethrough | forecolor backcolor | align | bullist numlist | outdent indent | link blockquote removeformat | image table'",
+            $setup,
+        );
+        $this->assertStringContainsString("'value':'float-left'", $setup);
+        $this->assertStringContainsString("'value':'float-right'", $setup);
+        $this->assertStringContainsString("'float':'left'", $setup);
+        $this->assertStringContainsString("'float':'right'", $setup);
+        $this->assertStringNotContainsString('quickimage', $setup);
+        $this->assertStringNotContainsString('quicktable', $setup);
+    }
+
+    public function test_setup_includes_mobile_toolbar_with_image_and_table(): void
     {
         $setup = (new Editor(config: []))->setup();
 
         $this->assertStringContainsString("'mobile':", $setup);
         $this->assertStringContainsString(
-            "'toolbar':'undo redo | blocks | bold italic underline | bullist numlist | link'",
+            "'toolbar':'undo redo | blocks | bold italic underline | bullist numlist | link image table'",
             $setup,
         );
         $this->assertStringContainsString("'toolbar_mode':'scrolling'", $setup);
-        $this->assertStringContainsString("'plugins':'advlist autolink lists link quickbars'", $setup);
         $this->assertStringContainsString(
-            "'toolbar':'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | align | bullist numlist | outdent indent | link blockquote removeformat | quickimage quicktable'",
-            $setup,
-        );
-        $this->assertDoesNotMatchRegularExpression(
-            "/'mobile':\{[^}]*quickimage/",
+            "'plugins':'advlist autolink lists link image table quickbars'",
             $setup,
         );
     }
@@ -50,6 +61,6 @@ final class EditorTest extends TestCase
 
         $this->assertStringContainsString("'height':260", $setup);
         $this->assertStringContainsString("'toolbar':'bold italic'", $setup);
-        $this->assertStringNotContainsString('quickimage', $setup);
+        $this->assertStringNotContainsString('| image table', $setup);
     }
 }

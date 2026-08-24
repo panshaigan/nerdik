@@ -191,6 +191,30 @@
         @apply prose-table:text-base-content;
         @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
         @apply prose-img:max-w-full prose-img:h-auto;
+
+        &::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+
+        img.float-left {
+            float: left;
+            margin: 0 1rem 0.75rem 0;
+            max-width: 50%;
+        }
+
+        img.float-right {
+            float: right;
+            margin: 0 0 0.75rem 1rem;
+            max-width: 50%;
+        }
+
+        table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+        }
     }
 
     /**
