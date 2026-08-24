@@ -28,10 +28,23 @@ return [
 
     'min_responsive_width' => 20,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Conversion qualities (1–100)
+    |--------------------------------------------------------------------------
+    |
+    | Listing cards often include text in the artwork. Keep these high enough
+    | that small type stays readable after responsive downscales. AVIF at ~50
+    | is especially soft on letterforms — prefer mid-70s+.
+    |
+    | After changing these values, re-encode existing derivatives:
+    | php artisan media:backfill-thumbnails --reencode
+    |
+    */
     'conversion_qualities' => [
-        'avif' => 50,
-        'webp' => 85,
-        'jpeg' => 85,
+        'avif' => 75,
+        'webp' => 92,
+        'jpeg' => 90,
     ],
 
     /*
@@ -47,6 +60,8 @@ return [
     |
     | Production (VPS):
     | ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails
+    | # after quality config changes:
+    | ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails --reencode
     |
     */
     'queue_conversions' => env('MEDIA_QUEUE_CONVERSIONS', env('QUEUE_CONVERSIONS_BY_DEFAULT', true)),
@@ -105,7 +120,7 @@ return [
         'listing_card' => [
             'sizes' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
             'display_width' => 286,
-            'max_srcset_width' => 512,
+            'max_srcset_width' => 768,
         ],
         'listing_hero' => [
             'sizes' => '100vw',

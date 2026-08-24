@@ -9,13 +9,17 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-#[Signature('media:backfill-thumbnails')]
-#[Description('Report missing media conversions/responsive images, then regenerate only missing derivatives (safe for production)')]
+#[Signature('media:backfill-thumbnails {--reencode : Regenerate existing conversions (needed after quality config changes)}')]
+#[Description('Report missing media conversions/responsive images, then regenerate derivatives (safe for production)')]
 final class BackfillMediaThumbnailsCommand extends Command
 {
     public const REGENERATE_COMMAND = 'media-library:regenerate --only-missing --with-responsive-images --force';
 
+    public const REENCODE_COMMAND = 'media-library:regenerate --with-responsive-images --force';
+
     /**
+     * Options for first-time / missing-only backfill.
+     *
      * @var array<string, bool>
      */
     public const REGENERATE_OPTIONS = [
@@ -25,15 +29,30 @@ final class BackfillMediaThumbnailsCommand extends Command
         '--no-interaction' => true,
     ];
 
+    /**
+     * Options that rewrite existing conversions (e.g. after raising quality).
+     *
+     * @var array<string, bool>
+     */
+    public const REENCODE_OPTIONS = [
+        '--with-responsive-images' => true,
+        '--force' => true,
+        '--no-interaction' => true,
+    ];
+
     public function handle(): int
     {
+        $reencode = (bool) $this->option('reencode');
+        $options = $reencode ? self::REENCODE_OPTIONS : self::REGENERATE_OPTIONS;
+        $commandLabel = $reencode ? self::REENCODE_COMMAND : self::REGENERATE_COMMAND;
+
         $this->info('Media thumbnail status (before):');
         $this->printStats($this->collectStats());
 
         $this->newLine();
-        $this->info('Running: php artisan '.self::REGENERATE_COMMAND);
+        $this->info('Running: php artisan '.$commandLabel.($reencode ? ' (reencode)' : ''));
 
-        $this->call('media-library:regenerate', self::REGENERATE_OPTIONS);
+        $this->call('media-library:regenerate', $options);
 
         $this->newLine();
         $this->info('Media thumbnail status (after):');
@@ -42,8 +61,8 @@ final class BackfillMediaThumbnailsCommand extends Command
         $this->newLine();
         $this->line('Prod (compose-exec):');
         $this->line('  ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails');
-        $this->line('Or directly:');
-        $this->line('  ./scripts/compose-exec.sh prod exec app php artisan '.self::REGENERATE_COMMAND.' --no-interaction');
+        $this->line('After changing conversion quality settings, re-encode existing files:');
+        $this->line('  ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails --reencode');
 
         return self::SUCCESS;
     }

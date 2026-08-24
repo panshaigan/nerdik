@@ -437,6 +437,12 @@ Equivalent Spatie command:
 ./scripts/compose-exec.sh prod exec app php artisan media-library:regenerate --only-missing --with-responsive-images --force --no-interaction
 ```
 
+After changing `media.conversion_qualities` (or other conversion settings), existing files are not updated by `--only-missing`. Re-encode everything:
+
+```bash
+./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails --reencode
+```
+
 Ensure the queue worker is running afterward so new uploads keep getting derivatives.
 
 1. `php artisan migrate --force`
