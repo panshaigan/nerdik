@@ -422,6 +422,23 @@ On staging (`/opt/nerdik-staging`): `make staging-refresh`, `make staging-artisa
 
 After each deploy, `.nerdik-image` is updated automatically. Pull the latest code once so these helpers are available on the server.
 
+### Backfill media conversions / listing-card thumbnails
+
+Listing cards use Spatie responsive derivatives. If media was attached before conversions ran, cards fall back to full-size originals. Backfill missing conversions and responsive images (includes `--force` required in production):
+
+```bash
+cd /opt/nerdik
+./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails
+```
+
+Equivalent Spatie command:
+
+```bash
+./scripts/compose-exec.sh prod exec app php artisan media-library:regenerate --only-missing --with-responsive-images --force --no-interaction
+```
+
+Ensure the queue worker is running afterward so new uploads keep getting derivatives.
+
 1. `php artisan migrate --force`
 2. Polish full-text search: new PostgreSQL volumes pick up [`docker/pgsql/init-polish-fts.sql`](../docker/pgsql/init-polish-fts.sql) automatically. On managed Postgres, apply that script manually once per database.
 

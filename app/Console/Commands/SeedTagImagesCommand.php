@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
 #[Description('Attach tag and listing images from database/seeders/tag_images, then generate conversions and responsive thumbnails (requires tags and activity types to exist)')]
 class SeedTagImagesCommand extends Command
 {
-    public const REGENERATE_MISSING_COMMAND = 'media-library:regenerate --only-missing --with-responsive-images';
+    public const REGENERATE_MISSING_COMMAND = BackfillMediaThumbnailsCommand::REGENERATE_COMMAND;
 
     public function handle(RemoveSeedAttachedMedia $removeSeedAttachedMedia): int
     {
@@ -30,15 +30,12 @@ class SeedTagImagesCommand extends Command
 
         $this->info('Tag and listing images attached from seeder library.');
 
-        $this->call('media-library:regenerate', [
-            '--only-missing' => true,
-            '--with-responsive-images' => true,
-            '--no-interaction' => true,
-        ]);
+        $this->call('media-library:regenerate', BackfillMediaThumbnailsCommand::REGENERATE_OPTIONS);
 
         $this->info('Conversions and responsive thumbnails generated for seeded media.');
         $this->line('To backfill older attachments that predate this pipeline, run:');
-        $this->line('  php artisan '.self::REGENERATE_MISSING_COMMAND);
+        $this->line('  php artisan media:backfill-thumbnails');
+        $this->line('  # or: php artisan '.self::REGENERATE_MISSING_COMMAND.' --no-interaction');
 
         return self::SUCCESS;
     }

@@ -42,7 +42,11 @@ return [
     | When false, conversions run synchronously (PHPUnit sets MEDIA_QUEUE_CONVERSIONS=false).
     |
     | Backfill conversions for library media attached before this pipeline existed:
-    | php artisan media-library:regenerate --only-missing --with-responsive-images
+    | php artisan media:backfill-thumbnails
+    | # or: php artisan media-library:regenerate --only-missing --with-responsive-images --force
+    |
+    | Production (VPS):
+    | ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails
     |
     */
     'queue_conversions' => env('MEDIA_QUEUE_CONVERSIONS', env('QUEUE_CONVERSIONS_BY_DEFAULT', true)),
