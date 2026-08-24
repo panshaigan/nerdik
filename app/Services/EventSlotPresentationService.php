@@ -36,7 +36,7 @@ class EventSlotPresentationService
                 'label' => $key === '__no_time__'
                     ? __('ui.events.slots_group_no_time')
                     : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:00'),
-                'slots' => $groupSlots,
+                'slots' => $groupSlots->sortBy(fn (Slot $slot): int => (int) $slot->id)->values(),
                 'starts_at' => $key === '__no_time__'
                     ? null
                     : $groupSlots->first()->starts_at,
