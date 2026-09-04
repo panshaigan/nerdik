@@ -207,7 +207,6 @@ return [
         'gallery_delete_help' => 'Usunięcie obrazu usunie go także z wydarzeń, aktywności i awatara, które go używają.',
         'gallery_uploaded_success' => 'Obraz zapisany w galerii.',
         'gallery_deleted_success' => 'Obraz usunięty z galerii.',
-        'avatar_from_gallery' => 'Z moich obrazów',
         'avatar_from_gallery_hint' => 'Wybierz obraz, który już przesłałeś.',
         'avatar_gallery_empty' => 'Galeria jest pusta. Dodaj obrazy w zakładce Moje obrazy albo wgraj nowy awatar.',
         'image_invalid_gallery_media' => 'Wybrany obraz nie należy do Twojej galerii.',

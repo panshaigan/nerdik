@@ -207,7 +207,6 @@ return [
         'gallery_delete_help' => 'Deleting an image removes it from any event, activity, or avatar that uses it.',
         'gallery_uploaded_success' => 'Image saved to your gallery.',
         'gallery_deleted_success' => 'Image removed from your gallery.',
-        'avatar_from_gallery' => 'From my images',
         'avatar_from_gallery_hint' => 'Pick an image you already uploaded.',
         'avatar_gallery_empty' => 'Your gallery is empty. Add images on the My images tab, or upload a new avatar.',
         'image_invalid_gallery_media' => 'The selected image is not in your gallery.',
