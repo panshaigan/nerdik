@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Avatar;
 
 use App\Actions\Avatars\AttachUserAvatarFromPath;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\AvatarSource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,7 +24,6 @@ final class AvatarProcessingModalTest extends TestCase
     #[Test]
     public function test_avatar_processing_modal_opens_when_conversions_are_queued(): void
     {
-        Queue::fake();
         config([
             'media.queue_conversions' => true,
             'media-library.queue_conversions_by_default' => true,
@@ -32,15 +32,21 @@ final class AvatarProcessingModalTest extends TestCase
 
         Storage::fake('public');
         $user = User::factory()->create();
-        $user->profile()->update(['avatar_source' => AvatarSource::Uploaded]);
-
         $this->actingAs($user);
 
-        $file = UploadedFile::fake()->image('photo.jpg', 512, 512);
+        $galleryMedia = app(StoreUserGalleryImage::class)(
+            $user,
+            UploadedFile::fake()->image('gallery.jpg', 800, 800),
+            512,
+            512,
+        );
+
+        Queue::fake();
 
         Volt::test('profile.update-avatar-form')
-            ->set('avatar_source', 'uploaded')
-            ->set('croppedAvatar', $file)
+            ->set('avatar_source', AvatarSource::Gallery->value)
+            ->set('gallery_media_id', (int) $galleryMedia->id)
+            ->set('croppedAvatar', UploadedFile::fake()->image('photo.jpg', 512, 512))
             ->call('updateAvatar')
             ->assertHasNoErrors()
             ->assertSet('avatarProcessingModalOpen', true)
