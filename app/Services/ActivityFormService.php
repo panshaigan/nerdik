@@ -52,6 +52,7 @@ class ActivityFormService
                 'logo_source',
                 'selected_tag_media_id',
                 'croppedLogo',
+                'sourceImage',
             ]
         );
 
@@ -316,7 +317,7 @@ class ActivityFormService
             $activity->tag_media_id = null;
 
             if ($form->croppedLogo !== null) {
-                app(StoreUploadedActivityLogo::class)($activity, $form->croppedLogo);
+                app(StoreUploadedActivityLogo::class)($activity, $form->croppedLogo, $form->sourceImage);
                 $activity->logo_path = null;
             }
         } else {
@@ -327,6 +328,6 @@ class ActivityFormService
         }
 
         $activity->save();
-        $form->reset('croppedLogo');
+        $form->reset('croppedLogo', 'sourceImage');
     }
 }

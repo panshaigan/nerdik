@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Avatars;
 
+use App\Actions\Images\AttachSourceImageFromPath;
 use App\Actions\Images\StoreCroppedPublicImage;
+use App\Actions\Images\StoreSourcePublicImage;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,11 +18,16 @@ final class StoreUploadedAvatar
 
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private StoreSourcePublicImage $storeSourcePublicImage,
         private AttachUserAvatarFromPath $attachUserAvatarFromPath,
+        private AttachSourceImageFromPath $attachSourceImageFromPath,
     ) {}
 
-    public function __invoke(User $user, TemporaryUploadedFile|UploadedFile $file): void
-    {
+    public function __invoke(
+        User $user,
+        TemporaryUploadedFile|UploadedFile $file,
+        TemporaryUploadedFile|UploadedFile|null $sourceFile = null,
+    ): void {
         $tempRelativePath = 'media/temp/avatars/temp-'.$user->id.'-'.uniqid('', true).'.webp';
 
         ($this->storeCroppedPublicImage)(
@@ -35,5 +42,15 @@ final class StoreUploadedAvatar
         ($this->attachUserAvatarFromPath)($user, $absolutePath);
 
         Storage::disk('public')->delete($tempRelativePath);
+
+        if ($sourceFile !== null) {
+            $sourceTempRelativePath = 'media/temp/avatars/source-'.$user->id.'-'.uniqid('', true).'.webp';
+
+            ($this->storeSourcePublicImage)($sourceTempRelativePath, $sourceFile);
+
+            $sourceAbsolutePath = Storage::disk('public')->path($sourceTempRelativePath);
+            ($this->attachSourceImageFromPath)($user, $sourceAbsolutePath);
+            Storage::disk('public')->delete($sourceTempRelativePath);
+        }
     }
 }

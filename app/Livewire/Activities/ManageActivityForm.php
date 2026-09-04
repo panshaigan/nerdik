@@ -144,6 +144,9 @@ class ManageActivityForm extends Component
     /** @var mixed */
     public $croppedLogo = null;
 
+    /** @var mixed */
+    public $sourceImage = null;
+
     /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
     private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
 
@@ -316,7 +319,7 @@ class ManageActivityForm extends Component
             'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours',
             'participation_mode', 'allows_observers' => 'main-details',
             'tag_ids', 'new_tags' => 'tags',
-            'logo_source', 'selected_tag_media_id', 'croppedLogo' => 'image',
+            'logo_source', 'selected_tag_media_id', 'croppedLogo', 'sourceImage' => 'image',
             default => 'hosting-mode',
         };
     }
@@ -382,13 +385,18 @@ class ManageActivityForm extends Component
         }
 
         if ($value !== ActivityLogoSource::Upload->value) {
-            $this->reset('croppedLogo');
+            $this->reset('croppedLogo', 'sourceImage');
         }
     }
 
     public function clearCroppedLogo(): void
     {
         $this->reset('croppedLogo');
+    }
+
+    public function clearSourceImage(): void
+    {
+        $this->reset('sourceImage');
     }
 
     private function hasExistingUploadedLogo(): bool
@@ -936,6 +944,12 @@ class ManageActivityForm extends Component
                 'nullable',
                 'image',
                 'max:5120',
+                'mimes:jpeg,jpg,png,webp',
+            ],
+            'sourceImage' => [
+                'nullable',
+                'image',
+                'max:12288',
                 'mimes:jpeg,jpg,png,webp',
             ],
             'hosting_mode' => ['required', Rule::in(Activity::hostingModes())],

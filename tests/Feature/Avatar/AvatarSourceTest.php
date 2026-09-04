@@ -37,10 +37,12 @@ final class AvatarSourceTest extends TestCase
         $this->actingAs($user);
 
         $file = UploadedFile::fake()->image('photo.jpg', 640, 480);
+        $source = UploadedFile::fake()->image('original.jpg', 1200, 900);
 
         $component = Volt::test('profile.update-avatar-form')
             ->set('avatar_source', 'uploaded')
             ->set('croppedAvatar', $file)
+            ->set('sourceImage', $source)
             ->call('updateAvatar');
 
         $component
@@ -57,6 +59,7 @@ final class AvatarSourceTest extends TestCase
         $media = $user->getFirstMedia('avatar');
         $this->assertNotNull($media);
         $this->assertAvatarMediaIsReady($media);
+        $this->assertNotNull($user->getFirstMedia('source'));
         Storage::disk('public')->assertMissing('avatars/'.$user->id.'.webp');
     }
 

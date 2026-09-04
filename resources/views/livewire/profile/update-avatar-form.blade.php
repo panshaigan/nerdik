@@ -30,6 +30,9 @@ new class extends Component
     /** @var mixed */
     public $croppedAvatar = null;
 
+    /** @var mixed */
+    public $sourceImage = null;
+
     public string $userEmail = '';
 
     public bool $avatarProcessingModalOpen = false;
@@ -55,13 +58,18 @@ new class extends Component
     public function updatedAvatarSource(string $value): void
     {
         if ($value !== 'uploaded') {
-            $this->reset('croppedAvatar');
+            $this->reset('croppedAvatar', 'sourceImage');
         }
     }
 
     public function clearCroppedAvatar(): void
     {
         $this->reset('croppedAvatar');
+    }
+
+    public function clearSourceImage(): void
+    {
+        $this->reset('sourceImage');
     }
 
     public function remoteAvatarPreviewUrl(string $provider): string
@@ -127,6 +135,12 @@ new class extends Component
                     'max:5120',
                     'mimes:jpeg,jpg,png,webp',
                 ],
+                'sourceImage' => [
+                    'nullable',
+                    'image',
+                    'max:12288',
+                    'mimes:jpeg,jpg,png,webp',
+                ],
             ]);
 
             $source = AvatarSource::from($validated['avatar_source']);
@@ -149,7 +163,7 @@ new class extends Component
 
             if ($source === AvatarSource::Uploaded) {
                 if ($this->croppedAvatar !== null) {
-                    app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
+                    app(StoreUploadedAvatar::class)($user, $this->croppedAvatar, $this->sourceImage);
                     $profile->avatar_path = null;
                     $profile->avatar_cache_signature = null;
                 }
@@ -157,7 +171,7 @@ new class extends Component
                 $profile->avatar_bg_color = $validated['avatar_bg_color'] ?? $profile->avatar_bg_color;
                 $profile->avatar_text_color = $validated['avatar_text_color'] ?? $profile->avatar_text_color;
                 $profile->save();
-                $this->reset('croppedAvatar');
+                $this->reset('croppedAvatar', 'sourceImage');
                 $this->dispatchProfileAvatarUpdated();
 
                 return;
@@ -266,8 +280,10 @@ new class extends Component
 
         if ($user !== null && (int) $user->id === $userId) {
             $user->clearMediaCollection('avatar');
+            $user->clearMediaCollection('source');
         } elseif (($resolved = User::query()->find($userId)) !== null) {
             $resolved->clearMediaCollection('avatar');
+            $resolved->clearMediaCollection('source');
         }
 
         AttachUserAvatarFromPath::deleteLegacyAvatarFileForUserId($userId);

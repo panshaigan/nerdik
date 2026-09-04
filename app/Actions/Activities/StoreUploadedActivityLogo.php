@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Activities;
 
+use App\Actions\Images\AttachSourceImageFromPath;
 use App\Actions\Images\StoreCroppedPublicImage;
+use App\Actions\Images\StoreSourcePublicImage;
 use App\Models\Activity;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +20,15 @@ final class StoreUploadedActivityLogo
 
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private StoreSourcePublicImage $storeSourcePublicImage,
+        private AttachSourceImageFromPath $attachSourceImageFromPath,
     ) {}
 
-    public function __invoke(Activity $activity, TemporaryUploadedFile|UploadedFile $file): void
-    {
+    public function __invoke(
+        Activity $activity,
+        TemporaryUploadedFile|UploadedFile $file,
+        TemporaryUploadedFile|UploadedFile|null $sourceFile = null,
+    ): void {
         $tempRelativePath = 'media/temp/activity-logos/temp-'.$activity->id.'-'.uniqid('', true).'.webp';
 
         ($this->storeCroppedPublicImage)(
@@ -43,6 +50,16 @@ final class StoreUploadedActivityLogo
 
         Storage::disk('public')->delete($tempRelativePath);
         $this->deleteLegacyLogoFiles($activity);
+
+        if ($sourceFile !== null) {
+            $sourceTempRelativePath = 'media/temp/activity-logos/source-'.$activity->id.'-'.uniqid('', true).'.webp';
+
+            ($this->storeSourcePublicImage)($sourceTempRelativePath, $sourceFile);
+
+            $sourceAbsolutePath = Storage::disk('public')->path($sourceTempRelativePath);
+            ($this->attachSourceImageFromPath)($activity, $sourceAbsolutePath);
+            Storage::disk('public')->delete($sourceTempRelativePath);
+        }
     }
 
     private function deleteLegacyLogoFiles(Activity $activity): void

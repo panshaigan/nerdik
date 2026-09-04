@@ -325,8 +325,10 @@ new class extends Component
 
         if ($user !== null && (int) $user->id === $userId) {
             $user->clearMediaCollection('avatar');
+            $user->clearMediaCollection('source');
         } elseif (($resolved = User::query()->find($userId)) !== null) {
             $resolved->clearMediaCollection('avatar');
+            $resolved->clearMediaCollection('source');
         }
 
         AttachUserAvatarFromPath::deleteLegacyAvatarFileForUserId($userId);

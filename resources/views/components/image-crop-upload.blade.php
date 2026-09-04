@@ -3,6 +3,9 @@
     'compact' => false,
     'wireProperty' => 'croppedImage',
     'clearMethod' => 'clearCroppedImage',
+    'sourceWireProperty' => 'sourceImage',
+    'sourceClearMethod' => 'clearSourceImage',
+    'sourceFileName' => 'source.webp',
     'errorField' => 'croppedImage',
     'previewUrl' => null,
     'previewAlt' => '',
@@ -50,6 +53,9 @@
     data-image-crop-aspect="{{ $aspect }}"
     data-image-crop-wire-property="{{ $wireProperty }}"
     data-image-crop-clear-method="{{ $clearMethod }}"
+    data-image-crop-source-wire-property="{{ $sourceWireProperty }}"
+    data-image-crop-source-clear-method="{{ $sourceClearMethod }}"
+    data-image-crop-source-file-name="{{ $sourceFileName }}"
     data-image-crop-output="{{ $outputSize }}"
     data-image-crop-file-name="{{ $fileName }}"
     @if ($formSelector) data-image-crop-form="{{ $formSelector }}" @endif

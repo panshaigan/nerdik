@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Events;
 
+use App\Actions\Images\AttachSourceImageFromPath;
 use App\Actions\Images\StoreCroppedPublicImage;
+use App\Actions\Images\StoreSourcePublicImage;
 use App\Models\Event;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +20,15 @@ final class StoreUploadedEventLogo
 
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private StoreSourcePublicImage $storeSourcePublicImage,
+        private AttachSourceImageFromPath $attachSourceImageFromPath,
     ) {}
 
-    public function __invoke(Event $event, TemporaryUploadedFile|UploadedFile $file): void
-    {
+    public function __invoke(
+        Event $event,
+        TemporaryUploadedFile|UploadedFile $file,
+        TemporaryUploadedFile|UploadedFile|null $sourceFile = null,
+    ): void {
         $tempRelativePath = 'media/temp/event-logos/temp-'.$event->id.'-'.uniqid('', true).'.webp';
 
         ($this->storeCroppedPublicImage)(
@@ -43,6 +50,16 @@ final class StoreUploadedEventLogo
 
         Storage::disk('public')->delete($tempRelativePath);
         $this->deleteLegacyLogoFiles($event);
+
+        if ($sourceFile !== null) {
+            $sourceTempRelativePath = 'media/temp/event-logos/source-'.$event->id.'-'.uniqid('', true).'.webp';
+
+            ($this->storeSourcePublicImage)($sourceTempRelativePath, $sourceFile);
+
+            $sourceAbsolutePath = Storage::disk('public')->path($sourceTempRelativePath);
+            ($this->attachSourceImageFromPath)($event, $sourceAbsolutePath);
+            Storage::disk('public')->delete($sourceTempRelativePath);
+        }
     }
 
     private function deleteLegacyLogoFiles(Event $event): void

@@ -9,7 +9,10 @@ let currentForm = null;
 let currentDropzone = null;
 let currentFileInput = null;
 let originalImageDataUrl = null;
+let originalSourceFile = null;
 let hasPendingCrop = false;
+
+const MODAL_LAYOUT_MAX_FRAMES = 30;
 
 function findLivewireUploadComponent(form) {
     const root = form?.closest('[wire\\:id]');
@@ -51,6 +54,9 @@ function getDropzoneConfig(dropzone) {
         aspect: dropzone.dataset.imageCropAspect ?? 'square',
         wireProperty: dropzone.dataset.imageCropWireProperty ?? 'croppedImage',
         clearMethod: dropzone.dataset.imageCropClearMethod ?? 'clearCroppedImage',
+        sourceWireProperty: dropzone.dataset.imageCropSourceWireProperty ?? 'sourceImage',
+        sourceClearMethod: dropzone.dataset.imageCropSourceClearMethod ?? 'clearSourceImage',
+        sourceFileName: dropzone.dataset.imageCropSourceFileName ?? 'source.webp',
         output: parseOutputSize(dropzone.dataset.imageCropOutput ?? '512,512'),
         fileName: dropzone.dataset.imageCropFileName ?? 'image.webp',
         previewSavedEvent: dropzone.dataset.imageCropSavedEvent ?? null,
@@ -89,6 +95,8 @@ function resetCropViewportElement(viewport) {
     }
 
     viewport.classList.remove('croppie-container', 'ui-image-crop-croppie-instance');
+    viewport.style.width = '';
+    viewport.style.height = '';
     viewport.replaceChildren();
 }
 
@@ -115,6 +123,98 @@ function getCropDimensions(modalBox, aspect) {
         boundary: { width, height: width },
         viewport: { width: viewportSize, height: viewportSize, type: 'circle' },
     };
+}
+
+function waitForModalLayout(modal, attempt = 0) {
+    return new Promise((resolve) => {
+        const modalBox = modal.querySelector('.modal-box');
+        const width = modalBox?.clientWidth ?? 0;
+
+        if (width > 0 || attempt >= MODAL_LAYOUT_MAX_FRAMES) {
+            resolve(modalBox);
+
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            waitForModalLayout(modal, attempt + 1).then(resolve);
+        });
+    });
+}
+
+function fileToWebpBlob(file, quality = 0.92) {
+    return new Promise((resolve, reject) => {
+        if (!(file instanceof Blob)) {
+            reject(new Error('Invalid source file'));
+
+            return;
+        }
+
+        if (file.type === 'image/webp') {
+            resolve(file);
+
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+
+        image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = image.naturalWidth || image.width;
+            canvas.height = image.naturalHeight || image.height;
+
+            const context = canvas.getContext('2d');
+            if (!context) {
+                reject(new Error('Canvas unavailable'));
+
+                return;
+            }
+
+            context.drawImage(image, 0, 0);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('WebP conversion failed'));
+                    }
+                },
+                'image/webp',
+                quality,
+            );
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Failed to load source image'));
+        };
+
+        image.src = objectUrl;
+    });
+}
+
+function uploadLivewireFile(wire, property, file) {
+    return new Promise((resolve, reject) => {
+        const upload = wire?.$upload;
+        if (typeof upload !== 'function') {
+            reject(new Error('Livewire upload unavailable'));
+
+            return;
+        }
+
+        upload(
+            property,
+            file,
+            () => resolve(),
+            () => reject(new Error(`Failed to upload ${property}`)),
+            () => {},
+            () => {},
+        );
+    });
 }
 
 function getPreview(form) {
@@ -227,6 +327,7 @@ function updateFileUi(dropzone, { buttonText, showRemove, showRecropHint }) {
 
 function resetPendingCropUi(form, dropzone, { resetPreview = true } = {}) {
     originalImageDataUrl = null;
+    originalSourceFile = null;
     hasPendingCrop = false;
 
     if (!form || !dropzone) {
@@ -322,7 +423,7 @@ function closeModal({ resetSession = false } = {}) {
     }
 }
 
-function initCroppieWithUrl(url) {
+async function initCroppieWithUrl(url) {
     const liveViewport = getCropViewport();
     const liveModal = getCropModal();
     if (!liveViewport || !liveModal || !currentDropzone) {
@@ -332,31 +433,34 @@ function initCroppieWithUrl(url) {
     const config = getDropzoneConfig(currentDropzone);
     openCropModal(currentDropzone);
 
-    const startCroppie = () => {
-        const modalBox = liveModal.querySelector('.modal-box');
-        const { boundary, viewport: viewportOptions } = getCropDimensions(modalBox, config.aspect);
+    const modalBox = await waitForModalLayout(liveModal);
+    if (!currentDropzone || getCropModal() !== liveModal) {
+        return;
+    }
 
-        destroyCroppieInstance(cropperInstance);
-        cropperInstance = null;
-        resetCropViewportElement(liveViewport);
+    const { boundary, viewport: viewportOptions } = getCropDimensions(modalBox, config.aspect);
 
-        try {
-            cropperInstance = new Croppie(liveViewport, {
-                viewport: viewportOptions,
-                boundary,
-                enableOrientation: true,
-                customClass: 'ui-image-crop-croppie-instance',
-            });
-            cropperInstance.bind({ url });
-        } catch (error) {
-            console.error('Failed to initialize image cropper', error);
-            closeModal();
-        }
-    };
+    destroyCroppieInstance(cropperInstance);
+    cropperInstance = null;
+    resetCropViewportElement(liveViewport);
 
-    requestAnimationFrame(() => {
-        requestAnimationFrame(startCroppie);
-    });
+    liveViewport.style.width = `${boundary.width}px`;
+    liveViewport.style.height = `${boundary.height}px`;
+
+    try {
+        cropperInstance = new Croppie(liveViewport, {
+            viewport: viewportOptions,
+            boundary,
+            enableOrientation: true,
+            enforceBoundary: true,
+            customClass: 'ui-image-crop-croppie-instance',
+        });
+
+        await cropperInstance.bind({ url });
+    } catch (error) {
+        console.error('Failed to initialize image cropper', error);
+        closeModal();
+    }
 }
 
 function openCropperForFile(file, dropzone, fileInput) {
@@ -375,12 +479,16 @@ function openCropperForFile(file, dropzone, fileInput) {
         const wire = findLivewireUploadComponent(form);
         if (wire && typeof wire.call === 'function') {
             wire.call(config.clearMethod);
+            if (config.sourceClearMethod) {
+                wire.call(config.sourceClearMethod);
+            }
         }
     }
 
     currentForm = form;
     currentDropzone = dropzone;
     currentFileInput = fileInput;
+    originalSourceFile = file;
     hasPendingCrop = false;
 
     const labels = getDropzoneLabels(dropzone);
@@ -403,7 +511,7 @@ function openCropperForFile(file, dropzone, fileInput) {
     reader.readAsDataURL(file);
 }
 
-function applyCroppedResult(blob) {
+async function applyCroppedResult(blob) {
     if (!(blob instanceof Blob) || !currentForm || !currentDropzone) {
         closeModal();
 
@@ -414,6 +522,7 @@ function applyCroppedResult(blob) {
     const dropzone = currentDropzone;
     const config = getDropzoneConfig(dropzone);
     const labels = getDropzoneLabels(dropzone);
+    const sourceFile = originalSourceFile;
 
     setCropPreview(form, blob);
     hasPendingCrop = true;
@@ -424,24 +533,31 @@ function applyCroppedResult(blob) {
         showRecropHint: true,
     });
 
-    const file = new File([blob], config.fileName, { type: 'image/webp' });
+    const croppedFile = new File([blob], config.fileName, { type: 'image/webp' });
     const livewireWire = findLivewireUploadComponent(form);
-    const livewireUpload = livewireWire?.$upload;
 
-    if (typeof livewireUpload !== 'function') {
+    if (!livewireWire || typeof livewireWire.$upload !== 'function') {
         closeModal();
 
         return;
     }
 
-    livewireUpload(
-        config.wireProperty,
-        file,
-        () => closeModal(),
-        () => closeModal(),
-        () => {},
-        () => {},
-    );
+    try {
+        await uploadLivewireFile(livewireWire, config.wireProperty, croppedFile);
+
+        if (sourceFile && config.sourceWireProperty) {
+            const sourceBlob = await fileToWebpBlob(sourceFile);
+            const sourceUpload = new File([sourceBlob], config.sourceFileName, {
+                type: 'image/webp',
+            });
+            await uploadLivewireFile(livewireWire, config.sourceWireProperty, sourceUpload);
+        }
+
+        closeModal();
+    } catch (error) {
+        console.error('Failed to upload cropped image', error);
+        closeModal();
+    }
 }
 
 function handleDropzoneDragOver(event) {
@@ -521,6 +637,9 @@ export function bootImageCropper() {
                 const wire = findLivewireUploadComponent(form);
                 if (wire && typeof wire.call === 'function') {
                     wire.call(config.clearMethod);
+                    if (config.sourceClearMethod) {
+                        wire.call(config.sourceClearMethod);
+                    }
                 }
 
                 return;
@@ -687,6 +806,7 @@ document.addEventListener('livewire:navigating', () => {
     currentDropzone = null;
     currentFileInput = null;
     originalImageDataUrl = null;
+    originalSourceFile = null;
     hasPendingCrop = false;
 });
 
