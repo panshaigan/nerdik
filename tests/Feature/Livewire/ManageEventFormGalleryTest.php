@@ -168,8 +168,8 @@ final class ManageEventFormGalleryTest extends TestCase
         $picture = app(EventListingImageResolver::class)->resolve($event);
         $this->assertTrue($picture->hasDisplayableImage());
         $this->assertSame(
-            MediaPictureSources::fromMediaWithPreset($entityLogo, 'listing_card')->jpegSrc(),
-            $picture->sources?->jpegSrc(),
+            MediaPictureSources::fromMediaWithPreset($entityLogo, 'listing_card')->webpSrc(),
+            $picture->sources?->webpSrc(),
         );
     }
 

@@ -37,7 +37,6 @@ final class BackfillMediaThumbnailsCommandTest extends TestCase
     {
         $this->assertGreaterThanOrEqual(70, (int) config('media.conversion_qualities.avif'));
         $this->assertGreaterThanOrEqual(90, (int) config('media.conversion_qualities.webp'));
-        $this->assertGreaterThanOrEqual(90, (int) config('media.conversion_qualities.jpeg'));
         $this->assertGreaterThanOrEqual(768, (int) config('media.presets.listing_card.max_srcset_width'));
     }
 
@@ -86,7 +85,7 @@ final class BackfillMediaThumbnailsCommandTest extends TestCase
             'size' => 100,
             'manipulations' => [],
             'custom_properties' => [],
-            'generated_conversions' => ['webp' => true, 'jpeg' => true],
+            'generated_conversions' => ['webp' => true, 'avif' => true],
             'responsive_images' => ['webp' => ['urls' => [], 'base64svg' => '']],
             'order_column' => 2,
         ]);

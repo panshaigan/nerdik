@@ -30,18 +30,18 @@ final class ImageFormatCapabilitiesTest extends TestCase
             $this->assertContains('avif', $formatNames);
         }
 
-        $this->assertSame(['webp', 'jpeg'], array_values(array_diff($formatNames, ['avif'])));
+        $this->assertSame(['webp'], array_values(array_diff($formatNames, ['avif'])));
     }
 
     #[Test]
     public function filter_supported_format_names_removes_avif_when_unsupported(): void
     {
-        $filtered = ImageFormatCapabilities::filterSupportedFormatNames(['avif', 'webp', 'jpeg']);
+        $filtered = ImageFormatCapabilities::filterSupportedFormatNames(['avif', 'webp']);
 
         if (ImageFormatCapabilities::supportsAvif()) {
-            $this->assertSame(['avif', 'webp', 'jpeg'], $filtered);
+            $this->assertSame(['avif', 'webp'], $filtered);
         } else {
-            $this->assertSame(['webp', 'jpeg'], $filtered);
+            $this->assertSame(['webp'], $filtered);
         }
     }
 }

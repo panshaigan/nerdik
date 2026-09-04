@@ -33,7 +33,6 @@ final class StaticPictureSourcesTest extends TestCase
         $this->assertSame('(max-width: 1024px)', $sources->mobileMediaQuery());
         $this->assertSame('(min-width: 1025px)', $sources->desktopMediaQuery());
         $this->assertSame('', $sources->alt());
-        $this->assertSame('', $sources->jpegSrcset());
         $this->assertSame(1716, $sources->width());
         $this->assertSame(916, $sources->height());
         $this->assertStringContainsString('images/app/backgrounds/dark/1716w.webp', $sources->displaySrc());

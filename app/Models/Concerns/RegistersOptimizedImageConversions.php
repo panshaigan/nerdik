@@ -50,7 +50,7 @@ trait RegistersOptimizedImageConversions
         }
 
         $formats = config('media.test_profile', 'minimal') === 'full'
-            ? config('media.full_test_formats', ['avif', 'webp', 'jpeg'])
+            ? config('media.full_test_formats', ['avif', 'webp'])
             : config('media.testing.conversion_formats', ['webp']);
 
         return ImageFormatCapabilities::mapFormatNamesToDefinitions(

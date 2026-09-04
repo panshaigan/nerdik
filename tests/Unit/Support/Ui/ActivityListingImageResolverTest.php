@@ -57,7 +57,7 @@ final class ActivityListingImageResolverTest extends TestCase
         $expected = MediaPictureSources::fromMediaWithPreset($chosenMedia, 'listing_card', $activity->name);
 
         $this->assertNotNull($picture->sources);
-        $this->assertSame($expected->jpegSrc(), $picture->sources->jpegSrc());
+        $this->assertSame($expected->webpSrc(), $picture->sources->webpSrc());
     }
 
     #[Test]
@@ -81,7 +81,7 @@ final class ActivityListingImageResolverTest extends TestCase
         $expected = MediaPictureSources::fromMediaWithPreset($gameMedia, 'listing_card', $activity->name);
 
         $this->assertNotNull($picture->sources);
-        $this->assertSame($expected->jpegSrc(), $picture->sources->jpegSrc());
+        $this->assertSame($expected->webpSrc(), $picture->sources->webpSrc());
     }
 
     #[Test]

@@ -952,7 +952,7 @@ class ManageEventForm extends Component
                 if ($logoMedia !== null
                     && (int) $editingEvent->gallery_media_id === (int) $this->gallery_media_id
                 ) {
-                    $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+                    $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->webpSrc();
                 }
             }
 
@@ -962,7 +962,7 @@ class ManageEventForm extends Component
         } elseif ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Upload) {
             $logoMedia = $editingEvent->getFirstMedia('logo');
             if ($logoMedia !== null) {
-                $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+                $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->webpSrc();
             }
             $cropSourceImageUrl = $editingEvent->cropSourceImageUrl();
         }
