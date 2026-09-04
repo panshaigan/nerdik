@@ -86,11 +86,6 @@ final class StaticPictureSources
         return $this->srcsetForFormat('webp', [...$this->mobileWidths, ...$this->desktopWidths]);
     }
 
-    public function jpegSrcset(): string
-    {
-        return '';
-    }
-
     public function displaySrc(): string
     {
         $largestWebp = $this->largestVariantUrl('webp');

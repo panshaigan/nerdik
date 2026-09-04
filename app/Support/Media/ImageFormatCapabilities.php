@@ -33,7 +33,7 @@ final class ImageFormatCapabilities
     public static function productionConversionFormats(): array
     {
         return self::mapFormatNamesToDefinitions(
-            self::filterSupportedFormatNames(['avif', 'webp', 'jpeg']),
+            self::filterSupportedFormatNames(['avif', 'webp']),
         );
     }
 
@@ -46,7 +46,7 @@ final class ImageFormatCapabilities
         return array_map(
             fn (string $name): array => [
                 'name' => $name,
-                'extension' => $name === 'jpeg' ? 'jpg' : $name,
+                'extension' => $name,
             ],
             $formatNames,
         );

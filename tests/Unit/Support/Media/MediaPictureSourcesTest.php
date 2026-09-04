@@ -36,8 +36,7 @@ final class MediaPictureSourcesTest extends TestCase
 
         $this->assertNotSame('', $sources->avifSrcset());
         $this->assertNotSame('', $sources->webpSrcset());
-        $this->assertNotSame('', $sources->jpegSrcset());
-        $this->assertNotSame('', $sources->jpegSrc());
+        $this->assertNotSame('', $sources->webpSrc());
         $this->assertSame('(max-width: 640px) 100vw, 384px', $sources->sizes());
         $this->assertSame('Test tag', $sources->alt());
     }
@@ -98,14 +97,14 @@ final class MediaPictureSourcesTest extends TestCase
             displayWidth: 150,
         );
 
-        $displayWidth = $this->widthForSrcsetUrl($sources->jpegSrcset(), $sources->displaySrc());
-        $jpegWidth = $this->widthForSrcsetUrl($sources->jpegSrcset(), $sources->jpegSrc());
+        $displayWidth = $this->widthForSrcsetUrl($sources->webpSrcset(), $sources->displaySrc());
+        $webpWidth = $this->widthForSrcsetUrl($sources->webpSrcset(), $sources->webpSrc());
 
         $this->assertNotNull($displayWidth);
-        $this->assertNotNull($jpegWidth);
-        $this->assertLessThan($jpegWidth, $displayWidth);
+        $this->assertNotNull($webpWidth);
+        $this->assertLessThan($webpWidth, $displayWidth);
         $this->assertSame(384, $displayWidth);
-        $this->assertSame(512, $jpegWidth);
+        $this->assertSame(512, $webpWidth);
     }
 
     #[Test]
@@ -124,7 +123,7 @@ final class MediaPictureSourcesTest extends TestCase
 
         $this->assertStringContainsString('src="'.$sources->displaySrc().'"', $html);
         $this->assertStringContainsString('responsive-images', $sources->displaySrc());
-        $this->assertNotSame($sources->jpegSrc(), $sources->displaySrc());
+        $this->assertNotSame($sources->webpSrc(), $sources->displaySrc());
     }
 
     #[Test]

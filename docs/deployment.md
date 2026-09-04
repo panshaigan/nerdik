@@ -443,6 +443,15 @@ After changing `media.conversion_qualities` (or other conversion settings), exis
 ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails --reencode
 ```
 
+After deploying a change that **removes** a conversion format (e.g. dropping JPEG while keeping AVIF + WebP), purge deprecated derivative files and DB keys. Dry-run first:
+
+```bash
+./scripts/compose-exec.sh prod exec app php artisan media-library:clean --delete-orphaned --dry-run --force
+./scripts/compose-exec.sh prod exec app php artisan media-library:clean --delete-orphaned --force
+```
+
+Do not re-encode remaining formats for a format drop — existing AVIF/WebP derivatives stay valid. The weekly schedule already runs `media-library:clean`; run it once manually after deploy so disk is freed immediately.
+
 Ensure the queue worker is running afterward so new uploads keep getting derivatives.
 
 1. `php artisan migrate --force`

@@ -80,7 +80,7 @@ final class UserGalleryCatalog
     public function previewUrl(Media $media): ?string
     {
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card');
-        $url = $sources->jpegSrc();
+        $url = $sources->webpSrc();
 
         return $url !== '' ? $url : null;
     }

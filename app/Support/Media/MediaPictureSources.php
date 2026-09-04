@@ -59,15 +59,10 @@ final class MediaPictureSources
         return $this->srcsetForConversion('webp');
     }
 
-    public function jpegSrcset(): string
+    public function webpSrc(): string
     {
-        return $this->srcsetForConversion('jpeg');
-    }
-
-    public function jpegSrc(): string
-    {
-        if ($this->media->hasGeneratedConversion('jpeg') && $this->media->hasResponsiveImages('jpeg')) {
-            $cappedSrcset = $this->srcsetForConversion('jpeg');
+        if ($this->media->hasGeneratedConversion('webp') && $this->media->hasResponsiveImages('webp')) {
+            $cappedSrcset = $this->srcsetForConversion('webp');
             $url = $this->largestWidthUrlFromSrcset($cappedSrcset);
 
             if ($url !== null) {
@@ -75,12 +70,12 @@ final class MediaPictureSources
             }
         }
 
-        if ($this->media->hasGeneratedConversion('jpeg')) {
-            return $this->media->getUrl('jpeg');
+        if ($this->media->hasGeneratedConversion('webp')) {
+            return $this->media->getUrl('webp');
         }
 
-        if ($this->media->hasResponsiveImages('jpeg')) {
-            $urls = $this->media->getResponsiveImageUrls('jpeg');
+        if ($this->media->hasResponsiveImages('webp')) {
+            $urls = $this->media->getResponsiveImageUrls('webp');
 
             return $urls[0] ?? $this->media->getUrl();
         }
@@ -90,12 +85,8 @@ final class MediaPictureSources
 
     public function displaySrc(): string
     {
-        foreach (['jpeg', 'webp'] as $conversion) {
-            if (! $this->media->hasGeneratedConversion($conversion) || ! $this->media->hasResponsiveImages($conversion)) {
-                continue;
-            }
-
-            $cappedSrcset = $this->srcsetForConversion($conversion);
+        if ($this->media->hasGeneratedConversion('webp') && $this->media->hasResponsiveImages('webp')) {
+            $cappedSrcset = $this->srcsetForConversion('webp');
             $url = $this->smallestFittingWidthUrlFromSrcset($cappedSrcset, $this->targetDisplayPixelWidth());
 
             if ($url !== null) {
@@ -103,16 +94,12 @@ final class MediaPictureSources
             }
         }
 
-        if ($this->media->hasGeneratedConversion('jpeg')) {
-            return $this->media->getUrl('jpeg');
+        if ($this->media->hasGeneratedConversion('webp')) {
+            return $this->media->getUrl('webp');
         }
 
-        foreach (['jpeg', 'webp'] as $conversion) {
-            if (! $this->media->hasResponsiveImages($conversion)) {
-                continue;
-            }
-
-            $urls = $this->media->getResponsiveImageUrls($conversion);
+        if ($this->media->hasResponsiveImages('webp')) {
+            $urls = $this->media->getResponsiveImageUrls('webp');
 
             if ($urls !== []) {
                 return $urls[0];

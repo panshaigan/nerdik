@@ -209,7 +209,7 @@ final class Seo
             return null;
         }
 
-        return self::absoluteUrl($picture->sources->jpegSrc());
+        return self::absoluteUrl($picture->sources->webpSrc());
     }
 
     private static function absoluteUrl(string $url): string

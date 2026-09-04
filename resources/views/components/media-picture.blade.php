@@ -14,8 +14,8 @@
     <img
         src="{{ $sources->displaySrc() }}"
         @class([$class])
-        @if ($sources->jpegSrcset() !== '')
-            srcset="{{ $sources->jpegSrcset() }}"
+        @if ($sources->webpSrcset() !== '')
+            srcset="{{ $sources->webpSrcset() }}"
         @endif
         sizes="{{ $sources->sizes() }}"
         alt="{{ $sources->alt() }}"

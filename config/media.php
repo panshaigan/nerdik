@@ -44,7 +44,6 @@ return [
     'conversion_qualities' => [
         'avif' => 75,
         'webp' => 92,
-        'jpeg' => 90,
     ],
 
     /*
@@ -72,7 +71,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | PHPUnit uses MEDIA_TEST_PROFILE=minimal by default. Set profile to "full"
-    | in a single test to exercise avif/webp/jpeg + full responsive widths.
+    | in a single test to exercise avif/webp + full responsive widths.
     |
     */
     'test_profile' => env('MEDIA_TEST_PROFILE', 'minimal'),
@@ -85,7 +84,7 @@ return [
         'generate_responsive_images' => true,
     ],
 
-    'full_test_formats' => ['avif', 'webp', 'jpeg'],
+    'full_test_formats' => ['avif', 'webp'],
 
     /*
     |--------------------------------------------------------------------------

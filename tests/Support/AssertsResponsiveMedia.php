@@ -17,7 +17,6 @@ trait AssertsResponsiveMedia
         }
 
         Assert::assertTrue($media->hasGeneratedConversion('webp'), 'Expected webp conversion for media '.$media->id);
-        Assert::assertTrue($media->hasGeneratedConversion('jpeg'), 'Expected jpeg conversion for media '.$media->id);
         Assert::assertNotEmpty($media->responsive_images, 'Expected responsive images for media '.$media->id);
     }
 
