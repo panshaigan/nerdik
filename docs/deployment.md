@@ -35,7 +35,7 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 4. Set `APP_URL` to `https://<APP_DOMAIN>`.
 5. Set browser Reverb vars in server `.env`: `VITE_REVERB_HOST=<APP_DOMAIN>`, `VITE_REVERB_PORT=443`, `VITE_REVERB_SCHEME=https`. These drive **runtime** Echo config injected into pages (same image can serve prod and staging). Docker build args are compile-time fallbacks only.
 6. Set `STAGING_DOMAIN=staging.nerdik.app` in `.env`. Caddy config is generated at container start from `APP_DOMAIN`, `STAGING_DOMAIN`, and `ACME_EMAIL` (see `docker/caddy/entrypoint.sh`).
-7. Deploy (use the SHA from CI after your first push to `main`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
+7. Deploy (use the SHA or semver from GHCR after your first `v*` tag, e.g. `v1.0.0`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
 
 ```bash
 make prod-deploy
@@ -250,7 +250,7 @@ dig +short nerdik.app
 
 ### Image build and publish
 
-Composer and frontend dependencies are installed **inside the Docker image** during CI, not on the VPS at deploy time. The [`docker/production/Dockerfile`](../docker/production/Dockerfile) runs `composer install --no-dev`, `npm ci`, and `npm run build`; [`scripts/deploy.sh`](../scripts/deploy.sh) only pulls that image and runs containers. After you push to `main`, wait for the Docker workflow to publish `ghcr.io/<owner>/nerdik:<sha>`, then deploy with that SHA.
+Composer and frontend dependencies are installed **inside the Docker image** during CI, not on the VPS at deploy time. The [`docker/production/Dockerfile`](../docker/production/Dockerfile) runs `composer install --no-dev`, `npm ci`, and `npm run build`; [`scripts/deploy.sh`](../scripts/deploy.sh) only pulls that image and runs containers. After you push a `v*` tag, wait for the Docker workflow to publish `ghcr.io/<owner>/nerdik:<sha>` (and the semver tags), then deploy with that tag.
 
 Frontend assets are baked into the image (`npm run build` in the Dockerfile). `VITE_REVERB_*` build args in CI are compile-time fallbacks only; browsers read **runtime** Echo config from each server's `.env` via `window.__nerdikEchoConfig` (see `resources/js/echo.js`).
 
@@ -277,7 +277,7 @@ Persistent volumes in prod: `nerdik_storage`, `nerdik_pgsql_data`.
 
 ### Updates
 
-The server needs a clone of your git remote (not only a copied folder). After pushing changes to `main` and waiting for CI + Docker workflows to publish the image:
+The server needs a clone of your git remote (not only a copied folder). After pushing a release tag (`v*`) and waiting for CI + Docker workflows to publish the image:
 
 ```bash
 cd /opt/nerdik

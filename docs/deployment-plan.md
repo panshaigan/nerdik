@@ -162,10 +162,10 @@ flowchart LR
 
 ### Pipeline
 
-- [x] On PR / push: run tests, `composer audit`, Pint (optional fail) — [`ci.yml`](../.github/workflows/ci.yml)
-- [x] Build production Docker image — [`docker.yml`](../.github/workflows/docker.yml)
-- [x] Push to registry on `main` or version tags — GHCR `ghcr.io/<owner>/nerdik:<sha>`
-- [x] Deploy dev workflow (manual): pull image + compose + `migrate --force` — [`deploy.yml`](../.github/workflows/deploy.yml); awaits `DEPLOY_*` secrets
+- [x] On PR / `v*` tags: run tests, `composer audit`, Pint (optional fail) — [`ci.yml`](../.github/workflows/ci.yml)
+- [x] Build production Docker image on `v*` tags — [`docker.yml`](../.github/workflows/docker.yml)
+- [x] Push to registry on version tags only — GHCR `ghcr.io/<owner>/nerdik:<sha>` + semver (`1.0.0`)
+- [x] Deploy workflow (manual): pull image + compose + `migrate --force` — [`deploy.yml`](../.github/workflows/deploy.yml); awaits `DEPLOY_*` secrets
 - [x] Deploy prod: `production` environment + manual dispatch; smoke `/up` when `PROD_APP_URL` is set
 
 ### Deploy script should
@@ -178,8 +178,8 @@ flowchart LR
 ### Blocked until remote exists
 
 - [x] Create GitHub (or other) repository and push `main`
-- [ ] Verify CI and Docker workflows run on the remote
-- [ ] First image tag available on GHCR (copy full SHA from Actions)
+- [ ] Verify CI on a PR and Docker on a `v*` tag (e.g. `v1.0.0`)
+- [ ] First image available on GHCR (semver + full SHA from Actions)
 
 ---
 
@@ -257,8 +257,8 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 ## Suggested order of work
 
 1. **Phase 0** — done in repo  
-2. **Choose git remote** — create repo, push `main`, confirm CI passes  
-3. **Confirm GHCR image** — after first push to `main`, note the SHA tag from Actions → Packages  
+2. **Choose git remote** — create repo, push `main`, confirm CI on a PR; publish first image with `v1.0.0`  
+3. **Confirm GHCR image** — after first `v*` tag push (e.g. `v1.0.0`), note the semver/SHA tags from Actions → Packages  
 4. **Provision VPS** — Docker, DNS, firewall  
 5. **Phase 1 on server** — `.env`, Caddyfile, `IMAGE_TAG=<sha> make prod-deploy` (see [deployment.md](deployment.md))  
 6. **Phase 3 secrets** — SSH deploy from Actions (optional; manual `make prod-deploy` on the server works without Actions)  

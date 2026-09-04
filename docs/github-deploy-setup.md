@@ -75,10 +75,10 @@ Go to **Settings → Environments** and create:
 
 ## F. Verify remote deploy
 
-1. Push to `main` and wait for CI and Docker workflows to finish.
-2. Note the published image tag (full git SHA) from Actions → Docker workflow or GitHub Packages.
+1. Push a release tag (e.g. `git push origin v1.0.0`) and wait for CI and Docker workflows to finish.
+2. Note the published image tag (semver such as `1.0.0`, or full git SHA) from Actions → Docker workflow or GitHub Packages.
 3. Go to **Actions → Deploy → Run workflow**.
-4. Enter the image SHA (or leave empty to use the workflow run's commit SHA).
+4. Enter the image tag (semver or SHA).
 5. Approve if the `production` environment requires reviewers.
 6. Confirm the SSH step succeeds and the smoke check passes.
 
@@ -102,7 +102,7 @@ Staging is manual only — see [deployment.md](deployment.md#staging-on-the-same
 | "Deploy skipped" in Actions | Repository secrets not configured (workflow exits green by design) |
 | SSH authentication failure | Wrong `DEPLOY_SSH_KEY`, `DEPLOY_USER`, or missing `authorized_keys` entry |
 | Image pull failure on VPS | `docker login ghcr.io` not done, or wrong `GITHUB_OWNER` in `.env` |
-| "GHCR image not found" | Docker workflow on `main` has not finished publishing that SHA yet |
+| "GHCR image not found" | Docker workflow on the `v*` tag has not finished publishing that tag/SHA yet |
 | Smoke check fails | `PROD_APP_URL` wrong, or app not healthy after deploy |
 
 ## Related
