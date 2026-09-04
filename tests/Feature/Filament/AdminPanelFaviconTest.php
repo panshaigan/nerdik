@@ -20,6 +20,8 @@ final class AdminPanelFaviconTest extends TestCase
         $this->actingAs($admin)
             ->get(Dashboard::getUrl())
             ->assertOk()
-            ->assertSee('<link rel="icon" href="'.e(asset('favicon.svg')).'" />', false);
+            ->assertSee('<link rel="icon" href="'.e(asset('favicon.svg')).'" />', false)
+            ->assertSee('viewBox="100 88 824 824"', false)
+            ->assertSee('fill="#0C2747"', false);
     }
 }
