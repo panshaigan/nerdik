@@ -54,13 +54,10 @@ final class EventListingImageResolverTest extends TestCase
         $rpgType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($rpgType);
 
-        $fixture = 'images/listing/test-event-default.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
-
         app(AttachModelMediaFromPublic::class)->attachFile(
             $rpgType,
-            public_path($fixture),
-            $fixture,
+            base_path('tests/fixtures/tag-sample.jpg'),
+            'tests/fixtures/test-event-default.jpg',
             collection: EventListingImageResolver::EVENT_LISTING_COLLECTION,
         );
 

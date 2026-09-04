@@ -20,10 +20,8 @@ final class PrefixedPathGeneratorTest extends TestCase
         config(['media.storage_path_prefix' => 'media']);
 
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/path-generator.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
 
-        $media = $tag->addMedia(public_path($fixturePath))
+        $media = $tag->addMedia(base_path('tests/fixtures/tag-sample.jpg'))
             ->preservingOriginal()
             ->toMediaCollection('images');
 

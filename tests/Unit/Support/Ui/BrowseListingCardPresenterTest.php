@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Ui;
 
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Domain\ActivityBadges\ActivityBadgeKind;
 use App\Enums\ActivityLogoSource;
 use App\Enums\BadgeSemantic;
@@ -23,11 +22,13 @@ use App\Models\User;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
 final class BrowseListingCardPresenterTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
     use SeedsListingDefaultMedia;
 
@@ -283,11 +284,7 @@ final class BrowseListingCardPresenterTest extends TestCase
     public function from_activity_includes_cover_picture_with_user_selected_media(): void
     {
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/presenter-cover.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/presenter-cover.jpg');
 
         $activity = Activity::factory()->create([
             'logo_source' => ActivityLogoSource::Tag,

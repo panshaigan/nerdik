@@ -6,7 +6,6 @@ namespace Tests\Feature\Livewire;
 
 use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Actions\Media\StoreUserGalleryImage;
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
@@ -21,10 +20,12 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
 final class ManageActivityFormImageTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
 
     #[Test]
@@ -342,12 +343,7 @@ final class ManageActivityFormImageTest extends TestCase
             'label' => $label,
         ]);
 
-        $fixturePath = 'images/tag-game/test-'.uniqid('', true).'.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/manage-activity-'.$label.'.jpg');
 
         return [$tag, $media];
     }

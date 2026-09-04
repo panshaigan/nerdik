@@ -9,11 +9,13 @@ use App\Models\Tag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AssertsResponsiveMedia;
+use Tests\Support\CreatesPublicImageFixture;
 use Tests\TestCase;
 
 final class AttachTagMediaFromPublicTest extends TestCase
 {
     use AssertsResponsiveMedia;
+    use CreatesPublicImageFixture;
     use RefreshDatabase;
 
     private AttachTagMediaFromPublic $action;
@@ -34,8 +36,7 @@ final class AttachTagMediaFromPublicTest extends TestCase
 
         $tag = Tag::factory()->create();
 
-        $fixturePath = 'images/tag-game/fixture-seed.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+        $fixturePath = $this->createPublicImageFixture('images/testing/fixture-seed.jpg');
 
         ($this->action)($tag, [$fixturePath]);
 
@@ -51,8 +52,7 @@ final class AttachTagMediaFromPublicTest extends TestCase
     {
         $tag = Tag::factory()->create();
 
-        $fixturePath = 'images/tag-game/fixture-idempotent.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
+        $fixturePath = $this->createPublicImageFixture('images/testing/fixture-idempotent.jpg');
 
         ($this->action)($tag, [$fixturePath]);
         ($this->action)($tag, [$fixturePath]);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
@@ -18,10 +17,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
 class WelcomePageTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -140,9 +141,7 @@ class WelcomePageTest extends TestCase
             'label' => 'Hero Tag Label',
         ]);
 
-        $fixture = 'images/tag-game/welcome-hero.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
-        app(AttachTagMediaFromPublic::class)($tag, [$fixture]);
+        $this->attachTagSampleMedia($tag, 'tests/fixtures/welcome-hero.jpg');
 
         $response = $this->get('/');
 

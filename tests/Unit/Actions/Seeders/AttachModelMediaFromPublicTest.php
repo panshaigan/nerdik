@@ -11,10 +11,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
+use Tests\Support\CreatesPublicImageFixture;
 use Tests\TestCase;
 
 final class AttachModelMediaFromPublicTest extends TestCase
 {
+    use CreatesPublicImageFixture;
     use RefreshDatabase;
 
     #[Test]
@@ -32,8 +34,7 @@ final class AttachModelMediaFromPublicTest extends TestCase
             'tag_category_id' => TagCategory::factory()->create(['key' => TagCategory::KEY_GAME])->id,
         ]);
 
-        $fixture = 'images/tag-game/queue-attach-test.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
+        $fixture = $this->createPublicImageFixture('images/testing/queue-attach-test.jpg');
 
         app(AttachModelMediaFromPublic::class)($tag, [$fixture]);
 
@@ -54,8 +55,7 @@ final class AttachModelMediaFromPublicTest extends TestCase
             'tag_category_id' => TagCategory::factory()->create(['key' => TagCategory::KEY_GAME])->id,
         ]);
 
-        $fixture = 'images/tag-game/sync-attach-test.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
+        $fixture = $this->createPublicImageFixture('images/testing/sync-attach-test.jpg');
 
         app(AttachModelMediaFromPublic::class)($tag, [$fixture]);
 

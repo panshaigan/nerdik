@@ -6,7 +6,6 @@ namespace Tests\Unit\Support\Ui;
 
 use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Actions\Seeders\AttachModelMediaFromPublic;
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
 use App\Models\Activity;
 use App\Models\ActivityType;
@@ -20,10 +19,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
 final class ActivityListingImageResolverTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
 
     private ActivityListingImageResolver $resolver;
@@ -42,16 +43,8 @@ final class ActivityListingImageResolverTest extends TestCase
         $gameTag = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
         $chosenTag = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
 
-        $gameFixture = 'images/tag-game/resolver-game.jpg';
-        $chosenFixture = 'images/tag-game/resolver-chosen.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($gameFixture));
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($chosenFixture));
-
-        app(AttachTagMediaFromPublic::class)($gameTag, [$gameFixture]);
-        app(AttachTagMediaFromPublic::class)($chosenTag, [$chosenFixture]);
-
-        $chosenMedia = $chosenTag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($chosenMedia);
+        $this->attachTagSampleMedia($gameTag, 'tests/fixtures/resolver-game.jpg');
+        $chosenMedia = $this->attachTagSampleMedia($chosenTag, 'tests/fixtures/resolver-chosen.jpg');
 
         $activity = Activity::factory()->create([
             'logo_source' => ActivityLogoSource::Tag,
@@ -78,10 +71,7 @@ final class ActivityListingImageResolverTest extends TestCase
         $settingTag = Tag::factory()->create(['tag_category_id' => $settingCategory->id]);
         $genreTag = Tag::factory()->create(['tag_category_id' => $genreCategory->id]);
 
-        $gameFixture = 'images/tag-game/resolver-game-only.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($gameFixture));
-        app(AttachTagMediaFromPublic::class)($gameTag, [$gameFixture]);
-        $gameMedia = $gameTag->refresh()->getFirstMedia('images');
+        $gameMedia = $this->attachTagSampleMedia($gameTag, 'tests/fixtures/resolver-game-only.jpg');
 
         $activity = Activity::factory()->create(['logo_source' => null, 'tag_media_id' => null]);
         $activity->tags()->attach([$genreTag->id, $settingTag->id, $gameTag->id]);
@@ -118,9 +108,7 @@ final class ActivityListingImageResolverTest extends TestCase
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($activityType);
 
-        $fixture = 'images/listing/resolver-rpg-type.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
-        app(AttachModelMediaFromPublic::class)($activityType, [$fixture]);
+        $this->attachTagSampleMedia($activityType, 'tests/fixtures/resolver-rpg-type.jpg');
 
         $activity = Activity::factory()->create([
             'activity_type_id' => $activityType->id,
@@ -153,12 +141,10 @@ final class ActivityListingImageResolverTest extends TestCase
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($activityType);
 
-        $eventFixture = 'images/listing/resolver-event-default.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($eventFixture));
         app(AttachModelMediaFromPublic::class)->attachFile(
             $activityType,
-            public_path($eventFixture),
-            $eventFixture,
+            base_path('tests/fixtures/tag-sample.jpg'),
+            'tests/fixtures/resolver-event-default.jpg',
             collection: EventListingImageResolver::EVENT_LISTING_COLLECTION,
         );
 
@@ -178,9 +164,7 @@ final class ActivityListingImageResolverTest extends TestCase
         $activityType = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         $this->assertNotNull($activityType);
 
-        $fixture = 'images/listing/resolver-hero-preset.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixture));
-        app(AttachModelMediaFromPublic::class)($activityType, [$fixture]);
+        $this->attachTagSampleMedia($activityType, 'tests/fixtures/resolver-hero-preset.jpg');
 
         $activity = Activity::factory()->create([
             'activity_type_id' => $activityType->id,
