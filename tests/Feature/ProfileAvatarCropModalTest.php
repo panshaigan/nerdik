@@ -29,8 +29,10 @@ final class ProfileAvatarCropModalTest extends TestCase
             ->assertSeeHtml('id="ui-image-crop-modal"')
             ->assertSeeHtml('class="modal backdrop-blur z-[100030]"')
             ->assertSeeHtml('ui-modal-surface')
-            ->assertSeeHtml('data-image-crop-croppie')
-            ->assertSeeHtml('ui-image-crop-crop');
+            ->assertSeeHtml('data-image-crop-stage')
+            ->assertSeeHtml('data-image-crop-image')
+            ->assertSeeHtml('data-image-crop-zoom')
+            ->assertSeeHtml('ui-image-crop-stage');
     }
 
     #[Test]
