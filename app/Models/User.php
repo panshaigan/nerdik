@@ -12,6 +12,7 @@ use App\Support\Ui\AvatarPicture;
 use App\Support\Ui\AvatarSlot;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
-class User extends Authenticatable implements FilamentUser, HasLocalePreference, HasMedia, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasLocalePreference, HasMedia, HasName, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAvatarImage, Notifiable;

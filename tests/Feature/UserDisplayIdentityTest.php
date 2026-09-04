@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Organization;
 use App\Models\User;
+use Filament\Facades\Filament;
+use Filament\Models\Contracts\HasName;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -59,7 +61,20 @@ class UserDisplayIdentityTest extends TestCase
             'nickname' => 'cool_handle',
         ]);
 
+        $this->assertInstanceOf(HasName::class, $user);
         $this->assertSame('cool_handle', $user->getFilamentName());
+        $this->assertSame('cool_handle', Filament::getUserName($user));
+    }
+
+    #[Test]
+    public function filament_get_user_name_works_when_name_column_is_null(): void
+    {
+        $user = User::factory()->create([
+            'name' => null,
+            'nickname' => 'alice',
+        ]);
+
+        $this->assertSame('alice', Filament::getUserName($user));
     }
 
     #[Test]
