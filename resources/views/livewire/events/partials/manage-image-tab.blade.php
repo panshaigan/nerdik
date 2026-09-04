@@ -81,6 +81,7 @@
             form-selector="data-event-form"
             file-input-id="ui-event-logo-file"
             :preview-url="$logoPreviewUrl ?? null"
+            :source-url="$cropSourceImageUrl ?? null"
             :upload-title="__('ui.events.image_upload')"
             :upload-help="__('ui.common.cover_image_upload_help', ['max' => '5 MB'])"
             output-size="1280,720"

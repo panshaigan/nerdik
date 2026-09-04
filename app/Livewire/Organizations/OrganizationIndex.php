@@ -219,6 +219,17 @@ class OrganizationIndex extends Component
         return $organization->logoUrl();
     }
 
+    public function getCropSourceImageUrlProperty(): ?string
+    {
+        if ($this->editingOrganizationId === null) {
+            return null;
+        }
+
+        $organization = Organization::query()->find($this->editingOrganizationId);
+
+        return $organization?->cropSourceImageUrl();
+    }
+
     public function getGeneratedLogoPreviewUrlProperty(): string
     {
         $previewOrganization = new Organization([

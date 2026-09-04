@@ -851,15 +851,18 @@ class ManageEventForm extends Component
         $exceptId = $this->editingEventId;
 
         $logoPreviewUrl = null;
+        $cropSourceImageUrl = null;
         if ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Upload) {
             $logoMedia = $editingEvent->getFirstMedia('logo');
             if ($logoMedia !== null) {
                 $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
             }
+            $cropSourceImageUrl = $editingEvent->cropSourceImageUrl();
         }
 
         return view('livewire.events.manage-event-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
+            'cropSourceImageUrl' => $cropSourceImageUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingEvent !== null ? route('events.show', $editingEvent) : null,
             ),

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Organization extends Model
 {
@@ -85,5 +86,16 @@ class Organization extends Model
     public function logoUrl(): string
     {
         return app(ResolveOrganizationLogoUrl::class)($this);
+    }
+
+    public function cropSourceImageUrl(): ?string
+    {
+        $relativePath = 'organization-logos/'.$this->id.'-source.webp';
+
+        if (! Storage::disk('public')->exists($relativePath)) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($relativePath);
     }
 }

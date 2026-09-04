@@ -175,6 +175,7 @@
                             form-selector="[data-org-modal-form]"
                             file-input-id="ui-org-logo-file"
                             :preview-url="$this->logoPreviewUrl"
+                            :source-url="$this->cropSourceImageUrl"
                             output-size="512,512"
                             file-name="logo.webp"
                             :modal-title="__('ui.organizations.crop_logo')"

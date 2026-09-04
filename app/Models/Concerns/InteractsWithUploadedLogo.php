@@ -27,4 +27,11 @@ trait InteractsWithUploadedLogo
     {
         $this->registerOptimizedConversionsForCollections(['logo']);
     }
+
+    public function cropSourceImageUrl(): ?string
+    {
+        $url = $this->getFirstMediaUrl('source');
+
+        return $url !== '' ? $url : null;
+    }
 }
