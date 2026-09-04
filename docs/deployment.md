@@ -452,6 +452,17 @@ After deploying a change that **removes** a conversion format (e.g. dropping JPE
 
 Do not re-encode remaining formats for a format drop — existing AVIF/WebP derivatives stay valid. The weekly schedule already runs `media-library:clean`; run it once manually after deploy so disk is freed immediately.
 
+### Convert / shrink media originals to WebP
+
+Prefer copying the existing capped `conversions/*-webp.webp` over the Spatie original when it is smaller (typical after AVIF/WebP derivatives exist). PNG masters without a conversion file are re-encoded. Updates `file_name` / `mime_type` / `size` / dimensions, deletes old originals and orphan `media_library_original` responsives. Dry-run first:
+
+```bash
+./scripts/compose-exec.sh prod exec app php artisan media:convert-png-originals-to-webp --dry-run
+./scripts/compose-exec.sh prod exec app php artisan media:convert-png-originals-to-webp
+```
+
+Optional: `--limit=20` or `--id=1 --id=2` for staged runs. Existing AVIF/WebP conversion derivatives do not need regenerating.
+
 Ensure the queue worker is running afterward so new uploads keep getting derivatives.
 
 1. `php artisan migrate --force`
