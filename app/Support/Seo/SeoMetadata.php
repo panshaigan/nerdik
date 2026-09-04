@@ -12,5 +12,8 @@ final readonly class SeoMetadata
         public string $canonical,
         public string $type = 'website',
         public ?string $image = null,
+        public ?string $imageAlt = null,
+        public ?int $imageWidth = null,
+        public ?int $imageHeight = null,
     ) {}
 }
