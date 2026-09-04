@@ -86,37 +86,58 @@
     @endif
 
     @if ($logo_source === 'gallery')
-        <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
-            @if ($this->availableGalleryImages === [])
-                <p class="text-sm text-base-content/80">{{ __('ui.events.image_gallery_empty') }}</p>
-            @else
-                <div
-                    class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                    role="radiogroup"
-                    x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
-                >
-                    @foreach ($this->availableGalleryImages as $image)
-                        @php
-                            $mediaId = (int) $image['media_id'];
-                        @endphp
-                        <button
-                            type="button"
-                            role="radio"
-                            :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
-                            @click="selectedMediaId = {{ $mediaId }}"
-                            :class="Number(selectedMediaId) === {{ $mediaId }}
-                                ? 'border-primary ring-2 ring-primary'
-                                : 'border-base-300 hover:border-primary/50'"
-                            class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
-                        >
-                            <x-media-picture
-                                :sources="$image['sources']"
-                                class="aspect-video w-full object-cover"
-                            />
-                        </button>
-                    @endforeach
-                </div>
-                <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
+        <div class="space-y-6">
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
+                @if ($this->availableGalleryImages === [])
+                    <p class="text-sm text-base-content/80">{{ __('ui.events.image_gallery_empty') }}</p>
+                @else
+                    <div
+                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                        role="radiogroup"
+                        x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
+                    >
+                        @foreach ($this->availableGalleryImages as $image)
+                            @php
+                                $mediaId = (int) $image['media_id'];
+                            @endphp
+                            <button
+                                type="button"
+                                role="radio"
+                                :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
+                                @click="selectedMediaId = {{ $mediaId }}"
+                                :class="Number(selectedMediaId) === {{ $mediaId }}
+                                    ? 'border-primary ring-2 ring-primary'
+                                    : 'border-base-300 hover:border-primary/50'"
+                                class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
+                            >
+                                <x-media-picture
+                                    :sources="$image['sources']"
+                                    class="aspect-video w-full object-cover"
+                                />
+                            </button>
+                        @endforeach
+                    </div>
+                    <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
+                @endif
+            </div>
+
+            @if ($gallery_media_id !== null && filled($galleryCropSourceUrl ?? null))
+                <x-image-crop-upload
+                    aspect="video"
+                    wire-property="croppedLogo"
+                    clear-method="clearCroppedLogo"
+                    error-field="croppedLogo"
+                    form-selector="data-event-form"
+                    file-input-id="ui-event-gallery-crop-file"
+                    :preview-url="$galleryCropPreviewUrl ?? $logoPreviewUrl ?? null"
+                    :source-url="$galleryCropSourceUrl"
+                    :upload-title="__('ui.common.crop_cover_image')"
+                    :upload-help="__('ui.common.recrop_saved_hint')"
+                    :choose-label="__('ui.common.crop_again')"
+                    output-size="1280,720"
+                    file-name="logo.webp"
+                    :modal-title="__('ui.common.crop_cover_image')"
+                />
             @endif
         </div>
     @endif

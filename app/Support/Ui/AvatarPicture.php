@@ -25,6 +25,24 @@ final readonly class AvatarPicture
             : (AvatarSource::tryFrom((string) ($rawSource ?? '')) ?? null);
 
         if ($source === AvatarSource::Gallery) {
+            if ($user->avatarConversionsPending()) {
+                $originalUrl = $user->pendingAvatarOriginalUrl();
+
+                if (is_string($originalUrl) && $originalUrl !== '') {
+                    return new self(url: $originalUrl);
+                }
+            }
+
+            $avatarMedia = $user->getFirstMedia('avatar');
+
+            if ($avatarMedia !== null) {
+                if ($avatarMedia->hasGeneratedConversion($slot->conversionName())) {
+                    return new self(url: $avatarMedia->getUrl($slot->conversionName()));
+                }
+
+                return new self(url: $avatarMedia->getUrl());
+            }
+
             $galleryMedia = $profile?->relationLoaded('galleryMedia')
                 ? $profile->galleryMedia
                 : $profile?->galleryMedia()->first();

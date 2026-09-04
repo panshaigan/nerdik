@@ -2,6 +2,7 @@
 
 use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Avatars\RefreshCachedAvatar;
+use App\Actions\Avatars\StoreUploadedAvatar;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\AvatarSource;
 use App\Models\User;
@@ -71,13 +72,16 @@ new class extends Component
 
     public function updatedAvatarSource(string $value): void
     {
-        if ($value !== 'uploaded') {
-            $this->reset('croppedAvatar', 'sourceImage');
-        }
+        $this->reset('croppedAvatar', 'sourceImage');
 
         if ($value !== AvatarSource::Gallery->value && $value !== AvatarSource::Uploaded->value) {
             $this->gallery_media_id = null;
         }
+    }
+
+    public function updatedGalleryMediaId(?int $value): void
+    {
+        $this->reset('croppedAvatar', 'sourceImage');
     }
 
     public function clearCroppedAvatar(): void
@@ -197,12 +201,27 @@ new class extends Component
             }
 
             if ($source === AvatarSource::Gallery) {
-                $this->deleteStoredAvatarIfPresent($user->id);
+                $previousGalleryMediaId = $profile->gallery_media_id !== null
+                    ? (int) $profile->gallery_media_id
+                    : null;
+                $selectedGalleryMediaId = $this->gallery_media_id !== null
+                    ? (int) $this->gallery_media_id
+                    : null;
+
                 $profile->avatar_source = AvatarSource::Gallery;
-                $profile->gallery_media_id = $this->gallery_media_id;
+                $profile->gallery_media_id = $selectedGalleryMediaId;
                 $profile->avatar_path = null;
                 $profile->avatar_cache_signature = null;
+
+                if ($this->croppedAvatar !== null) {
+                    app(StoreUploadedAvatar::class)($user, $this->croppedAvatar);
+                    $user->clearMediaCollection('source');
+                } elseif ($selectedGalleryMediaId !== $previousGalleryMediaId) {
+                    $this->deleteStoredAvatarIfPresent($user->id);
+                }
+
                 $profile->save();
+                $this->reset('croppedAvatar', 'sourceImage');
                 $this->dispatchProfileAvatarUpdated();
 
                 return;
@@ -211,7 +230,13 @@ new class extends Component
             if ($source === AvatarSource::Uploaded) {
                 if ($this->croppedAvatar !== null) {
                     $this->deleteStoredAvatarIfPresent($user->id);
-                    $media = app(StoreUserGalleryImage::class)($user, $this->croppedAvatar, 512, 512);
+                    $media = app(StoreUserGalleryImage::class)(
+                        $user,
+                        $this->croppedAvatar,
+                        512,
+                        512,
+                        $this->sourceImage,
+                    );
                     $profile->avatar_source = AvatarSource::Gallery;
                     $profile->gallery_media_id = (int) $media->id;
                     $profile->avatar_path = null;
@@ -457,37 +482,77 @@ new class extends Component
         @endif
 
         @if ($avatar_source === 'gallery')
-            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
-                @if ($this->availableGalleryImages === [])
-                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_gallery_empty') }}</p>
-                @else
-                    <div
-                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                        role="radiogroup"
-                        x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
-                    >
-                        @foreach ($this->availableGalleryImages as $image)
-                            @php
-                                $mediaId = (int) $image['media_id'];
-                            @endphp
-                            <button
-                                type="button"
-                                role="radio"
-                                :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
-                                @click="selectedMediaId = {{ $mediaId }}"
-                                :class="Number(selectedMediaId) === {{ $mediaId }}
-                                    ? 'border-primary ring-2 ring-primary'
-                                    : 'border-base-300 hover:border-primary/50'"
-                                class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
-                            >
-                                <x-media-picture
-                                    :sources="$image['sources']"
-                                    class="aspect-square w-full object-cover"
-                                />
-                            </button>
-                        @endforeach
-                    </div>
-                    <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
+            @php
+                $galleryCatalog = app(\App\Support\Media\UserGalleryCatalog::class);
+                $selectedGalleryMedia = $gallery_media_id !== null
+                    ? $galleryCatalog->findForUser((int) $gallery_media_id, auth()->user())
+                    : null;
+                $galleryCropSourceUrl = $selectedGalleryMedia !== null
+                    ? $galleryCatalog->sourceUrl($selectedGalleryMedia)
+                    : null;
+                $galleryCropPreviewUrl = null;
+                if ($selectedGalleryMedia !== null
+                    && auth()->user()->profile?->avatar_source === \App\Enums\AvatarSource::Gallery
+                    && (int) auth()->user()->profile?->gallery_media_id === (int) $gallery_media_id
+                    && auth()->user()->getFirstMedia('avatar') !== null
+                ) {
+                    $galleryCropPreviewUrl = auth()->user()->avatarUrl(\App\Support\Ui\AvatarSlot::Preview);
+                } elseif ($selectedGalleryMedia !== null) {
+                    $galleryCropPreviewUrl = $galleryCatalog->previewUrl($selectedGalleryMedia);
+                }
+            @endphp
+            <div class="space-y-6">
+                <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
+                    @if ($this->availableGalleryImages === [])
+                        <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_gallery_empty') }}</p>
+                    @else
+                        <div
+                            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                            role="radiogroup"
+                            x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
+                        >
+                            @foreach ($this->availableGalleryImages as $image)
+                                @php
+                                    $mediaId = (int) $image['media_id'];
+                                @endphp
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
+                                    @click="selectedMediaId = {{ $mediaId }}"
+                                    :class="Number(selectedMediaId) === {{ $mediaId }}
+                                        ? 'border-primary ring-2 ring-primary'
+                                        : 'border-base-300 hover:border-primary/50'"
+                                    class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
+                                >
+                                    <x-media-picture
+                                        :sources="$image['sources']"
+                                        class="aspect-square w-full object-cover"
+                                    />
+                                </button>
+                            @endforeach
+                        </div>
+                        <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
+                    @endif
+                </div>
+
+                @if ($gallery_media_id !== null && filled($galleryCropSourceUrl))
+                    <x-image-crop-upload
+                        aspect="square"
+                        wire-property="croppedAvatar"
+                        clear-method="clearCroppedAvatar"
+                        error-field="croppedAvatar"
+                        form-selector="#ui-profile-avatar-form"
+                        file-input-id="ui-profile-gallery-crop-file"
+                        :preview-url="$galleryCropPreviewUrl"
+                        :source-url="$galleryCropSourceUrl"
+                        :upload-title="__('ui.profile.crop_avatar')"
+                        :upload-help="__('ui.common.recrop_saved_hint')"
+                        :choose-label="__('ui.common.crop_again')"
+                        output-size="512,512"
+                        file-name="avatar.webp"
+                        :modal-title="__('ui.profile.crop_avatar')"
+                    />
                 @endif
             </div>
         @endif

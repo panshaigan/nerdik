@@ -30,6 +30,24 @@ final class ResolveAvatarUrl
         }
 
         if ($source === AvatarSource::Gallery) {
+            if ($user->avatarConversionsPending()) {
+                $originalUrl = $user->pendingAvatarOriginalUrl();
+
+                if (is_string($originalUrl) && $originalUrl !== '') {
+                    return $originalUrl;
+                }
+            }
+
+            $avatarMedia = $user->getFirstMedia('avatar');
+
+            if ($avatarMedia !== null && $avatarMedia->hasGeneratedConversion($slot->conversionName())) {
+                return $avatarMedia->getUrl($slot->conversionName());
+            }
+
+            if ($avatarMedia !== null) {
+                return $avatarMedia->getUrl();
+            }
+
             $galleryMedia = $profile?->relationLoaded('galleryMedia')
                 ? $profile->galleryMedia
                 : $profile?->galleryMedia()->first();

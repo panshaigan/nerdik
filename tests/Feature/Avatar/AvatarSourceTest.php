@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Avatar;
 
 use App\Actions\Avatars\AttachUserAvatarFromPath;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\AvatarSource;
 use App\Listeners\RefreshUserAvatarCache;
 use App\Models\User;
+use App\Support\Media\UserGalleryCatalog;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -59,6 +61,8 @@ final class AvatarSourceTest extends TestCase
         $this->assertNotNull($user->profile?->gallery_media_id);
         $this->assertNull($user->getFirstMedia('avatar'));
         $this->assertCount(1, $user->getMedia('gallery'));
+        $galleryMedia = $user->getMedia('gallery')->first();
+        $this->assertNotNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
         Storage::disk('public')->assertMissing('avatars/'.$user->id.'.webp');
     }
 
@@ -109,6 +113,41 @@ final class AvatarSourceTest extends TestCase
             ->call('clearCroppedAvatar');
 
         $component->assertSet('croppedAvatar', null);
+    }
+
+    #[Test]
+    public function test_gallery_selection_with_crop_stores_entity_avatar_without_mutating_gallery(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $media = app(StoreUserGalleryImage::class)(
+            $user,
+            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            1280,
+            720,
+            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+        );
+        $media->refresh();
+        $gallerySourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);
+        $galleryFileName = $media->file_name;
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', AvatarSource::Gallery->value)
+            ->set('gallery_media_id', (int) $media->id)
+            ->set('croppedAvatar', UploadedFile::fake()->image('avatar-crop.jpg', 512, 512))
+            ->call('updateAvatar')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame(AvatarSource::Gallery, $user->profile?->avatar_source);
+        $this->assertSame((int) $media->id, (int) $user->profile?->gallery_media_id);
+        $this->assertNotNull($user->getFirstMedia('avatar'));
+
+        $media->refresh();
+        $this->assertSame($galleryFileName, $media->file_name);
+        $this->assertSame($gallerySourcePath, $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
     }
 
     #[Test]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Media;
 
 use App\Actions\Images\StoreCroppedPublicImage;
+use App\Actions\Images\StoreSourcePublicImage;
 use App\Models\User;
 use App\Support\Media\UserGalleryCatalog;
 use Illuminate\Http\UploadedFile;
@@ -16,6 +17,7 @@ final class StoreUserGalleryImage
 {
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private StoreSourcePublicImage $storeSourcePublicImage,
         private AttachOptimizedImage $attachOptimizedImage,
     ) {}
 
@@ -24,6 +26,7 @@ final class StoreUserGalleryImage
         TemporaryUploadedFile|UploadedFile $file,
         int $width,
         int $height,
+        TemporaryUploadedFile|UploadedFile|null $sourceFile = null,
     ): Media {
         $tempRelativePath = 'media/temp/gallery/temp-'.$user->id.'-'.uniqid('', true).'.webp';
 
@@ -48,6 +51,15 @@ final class StoreUserGalleryImage
         );
 
         Storage::disk('public')->delete($tempRelativePath);
+
+        if ($sourceFile !== null) {
+            $sourceRelativePath = UserGalleryCatalog::sourceRelativePath((int) $media->id);
+
+            ($this->storeSourcePublicImage)($sourceRelativePath, $sourceFile);
+
+            $media->setCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY, $sourceRelativePath);
+            $media->save();
+        }
 
         return $media;
     }

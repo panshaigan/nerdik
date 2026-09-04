@@ -24,6 +24,7 @@ final class DeleteUserGalleryImage
             throw new AuthorizationException('Gallery image does not belong to this user.');
         }
 
+        $this->catalog->deleteSourceFile($owned);
         $owned->delete();
     }
 }

@@ -43,6 +43,31 @@ final class UserGalleryTest extends TestCase
     }
 
     #[Test]
+    public function store_persists_optional_source_image_and_delete_removes_it(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
+        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
+
+        $media = app(StoreUserGalleryImage::class)($user, $file, 1280, 720, $source);
+        $media->refresh();
+
+        $sourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);
+        $this->assertIsString($sourcePath);
+        $this->assertSame(UserGalleryCatalog::sourceRelativePath((int) $media->id), $sourcePath);
+        Storage::disk('public')->assertExists($sourcePath);
+
+        $catalog = app(UserGalleryCatalog::class);
+        $this->assertNotNull($catalog->sourceUrl($media));
+
+        app(DeleteUserGalleryImage::class)($user, (int) $media->id);
+
+        Storage::disk('public')->assertMissing($sourcePath);
+        $this->assertNull($catalog->findForUser((int) $media->id, $user));
+    }
+
+    #[Test]
     public function user_cannot_delete_another_users_gallery_image(): void
     {
         Storage::fake('public');
