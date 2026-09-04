@@ -25,7 +25,13 @@ class PublicSeoTest extends TestCase
         $response->assertSee('<meta name="description" content="'.e((string) __('ui.seo.welcome_description')).'">', false);
         $response->assertSee('<link rel="canonical" href="'.e(url('/')).'">', false);
         $response->assertSee('<meta property="og:title" content="'.e(Seo::pageTitle((string) __('ui.seo.welcome_title'))).'">', false);
-        $response->assertSee('<meta name="twitter:card" content="summary">', false);
+        $response->assertSee('<meta property="og:site_name" content="'.e((string) config('app.name')).'">', false);
+        $response->assertSee('<meta property="og:locale" content="'.e(Seo::ogLocale()).'">', false);
+        $response->assertSee('<meta property="og:image" content="'.e(Seo::defaultImageUrl()).'">', false);
+        $response->assertSee('<meta property="og:image:width" content="'.Seo::DEFAULT_IMAGE_WIDTH.'">', false);
+        $response->assertSee('<meta property="og:image:height" content="'.Seo::DEFAULT_IMAGE_HEIGHT.'">', false);
+        $response->assertSee('<meta name="twitter:card" content="summary_large_image">', false);
+        $response->assertSee('<meta name="twitter:image" content="'.e(Seo::defaultImageUrl()).'">', false);
         $response->assertSee('<link rel="icon" href="'.e(asset('favicon.ico')).'" sizes="32x32">', false);
         $response->assertSee('<link rel="icon" href="'.e(asset('favicon.svg')).'" type="image/svg+xml">', false);
         $response->assertSee('<link rel="apple-touch-icon" href="'.e(asset('apple-touch-icon.png')).'">', false);
@@ -41,6 +47,12 @@ class PublicSeoTest extends TestCase
 
         $this->assertFileExists(public_path('apple-touch-icon.png'));
         $this->assertGreaterThan(0, (int) filesize(public_path('apple-touch-icon.png')));
+    }
+
+    public function test_opengraph_image_asset_exists_in_the_public_directory(): void
+    {
+        $this->assertFileExists(public_path('opengraph.jpg'));
+        $this->assertGreaterThan(0, (int) filesize(public_path('opengraph.jpg')));
     }
 
     public function test_search_page_renders_seo_metadata(): void

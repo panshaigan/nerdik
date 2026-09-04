@@ -14,58 +14,62 @@ use Illuminate\Support\Facades\Route;
 
 final class Seo
 {
+    public const DEFAULT_IMAGE_WIDTH = 1200;
+
+    public const DEFAULT_IMAGE_HEIGHT = 630;
+
     public static function defaults(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::appName(),
             description: (string) __('ui.seo.default_description'),
             canonical: url()->current(),
-        );
+        ));
     }
 
     public static function forWelcome(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::pageTitle((string) __('ui.seo.welcome_title')),
             description: (string) __('ui.seo.welcome_description'),
             canonical: url('/'),
-        );
+        ));
     }
 
     public static function forSearch(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::pageTitle((string) __('ui.browse.search_page_title')),
             description: (string) __('ui.seo.search_description'),
             canonical: route('search.index'),
-        );
+        ));
     }
 
     public static function forPrivacy(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::pageTitle((string) __('legal.privacy.title')),
             description: (string) __('ui.seo.privacy_description'),
             canonical: route('privacy'),
-        );
+        ));
     }
 
     public static function forTerms(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::pageTitle((string) __('legal.terms.title')),
             description: (string) __('ui.seo.terms_description'),
             canonical: route('terms'),
-        );
+        ));
     }
 
     public static function forContact(): SeoMetadata
     {
-        return new SeoMetadata(
+        return self::withDefaultImage(new SeoMetadata(
             title: self::pageTitle((string) __('legal.contact.title')),
             description: (string) __('ui.seo.contact_description'),
             canonical: route('contact'),
-        );
+        ));
     }
 
     public static function forEvent(Event $event): SeoMetadata
@@ -76,12 +80,17 @@ final class Seo
             $description = (string) __('ui.seo.entity_fallback_description', ['name' => $event->name]);
         }
 
-        return new SeoMetadata(
-            title: self::pageTitle((string) $event->name),
-            description: $description,
-            canonical: route('events.show', $event),
-            type: 'article',
-            image: self::pictureUrl(app(EventListingImageResolver::class)->resolve($event)),
+        $title = self::pageTitle((string) $event->name);
+
+        return self::withListingOrDefaultImage(
+            new SeoMetadata(
+                title: $title,
+                description: $description,
+                canonical: route('events.show', $event),
+                type: 'article',
+            ),
+            app(EventListingImageResolver::class)->resolve($event),
+            $title,
         );
     }
 
@@ -93,12 +102,17 @@ final class Seo
             $description = (string) __('ui.seo.entity_fallback_description', ['name' => $activity->name]);
         }
 
-        return new SeoMetadata(
-            title: self::pageTitle((string) $activity->name),
-            description: $description,
-            canonical: route('activities.show', $activity),
-            type: 'article',
-            image: self::pictureUrl(app(ActivityListingImageResolver::class)->resolve($activity)),
+        $title = self::pageTitle((string) $activity->name);
+
+        return self::withListingOrDefaultImage(
+            new SeoMetadata(
+                title: $title,
+                description: $description,
+                canonical: route('activities.show', $activity),
+                type: 'article',
+            ),
+            app(ActivityListingImageResolver::class)->resolve($activity),
+            $title,
         );
     }
 
@@ -117,9 +131,59 @@ final class Seo
         return $pageTitle.' | '.self::appName();
     }
 
+    public static function defaultImageUrl(): string
+    {
+        return asset('opengraph.jpg');
+    }
+
+    public static function ogLocale(): string
+    {
+        $locale = str_replace('-', '_', (string) app()->getLocale());
+
+        return match ($locale) {
+            'en' => 'en_US',
+            default => str_contains($locale, '_') ? $locale : $locale.'_'.strtoupper($locale),
+        };
+    }
+
     private static function appName(): string
     {
         return (string) config('app.name', 'nerdik');
+    }
+
+    private static function withDefaultImage(SeoMetadata $metadata): SeoMetadata
+    {
+        return new SeoMetadata(
+            title: $metadata->title,
+            description: $metadata->description,
+            canonical: $metadata->canonical,
+            type: $metadata->type,
+            image: self::defaultImageUrl(),
+            imageAlt: self::appName(),
+            imageWidth: self::DEFAULT_IMAGE_WIDTH,
+            imageHeight: self::DEFAULT_IMAGE_HEIGHT,
+        );
+    }
+
+    private static function withListingOrDefaultImage(
+        SeoMetadata $metadata,
+        ListingCardPicture $picture,
+        string $imageAlt,
+    ): SeoMetadata {
+        $listingImage = self::pictureUrl($picture);
+
+        if ($listingImage === null) {
+            return self::withDefaultImage($metadata);
+        }
+
+        return new SeoMetadata(
+            title: $metadata->title,
+            description: $metadata->description,
+            canonical: $metadata->canonical,
+            type: $metadata->type,
+            image: $listingImage,
+            imageAlt: $imageAlt,
+        );
     }
 
     /**
