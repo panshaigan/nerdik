@@ -28,7 +28,7 @@ final class StoreUploadedAvatarSourceTest extends TestCase
         app(StoreUploadedAvatar::class)(
             $user,
             UploadedFile::fake()->image('crop.jpg', 512, 512),
-            UploadedFile::fake()->image('original.jpg', 1600, 1200),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $user->refresh();

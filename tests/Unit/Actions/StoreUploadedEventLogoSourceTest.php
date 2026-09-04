@@ -33,8 +33,8 @@ final class StoreUploadedEventLogoSourceTest extends TestCase
 
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('crop.jpg', 1280, 720),
-            UploadedFile::fake()->image('original.jpg', 2000, 1500),
+            UploadedFile::fake()->image('crop.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $event->refresh();
@@ -57,8 +57,8 @@ final class StoreUploadedEventLogoSourceTest extends TestCase
 
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('crop.jpg', 1280, 720),
-            UploadedFile::fake()->image('original.jpg', 1600, 900),
+            UploadedFile::fake()->image('crop.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 800, 450),
         );
 
         app(DeleteUploadedEventLogo::class)($event);

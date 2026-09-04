@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Profile;
 
-use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\Profile\ProviderContactUrls;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 final class ProviderContactUrlsTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ProviderContactUrls $resolver;
 
     protected function setUp(): void
@@ -82,9 +78,9 @@ final class ProviderContactUrlsTest extends TestCase
         ]);
         $profile->forceFill([
             'facebook_profile_url' => 'https://www.facebook.com/janedoe',
-        ])->save();
+        ]);
 
-        $urls = $this->resolver->facebook($profile->fresh());
+        $urls = $this->resolver->facebook($profile);
 
         $this->assertSame([
             'profileUrl' => 'https://www.facebook.com/janedoe',
@@ -96,15 +92,13 @@ final class ProviderContactUrlsTest extends TestCase
     #[Test]
     public function facebook_uses_manual_profile_url_without_oauth_link(): void
     {
-        $user = User::factory()->create();
-        $profile = $user->profile;
-        $profile->forceFill([
+        $profile = (new UserProfile)->forceFill([
             'facebook_id' => null,
             'facebook_data' => null,
             'facebook_profile_url' => 'https://www.facebook.com/manual-only',
-        ])->save();
+        ]);
 
-        $urls = $this->resolver->facebook($profile->fresh());
+        $urls = $this->resolver->facebook($profile);
 
         $this->assertSame([
             'profileUrl' => 'https://www.facebook.com/manual-only',
@@ -147,14 +141,10 @@ final class ProviderContactUrlsTest extends TestCase
      */
     private function profileWithFacebookData(?array $facebookData): UserProfile
     {
-        $user = User::factory()->create();
-        $profile = $user->profile;
-        $profile->forceFill([
+        return (new UserProfile)->forceFill([
             'facebook_id' => 'app-scoped-id',
             'facebook_data' => $facebookData,
-        ])->save();
-
-        return $profile->fresh();
+        ]);
     }
 
     /**
@@ -162,13 +152,9 @@ final class ProviderContactUrlsTest extends TestCase
      */
     private function profileWithDiscordData(?array $discordData): UserProfile
     {
-        $user = User::factory()->create();
-        $profile = $user->profile;
-        $profile->forceFill([
+        return (new UserProfile)->forceFill([
             'discord_id' => '67890',
             'discord_data' => $discordData,
-        ])->save();
-
-        return $profile->fresh();
+        ]);
     }
 }

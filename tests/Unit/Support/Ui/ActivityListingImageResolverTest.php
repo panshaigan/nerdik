@@ -94,7 +94,7 @@ final class ActivityListingImageResolverTest extends TestCase
             'tag_media_id' => null,
         ]);
 
-        app(StoreUploadedActivityLogo::class)($activity, UploadedFile::fake()->image('upload.jpg', 1600, 900));
+        app(StoreUploadedActivityLogo::class)($activity, UploadedFile::fake()->image('upload.jpg', 800, 450));
 
         $picture = $this->resolver->resolve($activity->fresh());
 

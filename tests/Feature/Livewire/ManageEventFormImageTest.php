@@ -72,8 +72,8 @@ final class ManageEventFormImageTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
-        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
-        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
@@ -134,7 +134,7 @@ final class ManageEventFormImageTest extends TestCase
         ]);
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+            UploadedFile::fake()->image('existing.jpg', 800, 450),
         );
 
         Livewire::actingAs($user)
@@ -164,8 +164,8 @@ final class ManageEventFormImageTest extends TestCase
         ]);
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('existing.jpg', 1280, 720),
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('existing.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $sourceUrl = $event->fresh()->cropSourceImageUrl();
@@ -182,7 +182,7 @@ final class ManageEventFormImageTest extends TestCase
         Livewire::actingAs($user)
             ->test(ManageEventForm::class, ['event' => $event])
             ->set('logo_source', EventLogoSource::Upload->value)
-            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 1280, 720))
+            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 800, 450))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -208,7 +208,7 @@ final class ManageEventFormImageTest extends TestCase
         ]);
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('logo.jpg', 1280, 720),
+            UploadedFile::fake()->image('logo.jpg', 800, 450),
         );
 
         Livewire::actingAs($user)

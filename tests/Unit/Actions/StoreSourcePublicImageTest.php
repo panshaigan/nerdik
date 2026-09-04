@@ -6,7 +6,6 @@ namespace Tests\Unit\Actions;
 
 use App\Actions\Images\StoreSourcePublicImage;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
@@ -16,8 +15,6 @@ use Tests\TestCase;
 
 final class StoreSourcePublicImageTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_stores_source_image_as_webp_on_public_disk(): void
     {
@@ -25,7 +22,7 @@ final class StoreSourcePublicImageTest extends TestCase
 
         $path = app(StoreSourcePublicImage::class)(
             'sources/test.webp',
-            UploadedFile::fake()->image('source.jpg', 1920, 1080),
+            UploadedFile::fake()->image('source.jpg', 800, 450),
         );
 
         $this->assertSame('sources/test.webp', $path);
@@ -43,7 +40,7 @@ final class StoreSourcePublicImageTest extends TestCase
 
         app(StoreSourcePublicImage::class)(
             'sources/large.webp',
-            UploadedFile::fake()->image('huge.jpg', 5000, 3000),
+            UploadedFile::fake()->image('huge.jpg', 4100, 1000),
         );
 
         $absolute = Storage::disk('public')->path('sources/large.webp');

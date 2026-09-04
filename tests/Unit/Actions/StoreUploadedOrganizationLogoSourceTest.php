@@ -33,7 +33,7 @@ final class StoreUploadedOrganizationLogoSourceTest extends TestCase
         $path = app(StoreUploadedOrganizationLogo::class)(
             $organization,
             UploadedFile::fake()->image('crop.jpg', 512, 512),
-            UploadedFile::fake()->image('original.jpg', 1200, 1200),
+            UploadedFile::fake()->image('original.jpg', 640, 640),
         );
 
         $this->assertSame('organization-logos/'.$organization->id.'.webp', $path);

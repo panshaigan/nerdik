@@ -25,7 +25,7 @@ final class ActivityTypeFilamentImageUploadTest extends TestCase
     #[Test]
     public function admin_can_upload_activity_type_and_event_listing_images(): void
     {
-        config(['media.test_profile' => 'full']);
+        config(['media.testing.conversion_formats' => ['avif', 'webp']]);
 
         Storage::fake('public');
 
@@ -42,7 +42,7 @@ final class ActivityTypeFilamentImageUploadTest extends TestCase
                     UploadedFile::fake()->image('activity-type.jpg', 800, 600),
                 ],
                 'event_listing' => [
-                    UploadedFile::fake()->image('event-listing.jpg', 1280, 720),
+                    UploadedFile::fake()->image('event-listing.jpg', 800, 450),
                 ],
             ])
             ->call('save')

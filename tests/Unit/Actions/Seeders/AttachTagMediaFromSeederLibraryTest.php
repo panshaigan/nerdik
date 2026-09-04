@@ -37,8 +37,6 @@ final class AttachTagMediaFromSeederLibraryTest extends TestCase
     #[Test]
     public function it_attaches_a_top_level_file_to_matching_tag_by_slug(): void
     {
-        config(['media.test_profile' => 'full']);
-
         $tag = $this->createGenreTag('Fantasy', 'fantasy');
         $fixture = base_path('tests/fixtures/tag-sample.jpg');
         $target = $this->libraryDirectory.'/fantasy.jpg';
@@ -54,8 +52,6 @@ final class AttachTagMediaFromSeederLibraryTest extends TestCase
     #[Test]
     public function it_attaches_all_images_from_a_folder_to_the_matching_tag(): void
     {
-        config(['media.test_profile' => 'full']);
-
         $tag = $this->createGenreTag('Space Opera', 'space-opera');
         $fixture = base_path('tests/fixtures/tag-sample.jpg');
         $folder = $this->libraryDirectory.'/61_space_opera';

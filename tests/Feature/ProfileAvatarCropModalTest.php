@@ -75,7 +75,7 @@ final class ProfileAvatarCropModalTest extends TestCase
         app(StoreUploadedAvatar::class)(
             $user,
             UploadedFile::fake()->image('avatar.jpg', 640, 480),
-            UploadedFile::fake()->image('original.jpg', 1200, 900),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $sourceUrl = $user->fresh()->cropSourceImageUrl();

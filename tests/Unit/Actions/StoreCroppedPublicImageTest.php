@@ -6,7 +6,6 @@ namespace Tests\Unit\Actions;
 
 use App\Actions\Images\StoreCroppedPublicImage;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 final class StoreCroppedPublicImageTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_stores_cover_image_as_webp_on_public_disk(): void
     {
@@ -24,7 +21,7 @@ final class StoreCroppedPublicImageTest extends TestCase
 
         $path = app(StoreCroppedPublicImage::class)(
             'covers/test.webp',
-            UploadedFile::fake()->image('source.jpg', 1920, 1080),
+            UploadedFile::fake()->image('source.jpg', 800, 450),
             1280,
             720,
         );
@@ -46,7 +43,7 @@ final class StoreCroppedPublicImageTest extends TestCase
 
         app(StoreCroppedPublicImage::class)(
             'covers/test.webp',
-            UploadedFile::fake()->image('source.jpg', 1920, 1080),
+            UploadedFile::fake()->image('source.jpg', 800, 450),
             1280,
             720,
         );

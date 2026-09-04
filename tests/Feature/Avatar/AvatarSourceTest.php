@@ -39,7 +39,7 @@ final class AvatarSourceTest extends TestCase
         $this->actingAs($user);
 
         $file = UploadedFile::fake()->image('photo.jpg', 640, 480);
-        $source = UploadedFile::fake()->image('original.jpg', 1200, 900);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         $component = Volt::test('profile.update-avatar-form')
             ->set('avatar_source', 'uploaded')
@@ -77,7 +77,7 @@ final class AvatarSourceTest extends TestCase
         Volt::test('profile.update-avatar-form')
             ->set('avatar_source', 'uploaded')
             ->set('croppedAvatar', UploadedFile::fake()->image('photo.jpg', 640, 480))
-            ->set('sourceImage', UploadedFile::fake()->image('original.jpg', 1200, 900))
+            ->set('sourceImage', UploadedFile::fake()->image('original.jpg', 640, 360))
             ->call('updateAvatar')
             ->assertHasNoErrors();
 
@@ -124,10 +124,10 @@ final class AvatarSourceTest extends TestCase
 
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
         $media->refresh();
         $gallerySourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);

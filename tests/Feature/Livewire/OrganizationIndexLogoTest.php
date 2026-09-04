@@ -54,7 +54,7 @@ final class OrganizationIndexLogoTest extends TestCase
         Storage::fake('public');
         $user = User::factory()->create(['is_event_organizer' => true]);
         $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
-        $source = UploadedFile::fake()->image('original.jpg', 1200, 900);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -89,7 +89,7 @@ final class OrganizationIndexLogoTest extends TestCase
         app(StoreUploadedOrganizationLogo::class)(
             $organization,
             UploadedFile::fake()->image('logo.jpg', 640, 480),
-            UploadedFile::fake()->image('original.jpg', 1200, 900),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
         $organization->logo_path = 'organization-logos/'.$organization->id.'.webp';
         $organization->save();
