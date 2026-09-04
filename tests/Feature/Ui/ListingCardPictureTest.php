@@ -47,7 +47,7 @@ final class ListingCardPictureTest extends TestCase
     public function listing_card_media_fills_aspect_video_box_for_non_sixteen_by_nine_cover(): void
     {
         $tag = Tag::factory()->create();
-        $sourcePath = database_path('seeders/tag_images/Settings/70_warhammer_fantasy.jpg');
+        $sourcePath = database_path('seeders/tag_images/Settings/70_warhammer_fantasy.webp');
 
         if (! is_file($sourcePath)) {
             $this->markTestSkipped('Warhammer Fantasy seed image is not available.');
@@ -56,7 +56,7 @@ final class ListingCardPictureTest extends TestCase
         app(AttachModelMediaFromPublic::class)->attachFile(
             $tag,
             $sourcePath,
-            'seeders/tag_images/Settings/70_warhammer_fantasy.jpg',
+            'seeders/tag_images/Settings/70_warhammer_fantasy.webp',
         );
         $media = $tag->refresh()->getFirstMedia('images');
         $this->assertNotNull($media);

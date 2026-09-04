@@ -77,7 +77,7 @@ final class EventListingImageResolverTest extends TestCase
             'listing_media_id' => null,
         ]);
 
-        app(StoreUploadedEventLogo::class)($event, UploadedFile::fake()->image('upload.jpg', 1600, 900));
+        app(StoreUploadedEventLogo::class)($event, UploadedFile::fake()->image('upload.jpg', 800, 450));
 
         $picture = app(EventListingImageResolver::class)->resolve($event->fresh());
 

@@ -19,7 +19,7 @@ final class AttachOptimizedImageTest extends TestCase
     #[Test]
     public function it_attaches_media_with_dimensions_and_responsive_conversions(): void
     {
-        config(['media.test_profile' => 'full']);
+        config(['media.testing.conversion_formats' => ['avif', 'webp']]);
 
         $tag = Tag::factory()->create();
         $fixture = base_path('tests/fixtures/tag-sample.jpg');

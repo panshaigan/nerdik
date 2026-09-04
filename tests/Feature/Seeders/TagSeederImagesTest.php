@@ -40,8 +40,6 @@ final class TagSeederImagesTest extends TestCase
     #[Test]
     public function seed_tag_images_from_library_scans_genres_games_and_settings(): void
     {
-        config(['media.test_profile' => 'full']);
-
         $genreCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GENRE]);
         $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $settingCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_SETTING]);
@@ -73,8 +71,6 @@ final class TagSeederImagesTest extends TestCase
     #[Test]
     public function rpg_activity_type_and_event_listing_defaults_are_seeded(): void
     {
-        config(['media.test_profile' => 'full']);
-
         $this->seed(ActivityTypeSeeder::class);
 
         $seeder = new TagSeeder;
@@ -85,11 +81,11 @@ final class TagSeederImagesTest extends TestCase
 
         $typeMedia = $rpgType->getMedia('images')->first();
         $this->assertNotNull($typeMedia);
-        $this->assertStringContainsString('Default/Activity/default_activity_type_01.png', $typeMedia->getCustomProperty('seed_source'));
+        $this->assertStringContainsString('Default/Activity/default_activity_type_01.webp', $typeMedia->getCustomProperty('seed_source'));
 
         $eventDefault = $rpgType->getMedia(EventListingImageResolver::EVENT_LISTING_COLLECTION)->first();
         $this->assertNotNull($eventDefault);
-        $this->assertStringContainsString('Default/Event/default_event.png', $eventDefault->getCustomProperty('seed_source'));
+        $this->assertStringContainsString('Default/Event/default_event.webp', $eventDefault->getCustomProperty('seed_source'));
     }
 
     private function createTagWithTranslation(TagCategory $category, string $label, string $slug): Tag

@@ -9,22 +9,11 @@ use App\Models\ActivityProposal;
 use App\Models\Tag;
 use App\Models\TagRelation;
 use App\Support\Filament\FilamentFilterAttributeResolver;
-use Database\Seeders\ActivityTypeSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 final class FilamentFilterAttributeResolverTest extends TestCase
 {
-    use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->seed(ActivityTypeSeeder::class);
-    }
-
     #[Test]
     public function it_maps_activity_type_relationship_name_to_foreign_key(): void
     {

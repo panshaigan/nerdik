@@ -29,7 +29,7 @@ final class UserGalleryTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create();
-        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
 
         $media = app(StoreUserGalleryImage::class)($user, $file, 1280, 720);
 
@@ -47,8 +47,8 @@ final class UserGalleryTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create();
-        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
-        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         $media = app(StoreUserGalleryImage::class)($user, $file, 1280, 720, $source);
         $media->refresh();
@@ -75,7 +75,7 @@ final class UserGalleryTest extends TestCase
         $other = User::factory()->create();
         $media = app(StoreUserGalleryImage::class)(
             $owner,
-            UploadedFile::fake()->image('cover.jpg', 1600, 900),
+            UploadedFile::fake()->image('cover.jpg', 800, 450),
             1280,
             720,
         );
@@ -91,7 +91,7 @@ final class UserGalleryTest extends TestCase
         $user = User::factory()->organizer()->create();
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('cover.jpg', 1600, 900),
+            UploadedFile::fake()->image('cover.jpg', 800, 450),
             1280,
             720,
         );
@@ -132,7 +132,7 @@ final class UserGalleryTest extends TestCase
         $this->actingAs($user);
 
         Volt::test('profile.manage-gallery-form')
-            ->set('croppedLogo', UploadedFile::fake()->image('gallery.jpg', 1600, 900))
+            ->set('croppedLogo', UploadedFile::fake()->image('gallery.jpg', 800, 450))
             ->call('uploadImage')
             ->assertHasNoErrors();
 

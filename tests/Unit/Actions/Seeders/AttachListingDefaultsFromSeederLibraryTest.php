@@ -38,7 +38,7 @@ final class AttachListingDefaultsFromSeederLibraryTest extends TestCase
     #[Test]
     public function it_attaches_activity_defaults_and_event_listing_catalog_media(): void
     {
-        config(['media.test_profile' => 'full']);
+        config(['media.testing.conversion_formats' => ['avif', 'webp']]);
 
         $this->seed(ActivityTypeSeeder::class);
 
@@ -67,8 +67,6 @@ final class AttachListingDefaultsFromSeederLibraryTest extends TestCase
     #[Test]
     public function it_attaches_activity_folder_images_to_matching_activity_type_slug(): void
     {
-        config(['media.test_profile' => 'full']);
-
         $this->seed(ActivityTypeSeeder::class);
 
         $fixture = base_path('tests/fixtures/tag-sample.jpg');

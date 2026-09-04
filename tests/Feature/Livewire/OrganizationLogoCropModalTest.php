@@ -80,7 +80,7 @@ final class OrganizationLogoCropModalTest extends TestCase
         app(StoreUploadedOrganizationLogo::class)(
             $organization,
             UploadedFile::fake()->image('logo.jpg', 640, 480),
-            UploadedFile::fake()->image('original.jpg', 1200, 900),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
         $organization->logo_path = 'organization-logos/'.$organization->id.'.webp';
         $organization->save();

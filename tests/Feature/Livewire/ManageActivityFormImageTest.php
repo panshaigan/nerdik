@@ -114,8 +114,8 @@ final class ManageActivityFormImageTest extends TestCase
         $this->seed(ActivityTypeSeeder::class);
         $user = User::factory()->create();
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
-        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
-        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class)
@@ -171,7 +171,7 @@ final class ManageActivityFormImageTest extends TestCase
         ]);
         app(StoreUploadedActivityLogo::class)(
             $activity,
-            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+            UploadedFile::fake()->image('existing.jpg', 800, 450),
         );
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
 
@@ -205,8 +205,8 @@ final class ManageActivityFormImageTest extends TestCase
         ]);
         app(StoreUploadedActivityLogo::class)(
             $activity,
-            UploadedFile::fake()->image('existing.jpg', 1280, 720),
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('existing.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $sourceUrl = $activity->fresh()->cropSourceImageUrl();
@@ -226,7 +226,7 @@ final class ManageActivityFormImageTest extends TestCase
             ->set('activity_type_id', $activityTypeId)
             ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
             ->set('logo_source', ActivityLogoSource::Upload->value)
-            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 1280, 720))
+            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 800, 450))
             ->call('save')
             ->assertHasNoErrors();
 
@@ -252,7 +252,7 @@ final class ManageActivityFormImageTest extends TestCase
         ]);
         app(StoreUploadedActivityLogo::class)(
             $activity,
-            UploadedFile::fake()->image('logo.jpg', 1280, 720),
+            UploadedFile::fake()->image('logo.jpg', 800, 450),
         );
         $activity->tags()->attach($tag->id);
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
@@ -301,10 +301,10 @@ final class ManageActivityFormImageTest extends TestCase
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
         $media->refresh();
         $gallerySourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);
@@ -317,7 +317,7 @@ final class ManageActivityFormImageTest extends TestCase
             ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
             ->set('logo_source', ActivityLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
-            ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 1280, 720))
+            ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 800, 450))
             ->call('save')
             ->assertHasNoErrors();
 

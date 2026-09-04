@@ -30,7 +30,7 @@ final class ManageEventFormGalleryTest extends TestCase
         $user = User::factory()->organizer()->create();
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
         );
@@ -64,7 +64,7 @@ final class ManageEventFormGalleryTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
-        $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
@@ -98,7 +98,7 @@ final class ManageEventFormGalleryTest extends TestCase
         $user = User::factory()->organizer()->create();
         $media = app(StoreUserGalleryImage::class)(
             $owner,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
         );
@@ -123,10 +123,10 @@ final class ManageEventFormGalleryTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
-        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
+        $source = UploadedFile::fake()->image('original.jpg', 640, 360);
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
             $source,
@@ -135,7 +135,7 @@ final class ManageEventFormGalleryTest extends TestCase
         $gallerySourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);
         $galleryFileName = $media->file_name;
 
-        $crop = UploadedFile::fake()->image('crop.jpg', 1280, 720);
+        $crop = UploadedFile::fake()->image('crop.jpg', 800, 450);
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
@@ -180,10 +180,10 @@ final class ManageEventFormGalleryTest extends TestCase
         $user = User::factory()->organizer()->create();
         $media = app(StoreUserGalleryImage::class)(
             $user,
-            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
             1280,
             720,
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         Livewire::actingAs($user)
@@ -197,7 +197,7 @@ final class ManageEventFormGalleryTest extends TestCase
             ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
             ->set('logo_source', EventLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
-            ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 1280, 720))
+            ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 800, 450))
             ->call('save')
             ->assertHasNoErrors();
 

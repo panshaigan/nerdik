@@ -37,7 +37,7 @@ final class CropSourceImageUrlTest extends TestCase
         app(StoreUploadedAvatar::class)(
             $user,
             UploadedFile::fake()->image('avatar.jpg', 512, 512),
-            UploadedFile::fake()->image('original.jpg', 1200, 900),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $url = $user->fresh()->cropSourceImageUrl();
@@ -55,8 +55,8 @@ final class CropSourceImageUrlTest extends TestCase
 
         app(StoreUploadedEventLogo::class)(
             $event,
-            UploadedFile::fake()->image('logo.jpg', 1280, 720),
-            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+            UploadedFile::fake()->image('logo.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $url = $event->fresh()->cropSourceImageUrl();
@@ -75,7 +75,7 @@ final class CropSourceImageUrlTest extends TestCase
         app(StoreUploadedOrganizationLogo::class)(
             $organization,
             UploadedFile::fake()->image('logo.jpg', 512, 512),
-            UploadedFile::fake()->image('original.jpg', 1200, 900),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
         $url = $organization->fresh()->cropSourceImageUrl();
