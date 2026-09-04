@@ -52,6 +52,7 @@ new class extends Component
                 $this->croppedLogo,
                 1280,
                 720,
+                $this->sourceImage,
             );
 
             $this->reset('croppedLogo', 'sourceImage');

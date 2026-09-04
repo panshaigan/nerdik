@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire;
 
 use App\Actions\Activities\StoreUploadedActivityLogo;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
 use App\Livewire\Activities\ManageActivityForm;
@@ -12,6 +13,7 @@ use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\Media\UserGalleryCatalog;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -132,6 +134,8 @@ final class ManageActivityFormImageTest extends TestCase
         $this->assertNotNull($activity->gallery_media_id);
         $this->assertNull($activity->getFirstMedia('logo'));
         $this->assertCount(1, $user->fresh()->getMedia('gallery'));
+        $galleryMedia = $user->fresh()->getMedia('gallery')->first();
+        $this->assertNotNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
     }
 
     #[Test]
@@ -285,6 +289,46 @@ final class ManageActivityFormImageTest extends TestCase
             ->test(ManageActivityForm::class, ['activity' => $activity])
             ->assertSet('logo_source', ActivityLogoSource::Tag->value)
             ->assertSet('selected_tag_media_id', (int) $media->id);
+    }
+
+    #[Test]
+    public function gallery_selection_with_crop_stores_entity_logo_without_mutating_gallery(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $media = app(StoreUserGalleryImage::class)(
+            $user,
+            UploadedFile::fake()->image('gallery.jpg', 1600, 900),
+            1280,
+            720,
+            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+        );
+        $media->refresh();
+        $gallerySourcePath = $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY);
+        $galleryFileName = $media->file_name;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('name', 'Gallery Crop Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('logo_source', ActivityLogoSource::Gallery->value)
+            ->set('gallery_media_id', (int) $media->id)
+            ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 1280, 720))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity = Activity::query()->where('name', 'Gallery Crop Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertSame(ActivityLogoSource::Gallery, $activity->logo_source);
+        $this->assertSame((int) $media->id, (int) $activity->gallery_media_id);
+        $this->assertNotNull($activity->getFirstMedia('logo'));
+
+        $media->refresh();
+        $this->assertSame($galleryFileName, $media->file_name);
+        $this->assertSame($gallerySourcePath, $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
     }
 
     /**

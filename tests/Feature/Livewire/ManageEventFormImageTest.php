@@ -10,6 +10,7 @@ use App\Livewire\Events\ManageEventForm;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\Events\EventDefaultImageCatalog;
+use App\Support\Media\UserGalleryCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -96,6 +97,8 @@ final class ManageEventFormImageTest extends TestCase
         $this->assertNotNull($event->gallery_media_id);
         $this->assertNull($event->getFirstMedia('logo'));
         $this->assertCount(1, $user->fresh()->getMedia('gallery'));
+        $galleryMedia = $user->fresh()->getMedia('gallery')->first();
+        $this->assertNotNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
     }
 
     #[Test]

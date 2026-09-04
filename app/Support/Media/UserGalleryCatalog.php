@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Support\Media;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class UserGalleryCatalog
 {
     public const COLLECTION = 'gallery';
+
+    public const SOURCE_PATH_PROPERTY = 'source_path';
 
     /**
      * @return list<array{media_id: int, sources: MediaPictureSources}>
@@ -54,5 +57,40 @@ final class UserGalleryCatalog
         }
 
         return Media::query()->find($mediaId);
+    }
+
+    public static function sourceRelativePath(int $mediaId): string
+    {
+        return 'gallery-sources/'.$mediaId.'.webp';
+    }
+
+    public function sourceUrl(Media $media): ?string
+    {
+        $path = $media->getCustomProperty(self::SOURCE_PATH_PROPERTY);
+
+        if (is_string($path) && $path !== '' && Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        $fallback = $media->getUrl();
+
+        return $fallback !== '' ? $fallback : null;
+    }
+
+    public function previewUrl(Media $media): ?string
+    {
+        $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card');
+        $url = $sources->jpegSrc();
+
+        return $url !== '' ? $url : null;
+    }
+
+    public function deleteSourceFile(Media $media): void
+    {
+        $path = $media->getCustomProperty(self::SOURCE_PATH_PROPERTY);
+
+        if (is_string($path) && $path !== '') {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

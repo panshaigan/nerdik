@@ -406,9 +406,12 @@ class ManageActivityForm extends Component
             $this->gallery_media_id = null;
         }
 
-        if ($value !== ActivityLogoSource::Upload->value) {
-            $this->reset('croppedLogo', 'sourceImage');
-        }
+        $this->reset('croppedLogo', 'sourceImage');
+    }
+
+    public function updatedGalleryMediaId(?int $value): void
+    {
+        $this->reset('croppedLogo', 'sourceImage');
     }
 
     public function clearCroppedLogo(): void
@@ -1448,7 +1451,34 @@ class ManageActivityForm extends Component
 
         $logoPreviewUrl = null;
         $cropSourceImageUrl = null;
-        if ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Upload) {
+        $galleryCropSourceUrl = null;
+        $galleryCropPreviewUrl = null;
+        $catalog = app(UserGalleryCatalog::class);
+
+        if ($this->logo_source === ActivityLogoSource::Gallery->value && $this->gallery_media_id !== null) {
+            $user = Auth::user();
+            $galleryMedia = $user !== null
+                ? $catalog->findForUser((int) $this->gallery_media_id, $user)
+                : null;
+
+            if ($galleryMedia !== null) {
+                $galleryCropSourceUrl = $catalog->sourceUrl($galleryMedia);
+                $galleryCropPreviewUrl = $catalog->previewUrl($galleryMedia);
+            }
+
+            if ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Gallery) {
+                $logoMedia = $editingActivity->getFirstMedia('logo');
+                if ($logoMedia !== null
+                    && (int) $editingActivity->gallery_media_id === (int) $this->gallery_media_id
+                ) {
+                    $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+                }
+            }
+
+            if ($logoPreviewUrl === null) {
+                $logoPreviewUrl = $galleryCropPreviewUrl;
+            }
+        } elseif ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Upload) {
             $logoMedia = $editingActivity->getFirstMedia('logo');
             if ($logoMedia !== null) {
                 $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
@@ -1459,6 +1489,8 @@ class ManageActivityForm extends Component
         return view('livewire.activities.manage-activity-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
             'cropSourceImageUrl' => $cropSourceImageUrl,
+            'galleryCropSourceUrl' => $galleryCropSourceUrl,
+            'galleryCropPreviewUrl' => $logoPreviewUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingActivity !== null ? route('activities.show', $editingActivity) : null,
             ),

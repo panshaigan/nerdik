@@ -40,6 +40,12 @@ final class EventListingImageResolver
         }
 
         if ($source === EventLogoSource::Gallery && $event->gallery_media_id !== null) {
+            $entityCrop = $this->resolveUploadedLogoMedia($event);
+
+            if ($entityCrop !== null) {
+                return ListingCardPicture::fromMedia($entityCrop, (string) $event->name, $preset);
+            }
+
             $media = $this->resolveGalleryMediaRelation($event);
 
             if ($media !== null) {

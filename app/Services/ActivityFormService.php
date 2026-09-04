@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Activities\DeleteUploadedActivityLogo;
+use App\Actions\Media\AttachEntityLogoCrop;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
@@ -317,15 +318,34 @@ class ActivityFormService
             $activity->gallery_media_id = null;
             $activity->logo_path = null;
         } elseif ($source === ActivityLogoSource::Gallery) {
-            app(DeleteUploadedActivityLogo::class)($activity);
+            $previousGalleryMediaId = $activity->gallery_media_id !== null
+                ? (int) $activity->gallery_media_id
+                : null;
+            $selectedGalleryMediaId = $form->gallery_media_id !== null
+                ? (int) $form->gallery_media_id
+                : null;
+
             $activity->logo_source = ActivityLogoSource::Gallery;
             $activity->tag_media_id = null;
-            $activity->gallery_media_id = $form->gallery_media_id;
+            $activity->gallery_media_id = $selectedGalleryMediaId;
             $activity->logo_path = null;
+
+            if ($form->croppedLogo !== null) {
+                app(DeleteUploadedActivityLogo::class)($activity);
+                app(AttachEntityLogoCrop::class)($activity, $form->croppedLogo, 1280, 720);
+            } elseif ($selectedGalleryMediaId !== $previousGalleryMediaId) {
+                app(DeleteUploadedActivityLogo::class)($activity);
+            }
         } elseif ($source === ActivityLogoSource::Upload) {
             if ($form->croppedLogo !== null && $user !== null) {
                 app(DeleteUploadedActivityLogo::class)($activity);
-                $media = app(StoreUserGalleryImage::class)($user, $form->croppedLogo, 1280, 720);
+                $media = app(StoreUserGalleryImage::class)(
+                    $user,
+                    $form->croppedLogo,
+                    1280,
+                    720,
+                    $form->sourceImage,
+                );
                 $activity->logo_source = ActivityLogoSource::Gallery;
                 $activity->tag_media_id = null;
                 $activity->gallery_media_id = (int) $media->id;

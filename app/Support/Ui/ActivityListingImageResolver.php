@@ -47,6 +47,12 @@ final class ActivityListingImageResolver
         }
 
         if ($source === ActivityLogoSource::Gallery && $activity->gallery_media_id !== null) {
+            $entityCrop = $this->resolveUploadedLogoMedia($activity);
+
+            if ($entityCrop !== null) {
+                return ListingCardPicture::fromMedia($entityCrop, (string) $activity->name, $preset);
+            }
+
             $media = $this->resolveGalleryMediaRelation($activity);
 
             if ($media !== null) {

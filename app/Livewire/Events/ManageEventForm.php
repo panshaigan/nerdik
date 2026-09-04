@@ -3,6 +3,7 @@
 namespace App\Livewire\Events;
 
 use App\Actions\Events\DeleteUploadedEventLogo;
+use App\Actions\Media\AttachEntityLogoCrop;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\EventLogoSource;
 use App\Models\Event;
@@ -369,9 +370,12 @@ class ManageEventForm extends Component
             }
         }
 
-        if ($value !== EventLogoSource::Upload->value) {
-            $this->reset('croppedLogo', 'sourceImage');
-        }
+        $this->reset('croppedLogo', 'sourceImage');
+    }
+
+    public function updatedGalleryMediaId(?int $value): void
+    {
+        $this->reset('croppedLogo', 'sourceImage');
     }
 
     public function clearCroppedLogo(): void
@@ -672,15 +676,34 @@ class ManageEventForm extends Component
             $event->gallery_media_id = null;
             $event->logo_path = null;
         } elseif ($source === EventLogoSource::Gallery) {
-            app(DeleteUploadedEventLogo::class)($event);
+            $previousGalleryMediaId = $event->gallery_media_id !== null
+                ? (int) $event->gallery_media_id
+                : null;
+            $selectedGalleryMediaId = $this->gallery_media_id !== null
+                ? (int) $this->gallery_media_id
+                : null;
+
             $event->logo_source = EventLogoSource::Gallery;
             $event->listing_media_id = null;
-            $event->gallery_media_id = $this->gallery_media_id;
+            $event->gallery_media_id = $selectedGalleryMediaId;
             $event->logo_path = null;
+
+            if ($this->croppedLogo !== null) {
+                app(DeleteUploadedEventLogo::class)($event);
+                app(AttachEntityLogoCrop::class)($event, $this->croppedLogo, 1280, 720);
+            } elseif ($selectedGalleryMediaId !== $previousGalleryMediaId) {
+                app(DeleteUploadedEventLogo::class)($event);
+            }
         } elseif ($source === EventLogoSource::Upload) {
             if ($this->croppedLogo !== null && $user !== null) {
                 app(DeleteUploadedEventLogo::class)($event);
-                $media = app(StoreUserGalleryImage::class)($user, $this->croppedLogo, 1280, 720);
+                $media = app(StoreUserGalleryImage::class)(
+                    $user,
+                    $this->croppedLogo,
+                    1280,
+                    720,
+                    $this->sourceImage,
+                );
                 $event->logo_source = EventLogoSource::Gallery;
                 $event->listing_media_id = null;
                 $event->gallery_media_id = (int) $media->id;
@@ -909,7 +932,34 @@ class ManageEventForm extends Component
 
         $logoPreviewUrl = null;
         $cropSourceImageUrl = null;
-        if ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Upload) {
+        $galleryCropSourceUrl = null;
+        $galleryCropPreviewUrl = null;
+        $catalog = app(UserGalleryCatalog::class);
+
+        if ($this->logo_source === EventLogoSource::Gallery->value && $this->gallery_media_id !== null) {
+            $user = Auth::user();
+            $galleryMedia = $user !== null
+                ? $catalog->findForUser((int) $this->gallery_media_id, $user)
+                : null;
+
+            if ($galleryMedia !== null) {
+                $galleryCropSourceUrl = $catalog->sourceUrl($galleryMedia);
+                $galleryCropPreviewUrl = $catalog->previewUrl($galleryMedia);
+            }
+
+            if ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Gallery) {
+                $logoMedia = $editingEvent->getFirstMedia('logo');
+                if ($logoMedia !== null
+                    && (int) $editingEvent->gallery_media_id === (int) $this->gallery_media_id
+                ) {
+                    $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
+                }
+            }
+
+            if ($logoPreviewUrl === null) {
+                $logoPreviewUrl = $galleryCropPreviewUrl;
+            }
+        } elseif ($editingEvent !== null && $editingEvent->logo_source === EventLogoSource::Upload) {
             $logoMedia = $editingEvent->getFirstMedia('logo');
             if ($logoMedia !== null) {
                 $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
@@ -920,6 +970,8 @@ class ManageEventForm extends Component
         return view('livewire.events.manage-event-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
             'cropSourceImageUrl' => $cropSourceImageUrl,
+            'galleryCropSourceUrl' => $galleryCropSourceUrl,
+            'galleryCropPreviewUrl' => $logoPreviewUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingEvent !== null ? route('events.show', $editingEvent) : null,
             ),
