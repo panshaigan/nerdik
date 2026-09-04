@@ -39,6 +39,14 @@ final class EventListingImageResolver
             }
         }
 
+        if ($source === EventLogoSource::Gallery && $event->gallery_media_id !== null) {
+            $media = $this->resolveGalleryMediaRelation($event);
+
+            if ($media !== null) {
+                return ListingCardPicture::fromMedia($media, (string) $event->name, $preset);
+            }
+        }
+
         if ($source === EventLogoSource::Upload) {
             $media = $this->resolveUploadedLogoMedia($event);
 
@@ -70,6 +78,15 @@ final class EventListingImageResolver
         }
 
         return $event->listingMedia()->first();
+    }
+
+    private function resolveGalleryMediaRelation(Event $event): ?Media
+    {
+        if ($event->relationLoaded('galleryMedia')) {
+            return $event->galleryMedia;
+        }
+
+        return $event->galleryMedia()->first();
     }
 
     private function resolveGlobalDefault(string $preset): ListingCardPicture

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Ui;
 
 use App\Actions\Avatars\ResolveAvatarUrl;
+use App\Enums\AvatarSource;
 use App\Models\User;
 
 final readonly class AvatarPicture
@@ -17,6 +18,28 @@ final readonly class AvatarPicture
 
     public static function fromUser(User $user, AvatarSlot $slot = AvatarSlot::Badge): self
     {
+        $profile = $user->profile;
+        $rawSource = $profile?->avatar_source;
+        $source = $rawSource instanceof AvatarSource
+            ? $rawSource
+            : (AvatarSource::tryFrom((string) ($rawSource ?? '')) ?? null);
+
+        if ($source === AvatarSource::Gallery) {
+            $galleryMedia = $profile?->relationLoaded('galleryMedia')
+                ? $profile->galleryMedia
+                : $profile?->galleryMedia()->first();
+
+            if ($galleryMedia !== null) {
+                $url = $galleryMedia->hasGeneratedConversion('webp')
+                    ? $galleryMedia->getUrl('webp')
+                    : $galleryMedia->getUrl();
+
+                return new self(url: $url);
+            }
+
+            return new self;
+        }
+
         if ($user->avatarConversionsPending()) {
             $originalUrl = $user->pendingAvatarOriginalUrl();
 

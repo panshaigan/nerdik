@@ -9,6 +9,7 @@ use App\Enums\TimeDisplayFormat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class UserProfile extends Model
 {
@@ -24,6 +25,7 @@ class UserProfile extends Model
         'discord_id',
         'avatar_path',
         'avatar_source',
+        'gallery_media_id',
         'avatar_cache_signature',
         'google_avatar_url',
         'google_email',
@@ -74,5 +76,10 @@ class UserProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function galleryMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'gallery_media_id');
     }
 }

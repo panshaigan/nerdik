@@ -21,11 +21,13 @@ use App\Services\SlotParticipationConstraintService;
 use App\Services\TagSelectionService;
 use App\Support\Activities\ActivityTagImageCatalog;
 use App\Support\Media\MediaPictureSources;
+use App\Support\Media\UserGalleryCatalog;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -140,6 +142,8 @@ class ManageActivityForm extends Component
     public ?string $logo_source = null;
 
     public ?int $selected_tag_media_id = null;
+
+    public ?int $gallery_media_id = null;
 
     /** @var mixed */
     public $croppedLogo = null;
@@ -319,7 +323,7 @@ class ManageActivityForm extends Component
             'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours',
             'participation_mode', 'allows_observers' => 'main-details',
             'tag_ids', 'new_tags' => 'tags',
-            'logo_source', 'selected_tag_media_id', 'croppedLogo', 'sourceImage' => 'image',
+            'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
             default => 'hosting-mode',
         };
     }
@@ -363,6 +367,10 @@ class ManageActivityForm extends Component
         $this->selected_tag_media_id = $activity->tag_media_id !== null
             ? (int) $activity->tag_media_id
             : null;
+
+        $this->gallery_media_id = $activity->gallery_media_id !== null
+            ? (int) $activity->gallery_media_id
+            : null;
     }
 
     /**
@@ -371,6 +379,16 @@ class ManageActivityForm extends Component
     public function getAvailableTagImagesProperty(): array
     {
         return app(ActivityTagImageCatalog::class)->forTagIds($this->tag_ids);
+    }
+
+    /**
+     * @return list<array{media_id: int, sources: MediaPictureSources}>
+     */
+    public function getAvailableGalleryImagesProperty(): array
+    {
+        $user = Auth::user();
+
+        return $user !== null ? app(UserGalleryCatalog::class)->forUser($user) : [];
     }
 
     public function updatedTagIds(): void
@@ -382,6 +400,10 @@ class ManageActivityForm extends Component
     {
         if ($value !== ActivityLogoSource::Tag->value) {
             $this->selected_tag_media_id = null;
+        }
+
+        if ($value !== ActivityLogoSource::Gallery->value && $value !== ActivityLogoSource::Upload->value) {
+            $this->gallery_media_id = null;
         }
 
         if ($value !== ActivityLogoSource::Upload->value) {
@@ -935,6 +957,23 @@ class ManageActivityForm extends Component
                     }
                     if (! app(ActivityTagImageCatalog::class)->mediaBelongsToSelectedTags((int) $value, $this->tag_ids)) {
                         $fail(__('ui.activities.image_invalid_tag_media'));
+                    }
+                },
+            ],
+            'gallery_media_id' => [
+                'nullable',
+                'integer',
+                Rule::requiredIf(fn (): bool => $this->logo_source === ActivityLogoSource::Gallery->value),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->logo_source !== ActivityLogoSource::Gallery->value) {
+                        return;
+                    }
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $user = Auth::user();
+                    if ($user === null || ! app(UserGalleryCatalog::class)->mediaBelongsToUser((int) $value, $user)) {
+                        $fail(__('ui.activities.image_invalid_gallery_media'));
                     }
                 },
             ],

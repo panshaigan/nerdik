@@ -127,10 +127,11 @@ final class ManageActivityFormImageTest extends TestCase
 
         $activity = Activity::query()->where('name', 'Upload Logo Activity')->first();
         $this->assertNotNull($activity);
-        $this->assertSame(ActivityLogoSource::Upload, $activity->logo_source);
+        $this->assertSame(ActivityLogoSource::Gallery, $activity->logo_source);
         $this->assertNull($activity->logo_path);
-        $this->assertNotNull($activity->getFirstMedia('logo'));
-        $this->assertNotNull($activity->getFirstMedia('source'));
+        $this->assertNotNull($activity->gallery_media_id);
+        $this->assertNull($activity->getFirstMedia('logo'));
+        $this->assertCount(1, $user->fresh()->getMedia('gallery'));
     }
 
     #[Test]
@@ -203,9 +204,6 @@ final class ManageActivityFormImageTest extends TestCase
             UploadedFile::fake()->image('original.jpg', 2400, 1600),
         );
 
-        $sourceMedia = $activity->fresh()->getFirstMedia('source');
-        $this->assertNotNull($sourceMedia);
-        $sourceId = $sourceMedia->id;
         $sourceUrl = $activity->fresh()->cropSourceImageUrl();
         $this->assertNotNull($sourceUrl);
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
@@ -228,9 +226,10 @@ final class ManageActivityFormImageTest extends TestCase
             ->assertHasNoErrors();
 
         $activity->refresh();
-        $this->assertNotNull($activity->getFirstMedia('logo'));
-        $this->assertNotNull($activity->getFirstMedia('source'));
-        $this->assertSame($sourceId, $activity->getFirstMedia('source')?->id);
+        $this->assertSame(ActivityLogoSource::Gallery, $activity->logo_source);
+        $this->assertNotNull($activity->gallery_media_id);
+        $this->assertNull($activity->getFirstMedia('logo'));
+        $this->assertCount(1, $user->fresh()->getMedia('gallery'));
     }
 
     #[Test]

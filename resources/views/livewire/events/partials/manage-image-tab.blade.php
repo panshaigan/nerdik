@@ -5,7 +5,7 @@
     />
     <fieldset class="fieldset py-0">
         <legend class="fieldset-legend mb-2">{{ __('ui.events.image_source') }}</legend>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                 <input
                     type="radio"
@@ -17,6 +17,19 @@
                 <span>
                     <span class="block text-sm font-semibold text-base-content">{{ __('ui.events.image_from_defaults') }}</span>
                     <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.events.image_from_defaults_help') }}</span>
+                </span>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                    type="radio"
+                    wire:model.live="logo_source"
+                    name="logo_source"
+                    value="gallery"
+                    class="radio radio-primary mt-0.5"
+                />
+                <span>
+                    <span class="block text-sm font-semibold text-base-content">{{ __('ui.events.image_from_gallery') }}</span>
+                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.events.image_from_gallery_help') }}</span>
                 </span>
             </label>
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -68,6 +81,42 @@
                     @endforeach
                 </div>
                 <x-field-error :messages="$errors->get('listing_media_id')" class="mt-4" />
+            @endif
+        </div>
+    @endif
+
+    @if ($logo_source === 'gallery')
+        <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
+            @if ($this->availableGalleryImages === [])
+                <p class="text-sm text-base-content/80">{{ __('ui.events.image_gallery_empty') }}</p>
+            @else
+                <div
+                    class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    role="radiogroup"
+                    x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
+                >
+                    @foreach ($this->availableGalleryImages as $image)
+                        @php
+                            $mediaId = (int) $image['media_id'];
+                        @endphp
+                        <button
+                            type="button"
+                            role="radio"
+                            :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
+                            @click="selectedMediaId = {{ $mediaId }}"
+                            :class="Number(selectedMediaId) === {{ $mediaId }}
+                                ? 'border-primary ring-2 ring-primary'
+                                : 'border-base-300 hover:border-primary/50'"
+                            class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
+                        >
+                            <x-media-picture
+                                :sources="$image['sources']"
+                                class="aspect-video w-full object-cover"
+                            />
+                        </button>
+                    @endforeach
+                </div>
+                <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
             @endif
         </div>
     @endif

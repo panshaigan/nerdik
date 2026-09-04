@@ -36,6 +36,7 @@ class Event extends Model implements HasMedia
         'logo_path',
         'logo_source',
         'listing_media_id',
+        'gallery_media_id',
         'slug',
         'starts_at',
         'ends_at',
@@ -57,6 +58,11 @@ class Event extends Model implements HasMedia
         return $this->belongsTo(Media::class, 'listing_media_id');
     }
 
+    public function galleryMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'gallery_media_id');
+    }
+
     /**
      * @return array<string|int, mixed>
      */
@@ -64,6 +70,7 @@ class Event extends Model implements HasMedia
     {
         return [
             'listingMedia',
+            'galleryMedia',
             'creator',
             'organization',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),

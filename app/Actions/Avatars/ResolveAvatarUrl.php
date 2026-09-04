@@ -29,6 +29,22 @@ final class ResolveAvatarUrl
             return $generated;
         }
 
+        if ($source === AvatarSource::Gallery) {
+            $galleryMedia = $profile?->relationLoaded('galleryMedia')
+                ? $profile->galleryMedia
+                : $profile?->galleryMedia()->first();
+
+            if ($galleryMedia !== null) {
+                if ($galleryMedia->hasGeneratedConversion('webp')) {
+                    return $galleryMedia->getUrl('webp');
+                }
+
+                return $galleryMedia->getUrl();
+            }
+
+            return $generated;
+        }
+
         if ($user->avatarConversionsPending()) {
             $originalUrl = $user->pendingAvatarOriginalUrl();
 

@@ -7,5 +7,6 @@ namespace App\Enums;
 enum EventLogoSource: string
 {
     case Default = 'default';
+    case Gallery = 'gallery';
     case Upload = 'upload';
 }
