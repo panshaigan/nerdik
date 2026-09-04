@@ -17,6 +17,10 @@ trait InteractsWithAvatarImage
         $this->addMediaCollection('avatar')
             ->singleFile()
             ->useDisk('public');
+
+        $this->addMediaCollection('source')
+            ->singleFile()
+            ->useDisk('public');
     }
 
     public function registerMediaConversions(?Media $media = null): void

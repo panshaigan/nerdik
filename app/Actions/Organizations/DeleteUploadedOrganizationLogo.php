@@ -19,5 +19,10 @@ final class DeleteUploadedOrganizationLogo
         if (Storage::disk('public')->exists($canonical)) {
             Storage::disk('public')->delete($canonical);
         }
+
+        $sourceCanonical = 'organization-logos/'.$organization->id.'-source.webp';
+        if (Storage::disk('public')->exists($sourceCanonical)) {
+            Storage::disk('public')->delete($sourceCanonical);
+        }
     }
 }

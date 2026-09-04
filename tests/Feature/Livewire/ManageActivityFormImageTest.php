@@ -112,6 +112,7 @@ final class ManageActivityFormImageTest extends TestCase
         $user = User::factory()->create();
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
         $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
+        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
 
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class)
@@ -120,6 +121,7 @@ final class ManageActivityFormImageTest extends TestCase
             ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
             ->set('logo_source', ActivityLogoSource::Upload->value)
             ->set('croppedLogo', $file)
+            ->set('sourceImage', $source)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -128,6 +130,7 @@ final class ManageActivityFormImageTest extends TestCase
         $this->assertSame(ActivityLogoSource::Upload, $activity->logo_source);
         $this->assertNull($activity->logo_path);
         $this->assertNotNull($activity->getFirstMedia('logo'));
+        $this->assertNotNull($activity->getFirstMedia('source'));
     }
 
     #[Test]

@@ -43,6 +43,9 @@ class OrganizationIndex extends Component
     /** @var mixed */
     public $croppedLogo = null;
 
+    /** @var mixed */
+    public $sourceImage = null;
+
     public function mount(): void
     {
         $this->assertCanManageOrganizations();
@@ -99,7 +102,7 @@ class OrganizationIndex extends Component
         }
 
         $this->resetErrorBag();
-        $this->reset('croppedLogo');
+        $this->reset('croppedLogo', 'sourceImage');
         $this->modalRenderKey++;
         $this->modalOpen = true;
         $this->scheduleTinyMceModalRefresh();
@@ -114,13 +117,18 @@ class OrganizationIndex extends Component
     public function updatedLogoSource(string $value): void
     {
         if ($value !== OrganizationLogoSource::Upload->value) {
-            $this->reset('croppedLogo');
+            $this->reset('croppedLogo', 'sourceImage');
         }
     }
 
     public function clearCroppedLogo(): void
     {
         $this->reset('croppedLogo');
+    }
+
+    public function clearSourceImage(): void
+    {
+        $this->reset('sourceImage');
     }
 
     public function save(): void
@@ -145,6 +153,12 @@ class OrganizationIndex extends Component
                 'nullable',
                 'image',
                 'max:5120',
+                'mimes:jpeg,jpg,png,webp',
+            ],
+            'sourceImage' => [
+                'nullable',
+                'image',
+                'max:12288',
                 'mimes:jpeg,jpg,png,webp',
             ],
         ]);
@@ -245,7 +259,7 @@ class OrganizationIndex extends Component
         $this->logo_source = OrganizationLogoSource::Generated->value;
         $this->logo_bg_color = '#1d4ed8';
         $this->logo_text_color = '#ffffff';
-        $this->reset('croppedLogo');
+        $this->reset('croppedLogo', 'sourceImage');
         $this->resetErrorBag();
     }
 
@@ -299,10 +313,10 @@ class OrganizationIndex extends Component
         }
 
         if ($source === OrganizationLogoSource::Upload && $this->croppedLogo !== null) {
-            $path = app(StoreUploadedOrganizationLogo::class)($organization, $this->croppedLogo);
+            $path = app(StoreUploadedOrganizationLogo::class)($organization, $this->croppedLogo, $this->sourceImage);
             $organization->logo_path = $path;
             $organization->save();
-            $this->reset('croppedLogo');
+            $this->reset('croppedLogo', 'sourceImage');
         }
     }
 

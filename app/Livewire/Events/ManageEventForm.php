@@ -88,6 +88,9 @@ class ManageEventForm extends Component
     /** @var mixed */
     public $croppedLogo = null;
 
+    /** @var mixed */
+    public $sourceImage = null;
+
     protected array $queryString = [
         'tab' => ['except' => 'main-details'],
     ];
@@ -176,7 +179,7 @@ class ManageEventForm extends Component
         return match ($root) {
             'name', 'organization_id', 'organization_name', 'description', 'is_public',
             'starts_at', 'ends_at' => 'main-details',
-            'logo_source', 'listing_media_id', 'croppedLogo' => 'image',
+            'logo_source', 'listing_media_id', 'croppedLogo', 'sourceImage' => 'image',
             'place_ids', 'new_places' => 'location',
             'enrollment_windows' => 'enrollment-windows',
             default => 'main-details',
@@ -342,13 +345,18 @@ class ManageEventForm extends Component
         }
 
         if ($value !== EventLogoSource::Upload->value) {
-            $this->reset('croppedLogo');
+            $this->reset('croppedLogo', 'sourceImage');
         }
     }
 
     public function clearCroppedLogo(): void
     {
         $this->reset('croppedLogo');
+    }
+
+    public function clearSourceImage(): void
+    {
+        $this->reset('sourceImage');
     }
 
     private function hasExistingUploadedLogo(): bool
@@ -485,7 +493,7 @@ class ManageEventForm extends Component
             $placeIds = $this->place_ids;
             unset($validated['place_ids'], $validated['new_places']);
 
-            unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo']);
+            unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo'], $validated['sourceImage']);
 
             if ($this->editingEventId !== null) {
                 $event = Event::query()->findOrFail($this->editingEventId);
@@ -601,6 +609,12 @@ class ManageEventForm extends Component
                 'max:5120',
                 'mimes:jpeg,jpg,png,webp',
             ],
+            'sourceImage' => [
+                'nullable',
+                'image',
+                'max:12288',
+                'mimes:jpeg,jpg,png,webp',
+            ],
         ];
     }
 
@@ -618,7 +632,7 @@ class ManageEventForm extends Component
             $event->listing_media_id = null;
 
             if ($this->croppedLogo !== null) {
-                app(StoreUploadedEventLogo::class)($event, $this->croppedLogo);
+                app(StoreUploadedEventLogo::class)($event, $this->croppedLogo, $this->sourceImage);
                 $event->logo_path = null;
             }
         } else {
@@ -629,7 +643,7 @@ class ManageEventForm extends Component
         }
 
         $event->save();
-        $this->reset('croppedLogo');
+        $this->reset('croppedLogo', 'sourceImage');
     }
 
     protected function normalizeDesc(?string $html): ?string

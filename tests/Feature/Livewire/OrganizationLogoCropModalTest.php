@@ -43,6 +43,7 @@ final class OrganizationLogoCropModalTest extends TestCase
         $html = $component->html();
 
         $this->assertStringContainsString('data-image-crop-dropzone', $html);
+        $this->assertStringContainsString('data-image-crop-source-wire-property="sourceImage"', $html);
         $this->assertStringContainsString('data-image-crop-file-trigger', $html);
         $this->assertStringContainsString('data-org-modal-form', $html);
         $this->assertStringContainsString('data-org-modal', $html);

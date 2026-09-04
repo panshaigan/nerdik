@@ -54,6 +54,7 @@ final class AnonymizeUser
             }
 
             $user->clearMediaCollection('avatar');
+            $user->clearMediaCollection('source');
             AttachUserAvatarFromPath::deleteLegacyAvatarFile($user);
 
             $user->forceFill([

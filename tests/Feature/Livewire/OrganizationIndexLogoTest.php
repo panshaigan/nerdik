@@ -53,6 +53,7 @@ final class OrganizationIndexLogoTest extends TestCase
         Storage::fake('public');
         $user = User::factory()->create(['is_event_organizer' => true]);
         $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
+        $source = UploadedFile::fake()->image('original.jpg', 1200, 900);
 
         Livewire::actingAs($user)
             ->test(OrganizationIndex::class)
@@ -61,6 +62,7 @@ final class OrganizationIndexLogoTest extends TestCase
             ->set('name', 'Uploaded Logo Org')
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->set('croppedLogo', $file)
+            ->set('sourceImage', $source)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -69,6 +71,7 @@ final class OrganizationIndexLogoTest extends TestCase
         $this->assertSame(OrganizationLogoSource::Upload, $organization->logo_source);
         $this->assertSame('organization-logos/'.$organization->id.'.webp', $organization->logo_path);
         Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'.webp');
+        Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'-source.webp');
         $this->assertStringContainsString('/storage/organization-logos/'.$organization->id.'.webp', $organization->logoUrl());
     }
 

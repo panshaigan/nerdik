@@ -46,6 +46,8 @@ final class ProfileAvatarCropModalTest extends TestCase
 
         $this->assertStringContainsString('data-image-crop-preview', $html);
         $this->assertStringContainsString('data-image-crop-dropzone', $html);
+        $this->assertStringContainsString('data-image-crop-source-wire-property="sourceImage"', $html);
+        $this->assertStringContainsString('data-image-crop-source-clear-method="clearSourceImage"', $html);
         $this->assertStringContainsString('data-image-crop-file-trigger', $html);
         $this->assertStringContainsString('data-image-crop-remove', $html);
         $this->assertStringContainsString('data-default-src', $html);

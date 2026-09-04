@@ -12,6 +12,7 @@ final class DeleteUploadedActivityLogo
     public function __invoke(Activity $activity): void
     {
         $activity->clearMediaCollection('logo');
+        $activity->clearMediaCollection('source');
 
         if (filled($activity->logo_path)) {
             Storage::disk('public')->delete((string) $activity->logo_path);

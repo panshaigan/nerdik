@@ -12,6 +12,7 @@ final class DeleteUploadedEventLogo
     public function __invoke(Event $event): void
     {
         $event->clearMediaCollection('logo');
+        $event->clearMediaCollection('source');
 
         if (filled($event->logo_path)) {
             Storage::disk('public')->delete((string) $event->logo_path);

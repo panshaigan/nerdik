@@ -72,6 +72,7 @@ final class ManageEventFormImageTest extends TestCase
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
         $file = UploadedFile::fake()->image('cover.jpg', 1600, 900);
+        $source = UploadedFile::fake()->image('original.jpg', 2400, 1600);
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
@@ -84,6 +85,7 @@ final class ManageEventFormImageTest extends TestCase
             ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
             ->set('logo_source', EventLogoSource::Upload->value)
             ->set('croppedLogo', $file)
+            ->set('sourceImage', $source)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -92,6 +94,7 @@ final class ManageEventFormImageTest extends TestCase
         $this->assertSame(EventLogoSource::Upload, $event->logo_source);
         $this->assertNull($event->logo_path);
         $this->assertNotNull($event->getFirstMedia('logo'));
+        $this->assertNotNull($event->getFirstMedia('source'));
     }
 
     #[Test]
