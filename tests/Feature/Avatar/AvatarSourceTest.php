@@ -64,6 +64,41 @@ final class AvatarSourceTest extends TestCase
     }
 
     #[Test]
+    public function test_recrop_without_new_source_preserves_existing_source(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'uploaded')
+            ->set('croppedAvatar', UploadedFile::fake()->image('photo.jpg', 640, 480))
+            ->set('sourceImage', UploadedFile::fake()->image('original.jpg', 1200, 900))
+            ->call('updateAvatar')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+        $sourceMedia = $user->getFirstMedia('source');
+        $this->assertNotNull($sourceMedia);
+        $sourceId = $sourceMedia->id;
+        $sourceUrl = $user->cropSourceImageUrl();
+        $this->assertNotNull($sourceUrl);
+
+        Volt::test('profile.update-avatar-form')
+            ->set('avatar_source', 'uploaded')
+            ->set('croppedAvatar', UploadedFile::fake()->image('recrop.jpg', 512, 512))
+            ->call('updateAvatar')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+        $this->assertNotNull($user->getFirstMedia('avatar'));
+        $this->assertNotNull($user->getFirstMedia('source'));
+        $this->assertSame($sourceId, $user->getFirstMedia('source')?->id);
+        $this->assertSame($sourceUrl, $user->cropSourceImageUrl());
+    }
+
+    #[Test]
     public function test_clear_cropped_avatar_resets_pending_upload(): void
     {
         $user = User::factory()->create();

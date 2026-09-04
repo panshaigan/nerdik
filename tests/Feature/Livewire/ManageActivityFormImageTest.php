@@ -185,6 +185,55 @@ final class ManageActivityFormImageTest extends TestCase
     }
 
     #[Test]
+    public function recrop_without_new_source_preserves_existing_source(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'logo_source' => ActivityLogoSource::Upload,
+            'logo_path' => null,
+            'tag_media_id' => null,
+        ]);
+        app(StoreUploadedActivityLogo::class)(
+            $activity,
+            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+        );
+
+        $sourceMedia = $activity->fresh()->getFirstMedia('source');
+        $this->assertNotNull($sourceMedia);
+        $sourceId = $sourceMedia->id;
+        $sourceUrl = $activity->fresh()->cropSourceImageUrl();
+        $this->assertNotNull($sourceUrl);
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('tab', 'image')
+            ->set('logo_source', ActivityLogoSource::Upload->value)
+            ->html();
+
+        $this->assertStringContainsString('data-image-crop-source-url="'.e($sourceUrl).'"', $html);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('logo_source', ActivityLogoSource::Upload->value)
+            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 1280, 720))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity->refresh();
+        $this->assertNotNull($activity->getFirstMedia('logo'));
+        $this->assertNotNull($activity->getFirstMedia('source'));
+        $this->assertSame($sourceId, $activity->getFirstMedia('source')?->id);
+    }
+
+    #[Test]
     public function switching_logo_source_from_upload_to_tag_deletes_stored_file(): void
     {
         Storage::fake('public');

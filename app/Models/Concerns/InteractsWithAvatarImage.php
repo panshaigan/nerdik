@@ -71,6 +71,13 @@ trait InteractsWithAvatarImage
         return $this->getFirstMedia('avatar')?->getUrl();
     }
 
+    public function cropSourceImageUrl(): ?string
+    {
+        $url = $this->getFirstMediaUrl('source');
+
+        return $url !== '' ? $url : null;
+    }
+
     /**
      * @return array<string, int>
      */

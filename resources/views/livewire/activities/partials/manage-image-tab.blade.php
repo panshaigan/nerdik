@@ -89,6 +89,7 @@
             form-selector="data-activity-form"
             file-input-id="ui-activity-logo-file"
             :preview-url="$logoPreviewUrl ?? null"
+            :source-url="$cropSourceImageUrl ?? null"
             :upload-title="__('ui.activities.image_upload')"
             :upload-help="__('ui.common.cover_image_upload_help', ['max' => '5 MB'])"
             output-size="1280,720"

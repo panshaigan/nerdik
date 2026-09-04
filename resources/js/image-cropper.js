@@ -73,6 +73,7 @@ function getDropzoneConfig(dropzone) {
         sourceWireProperty: dropzone.dataset.imageCropSourceWireProperty ?? 'sourceImage',
         sourceClearMethod: dropzone.dataset.imageCropSourceClearMethod ?? 'clearSourceImage',
         sourceFileName: dropzone.dataset.imageCropSourceFileName ?? 'source.webp',
+        sourceUrl: dropzone.dataset.imageCropSourceUrl || null,
         output: parseOutputSize(dropzone.dataset.imageCropOutput ?? '512,512'),
         fileName: dropzone.dataset.imageCropFileName ?? 'image.webp',
         previewSavedEvent: dropzone.dataset.imageCropSavedEvent ?? null,
@@ -92,7 +93,68 @@ function getDropzoneLabels(dropzone) {
     return {
         choose: dropzone?.dataset.labelChoose ?? 'Choose file',
         crop: dropzone?.dataset.labelCrop ?? 'Crop file',
+        cropAgain: dropzone?.dataset.labelCropAgain ?? 'Crop again',
     };
+}
+
+function hasSavedSourceUrl(dropzone) {
+    return Boolean(dropzone?.dataset?.imageCropSourceUrl);
+}
+
+function updateFileUi(dropzone, { buttonText, showRemove, showRecropHint, showSavedSourceControls }) {
+    if (!dropzone) {
+        return;
+    }
+
+    const buttonTextEl = dropzone.querySelector('[data-image-crop-file-button-text]');
+    const removeBtn = dropzone.querySelector('[data-image-crop-remove]');
+    const recropHint = dropzone.querySelector('[data-image-crop-recrop-hint]');
+    const recropSavedHint = dropzone.querySelector('[data-image-crop-recrop-saved-hint]');
+    const recropSavedBtn = dropzone.querySelector('[data-image-crop-recrop-saved]');
+    const savedSourceAvailable = hasSavedSourceUrl(dropzone);
+    const showSaved = showSavedSourceControls ?? (savedSourceAvailable && !showRemove && !showRecropHint);
+
+    if (buttonTextEl && buttonText !== undefined) {
+        buttonTextEl.textContent = buttonText;
+    }
+
+    if (removeBtn) {
+        removeBtn.classList.toggle('hidden', !showRemove);
+    }
+
+    if (recropHint) {
+        recropHint.classList.toggle('hidden', !showRecropHint);
+    }
+
+    if (recropSavedHint) {
+        recropSavedHint.classList.toggle('hidden', !showSaved);
+    }
+
+    if (recropSavedBtn) {
+        recropSavedBtn.classList.toggle('hidden', !showSaved);
+    }
+}
+
+function resetPendingCropUi(form, dropzone, { resetPreview = true } = {}) {
+    originalImageDataUrl = null;
+    originalSourceFile = null;
+    hasPendingCrop = false;
+
+    if (!form || !dropzone) {
+        return;
+    }
+
+    const labels = getDropzoneLabels(dropzone);
+    updateFileUi(dropzone, {
+        buttonText: labels.choose,
+        showRemove: false,
+        showRecropHint: false,
+        showSavedSourceControls: hasSavedSourceUrl(dropzone),
+    });
+
+    if (resetPreview) {
+        resetCropPreview(form);
+    }
 }
 
 function destroyCropperInstance() {
@@ -381,49 +443,6 @@ function clearFileInput() {
     }
 }
 
-function updateFileUi(dropzone, { buttonText, showRemove, showRecropHint }) {
-    if (!dropzone) {
-        return;
-    }
-
-    const buttonTextEl = dropzone.querySelector('[data-image-crop-file-button-text]');
-    const removeBtn = dropzone.querySelector('[data-image-crop-remove]');
-    const recropHint = dropzone.querySelector('[data-image-crop-recrop-hint]');
-
-    if (buttonTextEl && buttonText !== undefined) {
-        buttonTextEl.textContent = buttonText;
-    }
-
-    if (removeBtn) {
-        removeBtn.classList.toggle('hidden', !showRemove);
-    }
-
-    if (recropHint) {
-        recropHint.classList.toggle('hidden', !showRecropHint);
-    }
-}
-
-function resetPendingCropUi(form, dropzone, { resetPreview = true } = {}) {
-    originalImageDataUrl = null;
-    originalSourceFile = null;
-    hasPendingCrop = false;
-
-    if (!form || !dropzone) {
-        return;
-    }
-
-    const labels = getDropzoneLabels(dropzone);
-    updateFileUi(dropzone, {
-        buttonText: labels.choose,
-        showRemove: false,
-        showRecropHint: false,
-    });
-
-    if (resetPreview) {
-        resetCropPreview(form);
-    }
-}
-
 function clearPendingCropState(form, dropzone, { clearInput = true, resetPreview = true } = {}) {
     resetPendingCropUi(form, dropzone, { resetPreview });
 
@@ -598,6 +617,7 @@ function openCropperForFile(file, dropzone, fileInput) {
         buttonText: labels.crop,
         showRemove: false,
         showRecropHint: false,
+        showSavedSourceControls: false,
     });
 
     const reader = new FileReader();
@@ -611,6 +631,47 @@ function openCropperForFile(file, dropzone, fileInput) {
         initCropperWithUrl(dataUrl);
     };
     reader.readAsDataURL(file);
+}
+
+function openCropperForSavedSource(dropzone) {
+    const sourceUrl = dropzone?.dataset?.imageCropSourceUrl;
+    if (!sourceUrl || !dropzone) {
+        return;
+    }
+
+    const form = resolveForm(dropzone);
+    if (!form || !getCropModal() || !getCropViewport()) {
+        return;
+    }
+
+    const config = getDropzoneConfig(dropzone);
+
+    if (hasPendingCrop) {
+        const wire = findLivewireUploadComponent(form);
+        if (wire && typeof wire.call === 'function') {
+            wire.call(config.clearMethod);
+            if (config.sourceClearMethod) {
+                wire.call(config.sourceClearMethod);
+            }
+        }
+    }
+
+    currentForm = form;
+    currentDropzone = dropzone;
+    currentFileInput = dropzone.querySelector('[data-image-crop-file]');
+    originalSourceFile = null;
+    hasPendingCrop = false;
+    originalImageDataUrl = sourceUrl;
+
+    const labels = getDropzoneLabels(dropzone);
+    updateFileUi(dropzone, {
+        buttonText: labels.crop,
+        showRemove: false,
+        showRecropHint: false,
+        showSavedSourceControls: false,
+    });
+
+    initCropperWithUrl(sourceUrl);
 }
 
 async function applyCroppedResult(blob) {
@@ -633,6 +694,7 @@ async function applyCroppedResult(blob) {
         buttonText: labels.crop,
         showRemove: true,
         showRecropHint: true,
+        showSavedSourceControls: false,
     });
 
     const croppedFile = new File([blob], config.fileName, { type: 'image/webp' });
@@ -753,8 +815,25 @@ export function bootImageCropper() {
                 return;
             }
 
+            const recropSavedBtn = event.target.closest('[data-image-crop-recrop-saved]');
+            if (recropSavedBtn) {
+                event.preventDefault();
+                const dropzone = recropSavedBtn.closest('[data-image-crop-dropzone]');
+                if (dropzone) {
+                    openCropperForSavedSource(dropzone);
+                }
+
+                return;
+            }
+
             if (event.target.closest('[data-image-crop-cancel]')) {
+                const form = currentForm;
+                const dropzone = currentDropzone;
                 closeModal();
+
+                if (form && dropzone && !hasPendingCrop) {
+                    resetPendingCropUi(form, dropzone, { resetPreview: false });
+                }
 
                 return;
             }

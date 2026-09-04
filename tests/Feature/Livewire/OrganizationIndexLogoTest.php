@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
+use App\Actions\Organizations\StoreUploadedOrganizationLogo;
 use App\Enums\OrganizationLogoSource;
 use App\Livewire\Organizations\OrganizationIndex;
 use App\Models\Organization;
@@ -73,6 +74,41 @@ final class OrganizationIndexLogoTest extends TestCase
         Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'.webp');
         Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'-source.webp');
         $this->assertStringContainsString('/storage/organization-logos/'.$organization->id.'.webp', $organization->logoUrl());
+    }
+
+    #[Test]
+    public function recrop_without_new_source_preserves_existing_source(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['is_event_organizer' => true]);
+        $organization = Organization::factory()->create([
+            'created_by' => $user->id,
+            'logo_source' => OrganizationLogoSource::Upload,
+        ]);
+
+        app(StoreUploadedOrganizationLogo::class)(
+            $organization,
+            UploadedFile::fake()->image('logo.jpg', 640, 480),
+            UploadedFile::fake()->image('original.jpg', 1200, 900),
+        );
+        $organization->logo_path = 'organization-logos/'.$organization->id.'.webp';
+        $organization->save();
+
+        $sourcePath = 'organization-logos/'.$organization->id.'-source.webp';
+        Storage::disk('public')->assertExists($sourcePath);
+        $originalSourceContents = Storage::disk('public')->get($sourcePath);
+
+        Livewire::actingAs($user)
+            ->test(OrganizationIndex::class)
+            ->call('openEditModal', $organization->id)
+            ->set('logo_source', OrganizationLogoSource::Upload->value)
+            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 512, 512))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Storage::disk('public')->assertExists($sourcePath);
+        $this->assertSame($originalSourceContents, Storage::disk('public')->get($sourcePath));
+        $this->assertNotNull($organization->fresh()->cropSourceImageUrl());
     }
 
     #[Test]

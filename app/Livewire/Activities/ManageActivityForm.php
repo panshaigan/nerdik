@@ -1408,15 +1408,18 @@ class ManageActivityForm extends Component
         }
 
         $logoPreviewUrl = null;
+        $cropSourceImageUrl = null;
         if ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Upload) {
             $logoMedia = $editingActivity->getFirstMedia('logo');
             if ($logoMedia !== null) {
                 $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->jpegSrc();
             }
+            $cropSourceImageUrl = $editingActivity->cropSourceImageUrl();
         }
 
         return view('livewire.activities.manage-activity-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
+            'cropSourceImageUrl' => $cropSourceImageUrl,
             'backUrl' => ManageFormBackUrl::resolve(
                 $editingActivity !== null ? route('activities.show', $editingActivity) : null,
             ),

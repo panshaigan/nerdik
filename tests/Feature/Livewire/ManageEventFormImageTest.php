@@ -147,6 +147,51 @@ final class ManageEventFormImageTest extends TestCase
     }
 
     #[Test]
+    public function recrop_without_new_source_preserves_existing_source(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->organizer()->create();
+        $event = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'logo_source' => EventLogoSource::Upload,
+            'logo_path' => null,
+            'listing_media_id' => null,
+        ]);
+        app(StoreUploadedEventLogo::class)(
+            $event,
+            UploadedFile::fake()->image('existing.jpg', 1280, 720),
+            UploadedFile::fake()->image('original.jpg', 2400, 1600),
+        );
+
+        $sourceMedia = $event->fresh()->getFirstMedia('source');
+        $this->assertNotNull($sourceMedia);
+        $sourceId = $sourceMedia->id;
+        $sourceUrl = $event->fresh()->cropSourceImageUrl();
+        $this->assertNotNull($sourceUrl);
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageEventForm::class, ['event' => $event])
+            ->set('tab', 'image')
+            ->set('logo_source', EventLogoSource::Upload->value)
+            ->html();
+
+        $this->assertStringContainsString('data-image-crop-source-url="'.e($sourceUrl).'"', $html);
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class, ['event' => $event])
+            ->set('logo_source', EventLogoSource::Upload->value)
+            ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 1280, 720))
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $event->refresh();
+        $this->assertNotNull($event->getFirstMedia('logo'));
+        $this->assertNotNull($event->getFirstMedia('source'));
+        $this->assertSame($sourceId, $event->getFirstMedia('source')?->id);
+    }
+
+    #[Test]
     public function switching_logo_source_from_upload_to_default_deletes_stored_file(): void
     {
         Storage::fake('public');

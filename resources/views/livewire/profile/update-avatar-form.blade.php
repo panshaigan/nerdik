@@ -386,6 +386,7 @@ new class extends Component
                 form-selector="#ui-profile-avatar-form"
                 file-input-id="ui-profile-avatar-file"
                 :preview-url="auth()->user()->avatarUrl(\App\Support\Ui\AvatarSlot::Preview)"
+                :source-url="auth()->user()->cropSourceImageUrl()"
                 output-size="512,512"
                 file-name="avatar.webp"
                 :modal-title="__('ui.profile.crop_avatar')"

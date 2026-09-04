@@ -6,6 +6,7 @@
     'sourceWireProperty' => 'sourceImage',
     'sourceClearMethod' => 'clearSourceImage',
     'sourceFileName' => 'source.webp',
+    'sourceUrl' => null,
     'errorField' => 'croppedImage',
     'previewUrl' => null,
     'previewAlt' => '',
@@ -16,8 +17,10 @@
     'uploadHelp' => null,
     'chooseLabel' => __('ui.common.choose_file'),
     'cropLabel' => __('ui.common.crop_file'),
+    'cropAgainLabel' => __('ui.common.crop_again'),
     'removeLabel' => __('ui.common.remove_image'),
     'recropHint' => __('ui.common.recrop_hint'),
+    'recropSavedHint' => __('ui.common.recrop_saved_hint'),
     'previewLabel' => __('ui.common.preview'),
     'outputSize' => '512,512',
     'fileName' => 'image.webp',
@@ -26,6 +29,7 @@
 
 @php
     $isVideo = $aspect === 'video';
+    $hasSavedSource = filled($sourceUrl);
     $uploadHelpText = $uploadHelp ?? __('ui.common.crop_upload_help');
     $previewClasses = $isVideo
         ? 'aspect-video w-full max-w-md rounded-2xl object-cover ring-2 ring-base-300/50'
@@ -56,6 +60,7 @@
     data-image-crop-source-wire-property="{{ $sourceWireProperty }}"
     data-image-crop-source-clear-method="{{ $sourceClearMethod }}"
     data-image-crop-source-file-name="{{ $sourceFileName }}"
+    @if ($hasSavedSource) data-image-crop-source-url="{{ $sourceUrl }}" @endif
     data-image-crop-output="{{ $outputSize }}"
     data-image-crop-file-name="{{ $fileName }}"
     @if ($formSelector) data-image-crop-form="{{ $formSelector }}" @endif
@@ -63,6 +68,7 @@
     data-image-crop-modal-title="{{ $resolvedModalTitle }}"
     data-label-choose="{{ $chooseLabel }}"
     data-label-crop="{{ $cropLabel }}"
+    data-label-crop-again="{{ $cropAgainLabel }}"
     data-label-remove="{{ $removeLabel }}"
 >
     <div class="flex flex-col gap-4">
@@ -93,7 +99,20 @@
             <p class="hidden max-w-sm text-sm text-base-content/70" data-image-crop-recrop-hint>
                 {{ $recropHint }}
             </p>
+            <p
+                class="{{ $hasSavedSource ? '' : 'hidden ' }}max-w-sm text-sm text-base-content/70"
+                data-image-crop-recrop-saved-hint
+            >
+                {{ $recropSavedHint }}
+            </p>
         </label>
+        <x-button
+            type="button"
+            class="btn-primary btn-lg mx-auto {{ $hasSavedSource ? '' : 'hidden ' }}min-h-14 w-full max-w-sm px-8 text-base font-semibold"
+            data-image-crop-recrop-saved
+        >
+            {{ $cropAgainLabel }}
+        </x-button>
         <x-button
             type="button"
             class="btn-outline btn-md mx-auto hidden w-full max-w-sm"
