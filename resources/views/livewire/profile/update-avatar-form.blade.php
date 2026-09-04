@@ -2,10 +2,11 @@
 
 use App\Actions\Avatars\AttachUserAvatarFromPath;
 use App\Actions\Avatars\RefreshCachedAvatar;
-use App\Actions\Avatars\StoreUploadedAvatar;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\AvatarSource;
 use App\Models\User;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
+use App\Support\Media\UserGalleryCatalog;
 use App\Support\Ui\AvatarSlot;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +28,8 @@ new class extends Component
 
     public string $avatar_initials = '';
 
+    public ?int $gallery_media_id = null;
+
     /** @var mixed */
     public $croppedAvatar = null;
 
@@ -45,6 +48,9 @@ new class extends Component
         $this->avatar_bg_color = $profile?->avatar_bg_color ?? '#1d4ed8';
         $this->avatar_text_color = $profile?->avatar_text_color ?? '#ffffff';
         $this->avatar_initials = $profile?->avatar_initials ?? '';
+        $this->gallery_media_id = $profile?->gallery_media_id !== null
+            ? (int) $profile->gallery_media_id
+            : null;
         $src = $profile?->avatar_source;
         if ($src instanceof AvatarSource) {
             $this->avatar_source = $src->value;
@@ -55,10 +61,22 @@ new class extends Component
         }
     }
 
+    /**
+     * @return list<array{media_id: int, sources: \App\Support\Media\MediaPictureSources}>
+     */
+    public function getAvailableGalleryImagesProperty(): array
+    {
+        return app(UserGalleryCatalog::class)->forUser(Auth::user());
+    }
+
     public function updatedAvatarSource(string $value): void
     {
         if ($value !== 'uploaded') {
             $this->reset('croppedAvatar', 'sourceImage');
+        }
+
+        if ($value !== AvatarSource::Gallery->value && $value !== AvatarSource::Uploaded->value) {
+            $this->gallery_media_id = null;
         }
     }
 
@@ -127,6 +145,22 @@ new class extends Component
                 'avatar_bg_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'avatar_text_color' => ['required_if:avatar_source,generated', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                 'avatar_initials' => ['nullable', 'string', 'max:3', 'regex:/^[A-Za-z]{1,3}$/'],
+                'gallery_media_id' => [
+                    'nullable',
+                    'integer',
+                    Rule::requiredIf(fn (): bool => $this->avatar_source === AvatarSource::Gallery->value),
+                    function (string $attribute, mixed $value, \Closure $fail): void {
+                        if ($this->avatar_source !== AvatarSource::Gallery->value) {
+                            return;
+                        }
+                        if ($value === null || $value === '') {
+                            return;
+                        }
+                        if (! app(UserGalleryCatalog::class)->mediaBelongsToUser((int) $value, Auth::user())) {
+                            $fail(__('ui.profile.image_invalid_gallery_media'));
+                        }
+                    },
+                ],
                 'croppedAvatar' => [
                     Rule::requiredIf(fn (): bool => $this->avatar_source === 'uploaded'
                         && ($previousSource !== AvatarSource::Uploaded->value || ! $hasExistingUpload)),
@@ -155,6 +189,19 @@ new class extends Component
                 $this->deleteStoredAvatarIfPresent($user->id);
                 $profile->avatar_path = null;
                 $profile->avatar_cache_signature = null;
+                $profile->gallery_media_id = null;
+                $profile->save();
+                $this->dispatchProfileAvatarUpdated();
+
+                return;
+            }
+
+            if ($source === AvatarSource::Gallery) {
+                $this->deleteStoredAvatarIfPresent($user->id);
+                $profile->avatar_source = AvatarSource::Gallery;
+                $profile->gallery_media_id = $this->gallery_media_id;
+                $profile->avatar_path = null;
+                $profile->avatar_cache_signature = null;
                 $profile->save();
                 $this->dispatchProfileAvatarUpdated();
 
@@ -163,19 +210,28 @@ new class extends Component
 
             if ($source === AvatarSource::Uploaded) {
                 if ($this->croppedAvatar !== null) {
-                    app(StoreUploadedAvatar::class)($user, $this->croppedAvatar, $this->sourceImage);
+                    $this->deleteStoredAvatarIfPresent($user->id);
+                    $media = app(StoreUserGalleryImage::class)($user, $this->croppedAvatar, 512, 512);
+                    $profile->avatar_source = AvatarSource::Gallery;
+                    $profile->gallery_media_id = (int) $media->id;
                     $profile->avatar_path = null;
                     $profile->avatar_cache_signature = null;
+                    $this->avatar_source = AvatarSource::Gallery->value;
+                    $this->gallery_media_id = (int) $media->id;
+                } else {
+                    $profile->avatar_source = AvatarSource::Uploaded;
+                    $profile->gallery_media_id = null;
+                    $profile->avatar_bg_color = $validated['avatar_bg_color'] ?? $profile->avatar_bg_color;
+                    $profile->avatar_text_color = $validated['avatar_text_color'] ?? $profile->avatar_text_color;
                 }
-                $profile->avatar_source = AvatarSource::Uploaded;
-                $profile->avatar_bg_color = $validated['avatar_bg_color'] ?? $profile->avatar_bg_color;
-                $profile->avatar_text_color = $validated['avatar_text_color'] ?? $profile->avatar_text_color;
                 $profile->save();
                 $this->reset('croppedAvatar', 'sourceImage');
                 $this->dispatchProfileAvatarUpdated();
 
                 return;
             }
+
+            $profile->gallery_media_id = null;
 
             if ($source === AvatarSource::Gravatar) {
                 $profile->avatar_source = AvatarSource::Gravatar;
@@ -252,7 +308,7 @@ new class extends Component
 
     private function dispatchProfileAvatarUpdated(): void
     {
-        $user = Auth::user()->fresh(['profile', 'media']);
+        $user = Auth::user()->fresh(['profile.galleryMedia', 'media']);
         $url = $user->avatarUrl(AvatarSlot::Preview);
         $version = $user->profile?->updated_at?->getTimestamp() ?? time();
 
@@ -311,6 +367,13 @@ new class extends Component
                     <span>
                         <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_uploaded') }}</span>
                         <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.uploaded_image_hint') }}</span>
+                    </span>
+                </label>
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <input type="radio" wire:model.live="avatar_source" name="avatar_source" value="gallery" class="radio radio-primary mt-0.5" />
+                    <span>
+                        <span class="block text-sm font-semibold text-base-content">{{ __('ui.profile.avatar_gallery') }}</span>
+                        <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.profile.avatar_from_gallery_hint') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -391,6 +454,42 @@ new class extends Component
                 file-name="avatar.webp"
                 :modal-title="__('ui.profile.crop_avatar')"
             />
+        @endif
+
+        @if ($avatar_source === 'gallery')
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6">
+                @if ($this->availableGalleryImages === [])
+                    <p class="text-sm text-base-content/80">{{ __('ui.profile.avatar_gallery_empty') }}</p>
+                @else
+                    <div
+                        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                        role="radiogroup"
+                        x-data="{ selectedMediaId: @entangle('gallery_media_id').live }"
+                    >
+                        @foreach ($this->availableGalleryImages as $image)
+                            @php
+                                $mediaId = (int) $image['media_id'];
+                            @endphp
+                            <button
+                                type="button"
+                                role="radio"
+                                :aria-checked="Number(selectedMediaId) === {{ $mediaId }}"
+                                @click="selectedMediaId = {{ $mediaId }}"
+                                :class="Number(selectedMediaId) === {{ $mediaId }}
+                                    ? 'border-primary ring-2 ring-primary'
+                                    : 'border-base-300 hover:border-primary/50'"
+                                class="group relative cursor-pointer overflow-hidden rounded-xl border-2 text-left"
+                            >
+                                <x-media-picture
+                                    :sources="$image['sources']"
+                                    class="aspect-square w-full object-cover"
+                                />
+                            </button>
+                        @endforeach
+                    </div>
+                    <x-field-error :messages="$errors->get('gallery_media_id')" class="mt-4" />
+                @endif
+            </div>
         @endif
 
         @if ($avatar_source === 'gravatar')

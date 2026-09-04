@@ -64,6 +64,7 @@ class Activity extends Model implements HasMedia
         'logo_path',
         'logo_source',
         'tag_media_id',
+        'gallery_media_id',
         'duration_in_minutes',
         'allows_observers',
         'slug',
@@ -85,6 +86,11 @@ class Activity extends Model implements HasMedia
     public function tagMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'tag_media_id');
+    }
+
+    public function galleryMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'gallery_media_id');
     }
 
     public function proposals(): HasMany
@@ -139,6 +145,7 @@ class Activity extends Model implements HasMedia
     {
         return [
             'tagMedia',
+            'galleryMedia',
             'creator',
             'activityType.media',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),

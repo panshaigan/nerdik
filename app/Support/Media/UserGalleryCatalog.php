@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support\Media;
+
+use App\Models\User;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+final class UserGalleryCatalog
+{
+    public const COLLECTION = 'gallery';
+
+    /**
+     * @return list<array{media_id: int, sources: MediaPictureSources}>
+     */
+    public function forUser(User $user): array
+    {
+        return $user->getMedia(self::COLLECTION)
+            ->sortByDesc('id')
+            ->values()
+            ->map(fn (Media $media): array => [
+                'media_id' => (int) $media->id,
+                'sources' => MediaPictureSources::fromMediaWithPreset($media, 'listing_card'),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function availableMediaIds(User $user): array
+    {
+        return array_map(
+            static fn (array $image): int => $image['media_id'],
+            $this->forUser($user),
+        );
+    }
+
+    public function mediaBelongsToUser(int $mediaId, User $user): bool
+    {
+        return Media::query()
+            ->whereKey($mediaId)
+            ->where('collection_name', self::COLLECTION)
+            ->where('model_type', $user->getMorphClass())
+            ->where('model_id', $user->getKey())
+            ->exists();
+    }
+
+    public function findForUser(int $mediaId, User $user): ?Media
+    {
+        if (! $this->mediaBelongsToUser($mediaId, $user)) {
+            return null;
+        }
+
+        return Media::query()->find($mediaId);
+    }
+}

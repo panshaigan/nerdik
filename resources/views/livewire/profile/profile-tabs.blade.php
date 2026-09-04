@@ -25,6 +25,10 @@
                 <livewire:profile.update-avatar-form />
             </x-tab>
 
+            <x-tab name="images" :label="$this->tabLabel('images', __('ui.profile.tab_images'))" class="px-6 py-6" data-ui="profile-tab-images" icon="o-photo">
+                <livewire:profile.manage-gallery-form />
+            </x-tab>
+
             <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
                 <livewire:profile.notification-settings-form />
             </x-tab>

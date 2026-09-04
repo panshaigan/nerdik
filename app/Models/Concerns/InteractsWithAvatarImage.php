@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
+use App\Support\Media\UserGalleryCatalog;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -11,6 +12,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 trait InteractsWithAvatarImage
 {
     use InteractsWithMedia;
+    use RegistersOptimizedImageConversions;
 
     public function registerMediaCollections(): void
     {
@@ -20,6 +22,9 @@ trait InteractsWithAvatarImage
 
         $this->addMediaCollection('source')
             ->singleFile()
+            ->useDisk('public');
+
+        $this->addMediaCollection(UserGalleryCatalog::COLLECTION)
             ->useDisk('public');
     }
 
@@ -43,6 +48,8 @@ trait InteractsWithAvatarImage
                 $conversion->nonQueued();
             }
         }
+
+        $this->registerOptimizedConversionsForCollections([UserGalleryCatalog::COLLECTION]);
     }
 
     public function avatarConversionsPending(): bool

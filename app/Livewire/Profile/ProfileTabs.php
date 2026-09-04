@@ -8,7 +8,7 @@ use Livewire\Component;
 class ProfileTabs extends Component
 {
     /** @var list<string> */
-    private const FORM_TAB_ORDER = ['identity', 'contact', 'avatar', 'notifications', 'advanced'];
+    private const FORM_TAB_ORDER = ['identity', 'contact', 'avatar', 'images', 'notifications', 'advanced'];
 
     public string $tab = 'identity';
 

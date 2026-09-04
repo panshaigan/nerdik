@@ -91,10 +91,11 @@ final class ManageEventFormImageTest extends TestCase
 
         $event = Event::query()->where('name', 'Upload Logo Event')->first();
         $this->assertNotNull($event);
-        $this->assertSame(EventLogoSource::Upload, $event->logo_source);
+        $this->assertSame(EventLogoSource::Gallery, $event->logo_source);
         $this->assertNull($event->logo_path);
-        $this->assertNotNull($event->getFirstMedia('logo'));
-        $this->assertNotNull($event->getFirstMedia('source'));
+        $this->assertNotNull($event->gallery_media_id);
+        $this->assertNull($event->getFirstMedia('logo'));
+        $this->assertCount(1, $user->fresh()->getMedia('gallery'));
     }
 
     #[Test]
@@ -164,9 +165,6 @@ final class ManageEventFormImageTest extends TestCase
             UploadedFile::fake()->image('original.jpg', 2400, 1600),
         );
 
-        $sourceMedia = $event->fresh()->getFirstMedia('source');
-        $this->assertNotNull($sourceMedia);
-        $sourceId = $sourceMedia->id;
         $sourceUrl = $event->fresh()->cropSourceImageUrl();
         $this->assertNotNull($sourceUrl);
 
@@ -186,9 +184,10 @@ final class ManageEventFormImageTest extends TestCase
             ->assertHasNoErrors();
 
         $event->refresh();
-        $this->assertNotNull($event->getFirstMedia('logo'));
-        $this->assertNotNull($event->getFirstMedia('source'));
-        $this->assertSame($sourceId, $event->getFirstMedia('source')?->id);
+        $this->assertSame(EventLogoSource::Gallery, $event->logo_source);
+        $this->assertNotNull($event->gallery_media_id);
+        $this->assertNull($event->getFirstMedia('logo'));
+        $this->assertCount(1, $user->fresh()->getMedia('gallery'));
     }
 
     #[Test]

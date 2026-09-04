@@ -3,7 +3,7 @@
 namespace App\Livewire\Events;
 
 use App\Actions\Events\DeleteUploadedEventLogo;
-use App\Actions\Events\StoreUploadedEventLogo;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\EventLogoSource;
 use App\Models\Event;
 use App\Models\Organization;
@@ -13,6 +13,7 @@ use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
 use App\Support\Events\EventDefaultImageCatalog;
 use App\Support\Media\MediaPictureSources;
+use App\Support\Media\UserGalleryCatalog;
 use App\Support\RichText;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
@@ -84,6 +85,8 @@ class ManageEventForm extends Component
     public ?string $logo_source = null;
 
     public ?int $listing_media_id = null;
+
+    public ?int $gallery_media_id = null;
 
     /** @var mixed */
     public $croppedLogo = null;
@@ -179,7 +182,7 @@ class ManageEventForm extends Component
         return match ($root) {
             'name', 'organization_id', 'organization_name', 'description', 'is_public',
             'starts_at', 'ends_at' => 'main-details',
-            'logo_source', 'listing_media_id', 'croppedLogo', 'sourceImage' => 'image',
+            'logo_source', 'listing_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
             'place_ids', 'new_places' => 'location',
             'enrollment_windows' => 'enrollment-windows',
             default => 'main-details',
@@ -328,6 +331,10 @@ class ManageEventForm extends Component
         $this->listing_media_id = $event->listing_media_id !== null
             ? (int) $event->listing_media_id
             : null;
+
+        $this->gallery_media_id = $event->gallery_media_id !== null
+            ? (int) $event->gallery_media_id
+            : null;
     }
 
     /**
@@ -338,10 +345,28 @@ class ManageEventForm extends Component
         return app(EventDefaultImageCatalog::class)->all();
     }
 
+    /**
+     * @return list<array{media_id: int, sources: MediaPictureSources}>
+     */
+    public function getAvailableGalleryImagesProperty(): array
+    {
+        $user = Auth::user();
+
+        return $user !== null ? app(UserGalleryCatalog::class)->forUser($user) : [];
+    }
+
     public function updatedLogoSource(?string $value): void
     {
         if ($value !== EventLogoSource::Default->value) {
             $this->listing_media_id = null;
+        }
+
+        if ($value !== EventLogoSource::Gallery->value) {
+            // Keep gallery_media_id when switching to upload so a failed upload can fall back;
+            // clear when leaving gallery for default or unset.
+            if ($value !== EventLogoSource::Upload->value) {
+                $this->gallery_media_id = null;
+            }
         }
 
         if ($value !== EventLogoSource::Upload->value) {
@@ -493,7 +518,7 @@ class ManageEventForm extends Component
             $placeIds = $this->place_ids;
             unset($validated['place_ids'], $validated['new_places']);
 
-            unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['croppedLogo'], $validated['sourceImage']);
+            unset($validated['slug'], $validated['logo_source'], $validated['listing_media_id'], $validated['gallery_media_id'], $validated['croppedLogo'], $validated['sourceImage']);
 
             if ($this->editingEventId !== null) {
                 $event = Event::query()->findOrFail($this->editingEventId);
@@ -601,6 +626,23 @@ class ManageEventForm extends Component
                     }
                 },
             ],
+            'gallery_media_id' => [
+                'nullable',
+                'integer',
+                Rule::requiredIf(fn (): bool => $this->logo_source === EventLogoSource::Gallery->value),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->logo_source !== EventLogoSource::Gallery->value) {
+                        return;
+                    }
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $user = Auth::user();
+                    if ($user === null || ! app(UserGalleryCatalog::class)->mediaBelongsToUser((int) $value, $user)) {
+                        $fail(__('ui.events.image_invalid_gallery_media'));
+                    }
+                },
+            ],
             'croppedLogo' => [
                 Rule::requiredIf(fn (): bool => $this->logo_source === EventLogoSource::Upload->value
                     && ! $this->hasExistingUploadedLogo()),
@@ -621,24 +663,39 @@ class ManageEventForm extends Component
     private function applyEventLogoFromForm(Event $event): void
     {
         $source = EventLogoSource::tryFrom((string) ($this->logo_source ?? ''));
+        $user = Auth::user();
 
         if ($source === EventLogoSource::Default) {
             app(DeleteUploadedEventLogo::class)($event);
             $event->logo_source = EventLogoSource::Default;
             $event->listing_media_id = $this->listing_media_id;
+            $event->gallery_media_id = null;
+            $event->logo_path = null;
+        } elseif ($source === EventLogoSource::Gallery) {
+            app(DeleteUploadedEventLogo::class)($event);
+            $event->logo_source = EventLogoSource::Gallery;
+            $event->listing_media_id = null;
+            $event->gallery_media_id = $this->gallery_media_id;
             $event->logo_path = null;
         } elseif ($source === EventLogoSource::Upload) {
-            $event->logo_source = EventLogoSource::Upload;
-            $event->listing_media_id = null;
-
-            if ($this->croppedLogo !== null) {
-                app(StoreUploadedEventLogo::class)($event, $this->croppedLogo, $this->sourceImage);
+            if ($this->croppedLogo !== null && $user !== null) {
+                app(DeleteUploadedEventLogo::class)($event);
+                $media = app(StoreUserGalleryImage::class)($user, $this->croppedLogo, 1280, 720);
+                $event->logo_source = EventLogoSource::Gallery;
+                $event->listing_media_id = null;
+                $event->gallery_media_id = (int) $media->id;
                 $event->logo_path = null;
+            } else {
+                // Preserve legacy entity-owned upload when editing without a new crop.
+                $event->logo_source = EventLogoSource::Upload;
+                $event->listing_media_id = null;
+                $event->gallery_media_id = null;
             }
         } else {
             app(DeleteUploadedEventLogo::class)($event);
             $event->logo_source = null;
             $event->listing_media_id = null;
+            $event->gallery_media_id = null;
             $event->logo_path = null;
         }
 

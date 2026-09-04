@@ -54,12 +54,11 @@ final class AvatarSourceTest extends TestCase
             });
 
         $user->refresh();
-        $this->assertSame(AvatarSource::Uploaded, $user->profile?->avatar_source);
+        $this->assertSame(AvatarSource::Gallery, $user->profile?->avatar_source);
         $this->assertNull($user->profile?->avatar_path);
-        $media = $user->getFirstMedia('avatar');
-        $this->assertNotNull($media);
-        $this->assertAvatarMediaIsReady($media);
-        $this->assertNotNull($user->getFirstMedia('source'));
+        $this->assertNotNull($user->profile?->gallery_media_id);
+        $this->assertNull($user->getFirstMedia('avatar'));
+        $this->assertCount(1, $user->getMedia('gallery'));
         Storage::disk('public')->assertMissing('avatars/'.$user->id.'.webp');
     }
 
@@ -79,11 +78,8 @@ final class AvatarSourceTest extends TestCase
             ->assertHasNoErrors();
 
         $user->refresh();
-        $sourceMedia = $user->getFirstMedia('source');
-        $this->assertNotNull($sourceMedia);
-        $sourceId = $sourceMedia->id;
-        $sourceUrl = $user->cropSourceImageUrl();
-        $this->assertNotNull($sourceUrl);
+        $this->assertSame(AvatarSource::Gallery, $user->profile?->avatar_source);
+        $firstGalleryId = (int) $user->profile?->gallery_media_id;
 
         Volt::test('profile.update-avatar-form')
             ->set('avatar_source', 'uploaded')
@@ -92,10 +88,10 @@ final class AvatarSourceTest extends TestCase
             ->assertHasNoErrors();
 
         $user->refresh();
-        $this->assertNotNull($user->getFirstMedia('avatar'));
-        $this->assertNotNull($user->getFirstMedia('source'));
-        $this->assertSame($sourceId, $user->getFirstMedia('source')?->id);
-        $this->assertSame($sourceUrl, $user->cropSourceImageUrl());
+        $this->assertSame(AvatarSource::Gallery, $user->profile?->avatar_source);
+        $this->assertNotNull($user->profile?->gallery_media_id);
+        $this->assertNotSame($firstGalleryId, (int) $user->profile?->gallery_media_id);
+        $this->assertCount(2, $user->getMedia('gallery'));
     }
 
     #[Test]

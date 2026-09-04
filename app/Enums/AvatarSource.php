@@ -8,6 +8,7 @@ enum AvatarSource: string
 {
     case Generated = 'generated';
     case Uploaded = 'uploaded';
+    case Gallery = 'gallery';
     case Gravatar = 'gravatar';
     case Google = 'google';
     case Facebook = 'facebook';

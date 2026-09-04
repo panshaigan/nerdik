@@ -39,6 +39,7 @@ final class AnonymizeUser
                     'avatar_path' => null,
                     'avatar_cache_signature' => null,
                     'avatar_source' => AvatarSource::Generated,
+                    'gallery_media_id' => null,
                     'avatar_bg_color' => null,
                     'avatar_text_color' => null,
                     'avatar_initials' => null,
@@ -55,6 +56,7 @@ final class AnonymizeUser
 
             $user->clearMediaCollection('avatar');
             $user->clearMediaCollection('source');
+            $user->clearMediaCollection('gallery');
             AttachUserAvatarFromPath::deleteLegacyAvatarFile($user);
 
             $user->forceFill([

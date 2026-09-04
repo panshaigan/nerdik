@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Activities\DeleteUploadedActivityLogo;
-use App\Actions\Activities\StoreUploadedActivityLogo;
+use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
 use App\Enums\ParticipationMode;
@@ -16,6 +16,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Support\RichText;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class ActivityFormService
@@ -51,6 +52,7 @@ class ActivityFormService
                 'new_tags',
                 'logo_source',
                 'selected_tag_media_id',
+                'gallery_media_id',
                 'croppedLogo',
                 'sourceImage',
             ]
@@ -306,24 +308,38 @@ class ActivityFormService
     private function applyActivityLogoFromForm(ManageActivityForm $form, Activity $activity): void
     {
         $source = ActivityLogoSource::tryFrom((string) ($form->logo_source ?? ''));
+        $user = Auth::user();
 
         if ($source === ActivityLogoSource::Tag) {
             app(DeleteUploadedActivityLogo::class)($activity);
             $activity->logo_source = ActivityLogoSource::Tag;
             $activity->tag_media_id = $form->selected_tag_media_id;
+            $activity->gallery_media_id = null;
+            $activity->logo_path = null;
+        } elseif ($source === ActivityLogoSource::Gallery) {
+            app(DeleteUploadedActivityLogo::class)($activity);
+            $activity->logo_source = ActivityLogoSource::Gallery;
+            $activity->tag_media_id = null;
+            $activity->gallery_media_id = $form->gallery_media_id;
             $activity->logo_path = null;
         } elseif ($source === ActivityLogoSource::Upload) {
-            $activity->logo_source = ActivityLogoSource::Upload;
-            $activity->tag_media_id = null;
-
-            if ($form->croppedLogo !== null) {
-                app(StoreUploadedActivityLogo::class)($activity, $form->croppedLogo, $form->sourceImage);
+            if ($form->croppedLogo !== null && $user !== null) {
+                app(DeleteUploadedActivityLogo::class)($activity);
+                $media = app(StoreUserGalleryImage::class)($user, $form->croppedLogo, 1280, 720);
+                $activity->logo_source = ActivityLogoSource::Gallery;
+                $activity->tag_media_id = null;
+                $activity->gallery_media_id = (int) $media->id;
                 $activity->logo_path = null;
+            } else {
+                $activity->logo_source = ActivityLogoSource::Upload;
+                $activity->tag_media_id = null;
+                $activity->gallery_media_id = null;
             }
         } else {
             app(DeleteUploadedActivityLogo::class)($activity);
             $activity->logo_source = null;
             $activity->tag_media_id = null;
+            $activity->gallery_media_id = null;
             $activity->logo_path = null;
         }
 

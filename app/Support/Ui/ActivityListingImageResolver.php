@@ -46,6 +46,14 @@ final class ActivityListingImageResolver
             }
         }
 
+        if ($source === ActivityLogoSource::Gallery && $activity->gallery_media_id !== null) {
+            $media = $this->resolveGalleryMediaRelation($activity);
+
+            if ($media !== null) {
+                return ListingCardPicture::fromMedia($media, (string) $activity->name, $preset);
+            }
+        }
+
         if ($source === ActivityLogoSource::Upload) {
             $media = $this->resolveUploadedLogoMedia($activity);
 
@@ -77,6 +85,15 @@ final class ActivityListingImageResolver
         }
 
         return $activity->tagMedia()->first();
+    }
+
+    private function resolveGalleryMediaRelation(Activity $activity): ?Media
+    {
+        if ($activity->relationLoaded('galleryMedia')) {
+            return $activity->galleryMedia;
+        }
+
+        return $activity->galleryMedia()->first();
     }
 
     private function firstMediaFromTagsByCategory(Activity $activity, string $categoryKey): ?Media
