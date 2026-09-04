@@ -41,6 +41,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->favicon(asset('favicon.svg'))
+            ->brandLogo(fn () => view('filament.admin.logo'))
+            ->brandLogoHeight('2rem')
             ->colors([
                 'primary' => Color::Amber,
             ])
