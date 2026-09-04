@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Media;
 
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Models\Tag;
 use App\Support\Media\MediaPictureSources;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
 final class MediaPictureSourcesTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -29,14 +30,7 @@ final class MediaPictureSourcesTest extends TestCase
     public function it_builds_srcset_strings_for_each_conversion(): void
     {
         $tag = Tag::factory()->create();
-
-        $fixturePath = 'images/tag-game/fixture-picture.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-picture.jpg');
 
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'tag_card', 'Test tag');
 
@@ -52,13 +46,7 @@ final class MediaPictureSourcesTest extends TestCase
     public function tag_hero_preset_allows_high_resolution_srcset_for_full_width_hero(): void
     {
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/fixture-tag-hero.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-tag-hero.jpg');
 
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', 'Hero tag');
         $webpSrcset = $sources->webpSrcset();
@@ -83,13 +71,7 @@ final class MediaPictureSourcesTest extends TestCase
         ]);
 
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/fixture-srcset-cap.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-srcset-cap.jpg');
 
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card', 'Cap test');
         $webpSrcset = $sources->webpSrcset();
@@ -107,13 +89,7 @@ final class MediaPictureSourcesTest extends TestCase
     public function display_src_picks_smallest_fitting_responsive_candidate(): void
     {
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/fixture-display-src.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-display-src.jpg');
 
         $sources = MediaPictureSources::fromMedia(
             $media,
@@ -136,13 +112,8 @@ final class MediaPictureSourcesTest extends TestCase
     public function media_picture_component_uses_display_src_for_img_fallback(): void
     {
         $tag = Tag::factory()->create();
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-blade-display-src.jpg');
 
-        $fixturePath = 'images/tag-game/fixture-blade-display-src.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
         $sources = MediaPictureSources::fromMedia(
             $media,
             maxSrcsetWidth: 512,
@@ -162,13 +133,7 @@ final class MediaPictureSourcesTest extends TestCase
         config(['media-library.responsive_images.use_tiny_placeholders' => true]);
 
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/fixture-no-placeholder.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-no-placeholder.jpg');
 
         $rawSrcset = $media->getSrcset('webp');
         $this->assertStringContainsString('data:image/svg+xml;base64,', $rawSrcset);
@@ -185,13 +150,8 @@ final class MediaPictureSourcesTest extends TestCase
     public function media_picture_component_renders_picture_element(): void
     {
         $tag = Tag::factory()->create();
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-blade.jpg');
 
-        $fixturePath = 'images/tag-game/fixture-blade.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-
-        $media = $tag->refresh()->getFirstMedia('images');
         $sources = MediaPictureSources::fromMedia($media);
 
         $html = view('components.media-picture', ['sources' => $sources])->render();

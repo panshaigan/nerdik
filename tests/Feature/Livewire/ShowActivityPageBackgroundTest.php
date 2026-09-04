@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
-use App\Actions\Seeders\AttachTagMediaFromPublic;
 use App\Enums\ActivityLogoSource;
 use App\Livewire\Activities\ShowActivity;
 use App\Models\Activity;
@@ -12,21 +11,19 @@ use App\Models\Tag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
 final class ShowActivityPageBackgroundTest extends TestCase
 {
+    use AttachesFixtureMedia;
     use RefreshDatabase;
 
     #[Test]
     public function it_renders_blurred_page_background_with_resolved_cover_picture(): void
     {
         $tag = Tag::factory()->create();
-        $fixturePath = 'images/tag-game/activity-show-background.jpg';
-        copy(base_path('tests/fixtures/tag-sample.jpg'), public_path($fixturePath));
-        app(AttachTagMediaFromPublic::class)($tag, [$fixturePath]);
-        $media = $tag->refresh()->getFirstMedia('images');
-        $this->assertNotNull($media);
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/activity-show-background.jpg');
 
         $activity = Activity::factory()->create([
             'logo_source' => ActivityLogoSource::Tag,

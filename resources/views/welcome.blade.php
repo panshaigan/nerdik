@@ -27,7 +27,7 @@
                     <x-brand-logo class="h-10 w-10 text-base-content" />
                     <div>
                         <p class="font-display text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
-                        <p class="font-display text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p>
+                        <!--p class="font-display text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p-->
                     </div>
                 </div>
                 @if (Route::has('login'))
@@ -53,7 +53,7 @@
 
             <footer class="mt-10 border-t border-white/10 bg-black/35 px-4 py-5 text-sm opacity-70 backdrop-blur-xs sm:px-6 lg:px-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p>
+                    <!--p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p-->
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>
