@@ -26,7 +26,8 @@ final class OrganizationLogoCropModalTest extends TestCase
             ->set('logo_source', 'upload')
             ->assertSeeHtml('id="ui-image-crop-modal"')
             ->assertSeeHtml('class="modal backdrop-blur z-[100030]"')
-            ->assertSeeHtml('data-image-crop-croppie')
+            ->assertSeeHtml('data-image-crop-stage')
+            ->assertSeeHtml('data-image-crop-zoom')
             ->assertSeeHtml('data-org-modal-form');
     }
 

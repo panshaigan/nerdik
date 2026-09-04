@@ -1240,31 +1240,39 @@
         }
     }
 
-    .ui-image-crop-crop {
+    .ui-image-crop-stage {
         display: flex;
         flex-direction: column;
-        align-items: center;
-    }
-
-    .ui-image-crop-crop .croppie-container {
-        width: auto;
-        max-width: 100%;
-        margin-inline: auto;
-    }
-
-    .ui-image-crop-crop .cr-boundary {
-        margin-inline: auto;
-    }
-
-    .ui-image-crop-crop .cr-image {
-        max-width: none;
-        max-height: none;
-        transition: none;
-    }
-
-    .ui-image-crop-crop .cr-slider-wrap {
         width: 100%;
-        margin-top: 1rem;
+    }
+
+    .ui-image-crop-canvas {
+        position: relative;
+        width: 100%;
+        min-height: 14rem;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        background-color: color-mix(in oklab, var(--color-base-content) 88%, transparent);
+    }
+
+    .ui-image-crop-stage[data-aspect='video'] .ui-image-crop-canvas {
+        aspect-ratio: 16 / 9;
+        min-height: 0;
+    }
+
+    .ui-image-crop-canvas .cropper-container {
+        max-height: 100%;
+    }
+
+    .ui-image-crop-stage[data-aspect='square'] .cropper-view-box,
+    .ui-image-crop-stage[data-aspect='square'] .cropper-face {
+        border-radius: 50%;
+    }
+
+    .ui-image-crop-zoom {
+        display: block;
+        width: 100%;
+        margin-block-end: 0.25rem;
     }
 
     .ui-image-crop-dropzone {
