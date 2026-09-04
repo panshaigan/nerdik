@@ -6,10 +6,10 @@ Automated testing, image publishing, and (when a VPS is ready) remote deploy. Fo
 
 ```mermaid
 flowchart LR
-  PR[PR or push] --> CI[ci.yml]
-  PR --> DockerPR[docker.yml build only]
-  Main[push main or tag] --> DockerPush[docker.yml push GHCR]
-  DockerPush --> GHCR["ghcr.io/owner/nerdik:sha"]
+  PR[pull request] --> CI[ci.yml]
+  Tag["push tag v*"] --> CI
+  Tag --> DockerPush[docker.yml push GHCR]
+  DockerPush --> GHCR["ghcr.io/owner/nerdik:sha + :semver"]
   Manual[workflow_dispatch] --> Deploy[deploy.yml]
   Deploy --> VPS[VPS make vps-deploy]
   VPS --> Up["GET /up"]
@@ -17,9 +17,11 @@ flowchart LR
 
 | Workflow | File | When it runs |
 |----------|------|----------------|
-| CI | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Every PR and push to `main` |
-| Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | PR (build only); `main` and `v*` tags (build + push) |
+| CI | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Every PR; also on `v*` tag push (release gate) |
+| Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | `v*` tags only (build + push to GHCR) |
 | Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Manual only (`workflow_dispatch`), production only |
+
+Current app version: [`VERSION`](../VERSION) (`1.0.0`). Release tags must match `v` + that semver (e.g. `v1.0.0`).
 
 ## Without a git remote yet
 
@@ -28,7 +30,7 @@ Workflows in [`.github/workflows/`](../.github/workflows/) run only after the pr
 - Run tests locally: `vendor/bin/sail artisan test --compact` (with Sail up).
 - Build and push images manually: `GITHUB_OWNER=… ./scripts/docker-publish.sh` (requires `docker login ghcr.io`).
 
-After you create the remote, push `main` once to enable automated CI and GHCR publishes.
+After you create the remote, open a PR to exercise CI. Publish a release image with a version tag (see below).
 
 ## CI (no VPS required)
 
@@ -50,21 +52,34 @@ After you create the remote, push `main` once to enable automated CI and GHCR pu
 
 In GitHub → Settings → Branches, require the **Test** and **Compose** jobs from the CI workflow before merging to `main`.
 
+## Releasing (tag → image)
+
+1. Bump [`VERSION`](../VERSION) if needed and commit on `main`.
+2. Tag and push:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+3. Wait for **CI** and **Docker** on that tag.
+4. Deploy with the semver or SHA tag (manual Actions Deploy, or VPS `IMAGE_TAG=…`).
+
 ## Docker images (no VPS required)
 
-On push to `main`, the Docker workflow publishes:
+On push of a semver tag `v*` (e.g. `v1.0.0`), the Docker workflow publishes:
 
 ```text
 ghcr.io/<github-owner>/nerdik:<full-git-sha>
+ghcr.io/<github-owner>/nerdik:1.0.0
+ghcr.io/<github-owner>/nerdik:1.0
 ```
 
-On push of a semver tag `v*` (e.g. `v1.2.3`), the same image is also tagged with that version.
-
-Pull requests only **build** the image (no push) to verify [`docker/production/Dockerfile`](../docker/production/Dockerfile).
+Commits and PRs do **not** publish images. Use a release tag when you want a new GHCR image.
 
 ### GHCR setup
 
-1. Push to `main` once; the workflow uses `GITHUB_TOKEN` with `packages: write`.
+1. Push a `v*` tag once; the workflow uses `GITHUB_TOKEN` with `packages: write`.
 2. GitHub → **Packages** → open `nerdik` → set visibility (private recommended until you decide on a public repo).
 3. On each VPS, log in once: `docker login ghcr.io` (PAT with `read:packages` or deploy token).
 
@@ -85,13 +100,13 @@ GITHUB_OWNER=your-github-owner GIT_SHA=$(git rev-parse HEAD) ./scripts/docker-pu
 
 ## Deploy (VPS required)
 
-Deploy is **manual** via Actions → **Deploy** → Run workflow. Enter an `image_tag` (git SHA from GHCR, or a semver tag). Staging is deployed manually on the VPS — see [deployment.md](deployment.md#staging-on-the-same-vps).
+Deploy is **manual** via Actions → **Deploy** → Run workflow. Enter an `image_tag` (git SHA from GHCR, or a semver tag such as `1.0.0`). Staging is deployed manually on the VPS — see [deployment.md](deployment.md#staging-on-the-same-vps).
 
 If deploy secrets are not configured, the workflow prints a skip message and exits successfully so the repo stays green before you have a server.
 
 **Setup guide:** [github-deploy-setup.md](github-deploy-setup.md) — SSH keys, GitHub secrets, environments, and verification.
 
-Composer and npm dependencies are installed during the Docker image build (CI), not at deploy time. Deploy pulls the pre-built `ghcr.io/<owner>/nerdik:<sha>` image.
+Composer and npm dependencies are installed during the Docker image build (CI), not at deploy time. Deploy pulls the pre-built `ghcr.io/<owner>/nerdik:<sha>` (or `:1.0.0`) image.
 
 ### Repository secrets
 
@@ -139,9 +154,9 @@ Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -
 ### Promote a tested SHA
 
 ```bash
-# After CI published ghcr.io/owner/nerdik:abc123...
-cd /opt/nerdik-staging && make vps-staging-deploy
-cd /opt/nerdik && make vps-deploy
+# After a release tag published ghcr.io/owner/nerdik:1.0.0 (and :sha)
+cd /opt/nerdik-staging && IMAGE_TAG=1.0.0 make vps-staging-deploy
+cd /opt/nerdik && IMAGE_TAG=1.0.0 make vps-deploy
 ```
 
 ## Related commands
@@ -155,4 +170,4 @@ cd /opt/nerdik && make vps-deploy
 | `make staging-down` | Stop staging containers (prod unaffected) |
 | `make prod-deploy` | Production VPS deploy |
 | `make docker-publish` | Build and push image from local machine |
-| `IMAGE_TAG=<sha> make prod-deploy` | Pin deploy to a GHCR tag |
+| `IMAGE_TAG=<sha|semver> make prod-deploy` | Pin deploy to a GHCR tag |
