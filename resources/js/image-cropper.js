@@ -1,7 +1,8 @@
-import Croppie from 'croppie';
-import 'croppie/croppie.css';
+import Cropper from 'cropperjs';
+import 'cropperjs/dist/cropper.css';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ZOOM_RANGE_MULTIPLIER = 3;
 
 let imageCropperAbort;
 let cropperInstance = null;
@@ -11,6 +12,9 @@ let currentFileInput = null;
 let originalImageDataUrl = null;
 let originalSourceFile = null;
 let hasPendingCrop = false;
+let zoomMin = 0;
+let zoomMax = 1;
+let syncingZoomSlider = false;
 
 const MODAL_LAYOUT_MAX_FRAMES = 30;
 
@@ -28,8 +32,20 @@ function getCropModal() {
     return document.getElementById('ui-image-crop-modal');
 }
 
+function getCropStage() {
+    return document.querySelector('.ui-image-crop-stage');
+}
+
 function getCropViewport() {
-    return document.querySelector('[data-image-crop-croppie]');
+    return document.querySelector('[data-image-crop-stage]');
+}
+
+function getCropImage() {
+    return document.querySelector('[data-image-crop-image]');
+}
+
+function getZoomInput() {
+    return document.querySelector('[data-image-crop-zoom]');
 }
 
 function resolveForm(dropzone) {
@@ -79,50 +95,45 @@ function getDropzoneLabels(dropzone) {
     };
 }
 
-function destroyCroppieInstance(croppie) {
-    if (croppie && typeof croppie.destroy === 'function') {
+function destroyCropperInstance() {
+    if (cropperInstance && typeof cropperInstance.destroy === 'function') {
         try {
-            croppie.destroy();
+            cropperInstance.destroy();
         } catch {
             // Element may already be detached after a Livewire morph.
         }
     }
-}
 
-function resetCropViewportElement(viewport) {
-    if (!viewport) {
-        return;
+    cropperInstance = null;
+    zoomMin = 0;
+    zoomMax = 1;
+    syncingZoomSlider = false;
+
+    const img = getCropImage();
+    if (img) {
+        img.removeAttribute('src');
+        img.src = '';
     }
 
-    viewport.classList.remove('croppie-container', 'ui-image-crop-croppie-instance');
-    viewport.style.width = '';
-    viewport.style.height = '';
-    viewport.replaceChildren();
+    const zoomInput = getZoomInput();
+    if (zoomInput) {
+        zoomInput.value = '0';
+    }
 }
 
-function getCropDimensions(modalBox, aspect) {
-    const padding = 32;
-    const rawWidth = (modalBox?.clientWidth ?? 448) - padding;
-    const width = Math.max(280, Math.min(560, rawWidth));
-
-    if (aspect === 'video') {
-        const boundaryWidth = width;
-        const boundaryHeight = Math.round(width * (9 / 16));
-        const viewportWidth = Math.round(boundaryWidth * 0.92);
-        const viewportHeight = Math.round(viewportWidth * (9 / 16));
-
-        return {
-            boundary: { width: boundaryWidth, height: boundaryHeight },
-            viewport: { width: viewportWidth, height: viewportHeight, type: 'square' },
-        };
+function ensureCropImage(viewport) {
+    let img = viewport.querySelector('[data-image-crop-image]');
+    if (img) {
+        return img;
     }
 
-    const viewportSize = Math.round(width * 0.65);
+    img = document.createElement('img');
+    img.setAttribute('data-image-crop-image', '');
+    img.alt = '';
+    img.className = 'block max-w-full';
+    viewport.appendChild(img);
 
-    return {
-        boundary: { width, height: width },
-        viewport: { width: viewportSize, height: viewportSize, type: 'circle' },
-    };
+    return img;
 }
 
 function waitForModalLayout(modal, attempt = 0) {
@@ -140,6 +151,73 @@ function waitForModalLayout(modal, attempt = 0) {
             waitForModalLayout(modal, attempt + 1).then(resolve);
         });
     });
+}
+
+function getCurrentZoomRatio() {
+    if (!cropperInstance) {
+        return zoomMin;
+    }
+
+    const imageData = cropperInstance.getImageData();
+    if (!imageData?.naturalWidth) {
+        return zoomMin;
+    }
+
+    return imageData.width / imageData.naturalWidth;
+}
+
+function updateZoomRangeFromCropper() {
+    if (!cropperInstance) {
+        return;
+    }
+
+    const imageData = cropperInstance.getImageData();
+    const containerData = cropperInstance.getContainerData();
+    if (!imageData?.naturalWidth || !imageData?.naturalHeight || !containerData) {
+        return;
+    }
+
+    const fitRatio = Math.min(
+        containerData.width / imageData.naturalWidth,
+        containerData.height / imageData.naturalHeight,
+    );
+
+    zoomMin = Number.isFinite(fitRatio) && fitRatio > 0 ? fitRatio : getCurrentZoomRatio();
+    zoomMax = Math.max(zoomMin * ZOOM_RANGE_MULTIPLIER, zoomMin + 0.01);
+}
+
+function syncZoomSliderFromCropper() {
+    const zoomInput = getZoomInput();
+    if (!zoomInput || !cropperInstance) {
+        return;
+    }
+
+    updateZoomRangeFromCropper();
+
+    const current = getCurrentZoomRatio();
+    const span = zoomMax - zoomMin;
+    const normalized = span > 0 ? (current - zoomMin) / span : 0;
+    const clamped = Math.min(1, Math.max(0, normalized));
+
+    syncingZoomSlider = true;
+    zoomInput.value = String(clamped);
+    syncingZoomSlider = false;
+}
+
+function applyZoomFromSlider(value) {
+    if (!cropperInstance || syncingZoomSlider) {
+        return;
+    }
+
+    updateZoomRangeFromCropper();
+
+    const t = Number(value);
+    if (!Number.isFinite(t)) {
+        return;
+    }
+
+    const ratio = zoomMin + Math.min(1, Math.max(0, t)) * (zoomMax - zoomMin);
+    cropperInstance.zoomTo(ratio);
 }
 
 function fileToWebpBlob(file, quality = 0.92) {
@@ -411,9 +489,7 @@ function closeModal({ resetSession = false } = {}) {
         }
     }
 
-    destroyCroppieInstance(cropperInstance);
-    cropperInstance = null;
-    resetCropViewportElement(getCropViewport());
+    destroyCropperInstance();
 
     if (resetSession) {
         clearPendingCropState(currentForm, currentDropzone);
@@ -423,40 +499,66 @@ function closeModal({ resetSession = false } = {}) {
     }
 }
 
-async function initCroppieWithUrl(url) {
-    const liveViewport = getCropViewport();
+function canvasToWebpBlob(canvas, quality = 0.92) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(
+            (blob) => {
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error('WebP conversion failed'));
+                }
+            },
+            'image/webp',
+            quality,
+        );
+    });
+}
+
+async function initCropperWithUrl(url) {
+    const stage = getCropStage();
+    const viewport = getCropViewport();
     const liveModal = getCropModal();
-    if (!liveViewport || !liveModal || !currentDropzone) {
+    if (!stage || !viewport || !liveModal || !currentDropzone) {
         return;
     }
 
     const config = getDropzoneConfig(currentDropzone);
     openCropModal(currentDropzone);
 
-    const modalBox = await waitForModalLayout(liveModal);
+    await waitForModalLayout(liveModal);
     if (!currentDropzone || getCropModal() !== liveModal) {
         return;
     }
 
-    const { boundary, viewport: viewportOptions } = getCropDimensions(modalBox, config.aspect);
+    stage.dataset.aspect = config.aspect;
 
-    destroyCroppieInstance(cropperInstance);
-    cropperInstance = null;
-    resetCropViewportElement(liveViewport);
+    destroyCropperInstance();
 
-    liveViewport.style.width = `${boundary.width}px`;
-    liveViewport.style.height = `${boundary.height}px`;
+    const img = ensureCropImage(viewport);
+    img.src = url;
 
     try {
-        cropperInstance = new Croppie(liveViewport, {
-            viewport: viewportOptions,
-            boundary,
-            enableOrientation: true,
-            enforceBoundary: true,
-            customClass: 'ui-image-crop-croppie-instance',
+        cropperInstance = new Cropper(img, {
+            viewMode: 1,
+            dragMode: 'move',
+            aspectRatio: config.aspect === 'video' ? 16 / 9 : 1,
+            autoCropArea: 1,
+            responsive: true,
+            background: false,
+            guides: false,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            ready() {
+                syncZoomSliderFromCropper();
+            },
+            zoom() {
+                syncZoomSliderFromCropper();
+            },
         });
-
-        await cropperInstance.bind({ url });
     } catch (error) {
         console.error('Failed to initialize image cropper', error);
         closeModal();
@@ -506,7 +608,7 @@ function openCropperForFile(file, dropzone, fileInput) {
         }
 
         originalImageDataUrl = dataUrl;
-        initCroppieWithUrl(dataUrl);
+        initCropperWithUrl(dataUrl);
     };
     reader.readAsDataURL(file);
 }
@@ -560,6 +662,26 @@ async function applyCroppedResult(blob) {
     }
 }
 
+function exportCroppedBlob() {
+    if (!cropperInstance || !currentDropzone) {
+        return Promise.reject(new Error('Cropper unavailable'));
+    }
+
+    const { width, height } = getDropzoneConfig(currentDropzone).output;
+    const canvas = cropperInstance.getCroppedCanvas({
+        width,
+        height,
+        imageSmoothingQuality: 'high',
+        fillColor: '#fff',
+    });
+
+    if (!canvas) {
+        return Promise.reject(new Error('Cropped canvas unavailable'));
+    }
+
+    return canvasToWebpBlob(canvas, 0.92);
+}
+
 function handleDropzoneDragOver(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -602,6 +724,19 @@ export function bootImageCropper() {
     );
 
     document.addEventListener(
+        'input',
+        (event) => {
+            const zoomInput = event.target?.closest('[data-image-crop-zoom]');
+            if (!zoomInput) {
+                return;
+            }
+
+            applyZoomFromSlider(zoomInput.value);
+        },
+        { signal },
+    );
+
+    document.addEventListener(
         'click',
         (event) => {
             const trigger = event.target.closest('[data-image-crop-file-trigger]');
@@ -612,7 +747,7 @@ export function bootImageCropper() {
                     event.preventDefault();
                     currentForm = form;
                     currentDropzone = dropzone;
-                    initCroppieWithUrl(originalImageDataUrl);
+                    initCropperWithUrl(originalImageDataUrl);
                 }
 
                 return;
@@ -653,16 +788,7 @@ export function bootImageCropper() {
                 return;
             }
 
-            const { width, height } = getDropzoneConfig(currentDropzone).output;
-
-            cropperInstance
-                .result({
-                    type: 'blob',
-                    size: { width, height },
-                    format: 'webp',
-                    quality: 0.92,
-                    circle: false,
-                })
+            exportCroppedBlob()
                 .then(applyCroppedResult)
                 .catch(() => closeModal());
         },
@@ -800,8 +926,7 @@ export function bootImageCropper() {
 
 document.addEventListener('livewire:navigating', () => {
     imageCropperAbort?.abort();
-    destroyCroppieInstance(cropperInstance);
-    cropperInstance = null;
+    destroyCropperInstance();
     currentForm = null;
     currentDropzone = null;
     currentFileInput = null;
