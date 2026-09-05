@@ -217,27 +217,9 @@
         }
     }
 
-    /**
-     * Listing preview modals: shorten long descriptions on phones only.
-     */
-    .ui-rich-text-mobile-clamp {
-        @variant max-sm {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 6;
-            overflow: hidden;
-        }
-
-        @variant max-sm {
-            & > :is(p, ul, ol, blockquote) {
-                display: inline;
-            }
-
-            & > :is(p, ul, ol, blockquote):not(:last-child)::after {
-                content: '\A';
-                white-space: pre;
-            }
-        }
+    [data-ui$='-show-page-background'] {
+        height: 100vh;
+        height: 100lvh;
     }
 
     .ui-content-card {

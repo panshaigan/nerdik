@@ -33,6 +33,7 @@ final class ShowActivityPageBackgroundTest extends TestCase
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
 
         $this->assertStringContainsString('data-ui="activity-show-page-background"', $html);
+        $this->assertStringContainsString('h-lvh', $html);
         $this->assertStringContainsString('blur-md', $html);
         $this->assertStringContainsString('<picture', $html);
         $this->assertStringContainsString('type="image/webp"', $html);

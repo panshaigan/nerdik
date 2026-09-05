@@ -237,6 +237,7 @@
         'previewActivityParticipation' => $previewActivityParticipation ?? null,
         'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
         'showPreviewParticipationActions' => $showPreviewParticipationActions ?? false,
+        'showPreviewParticipationTab' => $showPreviewParticipationTab ?? false,
         'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
     ])
 

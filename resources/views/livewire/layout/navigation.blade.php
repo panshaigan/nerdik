@@ -103,7 +103,7 @@ new class extends Component
     >
         <x-slot:brand>
             <div class="flex">
-                <div class="flex shrink-0 items-center gap-3">
+                <div class="flex shrink-0 items-center">
                     <a
                         href="{{ $brandUrl }}"
                         wire:navigate

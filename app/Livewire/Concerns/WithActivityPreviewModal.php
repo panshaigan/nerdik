@@ -64,9 +64,10 @@ trait WithActivityPreviewModal
             ->with('slot.event.enrollmentWindows')
             ->whereKey($this->previewActivityId)
             ->first();
+        $signupService = app(EventActivitySignupService::class);
         if ($activity === null
             || ! $this->showPreviewParticipationActions($activity)
-            || ! $this->activityHasActiveEnrollmentWindow($activity, app(EventActivitySignupService::class))) {
+            || ! $this->previewParticipationSignupIsOpen($activity, $signupService)) {
             $this->activityPreviewTab = 'info';
         }
     }
@@ -147,6 +148,7 @@ trait WithActivityPreviewModal
      *     previewActivityParticipation: mixed,
      *     previewActivityHasActiveEnrollmentWindow: bool,
      *     showPreviewParticipationActions: bool,
+     *     showPreviewParticipationTab: bool,
      *     previewAbout: ?ActivityPreviewAboutViewData,
      *     previewActivityShowDetailsLink: bool,
      *     previewActivityIsOwner: bool,
@@ -168,6 +170,7 @@ trait WithActivityPreviewModal
         $previewActivityParticipation = null;
         $previewActivityHasActiveEnrollmentWindow = false;
         $showPreviewParticipationActions = false;
+        $showPreviewParticipationTab = false;
         $previewAbout = null;
         $previewActivityShowDetailsLink = false;
         $previewActivityIsOwner = false;
@@ -187,8 +190,11 @@ trait WithActivityPreviewModal
                 'tags.tagCategory',
             ]);
             $previewActivityHasActiveEnrollmentWindow = $this->activityHasActiveEnrollmentWindow($previewActivity, $signupService);
+            $showPreviewParticipationActions = $this->showPreviewParticipationActions($previewActivity);
+            $showPreviewParticipationTab = $showPreviewParticipationActions
+                && $this->previewParticipationSignupIsOpen($previewActivity, $signupService);
             if ($this->normalizeActivityPreviewTab($this->activityPreviewTab) === 'participation'
-                && $previewActivityHasActiveEnrollmentWindow) {
+                && $showPreviewParticipationTab) {
                 $previewActivity->loadMissing([
                     'participants.user.organization',
                     'waitlist.user.organization',
@@ -200,7 +206,6 @@ trait WithActivityPreviewModal
             );
             $user = auth()->user();
             $previewActivityParticipation = $participationView->forShow($previewActivity, $user);
-            $showPreviewParticipationActions = $this->showPreviewParticipationActions($previewActivity);
             $previewAbout = $aboutPresenter->build(
                 $previewActivity,
                 $this->useListingCardLocationInActivityPreview(),
@@ -220,6 +225,7 @@ trait WithActivityPreviewModal
             'previewActivityParticipation' => $previewActivityParticipation,
             'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow,
             'showPreviewParticipationActions' => $showPreviewParticipationActions,
+            'showPreviewParticipationTab' => $showPreviewParticipationTab,
             'previewAbout' => $previewAbout,
             'previewActivityShowDetailsLink' => $previewActivityShowDetailsLink,
             'previewActivityIsOwner' => $previewActivityIsOwner,
@@ -236,7 +242,7 @@ trait WithActivityPreviewModal
 
     protected function showPreviewParticipationActions(?Activity $activity): bool
     {
-        return false;
+        return $activity !== null && $activity->isJoinableMode();
     }
 
     protected function useListingCardLocationInActivityPreview(): bool
@@ -252,6 +258,15 @@ trait WithActivityPreviewModal
     protected function afterPreviewParticipationChanged(): void
     {
         //
+    }
+
+    private function previewParticipationSignupIsOpen(Activity $activity, EventActivitySignupService $signupService): bool
+    {
+        if ((int) $activity->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            return true;
+        }
+
+        return $this->activityHasActiveEnrollmentWindow($activity, $signupService);
     }
 
     private function activityHasActiveEnrollmentWindow(Activity $activity, EventActivitySignupService $signupService): bool

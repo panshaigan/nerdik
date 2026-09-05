@@ -6,6 +6,7 @@ use App\Enums\ParticipationMode;
 use App\Livewire\Browse\BrowseActivities;
 use App\Livewire\Dashboard\Dashboard;
 use App\Models\Activity;
+use App\Models\ActivityUser;
 use App\Models\City;
 use App\Models\CityTranslation;
 use App\Models\Country;
@@ -150,7 +151,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSee('Unique preview body for listing modal')
-            ->assertSeeHtml('ui-rich-text-mobile-clamp')
+            ->assertDontSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSee('Slot Alpha')
             ->assertSee('Preview Venue (Wroclaw)')
             ->assertDontSee('Preview Venue · Room B')
@@ -159,7 +160,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee(__('ui.activities.show_details'));
     }
 
-    public function test_listing_activity_preview_hides_participation_tab_and_join_actions(): void
+    public function test_listing_activity_preview_shows_participation_tab_when_enrollment_window_is_open(): void
     {
         $owner = User::factory()->create();
         $viewer = User::factory()->create();
@@ -196,9 +197,110 @@ class ListingCardActivityPreviewTest extends TestCase
             ->actingAs($viewer)
             ->test(BrowseActivities::class)
             ->call('openListingActivityPreview', $activity->id)
+            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertSeeHtml('wire:target="joinPreviewActivity"');
+    }
+
+    public function test_listing_activity_preview_hides_participation_tab_when_enrollment_window_is_closed(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 4,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addDay()->setTime(10, 0),
+            'ends_at' => now()->addDay()->setTime(12, 0),
+        ]);
+
+        EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subDays(2),
+            'ends_at' => now()->subDay(),
+            'max_activities_per_user' => 2,
+            'max_allowed_participants_per_activity' => 4,
+            'accumulative_activities' => false,
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseActivities::class)
+            ->call('openListingActivityPreview', $activity->id)
             ->assertDontSeeHtml('data-ui="event-activity-preview-tab-participation"')
-            ->assertDontSeeHtml('wire:target="joinPreviewActivity"')
-            ->assertDontSeeHtml('wire:target="leavePreviewActivity"');
+            ->assertDontSeeHtml('wire:target="joinPreviewActivity"');
+    }
+
+    public function test_listing_self_hosted_preview_shows_participation_tab_without_enrollment_window(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $startsAt = now()->addDay()->setTime(10, 0);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 4,
+            'starts_at' => $startsAt,
+            'ends_at' => (clone $startsAt)->addHours(2),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseActivities::class)
+            ->call('openListingActivityPreview', $activity->id)
+            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertSeeHtml('wire:target="joinPreviewActivity"');
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(Dashboard::class)
+            ->call('openListingActivityPreview', $activity->id)
+            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertSeeHtml('wire:target="joinPreviewActivity"');
+    }
+
+    public function test_listing_self_hosted_preview_join_updates_roster_count(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $startsAt = now()->addDay()->setTime(10, 0);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 4,
+            'starts_at' => $startsAt,
+            'ends_at' => (clone $startsAt)->addHours(2),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseActivities::class)
+            ->call('openListingActivityPreview', $activity->id)
+            ->call('joinPreviewActivity')
+            ->assertSet('activityPreviewTab', 'participation')
+            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertSee('1/4')
+            ->assertSeeHtml('wire:target="leavePreviewActivity"');
+
+        $this->assertTrue(ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $viewer->id)
+            ->exists());
     }
 
     public function test_dashboard_feed_opens_activity_preview_modal(): void
@@ -255,6 +357,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee('Draft preview body for owner modal')
             ->assertSee(__('ui.activities.edit_activity'))
             ->assertDontSee(__('ui.activities.show_details'))
+            ->assertDontSeeHtml('data-ui="event-activity-preview-tab-participation"')
             ->assertSeeHtml('activities/'.$activity->slug.'/edit');
     }
 

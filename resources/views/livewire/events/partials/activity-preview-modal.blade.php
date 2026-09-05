@@ -41,7 +41,7 @@
                     ])
                 </x-tab>
 
-                @if ($showPreviewParticipationActions && $previewActivityHasActiveEnrollmentWindow)
+                @if ($showPreviewParticipationTab ?? false)
                     <x-tab name="participation" :label="$previewParticipationLabel" class="!p-0" data-ui="event-activity-preview-tab-participation" icon="o-users">
                         @include('livewire.events.partials.activity-preview-participation-tab', [
                             'activity' => $previewActivity,
@@ -53,7 +53,7 @@
 
             <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="event-activity-preview-actions">
                 @auth
-                    @if ($showPreviewParticipationActions ?? false)
+                    @if ($showPreviewParticipationTab ?? false)
                         @if ($previewActivityParticipation?->isParticipant)
                             <x-button type="button" class="btn-error" wire:click="leavePreviewActivity" spinner="leavePreviewActivity">
                                 {{ __('ui.activities.leave') }}
