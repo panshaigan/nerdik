@@ -94,7 +94,7 @@ final class AppShellBackgroundTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="activity-show-page-background"', false);
-        $response->assertSee('fixed inset-0 z-0', false);
+        $response->assertSee('fixed inset-x-0 top-0 z-0 h-screen h-lvh', false);
         $response->assertDontSee('data-ui="app-shell-background"', false);
     }
 
@@ -111,7 +111,7 @@ final class AppShellBackgroundTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-ui="event-show-page-background"', false);
-        $response->assertSee('fixed inset-0 z-0', false);
+        $response->assertSee('fixed inset-x-0 top-0 z-0 h-screen h-lvh', false);
         $response->assertDontSee('data-ui="app-shell-background"', false);
     }
 }

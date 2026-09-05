@@ -49,8 +49,10 @@ class ListingCardEventPreviewTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(BrowseEvents::class)
-            ->assertSee(__('ui.events.confirmed_activities'))
-            ->assertSeeHtml('data-ui="event-card-confirmed-activities"');
+            ->assertSeeHtml('data-ui="event-card-confirmed-activities"')
+            ->assertSeeHtml('tooltip tooltip-primary')
+            ->assertSeeHtml('data-tip="'.e(__('ui.events.confirmed_activities')).'"')
+            ->assertSeeHtml('>1</span>');
     }
 
     public function test_listing_event_card_shows_enrollment_open_badge_when_window_is_active(): void
@@ -103,7 +105,7 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSet('previewEventId', $event->id)
             ->assertSee('Unique event preview body for listing modal')
-            ->assertSeeHtml('ui-rich-text-mobile-clamp')
+            ->assertDontSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'));
     }

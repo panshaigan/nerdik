@@ -120,18 +120,6 @@
                         </dd>
                     </div>
                 @endif
-                @if ($d->confirmedActivitiesCount !== null)
-                    <div class="flex gap-2" data-ui="{{ $d->dataUiPrefix }}-confirmed-activities">
-                        <dt class="sr-only">{{ __('ui.events.confirmed_activities') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-envelope" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
-                            <span class="min-w-0 leading-snug tabular-nums">
-                                <span class="font-medium text-neutral">{{ __('ui.events.confirmed_activities') }}:</span>
-                                {{ $d->confirmedActivitiesCount }}
-                            </span>
-                        </dd>
-                    </div>
-                @endif
                 @if ($d->showParticipants)
                     <div class="flex gap-2" data-ui="browse-card-participants">
                         <dt class="sr-only">{{ __('ui.browse.participants_count') }}</dt>

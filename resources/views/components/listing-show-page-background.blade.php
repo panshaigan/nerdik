@@ -4,7 +4,7 @@
 
 @teleport('body')
     <div
-        {{ $attributes->class('pointer-events-none fixed inset-0 z-0 overflow-hidden') }}
+        {{ $attributes->class('pointer-events-none fixed inset-x-0 top-0 z-0 h-screen h-lvh w-full overflow-hidden') }}
         aria-hidden="true"
         wire:ignore
     >
