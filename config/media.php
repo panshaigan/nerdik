@@ -158,6 +158,44 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Brand logo (static public assets)
+    |--------------------------------------------------------------------------
+    |
+    | Regenerate variants after changing the source WebP:
+    | php artisan app:generate-brand-logo
+    |
+    */
+    'brand_logo' => [
+        'source' => 'resources/brand/nerdik_brand_logo.webp',
+        'output_dir' => 'images/app/brand',
+        'widths' => [40, 48, 64, 80, 96, 128, 160, 192],
+        'quality' => 90,
+        'presets' => [
+            'nav' => [
+                'display_width' => 39,
+                'variant_width' => 40,
+                'retina_variant_width' => 80,
+            ],
+            'sm' => [
+                'display_width' => 43,
+                'variant_width' => 48,
+                'retina_variant_width' => 96,
+            ],
+            'md' => [
+                'display_width' => 86,
+                'variant_width' => 96,
+                'retina_variant_width' => 160,
+            ],
+            'admin' => [
+                'display_width' => 34,
+                'variant_width' => 40,
+                'retina_variant_width' => 64,
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Legacy sizes map (deprecated — use media.presets)
     |--------------------------------------------------------------------------
     */

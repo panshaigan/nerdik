@@ -28,7 +28,7 @@
         <div class="relative z-10 flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0">
             <div>
                 <a href="/" wire:navigate>
-                    <x-brand-logo class="h-20 w-20 text-base-content/60" />
+                    <x-brand-logo size="md" class="h-20 w-auto" />
                 </a>
             </div>
 
