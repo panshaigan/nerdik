@@ -69,10 +69,12 @@
                 class="ui-card-media-fade absolute inset-0 block size-full object-cover"
             />
             <div class="absolute left-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-row flex-wrap items-center gap-1">
-                <span
-                    class="shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
-                    data-ui="{{ $d->dataUiPrefix }}-kind-label"
-                >{{ $d->kindCornerLabel }}</span>
+                @if ($d->kindCornerLabel)
+                    <span
+                        class="shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
+                        data-ui="{{ $d->dataUiPrefix }}-kind-label"
+                    >{{ $d->kindCornerLabel }}</span>
+                @endif
                 @if ($d->hasActiveEnrollmentWindow)
                     <span
                         class="shrink-0 rounded-md border border-accent/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-accent/95"
@@ -102,7 +104,6 @@
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-neutral">{{ __('ui.browse.date_label') }}:</span>
                                 {{ $d->timeSummary }}
                             </span>
                         </dd>
@@ -114,7 +115,6 @@
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-neutral">{{ __('ui.browse.location_label') }}:</span>
                                 {{ $d->locationSummary }}
                             </span>
                         </dd>
@@ -138,7 +138,6 @@
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug tabular-nums">
-                                <span class="font-medium text-neutral">{{ __('ui.browse.participants_count') }}:</span>
                                 @if ($d->participantsMax !== null)
                                     {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
                                 @else
@@ -154,7 +153,6 @@
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-calendar-days" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
                             <span class="min-w-0 leading-snug">
-                                <span class="font-medium text-neutral">{{ __('ui.browse.parent_event') }}:</span>
                                 <a
                                     href="{{ $d->parentEventUrl }}"
                                     wire:navigate

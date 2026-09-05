@@ -358,7 +358,7 @@ return [
         'suggestions_loading' => 'Ładowanie podpowiedzi...',
         'suggestions_events' => 'Wydarzenia',
         'suggestions_activities' => 'Aktywności',
-        'map_view_toggle' => 'Filtr mapy',
+        'map_view_toggle' => 'Filtruj mapą',
         'map_clear_area' => 'Wyczyść filtr obszaru mapy',
         'map_country_listings' => ':count ogłoszeń',
         'map_popup_details' => 'Szczegóły',
