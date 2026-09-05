@@ -51,7 +51,7 @@ final class BrowseListingCardPresenter
             interestWireMethod: 'toggleActivityInterest',
             timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
             locationSummary: $place?->compactVenueSummary() ?? '',
-            kindCornerLabel: __('ui.browse.listing_kind_activity'),
+            kindCornerLabel: '',
             hostUser: $activity->creator,
             hostOrganization: null,
             parentEventName: $parentEvent !== null ? (string) $parentEvent->name : null,
