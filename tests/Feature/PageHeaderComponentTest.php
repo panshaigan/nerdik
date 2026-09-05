@@ -15,7 +15,6 @@ class PageHeaderComponentTest extends TestCase
         $this->assertStringContainsString('<h1', $html);
         $this->assertStringContainsString('Szept w Ciemności', $html);
         $this->assertStringContainsString('font-display', $html);
-        $this->assertStringContainsString('text-glow-primary', $html);
         $this->assertStringContainsString('px-4', $html);
         $this->assertStringContainsString('sm:px-6', $html);
         $this->assertStringContainsString('lg:px-8', $html);

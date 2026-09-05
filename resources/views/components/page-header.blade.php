@@ -15,7 +15,7 @@
 <div {{ $attributes->class(['px-4 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
-            <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-primary sm:text-4xl">
+            <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-base-100 sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     @if ($backUrl)
                         <a
