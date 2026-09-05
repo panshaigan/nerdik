@@ -548,12 +548,17 @@
             inset 0 18px 30px -26px color-mix(in oklab, var(--color-neutral-content) 22%, transparent);
     }
 
+    .ui-content-card:not(.ui-listing-card__surface) {
+        box-shadow:
+            inset 0 18px 30px -26px color-mix(in oklab, var(--color-neutral-content) 22%, transparent),
+            6px 8px 18px rgb(0 0 0 / 0.4);
+    }
+
     .ui-activity-show-info-panel {
         padding: 0.75rem 1rem;
     }
 
-    .ui-activity-show-info-panel::before,
-    .ui-content-card:not(.ui-listing-card__surface)::before {
+    .ui-activity-show-info-panel::before {
         content: '';
         position: absolute;
         inset: 0;
@@ -585,8 +590,7 @@
             inset 4px -10px 12px -13px color-mix(in oklab, var(--color-primary) 48%, transparent);
     }
 
-    .ui-activity-show-info-panel::after,
-    .ui-content-card:not(.ui-listing-card__surface)::after {
+    .ui-activity-show-info-panel::after {
         content: '';
         position: absolute;
         inset: -2px;
