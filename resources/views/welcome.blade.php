@@ -23,8 +23,8 @@
         <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
 
             <header class="flex items-center justify-between gap-4 pb-6">
-                <div class="flex items-center gap-3">
-                    <x-brand-logo class="h-10 w-10 text-base-content" />
+                <div class="flex items-center">
+                    <x-brand-logo size="sm" class="h-10 w-auto" />
                     <div>
                         <p class="font-display text-lg font-semibold">{{ config('app.name', 'nerdik') }}</p>
                         <!--p class="font-display text-sm opacity-70">{{ __('ui.welcome.tagline') }}</p-->

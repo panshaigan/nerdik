@@ -133,6 +133,9 @@ tags-seed-images:
 regenerate-backgrounds:
 	$(SAIL) artisan app:generate-shell-backgrounds
 
+regenerate-brand-logo:
+	$(SAIL) artisan app:generate-brand-logo
+
 regenerate-welcome-image:
 	$(SAIL) artisan cache:forget welcome.hero_tag_image
 

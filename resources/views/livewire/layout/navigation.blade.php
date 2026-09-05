@@ -110,7 +110,7 @@ new class extends Component
                         class="ui-nav-brand shrink-0"
                         aria-label="{{ config('app.name') }}"
                     >
-                        <x-brand-logo class="block h-9 w-auto shrink-0 text-base-content" />
+                        <x-brand-logo size="nav" class="block h-9 w-auto shrink-0" />
                     </a>
                     <a
                         href="{{ $brandUrl }}"
