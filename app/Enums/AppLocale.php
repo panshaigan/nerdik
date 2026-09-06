@@ -26,4 +26,12 @@ enum AppLocale: string
     {
         return self::tryFrom((string) $locale) ?? self::En;
     }
+
+    public function other(): self
+    {
+        return match ($this) {
+            self::En => self::Pl,
+            self::Pl => self::En,
+        };
+    }
 }
