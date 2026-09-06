@@ -9,7 +9,7 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=cinzel:400,500,600,700|figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <x-theme-script />
 
@@ -27,9 +27,7 @@
 
         <div class="relative z-10 flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0">
             <div>
-                <a href="/" wire:navigate>
-                    <x-brand-logo size="md" class="h-20 w-auto" />
-                </a>
+                <x-brand size="md" href="/" wire:navigate />
             </div>
 
             <div class="mt-6 w-full overflow-hidden rounded-lg border border-base-300 bg-base-100 px-6 py-4 shadow sm:max-w-md">

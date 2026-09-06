@@ -64,7 +64,6 @@ new class extends Component
     $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
 
     $brandUrl = auth()->check() ? route('dashboard') : url('/');
-    $brandActive = auth()->check() && request()->routeIs('dashboard');
 
     $pendingIncomingRequestCount = auth()->check()
         ? app(PendingIncomingUserRequestCounter::class)->displayCountFor(auth()->user())
@@ -104,21 +103,12 @@ new class extends Component
         <x-slot:brand>
             <div class="flex">
                 <div class="flex shrink-0 items-center">
-                    <a
-                        href="{{ $brandUrl }}"
+                    <x-brand
+                        size="nav"
+                        :href="$brandUrl"
                         wire:navigate
                         class="ui-nav-brand shrink-0"
-                        aria-label="{{ config('app.name') }}"
-                    >
-                        <x-brand-logo size="nav" class="block h-9 w-auto shrink-0" />
-                    </a>
-                    <a
-                        href="{{ $brandUrl }}"
-                        wire:navigate
-                        class="{{ $navLink($brandActive) }} ui-nav-brand-name text-base"
-                    >
-                        {{ config('app.name') }}
-                    </a>
+                    />
                 </div>
 
                 <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex">

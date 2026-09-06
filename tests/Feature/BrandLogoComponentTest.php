@@ -15,8 +15,9 @@ final class BrandLogoComponentTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('images/app/brand/192w.webp', false);
-        $response->assertSee('flex items-center justify-center', false);
-        $response->assertSee('alt="'.config('app.name').'"', false);
+        $response->assertSee('ui-brand', false);
+        $response->assertSee('ui-brand-name', false);
+        $response->assertSee(config('app.name'), false);
         $response->assertDontSee('images/app/nerdik_brand_logo.webp', false);
     }
 

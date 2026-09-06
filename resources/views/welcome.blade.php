@@ -29,9 +29,8 @@
             </header>
 
             <main class="flex-1 py-8">
-                <div class="flex items-center justify-center gap-4">
-                    <x-brand-logo size="xl" />
-                    <p class="font-display text-xl font-semibold">{{ config('app.name', 'nerdik') }}</p>
+                <div class="flex justify-center">
+                    <x-brand size="xl" />
                 </div>
 
                 @include('welcome.hero', [

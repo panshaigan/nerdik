@@ -44,10 +44,8 @@ class NavigationMenuTest extends TestCase
             $content,
         );
 
-        $this->assertMatchesRegularExpression(
-            '/href="'.$landingUrl.'"[^>]*class="[^"]*\bui-nav-brand-name\b/',
-            $content,
-        );
+        $this->assertStringContainsString('ui-brand-name', $content);
+        $this->assertStringContainsString((string) config('app.name'), $content);
 
         $response->assertDontSee('href="'.route('dashboard').'"', false);
     }
@@ -142,7 +140,8 @@ class NavigationMenuTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('ui-nav-brand-name', false)
+            ->assertSee('ui-nav-brand', false)
+            ->assertSee('ui-brand-name', false)
             ->assertSee(config('app.name'), false);
     }
 
