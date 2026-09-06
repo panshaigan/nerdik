@@ -54,7 +54,7 @@
         @endif
     @endauth
     @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
-        <div class="flex items-center justify-end gap-2 mb-4 sm:mb-0">
+        <div class="flex items-center justify-end gap-2 mb-4">
             @auth
                 @if ($canShowPlanActivityProposalUi ?? false)
                     <x-button

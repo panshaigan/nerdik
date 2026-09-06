@@ -455,10 +455,6 @@ class EventShowPlanTab extends Component
          * Exposed for {@see resources/views/livewire/events/partials/show-plan-tab.blade.php}.
          */
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
-        $canShowPlanActivityProposalUi = $user !== null
-            && ! $event->isCancelled()
-            && ($event->starts_at === null || now()->lt($event->starts_at))
-            && $activeEnrollmentWindow === null;
 
         $this->applyShowEmptySlotsPolicy($event, $user);
 
@@ -491,6 +487,11 @@ class EventShowPlanTab extends Component
         $hasEmptySlots = $event->slots->contains(
             fn (Slot $slot): bool => $slot->activity === null,
         );
+
+        $canShowPlanActivityProposalUi = $user !== null
+            && ! $event->isCancelled()
+            && ($event->starts_at === null || now()->lt($event->starts_at))
+            && ($activeEnrollmentWindow === null || $hasEmptySlots);
 
         $slotCardBadgeItemsByActivityId = [];
         $slotTypeBadgeItemsBySlotId = [];
@@ -573,14 +574,8 @@ class EventShowPlanTab extends Component
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
 
         return ! $canManageEvent
-            && (
-                ($event->starts_at !== null && now()->gte($event->starts_at))
-                || $event->enrollmentWindows->first(function ($w) {
-                    return $w->starts_at !== null
-                        && $w->ends_at !== null
-                        && now()->between($w->starts_at, $w->ends_at);
-                }) !== null
-            );
+            && $event->starts_at !== null
+            && now()->gte($event->starts_at);
     }
 
     private function applyShowEmptySlotsPolicy(Event $event, ?User $user): void
