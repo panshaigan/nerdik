@@ -67,7 +67,7 @@
                     </x-button>
                 @endif
             @endauth
-            @if ($hasEmptySlots)
+            @if ($hasEmptySlots && false)
                 <x-button
                     type="button"
                     wire:click="toggleShowEmptySlots"
