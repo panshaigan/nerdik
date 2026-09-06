@@ -63,6 +63,7 @@
 }
 
 #ui-browse-events-map .browse-map-listing-pin {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -80,6 +81,23 @@
     display: block;
     filter: drop-shadow(0 0 7px color-mix(in oklab, var(--color-accent, #a855f7) 52%, transparent))
         drop-shadow(0 0 2px color-mix(in oklab, var(--color-accent, #a855f7) 35%, transparent));
+}
+
+/* Activity count centered in the event pin head */
+#ui-browse-events-map .browse-map-listing-pin__count {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 1.1rem;
+    padding: 0 2px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #fff;
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 0 1px 1px rgb(0 0 0 / 55%);
 }
 
 /* Listing popup (Leaflet) */

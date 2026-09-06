@@ -288,6 +288,7 @@ class BrowseMapFeaturesTest extends TestCase
         $this->assertSame('Hosting Event For Map Click', $eventFeatures[0]['properties']['name']);
         $this->assertSame($event->slug, $eventFeatures[0]['properties']['slug']);
         $this->assertSame(route('events.show', ['event' => $event->slug]), $eventFeatures[0]['properties']['url']);
+        $this->assertSame(2, (int) ($eventFeatures[0]['properties']['activity_count'] ?? 0));
 
         $activityNames = array_values(array_filter(array_map(
             static fn (array $f): ?string => ($f['properties']['kind'] ?? null) === 'activity'
@@ -309,5 +310,42 @@ class BrowseMapFeaturesTest extends TestCase
         $this->assertContains((int) $selfHosted->id, $activityIds);
         $this->assertNotContains((int) $firstActivity->id, $activityIds);
         $this->assertNotContains((int) $secondActivity->id, $activityIds);
+    }
+
+    public function test_event_without_activities_reports_activity_count_of_one(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+
+        $place = Place::factory()->venue()->create([
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Empty Event Still Counts As One',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
+        $res = $this->getJson(route('search.map-features', [
+            'min_lat' => 51.0,
+            'max_lat' => 51.2,
+            'min_lng' => 16.9,
+            'max_lng' => 17.2,
+            'zoom' => 12,
+        ]));
+        $res->assertOk();
+
+        $eventFeatures = array_values(array_filter(
+            $res->json('features'),
+            static fn (array $f): bool => ($f['properties']['kind'] ?? null) === 'event'
+                && (int) ($f['properties']['id'] ?? 0) === (int) $event->id
+        ));
+        $this->assertCount(1, $eventFeatures);
+        $this->assertSame(1, (int) ($eventFeatures[0]['properties']['activity_count'] ?? 0));
     }
 }

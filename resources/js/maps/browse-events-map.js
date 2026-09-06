@@ -220,14 +220,21 @@ function escapeHtmlAttr(s) {
     return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function listingPinDivIcon(kind) {
+function listingPinDivIcon(kind, activityCount) {
     const variant = kind === 'activity' ? 'activity' : 'event';
 
     const pinSvg = `<svg class="browse-map-listing-pin__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 36" width="28" height="36" aria-hidden="true"><path fill="currentColor" d="M14 0C8.48 0 4 4.35 4 9.72c0 7.28 10 18.28 10 26.28 0-8 10-19 10-26.28C24 4.35 19.52 0 14 0Zm0 13.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Z"/></svg>`;
 
+    const count =
+        variant === 'event' ? Math.max(1, Number(activityCount) || 1) : null;
+    const countHtml =
+        count !== null
+            ? `<span class="browse-map-listing-pin__count">${escapeHtml(String(count))}</span>`
+            : '';
+
     return L.divIcon({
         className: `browse-map-listing-pin-root browse-map-listing-pin-root--${variant}`,
-        html: `<div class="browse-map-listing-pin browse-map-listing-pin--${variant}" role="presentation">${pinSvg}</div>`,
+        html: `<div class="browse-map-listing-pin browse-map-listing-pin--${variant}" role="presentation">${pinSvg}${countHtml}</div>`,
         iconSize: [28, 36],
         iconAnchor: [14, 36],
         popupAnchor: [0, -32],
@@ -303,8 +310,9 @@ function renderFeatures(map, layer, data, root) {
             layer.addLayer(m);
         } else {
             const kind = props.kind ? String(props.kind) : 'event';
+            const activityCount = props.activity_count;
             const popupHtml = buildListingPopupHtml(props, popupDetailsLabel);
-            L.marker([lat, lng], { icon: listingPinDivIcon(kind) })
+            L.marker([lat, lng], { icon: listingPinDivIcon(kind, activityCount) })
                 .addTo(layer)
                 .bindPopup(popupHtml, {
                     className: 'browse-map-listing-popup',
