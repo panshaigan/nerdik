@@ -53,6 +53,24 @@ class RegistrationTest extends TestCase
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
+    public function test_registration_defaults_timezone_to_europe_warsaw_when_empty(): void
+    {
+        Notification::fake();
+
+        Volt::test('pages.auth.register')
+            ->set('nickname', 'tz-default-user')
+            ->set('email', 'tz-default@example.com')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->set('timezone', '')
+            ->call('register')
+            ->assertRedirect(route('verification.notice', absolute: false));
+
+        $user = User::where('email', 'tz-default@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
+    }
+
     public function test_new_users_store_the_current_locale_on_register(): void
     {
         Notification::fake();

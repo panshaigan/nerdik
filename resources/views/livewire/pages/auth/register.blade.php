@@ -59,7 +59,7 @@ new #[Layout('layouts.guest')] class extends Component
         event(new Registered($user = User::create($validated)));
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id],
-            ['timezone' => ($validated['timezone'] ?? '') !== '' ? $validated['timezone'] : null]
+            ['timezone' => ($validated['timezone'] ?? '') !== '' ? $validated['timezone'] : default_profile_timezone()]
         );
 
         Auth::login($user);

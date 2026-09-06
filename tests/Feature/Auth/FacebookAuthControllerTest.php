@@ -304,6 +304,25 @@ class FacebookAuthControllerTest extends TestCase
     }
 
     #[Test]
+    public function callback_defaults_timezone_to_europe_warsaw_when_browser_cookie_missing(): void
+    {
+        Event::fake([Verified::class]);
+
+        $this->mockSocialiteWith($this->fakeFacebookUser(
+            id: '313131313',
+            email: 'tz-default-user@example.com',
+            name: 'TZ Default User',
+        ));
+
+        $response = $this->get(route('facebook.callback'));
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $user = User::where('email', 'tz-default-user@example.com')->firstOrFail();
+        $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
+    }
+
+    #[Test]
     public function callback_creates_a_new_user_with_suffixed_nickname_on_collision(): void
     {
         Event::fake([Verified::class]);
