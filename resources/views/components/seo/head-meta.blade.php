@@ -13,6 +13,9 @@
 <meta property="og:description" content="{{ $metadata->description }}">
 <meta property="og:url" content="{{ $metadata->canonical }}">
 <meta property="og:type" content="{{ $metadata->type }}">
+@if (filled(config('services.facebook.client_id')))
+    <meta property="fb:app_id" content="{{ config('services.facebook.client_id') }}">
+@endif
 @if ($metadata->image)
     <meta property="og:image" content="{{ $metadata->image }}">
     @if ($metadata->imageAlt)

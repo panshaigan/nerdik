@@ -37,6 +37,26 @@ class PublicSeoTest extends TestCase
         $response->assertSee('<link rel="apple-touch-icon" href="'.e(asset('apple-touch-icon.png')).'">', false);
     }
 
+    public function test_home_page_includes_fb_app_id_when_facebook_client_id_is_configured(): void
+    {
+        config(['services.facebook.client_id' => '123456789012345']);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('<meta property="fb:app_id" content="123456789012345">', false);
+    }
+
+    public function test_home_page_omits_fb_app_id_when_facebook_client_id_is_missing(): void
+    {
+        config(['services.facebook.client_id' => null]);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertDontSee('fb:app_id', false);
+    }
+
     public function test_favicon_assets_exist_in_the_public_directory(): void
     {
         $this->assertFileExists(public_path('favicon.ico'));
