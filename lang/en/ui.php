@@ -370,7 +370,6 @@ return [
         'tags_match_all' => 'Match All',
         'include_past_events' => 'Include past events/activities',
         'listing_kind_event' => 'Event',
-        'listing_kind_activity' => 'Activity',
         'parent_event' => 'Event',
         'no_events_or_activities' => 'No matching events or activities found.',
         'participants_count' => 'Participants',
