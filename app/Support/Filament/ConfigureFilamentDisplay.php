@@ -17,6 +17,7 @@ final class ConfigureFilamentDisplay
 
         Table::configureUsing(function (Table $table): void {
             $table
+                ->defaultPaginationPageOption(50)
                 ->defaultDateTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('M j, Y H:i:s'))
                 ->defaultTimeDisplayFormat(fn (): string => apply_display_time_format_to_php('H:i:s'));
         });
