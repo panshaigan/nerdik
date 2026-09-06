@@ -1,9 +1,5 @@
 @php
     use App\Support\Browse\BrowseSearchState;
-
-    $localeLink = fn (bool $active): string => $active
-        ? 'ui-nav-locale is-active font-display border-b-2 border-primary text-base-content'
-        : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
 @endphp
 
 <nav
@@ -31,20 +27,7 @@
     class="ui-app-navigation -mx-3 flex flex-1 items-center justify-end"
 >
     <div class="hidden items-center gap-2 sm:flex">
-        <a
-            wire:navigate
-            x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
-            class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'en') }}"
-        >
-            {{ __('ui.common.language_en') }}
-        </a>
-        <a
-            wire:navigate
-            x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
-            class="btn btn-ghost btn-sm {{ $localeLink(app()->getLocale() === 'pl') }}"
-        >
-            {{ __('ui.common.language_pl') }}
-        </a>
+        <x-locale-toggle />
         <x-theme-toggle class="btn btn-circle btn-ghost"/>
 
         @auth
@@ -138,24 +121,7 @@
                             {{ __('ui.nav.preferences') }}
                         </p>
                         <div class="flex flex-wrap items-center gap-2">
-                            <div class="join">
-                                <a
-                                    wire:navigate
-                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'en']) }}')"
-                                    @click="close()"
-                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'en' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
-                                >
-                                    {{ __('ui.common.language_en') }}
-                                </a>
-                                <a
-                                    wire:navigate
-                                    x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => 'pl']) }}')"
-                                    @click="close()"
-                                    class="join-item btn btn-sm font-display {{ app()->getLocale() === 'pl' ? 'border-b-2 border-primary bg-transparent text-base-content shadow-none ui-nav-locale is-active' : 'btn-ghost ui-nav-locale' }}"
-                                >
-                                    {{ __('ui.common.language_pl') }}
-                                </a>
-                            </div>
+                            <x-locale-toggle @click="close()" />
                             <x-theme-toggle class="btn btn-ghost btn-sm" />
                         </div>
                     </div>

@@ -345,21 +345,21 @@
                             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/70">
                                 @if ($group['boundary'] === 'event_start')
                                     <x-ui.hr
+                                        color="neutral"
                                         text="{{ __('ui.events.event_boundary_starts') }}"
                                         left-edge-icon="s-chevron-right"
                                         right-edge-icon="s-chevron-left"
-                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-neutral"
-                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-neutral"
-                                        leftLineClass="bg-gradient-to-r from-transparent via-neutral/75 to-neutral/25"
-                                        rightLineClass="bg-gradient-to-l from-transparent via-neutral/75 to-neutral/25"
+                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4"
+                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4"
                                     />
                                 @else
                                     <x-ui.hr
+                                        color="neutral"
                                         text="{{ __('ui.events.event_boundary_ends') }}"
                                         left-edge-icon="s-chevron-right"
                                         right-edge-icon="s-chevron-left"
-                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4 text-neutral"
-                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4 text-neutral"
+                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4"
+                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4"
                                     />
                                 @endif
                             </p>

@@ -39,6 +39,7 @@ return [
         'deleted_user' => 'Deleted user',
         'language_en' => 'EN',
         'language_pl' => 'PL',
+        'switch_language' => 'Switch language to :language',
         'edit' => 'Edit',
         'delete' => 'Delete',
         'remove' => 'Remove',

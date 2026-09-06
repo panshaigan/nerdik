@@ -39,6 +39,7 @@ return [
         'deleted_user' => 'Usunięty użytkownik',
         'language_en' => 'EN',
         'language_pl' => 'PL',
+        'switch_language' => 'Zmień język na :language',
         'edit' => 'Edytuj',
         'delete' => 'Usuń',
         'remove' => 'Usuń',

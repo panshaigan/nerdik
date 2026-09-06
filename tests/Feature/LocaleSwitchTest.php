@@ -70,14 +70,27 @@ class LocaleSwitchTest extends TestCase
         $this->assertSame(0, User::query()->where('locale', AppLocale::Pl->value)->count());
     }
 
-    public function test_navigation_locale_links_use_wire_navigate_instead_of_full_reload(): void
+    public function test_navigation_locale_toggle_uses_wire_navigate_and_targets_other_locale(): void
     {
+        app()->setLocale('en');
+
         Volt::test('layout.navigation')
             ->assertSee('wire:navigate', false)
             ->assertSee('localeSwitchUrl(', false)
+            ->assertSee(route('locale.switch', ['locale' => 'pl']), false)
+            ->assertDontSee(route('locale.switch', ['locale' => 'en']), false)
             ->assertDontSee(
                 "window.location.href = '".route('locale.switch', ['locale' => 'en'])."'",
                 false,
             );
+    }
+
+    public function test_navigation_locale_toggle_targets_english_when_polish_is_active(): void
+    {
+        app()->setLocale('pl');
+
+        Volt::test('layout.navigation')
+            ->assertSee(route('locale.switch', ['locale' => 'en']), false)
+            ->assertDontSee(route('locale.switch', ['locale' => 'pl']), false);
     }
 }
