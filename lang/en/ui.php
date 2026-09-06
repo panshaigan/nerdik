@@ -83,7 +83,7 @@ return [
     'welcome' => [
         'tagline' => 'Tagline placeholder',
         'heading' => 'For players and event organizers',
-        'hero_title' => 'Discover nerdy activities near you, or create your own events',
+        'hero_title' => 'Discover nerdy activities near you, or create your own',
         'hero_description' => 'nerdik makes it easy to organize and sign up for activities like TTRPG sessions, board games, and lectures. Find other nerds nearby, meet up, and play in person!',
         'continue_journey' => 'Continue your journey',
         'browse_everything' => 'Browse everything',

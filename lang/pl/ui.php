@@ -83,7 +83,7 @@ return [
     'welcome' => [
         'tagline' => 'Tagline placeholder',
         'heading' => 'Dla graczy i organizatorów',
-        'hero_title' => 'Dołączaj do spotkań w okolicy lub twórz własne wydarzenia',
+        'hero_title' => 'Dołączaj do spotkań w okolicy lub twórz własne',
         'hero_description' => 'nerdik ułatwia organizowanie i zapisy na aktywności takie jak sesje RPG, planszówki i wykłady. Znajdź innych nerdów w pobliżu, spotkaj się i graj na żywo!',
         'continue_journey' => 'Kontynuuj swoją podróż',
         'browse_everything' => 'Przeglądaj wszystko',
@@ -101,7 +101,7 @@ return [
         'problem_3' => 'Gracze szukają wolnych miejsc, bez jasnego obrazu wydarzeń w okolicy.',
         'solution_heading' => 'Jak pomaga nerdik',
         'solution_1' => 'Jedna mapa i kalendarz publicznych wydarzeń i aktywności.',
-        'solution_2' => 'Wydarzenia ze slotami, miejscami i programem, który da się utrzymać.',
+        'solution_2' => 'Wygodne wydarzenia z obsługą zapisów, programem i powiadomieniami.',
         'solution_3' => 'Zapisy, listy oczekujących i obserwowanie wydarzeń - mniej pracy przy koordynacji.',
         'features_heading' => 'Wszystko, czego potrzebuje Twoja społeczność',
         'features_subheading' => 'Odpowiednie narzędzia do wyszukiwania, prowadzenia i koordynacji.',
