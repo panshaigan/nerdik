@@ -11,6 +11,12 @@ use RuntimeException;
 final class BrandLogoSources
 {
     /**
+     * Wordmark font-size as a fraction of logo display height.
+     * Slightly above half so the name reads as a lockup, not a caption.
+     */
+    private const WORDMARK_FONT_SIZE_RATIO = 0.7;
+
+    /**
      * @param  array<string, list<array{width: int, path: string, bytes: int}>>  $variants
      */
     private function __construct(
@@ -44,7 +50,7 @@ final class BrandLogoSources
     }
 
     /**
-     * @return array{src: string, srcset: string, width: int, height: int}
+     * @return array{src: string, srcset: string, width: int, height: int, wordmark_font_size: int}
      */
     public function forPreset(string $preset): array
     {
@@ -69,7 +75,16 @@ final class BrandLogoSources
             'srcset' => "{$src} 1x, {$retinaSrc} 2x",
             'width' => $displayWidth,
             'height' => $displayHeight,
+            'wordmark_font_size' => self::wordmarkFontSizeForHeight($displayHeight),
         ];
+    }
+
+    public static function wordmarkFontSizeForHeight(int $displayHeight): int
+    {
+        $halfHeight = (int) ceil($displayHeight / 2);
+        $preferredSize = (int) round($displayHeight * self::WORDMARK_FONT_SIZE_RATIO);
+
+        return max(1, $halfHeight, $preferredSize);
     }
 
     public function intrinsicWidth(): int
