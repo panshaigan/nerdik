@@ -87,6 +87,14 @@ return [
         ],
     ],
 
+    'outline_by_tag_category' => [
+        TagCategory::KEY_TRIGGER => false,
+    ],
+
+    'outline_by_kind' => [
+        'minimum_age' => false,
+    ],
+
     'semantic_by_tag_category' => [
         TagCategory::KEY_GAME => 'neutral',   // was primary
         TagCategory::KEY_GENRE => 'neutral',   // was primary

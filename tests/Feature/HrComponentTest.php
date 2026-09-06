@@ -52,8 +52,21 @@ class HrComponentTest extends TestCase
     {
         $html = Blade::render('<x-ui.hr show-end-glow />');
 
-        $this->assertStringContainsString('rounded-full bg-primary', $html);
+        $this->assertStringContainsString('rounded-full bg-base-100', $html);
         $this->assertStringContainsString('right-[22%]', $html);
-        $this->assertStringContainsString('shadow-[0_0_8px_theme(colors.primary)]', $html);
+        $this->assertStringContainsString('shadow-[0_0_12px_theme(colors.neutral/.80)]', $html);
+    }
+
+    public function test_hr_applies_neutral_glow_shadow_to_lines_and_edge_icons(): void
+    {
+        $html = Blade::render('<x-ui.hr />');
+
+        $this->assertStringContainsString('overflow-visible', $html);
+        $this->assertStringContainsString('drop-shadow-[0_0_12px_theme(colors.neutral/.80)]', $html);
+        $this->assertGreaterThanOrEqual(
+            4,
+            substr_count($html, 'drop-shadow-[0_0_12px_theme(colors.neutral/.80)]'),
+            'Lines, line glow, and edge icons should share the center neutral glow.',
+        );
     }
 }

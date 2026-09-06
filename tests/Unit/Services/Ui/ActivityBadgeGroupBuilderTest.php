@@ -299,4 +299,67 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $label = $this->builder->tagLabel($tag, 'en');
         $this->assertSame('#'.$tag->id, $label);
     }
+
+    #[Test]
+    public function trigger_taxonomy_tags_use_filled_badges_while_other_tags_stay_outline(): void
+    {
+        $game = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $trigger = TagCategory::factory()->create(['key' => TagCategory::KEY_TRIGGER]);
+        $gameTag = Tag::factory()->create(['tag_category_id' => $game->id]);
+        TagTranslation::factory()->create(['tag_id' => $gameTag->id, 'locale' => 'en', 'label' => 'Alpha']);
+        $triggerTag = Tag::factory()->create(['tag_category_id' => $trigger->id]);
+        TagTranslation::factory()->create(['tag_id' => $triggerTag->id, 'locale' => 'en', 'label' => 'Violence']);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
+        $activity->tags()->attach([$gameTag->id, $triggerTag->id]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+
+        $gameItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Alpha');
+        $triggerItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->label === 'Violence');
+
+        $this->assertNotNull($gameItem);
+        $this->assertNotNull($triggerItem);
+        $this->assertTrue($gameItem->outline);
+        $this->assertFalse($triggerItem->outline);
+    }
+
+    #[Test]
+    public function minimum_age_badge_uses_filled_variant(): void
+    {
+        $activity = Activity::factory()->create([
+            'minimum_age' => 18,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNotNull($ageItem);
+        $this->assertSame('18+', $ageItem->label);
+        $this->assertFalse($ageItem->outline);
+        $this->assertStringNotContainsString('badge-outline', $ageItem->semantic->badgeClasses($ageItem->outline));
+    }
+
+    #[Test]
+    public function taxonomy_outline_can_be_overridden_via_config(): void
+    {
+        Config::set('activity-badges.outline_by_tag_category.game', false);
+
+        $game = TagCategory::factory()->create(['key' => 'game']);
+        $tag = Tag::factory()->create(['tag_category_id' => $game->id]);
+        TagTranslation::factory()->create(['tag_id' => $tag->id, 'locale' => 'en', 'label' => 'Beta']);
+        $activity = Activity::factory()->create(['minimum_age' => null, 'participation_mode' => ParticipationMode::Open, 'allows_observers' => false]);
+        $activity->tags()->attach([$tag->id]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $tagItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::TaxonomyTag);
+
+        $this->assertNotNull($tagItem);
+        $this->assertFalse($tagItem->outline);
+    }
 }

@@ -893,14 +893,17 @@
 
     /** Shared taxonomy / activity badge chips (listing cards, show pages, previews). */
     .ui-activity-badge-tags .badge {
-        border-width: 1px;
-        border-color: color-mix(in oklch, var(--brand-info) 45%, transparent);
-        background-color: color-mix(in oklab, var(--brand-base-100-dark) 88%, black);
-        color: color-mix(in oklab, var(--color-base-content) 88%, white);
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: none;
         letter-spacing: 0.01em;
+    }
+
+    .ui-activity-badge-tags .badge.badge-outline {
+        border-width: 1px;
+        border-color: color-mix(in oklch, var(--brand-info) 45%, transparent);
+        background-color: color-mix(in oklab, var(--brand-base-100-dark) 88%, black);
+        color: color-mix(in oklab, var(--color-base-content) 88%, white);
 
         @variant light {
             border-color: color-mix(in oklch, var(--brand-primary) 40%, transparent);

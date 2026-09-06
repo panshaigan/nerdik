@@ -60,9 +60,6 @@
         show-end-glow
         :class="trim(''.$hrClass)"
         wrapper-class="mt-3 flex items-center gap-2"
-        edge-icon-class="size-3 text-primary/80"
-        line-glow-class="pointer-events-none absolute left-1/2 top-1/2 h-3 w-32 -translate-x-1/2 -translate-y-1/2 bg-primary/55 blur-lg"
-        center-class="grid place-items-center rounded-full border border-primary/60 bg-base-100/70 text-primary box-glow-primary"
         center-size-class="size-9"
     />
 </div>
