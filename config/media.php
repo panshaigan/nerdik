@@ -186,6 +186,16 @@ return [
                 'variant_width' => 96,
                 'retina_variant_width' => 160,
             ],
+            'lg' => [
+                'display_width' => 128,
+                'variant_width' => 128,
+                'retina_variant_width' => 192,
+            ],
+            'xl' => [
+                'display_width' => 172,
+                'variant_width' => 192,
+                'retina_variant_width' => 192,
+            ],
             'admin' => [
                 'display_width' => 34,
                 'variant_width' => 40,
