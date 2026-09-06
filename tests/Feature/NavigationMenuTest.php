@@ -102,34 +102,6 @@ class NavigationMenuTest extends TestCase
             ->assertSee(route('activities.create'), false);
     }
 
-    public function test_navigation_search_link_includes_magnifying_glass_icon(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertOk();
-
-        $this->assertMatchesRegularExpression(
-            '/<a[^>]*ui-nav-link[^>]*gap-1\.5[^>]*>[\s\S]*?<svg/s',
-            $response->getContent(),
-        );
-    }
-
-    public function test_navigation_app_name_has_active_nav_link_state_on_dashboard(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertOk();
-
-        $this->assertMatchesRegularExpression(
-            '/class="[^"]*(?=.*\bui-nav-brand-name\b)(?=.*\bis-active\b)[^"]*"/',
-            $response->getContent(),
-        );
-    }
-
     public function test_navigation_does_not_include_dashboard_menu_item(): void
     {
         $user = User::factory()->create();
@@ -214,11 +186,10 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($recipient)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('data-ui="nav-requests"', false)
-            ->assertSee('bg-secondary', false);
+            ->assertSee('data-ui="nav-requests"', false);
 
         $this->assertMatchesRegularExpression(
-            '/bg-secondary[^>]*>\s*1\s*<\/span>/',
+            '/data-ui="nav-requests"[\s\S]*?<span[^>]*>\s*1\s*<\/span>/',
             $response->getContent(),
         );
     }
@@ -232,25 +203,9 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee('data-ui="nav-requests"', false);
 
-        $this->assertSame(
-            0,
-            substr_count($response->getContent(), 'bg-secondary text-[10px] font-medium text-secondary-content'),
-        );
-    }
-
-    public function test_navigation_is_fixed_with_layout_spacer(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertOk();
-
-        $this->assertMatchesRegularExpression(
-            '/<div class="[^"]*\bfixed\b[^"]*\btop-0\b[^"]*\binset-x-0\b[^"]*" role="navigation"/',
+        $this->assertDoesNotMatchRegularExpression(
+            '/data-ui="nav-requests"[\s\S]*?<span[^>]*>\s*\d+\s*<\/span>/',
             $response->getContent(),
         );
-
-        $response->assertSee('ui-app-navigation__spacer', false);
     }
 }

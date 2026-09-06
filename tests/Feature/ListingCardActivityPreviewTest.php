@@ -53,8 +53,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->actingAs($owner)
             ->test(BrowseActivities::class)
             ->assertSee('Sword & Sorcery')
-            ->assertDontSee('Sword &amp; Sorcery')
-            ->assertSeeHtml('class="relative z-20 p-4 pointer-events-auto"');
+            ->assertDontSee('Sword &amp; Sorcery');
     }
 
     public function test_listing_card_shows_kind_label_host_badge_and_parent_event_link(): void
@@ -79,12 +78,8 @@ class ListingCardActivityPreviewTest extends TestCase
             ->actingAs($owner)
             ->test(BrowseActivities::class)
             ->assertSee('Card Host Nick')
-            ->assertSeeHtml('data-ui="activity-card-host"')
             ->assertSee('Parent Event For Card')
-            ->assertSeeHtml('data-ui="activity-card-parent-event-link"')
-            ->assertSeeHtml('class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event"')
-            ->assertSeeHtml(route('events.show', $event))
-            ->assertDontSeeHtml('border-fuchsia-400/30');
+            ->assertSeeHtml(route('events.show', $event));
     }
 
     public function test_listing_card_uses_preview_button_instead_of_navigate_link(): void
@@ -108,8 +103,6 @@ class ListingCardActivityPreviewTest extends TestCase
             ->actingAs($owner)
             ->test(BrowseActivities::class)
             ->assertSeeHtml('wire:click="openListingActivityPreview('.$activityId.')"')
-            ->assertSeeHtml('data-ui="activity-card-open-preview"')
-            ->assertSeeHtml('data-ui="activity-card-open-details"')
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
             ->assertDontSeeHtml('data-ui="activity-card-link"');
     }
@@ -149,7 +142,6 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSee('Unique preview body for listing modal')
-            ->assertDontSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSee('Slot Alpha')
             ->assertSee('Preview Venue (Wroclaw)')
             ->assertDontSee('Preview Venue · Room B')

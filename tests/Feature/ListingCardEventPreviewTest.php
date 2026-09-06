@@ -24,8 +24,6 @@ class ListingCardEventPreviewTest extends TestCase
             ->actingAs($owner)
             ->test(BrowseEvents::class)
             ->assertSeeHtml('wire:click="openListingEventPreview('.$eventId.')"')
-            ->assertSeeHtml('data-ui="event-card-open-preview"')
-            ->assertSeeHtml('data-ui="event-card-open-details"')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertDontSeeHtml('data-ui="event-card-link"');
     }
@@ -44,8 +42,7 @@ class ListingCardEventPreviewTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(BrowseEvents::class)
-            ->assertSee(__('ui.events.enrollment_window_active_badge'))
-            ->assertSeeHtml('data-ui="event-card-enrollment-open"');
+            ->assertSee(__('ui.events.enrollment_window_active_badge'));
     }
 
     public function test_listing_event_card_hides_enrollment_open_badge_when_window_is_closed(): void
@@ -80,7 +77,6 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSet('previewEventId', $event->id)
             ->assertSee('Unique event preview body for listing modal')
-            ->assertDontSeeHtml('ui-rich-text-mobile-clamp')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'));
     }

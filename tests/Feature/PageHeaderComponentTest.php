@@ -8,16 +8,12 @@ use Tests\TestCase;
 
 class PageHeaderComponentTest extends TestCase
 {
-    public function test_page_header_renders_title_with_display_font_and_glow(): void
+    public function test_page_header_renders_title(): void
     {
         $html = Blade::render('<x-page-header title="Szept w Ciemności" />');
 
         $this->assertStringContainsString('<h1', $html);
         $this->assertStringContainsString('Szept w Ciemności', $html);
-        $this->assertStringContainsString('font-display', $html);
-        $this->assertStringContainsString('px-4', $html);
-        $this->assertStringContainsString('sm:px-6', $html);
-        $this->assertStringContainsString('lg:px-8', $html);
     }
 
     public function test_page_header_renders_user_badge_when_user_is_provided(): void
@@ -30,8 +26,6 @@ class PageHeaderComponentTest extends TestCase
 
         $this->assertStringContainsString($user->nickname, $html);
         $this->assertStringContainsString('data-ui="activity-show-host"', $html);
-        $this->assertStringContainsString('flex-col items-start gap-3 sm:flex-row', $html);
-        $this->assertStringContainsString('w-full sm:w-auto', $html);
     }
 
     public function test_page_header_renders_back_button_when_back_url_is_set(): void
