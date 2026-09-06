@@ -55,7 +55,7 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-3 gap-3 px-4 pb-5 sm:px-6 sm:pb-6 lg:px-8">
+    <div class="grid grid-cols-3 gap-3 px-4 sm:px-6 lg:px-8">
         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_activities') }}"
