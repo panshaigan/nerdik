@@ -309,7 +309,7 @@ final class BrowseMapFeatures
     }
 
     /**
-     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}>
+     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed, activity_count?: int}>
      */
     public static function listingRows(BrowseListingFilterBag $bag): Collection
     {
@@ -320,17 +320,9 @@ final class BrowseMapFeatures
             $q->select('events.id', 'events.name', 'events.slug');
             $q->selectRaw('(SELECT AVG(places.latitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lat');
             $q->selectRaw('(SELECT AVG(places.longitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lng');
+            $q->selectRaw('('.self::eventActivityCountSubquerySql().') as activity_count');
             $q->limit(self::MAX_ROWS_PER_KIND);
-            $out = $out->merge($q->get()->map(function ($row) {
-                return (object) [
-                    'id' => $row->id,
-                    'kind' => 'event',
-                    'name' => $row->name,
-                    'slug' => $row->slug,
-                    'rep_lat' => $row->rep_lat,
-                    'rep_lng' => $row->rep_lng,
-                ];
-            }));
+            $out = $out->merge($q->get()->map(fn ($row) => self::mapEventListingRow($row)));
         }
 
         if (! $bag->onlyEvents) {
@@ -350,7 +342,7 @@ final class BrowseMapFeatures
     }
 
     /**
-     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}>
+     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed, activity_count?: int}>
      */
     private static function selfHostedActivityListingRows(BrowseListingFilterBag $bag): Collection
     {
@@ -376,7 +368,7 @@ final class BrowseMapFeatures
     /**
      * Map scheduled-on-event activities to their hosting event for map pins/popups.
      *
-     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}>
+     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed, activity_count: int}>
      */
     private static function scheduledActivityAsEventListingRows(BrowseListingFilterBag $bag): Collection
     {
@@ -395,19 +387,45 @@ final class BrowseMapFeatures
             ->select('events.id', 'events.name', 'events.slug')
             ->selectRaw('(SELECT AVG(places.latitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lat')
             ->selectRaw('(SELECT AVG(places.longitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lng')
+            ->selectRaw('('.self::eventActivityCountSubquerySql().') as activity_count')
             ->groupBy('events.id', 'events.name', 'events.slug')
             ->limit(self::MAX_ROWS_PER_KIND);
 
-        return $q->get()->map(function ($row) {
-            return (object) [
-                'id' => $row->id,
-                'kind' => 'event',
-                'name' => $row->name,
-                'slug' => $row->slug,
-                'rep_lat' => $row->rep_lat,
-                'rep_lng' => $row->rep_lng,
-            ];
-        });
+        return $q->get()->map(fn ($row) => self::mapEventListingRow($row));
+    }
+
+    /**
+     * Non-cancelled activities scheduled on the event (via slots).
+     */
+    private static function eventActivityCountSubquerySql(): string
+    {
+        return 'SELECT COUNT(DISTINCT activities.id)
+            FROM slots
+            INNER JOIN activities ON activities.id = slots.activity_id
+            WHERE slots.event_id = events.id
+              AND slots.activity_id IS NOT NULL
+              AND activities.cancelled_at IS NULL';
+    }
+
+    /**
+     * @param  object{id: mixed, name: mixed, slug: mixed, rep_lat: mixed, rep_lng: mixed, activity_count?: mixed}  $row
+     * @return object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed, activity_count: int}
+     */
+    private static function mapEventListingRow(object $row): object
+    {
+        $rawCount = isset($row->activity_count) && is_numeric($row->activity_count)
+            ? (int) $row->activity_count
+            : 0;
+
+        return (object) [
+            'id' => $row->id,
+            'kind' => 'event',
+            'name' => $row->name,
+            'slug' => $row->slug,
+            'rep_lat' => $row->rep_lat,
+            'rep_lng' => $row->rep_lng,
+            'activity_count' => max(1, $rawCount),
+        ];
     }
 
     private static function gridFactor(int $zoom): float
@@ -422,7 +440,7 @@ final class BrowseMapFeatures
     }
 
     /**
-     * @param  object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}  $r
+     * @param  object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed, activity_count?: int}  $r
      * @return array<string, mixed>
      */
     private static function pointFeature(object $r): array
@@ -433,20 +451,26 @@ final class BrowseMapFeatures
             ? route('events.show', ['event' => $r->slug])
             : route('activities.show', ['activity' => $r->slug]);
 
+        $properties = [
+            'cluster' => false,
+            'kind' => $r->kind,
+            'id' => (int) $r->id,
+            'name' => (string) $r->name,
+            'slug' => (string) $r->slug,
+            'url' => $url,
+        ];
+
+        if ($r->kind === 'event') {
+            $properties['activity_count'] = max(1, (int) ($r->activity_count ?? 1));
+        }
+
         return [
             'type' => 'Feature',
             'geometry' => [
                 'type' => 'Point',
                 'coordinates' => [$lng, $lat],
             ],
-            'properties' => [
-                'cluster' => false,
-                'kind' => $r->kind,
-                'id' => (int) $r->id,
-                'name' => (string) $r->name,
-                'slug' => (string) $r->slug,
-                'url' => $url,
-            ],
+            'properties' => $properties,
         ];
     }
 
