@@ -2,12 +2,6 @@
 
 namespace App\Providers;
 
-use App\Listeners\BackfillMediaDimensions;
-use App\Listeners\CaptureSentEmailContext;
-use App\Listeners\LogSentEmail;
-use App\Listeners\NotifyUserAvatarReady;
-use App\Listeners\RecordNotificationDispatchThrottle;
-use App\Listeners\RefreshUserAvatarCache;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
@@ -26,14 +20,10 @@ use App\View\Components\Editor;
 use App\View\Components\ThemeToggle;
 use App\View\Composers\SeoComposer;
 use Carbon\Carbon;
-use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
-use Illuminate\Mail\Events\MessageSent;
-use Illuminate\Notifications\Events\NotificationSending;
-use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event as EventFacade;
 use Illuminate\Support\Facades\Gate;
@@ -47,8 +37,6 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use SocialiteProviders\Discord\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
-use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
-use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -132,12 +120,8 @@ class AppServiceProvider extends ServiceProvider
             return $user !== null && $user->canModifyEntity($entity);
         });
 
-        EventFacade::listen(NotificationSending::class, CaptureSentEmailContext::class);
-        EventFacade::listen(MessageSent::class, LogSentEmail::class);
-        EventFacade::listen(NotificationSent::class, RecordNotificationDispatchThrottle::class);
-        EventFacade::listen(Login::class, RefreshUserAvatarCache::class);
-        EventFacade::listen(MediaHasBeenAddedEvent::class, BackfillMediaDimensions::class);
-        EventFacade::listen(ConversionHasBeenCompletedEvent::class, NotifyUserAvatarReady::class);
+        // Listeners under app/Listeners are auto-discovered via handle() type-hints.
+        // Do not also Event::listen() them here — that double-fires (e.g. LogSentEmail).
         EventFacade::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('discord', Provider::class);
         });
