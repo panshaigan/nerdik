@@ -202,6 +202,8 @@ class BrowseOnlyFreePlacesFilterTest extends TestCase
     public function test_map_features_excludes_full_activities_when_filter_is_enabled(): void
     {
         $ctx = $this->upcomingScheduledContext();
+        $ctx['event']->update(['name' => 'Map Free Places Hosting Event']);
+
         $fullActivity = $this->scheduledActivity(
             $ctx['owner'],
             $ctx['event'],
@@ -210,7 +212,7 @@ class BrowseOnlyFreePlacesFilterTest extends TestCase
             'Map Free Places Full Activity',
             maxParticipants: 1,
         );
-        $openActivity = $this->scheduledActivity(
+        $this->scheduledActivity(
             $ctx['owner'],
             $ctx['event'],
             $ctx['startsAt'],
@@ -236,13 +238,23 @@ class BrowseOnlyFreePlacesFilterTest extends TestCase
         ]));
 
         $res->assertOk();
-        $names = collect($res->json('features'))
+        $features = collect($res->json('features'));
+        $names = $features
             ->pluck('properties.name')
             ->filter()
             ->values()
             ->all();
 
-        $this->assertContains('Map Free Places Open Activity', $names);
+        // Scheduled activities resolve to the hosting event on the map.
+        $this->assertContains('Map Free Places Hosting Event', $names);
+        $this->assertNotContains('Map Free Places Open Activity', $names);
         $this->assertNotContains('Map Free Places Full Activity', $names);
+
+        $eventFeature = $features->first(
+            fn (array $f): bool => ($f['properties']['kind'] ?? null) === 'event'
+                && (int) ($f['properties']['id'] ?? 0) === (int) $ctx['event']->id
+        );
+        $this->assertNotNull($eventFeature);
+        $this->assertSame(2, (int) ($eventFeature['properties']['activity_count'] ?? 0));
     }
 }

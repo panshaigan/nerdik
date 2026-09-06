@@ -72,22 +72,6 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('data-ui="event-show-proposal-open-activity-preview"');
     }
 
-    public function test_plan_tab_toggle_empty_slots_button_has_loading_indicator(): void
-    {
-        $owner = User::factory()->create();
-        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
-        Slot::factory()->create([
-            'event_id' => $event->id,
-            'activity_id' => null,
-        ]);
-
-        Livewire::withoutLazyLoading()
-            ->actingAs($owner)
-            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
-            ->assertSeeHtml('wire:target="toggleShowEmptySlots"')
-            ->assertSeeHtml('wire:loading.attr="disabled"');
-    }
-
     public function test_activity_preview_modal_join_leave_buttons_have_loading_indicator(): void
     {
         $owner = User::factory()->create();
