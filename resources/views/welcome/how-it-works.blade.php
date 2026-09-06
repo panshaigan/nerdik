@@ -13,7 +13,7 @@
         <p class="mx-auto mt-2 max-w-2xl text-sm opacity-70">{{ __('ui.welcome.how_it_works_subheading') }}</p>
     </div>
 
-    <x-ui.hr class="my-8" icon="o-map" />
+    <x-ui.hr class="my-8" icon="o-map" color="neutral"/>
 
     <ol class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         @foreach ($steps as $index => $step)

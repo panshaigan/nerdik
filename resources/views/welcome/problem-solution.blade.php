@@ -4,7 +4,7 @@
         <p class="mx-auto mt-2 max-w-2xl text-sm opacity-70">{{ __('ui.welcome.problem_solution_subheading') }}</p>
     </div>
 
-    <x-ui.hr class="my-8" icon="o-light-bulb" />
+    <x-ui.hr class="my-8" icon="o-light-bulb" color="neutral" />
 
     <div class="grid gap-6 lg:grid-cols-2">
         <div class="rounded-2xl border border-primary/30 bg-base-100/80 p-6 md:p-8">

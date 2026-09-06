@@ -12,7 +12,7 @@
         <p class="mx-auto mt-2 max-w-2xl text-sm opacity-70">{{ __('ui.welcome.benefits_subheading') }}</p>
     </div>
 
-    <x-ui.hr class="my-8" icon="o-heart" />
+    <x-ui.hr class="my-8" icon="o-heart" color="neutral"/>
 
     <div class="grid gap-6 lg:grid-cols-3">
         @foreach ($benefits as $benefit)
