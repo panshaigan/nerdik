@@ -37,14 +37,21 @@ final class GenerateBrandLogoCommandTest extends TestCase
             flags: JSON_THROW_ON_ERROR,
         );
 
-        $this->assertSame(1271, $manifest['width']);
-        $this->assertSame(1180, $manifest['height']);
+        $this->assertSame(1139, $manifest['width']);
+        $this->assertSame(1054, $manifest['height']);
+        $this->assertTrue($manifest['trimmed']);
         $this->assertCount(8, $manifest['variants']['webp']);
 
         $smallestBytes = $manifest['variants']['webp'][0]['bytes'];
         $largestBytes = $manifest['variants']['webp'][7]['bytes'];
 
         $this->assertLessThan($largestBytes, $smallestBytes);
+
+        $largestPath = public_path($manifest['variants']['webp'][7]['path']);
+        $largestSize = getimagesize($largestPath);
+        $this->assertNotFalse($largestSize);
+        $this->assertSame(192, $largestSize[0]);
+        $this->assertLessThan(192, $largestSize[1]);
     }
 
     protected function tearDown(): void

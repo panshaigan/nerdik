@@ -14,7 +14,7 @@ final class BrandLogoComponentTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('images/app/brand/192w.webp', false);
+        $response->assertSee('images/app/brand/96w.webp', false);
         $response->assertSee('ui-brand', false);
         $response->assertSee('ui-brand-name', false);
         $response->assertSee(config('app.name'), false);
