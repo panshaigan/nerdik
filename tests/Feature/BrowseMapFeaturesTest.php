@@ -10,6 +10,7 @@ use App\Models\Country;
 use App\Models\CountryTranslation;
 use App\Models\Event;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -203,5 +204,110 @@ class BrowseMapFeaturesTest extends TestCase
             ->assertSet('map_view', true)
             ->call('toggleMapView')
             ->assertSet('map_view', false);
+    }
+
+    public function test_scheduled_activities_map_to_hosting_event_not_activity(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+
+        $place = Place::factory()->venue()->create([
+            'name' => 'Scheduled Map Venue',
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Hosting Event For Map Click',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
+        $firstActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'name' => 'First Scheduled Activity Should Not Appear',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $firstActivity->id,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        $secondActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'name' => 'Second Scheduled Activity Should Not Appear',
+            'starts_at' => $startsAt->copy()->addHour(),
+            'ends_at' => $endsAt,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $secondActivity->id,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt->copy()->addHour(),
+            'ends_at' => $endsAt,
+        ]);
+
+        $selfHosted = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+            'name' => 'Self Hosted Still An Activity Pin',
+        ]);
+
+        $res = $this->getJson(route('search.map-features', [
+            'min_lat' => 51.0,
+            'max_lat' => 51.2,
+            'min_lng' => 16.9,
+            'max_lng' => 17.2,
+            'zoom' => 12,
+        ]));
+        $res->assertOk();
+        $res->assertJsonPath('meta.aggregate', 'points');
+
+        $features = $res->json('features');
+        $this->assertIsArray($features);
+
+        $eventFeatures = array_values(array_filter(
+            $features,
+            static fn (array $f): bool => ($f['properties']['kind'] ?? null) === 'event'
+                && (int) ($f['properties']['id'] ?? 0) === (int) $event->id
+        ));
+        $this->assertCount(1, $eventFeatures);
+        $this->assertSame('Hosting Event For Map Click', $eventFeatures[0]['properties']['name']);
+        $this->assertSame($event->slug, $eventFeatures[0]['properties']['slug']);
+        $this->assertSame(route('events.show', ['event' => $event->slug]), $eventFeatures[0]['properties']['url']);
+
+        $activityNames = array_values(array_filter(array_map(
+            static fn (array $f): ?string => ($f['properties']['kind'] ?? null) === 'activity'
+                ? (string) ($f['properties']['name'] ?? '')
+                : null,
+            $features
+        )));
+        $this->assertContains('Self Hosted Still An Activity Pin', $activityNames);
+        $this->assertNotContains('First Scheduled Activity Should Not Appear', $activityNames);
+        $this->assertNotContains('Second Scheduled Activity Should Not Appear', $activityNames);
+
+        $activityIds = array_map(
+            static fn (array $f): int => (int) ($f['properties']['id'] ?? 0),
+            array_filter(
+                $features,
+                static fn (array $f): bool => ($f['properties']['kind'] ?? null) === 'activity'
+            )
+        );
+        $this->assertContains((int) $selfHosted->id, $activityIds);
+        $this->assertNotContains((int) $firstActivity->id, $activityIds);
+        $this->assertNotContains((int) $secondActivity->id, $activityIds);
     }
 }

@@ -334,31 +334,80 @@ final class BrowseMapFeatures
         }
 
         if (! $bag->onlyEvents) {
-            $sh = Activity::HOSTING_MODE_SELF_HOSTED;
-            $se = Activity::HOSTING_MODE_SCHEDULED_ON_EVENT;
-            $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
-            $q->select('activities.id', 'activities.name', 'activities.slug');
-            $q->selectRaw("(CASE WHEN activities.hosting_mode = {$sh} THEN (SELECT places.latitude FROM places WHERE places.id = activities.place_id) WHEN activities.hosting_mode = {$se} THEN (SELECT places.latitude FROM slots INNER JOIN places ON places.id = slots.place_id WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1) END) as rep_lat");
-            $q->selectRaw("(CASE WHEN activities.hosting_mode = {$sh} THEN (SELECT places.longitude FROM places WHERE places.id = activities.place_id) WHEN activities.hosting_mode = {$se} THEN (SELECT places.longitude FROM slots INNER JOIN places ON places.id = slots.place_id WHERE slots.activity_id = activities.id AND slots.event_id IS NOT NULL ORDER BY slots.id ASC LIMIT 1) END) as rep_lng");
-            $q->limit(self::MAX_ROWS_PER_KIND);
-            $out = $out->merge($q->get()->map(function ($row) {
-                return (object) [
-                    'id' => $row->id,
-                    'kind' => 'activity',
-                    'name' => $row->name,
-                    'slug' => $row->slug,
-                    'rep_lat' => $row->rep_lat,
-                    'rep_lng' => $row->rep_lng,
-                ];
-            }));
+            $out = $out->merge(self::selfHostedActivityListingRows($bag));
+            $out = $out->merge(self::scheduledActivityAsEventListingRows($bag));
         }
 
-        return $out->filter(function (object $r): bool {
-            $lat = is_numeric($r->rep_lat) ? (float) $r->rep_lat : null;
-            $lng = is_numeric($r->rep_lng) ? (float) $r->rep_lng : null;
+        return $out
+            ->unique(fn (object $r): string => $r->kind.':'.(int) $r->id)
+            ->filter(function (object $r): bool {
+                $lat = is_numeric($r->rep_lat) ? (float) $r->rep_lat : null;
+                $lng = is_numeric($r->rep_lng) ? (float) $r->rep_lng : null;
 
-            return $lat !== null && $lng !== null && is_finite($lat) && is_finite($lng);
-        })->values();
+                return $lat !== null && $lng !== null && is_finite($lat) && is_finite($lng);
+            })
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}>
+     */
+    private static function selfHostedActivityListingRows(BrowseListingFilterBag $bag): Collection
+    {
+        $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
+        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED);
+        $q->select('activities.id', 'activities.name', 'activities.slug');
+        $q->selectRaw('(SELECT places.latitude FROM places WHERE places.id = activities.place_id) as rep_lat');
+        $q->selectRaw('(SELECT places.longitude FROM places WHERE places.id = activities.place_id) as rep_lng');
+        $q->limit(self::MAX_ROWS_PER_KIND);
+
+        return $q->get()->map(function ($row) {
+            return (object) [
+                'id' => $row->id,
+                'kind' => 'activity',
+                'name' => $row->name,
+                'slug' => $row->slug,
+                'rep_lat' => $row->rep_lat,
+                'rep_lng' => $row->rep_lng,
+            ];
+        });
+    }
+
+    /**
+     * Map scheduled-on-event activities to their hosting event for map pins/popups.
+     *
+     * @return Collection<int, object{id: int|string, kind: string, name: string, slug: string, rep_lat: mixed, rep_lng: mixed}>
+     */
+    private static function scheduledActivityAsEventListingRows(BrowseListingFilterBag $bag): Collection
+    {
+        $firstSlot = DB::table('slots')
+            ->selectRaw('activity_id')
+            ->selectRaw('MIN(id) as sid')
+            ->whereNotNull('event_id')
+            ->groupBy('activity_id');
+
+        $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
+        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+            ->joinSub($firstSlot, 'fs', 'fs.activity_id', '=', 'activities.id')
+            ->join('slots as slot_pick', 'slot_pick.id', '=', 'fs.sid')
+            ->join('events', 'events.id', '=', 'slot_pick.event_id')
+            ->whereNull('events.cancelled_at')
+            ->select('events.id', 'events.name', 'events.slug')
+            ->selectRaw('(SELECT AVG(places.latitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lat')
+            ->selectRaw('(SELECT AVG(places.longitude) FROM event_place INNER JOIN places ON places.id = event_place.place_id WHERE event_place.event_id = events.id AND places.latitude IS NOT NULL AND places.longitude IS NOT NULL) as rep_lng')
+            ->groupBy('events.id', 'events.name', 'events.slug')
+            ->limit(self::MAX_ROWS_PER_KIND);
+
+        return $q->get()->map(function ($row) {
+            return (object) [
+                'id' => $row->id,
+                'kind' => 'event',
+                'name' => $row->name,
+                'slug' => $row->slug,
+                'rep_lat' => $row->rep_lat,
+                'rep_lng' => $row->rep_lng,
+            ];
+        });
     }
 
     private static function gridFactor(int $zoom): float
