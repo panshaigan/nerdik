@@ -1,0 +1,48 @@
+{
+    "width": 1271,
+    "height": 1180,
+    "variants": {
+        "webp": [
+            {
+                "width": 40,
+                "path": "images/app/brand/40w.webp",
+                "bytes": 904
+            },
+            {
+                "width": 48,
+                "path": "images/app/brand/48w.webp",
+                "bytes": 1116
+            },
+            {
+                "width": 64,
+                "path": "images/app/brand/64w.webp",
+                "bytes": 1514
+            },
+            {
+                "width": 80,
+                "path": "images/app/brand/80w.webp",
+                "bytes": 1868
+            },
+            {
+                "width": 96,
+                "path": "images/app/brand/96w.webp",
+                "bytes": 2220
+            },
+            {
+                "width": 128,
+                "path": "images/app/brand/128w.webp",
+                "bytes": 3044
+            },
+            {
+                "width": 160,
+                "path": "images/app/brand/160w.webp",
+                "bytes": 3806
+            },
+            {
+                "width": 192,
+                "path": "images/app/brand/192w.webp",
+                "bytes": 4652
+            }
+        ]
+    }
+}
