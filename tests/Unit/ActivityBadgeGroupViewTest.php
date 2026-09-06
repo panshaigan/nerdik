@@ -36,4 +36,41 @@ final class ActivityBadgeGroupViewTest extends TestCase
         $this->assertStringContainsString('ui-activity-badge-tags', $html);
         $this->assertStringContainsString('tooltip tooltip-primary ui-activity-badge-tooltip', $html);
     }
+
+    public function test_outline_badge_renders_outline_class(): void
+    {
+        $html = Blade::renderComponent(new ActivityBadgeGroup(
+            items: [
+                new ActivityBadgeItem(
+                    ActivityBadgeKind::TaxonomyTag,
+                    'tag:1',
+                    'Blades in the Dark',
+                    BadgeSemantic::Neutral,
+                    'o-puzzle-piece',
+                    true,
+                ),
+            ],
+        ));
+
+        $this->assertStringContainsString('badge-outline', $html);
+    }
+
+    public function test_filled_badge_renders_without_outline_class(): void
+    {
+        $html = Blade::renderComponent(new ActivityBadgeGroup(
+            items: [
+                new ActivityBadgeItem(
+                    ActivityBadgeKind::TaxonomyTag,
+                    'tag:2',
+                    'Mental Illness',
+                    BadgeSemantic::Warning,
+                    'o-exclamation-triangle',
+                    false,
+                ),
+            ],
+        ));
+
+        $this->assertStringContainsString('badge-warning', $html);
+        $this->assertStringNotContainsString('badge-outline', $html);
+    }
 }

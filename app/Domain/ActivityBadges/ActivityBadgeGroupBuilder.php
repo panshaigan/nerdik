@@ -39,7 +39,7 @@ class ActivityBadgeGroupBuilder
                     __('ui.activities.types.'.$slug),
                     $config->semanticFor(ActivityBadgeKind::ActivityType),
                     $config->iconFor(ActivityBadgeKind::ActivityType),
-                    false,
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::ActivityType),
                     true,
                 ),
             ];
@@ -64,7 +64,7 @@ class ActivityBadgeGroupBuilder
                     $this->tagLabel($tag),
                     $config->semanticForTaxonomyTag($category),
                     $config->iconForTaxonomyTag($category),
-                    false,
+                    ActivityBadgeDefaults::outlineForTaxonomyTag($category),
                     true,
                     null,
                     $tag->tagCategory?->name(app()->getLocale()),
@@ -82,7 +82,7 @@ class ActivityBadgeGroupBuilder
                     __('ui.activities.requires_approval_badge'),
                     $config->semanticFor(ActivityBadgeKind::RequiresApproval),
                     $config->iconFor(ActivityBadgeKind::RequiresApproval),
-                    false,
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::RequiresApproval),
                     true,
                 ),
             ];
@@ -97,7 +97,7 @@ class ActivityBadgeGroupBuilder
                     __('ui.activities.participation_mode_lottery_badge'),
                     $config->semanticFor(ActivityBadgeKind::Lottery),
                     $config->iconFor(ActivityBadgeKind::Lottery),
-                    false,
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::Lottery),
                     true,
                 ),
             ];
@@ -112,7 +112,7 @@ class ActivityBadgeGroupBuilder
                     __('ui.activities.allows_observers_badge'),
                     $config->semanticFor(ActivityBadgeKind::AllowsObservers),
                     $config->iconFor(ActivityBadgeKind::AllowsObservers),
-                    false,
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::AllowsObservers),
                     true,
                 ),
             ];
@@ -127,6 +127,7 @@ class ActivityBadgeGroupBuilder
                     $activity->minimum_age.'+',
                     $config->semanticFor(ActivityBadgeKind::MinimumAge),
                     $config->iconFor(ActivityBadgeKind::MinimumAge),
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::MinimumAge),
                 ),
             ];
         }
@@ -168,6 +169,7 @@ class ActivityBadgeGroupBuilder
                 $label,
                 $resolvedSemantic,
                 $resolvedIcon,
+                ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::ActivityType),
             );
             $i++;
         }

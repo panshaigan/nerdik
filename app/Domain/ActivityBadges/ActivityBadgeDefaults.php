@@ -25,4 +25,23 @@ final class ActivityBadgeDefaults
 
         return is_string($value) && $value !== '' ? $value : null;
     }
+
+    public static function outlineForTaxonomyTag(?string $tagCategoryKey): bool
+    {
+        if ($tagCategoryKey === null || $tagCategoryKey === '') {
+            return true;
+        }
+
+        $value = config('activity-badges.outline_by_tag_category.'.$tagCategoryKey);
+
+        return $value !== null ? (bool) $value : true;
+    }
+
+    public static function outlineForKind(ActivityBadgeKind $kind): bool
+    {
+        $kindKey = $kind->semanticConfigKey();
+        $value = config('activity-badges.outline_by_kind.'.$kindKey);
+
+        return $value !== null ? (bool) $value : true;
+    }
 }

@@ -30,7 +30,7 @@
                     <a
                         href="{{ route('events.show', $event) }}"
                         wire:navigate
-                        class="link link-primary break-words"
+                        class="link link-primary break-words text-glow-base-100"
                         data-ui="activity-show-hero-event-link"
                     >{{ $event->name }}</a>
                 @endif

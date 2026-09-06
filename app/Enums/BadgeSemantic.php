@@ -58,6 +58,6 @@ enum BadgeSemantic: int
 
         $outlineClass = $outline ? 'badge-outline' : '';
 
-        return trim('badge badge-outline badge-xs '.$tone.' '.$outlineClass);
+        return trim('badge badge-xs '.$tone.' '.$outlineClass);
     }
 }
