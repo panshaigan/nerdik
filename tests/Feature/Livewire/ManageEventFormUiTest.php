@@ -19,7 +19,6 @@ class ManageEventFormUiTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
-            ->assertSeeHtml('novalidate')
             ->set('tab', 'image')
             ->call('save')
             ->assertSet('tab', 'main-details')

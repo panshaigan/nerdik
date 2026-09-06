@@ -161,13 +161,10 @@ class DashboardActivityStatsTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Dashboard::class)
-            ->assertSee(__('ui.dashboard.stats_interested_activities'))
-            ->assertSee(__('ui.dashboard.stats_participating_activities'))
-            ->assertSee(__('ui.dashboard.stats_created_activities'))
-            ->assertSeeHtml('data-ui="dashboard-activity-stats"')
-            ->assertSeeHtml('data-ui="dashboard-stat-interested-activities"')
-            ->assertSeeHtml('data-ui="dashboard-stat-participating-activities"')
-            ->assertSeeHtml('data-ui="dashboard-stat-created-activities"');
+            ->assertViewHas('upcomingInterestedActivitiesCount', 1)
+            ->assertViewHas('upcomingParticipatingActivitiesCount', 1)
+            ->assertViewHas('upcomingCreatedActivitiesCount', 1)
+            ->assertSeeHtml('data-ui="dashboard-activity-stats"');
     }
 
     public function test_dashboard_shows_zero_stats_when_feed_is_empty(): void
@@ -176,7 +173,9 @@ class DashboardActivityStatsTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Dashboard::class)
-            ->assertSee(__('ui.dashboard.empty'))
-            ->assertSeeHtml('data-ui="dashboard-activity-stats"');
+            ->assertViewHas('upcomingInterestedActivitiesCount', 0)
+            ->assertViewHas('upcomingParticipatingActivitiesCount', 0)
+            ->assertViewHas('upcomingCreatedActivitiesCount', 0)
+            ->assertSee(__('ui.dashboard.empty'));
     }
 }

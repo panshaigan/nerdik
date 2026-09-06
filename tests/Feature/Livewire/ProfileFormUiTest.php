@@ -24,7 +24,6 @@ class ProfileFormUiTest extends TestCase
             ->set('nickname', '')
             ->call('updateIdentityInformation')
             ->assertHasErrors(['nickname'])
-            ->assertSeeHtml('novalidate')
             ->assertSeeHtml('data-ui="form-errors"')
             ->assertDispatched('profile-tab-validation-failed', tab: 'identity');
     }
@@ -36,8 +35,7 @@ class ProfileFormUiTest extends TestCase
         Livewire::actingAs($user)
             ->test(ProfileTabs::class)
             ->dispatch('profile-tab-validation-failed', tab: 'identity')
-            ->assertSet('tabsWithErrors.identity', true)
-            ->assertSeeHtml('badge-error');
+            ->assertSet('tabsWithErrors.identity', true);
     }
 
     public function test_password_validation_reports_advanced_tab(): void

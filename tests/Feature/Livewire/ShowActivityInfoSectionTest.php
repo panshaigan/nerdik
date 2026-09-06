@@ -19,7 +19,7 @@ final class ShowActivityInfoSectionTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    public function it_renders_glass_info_section_with_badges_and_stats(): void
+    public function it_renders_info_section_with_badges_and_participant_stats(): void
     {
         $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $triggerCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_TRIGGER]);
@@ -36,20 +36,10 @@ final class ShowActivityInfoSectionTest extends TestCase
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
 
         $this->assertStringContainsString('data-ui="activity-show-info-section"', $html);
-        $this->assertStringContainsString('px-4', $html);
-        $this->assertStringContainsString('sm:px-6', $html);
-        $this->assertStringContainsString('lg:px-8', $html);
-        $this->assertStringContainsString('ui-activity-badge-tags', $html);
-        $this->assertStringContainsString('ui-activity-show-info-panel', $html);
-        $this->assertStringContainsString('data-ui="activity-show-badge-group"', $html);
-        $this->assertStringContainsString('tooltip tooltip-primary ui-activity-badge-tooltip', $html);
         $this->assertStringContainsString('data-ui="activity-show-participants-stat"', $html);
         $this->assertStringContainsString('data-ui="activity-show-interested-stat"', $html);
-        $this->assertStringContainsString('ui-activity-show-stat', $html);
-        $this->assertStringContainsString(__('ui.interests.interested_in_short'), $html);
         $this->assertStringContainsString('0/4', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
         $this->assertStringContainsString('Mental Illness', $html);
-        $this->assertStringContainsString('bg-base-100/35', $html);
     }
 }

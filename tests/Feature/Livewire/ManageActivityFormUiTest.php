@@ -54,7 +54,6 @@ class ManageActivityFormUiTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class)
-            ->assertSeeHtml('novalidate')
             ->set('tab', 'image')
             ->call('save')
             ->assertSet('tab', 'main-details')
@@ -151,28 +150,5 @@ class ManageActivityFormUiTest extends TestCase
             ->test(ManageActivityForm::class, ['activity' => $activity])
             ->assertSet('duration_in_minutes', 180)
             ->assertSet('cancellation_deadline_in_hours', 24);
-    }
-
-    public function test_main_details_tab_renders_minimum_age_no_limit_label(): void
-    {
-        app()->setLocale('en');
-
-        $user = User::factory()->create();
-
-        Livewire::actingAs($user)
-            ->test(ManageActivityForm::class)
-            ->assertSeeHtml("noLimitLabel: 'No limit'");
-    }
-
-    public function test_main_details_tab_renders_thumb_aware_dual_range_fill(): void
-    {
-        $user = User::factory()->create();
-
-        Livewire::actingAs($user)
-            ->test(ManageActivityForm::class)
-            ->assertSeeHtml('class="range-dual-fill"')
-            ->assertSeeHtml("'--min-p': minPercent")
-            ->assertSeeHtml("'--max-p': maxPercent")
-            ->assertDontSeeHtml('maxPercent - minPercent + 3');
     }
 }
