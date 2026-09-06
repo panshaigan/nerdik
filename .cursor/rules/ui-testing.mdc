@@ -1,0 +1,62 @@
+---
+description: Avoid brittle UI presence tests; assert behavior and outcomes instead
+globs: tests/**/*.php
+alwaysApply: false
+---
+
+# UI and feature test assertions
+
+Do **not** add tests whose main assertion is that markup, copy, or CSS exists unless that encodes a real requirement.
+
+## Do not test
+
+- Tailwind/CSS classes (`font-display`, `px-4`, `fixed top-0`, `badge-error`, `bg-secondary`)
+- Layout/spacing implementation details
+- Exact image dimensions, `srcset` breakpoints, or footer/wrapper markup
+- Every `data-ui` hook on a page when one outcome check suffices
+- Label/copy presence when the same behavior is already covered by service/unit tests
+- `novalidate`, Alpine/JS implementation strings, or other HTML plumbing
+
+```php
+// BAD — breaks on harmless styling refactors
+$response->assertSee('font-display', false);
+$response->assertSee('fixed inset-0 z-0', false);
+$this->assertStringContainsString('sm:px-6', $html);
+
+// BAD — duplicates UpcomingFeedQueryService tests
+->assertSee(__('ui.dashboard.stats_interested_activities'))
+->assertSeeHtml('data-ui="dashboard-stat-interested-activities"');
+```
+
+## Do test
+
+- **Authorization and conditional UI** — who sees create links, tabs, admin actions
+- **User-visible outcomes** — filtered listing names, stat counts, modal content, redirects, DB changes
+- **Integration wiring** — preview opens modal, form errors appear, tab switches on validation failure
+- **Stable behavioral contracts** — preview button vs navigate link, enrollment badge when window is open
+
+Prefer asserting **state and outcomes**:
+
+```php
+// GOOD — behavior through view data
+->assertViewHas('upcomingInterestedActivitiesCount', 1)
+->assertSeeHtml('data-ui="dashboard-activity-stats"');
+
+// GOOD — permission rule
+->assertDontSee(__('ui.nav.create_event'), false)
+->assertSee(route('activities.create'), false);
+
+// GOOD — end-to-end filter result
+->assertSee('Free Places Open Activity')
+->assertDontSee('Free Places Full Activity');
+```
+
+## Layering
+
+- Put counting, filtering, sorting, and authorization logic in **unit/service tests**.
+- Use feature/Livewire tests as a thin smoke layer: one check that UI reflects the seeded outcome.
+- Do not duplicate both layers with label enumeration and count logic.
+
+## When removing UI
+
+If a test fails because a feature was intentionally removed, update or delete the test. Do not add new presence tests to replace removed ones unless the requirement still exists.
