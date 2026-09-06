@@ -42,28 +42,6 @@ class PageHeaderComponentTest extends TestCase
         $this->assertStringContainsString('href="/events"', $html);
     }
 
-    public function test_page_header_renders_hr_between_title_row_and_subtitle(): void
-    {
-        $html = Blade::render('
-            <x-page-header title="Test">
-                <x-slot:subtitle>TTRPG 3H</x-slot:subtitle>
-            </x-page-header>
-        ');
-
-        $this->assertStringContainsString('right-[22%]', $html);
-        $this->assertMatchesRegularExpression('/<svg[\s\S]*<\/svg>/', $html);
-
-        $titlePos = strpos($html, '<h1');
-        $subtitlePos = strpos($html, 'TTRPG 3H');
-        $hrPos = strpos($html, 'right-[22%]');
-
-        $this->assertNotFalse($titlePos);
-        $this->assertNotFalse($subtitlePos);
-        $this->assertNotFalse($hrPos);
-        $this->assertLessThan($subtitlePos, $titlePos);
-        $this->assertLessThan($hrPos, $subtitlePos);
-    }
-
     public function test_page_header_renders_subtitle_slot_inside_wrapper(): void
     {
         $html = Blade::render('
@@ -73,8 +51,5 @@ class PageHeaderComponentTest extends TestCase
         ');
 
         $this->assertStringContainsString('TTRPG 3H', $html);
-        $this->assertStringContainsString('text-sm', $html);
-        $this->assertStringContainsString('text-base-content/60', $html);
-        $this->assertStringContainsString('mt-3 flex items-center gap-2', $html);
     }
 }

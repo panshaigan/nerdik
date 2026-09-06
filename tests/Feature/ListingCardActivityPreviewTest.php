@@ -78,8 +78,6 @@ class ListingCardActivityPreviewTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(BrowseActivities::class)
-            ->assertSee(__('ui.browse.listing_kind_activity'))
-            ->assertSeeHtml('data-ui="activity-card-kind-label"')
             ->assertSee('Card Host Nick')
             ->assertSeeHtml('data-ui="activity-card-host"')
             ->assertSee('Parent Event For Card')

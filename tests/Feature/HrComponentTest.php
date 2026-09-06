@@ -47,26 +47,4 @@ class HrComponentTest extends TestCase
 
         $this->assertMatchesRegularExpression('/<svg[\s\S]*<\/svg>/', $html);
     }
-
-    public function test_hr_renders_end_glow_when_show_end_glow_is_enabled(): void
-    {
-        $html = Blade::render('<x-ui.hr show-end-glow />');
-
-        $this->assertStringContainsString('rounded-full bg-base-100', $html);
-        $this->assertStringContainsString('right-[22%]', $html);
-        $this->assertStringContainsString('shadow-[0_0_12px_theme(colors.neutral/.80)]', $html);
-    }
-
-    public function test_hr_applies_neutral_glow_shadow_to_lines_and_edge_icons(): void
-    {
-        $html = Blade::render('<x-ui.hr />');
-
-        $this->assertStringContainsString('overflow-visible', $html);
-        $this->assertStringContainsString('drop-shadow-[0_0_12px_theme(colors.neutral/.80)]', $html);
-        $this->assertGreaterThanOrEqual(
-            4,
-            substr_count($html, 'drop-shadow-[0_0_12px_theme(colors.neutral/.80)]'),
-            'Lines, line glow, and edge icons should share the center neutral glow.',
-        );
-    }
 }

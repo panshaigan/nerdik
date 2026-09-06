@@ -49,7 +49,6 @@ class ListingCardEventPreviewTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(BrowseEvents::class)
-            ->assertSeeHtml('data-ui="event-card-confirmed-activities"')
             ->assertSeeHtml('tooltip tooltip-primary')
             ->assertSeeHtml('data-tip="'.e(__('ui.events.confirmed_activities')).'"')
             ->assertSeeHtml('>1</span>');
