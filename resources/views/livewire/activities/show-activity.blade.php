@@ -76,7 +76,7 @@
     </x-page-header>
 
     <div
-        class="flex flex-col gap-3 px-4 pb-5 sm:flex-row sm:items-stretch sm:px-6 sm:pb-6 lg:px-8"
+        class="flex flex-col gap-3 px-4 sm:flex-row sm:items-stretch sm:px-6 lg:px-8"
         data-ui="activity-show-info-section"
     >
         <x-ui.activity-badge-group

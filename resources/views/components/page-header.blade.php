@@ -55,11 +55,5 @@
         </div>
     @endisset
 
-    <x-ui.hr
-        :icon="$hrIcon"
-        show-end-glow
-        :class="trim(''.$hrClass)"
-        wrapper-class="mt-3 flex items-center gap-2"
-        center-size-class="size-9"
-    />
+
 </div>

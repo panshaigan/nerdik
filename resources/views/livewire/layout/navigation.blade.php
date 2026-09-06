@@ -58,7 +58,7 @@ new class extends Component
     };
 
     $localeLink = fn (bool $active): string => $active
-        ? 'ui-nav-locale is-active font-display border-b-2 border-primary text-base-content'
+        ? 'ui-nav-locale is-active font-display border-b-2 text-primary'
         : 'ui-nav-locale font-display border-b-2 border-transparent text-base-content/70 hover:text-base-content';
 
     $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
