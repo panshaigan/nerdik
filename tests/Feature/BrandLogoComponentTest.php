@@ -14,7 +14,8 @@ final class BrandLogoComponentTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('images/app/brand/48w.webp', false);
+        $response->assertSee('images/app/brand/192w.webp', false);
+        $response->assertSee('flex items-center justify-center', false);
         $response->assertSee('alt="'.config('app.name').'"', false);
         $response->assertDontSee('images/app/nerdik_brand_logo.webp', false);
     }
@@ -28,5 +29,13 @@ final class BrandLogoComponentTest extends TestCase
         $this->assertStringContainsString('<img', $html);
         $this->assertStringContainsString('images/app/brand/40w.webp', $html);
         $this->assertStringContainsString('alt="'.config('app.name').'"', $html);
+    }
+
+    public function test_brand_logo_component_renders_xl_preset(): void
+    {
+        $html = Blade::render('<x-brand-logo size="xl" />');
+
+        $this->assertStringContainsString('images/app/brand/192w.webp', $html);
+        $this->assertStringContainsString('width="172"', $html);
     }
 }
