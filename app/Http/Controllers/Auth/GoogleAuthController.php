@@ -61,8 +61,8 @@ class GoogleAuthController extends Controller
                 $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 $this->syncGoogleProviderEmail($profile, $googleUser);
                 $this->syncGoogleOAuthData($profile, $googleUser);
-                if ($profile->timezone === null && $browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
+                if ($profile->timezone === null) {
+                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 }
                 $profile->save();
                 $user->setRelation('profile', $profile);
@@ -79,9 +79,7 @@ class GoogleAuthController extends Controller
                 $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
                 $this->syncGoogleProviderEmail($profile, $googleUser);
                 $this->syncGoogleOAuthData($profile, $googleUser);
-                if ($browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
-                }
+                $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);

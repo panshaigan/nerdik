@@ -33,7 +33,7 @@ new class extends Component
         $this->organization_id = $user->organization_id;
         $this->timezone = in_array($user->profile?->timezone, profile_timezone_ids(), true)
             ? (string) $user->profile?->timezone
-            : '';
+            : default_profile_timezone();
         $this->time_display_format = $user->time_display_format->value;
         $this->timezoneOptions = profile_timezone_options();
         $this->organizationOptions = Organization::query()
@@ -66,7 +66,7 @@ new class extends Component
                     'integer',
                     Rule::in($allowedOrganizationIds),
                 ],
-                'timezone' => ['nullable', 'string', 'timezone'],
+                'timezone' => ['required', 'string', Rule::in(profile_timezone_ids())],
                 'time_display_format' => ['required', 'string', Rule::enum(TimeDisplayFormat::class)],
             ]);
 
@@ -79,7 +79,7 @@ new class extends Component
             $user->save();
 
             $profile = $user->profile()->firstOrCreate();
-            $profile->timezone = $validated['timezone'] ?: null;
+            $profile->timezone = $validated['timezone'];
             $profile->time_display_format = TimeDisplayFormat::from($validated['time_display_format']);
             $profile->save();
 
@@ -127,8 +127,6 @@ new class extends Component
                 name="timezone"
                 label="{{ __('ui.profile.timezone_label') }}"
                 :options="$timezoneOptions"
-                :placeholder="__('ui.profile.timezone_server_default')"
-                placeholder-value=""
                 error-field="timezone"
                 inline
             />

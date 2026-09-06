@@ -120,6 +120,32 @@ class ProfileTest extends TestCase
         $this->assertSame(TimeDisplayFormat::TwelveHour, $user->profile?->time_display_format);
     }
 
+    public function test_identity_form_defaults_timezone_to_europe_warsaw_when_profile_timezone_is_null(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update(['timezone' => null]);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-identity-information-form')
+            ->assertSet('timezone', 'Europe/Warsaw');
+    }
+
+    public function test_identity_timezone_is_required(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-identity-information-form')
+            ->set('name', 'Test User')
+            ->set('nickname', 'test-user')
+            ->set('timezone', '')
+            ->set('time_display_format', '24h')
+            ->call('updateIdentityInformation')
+            ->assertHasErrors(['timezone']);
+    }
+
     public function test_contact_form_displays_user_email(): void
     {
         $user = User::factory()->create([

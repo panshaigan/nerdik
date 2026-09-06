@@ -66,8 +66,8 @@ class DiscordAuthController extends Controller
                 $this->syncDiscordHandle($profile, $discordUser->getNickname());
                 $this->syncDiscordProviderEmail($profile, $discordUser);
                 $this->syncDiscordOAuthData($profile, $discordUser);
-                if ($profile->timezone === null && $browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
+                if ($profile->timezone === null) {
+                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 }
                 $profile->save();
                 $user->setRelation('profile', $profile);
@@ -85,9 +85,7 @@ class DiscordAuthController extends Controller
                 $this->syncDiscordHandle($profile, $discordUser->getNickname());
                 $this->syncDiscordProviderEmail($profile, $discordUser);
                 $this->syncDiscordOAuthData($profile, $discordUser);
-                if ($browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
-                }
+                $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromDiscordIfApplicable($user);

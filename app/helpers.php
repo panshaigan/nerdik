@@ -38,6 +38,16 @@ if (! function_exists('browser_timezone_from_request')) {
     }
 }
 
+if (! function_exists('default_profile_timezone')) {
+    /**
+     * Default IANA timezone for new or unset user profiles.
+     */
+    function default_profile_timezone(): string
+    {
+        return 'Europe/Warsaw';
+    }
+}
+
 if (! function_exists('display_timezone')) {
     /**
      * Timezone used for displaying datetimes in the UI.
@@ -49,7 +59,7 @@ if (! function_exists('display_timezone')) {
             return auth()->user()->timezone;
         }
 
-        return browser_timezone_from_request() ?? 'Europe/Warsaw';
+        return browser_timezone_from_request() ?? default_profile_timezone();
     }
 }
 
@@ -654,8 +664,8 @@ if (! function_exists('profile_timezone_ids')) {
     function profile_timezone_ids(): array
     {
         return [
-            'UTC',
             'Europe/Warsaw',
+            'UTC',
             'Europe/London',
             'Europe/Berlin',
             'Europe/Paris',

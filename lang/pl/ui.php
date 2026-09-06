@@ -214,7 +214,6 @@ return [
         'name_optional' => 'Imię (opcjonalnie)',
         'organization' => 'Organizacja',
         'timezone_label' => 'Strefa czasowa',
-        'timezone_server_default' => 'Domyślna serwera (UTC)',
         'time_display_format_label' => 'Format czasu',
         'time_display_format_12h' => '12-godzinny (2:30 PM)',
         'time_display_format_24h' => '24-godzinny (14:30)',

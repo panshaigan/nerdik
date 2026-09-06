@@ -68,8 +68,8 @@ class FacebookAuthController extends Controller
                 $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 $this->syncFacebookProviderEmail($profile, $facebookUser);
                 $this->syncFacebookOAuthData($profile, $facebookUser);
-                if ($profile->timezone === null && $browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
+                if ($profile->timezone === null) {
+                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 }
                 $profile->save();
                 $user->setRelation('profile', $profile);
@@ -86,9 +86,7 @@ class FacebookAuthController extends Controller
                 $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
                 $this->syncFacebookProviderEmail($profile, $facebookUser);
                 $this->syncFacebookOAuthData($profile, $facebookUser);
-                if ($browserTimezone !== null) {
-                    $profile->timezone = $browserTimezone;
-                }
+                $profile->timezone = $browserTimezone ?? default_profile_timezone();
                 $profile->save();
                 $user->setRelation('profile', $profile);
                 $this->verifyUserFromFacebookIfApplicable($user);

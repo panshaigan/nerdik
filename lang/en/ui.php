@@ -214,7 +214,6 @@ return [
         'name_optional' => 'Name (optional)',
         'organization' => 'Organization',
         'timezone_label' => 'Timezone',
-        'timezone_server_default' => 'Use server default (UTC)',
         'time_display_format_label' => 'Time format',
         'time_display_format_12h' => '12-hour (2:30 PM)',
         'time_display_format_24h' => '24-hour (14:30)',
