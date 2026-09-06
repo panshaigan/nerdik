@@ -118,7 +118,7 @@ return [
             [
                 'heading' => '13. Kontakt',
                 'paragraphs' => [
-                    'W sprawach związanych z prywatnością skontaktuj się z :operator pod adresem :email.',
+                    'W sprawach związanych z prywatnością skontaktuj się z nami pod adresem :email.',
                 ],
             ],
         ],
@@ -211,7 +211,7 @@ return [
             [
                 'heading' => '12. Kontakt',
                 'paragraphs' => [
-                    'W sprawach dotyczących niniejszego Regulaminu skontaktuj się z :operator pod adresem :email.',
+                    'W sprawach dotyczących niniejszego Regulaminu skontaktuj się z nami pod adresem :email.',
                 ],
             ],
         ],
@@ -221,7 +221,7 @@ return [
         'title' => 'Kontakt',
         'intro' => 'Masz pytanie dotyczące :app? Chętnie pomożemy.',
         'email_heading' => 'E-mail',
-        'email_body' => 'W sprawach ogólnych, wsparcia lub opinii napisz do nas na adres :email.',
+        'email_body' => 'W sprawach ogólnych, wsparcia lub opinii napisz do nas na adres',
         'response_heading' => 'Czas odpowiedzi',
         'response_body' => 'Staramy się odpowiadać na wiadomości w ciągu kilku dni roboczych. Bardziej złożone sprawy mogą wymagać więcej czasu.',
         'privacy_heading' => 'Wnioski dotyczące prywatności',

@@ -14,7 +14,7 @@
         <p class="mx-auto mt-2 max-w-2xl text-sm opacity-70">{{ __('ui.welcome.features_subheading') }}</p>
     </div>
 
-    <x-ui.hr class="my-8" icon="o-sparkles" />
+    <x-ui.hr class="my-8" icon="o-sparkles" color="neutral" />
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach ($features as $feature)
