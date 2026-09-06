@@ -63,7 +63,7 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
-    public function from_activity_exposes_participants_and_kind_corner_label(): void
+    public function from_activity_exposes_participants_without_kind_corner_label(): void
     {
         $user = User::factory()->create();
         $place = Place::factory()->venue()->create(['name' => 'Tavern Hall']);
@@ -91,7 +91,7 @@ final class BrowseListingCardPresenterTest extends TestCase
         $this->assertTrue($viewData->showParticipants);
         $this->assertSame(6, $viewData->participantsMax);
         $this->assertSame('Tavern Hall', $viewData->locationSummary);
-        $this->assertSame(__('ui.browse.listing_kind_activity'), $viewData->kindCornerLabel);
+        $this->assertSame('', $viewData->kindCornerLabel);
         $this->assertSame($user->id, $viewData->hostUser?->id);
         $this->assertNull($viewData->hostOrganization);
         $this->assertNull($viewData->parentEventName);

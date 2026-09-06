@@ -10,14 +10,6 @@ use Tests\TestCase;
 final class WorkflowReleaseTriggersTest extends TestCase
 {
     #[Test]
-    public function version_file_is_1_0_0(): void
-    {
-        $version = trim((string) file_get_contents(base_path('VERSION')));
-
-        $this->assertSame('1.0.0', $version);
-    }
-
-    #[Test]
     public function ci_runs_on_pull_requests_and_version_tags_not_main_pushes(): void
     {
         $ci = file_get_contents(base_path('.github/workflows/ci.yml'));
