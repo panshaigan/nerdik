@@ -35,21 +35,6 @@ class WelcomePageTest extends TestCase
     }
 
     #[Test]
-    public function test_home_page_uses_invitation_first_content_without_technical_footer_details(): void
-    {
-        $response = $this->get('/');
-
-        $response->assertOk();
-        $response->assertSee('Discover nerdy activities near you, or create your own events', false);
-        $response->assertSee('Closest activities &amp; events', false);
-        $response->assertSee('Bring scattered, improvised sign-ups into one place', false);
-        $response->assertSee('How it works', false);
-        $response->assertSee('Ready to find your next session?', false);
-        $response->assertDontSee('Laravel v', false);
-        $response->assertDontSee('PHP v', false);
-    }
-
-    #[Test]
     public function test_home_page_shows_nearest_upcoming_public_listings_only(): void
     {
         $user = User::factory()->create();

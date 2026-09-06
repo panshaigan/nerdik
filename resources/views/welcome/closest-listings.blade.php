@@ -2,9 +2,8 @@
     <div class="mb-5 flex items-end justify-between gap-4">
         <div>
             <h2 class="text-2xl font-semibold md:text-3xl">{{ __('ui.welcome.closest_heading') }}</h2>
-            <p class="mt-1 text-sm opacity-70">{{ __('ui.welcome.closest_subheading') }}</p>
         </div>
-        <a href="{{ route('search.index') }}" class="link link-primary text-sm font-medium">
+        <a href="{{ route('search.index') }}" class="btn btn-outline text-glow-base-100">
             {{ __('ui.welcome.open_full_calendar') }}
         </a>
     </div>
