@@ -9,6 +9,7 @@ flowchart LR
   PR[pull request] --> CI[ci.yml]
   Tag["push tag v*"] --> CI
   Tag --> DockerPush[docker.yml push GHCR]
+  Tag --> GHRelease[release.yml GitHub Release]
   DockerPush --> GHCR["ghcr.io/owner/nerdik:sha + :semver"]
   Manual[workflow_dispatch] --> Deploy[deploy.yml]
   Deploy --> VPS[VPS make vps-deploy]
@@ -19,9 +20,10 @@ flowchart LR
 |----------|------|----------------|
 | CI | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Every PR; also on `v*` tag push (release gate) |
 | Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | `v*` tags only (build + push to GHCR) |
+| Release | [`.github/workflows/release.yml`](../.github/workflows/release.yml) | `v*` tags only (create GitHub Release + notes) |
 | Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Manual only (`workflow_dispatch`), production only |
 
-Current app version: [`VERSION`](../VERSION) (`1.0.0`). Release tags must match `v` + that semver (e.g. `v1.0.0`).
+Current app version: [`VERSION`](../VERSION) (`1.0.4`). Release tags must match `v` + that semver (e.g. `v1.0.4`).
 
 ## Without a git remote yet
 
@@ -52,17 +54,17 @@ After you create the remote, open a PR to exercise CI. Publish a release image w
 
 In GitHub → Settings → Branches, require the **Test** and **Compose** jobs from the CI workflow before merging to `main`.
 
-## Releasing (tag → image)
+## Releasing (tag → image + GitHub Release)
 
 1. Bump [`VERSION`](../VERSION) if needed and commit on `main`.
 2. Tag and push:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.4
+git push origin v1.0.4
 ```
 
-3. Wait for **CI** and **Docker** on that tag.
+3. Wait for **CI**, **Docker**, and **Release** on that tag (image on GHCR; GitHub Release with auto-generated notes).
 4. Deploy with the semver or SHA tag (manual Actions Deploy, or VPS `IMAGE_TAG=…`).
 
 ## Docker images (no VPS required)
