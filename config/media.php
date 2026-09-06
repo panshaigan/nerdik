@@ -164,6 +164,9 @@ return [
     | Regenerate variants after changing the source WebP:
     | php artisan app:generate-brand-logo
     |
+    | Variants are trimmed to the visible mark (soft dark glow around the
+    | triangle is removed) so the layout box matches what you see on dark UI.
+    |
     | wordmark_ratio is CSS font-size ÷ logo display height. Cinzel caps
     | nearly fill the em square and this triangular mark reads shorter than
     | its box, so ~0.4 looks like “half, plus a little”. Override per preset
@@ -176,6 +179,12 @@ return [
         'widths' => [40, 48, 64, 80, 96, 128, 160, 192],
         'quality' => 90,
         'wordmark_ratio' => 0.4,
+        'trim' => [
+            'enabled' => true,
+            'min_luminance' => 40,
+            'max_gd_alpha' => 100,
+            'padding' => 2,
+        ],
         'presets' => [
             'nav' => [
                 'display_width' => 39,

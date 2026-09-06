@@ -23,15 +23,16 @@
         <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
 
             <header class="flex items-center justify-between gap-4 pb-6">
+                <div class="flex">
+                    <x-brand size="md" />
+                </div>
                 @if (Route::has('login'))
                     <livewire:welcome.navigation />
                 @endif
             </header>
 
             <main class="flex-1 py-8">
-                <div class="flex justify-center">
-                    <x-brand size="xl" />
-                </div>
+
 
                 @include('welcome.hero', [
                     'stats' => $stats,
