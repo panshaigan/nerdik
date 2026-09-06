@@ -31,4 +31,18 @@ final class WorkflowReleaseTriggersTest extends TestCase
         $this->assertStringNotContainsString("branches:\n      - main", $docker);
         $this->assertStringContainsString('push: true', $docker);
     }
+
+    #[Test]
+    public function release_creates_github_release_only_on_version_tags(): void
+    {
+        $release = file_get_contents(base_path('.github/workflows/release.yml'));
+
+        $this->assertIsString($release);
+        $this->assertStringContainsString("tags:\n      - v*", $release);
+        $this->assertStringNotContainsString('pull_request:', $release);
+        $this->assertStringNotContainsString("branches:\n      - main", $release);
+        $this->assertStringContainsString('contents: write', $release);
+        $this->assertStringContainsString('softprops/action-gh-release', $release);
+        $this->assertStringContainsString('generate_release_notes: true', $release);
+    }
 }

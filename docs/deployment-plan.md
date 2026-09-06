@@ -165,6 +165,7 @@ flowchart LR
 - [x] On PR / `v*` tags: run tests, `composer audit`, Pint (optional fail) — [`ci.yml`](../.github/workflows/ci.yml)
 - [x] Build production Docker image on `v*` tags — [`docker.yml`](../.github/workflows/docker.yml)
 - [x] Push to registry on version tags only — GHCR `ghcr.io/<owner>/nerdik:<sha>` + semver (`1.0.0`)
+- [x] Create GitHub Release on `v*` tags — [`release.yml`](../.github/workflows/release.yml)
 - [x] Deploy workflow (manual): pull image + compose + `migrate --force` — [`deploy.yml`](../.github/workflows/deploy.yml); awaits `DEPLOY_*` secrets
 - [x] Deploy prod: `production` environment + manual dispatch; smoke `/up` when `PROD_APP_URL` is set
 

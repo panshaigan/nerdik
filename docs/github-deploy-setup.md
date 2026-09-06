@@ -75,7 +75,7 @@ Go to **Settings → Environments** and create:
 
 ## F. Verify remote deploy
 
-1. Push a release tag (e.g. `git push origin v1.0.0`) and wait for CI and Docker workflows to finish.
+1. Push a release tag (e.g. `git push origin v1.0.0`) and wait for CI, Docker, and Release workflows to finish.
 2. Note the published image tag (semver such as `1.0.0`, or full git SHA) from Actions → Docker workflow or GitHub Packages.
 3. Go to **Actions → Deploy → Run workflow**.
 4. Enter the image tag (semver or SHA).
