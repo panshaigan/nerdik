@@ -32,6 +32,8 @@ class EmailNotificationLogTest extends TestCase
 
         $user->notify(new WaitlistPromotedNotification($activity));
 
+        $this->assertSame(1, SentEmail::query()->count());
+
         $row = SentEmail::query()->first();
 
         $this->assertNotNull($row);
@@ -51,6 +53,22 @@ class EmailNotificationLogTest extends TestCase
         $this->assertNotSame('', (string) $row->textBody());
     }
 
+    public function test_verify_email_notification_creates_single_email_log_entry(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $user->sendEmailVerificationNotification();
+
+        $this->assertSame(1, SentEmail::query()->count());
+
+        $row = SentEmail::query()->first();
+
+        $this->assertNotNull($row);
+        $this->assertSame(SentEmailKind::VerifyEmail, $row->kind);
+        $this->assertSame(mb_strtolower($user->email), $row->recipient_email);
+        $this->assertSame((int) $user->id, (int) $row->recipient_user_id);
+    }
+
     public function test_pending_email_verification_logs_pending_address_and_user(): void
     {
         $user = User::factory()->create([
@@ -59,6 +77,8 @@ class EmailNotificationLogTest extends TestCase
         ]);
 
         $user->sendPendingEmailVerificationNotification();
+
+        $this->assertSame(1, SentEmail::query()->count());
 
         $row = SentEmail::query()->first();
 
