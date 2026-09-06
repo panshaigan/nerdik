@@ -22,14 +22,13 @@ final class VisibleImageBoundsTest extends TestCase
         [$canvasWidth, $canvasHeight] = $size;
         $bounds = VisibleImageBounds::forPath($source);
 
-        $this->assertSame(64, $bounds['x']);
-        $this->assertSame(80, $bounds['y']);
-        $this->assertSame(1139, $bounds['width']);
-        $this->assertSame(1054, $bounds['height']);
+        $this->assertSame(8, $bounds['x']);
+        $this->assertSame(24, $bounds['y']);
+        $this->assertSame(1251, $bounds['width']);
+        $this->assertSame(1156, $bounds['height']);
         $this->assertLessThan($canvasWidth, $bounds['width']);
         $this->assertLessThan($canvasHeight, $bounds['height']);
-        $this->assertGreaterThan(20, $bounds['y']);
-        $this->assertLessThan(100, $bounds['y']);
+        $this->assertLessThan(40, $bounds['y']);
     }
 
     #[Test]

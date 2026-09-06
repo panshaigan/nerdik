@@ -1,48 +1,48 @@
 {
-    "width": 1139,
-    "height": 1054,
+    "width": 1251,
+    "height": 1156,
     "trimmed": true,
     "variants": {
         "webp": [
             {
                 "width": 40,
                 "path": "images/app/brand/40w.webp",
-                "bytes": 958
+                "bytes": 908
             },
             {
                 "width": 48,
                 "path": "images/app/brand/48w.webp",
-                "bytes": 1174
+                "bytes": 1126
             },
             {
                 "width": 64,
                 "path": "images/app/brand/64w.webp",
-                "bytes": 1606
+                "bytes": 1528
             },
             {
                 "width": 80,
                 "path": "images/app/brand/80w.webp",
-                "bytes": 2040
+                "bytes": 1922
             },
             {
                 "width": 96,
                 "path": "images/app/brand/96w.webp",
-                "bytes": 2412
+                "bytes": 2224
             },
             {
                 "width": 128,
                 "path": "images/app/brand/128w.webp",
-                "bytes": 3124
+                "bytes": 3012
             },
             {
                 "width": 160,
                 "path": "images/app/brand/160w.webp",
-                "bytes": 4072
+                "bytes": 3798
             },
             {
                 "width": 192,
                 "path": "images/app/brand/192w.webp",
-                "bytes": 4836
+                "bytes": 4584
             }
         ]
     }
