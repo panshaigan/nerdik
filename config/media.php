@@ -164,42 +164,54 @@ return [
     | Regenerate variants after changing the source WebP:
     | php artisan app:generate-brand-logo
     |
+    | wordmark_ratio is CSS font-size ÷ logo display height. Cinzel caps
+    | nearly fill the em square and this triangular mark reads shorter than
+    | its box, so ~0.4 looks like “half, plus a little”. Override per preset
+    | or pass :wordmark-ratio on <x-brand>.
+    |
     */
     'brand_logo' => [
         'source' => 'resources/brand/nerdik_brand_logo.webp',
         'output_dir' => 'images/app/brand',
         'widths' => [40, 48, 64, 80, 96, 128, 160, 192],
         'quality' => 90,
+        'wordmark_ratio' => 0.4,
         'presets' => [
             'nav' => [
                 'display_width' => 39,
                 'variant_width' => 40,
                 'retina_variant_width' => 80,
+                'wordmark_ratio' => 0.5,
             ],
             'sm' => [
                 'display_width' => 43,
                 'variant_width' => 48,
                 'retina_variant_width' => 96,
+                'wordmark_ratio' => 0.5,
             ],
             'md' => [
                 'display_width' => 86,
                 'variant_width' => 96,
                 'retina_variant_width' => 160,
+                'wordmark_ratio' => 0.5,
             ],
             'lg' => [
                 'display_width' => 128,
                 'variant_width' => 128,
                 'retina_variant_width' => 192,
+                'wordmark_ratio' => 0.5,
             ],
             'xl' => [
                 'display_width' => 172,
                 'variant_width' => 192,
                 'retina_variant_width' => 192,
+                'wordmark_ratio' => 0.5,
             ],
             'admin' => [
                 'display_width' => 34,
                 'variant_width' => 40,
                 'retina_variant_width' => 64,
+                'wordmark_ratio' => 0.5,
             ],
         ],
     ],
