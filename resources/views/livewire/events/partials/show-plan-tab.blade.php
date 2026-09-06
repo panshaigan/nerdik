@@ -292,14 +292,25 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-                                                @if ($slot->place)
-                                                    <span class="inline-flex shrink-0 items-center gap-1.5 text-base-content/60">
+                                            @if ($slot->place)
+                                                @php
+                                                    $slotPlace = $slot->place;
+                                                    $slotPlace->loadMissing('parent');
+                                                    $slotVenueName = $slotPlace->venueName();
+                                                    $slotRoomName = $slotPlace->parent_id && $slotPlace->parent
+                                                        ? (string) $slotPlace->name
+                                                        : null;
+                                                @endphp
+                                                <div class="space-y-0.5 text-sm text-base-content/60">
+                                                    <span class="inline-flex items-center gap-1.5">
                                                         <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                                                        <span>{{ $slot->place->venueRoomLabel() }}</span>
+                                                        <span>{{ $slotVenueName }}</span>
                                                     </span>
-                                                @endif
-                                            </div>
+                                                    @if (filled($slotRoomName))
+                                                        <span class="block pl-5.5">{{ $slotRoomName }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                             @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
                                                 <p class="text-xs text-base-content/70">
                                                     {{ __('ui.events.enrollment_window_activity_spots_remaining', [

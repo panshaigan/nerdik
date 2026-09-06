@@ -399,7 +399,7 @@ return [
         'type' => 'Typ',
         'choose_type' => 'Wybierz typ',
         'types' => [
-            'rpg' => 'TTRPG',
+            'rpg' => 'RPG',
             'wargame' => 'Bitewniak',
             'board' => 'Planszówka',
             'card' => 'Karcianka',
