@@ -1,5 +1,7 @@
 # nerdik
 
+**App URL:** [https://nerdik.app](https://nerdik.app)
+
 nerdik is a platform for organizing and joining nerd events: RPG sessions, board game meetups, and convention-style programs. It supports public discovery, organizer-managed scheduling, activity proposals, participant rosters, and waitlists.
 
 ## Quick Start
