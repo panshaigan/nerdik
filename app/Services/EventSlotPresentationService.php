@@ -43,17 +43,9 @@ class EventSlotPresentationService
             ];
         }
 
-        $sorted->first(fn (Slot $s) => $s->starts_at !== null);
-        $prependEventStart = true;
-        //        if ($event->starts_at) {
-        //            if ($firstTimedSlot === null) {
-        //                $prependEventStart = true;
-        //            } elseif ($event->starts_at->lt($firstTimedSlot->starts_at)) {
-        //                $eventHour = format_in_user_tz($event->starts_at, 'Y-m-d H');
-        //                $firstHour = format_in_user_tz($firstTimedSlot->starts_at, 'Y-m-d H');
-        //                $prependEventStart = $eventHour !== $firstHour;
-        //            }
-        //        }
+        $firstTimedSlot = $sorted->first(fn (Slot $s) => $s->starts_at !== null);
+        $prependEventStart = $event->starts_at !== null
+            && ($firstTimedSlot === null || ! $event->starts_at->equalTo($firstTimedSlot->starts_at));
 
         if ($prependEventStart) {
             array_unshift($out, [
