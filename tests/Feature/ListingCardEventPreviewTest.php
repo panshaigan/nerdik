@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use App\Livewire\Browse\BrowseEvents;
-use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
-use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -30,28 +28,6 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSeeHtml('data-ui="event-card-open-details"')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertDontSeeHtml('data-ui="event-card-link"');
-    }
-
-    public function test_listing_event_card_shows_confirmed_activities_count(): void
-    {
-        $owner = User::factory()->create();
-        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
-        $activity = Activity::factory()->scheduled()->create([
-            'created_by' => $owner->id,
-            'updated_by' => $owner->id,
-        ]);
-
-        Slot::factory()->create([
-            'event_id' => $event->id,
-            'activity_id' => $activity->id,
-        ]);
-
-        Livewire::withoutLazyLoading()
-            ->actingAs($owner)
-            ->test(BrowseEvents::class)
-            ->assertSeeHtml('tooltip tooltip-primary')
-            ->assertSeeHtml('data-tip="'.e(__('ui.events.confirmed_activities')).'"')
-            ->assertSeeHtml('>1</span>');
     }
 
     public function test_listing_event_card_shows_enrollment_open_badge_when_window_is_active(): void

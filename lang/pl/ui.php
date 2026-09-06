@@ -370,7 +370,6 @@ return [
         'tags_match_all' => 'Wszystkie wybrane',
         'include_past_events' => 'Uwzględnij zakończone wydarzenia i aktywności',
         'listing_kind_event' => 'Wydarzenie',
-        'listing_kind_activity' => 'Aktywność',
         'parent_event' => 'Wydarzenie',
         'no_events_or_activities' => 'Brak pasujących wydarzeń lub aktywności.',
         'participants_count' => 'Uczestnicy',
