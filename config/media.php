@@ -164,8 +164,9 @@ return [
     | Regenerate variants after changing the source WebP:
     | php artisan app:generate-brand-logo
     |
-    | Variants are trimmed to the visible mark (soft dark glow around the
-    | triangle is removed) so the layout box matches what you see on dark UI.
+    | Variants are trimmed to the bright mark plus dark stroke padding so tips
+    | and wings are not clipped on light backgrounds, while soft outer glow
+    | (invisible on dark UI, empty-looking in layout) is still removed.
     |
     | wordmark_ratio is CSS font-size ÷ logo display height. Cinzel caps
     | nearly fill the em square and this triangular mark reads shorter than
@@ -183,7 +184,8 @@ return [
             'enabled' => true,
             'min_luminance' => 40,
             'max_gd_alpha' => 100,
-            'padding' => 2,
+            // Source pixels around the bright fill that include the dark outline.
+            'padding' => 40,
         ],
         'presets' => [
             'nav' => [

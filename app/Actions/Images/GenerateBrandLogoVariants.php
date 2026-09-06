@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Images;
 
+use App\Support\Media\VisibleImageBounds;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 use Spatie\Image\Image;
@@ -28,68 +29,100 @@ final class GenerateBrandLogoVariants
             throw new RuntimeException("Brand logo source not found at [{$sourcePath}].");
         }
 
-        $size = getimagesize($absoluteSource);
+        $trimConfig = is_array($config['trim'] ?? null) ? $config['trim'] : [];
+        $trimEnabled = (bool) ($trimConfig['enabled'] ?? true);
+        $workingSource = $absoluteSource;
+        $temporaryTrimmedPath = null;
 
-        if ($size === false) {
-            throw new RuntimeException("Could not read dimensions for [{$sourcePath}].");
-        }
+        try {
+            if ($trimEnabled) {
+                $bounds = VisibleImageBounds::forPath(
+                    absolutePath: $absoluteSource,
+                    minLuminance: (int) ($trimConfig['min_luminance'] ?? 40),
+                    maxGdAlpha: (int) ($trimConfig['max_gd_alpha'] ?? 100),
+                    padding: (int) ($trimConfig['padding'] ?? 40),
+                );
 
-        [$sourceWidth, $sourceHeight] = $size;
-        $outputDir = (string) ($config['output_dir'] ?? 'images/app/brand');
-        $absoluteOutputDir = public_path($outputDir);
+                $temporaryTrimmedPath = storage_path('app/brand-logo-trimmed-'.getmypid().'.webp');
+                $quality = (int) ($config['quality'] ?? config('media.conversion_qualities.webp', 85));
 
-        if (File::isDirectory($absoluteOutputDir)) {
-            File::cleanDirectory($absoluteOutputDir);
-        } else {
-            File::ensureDirectoryExists($absoluteOutputDir);
-        }
+                Image::load($absoluteSource)
+                    ->manualCrop($bounds['width'], $bounds['height'], $bounds['x'], $bounds['y'])
+                    ->format('webp')
+                    ->quality($quality)
+                    ->save($temporaryTrimmedPath);
 
-        /** @var list<int> $widths */
-        $widths = $config['widths'] ?? [];
-        $minWidth = (int) config('media.min_responsive_width', 20);
-        $quality = (int) ($config['quality'] ?? config('media.conversion_qualities.webp', 85));
-        $variants = ['webp' => []];
-
-        foreach ($widths as $width) {
-            $width = (int) $width;
-
-            if ($width < $minWidth || $width > $sourceWidth) {
-                continue;
+                $workingSource = $temporaryTrimmedPath;
             }
 
-            $relativePath = "{$outputDir}/{$width}w.webp";
-            $absolutePath = public_path($relativePath);
+            $size = getimagesize($workingSource);
 
-            Image::load($absoluteSource)
-                ->width($width)
-                ->format('webp')
-                ->quality($quality)
-                ->save($absolutePath);
+            if ($size === false) {
+                throw new RuntimeException('Could not read dimensions for brand logo working source.');
+            }
 
-            $variants['webp'][] = [
-                'width' => $width,
-                'path' => $relativePath,
-                'bytes' => File::size($absolutePath),
+            [$sourceWidth, $sourceHeight] = $size;
+            $outputDir = (string) ($config['output_dir'] ?? 'images/app/brand');
+            $absoluteOutputDir = public_path($outputDir);
+
+            if (File::isDirectory($absoluteOutputDir)) {
+                File::cleanDirectory($absoluteOutputDir);
+            } else {
+                File::ensureDirectoryExists($absoluteOutputDir);
+            }
+
+            /** @var list<int> $widths */
+            $widths = $config['widths'] ?? [];
+            $minWidth = (int) config('media.min_responsive_width', 20);
+            $quality = (int) ($config['quality'] ?? config('media.conversion_qualities.webp', 85));
+            $variants = ['webp' => []];
+
+            foreach ($widths as $width) {
+                $width = (int) $width;
+
+                if ($width < $minWidth || $width > $sourceWidth) {
+                    continue;
+                }
+
+                $relativePath = "{$outputDir}/{$width}w.webp";
+                $absolutePath = public_path($relativePath);
+
+                Image::load($workingSource)
+                    ->width($width)
+                    ->format('webp')
+                    ->quality($quality)
+                    ->save($absolutePath);
+
+                $variants['webp'][] = [
+                    'width' => $width,
+                    'path' => $relativePath,
+                    'bytes' => File::size($absolutePath),
+                ];
+            }
+
+            if ($variants['webp'] === []) {
+                throw new RuntimeException('No brand logo variants were generated.');
+            }
+
+            usort($variants['webp'], fn (array $a, array $b): int => $a['width'] <=> $b['width']);
+
+            $manifest = [
+                'width' => $sourceWidth,
+                'height' => $sourceHeight,
+                'trimmed' => $trimEnabled,
+                'variants' => $variants,
             ];
+
+            File::put(
+                public_path("{$outputDir}/manifest.json"),
+                json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL,
+            );
+
+            return $manifest;
+        } finally {
+            if (is_string($temporaryTrimmedPath) && File::isFile($temporaryTrimmedPath)) {
+                File::delete($temporaryTrimmedPath);
+            }
         }
-
-        if ($variants['webp'] === []) {
-            throw new RuntimeException('No brand logo variants were generated.');
-        }
-
-        usort($variants['webp'], fn (array $a, array $b): int => $a['width'] <=> $b['width']);
-
-        $manifest = [
-            'width' => $sourceWidth,
-            'height' => $sourceHeight,
-            'variants' => $variants,
-        ];
-
-        File::put(
-            public_path("{$outputDir}/manifest.json"),
-            json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL,
-        );
-
-        return $manifest;
     }
 }

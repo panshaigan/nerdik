@@ -11,12 +11,6 @@ use RuntimeException;
 final class BrandLogoSources
 {
     /**
-     * Wordmark font-size as a fraction of logo display height.
-     * Slightly above half so the name reads as a lockup, not a caption.
-     */
-    private const WORDMARK_FONT_SIZE_RATIO = 0.7;
-
-    /**
      * @param  array<string, list<array{width: int, path: string, bytes: int}>>  $variants
      */
     private function __construct(
@@ -50,11 +44,11 @@ final class BrandLogoSources
     }
 
     /**
-     * @return array{src: string, srcset: string, width: int, height: int, wordmark_font_size: int}
+     * @return array{src: string, srcset: string, width: int, height: int, wordmark_font_size: int, wordmark_ratio: float}
      */
-    public function forPreset(string $preset): array
+    public function forPreset(string $preset, ?float $wordmarkRatio = null): array
     {
-        /** @var array<string, array{display_width: int, variant_width: int, retina_variant_width: int}> $presets */
+        /** @var array<string, array{display_width: int, variant_width: int, retina_variant_width: int, wordmark_ratio?: float|int|string}> $presets */
         $presets = config('media.brand_logo.presets', []);
 
         if (! isset($presets[$preset])) {
@@ -66,6 +60,7 @@ final class BrandLogoSources
         $displayHeight = $this->displayHeightForWidth($displayWidth);
         $variantWidth = (int) $presetConfig['variant_width'];
         $retinaVariantWidth = (int) $presetConfig['retina_variant_width'];
+        $ratio = self::resolveWordmarkRatio($wordmarkRatio, $presetConfig);
 
         $src = $this->urlForWidth($variantWidth);
         $retinaSrc = $this->urlForWidth($retinaVariantWidth);
@@ -75,16 +70,32 @@ final class BrandLogoSources
             'srcset' => "{$src} 1x, {$retinaSrc} 2x",
             'width' => $displayWidth,
             'height' => $displayHeight,
-            'wordmark_font_size' => self::wordmarkFontSizeForHeight($displayHeight),
+            'wordmark_font_size' => self::wordmarkFontSizeForHeight($displayHeight, $ratio),
+            'wordmark_ratio' => $ratio,
         ];
     }
 
-    public static function wordmarkFontSizeForHeight(int $displayHeight): int
+    /**
+     * @param  array<string, mixed>  $presetConfig
+     */
+    public static function resolveWordmarkRatio(?float $override, array $presetConfig = []): float
     {
-        $halfHeight = (int) ceil($displayHeight / 2);
-        $preferredSize = (int) round($displayHeight * self::WORDMARK_FONT_SIZE_RATIO);
+        $ratio = $override
+            ?? (isset($presetConfig['wordmark_ratio']) ? (float) $presetConfig['wordmark_ratio'] : null)
+            ?? (float) config('media.brand_logo.wordmark_ratio', 0.4);
 
-        return max(1, $halfHeight, $preferredSize);
+        if ($ratio <= 0 || $ratio > 2) {
+            throw new InvalidArgumentException("Invalid brand wordmark ratio [{$ratio}].");
+        }
+
+        return $ratio;
+    }
+
+    public static function wordmarkFontSizeForHeight(int $displayHeight, ?float $ratio = null): int
+    {
+        $resolvedRatio = self::resolveWordmarkRatio($ratio);
+
+        return max(1, (int) round($displayHeight * $resolvedRatio));
     }
 
     public function intrinsicWidth(): int
