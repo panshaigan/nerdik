@@ -301,7 +301,7 @@
                                                         ? (string) $slotPlace->name
                                                         : null;
                                                 @endphp
-                                                <div class="space-y-0.5 text-sm text-base-content/60">
+                                                <div class="space-y-0.5 text-sm text-base-content/60 mt-4">
                                                     <span class="inline-flex items-center gap-1.5">
                                                         <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
                                                         <span>{{ $slotVenueName }}</span>
