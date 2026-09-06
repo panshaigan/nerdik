@@ -40,7 +40,7 @@ final class GenerateBrandLogoVariants
                     absolutePath: $absoluteSource,
                     minLuminance: (int) ($trimConfig['min_luminance'] ?? 40),
                     maxGdAlpha: (int) ($trimConfig['max_gd_alpha'] ?? 100),
-                    padding: (int) ($trimConfig['padding'] ?? 40),
+                    padding: (int) ($trimConfig['padding'] ?? 96),
                 );
 
                 $temporaryTrimmedPath = storage_path('app/brand-logo-trimmed-'.getmypid().'.webp');

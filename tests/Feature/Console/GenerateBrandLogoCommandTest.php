@@ -37,8 +37,8 @@ final class GenerateBrandLogoCommandTest extends TestCase
             flags: JSON_THROW_ON_ERROR,
         );
 
-        $this->assertSame(1139, $manifest['width']);
-        $this->assertSame(1054, $manifest['height']);
+        $this->assertSame(1251, $manifest['width']);
+        $this->assertSame(1156, $manifest['height']);
         $this->assertTrue($manifest['trimmed']);
         $this->assertCount(8, $manifest['variants']['webp']);
 

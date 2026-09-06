@@ -67,7 +67,7 @@ final class BrandComponentTest extends TestCase
         $response->assertOk();
         $response->assertSee('ui-brand', false);
         $response->assertSee('ui-brand-name', false);
-        $response->assertSee('--brand-logo-height: 80px', false);
+        $response->assertSee('--brand-logo-height: 79px', false);
         $response->assertSee('images/app/brand/96w.webp', false);
         $response->assertSee((string) config('app.name'), false);
     }

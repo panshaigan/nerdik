@@ -22,7 +22,7 @@ final class VisibleImageBounds
         string $absolutePath,
         int $minLuminance = 40,
         int $maxGdAlpha = 100,
-        int $padding = 40,
+        int $padding = 96,
     ): array {
         if ($minLuminance < 0 || $minLuminance > 255) {
             throw new InvalidArgumentException("Invalid min luminance [{$minLuminance}].");

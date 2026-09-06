@@ -185,7 +185,7 @@ return [
             'min_luminance' => 40,
             'max_gd_alpha' => 100,
             // Source pixels around the bright fill that include the dark outline.
-            'padding' => 40,
+            'padding' => 96,
         ],
         'presets' => [
             'nav' => [
