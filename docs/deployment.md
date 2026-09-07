@@ -646,22 +646,38 @@ The next `make backup-prod` uploads to the remote **in addition to** the local c
 
 ### Restore production
 
-Use [`scripts/backup/restore-prod.sh`](../scripts/backup/restore-prod.sh) with a **backup folder** or **`.tar.gz` archive** (flat or single top-level folder inside the archive).
+Run on the **VPS** as `deploy` from `/opt/nerdik`. Entry point: `make restore-prod` → [`scripts/backup/restore-prod.sh`](../scripts/backup/restore-prod.sh) → [`scripts/sync/import-to-env.sh`](../scripts/sync/import-to-env.sh) `prod`.
+
+**Source:** a backup **directory** under `/home/deploy/backups/nerdik/prod/YYYY-MM-DD-HHMMSS/` (or a `.tar.gz` of that folder — flat or single top-level directory). Expected artifacts: `db.sql.gz`, `storage-app.tar.gz`, optional `env.tar.gz.gpg`, and `manifest.json`. If using off-site storage, download the backup to the VPS first (e.g. via `rclone`).
+
+**Restores:** PostgreSQL and `storage/app` (and optionally `.env`). Does **not** restore Redis, Caddy TLS data, or built frontend assets.
+
+**Workflow:**
+
+1. SSH to the VPS and `cd /opt/nerdik`.
+2. Choose a backup folder (or download/unpack an off-site archive).
+3. Dry-run to print steps without changing data.
+4. Restore with `RESTORE_BACKUP=1` so current prod is snapshotted to `/tmp/nerdik-prod-backup-*` before overwrite.
+5. Post-import (automatic): truncates volatile tables (`jobs`, `sessions`, `cache`, …), then `storage:link`, `optimize:clear`, and `tags:recalculate-popularity`.
 
 ```bash
 cd /opt/nerdik
 
-# Dry-run (print steps only)
+# 1) Dry-run (print steps only)
 make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001 DRY_RUN=1
 
-# Restore DB + storage (prompts for confirmation)
-make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001
+# 2) Recommended: restore DB + storage; snapshot current prod to /tmp first
+make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001 YES=1 RESTORE_BACKUP=1
 
-# Non-interactive; snapshot current prod to /tmp first
-make restore-prod ARCHIVE=/path/to/nerdik-backup.tar.gz YES=1 RESTORE_BACKUP=1
+# Interactive confirm (omit YES=1)
+make restore-prod ARCHIVE=/home/deploy/backups/nerdik/prod/2026-06-12-030001 RESTORE_BACKUP=1
 
-# Also restore encrypted .env (requires .backup-gpg-passphrase)
-make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_ENV=1
+# Also restore encrypted .env (requires /opt/nerdik/.backup-gpg-passphrase)
+make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_BACKUP=1 RESTORE_ENV=1
+
+# Partial restore
+make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_BACKUP=1 DB_ONLY=1
+make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_BACKUP=1 STORAGE_ONLY=1
 ```
 
 | Flag | Effect |
@@ -673,10 +689,11 @@ make restore-prod ARCHIVE=/path/to/backup YES=1 RESTORE_ENV=1
 | `DRY_RUN=1` | Print steps only |
 | `DB_ONLY=1` / `STORAGE_ONLY=1` | Partial restore |
 
-To create a portable archive from a local backup folder:
+Portable archive from a local backup folder:
 
 ```bash
 tar czf nerdik-backup.tar.gz -C /home/deploy/backups/nerdik/prod 2026-06-12-030001
+make restore-prod ARCHIVE=/path/to/nerdik-backup.tar.gz YES=1 RESTORE_BACKUP=1
 ```
 
 Run a restore drill monthly (e.g. onto staging via `import-to-env.sh staging`) to verify backups are usable.
