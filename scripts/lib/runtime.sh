@@ -84,6 +84,69 @@ runtime_print() {
     printf 'APP_ENV=%s\n' "$APP_ENV"
 }
 
+# Confirm a destructive Make/Artisan action when APP_ENV=production.
+# Bypass with YES=1 (e.g. make fresh YES=1). Requires typing "production".
+#
+# Usage: runtime_confirm_production_destructive <label> <detail>
+runtime_confirm_production_destructive() {
+    local label="${1:-destructive command}"
+    local detail="${2:-This will destroy or overwrite production data.}"
+
+    if [[ "${APP_ENV:-}" != "production" ]]; then
+        return 0
+    fi
+
+    if [[ "${YES:-0}" == "1" ]]; then
+        return 0
+    fi
+
+    cat >&2 <<EOF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  WARNING: DESTRUCTIVE COMMAND ON PRODUCTION
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  Action:    ${label}
+  APP_ENV:   ${APP_ENV}
+  DEPLOY_ENV:${DEPLOY_ENV:-prod}
+
+  ${detail}
+
+  This targets the LIVE production database / stack.
+  Prefer: make backup-prod
+  Bypass (automation only): YES=1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOF
+
+    if [[ ! -t 0 && "${NERDIK_DESTRUCTIVE_REQUIRE_TTY:-1}" == "1" ]]; then
+        echo "Refusing destructive production command without a TTY. Re-run with YES=1 to confirm." >&2
+        return 1
+    fi
+
+    printf 'Type "production" to continue: ' >&2
+    local answer=""
+    read -r answer || true
+
+    if [[ "$answer" != "production" ]]; then
+        echo "Aborted." >&2
+        return 1
+    fi
+
+    return 0
+}
+
+# True when the first artisan argument is a destructive DB command.
+runtime_is_destructive_artisan() {
+    case "${1:-}" in
+        migrate:fresh|migrate:refresh|migrate:reset|migrate:rollback|db:wipe|db:seed|app:init)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 # Allow: ./scripts/lib/runtime.sh --print [/path/to/root]
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     case "${1:-}" in

@@ -54,6 +54,7 @@ endif
 
 # Day-to-day commands: Sail when APP_ENV=local, compose stack when staging/production.
 # Local `up` also runs boost:update and verifies Boost MCP (see scripts/lib/boost.sh).
+# Destructive on production (fresh/refresh/seed/init + some artisan): type "production", or YES=1.
 up:
 	$(APP_CMD) up
 

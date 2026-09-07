@@ -155,6 +155,110 @@ class RuntimeScriptTest extends TestCase
         $this->assertTrue(is_executable($path));
     }
 
+    public function test_production_destructive_confirm_skipped_when_not_production(): void
+    {
+        $process = $this->confirmDestructive('local', "should-not-matter\n");
+
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
+        $this->assertStringNotContainsString('WARNING', $process->getErrorOutput());
+    }
+
+    public function test_production_destructive_confirm_skipped_with_yes_env(): void
+    {
+        $process = $this->confirmDestructive('production', "no\n", ['YES' => '1']);
+
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
+    }
+
+    public function test_production_destructive_confirm_aborts_when_answer_is_wrong(): void
+    {
+        $process = $this->confirmDestructive('production', "yes\n");
+
+        $this->assertFalse($process->isSuccessful());
+        $this->assertStringContainsString('WARNING: DESTRUCTIVE COMMAND ON PRODUCTION', $process->getErrorOutput());
+        $this->assertStringContainsString('Aborted.', $process->getErrorOutput());
+    }
+
+    public function test_production_destructive_confirm_accepts_typed_production(): void
+    {
+        $process = $this->confirmDestructive('production', "production\n");
+
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
+        $this->assertStringContainsString('WARNING: DESTRUCTIVE COMMAND ON PRODUCTION', $process->getErrorOutput());
+    }
+
+    public function test_production_destructive_confirm_rejects_non_tty_without_yes(): void
+    {
+        $script = <<<'BASH'
+set -euo pipefail
+source scripts/lib/runtime.sh
+APP_ENV=production
+DEPLOY_ENV=prod
+# Force the non-TTY branch even if PHPUnit attaches a PTY.
+exec 0</dev/null
+runtime_confirm_production_destructive 'make fresh' 'drops tables'
+BASH;
+
+        $process = new Process(
+            ['bash', '-c', $script],
+            base_path(),
+        );
+        $process->run();
+
+        $this->assertFalse($process->isSuccessful());
+        $this->assertStringContainsString('without a TTY', $process->getErrorOutput());
+        $this->assertStringContainsString('YES=1', $process->getErrorOutput());
+    }
+
+    public function test_runtime_is_destructive_artisan_detects_dangerous_commands(): void
+    {
+        $script = <<<'BASH'
+set -euo pipefail
+source scripts/lib/runtime.sh
+runtime_is_destructive_artisan migrate:fresh
+runtime_is_destructive_artisan db:seed
+runtime_is_destructive_artisan app:init
+! runtime_is_destructive_artisan migrate
+! runtime_is_destructive_artisan about
+BASH;
+
+        $process = new Process(
+            ['bash', '-c', $script],
+            base_path(),
+        );
+        $process->run();
+
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
+    }
+
+    /**
+     * @param  array<string, string>  $env
+     */
+    private function confirmDestructive(string $appEnv, string $stdin, array $env = []): Process
+    {
+        $script = <<<'BASH'
+set -euo pipefail
+source scripts/lib/runtime.sh
+APP_ENV="$TEST_APP_ENV"
+DEPLOY_ENV=prod
+runtime_confirm_production_destructive 'make fresh' 'DROPS ALL TABLES'
+BASH;
+
+        $process = new Process(
+            ['bash', '-c', $script],
+            base_path(),
+            array_merge($_ENV, $env, [
+                'TEST_APP_ENV' => $appEnv,
+                // Allow piping answers in PHPUnit (stdin is not a TTY).
+                'NERDIK_DESTRUCTIVE_REQUIRE_TTY' => '0',
+            ]),
+        );
+        $process->setInput($stdin);
+        $process->run();
+
+        return $process;
+    }
+
     /**
      * @return non-empty-string
      */

@@ -396,6 +396,7 @@ VPS Artisan commands use [`scripts/compose-exec.sh`](../scripts/compose-exec.sh)
 ```bash
 cd /opt/nerdik
 make init
+# confirms by requiring you to type: production
 ```
 
 Same command works on staging (`cd /opt/nerdik-staging && make init`) and local Sail (`make init`). Day-to-day Make targets route via `APP_ENV`: Sail when `local`, compose stack when `staging`/`production`.
@@ -403,24 +404,28 @@ Same command works on staging (`cd /opt/nerdik-staging && make init`) and local 
 Non-interactive (no TTY):
 
 ```bash
-make artisan app:init --force --no-interaction --email=you@example.com --nickname=you --password='…'
+YES=1 make artisan app:init --force --no-interaction --email=you@example.com --nickname=you --password='…'
+# or: make init YES=1 … (still needs admin options / interactive prompts as applicable)
 ```
 
 **Refresh database (wipes all data and seeds sample users):**
 
+On production, `make refresh` / `make fresh` / `make seed` / `make init` (and destructive `make artisan …` such as `migrate:fresh`, `db:seed`) require typing `production` to continue, or `YES=1` for non-interactive confirmation. Prefer `make backup-prod` first. Do **not** use refresh/seed for routine production work.
+
 ```bash
 cd /opt/nerdik
 make refresh
+# or: make refresh YES=1
 ```
 
 **Run any Artisan command** (same name locally or on the VPS):
 
 ```bash
 make artisan migrate --force
-make artisan db:seed --force
+make artisan db:seed --force   # production: confirm or YES=1
 ```
 
-On staging: `cd /opt/nerdik-staging && make refresh` / `make artisan …`.
+On staging: `cd /opt/nerdik-staging && make refresh` / `make artisan …` (no production confirm gate).
 
 After each deploy, `.nerdik-image` is updated automatically. Pull the latest code once so these helpers are available on the server.
 
