@@ -5,6 +5,9 @@
 #
 # Commands: up down restart ps logs shell tinker migrate init fresh refresh
 #           seed cache artisan regenerate-welcome-image boost
+#
+# Production: fresh/refresh/seed/init and destructive artisan require typing
+# "production" (or YES=1). See runtime_confirm_production_destructive.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -116,6 +119,10 @@ case "$CMD" in
         fi
         ;;
     init)
+        runtime_confirm_production_destructive \
+            'make init / app:init' \
+            'Wipes all tables and leftover media, seeds base production data, and creates the first admin.' \
+            || exit 1
         if [[ "$RUNTIME" == "sail" ]]; then
             sail_cmd artisan app:init "$@"
         else
@@ -123,6 +130,10 @@ case "$CMD" in
         fi
         ;;
     fresh)
+        runtime_confirm_production_destructive \
+            'make fresh / migrate:fresh' \
+            'DROPS ALL TABLES and rebuilds the schema. All production data will be lost.' \
+            || exit 1
         if [[ "$RUNTIME" == "sail" ]]; then
             sail_cmd artisan migrate:fresh "$@"
             sail_cmd artisan tags:recalculate-popularity
@@ -132,6 +143,10 @@ case "$CMD" in
         fi
         ;;
     refresh)
+        runtime_confirm_production_destructive \
+            'make refresh / migrate:refresh --seed' \
+            'Rolls back and re-runs migrations, then seeds (including sample users). All production data will be lost.' \
+            || exit 1
         if [[ "$RUNTIME" == "sail" ]]; then
             SEED_DATASET="${SEED_DATASET}" sail_cmd artisan migrate:refresh --seed "$@"
             sail_cmd artisan tags:recalculate-popularity
@@ -141,6 +156,10 @@ case "$CMD" in
         fi
         ;;
     seed)
+        runtime_confirm_production_destructive \
+            'make seed / db:seed' \
+            'Runs database seeders against production (may overwrite or duplicate data).' \
+            || exit 1
         if [[ "$RUNTIME" == "sail" ]]; then
             SEED_DATASET="${SEED_DATASET}" sail_cmd artisan db:seed "$@"
         else
@@ -155,6 +174,12 @@ case "$CMD" in
         fi
         ;;
     artisan)
+        if runtime_is_destructive_artisan "${1:-}"; then
+            runtime_confirm_production_destructive \
+                "make artisan $*" \
+                'Destructive Artisan command against the production database.' \
+                || exit 1
+        fi
         if [[ "$RUNTIME" == "sail" ]]; then
             sail_cmd artisan "$@"
         else
