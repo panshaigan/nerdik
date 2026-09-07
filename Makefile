@@ -6,16 +6,12 @@ APP_CMD := ./scripts/app-cmd.sh
 SEED_DATASET ?= minimal
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
-        test npm-install npm-dev npm-build tinker serve composer-install composer-require \
-        composer-audit cache artisan pint sail tags-recalculate tags-seed-images test-all \
-        docker-config docker-pull prod-maintenance-on prod-maintenance-off prod-maintenance-status \
-        deploy init docker-publish dump-schema sync-from-prod sync-from-prod-db \
-        sync-from-prod-storage sync-from-prod-tables prod-to-staging-sync prod-to-staging-sync-remote \
-        prod-to-staging-sync-tables prod-to-staging-sync-tables-remote ci-check \
+        test npm composer tinker serve cache artisan pint sail tags-recalculate test-all \
+        maintenance deploy init dump-schema sync-from-prod sync-to-staging ci-check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image
 
-# Data sync (prod → local / staging)
+# Data sync flags
 SYNC_FLAGS :=
 ifeq ($(YES),1)
 SYNC_FLAGS += --yes
@@ -25,6 +21,12 @@ SYNC_FLAGS += --backup
 endif
 ifeq ($(DRY_RUN),1)
 SYNC_FLAGS += --dry-run
+endif
+ifeq ($(DB),1)
+SYNC_FLAGS += --db-only
+endif
+ifeq ($(STORAGE),1)
+SYNC_FLAGS += --storage-only
 endif
 
 # Production restore (ARCHIVE = backup directory or .tar.gz)
@@ -117,9 +119,6 @@ test-all:
 tags-recalculate:
 	$(SAIL) artisan tags:recalculate-popularity
 
-tags-seed-images:
-	$(SAIL) artisan tags:seed-images
-
 regenerate-backgrounds:
 	$(SAIL) artisan app:generate-shell-backgrounds
 
@@ -129,24 +128,15 @@ regenerate-brand-logo:
 regenerate-welcome-image:
 	$(APP_CMD) regenerate-welcome-image
 
-npm-install:
-	$(SAIL) npm install
+# Sail-only: make npm install | make npm run build | …
+npm:
+	@./scripts/lib/runtime.sh --print | grep -q '^RUNTIME=sail$$' || { echo "make npm is Sail-only (APP_ENV=local)." >&2; exit 1; }
+	$(SAIL) npm $(filter-out $@,$(MAKECMDGOALS))
 
-npm-dev:
-	$(SAIL) npm run dev
-
-npm-build:
-	$(SAIL) npm run build
-
-composer-install:
-	$(SAIL) composer install
-
-composer-require:
-	@if [ -z "$(PACKAGE)" ]; then echo "Usage: make composer-require PACKAGE=vendor/package"; exit 1; fi
-	$(SAIL) composer require $(PACKAGE)
-
-composer-audit:
-	$(SAIL) composer audit
+# Sail-only: make composer install | make composer require vendor/pkg | …
+composer:
+	@./scripts/lib/runtime.sh --print | grep -q '^RUNTIME=sail$$' || { echo "make composer is Sail-only (APP_ENV=local)." >&2; exit 1; }
+	$(SAIL) composer $(filter-out $@,$(MAKECMDGOALS))
 
 artisan:
 	$(APP_CMD) artisan $(filter-out $@,$(MAKECMDGOALS))
@@ -162,67 +152,24 @@ ci-check:
 IMAGE_TAG ?=
 BUILD ?=
 
-docker-config:
-	@eval "$$(./scripts/compose-env.sh)"; \
-	docker compose -f compose.stack.yaml -f compose.$${DEPLOY_ENV}.yaml config
-
-docker-pull:
-	$(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),) ./scripts/deploy.sh --pull-only
-
-prod-maintenance-on:
-	./scripts/maintenance.sh on
-
-prod-maintenance-off:
-	./scripts/maintenance.sh off
-
-prod-maintenance-status:
-	./scripts/maintenance.sh status
+# Production Caddy maintenance: make maintenance on|off|status
+maintenance:
+	./scripts/maintenance.sh $(filter-out $@,$(MAKECMDGOALS))
 
 # Full VPS release: git pull + verify GHCR image + deploy this checkout
 deploy:
 	$(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),) $(if $(BUILD),BUILD=$(BUILD),) ./scripts/vps-deploy.sh
 
-docker-publish:
-	./scripts/docker-publish.sh
-
+# Prod → this checkout (local Sail or VPS staging). Blocked on production.
+# Examples: make sync-from-prod YES=1
+#           make sync-from-prod DB=1
+#           make sync-from-prod tables users activities
 sync-from-prod:
-	./scripts/sync/pull-from-prod.sh $(SYNC_FLAGS)
+	./scripts/sync/sync-from-prod.sh $(SYNC_FLAGS) $(filter-out $@,$(MAKECMDGOALS))
 
-sync-from-prod-db:
-	./scripts/sync/pull-from-prod.sh --db-only $(SYNC_FLAGS)
-
-sync-from-prod-storage:
-	./scripts/sync/pull-from-prod.sh --storage-only $(SYNC_FLAGS)
-
-sync-from-prod-tables:
-	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
-	if [ -z "$$tables" ]; then \
-		echo "Usage: make sync-from-prod-tables TABLE [TABLE...] [YES=1] [DRY_RUN=1]" >&2; \
-		exit 1; \
-	fi; \
-	./scripts/sync/pull-from-prod.sh --tables $$tables $(SYNC_FLAGS)
-
-prod-to-staging-sync:
-	./scripts/sync/prod-to-staging.sh $(SYNC_FLAGS)
-
-prod-to-staging-sync-remote:
-	./scripts/sync/prod-to-staging-remote.sh $(SYNC_FLAGS)
-
-prod-to-staging-sync-tables:
-	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
-	if [ -z "$$tables" ]; then \
-		echo "Usage: make prod-to-staging-sync-tables TABLE [TABLE...] [YES=1] [BACKUP=1] [DRY_RUN=1]" >&2; \
-		exit 1; \
-	fi; \
-	./scripts/sync/prod-to-staging.sh --tables $$tables $(SYNC_FLAGS)
-
-prod-to-staging-sync-tables-remote:
-	@tables="$(filter-out $@,$(MAKECMDGOALS))"; \
-	if [ -z "$$tables" ]; then \
-		echo "Usage: make prod-to-staging-sync-tables-remote TABLE [TABLE...] [YES=1] [BACKUP=1] [DRY_RUN=1]" >&2; \
-		exit 1; \
-	fi; \
-	./scripts/sync/prod-to-staging-remote.sh --tables $$tables $(SYNC_FLAGS)
+# Local Sail → VPS staging (APP_ENV=local only)
+sync-to-staging:
+	./scripts/sync/sync-to-staging.sh $(SYNC_FLAGS) $(filter-out $@,$(MAKECMDGOALS))
 
 backup-prod:
 	./scripts/backup/backup-prod.sh

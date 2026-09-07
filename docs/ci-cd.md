@@ -170,4 +170,7 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 | `IMAGE_TAG=<sha|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |
 | `make artisan …` | Sail locally; compose stack on VPS |
-| `make docker-publish` | Build and push image from local machine |
+| `make npm …` / `make composer …` | Sail-only package managers |
+| `make sync-from-prod` | Prod → this checkout (`local` or `staging`; blocked on `production`) |
+| `make sync-to-staging` | Local Sail → VPS staging |
+| `GITHUB_OWNER=… ./scripts/docker-publish.sh` | Build and push image from local machine (rare; CI usually publishes) |

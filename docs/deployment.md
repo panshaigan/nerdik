@@ -258,7 +258,7 @@ Frontend assets are baked into the image (`npm run build` in the Dockerfile). `V
 Publish from a machine authenticated to GHCR with write permissions:
 
 ```bash
-make docker-publish
+GITHUB_OWNER=your-github-owner ./scripts/docker-publish.sh
 ```
 
 Optional private Composer packages: pass `COMPOSER_AUTH` or a BuildKit secret for `auth.json` when building.
@@ -301,9 +301,9 @@ Production serves a branded static page from Caddy when maintenance is enabled. 
 
 | Command | Action |
 |---------|--------|
-| `make prod-maintenance-on` | Show maintenance page immediately |
-| `make prod-maintenance-off` | Return to normal traffic |
-| `make prod-maintenance-status` | Print `ON` or `OFF` |
+| `make maintenance on` | Show maintenance page immediately |
+| `make maintenance off` | Return to normal traffic |
+| `make maintenance status` | Print `ON` or `OFF` |
 
 `make deploy` on production **enables maintenance automatically** before containers restart and disables it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
 
@@ -506,9 +506,9 @@ Do not expose Sail-only tools (Adminer, Mailpit) in **production**. Staging Mail
 - PostgreSQL (daily minimum)
 - `storage/app` (private and public media)
 
-## Data sync (prod → local / staging)
+## Data sync (prod → local / staging, and local → staging)
 
-Scripts under [`scripts/sync/`](../scripts/sync/) copy **production PostgreSQL** and **`storage/app`** into local Sail or staging. They do **not** copy Redis, built frontend assets, Caddy TLS data, or per-environment `.env` secrets.
+Scripts under [`scripts/sync/`](../scripts/sync/) copy **PostgreSQL** and **`storage/app`** between environments. They do **not** copy Redis, built frontend assets, Caddy TLS data, or per-environment `.env` secrets.
 
 **What is copied:** users, events, activities, Spatie `media` rows/files, avatars, sent email log rows and stored HTML/text bodies, FTS search vectors.
 
@@ -516,27 +516,43 @@ Scripts under [`scripts/sync/`](../scripts/sync/) copy **production PostgreSQL**
 
 **Warning:** sync overwrites the target database and storage. Production data may contain real user PII — handle exports carefully.
 
-**`.env.sync` is local-only.** You only need it on your dev machine for SSH-based flows (`make sync-from-prod*`, `make prod-to-staging-sync-remote`). Running `make prod-to-staging-sync` on the VPS (`/opt/nerdik`) uses built-in defaults (`/opt/nerdik-staging`) and does not require `.env.sync`.
+**`.env.sync` is local-only** (SSH flows from your laptop). On the VPS staging checkout, `make sync-from-prod` uses sibling path defaults (`/opt/nerdik` → current staging) and does not need `.env.sync`.
 
-### Local dev: pull from production via SSH
+### `make sync-from-prod` (routes by `APP_ENV`)
 
-1. Copy [`.env.sync.example`](../.env.sync.example) to `.env.sync` and set `SYNC_SSH_HOST`, `SYNC_SSH_KEY`, and `SYNC_SSH_PORT` if SSH is not on port 22.
-2. Add the sync public key to `deploy@VPS` `authorized_keys`.
-3. Start Sail: `make up`
-4. Sync:
+| Where | Effect |
+|-------|--------|
+| Local (`APP_ENV=local`) | SSH pull production into Sail |
+| Staging (`/opt/nerdik-staging`) | On VPS: export production into this staging checkout |
+| Production | **Blocked** |
+
+Local setup: copy [`.env.sync.example`](../.env.sync.example) to `.env.sync`, set `SYNC_SSH_HOST` / `SYNC_SSH_KEY`, add the key to `deploy@VPS` `authorized_keys`, then `make up`.
 
 ```bash
+# Laptop (prod → local)
 make sync-from-prod              # interactive confirm
 make sync-from-prod YES=1        # skip prompt
-make sync-from-prod-db           # database only
-make sync-from-prod-storage      # storage only
+make sync-from-prod DB=1         # database only
+make sync-from-prod STORAGE=1    # storage only
 make sync-from-prod DRY_RUN=1    # print steps only
-make sync-from-prod-tables users activities media
-make sync-from-prod-tables users activities YES=1
-make sync-from-prod-tables users DRY_RUN=1
+make sync-from-prod tables users activities media
+make sync-from-prod tables users activities YES=1
+
+# VPS staging (prod → staging)
+cd /opt/nerdik-staging
+make sync-from-prod
+make sync-from-prod BACKUP=1 YES=1
+make sync-from-prod tables users activities BACKUP=1 YES=1
 ```
 
-**Selective table sync** overwrites only the named tables in your local database (still truncates volatile queue/cache/session tables afterward). Include related tables when foreign keys require them — e.g. copy `users` if the rows you need reference that table.
+**Selective table sync** overwrites only the named tables (still truncates volatile queue/cache/session tables afterward). Include related tables when foreign keys require them.
+
+From a laptop you can also SSH-trigger staging sync without Make twins:
+
+```bash
+./scripts/sync/prod-to-staging-remote.sh BACKUP=1
+./scripts/sync/prod-to-staging-remote.sh --tables tags --yes
+```
 
 **WSL + PuTTY keys:** OpenSSH cannot use `.ppk` files or keys stored on `/mnt/c/...` (Windows permissions cannot be tightened). Convert and keep the key in the WSL filesystem:
 
@@ -547,26 +563,17 @@ chmod 600 ~/.ssh/nerdik-sync
 # set SYNC_SSH_KEY=~/.ssh/nerdik-sync in .env.sync
 ```
 
-### VPS: production → staging
+### `make sync-to-staging` (local → VPS staging)
 
-Run from the production clone (`/opt/nerdik`):
-
-```bash
-make prod-to-staging-sync
-make prod-to-staging-sync BACKUP=1 YES=1
-make prod-to-staging-sync-tables users activities BACKUP=1 YES=1
-```
-
-From your local machine (SSH into VPS and run the same; requires local `.env.sync`):
+Push your current Sail database/storage to staging so staging looks like local:
 
 ```bash
-make prod-to-staging-sync-remote BACKUP=1
-make prod-to-staging-sync-tables-remote tags YES=1
+make sync-to-staging
+make sync-to-staging YES=1 BACKUP=1
+make sync-to-staging tables users activities
 ```
 
-**Selective table sync** on staging follows the same FK caveat as local pulls: list every table you need, including parents referenced by foreign keys.
-
-On the VPS, staging path defaults to `/opt/nerdik-staging`. Override locally via `SYNC_STAGING_PATH` in `.env.sync` if your clone lives elsewhere.
+Requires `APP_ENV=local` and `.env.sync` (`SYNC_SSH_HOST`, etc.). Staging path defaults to `/opt/nerdik-staging` (`SYNC_STAGING_PATH`).
 
 ## Backups
 

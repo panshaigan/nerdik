@@ -21,8 +21,8 @@ This project is expected to run through Laravel Sail commands.
    - `make migrate`
    - `make seed`
 5. Install and build frontend assets:
-   - `make npm-install`
-   - `make npm-build`
+   - `make npm install`
+   - `make npm run build`
 
 ## Daily Commands
 
@@ -59,9 +59,9 @@ For PHP formatting in changed files:
 
 ## Frontend Assets
 
-- Development watch mode: `make npm-dev`
-- Production build: `make npm-build`
-- If dependencies changed after pull: run `make npm-install` then build again.
+- Development watch mode: `make npm run dev`
+- Production build: `make npm run build`
+- If dependencies changed after pull: run `make npm install` then build again.
 
 ## Seeded Demo Data
 
