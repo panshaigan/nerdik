@@ -6,6 +6,9 @@
 # host — it pulls NERDIK_IMAGE (or IMAGE_TAG), starts containers, migrates,
 # runs optimize + filament:optimize, and restarts worker/scheduler/reverb.
 #
+# On production, maintenance mode is enabled before pull/build and disabled
+# after a successful deploy (SKIP_MAINTENANCE=1 to bypass).
+#
 # Env is taken from APP_ENV in .env (production → prod, staging → staging),
 # or pass an explicit first argument: prod|staging.
 #
@@ -127,6 +130,12 @@ fi
 
 COMPOSE=(docker compose "${COMPOSE_FILES[@]}")
 
+# Block public traffic before pull/build so visitors never hit a half-updated stack.
+# Skip for --pull-only (no restart). Leave on if later steps fail (intentional).
+if [[ "$PULL_ONLY" != "1" && "$DEPLOY_ENV" == "prod" && "${SKIP_MAINTENANCE:-0}" != "1" ]]; then
+    "${ROOT}/scripts/maintenance.sh" on
+fi
+
 if [[ "$USE_BUILD" == "1" ]]; then
     "${COMPOSE[@]}" build
 else
@@ -145,10 +154,6 @@ fi
 if [[ "$PULL_ONLY" == "1" ]]; then
     echo "Pull/build complete for ${DEPLOY_ENV}. Skipping deploy (--pull-only)."
     exit 0
-fi
-
-if [[ "$DEPLOY_ENV" == "prod" && "${SKIP_MAINTENANCE:-0}" != "1" ]]; then
-    "${ROOT}/scripts/maintenance.sh" on
 fi
 
 "${COMPOSE[@]}" up -d

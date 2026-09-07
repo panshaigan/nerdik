@@ -305,7 +305,7 @@ Production serves a branded static page from Caddy when maintenance is enabled. 
 | `make maintenance off` | Return to normal traffic |
 | `make maintenance status` | Print `ON` or `OFF` |
 
-`make deploy` on production **enables maintenance automatically** before containers restart and disables it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
+`make deploy` on production **enables maintenance automatically** as the first deploy step (before image pull/build) and disables it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
 
 Emergency bypass (skip auto maintenance during deploy):
 

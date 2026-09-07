@@ -119,4 +119,26 @@ class MaintenanceScriptTest extends TestCase
         $this->assertStringContainsString('fill="#021A2A"', $html);
         $this->assertStringNotContainsString('viewBox="271 153 827 809"', $html);
     }
+
+    public function test_deploy_script_enables_maintenance_before_pull_and_disables_after(): void
+    {
+        $script = file_get_contents(base_path('scripts/deploy.sh'));
+
+        $this->assertIsString($script);
+
+        $onPos = strpos($script, 'scripts/maintenance.sh" on');
+        $pullPos = strpos($script, 'pull --ignore-buildable');
+        $upPos = strpos($script, 'up -d');
+        $offPos = strpos($script, 'scripts/maintenance.sh" off');
+
+        $this->assertNotFalse($onPos);
+        $this->assertNotFalse($pullPos);
+        $this->assertNotFalse($upPos);
+        $this->assertNotFalse($offPos);
+
+        $this->assertLessThan($pullPos, $onPos, 'Maintenance must turn on before image pull/build.');
+        $this->assertLessThan($upPos, $onPos, 'Maintenance must turn on before compose up.');
+        $this->assertGreaterThan($upPos, $offPos, 'Maintenance must turn off after deploy steps.');
+        $this->assertStringContainsString('PULL_ONLY" != "1"', $script);
+    }
 }
