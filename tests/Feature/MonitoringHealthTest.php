@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -19,7 +20,7 @@ class MonitoringHealthTest extends TestCase
         $this->get('/up')->assertOk();
     }
 
-    public function test_health_endpoint_fails_when_diagnosing_health_throws(): void
+    public function test_health_endpoint_fails_when_database_is_unreachable(): void
     {
         Event::listen(DiagnosingHealth::class, function (): void {
             throw new RuntimeException('forced health check failure');
