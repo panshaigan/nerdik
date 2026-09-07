@@ -19,7 +19,7 @@ Usage: ./scripts/maintenance.sh {on|off|status}
 Commands:
   on      Enable maintenance mode (serve static page at the edge)
   off     Disable maintenance mode
-  status  Print ON or OFF (exit 0 when ON, 1 when OFF)
+  status  Print ON or OFF (always exits 0)
 
 Requires APP_ENV=production in .env (unless NERDIK_MAINTENANCE_STATE_DIR is set for tests).
 EOF
@@ -49,11 +49,9 @@ maintenance_off() {
 maintenance_status() {
     if [[ -f "${FLAG_FILE}" ]]; then
         echo "ON"
-        return 0
+    else
+        echo "OFF"
     fi
-
-    echo "OFF"
-    return 1
 }
 
 if [[ $# -ne 1 ]]; then
