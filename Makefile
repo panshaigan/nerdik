@@ -9,7 +9,7 @@ SEED_DATASET ?= minimal
         test npm composer tinker serve cache artisan pint sail tags-recalculate test-all \
         maintenance deploy init dump-schema sync-from-prod sync-to-staging ci-check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
-        regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image
+        regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
 # Data sync flags
 SYNC_FLAGS :=
@@ -50,9 +50,14 @@ ifeq ($(STORAGE_ONLY),1)
 RESTORE_FLAGS += --storage-only
 endif
 
-# Day-to-day commands: Sail when APP_ENV=local, compose stack when staging/production
+# Day-to-day commands: Sail when APP_ENV=local, compose stack when staging/production.
+# Local `up` also runs boost:update and verifies Boost MCP (see scripts/lib/boost.sh).
 up:
 	$(APP_CMD) up
+
+# Refresh Laravel Boost guidelines/skills and verify MCP (Sail / local only)
+boost:
+	$(APP_CMD) boost
 
 down:
 	$(APP_CMD) down

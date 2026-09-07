@@ -106,6 +106,47 @@ class RuntimeScriptTest extends TestCase
         $this->assertTrue(is_executable($path));
     }
 
+    public function test_boost_script_exists_and_is_executable(): void
+    {
+        $path = base_path('scripts/lib/boost.sh');
+
+        $this->assertFileExists($path);
+        $this->assertTrue(is_executable($path));
+    }
+
+    public function test_boost_verify_rejects_missing_mcp_config(): void
+    {
+        $missingConfig = sys_get_temp_dir().'/nerdik-missing-mcp-'.uniqid('', true).'.json';
+
+        $process = new Process(
+            [base_path('scripts/lib/boost.sh'), 'verify', 'php', $missingConfig],
+            base_path(),
+        );
+        $process->run();
+
+        $this->assertFalse($process->isSuccessful());
+        $this->assertStringContainsString(
+            'Missing '.$missingConfig,
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_boost_mcp_health_check_succeeds_with_host_php(): void
+    {
+        $process = new Process(
+            [base_path('scripts/lib/boost.sh'), 'verify', 'php'],
+            base_path(),
+        );
+        $process->setTimeout(30);
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            $process->getErrorOutput().$process->getOutput(),
+        );
+        $this->assertStringContainsString('Boost MCP OK.', $process->getOutput());
+    }
+
     public function test_vps_deploy_script_exists_and_is_executable(): void
     {
         $path = base_path('scripts/vps-deploy.sh');
