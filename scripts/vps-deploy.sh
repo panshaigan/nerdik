@@ -1,42 +1,48 @@
 #!/usr/bin/env bash
-# VPS deploy: git pull, resolve SHA, verify GHCR image, deploy prod or staging.
+# VPS deploy: git pull, resolve SHA, verify GHCR image, deploy this checkout's stack.
+#
+# Env comes from APP_ENV in .env (production → prod, staging → staging).
+# Optional override: pass prod|staging, or set NERDIK_DEPLOY_ENV.
 #
 # Usage:
-#   ./scripts/vps-deploy.sh                    # prod: pull + deploy HEAD SHA
-#   ./scripts/vps-deploy.sh staging          # staging: pull + deploy HEAD SHA
-#   ./scripts/vps-deploy.sh --dry-run          # prod dry run
-#   ./scripts/vps-deploy.sh staging --no-pull  # staging deploy current checkout SHA
-#   IMAGE_TAG=<sha> ./scripts/vps-deploy.sh staging --no-pull
+#   ./scripts/vps-deploy.sh                    # pull + deploy HEAD SHA
+#   ./scripts/vps-deploy.sh --dry-run
+#   ./scripts/vps-deploy.sh --no-pull
+#   IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull
+#   ./scripts/vps-deploy.sh staging --no-pull  # explicit override
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+
+# shellcheck source=scripts/lib/runtime.sh
+source "${ROOT}/scripts/lib/runtime.sh"
 
 usage() {
     cat <<'EOF'
 Usage: ./scripts/vps-deploy.sh [prod|staging] [--dry-run] [--no-pull]
 
 Arguments:
-  prod       Deploy production (default)
-  staging    Deploy staging
+  prod|staging  Optional override (default: from APP_ENV in .env)
 
 Options:
   --dry-run   Show commit SHA and GHCR image ref without deploying
   --no-pull   Skip git pull (deploy IMAGE_TAG env or current checkout SHA)
 
 Environment:
-  IMAGE_TAG   Optional explicit image tag (used with --no-pull from GitHub Actions)
+  IMAGE_TAG           Optional explicit image tag (used with --no-pull from GitHub Actions)
+  NERDIK_DEPLOY_ENV   Optional prod|staging override
 EOF
 }
 
-DEPLOY_ENV="prod"
+OVERRIDE_ENV=""
 NO_PULL=0
 DRY_RUN=0
 
 for arg in "$@"; do
     case "$arg" in
         prod|staging)
-            DEPLOY_ENV="$arg"
+            OVERRIDE_ENV="$arg"
             ;;
         --no-pull)
             NO_PULL=1
@@ -56,16 +62,19 @@ for arg in "$@"; do
     esac
 done
 
-env_example=".env.production.example"
-deploy_make_target="prod-deploy"
-
-if [[ "$DEPLOY_ENV" == "staging" ]]; then
-    env_example=".env.staging.example"
-    deploy_make_target="staging-deploy"
+if [[ -n "$OVERRIDE_ENV" ]]; then
+    export NERDIK_DEPLOY_ENV="$OVERRIDE_ENV"
 fi
 
 if [[ ! -f .env ]]; then
-    echo "Missing .env — copy ${env_example} to .env and configure secrets." >&2
+    echo "Missing .env — copy .env.production.example or .env.staging.example to .env and configure secrets." >&2
+    exit 1
+fi
+
+runtime_load "$ROOT"
+
+if [[ "$RUNTIME" != "stack" ]]; then
+    echo "make deploy / vps-deploy.sh require APP_ENV=staging or production (got ${APP_ENV}). Use Sail locally." >&2
     exit 1
 fi
 
@@ -108,7 +117,12 @@ if [[ "$DRY_RUN" == "1" ]]; then
 fi
 
 echo "Deploying ${DEPLOY_ENV}..."
-make "${deploy_make_target}"
+DEPLOY_BUILD_FLAG=()
+if [[ -n "${BUILD:-}" ]]; then
+    DEPLOY_BUILD_FLAG+=(--build)
+fi
+
+IMAGE_TAG="${IMAGE_TAG}" ./scripts/deploy.sh "${DEPLOY_ENV}" "${DEPLOY_BUILD_FLAG[@]}"
 
 echo ""
 echo "Deploy complete."

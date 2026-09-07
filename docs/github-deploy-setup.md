@@ -4,7 +4,7 @@ Step-by-step guide to enable remote deploy from GitHub Actions. Deploy secrets a
 
 ## Overview
 
-The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your production VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. Staging is deployed manually on the VPS (`make vps-staging-deploy` / `make staging-down`). Until secrets are configured, the workflow prints a skip message and exits successfully.
+The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your production VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. Staging is deployed manually on the VPS (`make deploy` / `make down`). Until secrets are configured, the workflow prints a skip message and exits successfully.
 
 ## A. One-time VPS preparation
 
@@ -88,10 +88,10 @@ You can deploy directly on the VPS without GitHub Actions:
 
 ```bash
 cd /opt/nerdik
-make vps-deploy
+make deploy
 ```
 
-This pulls the latest `main`, verifies the GHCR image for that SHA exists, and runs `make prod-deploy`.
+This pulls the latest `main`, verifies the GHCR image for that SHA exists, and deploys the production stack for that checkout.
 
 Staging is manual only — see [deployment.md](deployment.md#staging-on-the-same-vps).
 

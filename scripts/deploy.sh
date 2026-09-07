@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# Deploy a pre-built GHCR image to staging or prod via Docker Compose.
+# Deploy a pre-built GHCR image to this checkout's stack via Docker Compose.
 #
 # Composer and npm dependencies are baked into the image during CI
 # (docker/production/Dockerfile). This script does not run composer/npm on the
 # host — it pulls NERDIK_IMAGE (or IMAGE_TAG), starts containers, migrates,
 # runs optimize + filament:optimize, and restarts worker/scheduler/reverb.
 #
+# Env is taken from APP_ENV in .env (production → prod, staging → staging),
+# or pass an explicit first argument: prod|staging.
+#
 # For a full VPS update (git pull + deploy latest SHA): ./scripts/vps-deploy.sh
+# or: make deploy
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# shellcheck source=scripts/lib/runtime.sh
+source "${ROOT}/scripts/lib/runtime.sh"
+
 usage() {
     cat <<'EOF'
-Usage: ./scripts/deploy.sh <staging|prod> [--build] [--pull-only]
+Usage: ./scripts/deploy.sh [staging|prod] [--build] [--pull-only]
+
+When staging|prod is omitted, APP_ENV in .env selects the stack
+(production → prod, staging → staging).
 
 Options:
   --build      Build locally using compose.build.yaml before deploy
@@ -22,35 +32,28 @@ Options:
 EOF
 }
 
-if [[ $# -lt 1 ]]; then
-    usage
-    exit 1
-fi
-
-DEPLOY_ENV="$1"
-shift
-
-if [[ "$DEPLOY_ENV" == "dev" ]]; then
-    echo "Note: 'dev' deploy was renamed to 'staging'." >&2
-    DEPLOY_ENV="staging"
-fi
-
-if [[ "$DEPLOY_ENV" != "staging" && "$DEPLOY_ENV" != "prod" ]]; then
-    echo "First argument must be 'staging' or 'prod'." >&2
-    usage
-    exit 1
-fi
-
+DEPLOY_ENV=""
 USE_BUILD="${DEPLOY_BUILD:-0}"
 PULL_ONLY=0
 
 for arg in "$@"; do
     case "$arg" in
+        prod|staging)
+            DEPLOY_ENV="$arg"
+            ;;
+        dev)
+            echo "Note: 'dev' deploy was renamed to 'staging'." >&2
+            DEPLOY_ENV="staging"
+            ;;
         --build)
             USE_BUILD=1
             ;;
         --pull-only)
             PULL_ONLY=1
+            ;;
+        -h|--help)
+            usage
+            exit 0
             ;;
         *)
             echo "Unknown option: $arg" >&2
@@ -59,6 +62,14 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+if [[ -z "$DEPLOY_ENV" ]]; then
+    runtime_load "$ROOT"
+    if [[ "$RUNTIME" != "stack" ]]; then
+        echo "deploy.sh requires APP_ENV=staging or production (got ${APP_ENV:-local}). Use Sail locally." >&2
+        exit 1
+    fi
+fi
 
 if [[ ! -f .env ]]; then
     echo "Missing .env — copy .env.production.example or .env.staging.example to .env and configure secrets." >&2
@@ -83,7 +94,7 @@ fi
 
 if [[ "$DEPLOY_ENV" == "staging" ]]; then
     if ! docker network inspect nerdik-edge >/dev/null 2>&1; then
-        echo "Docker network nerdik-edge not found. Deploy production first (make vps-deploy) so Caddy creates the shared edge network." >&2
+        echo "Docker network nerdik-edge not found. Deploy production first (make deploy) so Caddy creates the shared edge network." >&2
         exit 1
     fi
 

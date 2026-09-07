@@ -13,7 +13,7 @@ You can stay on local Sail only. When you are ready:
 Do not use `NERDIK_IMAGE=...:main` unless you tagged that image yourself; CI publishes **commit SHAs**, not a `main` tag. Prefer:
 
 ```bash
-IMAGE_TAG=<full-git-sha-from-ci> make prod-deploy
+IMAGE_TAG=<full-git-sha-from-ci> make deploy
 ```
 
 ## Docker production (VPS)
@@ -38,19 +38,19 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 7. Deploy (use the SHA or semver from GHCR after your first `v*` tag, e.g. `v1.0.0`). The first run builds the local PostgreSQL image (`nerdik-pgsql:local` from `docker/pgsql`); only the app image is pulled from GHCR.
 
 ```bash
-make prod-deploy
+make deploy
 ```
 
 Pin a specific immutable image tag:
 
 ```bash
-IMAGE_TAG=<git-sha> make prod-deploy
+IMAGE_TAG=<git-sha> make deploy
 ```
 
 Fallback if you must build on the server:
 
 ```bash
-make prod-deploy BUILD=1
+make deploy BUILD=1
 ```
 
 Generate secrets on the **server host** before the first deploy (Compose injects `.env` as environment variables; there is no `.env` file inside the app container):
@@ -73,10 +73,10 @@ After editing `.env`, recreate containers so new values load: `docker compose �
 Initialize an empty production database (base catalog seed, tag/listing images, first admin). This is interactive and needs a TTY:
 
 ```bash
-make prod-init
+make init
 ```
 
-Do **not** use `make prod-refresh` for first-time production: it seeds sample users (`alice@nerdik.test`, etc.). To add another admin later without wiping, run `make prod-artisan user:create-admin`.
+Do **not** use `make refresh` for first-time production: it seeds sample users (`alice@nerdik.test`, etc.). To add another admin later without wiping, run `make artisan user:create-admin`.
 
 ### Staging on the same VPS
 
@@ -87,8 +87,9 @@ Staging runs on the **same VPS** as production, in a separate directory and Dock
 | Directory | `/opt/nerdik` | `/opt/nerdik-staging` |
 | Compose overlay | `compose.prod.yaml` | `compose.staging.yaml` |
 | Domain | `nerdik.app` | `staging.nerdik.app` |
-| Deploy | `make vps-deploy` | `make vps-staging-deploy` |
-| Stop | always on | `make staging-down` |
+| Deploy | `cd /opt/nerdik && make deploy` | `cd /opt/nerdik-staging && make deploy` |
+| Stop | always on | `cd /opt/nerdik-staging && make down` |
+| Env signal | `APP_ENV=production` in `.env` | `APP_ENV=staging` in `.env` |
 
 Stack: [`compose.stack.yaml`](../compose.stack.yaml) + [`compose.staging.yaml`](../compose.staging.yaml).
 
@@ -100,7 +101,7 @@ After pulling this layout, update production once so Caddy creates `nerdik-edge`
 cd /opt/nerdik
 git pull --ff-only
 # Ensure .env has APP_DOMAIN=nerdik.app, STAGING_DOMAIN=staging.nerdik.app, ACME_EMAIL=...
-make vps-deploy
+make deploy
 ```
 
 Add DNS: `A` record `staging.nerdik.app` → same VPS IP as production.
@@ -137,10 +138,10 @@ Production must have been deployed at least once (so `nerdik-edge` exists).
 
 ```bash
 cd /opt/nerdik-staging
-make vps-staging-deploy
+make deploy
 ```
 
-That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) `staging`: `git pull --ff-only`, resolves HEAD SHA, verifies the GHCR image exists, then `make staging-deploy`. Pin a specific SHA with `IMAGE_TAG=<sha> make vps-staging-deploy --no-pull` or `./scripts/vps-deploy.sh staging --no-pull` with `IMAGE_TAG` set.
+That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves HEAD SHA, verifies the GHCR image exists, then deploys this checkout's stack (`APP_ENV=staging`). Pin a specific SHA with `IMAGE_TAG=<sha> make deploy` or `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull`.
 
 First run only — seed the empty database if needed:
 
@@ -152,14 +153,14 @@ Verify:
 
 ```bash
 curl -fsS https://staging.nerdik.app/up
-make staging-ps
+make ps
 ```
 
 #### Deactivate staging
 
 ```bash
 cd /opt/nerdik-staging
-make staging-down
+make down
 ```
 
 Prod keeps running. Staging data remains in `nerdik_staging_*` volumes until you remove them explicitly.
@@ -182,7 +183,7 @@ Redeploy production so Caddy picks up the new site block:
 
 ```bash
 cd /opt/nerdik
-make vps-deploy
+make deploy
 ```
 
 **Staging `.env`** (`/opt/nerdik-staging`) — mail transport and UI credentials:
@@ -207,7 +208,7 @@ Deploy staging after setting `MAILPIT_UI_AUTH` (deploy fails if it is missing):
 
 ```bash
 cd /opt/nerdik-staging
-make vps-staging-deploy
+make deploy
 ```
 
 **Verify:**
@@ -234,11 +235,11 @@ git pull --ff-only
 #   STAGING_DOMAIN=staging.nerdik.app
 #   STAGING_MAILPIT_DOMAIN=mail.staging.nerdik.app
 #   ACME_EMAIL=your@email
-make vps-deploy
+make deploy
 
 cd /opt/nerdik-staging
 git pull --ff-only
-make vps-staging-deploy
+make deploy
 
 # Verify Caddy generated both site blocks
 docker logs nerdik-prod-caddy-1 2>&1 | tail -30
@@ -281,15 +282,15 @@ The server needs a clone of your git remote (not only a copied folder). After pu
 
 ```bash
 cd /opt/nerdik
-make vps-deploy
+make deploy
 ```
 
-That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves the new commit SHA, verifies the GHCR image exists, then `make prod-deploy`.
+That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves the new commit SHA, verifies the GHCR image exists, then deploys this checkout's stack (`APP_ENV=production`).
 
 To pin a specific SHA manually:
 
 ```bash
-IMAGE_TAG=<git-sha> make prod-deploy
+IMAGE_TAG=<git-sha> make deploy
 ```
 
 Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image you want.
@@ -304,27 +305,27 @@ Production serves a branded static page from Caddy when maintenance is enabled. 
 | `make prod-maintenance-off` | Return to normal traffic |
 | `make prod-maintenance-status` | Print `ON` or `OFF` |
 
-`make vps-deploy` and `make prod-deploy` **enable maintenance automatically** before containers restart and disable it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
+`make deploy` on production **enables maintenance automatically** before containers restart and disables it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
 
 Emergency bypass (skip auto maintenance during deploy):
 
 ```bash
-SKIP_MAINTENANCE=1 make prod-deploy
+SKIP_MAINTENANCE=1 make deploy
 ```
 
 The flag file lives at `docker/caddy/state/maintenance` on the VPS host. Caddy reads it per request — no reload needed when toggling manually.
 
-After pulling this feature for the first time, run `make vps-deploy` once so Caddy is recreated with the maintenance volume mounts.
+After pulling this feature for the first time, run `make deploy` once so Caddy is recreated with the maintenance volume mounts.
 
 ### Promote the same SHA from staging to production
 
 ```bash
 # After verifying on staging.nerdik.app (both dirs on same SHA after pull)
 cd /opt/nerdik-staging
-make vps-staging-deploy
+make deploy
 
 cd /opt/nerdik
-make vps-deploy
+make deploy
 ```
 
 ## Environment
@@ -373,14 +374,14 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 
 ```bash
 cd /opt/nerdik
-make prod-artisan schedule:list
-make prod-artisan housekeeping:prune-sessions --dry-run
-make prod-artisan media-library:clean --delete-orphaned --dry-run --force
+make artisan schedule:list
+make artisan housekeeping:prune-sessions --dry-run
+make artisan media-library:clean --delete-orphaned --dry-run --force
 ```
 
 ### Docker container logs
 
-Compose sets `json-file` log rotation (`max-size: 10m`, `max-file: 5`) on app, worker, scheduler, reverb, pgsql, caddy, and mailpit. Recreate containers after pulling compose changes: `make vps-deploy`.
+Compose sets `json-file` log rotation (`max-size: 10m`, `max-file: 5`) on app, worker, scheduler, reverb, pgsql, caddy, and mailpit. Recreate containers after pulling compose changes: `make deploy`.
 
 ### Sync temp backups
 
@@ -394,32 +395,32 @@ VPS Artisan commands use [`scripts/compose-exec.sh`](../scripts/compose-exec.sh)
 
 ```bash
 cd /opt/nerdik
-make prod-init
+make init
 ```
 
-Staging: `make staging-init`. Local Sail: `make init`.
+Same command works on staging (`cd /opt/nerdik-staging && make init`) and local Sail (`make init`). Day-to-day Make targets route via `APP_ENV`: Sail when `local`, compose stack when `staging`/`production`.
 
 Non-interactive (no TTY):
 
 ```bash
-make prod-artisan app:init --force --no-interaction --email=you@example.com --nickname=you --password='…'
+make artisan app:init --force --no-interaction --email=you@example.com --nickname=you --password='…'
 ```
 
-**Refresh database (same as local `make refresh` — wipes all data and seeds sample users):**
+**Refresh database (wipes all data and seeds sample users):**
 
 ```bash
 cd /opt/nerdik
-make prod-refresh
+make refresh
 ```
 
-**Run any Artisan command:**
+**Run any Artisan command** (same name locally or on the VPS):
 
 ```bash
-make prod-artisan migrate --force
-make prod-artisan db:seed --force
+make artisan migrate --force
+make artisan db:seed --force
 ```
 
-On staging (`/opt/nerdik-staging`): `make staging-refresh`, `make staging-artisan …`.
+On staging: `cd /opt/nerdik-staging && make refresh` / `make artisan …`.
 
 After each deploy, `.nerdik-image` is updated automatically. Pull the latest code once so these helpers are available on the server.
 

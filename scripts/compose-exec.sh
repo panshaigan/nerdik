@@ -1,29 +1,47 @@
 #!/usr/bin/env bash
-# Run docker compose against prod or staging with NERDIK_IMAGE resolved automatically.
+# Run docker compose against this checkout's stack (or an explicit prod|staging).
 #
 # Usage:
+#   ./scripts/compose-exec.sh exec -T app php artisan migrate --force
+#   ./scripts/compose-exec.sh ps
+#   ./scripts/compose-exec.sh down
 #   ./scripts/compose-exec.sh prod exec -T app php artisan migrate --force
-#   ./scripts/compose-exec.sh prod ps
 #   ./scripts/compose-exec.sh staging down
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if [[ $# -lt 2 ]]; then
+# shellcheck source=scripts/lib/runtime.sh
+source "${ROOT}/scripts/lib/runtime.sh"
+
+DEPLOY_ENV=""
+
+if [[ $# -ge 1 && ( "$1" == "prod" || "$1" == "staging" ) ]]; then
+    DEPLOY_ENV="$1"
+    shift
+fi
+
+if [[ -z "$DEPLOY_ENV" ]]; then
+    runtime_load "$ROOT"
+    if [[ "$RUNTIME" != "stack" ]]; then
+        echo "compose-exec requires APP_ENV=staging or production (got ${APP_ENV:-local})." >&2
+        exit 1
+    fi
+fi
+
+if [[ $# -lt 1 ]]; then
     cat <<'EOF' >&2
-Usage: ./scripts/compose-exec.sh <prod|staging> <compose-args...>
+Usage: ./scripts/compose-exec.sh [prod|staging] <compose-args...>
 
 Examples:
+  ./scripts/compose-exec.sh ps
+  ./scripts/compose-exec.sh exec -T app php artisan migrate --force
   ./scripts/compose-exec.sh prod exec -T app php artisan migrate --force
-  ./scripts/compose-exec.sh prod ps
   ./scripts/compose-exec.sh staging down
 EOF
     exit 1
 fi
-
-DEPLOY_ENV="$1"
-shift
 
 case "$DEPLOY_ENV" in
     prod)
@@ -33,7 +51,7 @@ case "$DEPLOY_ENV" in
         COMPOSE_FILES=(-f compose.stack.yaml -f compose.staging.yaml)
         ;;
     *)
-        echo "First argument must be 'prod' or 'staging'." >&2
+        echo "DEPLOY_ENV must be 'prod' or 'staging'." >&2
         exit 1
         ;;
 esac

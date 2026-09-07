@@ -12,7 +12,7 @@ flowchart LR
   Tag --> GHRelease[release.yml GitHub Release]
   DockerPush --> GHCR["ghcr.io/owner/nerdik:sha + :semver"]
   Manual[workflow_dispatch] --> Deploy[deploy.yml]
-  Deploy --> VPS[VPS make vps-deploy]
+  Deploy --> VPS[VPS make deploy]
   VPS --> Up["GET /up"]
 ```
 
@@ -142,7 +142,7 @@ Production deploy from the VPS:
 
 ```bash
 cd /opt/nerdik
-make vps-deploy
+make deploy
 ```
 
 Production deploy from GitHub Actions (explicit SHA, no git pull):
@@ -157,8 +157,8 @@ Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -
 
 ```bash
 # After a release tag published ghcr.io/owner/nerdik:1.0.0 (and :sha)
-cd /opt/nerdik-staging && IMAGE_TAG=1.0.0 make vps-staging-deploy
-cd /opt/nerdik && IMAGE_TAG=1.0.0 make vps-deploy
+cd /opt/nerdik-staging && IMAGE_TAG=1.0.0 make deploy
+cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 ```
 
 ## Related commands
@@ -166,10 +166,8 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make vps-deploy
 | Command | Use |
 |---------|-----|
 | `make ci-check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
-| `make vps-deploy` | Production VPS: git pull + deploy latest SHA |
-| `make vps-staging-deploy` | Staging VPS: git pull + deploy latest SHA |
-| `make staging-deploy` | Staging deploy only (requires `IMAGE_TAG` or `NERDIK_IMAGE`) |
-| `make staging-down` | Stop staging containers (prod unaffected) |
-| `make prod-deploy` | Production VPS deploy |
+| `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
+| `IMAGE_TAG=<sha|semver> make deploy` | Pin deploy to a GHCR tag |
+| `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |
+| `make artisan …` | Sail locally; compose stack on VPS |
 | `make docker-publish` | Build and push image from local machine |
-| `IMAGE_TAG=<sha|semver> make prod-deploy` | Pin deploy to a GHCR tag |

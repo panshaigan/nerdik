@@ -48,7 +48,7 @@ Nothing in this section is finished until you complete it. Repo-only work does n
 | CI green on `main` | [ci-cd.md](ci-cd.md) |
 | Image on GHCR (`ghcr.io/<owner>/nerdik:<sha>`) | [ci-cd.md](ci-cd.md) |
 | Server `.env`, Caddyfile, `docker login ghcr.io` | [deployment.md](deployment.md) |
-| `IMAGE_TAG=<sha> make prod-deploy` (or Actions Deploy workflow) | [deployment.md](deployment.md), [ci-cd.md](ci-cd.md) |
+| `IMAGE_TAG=<sha> make deploy` in the env checkout (or Actions Deploy workflow) | [deployment.md](deployment.md), [ci-cd.md](ci-cd.md) |
 
 ### 4. Still local-only (fine for now)
 
@@ -143,7 +143,7 @@ flowchart LR
 
 - [x] Container registry (GHCR-ready): `ghcr.io/${GITHUB_OWNER}/nerdik:<git-sha>` immutable tags
 - [x] `compose.staging.yaml` / `compose.prod.yaml` overlays on shared `compose.stack.yaml` image
-- [x] Promote by deploying a SHA (`IMAGE_TAG=<git-sha> make staging-deploy|prod-deploy`)
+- [x] Promote by deploying a SHA (`IMAGE_TAG=<git-sha> make deploy` in the env checkout)
 - [x] Keep one production-grade multi-stage Dockerfile; only build args differ per environment
 
 | Share | Do not share |
@@ -261,8 +261,8 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 2. **Choose git remote** — create repo, push `main`, confirm CI on a PR; publish first image with `v1.0.0`  
 3. **Confirm GHCR image** — after first `v*` tag push (e.g. `v1.0.0`), note the semver/SHA tags from Actions → Packages  
 4. **Provision VPS** — Docker, DNS, firewall  
-5. **Phase 1 on server** — `.env`, Caddyfile, `IMAGE_TAG=<sha> make prod-deploy` (see [deployment.md](deployment.md))  
-6. **Phase 3 secrets** — SSH deploy from Actions (optional; manual `make prod-deploy` on the server works without Actions)  
+5. **Phase 1 on server** — `.env`, Caddyfile, `IMAGE_TAG=<sha> make deploy` (see [deployment.md](deployment.md))  
+6. **Phase 3 secrets** — SSH deploy from Actions (optional; manual `make deploy` on the server works without Actions)  
 7. **Phase 2** — staging on same VPS via `compose.staging.yaml` (manual on/off)  
 8. **Phase 5** — public repo when comfortable  
 9. **Phase 4** — Kubernetes only if you want to learn it  
