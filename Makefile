@@ -2,8 +2,22 @@ SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
 APP_CMD := ./scripts/app-cmd.sh
+PASSTHROUGH := ./scripts/make-passthrough.sh
 
 SEED_DATASET ?= minimal
+
+# Passthrough targets (artisan, npm, composer, test, maintenance) forward argv as-is.
+# GNU Make eats unknown --flags and treats foo=bar as variables — use ./bin/make on PATH:
+#   export PATH="$(CURDIR)/bin:$$PATH"
+# so `make artisan sentry:publish --dsn=https://…` works. Alternatives without bin/:
+#   make artisan ARGS='sentry:publish --dsn=https://…'
+#   make -- artisan sentry:publish --dsn=https://…
+
+# Reconstruct --flag=value from Make command-line variables (needs `make -- …`).
+cmdline_eq_flags = $(strip $(foreach v,$(.VARIABLES),$(if $(and $(filter command line,$(origin $(v))),$(filter -%,$(v))),$(v)=$(value $(v)))))
+
+# ARGS= wins; else forward remaining goals + reconstructed --flag=value vars. No inspection.
+passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdline_eq_flags))
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
@@ -110,13 +124,13 @@ dump-schema:
 cache:
 	$(APP_CMD) cache
 
-# Run tests — you can now pass arguments
+# Run tests — pass args through as-is (prefer ./bin/make on PATH for --flags).
 # Examples:
 #   make test
-#   make test --filter ActivityBadgeGroupBuilderTest
-#   make test --filter ActivityBadgeGroupBuilderTest::test_something
+#   make test --filter=ActivityBadgeGroupBuilderTest
+#   make test --parallel
 test:
-	$(SAIL) artisan test --filter $(filter-out $@,$(MAKECMDGOALS))
+	@$(PASSTHROUGH) test $(passthrough_args)
 
 test-all:
 	$(SAIL) artisan test --parallel
@@ -135,16 +149,15 @@ regenerate-welcome-image:
 
 # Sail-only: make npm install | make npm run build | …
 npm:
-	@./scripts/lib/runtime.sh --print | grep -q '^RUNTIME=sail$$' || { echo "make npm is Sail-only (APP_ENV=local)." >&2; exit 1; }
-	$(SAIL) npm $(filter-out $@,$(MAKECMDGOALS))
+	@$(PASSTHROUGH) npm $(passthrough_args)
 
 # Sail-only: make composer install | make composer require vendor/pkg | …
 composer:
-	@./scripts/lib/runtime.sh --print | grep -q '^RUNTIME=sail$$' || { echo "make composer is Sail-only (APP_ENV=local)." >&2; exit 1; }
-	$(SAIL) composer $(filter-out $@,$(MAKECMDGOALS))
+	@$(PASSTHROUGH) composer $(passthrough_args)
 
+# make artisan migrate | make artisan sentry:publish --dsn=…  (use ./bin/make for --flags)
 artisan:
-	$(APP_CMD) artisan $(filter-out $@,$(MAKECMDGOALS))
+	@$(PASSTHROUGH) artisan $(passthrough_args)
 
 pint:
 	$(SAIL) bin pint --dirty --format agent
@@ -159,7 +172,7 @@ BUILD ?=
 
 # Production Caddy maintenance: make maintenance on|off|status
 maintenance:
-	./scripts/maintenance.sh $(filter-out $@,$(MAKECMDGOALS))
+	@$(PASSTHROUGH) maintenance $(passthrough_args)
 
 # Full VPS release: git pull + verify GHCR image + deploy this checkout
 deploy:

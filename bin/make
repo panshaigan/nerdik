@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# Project Make wrapper: passthrough targets keep every argument (including --flags).
+#
+# GNU Make rejects unknown options (e.g. --dsn=…) and treats foo=bar as variables.
+# Put this directory first on PATH so normal `make artisan … --dsn=…` works:
+#   export PATH="/path/to/nerdik/bin:$PATH"
+#
+# Non-passthrough goals (up, migrate, …) are delegated to real Make unchanged.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REAL_MAKE="${NERDIK_REAL_MAKE:-/usr/bin/make}"
+PASSTHROUGH="${ROOT}/scripts/make-passthrough.sh"
+
+is_passthrough_target() {
+    case "$1" in
+        artisan|npm|composer|test|maintenance) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# -f/-C change which Makefile runs — never intercept those.
+for arg in "$@"; do
+    case "$arg" in
+        -f|--file|--makefile|-C|--directory)
+            exec "$REAL_MAKE" "$@"
+            ;;
+    esac
+done
+
+make_opts=()
+target=""
+target_args=()
+saw_double_dash=0
+i=0
+args=("$@")
+
+while ((i < ${#args[@]})); do
+    a="${args[$i]}"
+
+    if ((saw_double_dash)); then
+        if [[ -z "$target" ]]; then
+            target="$a"
+        else
+            target_args+=("$a")
+        fi
+        i=$((i + 1))
+        continue
+    fi
+
+    case "$a" in
+        --)
+            if [[ -z "$target" ]]; then
+                # Make end-of-options (before a goal).
+                saw_double_dash=1
+            else
+                # Literal argv for npm/artisan/… (e.g. npm run build -- --mode=…).
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+        --*=*)
+            if [[ -z "$target" ]]; then
+                make_opts+=("$a")
+            else
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+        --*)
+            if [[ -z "$target" ]]; then
+                make_opts+=("$a")
+            else
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+        -*)
+            if [[ -z "$target" ]]; then
+                make_opts+=("$a")
+                case "$a" in
+                    -C|-f|-I|-o|-W|-j|--jobserver-style|--eval|-E)
+                        i=$((i + 1))
+                        if ((i < ${#args[@]})); then
+                            make_opts+=("${args[$i]}")
+                        fi
+                        ;;
+                esac
+            else
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+        *=*)
+            if [[ -z "$target" ]]; then
+                # Command-line Make assignment (YES=1, SEED_DATASET=minimal, …)
+                export "$a"
+            else
+                # After the target: real CLI arg (--dsn=https://…, --email=a@b.c, …)
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+        *)
+            if [[ -z "$target" ]]; then
+                target="$a"
+            else
+                target_args+=("$a")
+            fi
+            i=$((i + 1))
+            ;;
+    esac
+done
+
+if [[ -n "$target" ]] && is_passthrough_target "$target"; then
+    # Make-only flags (-j, -s, …) do not apply to artisan/npm/… — drop them.
+    exec "$PASSTHROUGH" "$target" "${target_args[@]+"${target_args[@]}"}"
+fi
+
+exec "$REAL_MAKE" "$@"
