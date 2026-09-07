@@ -33,12 +33,12 @@
         <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-3">
             @auth
                 <x-button :link="route('dashboard')" class="btn-primary">{{ __('ui.welcome.continue_journey') }}</x-button>
-                <x-button :link="route('search.index')" class="btn-outline mt-4 md:mt-0">{{ __('ui.welcome.browse_everything') }}</x-button>
+                <x-button :link="route('search.index')" class="btn-soft mt-4 md:mt-0">{{ __('ui.welcome.browse_everything') }}</x-button>
             @else
                 @if (Route::has('register'))
                     <x-button :link="route('register')" class="btn-primary">{{ __('ui.welcome.start_exploring') }}</x-button>
                 @endif
-                <x-button :link="route('search.index')" class="btn-outline mt-4 md:mt-0">{{ __('ui.welcome.see_upcoming_events') }}</x-button>
+                <x-button :link="route('search.index')" class="btn-soft mt-4 md:mt-0">{{ __('ui.welcome.see_upcoming_events') }}</x-button>
                 @if (Route::has('login'))
                     <x-button :link="route('login')" class="btn-ghost mt-10 md:mt-0">{{ __('ui.welcome.already_have_account') }}</x-button>
                 @endif
