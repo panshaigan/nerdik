@@ -1,5 +1,6 @@
 import '../css/app.css';
 import './bootstrap';
+import { bootSentry, captureLivewireFailure } from './sentry';
 import './close-modals-on-navigate';
 import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
@@ -23,6 +24,8 @@ import { initSlotEditForm } from './slot-form-modal';
 import { initSlotMassForm } from './slot-mass-form';
 import { bootBrowseDateRangePickers } from './browse-date-range-picker';
 import 'flatpickr/dist/flatpickr.min.css';
+
+bootSentry();
 
 window.initSlotEditForm = initSlotEditForm;
 window.initSlotMassForm = initSlotMassForm;
@@ -148,6 +151,7 @@ function registerLivewireRequestFailureHandlers() {
                 if (shouldSuppressLivewireErrorModal(response.status, body)) {
                     preventDefault();
                     console.error('Livewire request failed', response.status, body);
+                    captureLivewireFailure(response.status, body);
                 }
             });
         });
@@ -165,6 +169,7 @@ function registerLivewireRequestFailureHandlers() {
                 if (shouldSuppressLivewireErrorModal(status, content)) {
                     preventDefault();
                     console.error('Livewire request failed', status, content);
+                    captureLivewireFailure(status, content);
                 }
             });
         });

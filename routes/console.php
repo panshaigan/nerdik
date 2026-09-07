@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SendWorkerMonitoringHeartbeatJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -17,6 +18,16 @@ Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlappin
 Schedule::command('user-requests:expire')->hourly()->withoutOverlapping();
 Schedule::command('activities:resolve-lotteries')->everyMinute()->withoutOverlapping();
 Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
+
+Schedule::command('monitoring:heartbeat', ['scheduler'])
+    ->everyMinute()
+    ->when(fn (): bool => filled(config('monitoring.scheduler_heartbeat_url')))
+    ->withoutOverlapping();
+
+Schedule::job(new SendWorkerMonitoringHeartbeatJob)
+    ->everyMinute()
+    ->when(fn (): bool => filled(config('monitoring.worker_heartbeat_url')))
+    ->withoutOverlapping();
 
 Schedule::command('auth:clear-resets')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('queue:prune-failed', [

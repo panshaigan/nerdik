@@ -24,6 +24,7 @@
         @stack('head')
 
         <x-echo-config />
+        <x-sentry-config />
 
         <!-- Scripts -->
         @vite(['resources/js/app.js'])

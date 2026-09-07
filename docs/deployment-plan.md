@@ -239,7 +239,9 @@ Documented in part in [deployment.md](deployment.md); remainder for later phases
 - [x] Docker container log rotation in compose
 - [x] Reverb required for live UX
 - [ ] Monitoring / error tracking (Sentry, etc.)
-- [ ] Uptime checks on `/up`
+- [x] Health endpoint `/up` checks DB + cache (`DiagnosingHealth`)
+- [x] Sentry + Pulse + heartbeat monitoring hooks in app
+- [ ] Create UptimeRobot HTTP + heartbeat monitors (ops)
 - [ ] Email deliverability (SPF/DKIM)
 - [ ] Legal: privacy policy, cookies, GDPR if EU users
 
