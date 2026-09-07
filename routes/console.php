@@ -18,6 +18,7 @@ Schedule::command('user-requests:expire')->hourly()->withoutOverlapping();
 Schedule::command('activities:resolve-lotteries')->everyMinute()->withoutOverlapping();
 Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
 
+Schedule::command('auth:clear-resets')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('queue:prune-failed', [
     '--hours' => config('housekeeping.failed_jobs_hours'),
 ])->dailyAt('03:30')->withoutOverlapping();

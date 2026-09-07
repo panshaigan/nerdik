@@ -71,7 +71,7 @@ Follow [deployment.md](deployment.md) before exposing a server to the internet.
 Additional checklist:
 
 - Copy [`.env.production.example`](../.env.production.example); never commit `.env` or `auth.json`.
-- Run `php artisan config:cache`, `route:cache`, and `view:cache` after deploy.
+- Run `php artisan optimize` and `php artisan filament:optimize` after deploy.
 - Keep PostgreSQL and `storage/app` backed up.
 - Use immutable image tags (`IMAGE_TAG=<git-sha>`) from CI; see [ci-cd.md](ci-cd.md).
 - Change default seeded credentials on any publicly reachable staging instance.
