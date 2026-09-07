@@ -6,7 +6,7 @@ APP_CMD := ./scripts/app-cmd.sh
 SEED_DATASET ?= minimal
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
-        test npm composer tinker serve cache artisan pint sail tags-recalculate test-all \
+        test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
@@ -57,15 +57,15 @@ endif
 up:
 	$(APP_CMD) up
 
-# Refresh Laravel Boost guidelines/skills and verify MCP (Sail / local only)
-boost:
-	$(APP_CMD) boost
-
 down:
 	$(APP_CMD) down
 
 restart:
 	$(APP_CMD) restart
+
+# Refresh Laravel Boost guidelines/skills and verify MCP (Sail / local only)
+boost:
+	$(APP_CMD) boost
 
 ps:
 	$(APP_CMD) ps
@@ -106,9 +106,6 @@ seed-maximal:
 dump-schema:
 	$(SAIL) artisan schema:dump --prune
 
-serve:
-	$(SAIL) artisan serve
-
 cache:
 	$(APP_CMD) cache
 
@@ -123,7 +120,7 @@ test:
 test-all:
 	$(SAIL) artisan test --parallel
 
-tags-recalculate:
+regenerate-tags:
 	$(SAIL) artisan tags:recalculate-popularity
 
 regenerate-backgrounds:
