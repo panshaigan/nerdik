@@ -115,5 +115,8 @@ class MaintenanceScriptTest extends TestCase
         $this->assertIsString($html);
         $this->assertStringContainsString('We\'ll be right back', $html);
         $this->assertStringContainsString('updating Nerdik', $html);
+        $this->assertStringContainsString('viewBox="0 0 1271 1180"', $html);
+        $this->assertStringContainsString('fill="#021A2A"', $html);
+        $this->assertStringNotContainsString('viewBox="271 153 827 809"', $html);
     }
 }
