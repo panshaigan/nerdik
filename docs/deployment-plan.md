@@ -173,7 +173,7 @@ flowchart LR
 
 - [x] Pull image by SHA — [`scripts/deploy.sh`](../scripts/deploy.sh)
 - [x] `php artisan migrate --force`
-- [x] `php artisan config:cache` / `route:cache` / `view:cache`
+- [x] `php artisan optimize` / `filament:optimize`
 - [x] Rolling restart worker, scheduler, Reverb
 
 ### Blocked until remote exists

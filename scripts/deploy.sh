@@ -4,7 +4,7 @@
 # Composer and npm dependencies are baked into the image during CI
 # (docker/production/Dockerfile). This script does not run composer/npm on the
 # host — it pulls NERDIK_IMAGE (or IMAGE_TAG), starts containers, migrates,
-# caches config/routes/views, and restarts worker/scheduler/reverb.
+# runs optimize + filament:optimize, and restarts worker/scheduler/reverb.
 #
 # For a full VPS update (git pull + deploy latest SHA): ./scripts/vps-deploy.sh
 set -euo pipefail
@@ -142,9 +142,8 @@ fi
 
 "${COMPOSE[@]}" up -d
 "${COMPOSE[@]}" exec -T app php artisan migrate --force
-"${COMPOSE[@]}" exec -T app php artisan config:cache
-"${COMPOSE[@]}" exec -T app php artisan route:cache
-"${COMPOSE[@]}" exec -T app php artisan view:cache
+"${COMPOSE[@]}" exec -T app php artisan optimize
+"${COMPOSE[@]}" exec -T app php artisan filament:optimize
 
 log_retention_days="${LOG_DAILY_DAYS:-14}"
 "${COMPOSE[@]}" exec -T app sh -c "find storage/logs -type f -name '*.log' -mtime +${log_retention_days} -delete 2>/dev/null || true"

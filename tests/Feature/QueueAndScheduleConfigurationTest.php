@@ -18,6 +18,7 @@ class QueueAndScheduleConfigurationTest extends TestCase
         $this->artisan('schedule:list')
             ->expectsOutputToContain('telescope:prune')
             ->expectsOutputToContain('notifications:scheduled-digest')
+            ->expectsOutputToContain('auth:clear-resets')
             ->expectsOutputToContain('queue:prune-failed')
             ->expectsOutputToContain('queue:prune-batches')
             ->expectsOutputToContain('housekeeping:prune-sessions')

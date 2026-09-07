@@ -344,6 +344,7 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 
 | When | Command | Purpose |
 |------|---------|---------|
+| Daily 03:30 | `auth:clear-resets` | Delete expired password reset tokens |
 | Daily 03:30 | `queue:prune-failed` | Remove failed jobs older than 7 days |
 | Daily 03:30 | `queue:prune-batches` | Remove finished job batches older than 2 days |
 | Daily 03:30 | `housekeeping:prune-sessions` | Delete expired database session rows |
@@ -472,10 +473,9 @@ Ensure the queue worker is running afterward so new uploads keep getting derivat
 
 1. `php artisan storage:link`
 2. Build frontend assets during image build (`npm ci && npm run build`).
-3. Cache configuration after deploy:
-   - `php artisan config:cache`
-   - `php artisan route:cache`
-   - `php artisan view:cache`
+3. Cache application and Filament artifacts after deploy:
+   - `php artisan optimize`
+   - `php artisan filament:optimize`
 
 ## Long-running processes
 
