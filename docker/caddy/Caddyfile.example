@@ -12,14 +12,13 @@
 nerdik.app {
 	encode gzip
 
-	@maintenance file /etc/caddy/state/maintenance
+	# root / is required so the absolute flag path is not joined to a site root.
+	@maintenance file /etc/caddy/state/maintenance {
+		root /
+	}
 
 	handle @maintenance {
-		root * /etc/caddy/maintenance
-		rewrite * /index.html
-		header Cache-Control "no-store"
-		header Retry-After "300"
-		file_server
+		error 503
 	}
 
 	handle /app/* {
@@ -35,13 +34,18 @@ nerdik.app {
 		}
 	}
 
+	# Flag mode (error 503) and upstream 502–504 share this page.
 	handle_errors {
 		@upstream expression {http.error.status_code} >= 502 && {http.error.status_code} <= 504
 		handle @upstream {
 			root * /etc/caddy/maintenance
 			rewrite * /index.html
 			header Cache-Control "no-store"
-			file_server
+			header Retry-After "300"
+			header Refresh "15"
+			file_server {
+				status 503
+			}
 		}
 	}
 }

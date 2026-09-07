@@ -315,7 +315,13 @@ SKIP_MAINTENANCE=1 make deploy
 
 The flag file lives at `docker/caddy/state/maintenance` on the VPS host. Caddy reads it per request — no reload needed when toggling manually.
 
-After pulling this feature for the first time, run `make deploy` once so Caddy is recreated with the maintenance volume mounts.
+After pulling Caddy entrypoint or maintenance-page changes, recreate Caddy so the generated Caddyfile and static assets reload:
+
+```bash
+./scripts/compose-exec.sh up -d --force-recreate caddy
+```
+
+After pulling the maintenance feature for the first time, run `make deploy` once so Caddy is recreated with the maintenance volume mounts.
 
 ### Promote the same SHA from staging to production
 

@@ -29,7 +29,7 @@ class MaintenanceScriptTest extends TestCase
                 $env,
             );
             $statusOff->run();
-            $this->assertFalse($statusOff->isSuccessful());
+            $this->assertTrue($statusOff->isSuccessful());
             $this->assertSame("OFF\n", $statusOff->getOutput());
 
             $on = new Process(
@@ -98,6 +98,10 @@ class MaintenanceScriptTest extends TestCase
 
         $this->assertIsString($caddyfile);
         $this->assertStringContainsString('@maintenance file /etc/caddy/state/maintenance', $caddyfile);
+        $this->assertStringContainsString('root /', $caddyfile);
+        $this->assertStringContainsString('error 503', $caddyfile);
+        $this->assertStringContainsString('header Refresh "15"', $caddyfile);
+        $this->assertStringContainsString('status 503', $caddyfile);
         $this->assertStringContainsString('root * /etc/caddy/maintenance', $caddyfile);
         $this->assertStringContainsString('handle_errors {', $caddyfile);
 
@@ -115,6 +119,8 @@ class MaintenanceScriptTest extends TestCase
         $this->assertIsString($html);
         $this->assertStringContainsString('We\'ll be right back', $html);
         $this->assertStringContainsString('updating Nerdik', $html);
+        $this->assertStringContainsString('http-equiv="refresh"', $html);
+        $this->assertStringContainsString('content="15"', $html);
         $this->assertStringContainsString('viewBox="0 0 1271 1180"', $html);
         $this->assertStringContainsString('fill="#021A2A"', $html);
         $this->assertStringNotContainsString('viewBox="271 153 827 809"', $html);
