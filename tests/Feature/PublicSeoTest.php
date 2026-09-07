@@ -27,11 +27,15 @@ class PublicSeoTest extends TestCase
         $response->assertSee('<meta property="og:title" content="'.e(Seo::pageTitle((string) __('ui.seo.welcome_title'))).'">', false);
         $response->assertSee('<meta property="og:site_name" content="'.e((string) config('app.name')).'">', false);
         $response->assertSee('<meta property="og:locale" content="'.e(Seo::ogLocale()).'">', false);
-        $response->assertSee('<meta property="og:image" content="'.e(Seo::defaultImageUrl()).'">', false);
+        $openGraphImageUrl = Seo::defaultImageUrl();
+        $this->assertStringContainsString('opengraph.jpg?v=', $openGraphImageUrl);
+        $this->assertMatchesRegularExpression('/opengraph\.jpg\?v=\d+$/', $openGraphImageUrl);
+
+        $response->assertSee('<meta property="og:image" content="'.e($openGraphImageUrl).'">', false);
         $response->assertSee('<meta property="og:image:width" content="'.Seo::DEFAULT_IMAGE_WIDTH.'">', false);
         $response->assertSee('<meta property="og:image:height" content="'.Seo::DEFAULT_IMAGE_HEIGHT.'">', false);
         $response->assertSee('<meta name="twitter:card" content="summary_large_image">', false);
-        $response->assertSee('<meta name="twitter:image" content="'.e(Seo::defaultImageUrl()).'">', false);
+        $response->assertSee('<meta name="twitter:image" content="'.e($openGraphImageUrl).'">', false);
         $response->assertSee('<link rel="icon" href="'.e(asset('favicon.ico')).'" sizes="32x32">', false);
         $response->assertSee('<link rel="icon" href="'.e(asset('favicon.svg')).'" type="image/svg+xml">', false);
         $response->assertSee('<link rel="apple-touch-icon" href="'.e(asset('apple-touch-icon.png')).'">', false);

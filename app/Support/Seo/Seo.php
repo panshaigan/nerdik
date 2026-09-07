@@ -133,7 +133,11 @@ final class Seo
 
     public static function defaultImageUrl(): string
     {
-        return asset('opengraph.jpg');
+        $path = public_path('opengraph.jpg');
+        $version = is_file($path) ? (string) filemtime($path) : '1';
+
+        // Query version busts crawler caches when the file bytes change at a stable path.
+        return asset('opengraph.jpg').'?v='.$version;
     }
 
     public static function ogLocale(): string
