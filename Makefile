@@ -29,7 +29,9 @@ ifeq ($(STORAGE),1)
 SYNC_FLAGS += --storage-only
 endif
 
-# Production restore (ARCHIVE = backup directory or .tar.gz)
+# Production restore on VPS (/opt/nerdik): ARCHIVE = backup dir or .tar.gz
+# Recommended: make restore-prod ARCHIVE=... YES=1 RESTORE_BACKUP=1
+# Optional: DRY_RUN=1, RESTORE_ENV=1, DB_ONLY=1, STORAGE_ONLY=1
 RESTORE_FLAGS :=
 ifeq ($(YES),1)
 RESTORE_FLAGS += --yes
@@ -182,9 +184,11 @@ backup-prod:
 backup-prod-dry-run:
 	DRY_RUN=1 ./scripts/backup/backup-prod.sh
 
+# VPS: restore prod DB + storage/app from a backup folder or .tar.gz (see docs/deployment.md).
 restore-prod:
 	@if [ -z "$(ARCHIVE)" ]; then \
-		echo "Usage: make restore-prod ARCHIVE=/path/to/backup.tar.gz [YES=1] [RESTORE_BACKUP=1] [RESTORE_ENV=1] [DRY_RUN=1]" >&2; \
+		echo "Usage: make restore-prod ARCHIVE=/path/to/backup_dir_or.tar.gz [YES=1] [RESTORE_BACKUP=1] [RESTORE_ENV=1] [DRY_RUN=1] [DB_ONLY=1] [STORAGE_ONLY=1]" >&2; \
+		echo "Run on VPS from /opt/nerdik. Prefer RESTORE_BACKUP=1 to snapshot current prod to /tmp first." >&2; \
 		exit 1; \
 	fi
 	./scripts/backup/restore-prod.sh "$(ARCHIVE)" $(RESTORE_FLAGS)
