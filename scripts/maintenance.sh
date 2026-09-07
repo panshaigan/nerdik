@@ -2,9 +2,10 @@
 # Toggle production maintenance mode via Caddy flag file.
 #
 # Usage: ./scripts/maintenance.sh {on|off|status}
+#        make maintenance on|off|status
 #
 # Environment:
-#   NERDIK_MAINTENANCE_STATE_DIR  Override state directory (for tests)
+#   NERDIK_MAINTENANCE_STATE_DIR  Override state directory (for tests; skips APP_ENV check)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -19,8 +20,20 @@ Commands:
   on      Enable maintenance mode (serve static page at the edge)
   off     Disable maintenance mode
   status  Print ON or OFF (exit 0 when ON, 1 when OFF)
+
+Requires APP_ENV=production in .env (unless NERDIK_MAINTENANCE_STATE_DIR is set for tests).
 EOF
 }
+
+if [[ -z "${NERDIK_MAINTENANCE_STATE_DIR:-}" ]]; then
+    # shellcheck source=scripts/lib/runtime.sh
+    source "${ROOT}/scripts/lib/runtime.sh"
+    runtime_load "$ROOT"
+    if [[ "${APP_ENV}" != "production" ]]; then
+        echo "maintenance requires APP_ENV=production (got ${APP_ENV}). Run from the prod checkout." >&2
+        exit 1
+    fi
+fi
 
 maintenance_on() {
     mkdir -p "${STATE_DIR}"

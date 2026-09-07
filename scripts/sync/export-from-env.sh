@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Export database dump and storage/app from prod or staging Docker stack.
+# Export database dump and storage/app from local Sail, or prod/staging Docker stack.
 #
 # Usage:
+#   ./scripts/sync/export-from-env.sh local [export_dir]
 #   ./scripts/sync/export-from-env.sh prod [export_dir]
 #   ./scripts/sync/export-from-env.sh prod /tmp/nerdik-sync-20260101-120000 --dry-run
 set -euo pipefail
@@ -12,7 +13,7 @@ source "${ROOT}/scripts/sync/common.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/sync/export-from-env.sh <prod|staging> [export_dir] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
+Usage: ./scripts/sync/export-from-env.sh <local|prod|staging> [export_dir] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Creates:
   <export_dir>/db.sql.gz
@@ -67,6 +68,13 @@ if [[ -z "$DEPLOY_ENV" ]]; then
     exit 1
 fi
 
+case "$DEPLOY_ENV" in
+    local|prod|staging) ;;
+    *)
+        sync_die "env must be local, prod, or staging"
+        ;;
+esac
+
 if [[ "$SYNC_DB_ONLY" == "1" && "$SYNC_STORAGE_ONLY" == "1" ]]; then
     sync_die "use only one of --db-only or --storage-only"
 fi
@@ -77,14 +85,8 @@ if [[ -z "$EXPORT_DIR" ]]; then
     EXPORT_DIR="$(sync_default_export_dir)"
 fi
 
-if [[ "$DEPLOY_ENV" == "local" ]]; then
-    sync_die "export-from-env is for prod/staging Docker stacks only; use pull-from-prod for local"
-fi
-
 cd "$ROOT"
 sync_prepare_compose_env "$DEPLOY_ENV" "$ROOT"
-
-STORAGE_VOLUME="$(sync_volume_for_env storage "$DEPLOY_ENV")"
 
 sync_log "exporting from ${DEPLOY_ENV} into ${EXPORT_DIR}"
 
@@ -111,21 +113,40 @@ if [[ "$SYNC_STORAGE_ONLY" != "1" ]]; then
             sync_pg_dump_table_args pg_dump_table_args
         fi
 
-        sync_compose_cmd "$DEPLOY_ENV" "$ROOT" exec -T pgsql \
-            pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" --no-owner --no-acl --clean --if-exists \
-            "${pg_dump_table_args[@]}" \
-            | gzip > "${EXPORT_DIR}/db.sql.gz"
+        if [[ "$DEPLOY_ENV" == "local" ]]; then
+            sync_sail_cmd "$ROOT" exec -T pgsql \
+                pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" --no-owner --no-acl --clean --if-exists \
+                "${pg_dump_table_args[@]}" \
+                | gzip > "${EXPORT_DIR}/db.sql.gz"
+        else
+            sync_compose_cmd "$DEPLOY_ENV" "$ROOT" exec -T pgsql \
+                pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" --no-owner --no-acl --clean --if-exists \
+                "${pg_dump_table_args[@]}" \
+                | gzip > "${EXPORT_DIR}/db.sql.gz"
+        fi
     fi
 fi
 
 if [[ "$SYNC_DB_ONLY" != "1" ]]; then
-    sync_log "archiving storage/app from volume ${STORAGE_VOLUME}"
+    if [[ "$DEPLOY_ENV" == "local" ]]; then
+        sync_log "archiving storage/app from ${ROOT}/storage/app"
 
-    if [[ "$SYNC_DRY_RUN" == "1" ]]; then
-        sync_log "[dry-run] docker run -v ${STORAGE_VOLUME}:/data:ro alpine tar → ${EXPORT_DIR}/storage-app.tar.gz"
+        if [[ "$SYNC_DRY_RUN" == "1" ]]; then
+            sync_log "[dry-run] tar ${ROOT}/storage/app → ${EXPORT_DIR}/storage-app.tar.gz"
+        else
+            mkdir -p "${ROOT}/storage/app"
+            tar czf "${EXPORT_DIR}/storage-app.tar.gz" -C "${ROOT}/storage/app" .
+        fi
     else
-        docker run --rm -v "${STORAGE_VOLUME}:/data:ro" alpine \
-            tar czf - -C /data/app . > "${EXPORT_DIR}/storage-app.tar.gz"
+        STORAGE_VOLUME="$(sync_volume_for_env storage "$DEPLOY_ENV")"
+        sync_log "archiving storage/app from volume ${STORAGE_VOLUME}"
+
+        if [[ "$SYNC_DRY_RUN" == "1" ]]; then
+            sync_log "[dry-run] docker run -v ${STORAGE_VOLUME}:/data:ro alpine tar → ${EXPORT_DIR}/storage-app.tar.gz"
+        else
+            docker run --rm -v "${STORAGE_VOLUME}:/data:ro" alpine \
+                tar czf - -C /data/app . > "${EXPORT_DIR}/storage-app.tar.gz"
+        fi
     fi
 fi
 

@@ -79,5 +79,5 @@ nerdik is free software licensed under the [GNU General Public License v3.0 or l
 ## Notes
 
 - Datetimes are stored in UTC; UI renders in the user profile timezone.
-- After pulling dependency or frontend changes, run `make npm-install` and `make npm-build`.
+- After pulling dependency or frontend changes, run `make npm install` and `make npm run build`.
 - Polish full-text search catalog setup lives in `docker/pgsql/init-polish-fts.sql`.

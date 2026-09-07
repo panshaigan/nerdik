@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Run prod-to-staging sync on the VPS via SSH (from local machine).
+# Run prod → staging sync on the VPS via SSH (from local machine).
+#
+# Prefers the staging checkout: cd /opt/nerdik-staging && make sync-from-prod
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -7,7 +9,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "${ROOT}/scripts/sync/common.sh"
 
 REMOTE_MAKE_FLAGS=()
-REMOTE_MAKE_TARGET="prod-to-staging-sync"
+TABLE_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -20,24 +22,26 @@ while [[ $# -gt 0 ]]; do
         --dry-run)
             REMOTE_MAKE_FLAGS+=("DRY_RUN=1")
             ;;
-        --db-only|--storage-only)
-            sync_die "use --tables for partial database sync via remote"
+        --db-only)
+            REMOTE_MAKE_FLAGS+=("DB=1")
+            ;;
+        --storage-only)
+            REMOTE_MAKE_FLAGS+=("STORAGE=1")
             ;;
         --tables)
-            REMOTE_MAKE_TARGET="prod-to-staging-sync-tables"
             shift
             while [[ $# -gt 0 && "$1" != --* ]]; do
                 SYNC_TABLES+=("$1")
-                REMOTE_MAKE_FLAGS+=("$1")
+                TABLE_ARGS+=("$1")
                 shift
             done
             continue
             ;;
         -h|--help)
             cat <<'EOF'
-Usage: ./scripts/sync/prod-to-staging-remote.sh [--yes] [--backup] [--dry-run] [--tables TABLE ...]
+Usage: ./scripts/sync/prod-to-staging-remote.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
-With --tables, only the listed tables are synced on the VPS (implies database-only).
+SSHes to the VPS and runs: cd $SYNC_STAGING_PATH && make sync-from-prod …
 EOF
             exit 0
             ;;
@@ -62,7 +66,10 @@ SSH_TARGET="${SYNC_SSH_USER}@${SYNC_SSH_HOST}"
 SSH_OPTS=()
 sync_ssh_opts SSH_OPTS
 
-REMOTE_CMD="cd $(printf '%q' "$SYNC_PROD_PATH") && make ${REMOTE_MAKE_TARGET} ${REMOTE_MAKE_FLAGS[*]}"
+REMOTE_CMD="cd $(printf '%q' "$SYNC_STAGING_PATH") && make sync-from-prod ${REMOTE_MAKE_FLAGS[*]}"
+if [[ "${#TABLE_ARGS[@]}" -gt 0 ]]; then
+    REMOTE_CMD+=" tables ${TABLE_ARGS[*]}"
+fi
 
 sync_log "running on ${SSH_TARGET}: ${REMOTE_CMD}"
 sync_run ssh "${SSH_OPTS[@]}" "$SSH_TARGET" "$REMOTE_CMD"

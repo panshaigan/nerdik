@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Export production data on the VPS and import into staging (same host).
 #
+# Prefer: cd /opt/nerdik-staging && make sync-from-prod
+# This script remains for back-compat when run from the production clone.
+#
 # Usage (from /opt/nerdik on VPS):
 #   ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 set -euo pipefail
@@ -14,6 +17,8 @@ usage() {
 Usage: ./scripts/sync/prod-to-staging.sh [--yes] [--backup] [--dry-run] [--db-only] [--storage-only] [--tables TABLE ...]
 
 Run from the production clone (e.g. /opt/nerdik). Uses SYNC_STAGING_PATH for the staging clone.
+
+Preferred: cd /opt/nerdik-staging && make sync-from-prod
 
 With --tables, only the listed tables are synced (implies --db-only).
 EOF
@@ -85,10 +90,10 @@ sync_append_tables_flags EXPORT_FLAGS
 sync_append_tables_flags IMPORT_FLAGS
 
 sync_log "exporting production to ${EXPORT_DIR}"
-EXPORT_DIR="$("${ROOT}/scripts/sync/export-from-env.sh" prod "$EXPORT_DIR" "${EXPORT_FLAGS[@]}")"
+EXPORT_DIR="$("${ROOT}/scripts/sync/export-from-env.sh" prod "$EXPORT_DIR" "${EXPORT_FLAGS[@]+"${EXPORT_FLAGS[@]}"}")"
 
 sync_log "importing into staging at ${SYNC_STAGING_PATH}"
-sync_run "${ROOT}/scripts/sync/import-to-env.sh" staging "$EXPORT_DIR" "${IMPORT_FLAGS[@]}"
+sync_run "${ROOT}/scripts/sync/import-to-env.sh" staging "$EXPORT_DIR" "${IMPORT_FLAGS[@]+"${IMPORT_FLAGS[@]}"}"
 
 if [[ "$SYNC_DRY_RUN" != "1" ]]; then
     sync_cleanup_export_dir "$EXPORT_DIR"
