@@ -12,7 +12,7 @@
 @endphp
 
 <a
-    {{ $attributes->class('btn btn-ghost btn-sm ui-nav-locale is-active font-display border-b-2 text-primary') }}
+    {{ $attributes->class('btn btn-ghost btn-circle btn-sm ui-nav-locale is-active font-display border-b-2') }}
     wire:navigate
     x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => $next->value]) }}')"
     aria-label="{{ __('ui.common.switch_language', ['language' => $nextLabel]) }}"
