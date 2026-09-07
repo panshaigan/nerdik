@@ -1,20 +1,19 @@
 SHELL := /bin/bash
 
 SAIL := ./vendor/bin/sail
+APP_CMD := ./scripts/app-cmd.sh
 
 SEED_DATASET ?= minimal
 
-.PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal queue scheduler test \
-        npm-install npm-dev npm-build tinker serve composer-install composer-require composer-audit \
-        dump cache artisan pint sail tags-recalculate tags-seed-images test-all \
-        docker-config docker-pull staging-deploy staging-down staging-ps staging-refresh \
-        staging-artisan staging-init dev-deploy prod-deploy prod-refresh prod-init prod-artisan prod-maintenance-on \
-        prod-maintenance-off prod-maintenance-status deploy vps-deploy init \
-        vps-staging-deploy docker-publish dump-schema sync-from-prod sync-from-prod-db \
+.PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
+        queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require \
+        composer-audit cache artisan pint sail tags-recalculate tags-seed-images test-all \
+        docker-config docker-pull prod-maintenance-on prod-maintenance-off prod-maintenance-status \
+        deploy init docker-publish dump-schema sync-from-prod sync-from-prod-db \
         sync-from-prod-storage sync-from-prod-tables prod-to-staging-sync prod-to-staging-sync-remote \
         prod-to-staging-sync-tables prod-to-staging-sync-tables-remote ci-check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
-        regenerate-backgrounds regenerate-welcome-image
+        regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image
 
 # Data sync (prod → local / staging)
 SYNC_FLAGS :=
@@ -49,45 +48,42 @@ ifeq ($(STORAGE_ONLY),1)
 RESTORE_FLAGS += --storage-only
 endif
 
+# Day-to-day commands: Sail when APP_ENV=local, compose stack when staging/production
 up:
-	$(SAIL) up -d
-#	nohup $(SAIL) artisan schedule:work > storage/logs/scheduler.log 2>&1 &
-#	nohup $(SAIL) artisan queue:work > storage/logs/queue.log 2>&1 &
+	$(APP_CMD) up
 
 down:
-	$(SAIL) down
+	$(APP_CMD) down
 
 restart:
-	$(SAIL) down && $(SAIL) up -d
+	$(APP_CMD) restart
 
 ps:
-	$(SAIL) ps
+	$(APP_CMD) ps
 
 logs:
-	$(SAIL) logs -f
+	$(APP_CMD) logs
 
 shell:
-	$(SAIL) shell
+	$(APP_CMD) shell
 
 tinker:
-	$(SAIL) tinker
+	$(APP_CMD) tinker
 
 migrate:
-	$(SAIL) artisan migrate
+	$(APP_CMD) migrate
 
 init:
-	$(SAIL) artisan app:init
+	$(APP_CMD) init
 
 fresh:
-	$(SAIL) artisan migrate:fresh
-	$(SAIL) artisan tags:recalculate-popularity
+	$(APP_CMD) fresh
 
 refresh:
-	SEED_DATASET=$(SEED_DATASET) $(SAIL) artisan migrate:refresh --seed
-	$(SAIL) artisan tags:recalculate-popularity
+	SEED_DATASET=$(SEED_DATASET) $(APP_CMD) refresh
 
 seed:
-	SEED_DATASET=$(SEED_DATASET) $(SAIL) artisan db:seed
+	SEED_DATASET=$(SEED_DATASET) $(APP_CMD) seed
 
 seed-minimal:
 	@$(MAKE) seed SEED_DATASET=minimal
@@ -111,7 +107,7 @@ serve:
 	$(SAIL) artisan serve
 
 cache:
-	$(SAIL) artisan optimize:clear
+	$(APP_CMD) cache
 
 # Run tests — you can now pass arguments
 # Examples:
@@ -137,7 +133,7 @@ regenerate-brand-logo:
 	$(SAIL) artisan app:generate-brand-logo
 
 regenerate-welcome-image:
-	$(SAIL) artisan cache:forget welcome.hero_tag_image
+	$(APP_CMD) regenerate-welcome-image
 
 npm-install:
 	$(SAIL) npm install
@@ -159,7 +155,7 @@ composer-audit:
 	$(SAIL) composer audit
 
 artisan:
-	$(SAIL) artisan $(filter-out $@,$(MAKECMDGOALS))
+	$(APP_CMD) artisan $(filter-out $@,$(MAKECMDGOALS))
 
 pint:
 	$(SAIL) bin pint --dirty --format agent
@@ -168,42 +164,16 @@ pint:
 ci-check:
 	FULL=$(FULL) ./scripts/ci-check.sh
 
-# VPS Docker stack (not Sail)
-DEPLOY_ENV ?= prod
+# VPS Docker stack (not Sail) — env from APP_ENV in this checkout's .env
 IMAGE_TAG ?=
 BUILD ?=
-DEPLOY_BUILD_FLAG := $(if $(BUILD),--build,)
-DEPLOY_IMAGE_ENV := $(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),)
-DC := docker compose -f compose.stack.yaml -f compose.$(DEPLOY_ENV).yaml
-STAGING_DC := docker compose -f compose.stack.yaml -f compose.staging.yaml
 
 docker-config:
-	$(DC) config
+	@eval "$$(./scripts/compose-env.sh)"; \
+	docker compose -f compose.stack.yaml -f compose.$${DEPLOY_ENV}.yaml config
 
 docker-pull:
-	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) --pull-only
-
-staging-deploy:
-	$(MAKE) deploy DEPLOY_ENV=staging IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
-
-staging-down:
-	./scripts/compose-exec.sh staging down
-
-staging-ps:
-	./scripts/compose-exec.sh staging ps
-
-dev-deploy:
-	@echo "dev-deploy is deprecated; use: make staging-deploy" >&2
-	$(MAKE) staging-deploy IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
-
-prod-deploy:
-	$(MAKE) deploy DEPLOY_ENV=prod IMAGE_TAG=$(IMAGE_TAG) BUILD=$(BUILD)
-
-prod-artisan:
-	./scripts/compose-exec.sh prod exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
-
-prod-shell:
-	./scripts/compose-exec.sh prod exec app bash
+	$(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),) ./scripts/deploy.sh --pull-only
 
 prod-maintenance-on:
 	./scripts/maintenance.sh on
@@ -214,34 +184,9 @@ prod-maintenance-off:
 prod-maintenance-status:
 	./scripts/maintenance.sh status
 
-prod-init:
-	./scripts/compose-exec.sh prod exec app php artisan app:init --force
-
-prod-refresh:
-	./scripts/compose-exec.sh prod exec -T app php artisan migrate:refresh --seed --force
-	./scripts/compose-exec.sh prod exec -T app php artisan tags:recalculate-popularity
-
-prod-regenerate-welcome-image:
-	./scripts/compose-exec.sh prod exec -T app php artisan cache:forget welcome.hero_tag_image
-
-staging-artisan:
-	./scripts/compose-exec.sh staging exec app php artisan $(filter-out $@,$(MAKECMDGOALS))
-
-staging-init:
-	./scripts/compose-exec.sh staging exec app php artisan app:init --force
-
-staging-refresh:
-	./scripts/compose-exec.sh staging exec -T app php artisan migrate:refresh --seed --force
-	./scripts/compose-exec.sh staging exec -T app php artisan tags:recalculate-popularity
-
-vps-deploy:
-	./scripts/vps-deploy.sh prod
-
-vps-staging-deploy:
-	./scripts/vps-deploy.sh staging
-
+# Full VPS release: git pull + verify GHCR image + deploy this checkout
 deploy:
-	$(DEPLOY_IMAGE_ENV) ./scripts/deploy.sh $(DEPLOY_ENV) $(DEPLOY_BUILD_FLAG)
+	$(if $(IMAGE_TAG),IMAGE_TAG=$(IMAGE_TAG),) $(if $(BUILD),BUILD=$(BUILD),) ./scripts/vps-deploy.sh
 
 docker-publish:
 	./scripts/docker-publish.sh

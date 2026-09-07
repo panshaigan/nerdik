@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Resolve NERDIK_IMAGE for docker compose CLI (exec, ps, down) on the VPS.
 #
-# Usage: eval "$(./scripts/compose-env.sh prod)"
+# Usage: eval "$(./scripts/compose-env.sh)"
+#        eval "$(./scripts/compose-env.sh prod)"
 #        eval "$(./scripts/compose-env.sh staging)"
+#
+# When the env argument is omitted, DEPLOY_ENV is taken from APP_ENV in .env
+# (production → prod, staging → staging).
 #
 # Resolution order:
 #   1. Running app container image (matches what is actually deployed)
@@ -15,7 +19,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-DEPLOY_ENV="${1:-prod}"
+# shellcheck source=scripts/lib/runtime.sh
+source "${ROOT}/scripts/lib/runtime.sh"
+
+if [[ $# -ge 1 && ( "$1" == "prod" || "$1" == "staging" || "$1" == "dev" ) ]]; then
+    if [[ "$1" == "dev" ]]; then
+        echo "Note: use 'staging' instead of 'dev'." >&2
+        DEPLOY_ENV=staging
+    else
+        DEPLOY_ENV="$1"
+    fi
+else
+    runtime_load "$ROOT"
+    if [[ "$RUNTIME" != "stack" ]]; then
+        echo "compose-env requires APP_ENV=staging or production (got ${APP_ENV})." >&2
+        exit 1
+    fi
+fi
 
 case "$DEPLOY_ENV" in
     prod)
@@ -24,12 +44,8 @@ case "$DEPLOY_ENV" in
     staging)
         COMPOSE_PROJECT="nerdik-staging"
         ;;
-    dev)
-        echo "Note: use 'staging' instead of 'dev'." >&2
-        COMPOSE_PROJECT="nerdik-staging"
-        ;;
     *)
-        echo "Usage: $0 <prod|staging>" >&2
+        echo "Usage: $0 [prod|staging]" >&2
         exit 1
         ;;
 esac
@@ -76,3 +92,4 @@ if [[ -z "${NERDIK_IMAGE:-}" ]]; then
 fi
 
 printf 'export NERDIK_IMAGE=%q\n' "${NERDIK_IMAGE}"
+printf 'export DEPLOY_ENV=%q\n' "${DEPLOY_ENV}"
