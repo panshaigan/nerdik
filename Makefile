@@ -6,7 +6,7 @@ APP_CMD := ./scripts/app-cmd.sh
 SEED_DATASET ?= minimal
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
-        queue scheduler test npm-install npm-dev npm-build tinker serve composer-install composer-require \
+        test npm-install npm-dev npm-build tinker serve composer-install composer-require \
         composer-audit cache artisan pint sail tags-recalculate tags-seed-images test-all \
         docker-config docker-pull prod-maintenance-on prod-maintenance-off prod-maintenance-status \
         deploy init docker-publish dump-schema sync-from-prod sync-from-prod-db \
@@ -96,12 +96,6 @@ seed-maximal:
 
 dump-schema:
 	$(SAIL) artisan schema:dump --prune
-
-queue:
-	$(SAIL) artisan queue:work
-
-scheduler:
-	$(SAIL) artisan schedule:work
 
 serve:
 	$(SAIL) artisan serve
