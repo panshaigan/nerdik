@@ -4,7 +4,7 @@
 # Usage: ./scripts/app-cmd.sh <command> [args...]
 #
 # Commands: up down restart ps logs shell tinker migrate init fresh refresh
-#           seed cache artisan regenerate-welcome-image
+#           seed cache artisan regenerate-welcome-image boost
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -12,6 +12,8 @@ cd "$ROOT"
 
 # shellcheck source=scripts/lib/runtime.sh
 source "${ROOT}/scripts/lib/runtime.sh"
+# shellcheck source=scripts/lib/boost.sh
+source "${ROOT}/scripts/lib/boost.sh"
 
 SAIL="${SAIL:-./vendor/bin/sail}"
 SEED_DATASET="${SEED_DATASET:-minimal}"
@@ -50,9 +52,18 @@ case "$CMD" in
     up)
         if [[ "$RUNTIME" == "sail" ]]; then
             sail_cmd up -d
+            # Boost is require-dev / local agents only — keep guidelines + MCP fresh.
+            boost_update_and_verify "$SAIL"
         else
             stack_compose up -d
         fi
+        ;;
+    boost)
+        if [[ "$RUNTIME" != "sail" ]]; then
+            echo "make boost / app-cmd boost is Sail-only (local APP_ENV)." >&2
+            exit 1
+        fi
+        boost_update_and_verify "$SAIL"
         ;;
     down)
         if [[ "$RUNTIME" == "sail" ]]; then
