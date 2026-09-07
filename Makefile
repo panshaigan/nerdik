@@ -7,7 +7,7 @@ SEED_DATASET ?= minimal
 
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test npm composer tinker serve cache artisan pint sail tags-recalculate test-all \
-        maintenance deploy init dump-schema sync-from-prod sync-to-staging ci-check \
+        maintenance deploy init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
@@ -29,7 +29,9 @@ ifeq ($(STORAGE),1)
 SYNC_FLAGS += --storage-only
 endif
 
-# Production restore (ARCHIVE = backup directory or .tar.gz)
+# Production restore on VPS (/opt/nerdik): ARCHIVE = backup dir or .tar.gz
+# Recommended: make restore-prod ARCHIVE=... YES=1 RESTORE_BACKUP=1
+# Optional: DRY_RUN=1, RESTORE_ENV=1, DB_ONLY=1, STORAGE_ONLY=1
 RESTORE_FLAGS :=
 ifeq ($(YES),1)
 RESTORE_FLAGS += --yes
@@ -150,7 +152,7 @@ pint:
 	$(SAIL) bin pint --dirty --format agent
 
 # Local CI parity: gitleaks, compose, tests, composer audit, pint; FULL=1 adds Docker build
-ci-check:
+check:
 	FULL=$(FULL) ./scripts/ci-check.sh
 
 # VPS Docker stack (not Sail) — env from APP_ENV in this checkout's .env
@@ -182,9 +184,11 @@ backup-prod:
 backup-prod-dry-run:
 	DRY_RUN=1 ./scripts/backup/backup-prod.sh
 
+# VPS: restore prod DB + storage/app from a backup folder or .tar.gz (see docs/deployment.md).
 restore-prod:
 	@if [ -z "$(ARCHIVE)" ]; then \
-		echo "Usage: make restore-prod ARCHIVE=/path/to/backup.tar.gz [YES=1] [RESTORE_BACKUP=1] [RESTORE_ENV=1] [DRY_RUN=1]" >&2; \
+		echo "Usage: make restore-prod ARCHIVE=/path/to/backup_dir_or.tar.gz [YES=1] [RESTORE_BACKUP=1] [RESTORE_ENV=1] [DRY_RUN=1] [DB_ONLY=1] [STORAGE_ONLY=1]" >&2; \
+		echo "Run on VPS from /opt/nerdik. Prefer RESTORE_BACKUP=1 to snapshot current prod to /tmp first." >&2; \
 		exit 1; \
 	fi
 	./scripts/backup/restore-prod.sh "$(ARCHIVE)" $(RESTORE_FLAGS)
