@@ -20,6 +20,7 @@
         "livewire/livewire": "^4.1",
         "livewire/volt": "^1.10",
         "robsontenorio/mary": "^2.8",
+        "sentry/sentry-laravel": "^4.27",
         "socialiteproviders/discord": "^4.2",
         "spatie/laravel-medialibrary": "^11.0",
         "stevebauman/purify": "^6.3"

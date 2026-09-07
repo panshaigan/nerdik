@@ -34,6 +34,7 @@ Security fixes are applied to the active `main` branch and released through norm
 - Filament admin panel requires an authenticated admin (`AdminOnly` middleware).
 - Laravel Pulse dashboard is gated to admins (`viewPulse` gate).
 - Laravel Telescope is registered only in the `local` environment.
+- Production errors go to Sentry when `SENTRY_LARAVEL_DSN` is set (`SENTRY_SEND_DEFAULT_PII=false` by default).
 
 ### HTTP and transport
 
@@ -62,7 +63,9 @@ Follow [deployment.md](deployment.md) before exposing a server to the internet.
 | `APP_DEBUG` | `false` |
 | `APP_KEY` | Unique, secret, never committed |
 | `TELESCOPE_ENABLED` | `false` |
-| `PULSE_ENABLED` | `false` unless needed (admins only) |
+| `PULSE_ENABLED` | `true` (admins only via `viewPulse`) |
+| `SENTRY_LARAVEL_DSN` | Set in production/staging; omit locally |
+| `SENTRY_SEND_DEFAULT_PII` | `false` |
 | `LOG_LEVEL` | `error` (or stricter) |
 | Secrets (DB, Reverb, OAuth, mail) | Server `.env` or secret manager only |
 | Sail-only tools | Do not expose Adminer, Mailpit, or Vite dev server in production |

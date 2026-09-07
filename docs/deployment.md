@@ -272,6 +272,7 @@ Optional private Composer packages: pass `COMPOSER_AUTH` or a BuildKit secret fo
 | `worker` | `queue:work database` |
 | `scheduler` | `schedule:work` |
 | `reverb` | `reverb:start` (requires PHP `pcntl` in the image — see [`docker/production/Dockerfile`](../docker/production/Dockerfile)) |
+| `pulse` | `pulse:check` (Servers card / host metrics when `PULSE_ENABLED=true`) |
 | `pgsql` | PostgreSQL with Polish FTS init (or use external DB: set `DB_HOST` and remove `pgsql` service) |
 
 Persistent volumes in prod: `nerdik_storage`, `nerdik_pgsql_data`.
@@ -340,8 +341,21 @@ make deploy
 2. Set `APP_KEY` in the server `.env` before deploy (see **First-time setup**). Do not run `key:generate` inside the app container without `--show` — it has no `.env` file to write.
 3. Set `APP_URL`, DB credentials, mail, OAuth/reCAPTCHA, Reverb keys, and `GITHUB_OWNER`. Set `NERDIK_IMAGE` to a CI-published SHA, or deploy with `IMAGE_TAG=<sha>` (recommended).
 4. Set `TRUSTED_PROXIES` when TLS terminates at a reverse proxy (`*` or specific proxy IPs).
-5. Keep `APP_DEBUG=false`, `TELESCOPE_ENABLED=false`, and `PULSE_ENABLED=false` unless you explicitly need Pulse (admins only via `viewPulse` gate).
+5. Keep `APP_DEBUG=false` and `TELESCOPE_ENABLED=false`. Enable Pulse in production (`PULSE_ENABLED=true`; admins only via `viewPulse` gate) and set `SENTRY_LARAVEL_DSN` plus UptimeRobot heartbeat URLs (see **Monitoring** below).
 6. Logging: use `LOG_LEVEL=error` and `LOG_STACK=daily` (see env templates). Deploy and the daily scheduler prune log files older than `LOG_DAILY_DAYS` (default 14). See **Housekeeping** below. Application logs redact passwords, CSRF tokens, and session payloads before they are written.
+
+## Monitoring
+
+Free production monitoring stack (Sentry + UptimeRobot + Laravel Pulse):
+
+| Concern | Tool | What to configure |
+|---------|------|-------------------|
+| Backend + browser errors | Sentry | `SENTRY_LARAVEL_DSN`; browser SDK boots from the same DSN via layouts |
+| Site / DB / cache up | UptimeRobot HTTP | Monitor `GET /up` (checks app boot + DB + cache) |
+| Scheduler / queue alive | UptimeRobot heartbeats | `MONITORING_SCHEDULER_HEARTBEAT_URL`, `MONITORING_WORKER_HEARTBEAT_URL` |
+| App performance | Pulse (`/pulse`) | `PULSE_ENABLED=true`; `pulse` compose service runs `pulse:check` |
+
+Telescope stays local-only. After deploy, containers `worker`, `scheduler`, `reverb`, and `pulse` are restarted and `pulse:restart` is signaled.
 
 ## Housekeeping
 
@@ -360,6 +374,8 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 | Daily 03:30 | `housekeeping:prune-logs` | Delete `storage/logs/*.log` older than `LOG_DAILY_DAYS` |
 | Daily 03:30 | `housekeeping:prune-sent-emails` | Delete sent email rows and stored bodies older than `HOUSEKEEPING_SENT_EMAILS_DAYS` |
 | Weekly Sun 04:00 | `media-library:clean --delete-orphaned --force` | Orphan media, stale conversions, orphan disk dirs |
+| Every minute (if configured) | `monitoring:heartbeat scheduler` | UptimeRobot scheduler heartbeat |
+| Every minute (if configured) | `SendWorkerMonitoringHeartbeatJob` | UptimeRobot worker heartbeat (via queue) |
 | Daily (if enabled) | `telescope:prune` | Telescope data (off in prod) |
 
 **Not scheduled by design:** database notifications (retained indefinitely), `media:prune-orphans` (manual alternative), media on soft-deleted models (parent row still exists).
@@ -498,6 +514,7 @@ Run these in addition to the web server:
 | Queue worker | `php artisan queue:work database --sleep=1 --tries=3` |
 | Scheduler | `php artisan schedule:work` or cron: `* * * * * php artisan schedule:run` |
 | Reverb | `php artisan reverb:start` |
+| Pulse check | `php artisan pulse:check` |
 
 Reverb is required for live participation counters and roster refresh on activity/event pages. Set `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME` in each environment's `.env` to the public WebSocket endpoint browsers reach (`wss` on port `443` behind Caddy). `REVERB_APP_KEY` must match between server `.env` and the key injected into pages.
 

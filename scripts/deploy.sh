@@ -4,7 +4,7 @@
 # Composer and npm dependencies are baked into the image during CI
 # (docker/production/Dockerfile). This script does not run composer/npm on the
 # host — it pulls NERDIK_IMAGE (or IMAGE_TAG), starts containers, migrates,
-# runs optimize + filament:optimize, and restarts worker/scheduler/reverb.
+# runs optimize + filament:optimize, and restarts worker/scheduler/reverb/pulse.
 #
 # On production, maintenance mode is enabled before pull/build and disabled
 # after a successful deploy (SKIP_MAINTENANCE=1 to bypass).
@@ -164,7 +164,8 @@ fi
 log_retention_days="${LOG_DAILY_DAYS:-14}"
 "${COMPOSE[@]}" exec -T app sh -c "find storage/logs -type f -name '*.log' -mtime +${log_retention_days} -delete 2>/dev/null || true"
 
-"${COMPOSE[@]}" restart worker scheduler reverb
+"${COMPOSE[@]}" restart worker scheduler reverb pulse
+"${COMPOSE[@]}" exec -T app php artisan pulse:restart
 
 if ! "${COMPOSE[@]}" exec -T app php -r 'exit((gd_info()["WebP Support"] ?? false) ? 0 : 1);'; then
     echo "WARN: GD WebP support missing — image uploads will fail until the image is rebuilt." >&2

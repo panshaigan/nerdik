@@ -27,6 +27,7 @@ class QueueAndScheduleConfigurationTest extends TestCase
             ->expectsOutputToContain('housekeeping:prune-logs')
             ->expectsOutputToContain('housekeeping:prune-sent-emails')
             ->expectsOutputToContain('media-library:clean')
+            ->expectsOutputToContain('monitoring:heartbeat')
             ->assertExitCode(0);
     }
 }

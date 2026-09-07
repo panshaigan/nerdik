@@ -73,6 +73,21 @@ services:
         networks:
             - sail
 
+    pulse:
+        image: sail-8.5/app
+        working_dir: /var/www/html
+        command: php artisan pulse:check --no-interaction
+        restart: unless-stopped
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - pgsql
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        networks:
+            - sail
+
     pgsql:
         build:
             context: ./docker/pgsql

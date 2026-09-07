@@ -85,6 +85,26 @@ services:
       app:
         condition: service_started
 
+  pulse:
+    image: ${NERDIK_IMAGE:?Set NERDIK_IMAGE in .env}
+    restart: unless-stopped
+    logging: *default-logging
+    env_file: .env
+    command:
+      - php
+      - artisan
+      - pulse:check
+      - --no-interaction
+    volumes:
+      - storage:/var/www/html/storage
+    networks:
+      - nerdik
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      app:
+        condition: service_started
+
   pgsql:
     build:
       context: ./docker/pgsql
