@@ -394,8 +394,11 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 
 ### Verify on VPS
 
+Commands with `--flags` need the project Make wrapper on `PATH` (see [development-workflow.md](development-workflow.md#make-passthrough-artisan-npm-composer-test)), or use `./bin/make …` / `ARGS='…'`.
+
 ```bash
 cd /opt/nerdik
+export PATH="$(pwd)/bin:$PATH"
 make artisan schedule:list
 make artisan housekeeping:prune-sessions --dry-run
 make artisan media-library:clean --delete-orphaned --dry-run --force

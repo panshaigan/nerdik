@@ -38,6 +38,30 @@ This project is expected to run through Laravel Sail commands.
 
 You can also run direct Sail commands such as `vendor/bin/sail artisan ...`.
 
+### Make passthrough (artisan, npm, composer, test)
+
+GNU Make treats unknown `--flags` as its own options (and `foo=bar` as variable assignments), so stock `/usr/bin/make artisan … --dsn=…` fails before the Makefile runs.
+
+Put the project wrapper first on `PATH` so those args are forwarded unchanged:
+
+```bash
+export PATH="$(pwd)/bin:$PATH"
+# or permanently, from the repo root:
+# echo 'export PATH="/var/www/nerdik/bin:$PATH"' >> ~/.bashrc
+```
+
+Then flags work as expected:
+
+```bash
+make artisan sentry:publish --dsn=https://…
+make artisan housekeeping:prune-sessions --dry-run
+make test --filter=SomeTest
+make npm run build -- --mode=production
+make composer require vendor/pkg --dev
+```
+
+Without `bin` on `PATH`, use either `./bin/make artisan …` or `make artisan ARGS='…'`.
+
 ## Testing
 
 - Run selected tests:
@@ -47,9 +71,9 @@ You can also run direct Sail commands such as `vendor/bin/sail artisan ...`.
 - Run all tests:
   - `vendor/bin/sail artisan test --compact`
 
-For quick Makefile filtering:
+For quick Makefile filtering (requires `bin` on `PATH`; see above):
 
-- `make test --filter SomeTest`
+- `make test --filter=SomeTest`
 
 ## Code Style
 
