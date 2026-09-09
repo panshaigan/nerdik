@@ -17,6 +17,9 @@ export function bootSentry() {
         environment: config.environment || undefined,
         release: config.release || undefined,
         tracesSampleRate: Number(config.tracesSampleRate ?? 0),
+        // Facebook/Instagram Android IAB native-bridge noise (see config/sentry.php browser.*)
+        ignoreErrors: Array.isArray(config.ignoreErrors) ? config.ignoreErrors : [],
+        denyUrls: Array.isArray(config.denyUrls) ? config.denyUrls : [],
     });
 }
 

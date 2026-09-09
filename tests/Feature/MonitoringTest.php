@@ -69,7 +69,9 @@ class MonitoringTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('window.__nerdikSentry', false)
-            ->assertSee('ingest.sentry.io', false);
+            ->assertSee('ingest.sentry.io', false)
+            ->assertSee('Java object is gone', false)
+            ->assertSee('iabjs:', false);
     }
 
     public function test_sentry_config_is_omitted_when_dsn_is_empty(): void
@@ -79,5 +81,18 @@ class MonitoringTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertDontSee('window.__nerdikSentry', false);
+    }
+
+    public function test_sentry_browser_filters_include_facebook_iab_noise(): void
+    {
+        $ignoreErrors = config('sentry.browser.ignore_errors');
+        $denyUrls = config('sentry.browser.deny_urls');
+
+        $this->assertIsArray($ignoreErrors);
+        $this->assertContains('Java object is gone', $ignoreErrors);
+        $this->assertContains('Java exception was raised during method invocation', $ignoreErrors);
+
+        $this->assertIsArray($denyUrls);
+        $this->assertContains('iabjs:', $denyUrls);
     }
 }

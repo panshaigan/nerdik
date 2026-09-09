@@ -159,4 +159,23 @@ return [
         'default_integrations' => env('SENTRY_TRACE_DEFAULT_INTEGRATIONS_ENABLED', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Browser SDK filters (injected via x-sentry-config)
+    |--------------------------------------------------------------------------
+    |
+    | Facebook / Instagram Android in-app browsers inject a native bridge that
+    | throws during WebView teardown. These are not application bugs.
+    |
+    */
+    'browser' => [
+        'ignore_errors' => [
+            'Java object is gone',
+            'Java exception was raised during method invocation',
+        ],
+        'deny_urls' => [
+            'iabjs:',
+        ],
+    ],
+
 ];
