@@ -12,7 +12,7 @@ flowchart LR
   DockerPush --> GHCR["ghcr.io/owner/nerdik:sha + :semver"]
   DockerPush --> WaitCI[release.yml waits for CI]
   WaitCI --> GHRelease[GitHub Release]
-  GHRelease --> Deploy[deploy.yml]
+  GHRelease --> Deploy[deploy.yml via workflow_run]
   Manual[workflow_dispatch] --> Deploy
   Deploy --> VPS[VPS make deploy]
   VPS --> Up["GET /up"]
@@ -23,7 +23,9 @@ flowchart LR
 | CI | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Every PR; also on `v*` tag push (release gate) |
 | Docker | [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) | `v*` tags only (build + push to GHCR) |
 | Release | [`.github/workflows/release.yml`](../.github/workflows/release.yml) | After **Docker** succeeds on a `v*` tag; waits for green **CI**, then creates the GitHub Release |
-| Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | After **release published** (auto); also manual `workflow_dispatch`; production only |
+| Deploy | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | After **Release** succeeds (`workflow_run`); also manual `workflow_dispatch`; production only |
+
+> **Why `workflow_run` (not `release: published`)?** Creating a Release with `GITHUB_TOKEN` does not start other workflows on `release` events (GitHub’s recursion guard). Chaining `Docker → Release → Deploy` via `workflow_run` avoids that.
 
 Current app version: [`VERSION`](../VERSION) (`1.0.4`). Release tags must match `v` + that semver (e.g. `v1.0.4`).
 
@@ -67,7 +69,7 @@ git push origin v1.0.4
 ```
 
 3. **CI** and **Docker** run on the tag. When Docker finishes successfully, **Release** waits for CI to pass, then creates the GitHub Release (notes + image refs).
-4. **Deploy** starts automatically on `release: published` (SSH → `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull`). If the `production` environment has required reviewers, approve there.
+4. **Deploy** starts automatically when **Release** succeeds (`workflow_run`; SSH → `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull`). If the `production` environment has required reviewers, approve there.
 5. Optional: redeploy a known tag/SHA via Actions → **Deploy** → Run workflow, or on the VPS with `IMAGE_TAG=… make deploy`.
 
 ## Docker images (no VPS required)
@@ -105,7 +107,7 @@ GITHUB_OWNER=your-github-owner GIT_SHA=$(git rev-parse HEAD) ./scripts/docker-pu
 
 ## Deploy (VPS required)
 
-Deploy runs **automatically** when a GitHub Release is published (after green CI + Docker on a `v*` tag). It deploys the release commit’s GHCR SHA. You can still redeploy manually via Actions → **Deploy** → Run workflow (enter a git SHA or semver such as `1.0.0`). Staging is deployed manually on the VPS — see [deployment.md](deployment.md#staging-on-the-same-vps).
+Deploy runs **automatically** after a successful **Release** workflow (which itself follows green CI + Docker on a `v*` tag). It deploys that commit’s GHCR SHA. You can still redeploy manually via Actions → **Deploy** → Run workflow (enter a git SHA or semver such as `1.0.0`). Staging is deployed manually on the VPS — see [deployment.md](deployment.md#staging-on-the-same-vps).
 
 If deploy secrets are not configured, the workflow prints a skip message and exits successfully so the repo stays green before you have a server.
 

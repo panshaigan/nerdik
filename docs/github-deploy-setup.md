@@ -4,7 +4,7 @@ Step-by-step guide to enable remote deploy from GitHub Actions. Deploy secrets a
 
 ## Overview
 
-The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your production VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. It runs automatically when a GitHub Release is published (tag → CI + Docker → Release), and can also be started manually via `workflow_dispatch`. Staging is deployed manually on the VPS (`make deploy` / `make down`). Until secrets are configured, the workflow prints a skip message and exits successfully.
+The [Deploy workflow](../.github/workflows/deploy.yml) SSHes into your production VPS and runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh) with an explicit image SHA. It runs automatically after a successful **Release** workflow (`workflow_run`; tag → CI + Docker → Release → Deploy), and can also be started manually via `workflow_dispatch`. Staging is deployed manually on the VPS (`make deploy` / `make down`). Until secrets are configured, the workflow prints a skip message and exits successfully.
 
 ## A. One-time VPS preparation
 
@@ -76,9 +76,9 @@ Go to **Settings → Environments** and create:
 ## F. Verify remote deploy
 
 1. Push a release tag (e.g. `git push origin v1.0.0`) and wait for **CI**, **Docker**, then **Release** (Release starts after Docker and waits for CI).
-2. When the Release is published, **Deploy** starts automatically (approve if the `production` environment requires reviewers).
+2. When **Release** succeeds, **Deploy** starts automatically via `workflow_run` (approve if the `production` environment requires reviewers).
 3. Confirm the SSH step succeeds and the smoke check passes.
-4. Optional: redeploy manually via **Actions → Deploy → Run workflow** with a semver or SHA from GHCR.
+4. Optional: redeploy manually via **Actions → Deploy → Run workflow** with a semver or SHA from GHCR. The Actions UI may still highlight `workflow_dispatch` even though auto-deploy is wired through `workflow_run`.
 
 ## G. VPS manual deploy (alternative)
 

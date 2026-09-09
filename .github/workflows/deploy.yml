@@ -1,9 +1,13 @@
 name: Deploy
 
+# Releases created with GITHUB_TOKEN do not emit release:published to other
+# workflows (GitHub recursion guard). Listen for a successful Release run instead.
 on:
-  release:
+  workflow_run:
+    workflows:
+      - Release
     types:
-      - published
+      - completed
   workflow_dispatch:
     inputs:
       image_tag:
@@ -19,6 +23,7 @@ concurrency:
 jobs:
   deploy-prod:
     name: Deploy to production
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: production
 
@@ -45,18 +50,25 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           DISPATCH_TAG: ${{ github.event.inputs.image_tag }}
-          RELEASE_SHA: ${{ github.sha }}
+          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+          FALLBACK_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
 
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             TAG="${DISPATCH_TAG:-}"
             if [[ -z "$TAG" ]]; then
-              TAG="${RELEASE_SHA}"
+              TAG="${FALLBACK_SHA}"
             fi
+          elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            TAG="${WORKFLOW_SHA}"
           else
-            # release: published — deploy the immutable GHCR SHA tag for this release commit
-            TAG="${RELEASE_SHA}"
+            TAG="${FALLBACK_SHA}"
+          fi
+
+          if [[ -z "$TAG" ]]; then
+            echo "Could not resolve IMAGE_TAG for event=${EVENT_NAME}" >&2
+            exit 1
           fi
 
           echo "Deploying IMAGE_TAG=${TAG} (event=${EVENT_NAME})"

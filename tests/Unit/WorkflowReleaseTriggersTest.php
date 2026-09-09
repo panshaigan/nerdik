@@ -53,16 +53,21 @@ final class WorkflowReleaseTriggersTest extends TestCase
     }
 
     #[Test]
-    public function deploy_runs_on_release_published_and_manual_dispatch(): void
+    public function deploy_runs_after_successful_release_and_manual_dispatch(): void
     {
         $deploy = file_get_contents(base_path('.github/workflows/deploy.yml'));
 
         $this->assertIsString($deploy);
-        $this->assertStringContainsString("release:\n    types:\n      - published", $deploy);
+        $this->assertStringContainsString('workflow_run:', $deploy);
+        $this->assertStringContainsString('- Release', $deploy);
+        $this->assertStringContainsString('- completed', $deploy);
+        $this->assertStringContainsString("github.event.workflow_run.conclusion == 'success'", $deploy);
         $this->assertStringContainsString('workflow_dispatch:', $deploy);
         $this->assertStringContainsString('environment: production', $deploy);
         $this->assertStringContainsString('appleboy/ssh-action', $deploy);
         $this->assertStringContainsString('./scripts/vps-deploy.sh --no-pull', $deploy);
         $this->assertStringContainsString('group: deploy-production', $deploy);
+        $this->assertStringNotContainsString("release:\n    types:", $deploy);
+        $this->assertStringNotContainsString('- published', $deploy);
     }
 }
