@@ -1,6 +1,9 @@
 name: Deploy
 
 on:
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       image_tag:
@@ -8,6 +11,10 @@ on:
         required: true
         type: string
         default: ""
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy-prod:
@@ -35,12 +42,25 @@ jobs:
       - name: Resolve image tag
         if: steps.config.outputs.skip != 'true'
         id: tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_TAG: ${{ github.event.inputs.image_tag }}
+          RELEASE_SHA: ${{ github.sha }}
         run: |
-          TAG="${{ inputs.image_tag }}"
-          if [[ -z "$TAG" ]]; then
-            TAG="${{ github.sha }}"
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            TAG="${DISPATCH_TAG:-}"
+            if [[ -z "$TAG" ]]; then
+              TAG="${RELEASE_SHA}"
+            fi
+          else
+            # release: published — deploy the immutable GHCR SHA tag for this release commit
+            TAG="${RELEASE_SHA}"
           fi
-          echo "value=$TAG" >> "$GITHUB_OUTPUT"
+
+          echo "Deploying IMAGE_TAG=${TAG} (event=${EVENT_NAME})"
+          echo "value=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy over SSH
         if: steps.config.outputs.skip != 'true'

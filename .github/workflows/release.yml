@@ -1,45 +1,115 @@
 name: Release
 
+# After Docker publishes the GHCR image for a v* tag, wait for CI to pass,
+# then create the GitHub Release. Deploy listens for release: published.
 on:
-  push:
-    tags:
-      - v*
+  workflow_run:
+    workflows:
+      - Docker
+    types:
+      - completed
 
 permissions:
   contents: write
+  actions: read
+  checks: read
 
 concurrency:
-  group: release-${{ github.workflow }}-${{ github.ref }}
+  group: release-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
 jobs:
   github-release:
     name: Create GitHub Release
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Resolve image tags
-        id: tags
+      - name: Gate on version tag and green CI
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          set -euo pipefail
+
+          if [[ ! "$BRANCH" =~ ^v ]]; then
+            echo "Docker run was not for a v* tag (head_branch=${BRANCH}); skipping release."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Waiting for CI workflow on ${SHA} (tag ${BRANCH})..."
+          deadline=$((SECONDS + 3600))
+          ci_ok=false
+
+          while (( SECONDS < deadline )); do
+            json="$(gh run list --repo "$REPO" --workflow ci.yml --commit "$SHA" --limit 10 \
+              --json status,conclusion)"
+
+            count="$(jq 'length' <<<"$json")"
+            if [[ "$count" -eq 0 ]]; then
+              echo "No CI run listed yet; sleeping..."
+              sleep 15
+              continue
+            fi
+
+            in_progress="$(jq '[.[] | select(.status != "completed")] | length' <<<"$json")"
+            successes="$(jq '[.[] | select(.status == "completed" and .conclusion == "success")] | length' <<<"$json")"
+            failures="$(jq '[.[] | select(.status == "completed" and .conclusion != "success")] | length' <<<"$json")"
+
+            if [[ "$successes" -gt 0 ]]; then
+              echo "CI succeeded for ${SHA}."
+              ci_ok=true
+              break
+            fi
+
+            if [[ "$failures" -gt 0 && "$in_progress" -eq 0 ]]; then
+              echo "CI failed for ${SHA}; not creating a release." >&2
+              jq -r '.[] | select(.status == "completed") | "  conclusion=\(.conclusion)"' <<<"$json" >&2
+              exit 1
+            fi
+
+            echo "CI still running (in_progress=${in_progress}); sleeping..."
+            sleep 15
+          done
+
+          if [[ "$ci_ok" != true ]]; then
+            echo "Timed out waiting for CI on ${SHA}." >&2
+            exit 1
+          fi
+
+          VERSION="${BRANCH#v}"
           OWNER="${GITHUB_REPOSITORY_OWNER,,}"
           {
+            echo "skip=false"
+            echo "tag=${BRANCH}"
+            echo "sha=${SHA}"
             echo "version=${VERSION}"
             echo "image_semver=ghcr.io/${OWNER}/nerdik:${VERSION}"
-            echo "image_sha=ghcr.io/${OWNER}/nerdik:${GITHUB_SHA}"
+            echo "image_sha=ghcr.io/${OWNER}/nerdik:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Checkout tagged commit
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.gate.outputs.sha }}
+          fetch-depth: 0
+
       - name: Create GitHub Release
+        if: steps.gate.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.gate.outputs.tag }}
+          target_commitish: ${{ steps.gate.outputs.sha }}
           generate_release_notes: true
           make_latest: true
           fail_on_unmatched_files: false
           body: |
             ### Container images
 
-            - `${{ steps.tags.outputs.image_semver }}`
-            - `${{ steps.tags.outputs.image_sha }}`
+            - `${{ steps.gate.outputs.image_semver }}`
+            - `${{ steps.gate.outputs.image_sha }}`

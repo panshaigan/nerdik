@@ -33,16 +33,36 @@ final class WorkflowReleaseTriggersTest extends TestCase
     }
 
     #[Test]
-    public function release_creates_github_release_only_on_version_tags(): void
+    public function release_runs_after_successful_docker_and_gates_on_ci(): void
     {
         $release = file_get_contents(base_path('.github/workflows/release.yml'));
 
         $this->assertIsString($release);
-        $this->assertStringContainsString("tags:\n      - v*", $release);
-        $this->assertStringNotContainsString('pull_request:', $release);
-        $this->assertStringNotContainsString("branches:\n      - main", $release);
+        $this->assertStringContainsString('workflow_run:', $release);
+        $this->assertStringContainsString('- Docker', $release);
+        $this->assertStringContainsString('types:', $release);
+        $this->assertStringContainsString('- completed', $release);
+        $this->assertStringContainsString("github.event.workflow_run.conclusion == 'success'", $release);
+        $this->assertStringContainsString('gh run list', $release);
+        $this->assertStringContainsString('--workflow ci.yml', $release);
         $this->assertStringContainsString('contents: write', $release);
         $this->assertStringContainsString('softprops/action-gh-release', $release);
         $this->assertStringContainsString('generate_release_notes: true', $release);
+        $this->assertStringNotContainsString('pull_request:', $release);
+        $this->assertStringNotContainsString("branches:\n      - main", $release);
+    }
+
+    #[Test]
+    public function deploy_runs_on_release_published_and_manual_dispatch(): void
+    {
+        $deploy = file_get_contents(base_path('.github/workflows/deploy.yml'));
+
+        $this->assertIsString($deploy);
+        $this->assertStringContainsString("release:\n    types:\n      - published", $deploy);
+        $this->assertStringContainsString('workflow_dispatch:', $deploy);
+        $this->assertStringContainsString('environment: production', $deploy);
+        $this->assertStringContainsString('appleboy/ssh-action', $deploy);
+        $this->assertStringContainsString('./scripts/vps-deploy.sh --no-pull', $deploy);
+        $this->assertStringContainsString('group: deploy-production', $deploy);
     }
 }
