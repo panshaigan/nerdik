@@ -17,6 +17,7 @@ final class BadgeSemanticTest extends TestCase
 
         $this->assertStringContainsString('badge-outline', $classes);
         $this->assertStringContainsString('badge-warning', $classes);
+        $this->assertStringContainsString('badge-sm', $classes);
     }
 
     #[Test]
