@@ -141,7 +141,7 @@ cd /opt/nerdik-staging
 make deploy
 ```
 
-That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves HEAD SHA, verifies the GHCR image exists, then deploys this checkout's stack (`APP_ENV=staging`). Pin a specific SHA with `IMAGE_TAG=<sha> make deploy` or `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull`.
+That runs [`scripts/vps-deploy.sh`](../scripts/vps-deploy.sh): `git pull --ff-only`, resolves HEAD SHA, verifies the GHCR image exists, then deploys this checkout's stack (`APP_ENV=staging`). Pin a specific image with `IMAGE_TAG=<sha> make deploy` (still pulls git; use `--no-pull` only if you intentionally skip that).
 
 First run only — seed the empty database if needed:
 

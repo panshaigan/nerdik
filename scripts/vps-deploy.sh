@@ -30,7 +30,7 @@ Options:
   --no-pull   Skip git pull (deploy IMAGE_TAG env or current checkout SHA)
 
 Environment:
-  IMAGE_TAG           Optional explicit image tag (used with --no-pull from GitHub Actions)
+  IMAGE_TAG           Optional explicit image tag (e.g. from GitHub Actions); otherwise HEAD after pull
   NERDIK_DEPLOY_ENV   Optional prod|staging override
 EOF
 }

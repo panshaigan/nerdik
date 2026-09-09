@@ -85,7 +85,7 @@ jobs:
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH:-/opt/nerdik}"
-            IMAGE_TAG=${{ steps.tag.outputs.value }} ./scripts/vps-deploy.sh --no-pull
+            IMAGE_TAG=${{ steps.tag.outputs.value }} ./scripts/vps-deploy.sh
 
       - name: Smoke check
         if: steps.config.outputs.skip != 'true' && vars.PROD_APP_URL != ''

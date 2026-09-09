@@ -65,7 +65,8 @@ final class WorkflowReleaseTriggersTest extends TestCase
         $this->assertStringContainsString('workflow_dispatch:', $deploy);
         $this->assertStringContainsString('environment: production', $deploy);
         $this->assertStringContainsString('appleboy/ssh-action', $deploy);
-        $this->assertStringContainsString('./scripts/vps-deploy.sh --no-pull', $deploy);
+        $this->assertStringContainsString('./scripts/vps-deploy.sh', $deploy);
+        $this->assertStringNotContainsString('--no-pull', $deploy);
         $this->assertStringContainsString('group: deploy-production', $deploy);
         $this->assertStringNotContainsString("release:\n    types:", $deploy);
         $this->assertStringNotContainsString('- published', $deploy);

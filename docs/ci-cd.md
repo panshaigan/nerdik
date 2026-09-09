@@ -69,7 +69,7 @@ git push origin v1.0.4
 ```
 
 3. **CI** and **Docker** run on the tag. When Docker finishes successfully, **Release** waits for CI to pass, then creates the GitHub Release (notes + image refs).
-4. **Deploy** starts automatically when **Release** succeeds (`workflow_run`; SSH → `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull`). If the `production` environment has required reviewers, approve there.
+4. **Deploy** starts automatically when **Release** succeeds (`workflow_run`; SSH → `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh`, same pull+deploy path as `make deploy`). If the `production` environment has required reviewers, approve there.
 5. Optional: redeploy a known tag/SHA via Actions → **Deploy** → Run workflow, or on the VPS with `IMAGE_TAG=… make deploy`.
 
 ## Docker images (no VPS required)
@@ -150,10 +150,10 @@ cd /opt/nerdik
 make deploy
 ```
 
-Production deploy from GitHub Actions (explicit SHA, no git pull):
+Production deploy from GitHub Actions (git pull + explicit release SHA):
 
 ```bash
-IMAGE_TAG=<sha> ./scripts/vps-deploy.sh --no-pull
+IMAGE_TAG=<sha> ./scripts/vps-deploy.sh
 ```
 
 Both paths end in [`scripts/deploy.sh`](../scripts/deploy.sh): pull image, `up -d`, `migrate --force`, config/route/view cache, restart worker/scheduler/reverb.
