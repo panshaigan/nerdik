@@ -8,9 +8,11 @@ use App\Mail\BackupFailedMail;
 use App\Notifications\ActivityCancelledNotification;
 use App\Notifications\ActivityParticipantJoinedNotification;
 use App\Notifications\ActivityParticipantLeftNotification;
+use App\Notifications\ActivityPlacesLowNotification;
 use App\Notifications\ActivityRemovedByHostNotification;
 use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
+use App\Notifications\EventPlacesLowNotification;
 use App\Notifications\EventReopenedNotification;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
@@ -31,10 +33,12 @@ enum SentEmailKind: string
     case ActivityParticipantJoined = 'activity_participant_joined';
     case ActivityParticipantLeft = 'activity_participant_left';
     case ActivityRemovedByHost = 'activity_removed_by_host';
+    case ActivityPlacesLow = 'activity_places_low';
     case ActivityCancelled = 'activity_cancelled';
     case ActivityReopened = 'activity_reopened';
     case EventCancelled = 'event_cancelled';
     case EventReopened = 'event_reopened';
+    case EventPlacesLow = 'event_places_low';
     case ScheduledOrganizerUnansweredProposals = 'scheduled_organizer_unanswered_proposals';
     case ScheduledInterestedEnrollmentWindow = 'scheduled_interested_enrollment_window';
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
@@ -72,6 +76,8 @@ enum SentEmailKind: string
             ActivityRemovedByHostNotification::class => self::ActivityRemovedByHost,
             ActivityParticipantJoinedNotification::class => self::ActivityParticipantJoined,
             ActivityParticipantLeftNotification::class => self::ActivityParticipantLeft,
+            ActivityPlacesLowNotification::class => self::ActivityPlacesLow,
+            EventPlacesLowNotification::class => self::EventPlacesLow,
             UserRequestReceivedNotification::class,
             UserRequestResolvedNotification::class => self::UserRequests,
             ScheduledPeriodicDigestNotification::class => self::ScheduledDigest,

@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Notifications\ActivityCancelledNotification;
 use App\Notifications\ActivityParticipantJoinedNotification;
 use App\Notifications\ActivityParticipantLeftNotification;
+use App\Notifications\ActivityPlacesLowNotification;
 use App\Notifications\ActivityRemovedByHostNotification;
 use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
+use App\Notifications\EventPlacesLowNotification;
 use App\Notifications\EventReopenedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Notifications\WaitlistPromotedNotification;
@@ -74,8 +76,10 @@ class NotificationDispatchThrottle
             WaitlistPromotedNotification::class => $this->activityKey('promoted', $notifiableId, (int) $notification->activity->id),
             ActivityCancelledNotification::class => $this->activityKey('act_cancel', $notifiableId, (int) $notification->activity->id),
             ActivityReopenedNotification::class => $this->activityKey('act_reopen', $notifiableId, (int) $notification->activity->id),
+            ActivityPlacesLowNotification::class => $this->activityKey('places_low', $notifiableId, (int) $notification->activity->id),
             EventCancelledNotification::class => "evt_cancel:{$notifiableId}:{$notification->eventId}",
             EventReopenedNotification::class => $this->eventKey('evt_reopen', $notifiableId, $notification->event),
+            EventPlacesLowNotification::class => $this->eventKey('evt_places_low', $notifiableId, $notification->event),
             ActivityRemovedByHostNotification::class => $this->activityKey('removed', $notifiableId, (int) $notification->activity->id),
             ProposalSubmittedNotification::class => "proposal:{$notifiableId}:{$notification->proposal->id}",
             default => null,

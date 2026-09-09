@@ -1,0 +1,136 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Notifications;
+
+use App\Models\Activity;
+use App\Models\Event;
+use App\Models\User;
+use App\Notifications\ActivityPlacesLowNotification;
+use App\Notifications\EventPlacesLowNotification;
+use App\Services\EventShowReadCache;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
+
+class InterestedPlacesThresholdNotifier
+{
+    public function __construct(
+        private EventShowReadCache $eventShowReadCache,
+    ) {}
+
+    public function afterParticipantJoined(Activity $activity, User $excludeUser): void
+    {
+        $activity = $activity->fresh() ?? $activity;
+        $participantCount = (int) $activity->participants()->count();
+        $activityRecipientIds = $this->notifyActivityFollowersIfCrossed(
+            $activity,
+            $participantCount,
+            $excludeUser,
+        );
+
+        $event = $activity->slot?->event;
+        if (! $event instanceof Event) {
+            return;
+        }
+
+        $this->notifyEventFollowersIfCrossed(
+            $event,
+            $excludeUser,
+            $activityRecipientIds,
+        );
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function notifyActivityFollowersIfCrossed(
+        Activity $activity,
+        int $participantCount,
+        User $excludeUser,
+    ): array {
+        $max = $activity->max_participants;
+        if ($max === null || $max <= 0) {
+            return [];
+        }
+
+        if (! $this->crossedRemainingThreshold($participantCount - 1, $participantCount, (int) $max)) {
+            return [];
+        }
+
+        $remaining = max(0, (int) $max - $participantCount);
+        $followers = $activity->interestedUsers()
+            ->whereKeyNot($excludeUser->id)
+            ->get();
+
+        if ($followers->isEmpty()) {
+            return [];
+        }
+
+        Notification::send(
+            $followers,
+            new ActivityPlacesLowNotification($activity, $remaining, (int) $max),
+        );
+
+        return $followers->modelKeys();
+    }
+
+    /**
+     * @param  list<int>  $excludeUserIds
+     */
+    private function notifyEventFollowersIfCrossed(
+        Event $event,
+        User $excludeUser,
+        array $excludeUserIds,
+    ): void {
+        [, $participants, $availablePlaces] = $this->eventShowReadCache->programmeStats((int) $event->id);
+
+        if ($availablePlaces === null || $availablePlaces <= 0) {
+            return;
+        }
+
+        $previousParticipants = max(0, $participants - 1);
+        if (! $this->crossedRemainingThreshold($previousParticipants, $participants, $availablePlaces)) {
+            return;
+        }
+
+        $remaining = max(0, $availablePlaces - $participants);
+        $excludeIds = array_values(array_unique(array_merge(
+            [(int) $excludeUser->id],
+            array_map('intval', $excludeUserIds),
+        )));
+
+        /** @var Collection<int, User> $followers */
+        $followers = $event->interestedUsers()
+            ->whereKeyNot($excludeIds)
+            ->get();
+
+        if ($followers->isEmpty()) {
+            return;
+        }
+
+        Notification::send(
+            $followers,
+            new EventPlacesLowNotification($event, $remaining, $availablePlaces),
+        );
+    }
+
+    private function crossedRemainingThreshold(int $previousCount, int $currentCount, int $max): bool
+    {
+        if ($max <= 0) {
+            return false;
+        }
+
+        $threshold = (float) config('interested_places.remaining_ratio_threshold', 0.25);
+
+        return ! $this->isAtOrBelowThreshold($previousCount, $max, $threshold)
+            && $this->isAtOrBelowThreshold($currentCount, $max, $threshold);
+    }
+
+    private function isAtOrBelowThreshold(int $count, int $max, float $threshold): bool
+    {
+        $remainingRatio = ($max - $count) / $max;
+
+        return $remainingRatio <= $threshold;
+    }
+}

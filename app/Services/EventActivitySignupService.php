@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\ActivityParticipantJoinedNotification;
 use App\Notifications\ActivityParticipantLeftNotification;
 use App\Notifications\WaitlistPromotedNotification;
+use App\Services\Notifications\InterestedPlacesThresholdNotifier;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,8 @@ class EventActivitySignupService
                 (int) $fresh->participants()->count(),
             ));
         }
+
+        app(InterestedPlacesThresholdNotifier::class)->afterParticipantJoined($fresh, $user);
 
         ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
@@ -147,6 +150,11 @@ class EventActivitySignupService
         });
 
         $targetUser->notify(new WaitlistPromotedNotification($activity->fresh()));
+
+        $fresh = $activity->fresh();
+        if ($fresh !== null && $targetUser instanceof User) {
+            app(InterestedPlacesThresholdNotifier::class)->afterParticipantJoined($fresh, $targetUser);
+        }
 
         ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }

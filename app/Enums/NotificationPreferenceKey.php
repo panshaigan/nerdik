@@ -17,10 +17,12 @@ enum NotificationPreferenceKey: string
     case ActivityParticipantJoined = 'activity_participant_joined';
     case ActivityParticipantLeft = 'activity_participant_left';
     case ActivityRemovedByHost = 'activity_removed_by_host';
+    case ActivityPlacesLow = 'activity_places_low';
     case ActivityCancelled = 'activity_cancelled';
     case ActivityReopened = 'activity_reopened';
     case EventCancelled = 'event_cancelled';
     case EventReopened = 'event_reopened';
+    case EventPlacesLow = 'event_places_low';
     case ScheduledOrganizerUnansweredProposals = 'scheduled_organizer_unanswered_proposals';
     case ScheduledInterestedEnrollmentWindow = 'scheduled_interested_enrollment_window';
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
@@ -89,6 +91,7 @@ enum NotificationPreferenceKey: string
                     self::ActivityParticipantJoined,
                     self::ActivityParticipantLeft,
                     self::ActivityRemovedByHost,
+                    self::ActivityPlacesLow,
                 ],
             ],
             [
@@ -98,6 +101,7 @@ enum NotificationPreferenceKey: string
                     self::ActivityReopened,
                     self::EventCancelled,
                     self::EventReopened,
+                    self::EventPlacesLow,
                 ],
             ],
             [

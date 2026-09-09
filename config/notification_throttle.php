@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Notifications\ActivityCancelledNotification;
 use App\Notifications\ActivityParticipantJoinedNotification;
 use App\Notifications\ActivityParticipantLeftNotification;
+use App\Notifications\ActivityPlacesLowNotification;
 use App\Notifications\ActivityRemovedByHostNotification;
 use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
+use App\Notifications\EventPlacesLowNotification;
 use App\Notifications\EventReopenedNotification;
 use App\Notifications\ProposalSubmittedNotification;
 use App\Notifications\WaitlistPromotedNotification;
@@ -30,6 +32,8 @@ return [
         EventReopenedNotification::class => 15 * 60,
         ActivityRemovedByHostNotification::class => 5 * 60,
         ProposalSubmittedNotification::class => 5 * 60,
+        ActivityPlacesLowNotification::class => 24 * 60 * 60,
+        EventPlacesLowNotification::class => 24 * 60 * 60,
     ],
 
 ];

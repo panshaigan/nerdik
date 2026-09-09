@@ -10,6 +10,7 @@ use App\Models\ActivityWaitlistEntry;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
 use App\Notifications\WaitlistPromotedNotification;
+use App\Services\Notifications\InterestedPlacesThresholdNotifier;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -372,6 +373,11 @@ class ActivityLotteryService
 
         if ($notify && $targetUser instanceof User) {
             $targetUser->notify(new WaitlistPromotedNotification($activity->fresh()));
+        }
+
+        $fresh = $activity->fresh();
+        if ($fresh !== null && $targetUser instanceof User) {
+            app(InterestedPlacesThresholdNotifier::class)->afterParticipantJoined($fresh, $targetUser);
         }
     }
 
