@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
 use App\Models\Event;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  */
 class EventShowReadCache
 {
-    private const STATS_VERSION = 'v1';
+    private const STATS_VERSION = 'v2';
 
     private const INTERESTED_COUNT_VERSION = 'v1';
 
@@ -33,29 +34,38 @@ class EventShowReadCache
     /**
      * Cached confirmed programme counts for the shell stats row (invalidated via observers + TTL).
      *
-     * @return array{0: int, 1: int} [confirmedActivitiesCount, confirmedParticipantsCount]
+     * @return array{0: int, 1: int, 2: int|null} [confirmedActivitiesCount, confirmedParticipantsCount, availablePlaces]
+     *                                            availablePlaces is null when any programme activity is uncapped (display as ∞).
      */
     public function programmeStats(int $eventId): array
     {
         $key = $this->statsKey($eventId);
 
-        /** @var array{confirmedActivities: int, confirmedParticipants: int}|null $cached */
+        /** @var array{confirmedActivities: int, confirmedParticipants: int, availablePlaces: int|null}|null $cached */
         $cached = Cache::get($key);
         if (
             is_array($cached)
             && isset($cached['confirmedActivities'], $cached['confirmedParticipants'])
+            && array_key_exists('availablePlaces', $cached)
         ) {
-            return [(int) $cached['confirmedActivities'], (int) $cached['confirmedParticipants']];
+            $availablePlaces = $cached['availablePlaces'];
+
+            return [
+                (int) $cached['confirmedActivities'],
+                (int) $cached['confirmedParticipants'],
+                $availablePlaces === null ? null : (int) $availablePlaces,
+            ];
         }
 
-        [$activities, $participants] = $this->computeProgrammeStats($eventId);
+        [$activities, $participants, $availablePlaces] = $this->computeProgrammeStats($eventId);
 
         Cache::put($key, [
             'confirmedActivities' => $activities,
             'confirmedParticipants' => $participants,
+            'availablePlaces' => $availablePlaces,
         ], now()->addSeconds(self::TTL_SECONDS));
 
-        return [$activities, $participants];
+        return [$activities, $participants, $availablePlaces];
     }
 
     public function forgetProgrammeStats(int $eventId): void
@@ -141,7 +151,7 @@ class EventShowReadCache
     }
 
     /**
-     * @return array{0: int, 1: int}
+     * @return array{0: int, 1: int, 2: int|null}
      */
     private function computeProgrammeStats(int $eventId): array
     {
@@ -156,6 +166,22 @@ class EventShowReadCache
             ->whereIn('activity_id', $activitiesBase->clone()->select('activities.id'))
             ->count();
 
-        return [$confirmedActivitiesCount, $confirmedParticipantsCount];
+        $availablePlaces = $this->computeAvailablePlaces($activitiesBase->clone());
+
+        return [$confirmedActivitiesCount, $confirmedParticipantsCount, $availablePlaces];
+    }
+
+    /**
+     * Sum of max_participants on programme activities; null if any activity is uncapped.
+     *
+     * @param  Builder<Activity>  $activitiesBase
+     */
+    private function computeAvailablePlaces(Builder $activitiesBase): ?int
+    {
+        if ((clone $activitiesBase)->whereNull('max_participants')->exists()) {
+            return null;
+        }
+
+        return (int) (clone $activitiesBase)->sum('max_participants');
     }
 }

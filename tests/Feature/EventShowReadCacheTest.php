@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
@@ -41,12 +42,88 @@ class EventShowReadCacheTest extends TestCase
         $this->assertIsArray($first);
         $this->assertArrayHasKey(0, $first);
 
-        $this->assertTrue(Cache::has('event_show.programme_stats.v1.'.$event->id));
+        $this->assertTrue(Cache::has('event_show.programme_stats.v2.'.$event->id));
 
         $slot = Slot::query()->where('event_id', $event->id)->firstOrFail();
         $slot->update(['name' => 'Renamed slot for cache bust']);
 
-        $this->assertFalse(Cache::has('event_show.programme_stats.v1.'.$event->id));
+        $this->assertFalse(Cache::has('event_show.programme_stats.v2.'.$event->id));
+    }
+
+    public function test_programme_stats_sums_capacity_when_all_activities_are_capped(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $user = User::factory()->create();
+        $participant = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $user->id]);
+
+        $first = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'max_participants' => 4,
+        ]);
+        $second = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'max_participants' => 6,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $first->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $second->id,
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $first->id,
+            'user_id' => $participant->id,
+        ]);
+
+        [$activities, $participants, $availablePlaces] = app(EventShowReadCache::class)
+            ->programmeStats((int) $event->id);
+
+        $this->assertSame(2, $activities);
+        $this->assertSame(1, $participants);
+        $this->assertSame(10, $availablePlaces);
+    }
+
+    public function test_programme_stats_returns_null_available_places_when_any_activity_is_uncapped(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $user->id]);
+
+        $capped = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'max_participants' => 4,
+        ]);
+        $uncapped = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'max_participants' => null,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $capped->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $uncapped->id,
+        ]);
+
+        [$activities, $participants, $availablePlaces] = app(EventShowReadCache::class)
+            ->programmeStats((int) $event->id);
+
+        $this->assertSame(2, $activities);
+        $this->assertSame(0, $participants);
+        $this->assertNull($availablePlaces);
     }
 
     public function test_event_interested_count_cache_invalidates_after_forget(): void

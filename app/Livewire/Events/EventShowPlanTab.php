@@ -14,6 +14,7 @@ use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Services\UserInterestService;
+use App\Support\Ui\ActivityListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
@@ -438,6 +439,7 @@ class EventShowPlanTab extends Component
     public function render(
         EventSlotPresentationService $slotPresentation,
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        ActivityListingImageResolver $activityListingImageResolver,
     ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -467,13 +469,16 @@ class EventShowPlanTab extends Component
             'slots' => fn ($q) => $q->with([
                 'place.parent',
                 'activity' => fn ($aq) => $aq->with([
+                    'media',
+                    'tagMedia',
+                    'galleryMedia',
                     'tags' => function ($query) use ($slotSurfaceTagKeys) {
-                        $query->with(['translations', 'tagCategory']);
+                        $query->with(['translations', 'tagCategory', 'media']);
                         if (is_array($slotSurfaceTagKeys) && $slotSurfaceTagKeys !== []) {
                             $query->whereHas('tagCategory', fn ($qc) => $qc->whereIn('key', $slotSurfaceTagKeys));
                         }
                     },
-                    'activityType',
+                    'activityType.media',
                     'canceller',
                 ])->withCount([
                     'participants',
@@ -495,13 +500,16 @@ class EventShowPlanTab extends Component
 
         $slotCardBadgeItemsByActivityId = [];
         $slotTypeBadgeItemsBySlotId = [];
+        $activityCoverPicturesById = [];
         foreach ($event->slots as $slot) {
             $activity = $slot->activity;
             if ($activity !== null) {
-                $slotCardBadgeItemsByActivityId[(int) $activity->id] = $badgeGroupBuilder->build(
+                $activityId = (int) $activity->id;
+                $slotCardBadgeItemsByActivityId[$activityId] = $badgeGroupBuilder->build(
                     $activity,
                     ActivityBadgeGroupConfig::eventSlotCard(),
                 );
+                $activityCoverPicturesById[$activityId] = $activityListingImageResolver->resolve($activity);
             } else {
                 $slotActivityTypes = collect($slot->activityTypes)
                     ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)
@@ -529,6 +537,7 @@ class EventShowPlanTab extends Component
             'slotHourGroups' => $slotHourGroups,
             'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
             'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
+            'activityCoverPicturesById' => $activityCoverPicturesById,
         ]);
     }
 

@@ -573,7 +573,7 @@ return [
         'show_no_description' => 'No description yet.',
         'show_plan' => 'Plan',
         'show_proposals' => 'Proposals',
-        'confirmed_activities' => 'Confirmed activities',
+        'confirmed_activities' => 'Activities',
         'confirmed_participants' => 'Participants',
         'interested_people_count' => 'Interested in this event',
         'event_boundary_starts' => 'Event starts',

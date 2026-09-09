@@ -60,14 +60,14 @@
             <x-stat
                 title="{{ __('ui.events.confirmed_activities') }}"
                 value="{{ $confirmedActivitiesCount }}"
-                icon="o-envelope"
+                icon="o-puzzle-piece"
                 class="ui-stat-embed ui-activity-show-stat"
             />
         </div>
         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_participants') }}"
-                value="{{ $confirmedParticipantsCount }}"
+                value="{{ $confirmedParticipantsCount }}/{{ $availablePlacesLabel }}"
                 icon="o-users"
                 class="ui-stat-embed ui-activity-show-stat"
             />

@@ -134,7 +134,7 @@
                                 @class([
                                     'ui-tile-active' => $activity && !$activity?->isCancelled(),
                                     'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
-                                    'status-dots group relative w-full rounded-xl border border-transparent',
+                                    'status-dots group relative w-full overflow-hidden rounded-xl border border-transparent',
                                     'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer select-none' => $activity || (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false)),
@@ -144,7 +144,25 @@
                                     :class="selectedProposalSlotIds.includes({{ (int) $slot->id }}) ? 'ui-tile-marked' : ''"
                                 @endif
                             >
-                                <div class="status-dots-toolbar flex items-center">
+                                @if ($activity)
+                                    @php
+                                        $activityCoverPicture = $activityCoverPicturesById[(int) $activity->id] ?? null;
+                                    @endphp
+                                    @if ($activityCoverPicture?->hasDisplayableImage())
+                                        <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl" aria-hidden="true">
+                                            <div class="absolute inset-0 scale-105">
+                                                <x-listing-card-picture
+                                                    :picture="$activityCoverPicture"
+                                                    class="h-full w-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                            <div class="absolute inset-0 bg-base-100/85"></div>
+                                            <div class="absolute inset-0 bg-gradient-to-t from-base-100/80 via-base-100/40 to-base-100/25"></div>
+                                        </div>
+                                    @endif
+                                @endif
+                                <div class="status-dots-toolbar relative z-[3] flex items-center">
                                     <div class="flex-1"></div>
                                     @auth
                                         @php
@@ -282,8 +300,9 @@
                                                     </span>
                                                 @endif
                                                 @if ($activity)
-                                                    <span class="badge badge-primary badge-sm">
-                                                        {{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}
+                                                    <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/75" title="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}" aria-label="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}">
+                                                        <x-icon name="o-users" class="h-4 w-4 shrink-0 text-base-content/50" />
+                                                        <span>{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}</span>
                                                     </span>
                                                 @elseif ($participantsCount !== null)
                                                     <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">

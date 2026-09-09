@@ -573,7 +573,7 @@ return [
         'show_no_description' => 'Brak opisu.',
         'show_plan' => 'Plan',
         'show_proposals' => 'Propozycje',
-        'confirmed_activities' => 'Potwierdzone aktywności',
+        'confirmed_activities' => 'Aktywności',
         'confirmed_participants' => 'Uczestnicy',
         'interested_people_count' => 'Zainteresowani tym wydarzeniem',
         'event_boundary_starts' => 'Start wydarzenia',

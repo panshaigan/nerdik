@@ -385,7 +385,8 @@ class ShowEvent extends Component
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
 
         $eventActivityIds = $this->slotAttachmentActivityIdsForEvent($event->id);
-        [$confirmedActivitiesCount, $confirmedParticipantsCount] = $eventShowReadCache->programmeStats($event->id);
+        [$confirmedActivitiesCount, $confirmedParticipantsCount, $availablePlaces] = $eventShowReadCache->programmeStats($event->id);
+        $availablePlacesLabel = $availablePlaces === null ? '∞' : (string) $availablePlaces;
 
         $hasPendingProposals = $canManageEvent && $eventShowReadCache->hasPendingProposals((int) $event->id);
 
@@ -434,6 +435,7 @@ class ShowEvent extends Component
             'interestedActivityIds' => $interestedActivityIds,
             'confirmedActivitiesCount' => $confirmedActivitiesCount,
             'confirmedParticipantsCount' => $confirmedParticipantsCount,
+            'availablePlacesLabel' => $availablePlacesLabel,
             'interestedPeopleCount' => $interestedPeopleCount,
             ...$activityPreviewData,
             'slotNameSuggestions' => $slotNameSuggestions,
