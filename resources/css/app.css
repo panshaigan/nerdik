@@ -895,8 +895,13 @@
     .ui-activity-badge-tags .badge {
         font-size: 0.7rem;
         font-weight: 600;
+        line-height: 1;
         text-transform: none;
         letter-spacing: 0.01em;
+    }
+
+    .ui-activity-badge-tags .badge > svg {
+        flex-shrink: 0;
     }
 
     .ui-activity-badge-tags .badge.badge-outline {
@@ -977,6 +982,7 @@
 
         .status-dots-toolbar {
             position: relative;
+            z-index: 3;
             min-height: 2rem;
             padding: 0.5rem 1rem 0.35rem;
 
@@ -994,6 +1000,16 @@
                     4.2em 0 var(--brand-neutral-dark);
                 opacity: 0.45;
             }
+        }
+
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip) {
+            --tt-off: calc(100% + 0.35rem);
+            --tt-tail: calc(100% + 1px + 0.2rem);
+        }
+
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip)::before,
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip)::after {
+            z-index: 50;
         }
 
         /* Active state */
@@ -1704,13 +1720,16 @@ dialog.modal:has(.ui-invite-user-request-modal) {
 }
 
 /**
- * Dashboard feed groups: DaisyUI .collapse sets overflow:hidden (utilities layer),
- * which clips listing-card hover glow. Unlayered rules must beat layered DaisyUI.
+ * Timeline / dashboard collapses: DaisyUI .collapse sets overflow:hidden (utilities layer),
+ * which clips listing-card hover glow and slot-tile icon tooltips. Unlayered rules must
+ * beat layered DaisyUI when the section is open.
  */
+.ui-timeline-collapse:has(> input[type='checkbox']:checked),
 .ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) {
     overflow: visible !important;
 }
 
+.ui-timeline-collapse:has(> input[type='checkbox']:checked) > .collapse-content,
 .ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .collapse-content,
 .ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .ui-dashboard-feed-collapse-content {
     overflow: visible !important;

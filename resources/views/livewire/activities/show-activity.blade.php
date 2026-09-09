@@ -19,14 +19,13 @@
         :picture="$coverPicture"
         data-ui="activity-show-page-background"
     />
-
     <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$activity->name" :user="$activity->creator">
         @if ($showHeroHost)
             <x-slot:subtitle>
-                {{ $activityTypeLabel }}
+                <span class="text-glow-base-100">{{ $activityTypeLabel }}</span>
                 @if ($event)
-                    @
+                    <span class="text-glow-base-100">@</span>
                     <a
                         href="{{ route('events.show', $event) }}"
                         wire:navigate
@@ -35,7 +34,7 @@
                     >{{ $event->name }}</a>
                 @endif
                 @if ($activity->duration_in_minutes)
-                    <x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}
+                    <span class="text-glow-base-100"><x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}</span>
                 @endif
             </x-slot:subtitle>
         @endif

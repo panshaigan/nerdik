@@ -43,7 +43,7 @@
                 :size="$userBadgeSize"
                 data-ui="activity-show-host"
                 :title="$resolvedUserBadgeTitle"
-                name-class="font-display text-sm font-normal text-base max-sm:whitespace-normal sm:truncate"
+                name-class="font-display text-sm font-normal text-base text-glow-base-100 max-sm:whitespace-normal sm:truncate"
                 class="w-full sm:w-auto sm:shrink-0 [&_.avatar>div]:border-base/60 [&_.avatar>div]:bg-base-100/80 [&_.avatar>div]:box-glow-base"
             />
         @endif

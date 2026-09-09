@@ -12,13 +12,14 @@
                 :data-tip="$hasTooltip ? $item->title : null"
                 @class([
                     $item->semantic->badgeClasses($item->outline),
+                    'leading-none',
                     'whitespace-normal text-left' => $item->normalWrap,
                     'gap-1' => filled($item->icon),
                     'tooltip tooltip-primary ui-activity-badge-tooltip' => $hasTooltip,
                 ])
                 :data-ui="$item->dataUi"
             >
-                {{ $item->label }}
+                <span class="leading-none">{{ $item->label }}</span>
             </x-badge>
         @endforeach
     </div>
