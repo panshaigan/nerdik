@@ -214,6 +214,69 @@ class InterestedPlacesThresholdNotifierTest extends TestCase
         Notification::assertNotSentTo($joiner, ActivityPlacesLowNotification::class);
     }
 
+    public function test_activity_participant_follower_is_not_notified(): void
+    {
+        Notification::fake();
+
+        $participantFollower = User::factory()->create();
+        $nonParticipantFollower = User::factory()->create();
+        $joiner = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'max_participants' => 10,
+        ]);
+
+        $participantFollower->interestedActivities()->attach($activity->id);
+        $nonParticipantFollower->interestedActivities()->attach($activity->id);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participantFollower->id,
+        ]);
+        $this->seedParticipants($activity, 6);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activity, $joiner);
+
+        Notification::assertNotSentTo($participantFollower, ActivityPlacesLowNotification::class);
+        Notification::assertSentTo($nonParticipantFollower, ActivityPlacesLowNotification::class);
+    }
+
+    public function test_event_follower_signed_up_to_any_programme_activity_is_not_notified(): void
+    {
+        Notification::fake();
+
+        $owner = User::factory()->create();
+        $signedUpFollower = User::factory()->create();
+        $freeFollower = User::factory()->create();
+        $joiner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        $activityA = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'max_participants' => 10,
+        ]);
+        $activityB = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'max_participants' => 10,
+        ]);
+        Slot::factory()->create(['event_id' => $event->id, 'activity_id' => $activityA->id]);
+        Slot::factory()->create(['event_id' => $event->id, 'activity_id' => $activityB->id]);
+
+        $signedUpFollower->interestedEvents()->attach($event->id);
+        $freeFollower->interestedEvents()->attach($event->id);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activityA->id,
+            'user_id' => $signedUpFollower->id,
+        ]);
+        $this->seedParticipants($activityA, 9);
+        $this->seedParticipants($activityB, 4);
+
+        app(EventActivitySignupService::class)->userJoinActivity($activityB, $joiner);
+
+        Notification::assertNotSentTo($signedUpFollower, EventPlacesLowNotification::class);
+        Notification::assertSentTo($freeFollower, EventPlacesLowNotification::class);
+    }
+
     public function test_activity_places_low_respects_opt_out(): void
     {
         $follower = User::factory()->create();

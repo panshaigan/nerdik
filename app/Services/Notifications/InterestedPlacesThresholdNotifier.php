@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notifications;
 
 use App\Models\Activity;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\User;
 use App\Notifications\ActivityPlacesLowNotification;
@@ -22,7 +23,7 @@ class InterestedPlacesThresholdNotifier
     public function afterParticipantJoined(Activity $activity, User $excludeUser): void
     {
         $activity = $activity->fresh() ?? $activity;
-        $participantCount = (int) $activity->participants()->count();
+        $participantCount = (int) $activity->participants()->whereNull('deleted_at')->count();
         $activityRecipientIds = $this->notifyActivityFollowersIfCrossed(
             $activity,
             $participantCount,
@@ -59,8 +60,14 @@ class InterestedPlacesThresholdNotifier
         }
 
         $remaining = max(0, (int) $max - $participantCount);
+        $participantIds = $this->activityParticipantUserIds((int) $activity->id);
+        $excludeIds = array_values(array_unique(array_merge(
+            [(int) $excludeUser->id],
+            $participantIds,
+        )));
+
         $followers = $activity->interestedUsers()
-            ->whereKeyNot($excludeUser->id)
+            ->whereKeyNot($excludeIds)
             ->get();
 
         if ($followers->isEmpty()) {
@@ -98,6 +105,7 @@ class InterestedPlacesThresholdNotifier
         $excludeIds = array_values(array_unique(array_merge(
             [(int) $excludeUser->id],
             array_map('intval', $excludeUserIds),
+            $this->eventProgrammeParticipantUserIds((int) $event->id),
         )));
 
         /** @var Collection<int, User> $followers */
@@ -113,6 +121,39 @@ class InterestedPlacesThresholdNotifier
             $followers,
             new EventPlacesLowNotification($event, $remaining, $availablePlaces),
         );
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function activityParticipantUserIds(int $activityId): array
+    {
+        return ActivityUser::query()
+            ->where('activity_id', $activityId)
+            ->whereNull('deleted_at')
+            ->pluck('user_id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function eventProgrammeParticipantUserIds(int $eventId): array
+    {
+        $programmeActivityIds = Activity::query()
+            ->whereHas('slot', fn ($q) => $q->where('event_id', $eventId))
+            ->whereNull('cancelled_at')
+            ->select('activities.id');
+
+        return ActivityUser::query()
+            ->whereNull('activity_user.deleted_at')
+            ->whereIn('activity_id', $programmeActivityIds)
+            ->pluck('user_id')
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function crossedRemainingThreshold(int $previousCount, int $currentCount, int $max): bool
