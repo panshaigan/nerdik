@@ -31,3 +31,4 @@ plans/revision_and_planning.txt
 public/images/tag-game/*
 public/images/testing/*
 storage/media-library/temp
+.backup-gpg-passphrase
