@@ -51,7 +51,13 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        }
+        },
+        "classmap": [
+            "tests/Overrides/"
+        ],
+        "exclude-from-classmap": [
+            "vendor/phpunit/phpunit/src/Framework/Constraint/String/StringContains.php"
+        ]
     },
     "scripts": {
         "setup": [
