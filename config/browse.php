@@ -59,6 +59,6 @@ return [
     | Number of event/activity cards shown per page on the unified search page.
     |
     */
-    'listings_per_page' => 20,
+    'listings_per_page' => 21,
 
 ];

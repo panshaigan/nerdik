@@ -76,7 +76,7 @@
                     data-ui="browse-events-listings-loading"
                 />
                 <div
-                    class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6"
+                    class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6"
                     data-ui="browse-events-listings"
                 >
                 @forelse ($browseListings as $row)
