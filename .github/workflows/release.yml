@@ -101,7 +101,7 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.gate.outputs.skip != 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.gate.outputs.tag }}
           target_commitish: ${{ steps.gate.outputs.sha }}
