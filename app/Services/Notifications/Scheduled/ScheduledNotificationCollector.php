@@ -42,6 +42,7 @@ class ScheduledNotificationCollector
         }
 
         if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledHostMarkAbsences)) {
+            $items = $items->concat($this->collectHostUpcomingMarkAbsencesReminders($user, $referenceNow));
             $items = $items->concat($this->collectHostMarkAbsencesReminders($user, $referenceNow));
         }
 
@@ -103,6 +104,8 @@ class ScheduledNotificationCollector
             $this->upcomingFeedQueryService->buildUnifiedUpcomingRows((int) $user->id)
         );
 
+        $timezone = $this->timezoneForUser($user);
+
         $dueRows = $rows
             ->map(function (array $row): array {
                 $sortAt = CarbonImmutable::parse((string) $row['sort_at'], 'UTC');
@@ -113,7 +116,7 @@ class ScheduledNotificationCollector
                     'sort_at' => $sortAt,
                 ];
             })
-            ->filter(fn (array $row): bool => $this->isWithinLookahead($referenceNow, $row['sort_at']))
+            ->filter(fn (array $row): bool => $this->isOnLocalTomorrow($referenceNow, $row['sort_at'], $user))
             ->values();
 
         if ($dueRows->isEmpty()) {
@@ -125,7 +128,6 @@ class ScheduledNotificationCollector
 
         $events = Event::query()->whereKey($eventIds)->get()->keyBy('id');
         $activities = Activity::query()->whereKey($activityIds)->get()->keyBy('id');
-        $timezone = $this->timezoneForUser($user);
 
         $lines = $dueRows->map(function (array $row) use ($events, $activities, $timezone): string {
             $when = $row['sort_at']->setTimezone($timezone)->format('Y-m-d H:i');
@@ -149,12 +151,14 @@ class ScheduledNotificationCollector
             ]);
         })->all();
 
+        $tomorrowStart = $referenceNow->setTimezone($timezone)->addDay()->startOfDay()->utc();
+
         return collect([[
             'category' => 'dashboard_feed',
             'title' => __('ui.notifications.scheduled.dashboard_feed_title', ['count' => count($lines)]),
             'lines' => $lines,
             'url' => route('dashboard'),
-            'dedupe_key' => $this->dedupeKey('dashboard_feed', (int) $user->id, $referenceNow->startOfHour()),
+            'dedupe_key' => $this->dedupeKey('dashboard_feed', (int) $user->id, $tomorrowStart),
         ]]);
     }
 
@@ -233,6 +237,40 @@ class ScheduledNotificationCollector
     }
 
     /**
+     * Day-before heads-up: after tomorrow's hosted activity, the host will be asked to mark absences.
+     *
+     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
+     */
+    private function collectHostUpcomingMarkAbsencesReminders(User $user, CarbonImmutable $referenceNow): Collection
+    {
+        return Activity::query()
+            ->where('created_by', $user->id)
+            ->whereNull('cancelled_at')
+            ->whereHas('participants', fn ($query) => $query->where('is_absent', false))
+            ->with('slot')
+            ->get()
+            ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
+                $activityStart = $this->activityStartedAt($activity);
+                if ($activityStart === null || ! $this->isOnLocalTomorrow($referenceNow, $activityStart, $user)) {
+                    return null;
+                }
+
+                return [
+                    'category' => 'host_upcoming_mark_absences',
+                    'title' => __('ui.notifications.scheduled.host_upcoming_mark_absences_title', ['activity' => (string) $activity->name]),
+                    'lines' => [
+                        __('ui.notifications.scheduled.host_upcoming_mark_absences_line', [
+                            'when' => $activityStart->setTimezone($this->timezoneForUser($user))->format('Y-m-d H:i'),
+                        ]),
+                    ],
+                    'url' => route('activities.show', ['activity' => $activity], false),
+                    'dedupe_key' => $this->dedupeKey('host_upcoming_mark_absences', (int) $activity->id, $activityStart),
+                ];
+            })
+            ->filter();
+    }
+
+    /**
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
     private function collectHostMarkAbsencesReminders(User $user, CarbonImmutable $referenceNow): Collection
@@ -270,6 +308,17 @@ class ScheduledNotificationCollector
             ->filter();
     }
 
+    private function activityStartedAt(Activity $activity): ?CarbonImmutable
+    {
+        $start = $activity->slot?->starts_at ?? $activity->starts_at;
+
+        if ($start === null) {
+            return null;
+        }
+
+        return CarbonImmutable::instance($start);
+    }
+
     private function activityEndedAt(Activity $activity): ?CarbonImmutable
     {
         $end = $activity->slot?->ends_at
@@ -304,8 +353,8 @@ class ScheduledNotificationCollector
     }
 
     /**
-     * Cancellation-deadline digests fire on the local calendar day before the cutoff,
-     * so participants typically get a full day to opt out after the morning send.
+     * Digests that target a calendar day (dashboard feed, cancellation deadlines,
+     * host upcoming absences) fire on the local day before the target timestamp.
      */
     private function isOnLocalTomorrow(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user): bool
     {

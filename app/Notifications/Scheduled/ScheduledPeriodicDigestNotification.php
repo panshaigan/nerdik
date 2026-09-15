@@ -85,7 +85,7 @@ class ScheduledPeriodicDigestNotification extends Notification implements Provid
         return match ($category) {
             'interested_enrollment_window' => __('ui.notifications.view_event'),
             'dashboard_feed' => __('ui.notifications.view_dashboard'),
-            'participant_cancellation_deadline', 'host_low_participation', 'host_mark_absences' => __('ui.notifications.view_activity'),
+            'participant_cancellation_deadline', 'host_low_participation', 'host_upcoming_mark_absences', 'host_mark_absences' => __('ui.notifications.view_activity'),
             default => __('ui.notifications.view_activity'),
         };
     }

@@ -72,6 +72,7 @@ enum NotificationPreferenceKey: string
             'dashboard_feed' => self::ScheduledDashboardFeed,
             'participant_cancellation_deadline' => self::ScheduledParticipantCancellationDeadline,
             'host_low_participation' => self::ScheduledHostLowParticipation,
+            'host_upcoming_mark_absences' => self::ScheduledHostMarkAbsences,
             'host_mark_absences' => self::ScheduledHostMarkAbsences,
             default => null,
         };
