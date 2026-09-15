@@ -80,7 +80,7 @@ Nothing in this section is finished until you complete it. Repo-only work does n
 - Health endpoint `/up` ([`bootstrap/app.php`](../bootstrap/app.php))
 - Security headers middleware, rate limits, strong password defaults
 - Telescope registered only in `local`
-- Filament admin protected (`AdminOnly`, `is_admin`)
+- Filament admin protected (`AuthenticateAdminPanel`, `is_admin`, configurable `FILAMENT_ADMIN_PATH`)
 - Large automated test suite
 
 ### Manual before first prod deploy

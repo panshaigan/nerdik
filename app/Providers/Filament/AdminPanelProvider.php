@@ -3,9 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Http\Controllers\Admin\SentEmailPreviewController;
-use App\Http\Middleware\AdminOnly;
+use App\Http\Middleware\AuthenticateAdminPanel;
 use App\Support\Filament\ConfigureFilamentDisplay;
-use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -40,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path((string) config('filament.admin_path'))
             ->favicon(asset('favicon.svg'))
             ->brandLogo(fn () => view('filament.admin.logo'))
             ->brandLogoHeight('2rem')
@@ -68,10 +67,9 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                AdminOnly::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                AuthenticateAdminPanel::class,
             ])
             ->authenticatedRoutes(function (): void {
                 Route::get('/sent-emails/{sentEmail}/preview', SentEmailPreviewController::class)

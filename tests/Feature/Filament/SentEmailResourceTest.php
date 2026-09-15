@@ -73,7 +73,7 @@ final class SentEmailResourceTest extends TestCase
 
         $this->actingAs($user)
             ->get(SentEmailResource::getUrl('index'))
-            ->assertForbidden();
+            ->assertNotFound();
     }
 
     public function test_create_and_edit_pages_are_not_registered(): void
