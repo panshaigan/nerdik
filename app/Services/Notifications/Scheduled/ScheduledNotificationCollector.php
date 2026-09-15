@@ -41,6 +41,10 @@ class ScheduledNotificationCollector
             $items = $items->concat($this->collectHostLowParticipationWarnings($user, $referenceNow));
         }
 
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledHostMarkAbsences)) {
+            $items = $items->concat($this->collectHostMarkAbsencesReminders($user, $referenceNow));
+        }
+
         return $items->values()->all();
     }
 
@@ -228,6 +232,58 @@ class ScheduledNotificationCollector
             ->filter();
     }
 
+    /**
+     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
+     */
+    private function collectHostMarkAbsencesReminders(User $user, CarbonImmutable $referenceNow): Collection
+    {
+        return Activity::query()
+            ->where('created_by', $user->id)
+            ->whereNull('cancelled_at')
+            ->whereHas('participants', fn ($query) => $query->where('is_absent', false))
+            ->with('slot')
+            ->withCount(['participants as unmarked_participants_count' => fn ($query) => $query->where('is_absent', false)])
+            ->get()
+            ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
+                $activityEnd = $this->activityEndedAt($activity);
+                if ($activityEnd === null || ! $this->isOnLocalYesterday($referenceNow, $activityEnd, $user)) {
+                    return null;
+                }
+
+                $unmarkedCount = (int) ($activity->unmarked_participants_count ?? 0);
+                if ($unmarkedCount < 1) {
+                    return null;
+                }
+
+                return [
+                    'category' => 'host_mark_absences',
+                    'title' => __('ui.notifications.scheduled.host_mark_absences_title', ['activity' => (string) $activity->name]),
+                    'lines' => [
+                        __('ui.notifications.scheduled.host_mark_absences_line', [
+                            'count' => $unmarkedCount,
+                        ]),
+                    ],
+                    'url' => route('activities.show', ['activity' => $activity], false),
+                    'dedupe_key' => $this->dedupeKey('host_mark_absences', (int) $activity->id, $activityEnd),
+                ];
+            })
+            ->filter();
+    }
+
+    private function activityEndedAt(Activity $activity): ?CarbonImmutable
+    {
+        $end = $activity->slot?->ends_at
+            ?? $activity->ends_at
+            ?? $activity->slot?->starts_at
+            ?? $activity->starts_at;
+
+        if ($end === null) {
+            return null;
+        }
+
+        return CarbonImmutable::instance($end);
+    }
+
     private function cancellationDeadlineAt(Activity $activity): ?CarbonImmutable
     {
         $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
@@ -261,6 +317,17 @@ class ScheduledNotificationCollector
         $localTomorrow = $referenceNow->setTimezone($timezone)->addDay()->toDateString();
 
         return $target->setTimezone($timezone)->toDateString() === $localTomorrow;
+    }
+
+    /**
+     * Host absence reminders fire on the local calendar day after the activity ended.
+     */
+    private function isOnLocalYesterday(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user): bool
+    {
+        $timezone = $this->timezoneForUser($user);
+        $localYesterday = $referenceNow->setTimezone($timezone)->subDay()->toDateString();
+
+        return $target->setTimezone($timezone)->toDateString() === $localYesterday;
     }
 
     private function timezoneForUser(User $user): DateTimeZone

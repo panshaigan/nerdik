@@ -349,6 +349,7 @@ return [
                 'scheduled_dashboard_feed' => 'Dashboard items starting within the next 24 hours',
                 'scheduled_participant_cancellation_deadline' => 'As participant — cancellation cutoff tomorrow',
                 'scheduled_host_low_participation' => 'As host — activity below minimum with cancellation cutoff tomorrow',
+                'scheduled_host_mark_absences' => 'As host — mark absences the day after an activity',
                 'user_requests' => 'Requests and invitations from other users (organization, activity, organizer access)',
             ],
         ],
@@ -788,6 +789,8 @@ return [
             'participant_deadline_line' => 'Please confirm participation. Cancellation deadline: :when.',
             'host_low_participation_title' => 'Activity below minimum participants: :activity',
             'host_low_participation_line' => 'Current participants: :current / :minimum. Deadline: :when.',
+            'host_mark_absences_title' => 'Mark absences: :activity',
+            'host_mark_absences_line' => 'Please mark who did not attend. :count participant(s) still unmarked.',
         ],
     ],
     'status' => [

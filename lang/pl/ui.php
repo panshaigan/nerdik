@@ -349,6 +349,7 @@ return [
                 'scheduled_dashboard_feed' => 'Pozycje z pulpitu rozpoczynające się w ciągu najbliższych 24 godzin',
                 'scheduled_participant_cancellation_deadline' => 'Jako uczestnik — termin anulowania jutro',
                 'scheduled_host_low_participation' => 'Jako gospodarz — za mało uczestników przy terminie anulowania jutro',
+                'scheduled_host_mark_absences' => 'Jako gospodarz — oznacz nieobecności dzień po aktywności',
                 'user_requests' => 'Prośby i zaproszenia od innych użytkowników (organizacja, aktywność, dostęp organizatora)',
             ],
         ],
@@ -788,6 +789,8 @@ return [
             'participant_deadline_line' => 'Potwierdź udział. Termin rezygnacji: :when.',
             'host_low_participation_title' => 'Za mało uczestników: :activity',
             'host_low_participation_line' => 'Aktualna liczba uczestników: :current / :minimum. Termin: :when.',
+            'host_mark_absences_title' => 'Oznacz nieobecności: :activity',
+            'host_mark_absences_line' => 'Oznacz osoby, które nie przyszły. :count uczestnik(ów) nadal nieoznaczonych.',
         ],
     ],
     'status' => [

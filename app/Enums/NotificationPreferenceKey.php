@@ -28,6 +28,7 @@ enum NotificationPreferenceKey: string
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
     case ScheduledParticipantCancellationDeadline = 'scheduled_participant_cancellation_deadline';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
+    case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
     case UserRequests = 'user_requests';
 
     /**
@@ -71,6 +72,7 @@ enum NotificationPreferenceKey: string
             'dashboard_feed' => self::ScheduledDashboardFeed,
             'participant_cancellation_deadline' => self::ScheduledParticipantCancellationDeadline,
             'host_low_participation' => self::ScheduledHostLowParticipation,
+            'host_mark_absences' => self::ScheduledHostMarkAbsences,
             default => null,
         };
     }
@@ -118,6 +120,7 @@ enum NotificationPreferenceKey: string
                     self::ScheduledDashboardFeed,
                     self::ScheduledParticipantCancellationDeadline,
                     self::ScheduledHostLowParticipation,
+                    self::ScheduledHostMarkAbsences,
                 ],
             ],
         ];
