@@ -516,6 +516,8 @@ return [
         'delete_forbidden_requires_cancel' => 'You cannot delete this activity while it is scheduled on an event or has participants or people on the waitlist. Cancel the activity instead.',
         'signup_blocked_cancelled' => 'This activity has been cancelled.',
         'signup_blocked_not_joinable_mode' => 'Signups are disabled for this activity mode.',
+        'signup_blocked_unverified_email' => 'Verify your email address before joining activities.',
+        'signup_blocked_unverified_email_participant' => 'This user must verify their email address before they can join.',
         'participation_rate_limited' => 'Too many signup changes for this activity. Please wait a moment and try again.',
         'proposal_event' => 'Event',
         'proposal_event_none' => '— No proposal —',

@@ -103,13 +103,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('activity-proposals/{proposal}/reject', [ActivityProposalController::class, 'reject'])->name('activity-proposals.reject');
 
     Route::post('activities/{activity}/join', [ParticipationController::class, 'join'])
-        ->middleware('throttle:participation')
+        ->middleware(['verified', 'throttle:participation'])
         ->name('activities.join');
     Route::post('activities/{activity}/leave', [ParticipationController::class, 'leave'])
         ->middleware('throttle:participation')
         ->name('activities.leave');
     Route::post('activities/{activity}/join-waitlist', [ParticipationController::class, 'joinWaitlist'])
-        ->middleware('throttle:participation')
+        ->middleware(['verified', 'throttle:participation'])
         ->name('activities.join-waitlist');
     Route::post('activities/{activity}/leave-waitlist', [ParticipationController::class, 'leaveWaitlist'])
         ->middleware('throttle:participation')

@@ -347,6 +347,16 @@ class EventActivitySignupService
     {
         $activity->loadMissing('slot.event.enrollmentWindows');
 
+        if (! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                '_' => [
+                    $hostApprovingParticipant
+                        ? __('ui.activities.signup_blocked_unverified_email_participant')
+                        : __('ui.activities.signup_blocked_unverified_email'),
+                ],
+            ]);
+        }
+
         if ($activity->isCancelled()) {
             throw ValidationException::withMessages([
                 '_' => [__('ui.activities.signup_blocked_cancelled')],

@@ -516,6 +516,8 @@ return [
         'delete_forbidden_requires_cancel' => 'Nie możesz usunąć tej aktywności, dopóki jest zaplanowana na wydarzeniu lub ma uczestników albo osoby na liście oczekujących. Zamiast tego anuluj aktywność.',
         'signup_blocked_cancelled' => 'Ta aktywność została anulowana.',
         'signup_blocked_not_joinable_mode' => 'Zapisy są niedostępne dla tego trybu aktywności.',
+        'signup_blocked_unverified_email' => 'Zweryfikuj adres e-mail, zanim dołączysz do aktywności.',
+        'signup_blocked_unverified_email_participant' => 'Ten użytkownik musi zweryfikować adres e-mail, zanim będzie mógł dołączyć.',
         'participation_rate_limited' => 'Zbyt wiele zmian zapisu na tę aktywność. Odczekaj chwilę i spróbuj ponownie.',
         'proposal_event' => 'Wydarzenie',
         'proposal_event_none' => '— Bez propozycji —',

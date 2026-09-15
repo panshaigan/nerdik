@@ -67,6 +67,27 @@ class ActivityParticipationViewServiceTest extends TestCase
     }
 
     #[Test]
+    public function unverified_user_cannot_join_and_gets_signup_blocked_message(): void
+    {
+        $host = User::factory()->create();
+        $user = User::factory()->unverified()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity, $user);
+
+        $this->assertFalse($vm->canJoin);
+        $this->assertSame(
+            __('ui.activities.signup_blocked_unverified_email'),
+            $vm->signupBlockedMessage
+        );
+    }
+
+    #[Test]
     public function activity_host_cannot_join_own_activity(): void
     {
         $host = User::factory()->create();

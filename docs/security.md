@@ -26,6 +26,7 @@ Security fixes are applied to the active `main` branch and released through norm
 - Optional OAuth via Google and Facebook (credentials in environment only).
 - Optional Google reCAPTCHA v2 on registration and password reset when `RECAPTCHA_ENABLED=true` (recommended in production).
 - Email verification and signed verification links with rate limiting.
+- Joining an activity or waitlist requires a verified email (`verified` middleware on join routes; `EventActivitySignupService::assertCanSignup` for Livewire, invites, host approval, and lottery).
 - Login and password-reset flows are rate limited per IP.
 
 ### Authorization

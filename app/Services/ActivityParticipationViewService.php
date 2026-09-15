@@ -64,7 +64,6 @@ class ActivityParticipationViewService
             && $user !== null
             && ! $isParticipant
             && ! $onWaitlist
-            && $activity->slot?->event_id
         ) {
             try {
                 $this->signupService->assertCanSignup($activity, $user);
