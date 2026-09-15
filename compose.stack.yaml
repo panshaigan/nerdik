@@ -55,6 +55,8 @@ services:
       - artisan
       - schedule:work
       - --no-interaction
+    volumes:
+      - storage:/var/www/html/storage
     networks:
       - nerdik
     depends_on:
