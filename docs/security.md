@@ -32,7 +32,7 @@ Security fixes are applied to the active `main` branch and released through norm
 
 - Resource access is ownership-based (`created_by`) with admin override (`is_admin`).
 - Filament admin panel requires an authenticated admin (`AuthenticateAdminPanel`); guests and non-admins get 404. Path is configurable via `FILAMENT_ADMIN_PATH` (use a non-obvious slug in staging/production).
-- Laravel Pulse dashboard is gated to admins (`viewPulse` gate).
+- Laravel Pulse dashboard is gated to admins (`viewPulse` / `AuthorizePulseDashboard`); guests and non-admins get 404.
 - Laravel Telescope is registered only in the `local` environment.
 - Production errors go to Sentry when `SENTRY_LARAVEL_DSN` is set (`SENTRY_SEND_DEFAULT_PII=false` by default).
 
@@ -63,7 +63,7 @@ Follow [deployment.md](deployment.md) before exposing a server to the internet.
 | `APP_DEBUG` | `false` |
 | `APP_KEY` | Unique, secret, never committed |
 | `TELESCOPE_ENABLED` | `false` |
-| `PULSE_ENABLED` | `true` (admins only via `viewPulse`) |
+| `PULSE_ENABLED` | `true` (admins only; guests/non-admins get 404) |
 | `SENTRY_LARAVEL_DSN` | Set in production/staging; omit locally |
 | `SENTRY_SEND_DEFAULT_PII` | `false` |
 | `LOG_LEVEL` | `error` (or stricter) |
