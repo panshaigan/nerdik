@@ -102,7 +102,7 @@
                     <div class="flex gap-2">
                         <dt class="sr-only">{{ __('ui.browse.date_label') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             <span class="min-w-0 leading-snug">
                                 {{ $d->timeSummary }}
                             </span>
@@ -113,7 +113,7 @@
                     <div class="flex gap-2">
                         <dt class="sr-only">{{ __('ui.browse.location_label') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             <span class="min-w-0 leading-snug">
                                 {{ $d->locationSummary }}
                             </span>
@@ -124,7 +124,7 @@
                     <div class="flex gap-2" data-ui="browse-card-participants">
                         <dt class="sr-only">{{ __('ui.browse.participants_count') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             <span class="min-w-0 leading-snug tabular-nums">
                                 @if ($d->participantsMax !== null)
                                     {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
@@ -139,7 +139,7 @@
                     <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event">
                         <dt class="sr-only">{{ __('ui.browse.parent_event') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-calendar-days" class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400/70" />
+                            <x-icon name="o-calendar-days" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             <span class="min-w-0 leading-snug">
                                 <a
                                     href="{{ $d->parentEventUrl }}"

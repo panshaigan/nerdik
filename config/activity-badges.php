@@ -93,6 +93,7 @@ return [
 
     'outline_by_kind' => [
         'minimum_age' => false,
+        'activity_type' => false,
     ],
 
     'semantic_by_tag_category' => [
@@ -108,7 +109,7 @@ return [
 
     'semantic_by_kind' => [
         'taxonomy_tag' => 'neutral',   // was primary
-        'activity_type' => 'accent',    // was info → teal is more distinctive
+        'activity_type' => 'secondary',    // was info → teal is more distinctive
         'minimum_age' => 'warning',   // keep
         'requires_approval' => 'neutral',
         'lottery' => 'neutral',

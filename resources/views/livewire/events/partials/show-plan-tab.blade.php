@@ -417,7 +417,7 @@
             @endphp
             <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
                 <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
-                    <div class="hero w-full max-w-2xl rounded-2xl box-glow-primary">
+                    <div class="hero w-full max-w-2xl rounded-2xl box-glow-neutral">
                         <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
                             <div class="max-w-xl px-2">
                                 <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
