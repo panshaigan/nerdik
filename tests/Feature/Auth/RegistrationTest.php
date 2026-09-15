@@ -5,7 +5,7 @@ namespace Tests\Feature\Auth;
 use Anhskohbo\NoCaptcha\NoCaptcha;
 use App\Enums\AppLocale;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
@@ -50,7 +50,7 @@ class RegistrationTest extends TestCase
         $this->assertNull($user->name);
         $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
 
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertSentTo($user, VerifyEmailNotification::class);
     }
 
     public function test_registration_defaults_timezone_to_europe_warsaw_when_empty(): void
@@ -176,7 +176,7 @@ class RegistrationTest extends TestCase
             ->assertRedirect(route('verification.notice', absolute: false));
 
         $this->assertAuthenticated();
-        Notification::assertSentTo(User::where('email', 'test@example.com')->first(), VerifyEmail::class);
+        Notification::assertSentTo(User::where('email', 'test@example.com')->first(), VerifyEmailNotification::class);
     }
 
     public function test_registration_clears_recaptcha_state_when_captcha_verification_fails(): void

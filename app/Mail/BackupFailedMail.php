@@ -6,13 +6,14 @@ namespace App\Mail;
 
 use App\Enums\SentEmailKind;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Symfony\Component\Mime\Email;
 
-final class BackupFailedMail extends Mailable
+final class BackupFailedMail extends Mailable implements ShouldQueue
 {
     use Queueable;
     use SerializesModels;

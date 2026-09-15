@@ -26,7 +26,7 @@ final class NotifyBackupFailureCommandTest extends TestCase
             ->assertSuccessful()
             ->expectsOutputToContain('Backup failure notification sent to ops@example.com');
 
-        Mail::assertSent(BackupFailedMail::class, function (BackupFailedMail $mail): bool {
+        Mail::assertQueued(BackupFailedMail::class, function (BackupFailedMail $mail): bool {
             return $mail->hasTo('ops@example.com')
                 && $mail->errorMessage === 'pg_dump failed: connection refused';
         });
@@ -47,6 +47,6 @@ final class NotifyBackupFailureCommandTest extends TestCase
             ->assertFailed()
             ->expectsOutputToContain('LEGAL_CONTACT_EMAIL is not configured');
 
-        Mail::assertNothingSent();
+        Mail::assertNothingQueued();
     }
 }

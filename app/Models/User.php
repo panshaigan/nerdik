@@ -7,6 +7,8 @@ use App\Enums\AppLocale;
 use App\Enums\NotificationPreferenceKey;
 use App\Enums\TimeDisplayFormat;
 use App\Models\Concerns\InteractsWithAvatarImage;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use App\Notifications\VerifyPendingEmailNotification;
 use App\Support\Ui\AvatarPicture;
 use App\Support\Ui\AvatarSlot;
@@ -232,6 +234,16 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     public function hasPendingEmailChange(): bool
     {
         return $this->pending_email !== null && $this->pending_email !== '';
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify((new VerifyEmailNotification)->locale($this->preferredLocale()));
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify((new ResetPasswordNotification($token))->locale($this->preferredLocale()));
     }
 
     public function sendPendingEmailVerificationNotification(): void

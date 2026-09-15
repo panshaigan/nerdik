@@ -17,13 +17,13 @@ use App\Notifications\EventReopenedNotification;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Notifications\ResetPasswordNotification;
 use App\Notifications\Scheduled\ScheduledPeriodicDigestNotification;
 use App\Notifications\UserRequestReceivedNotification;
 use App\Notifications\UserRequestResolvedNotification;
+use App\Notifications\VerifyEmailNotification;
 use App\Notifications\VerifyPendingEmailNotification;
 use App\Notifications\WaitlistPromotedNotification;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Str;
 
 enum SentEmailKind: string
@@ -82,8 +82,8 @@ enum SentEmailKind: string
             UserRequestResolvedNotification::class => self::UserRequests,
             ScheduledPeriodicDigestNotification::class => self::ScheduledDigest,
             VerifyPendingEmailNotification::class => self::VerifyPendingEmail,
-            VerifyEmail::class => self::VerifyEmail,
-            ResetPassword::class => self::ResetPassword,
+            VerifyEmailNotification::class => self::VerifyEmail,
+            ResetPasswordNotification::class => self::ResetPassword,
             BackupFailedMail::class => self::BackupFailed,
             default => self::Unknown,
         };
