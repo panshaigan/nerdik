@@ -167,7 +167,7 @@ class ScheduledNotificationCollector
             ->get()
             ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
                 $deadline = $this->cancellationDeadlineAt($activity);
-                if ($deadline === null || ! $this->isWithinLookahead($referenceNow, $deadline)) {
+                if ($deadline === null || ! $this->isOnLocalTomorrow($referenceNow, $deadline, $user)) {
                     return null;
                 }
 
@@ -207,7 +207,7 @@ class ScheduledNotificationCollector
                 }
 
                 $deadline = $this->cancellationDeadlineAt($activity);
-                if ($deadline === null || ! $this->isWithinLookahead($referenceNow, $deadline)) {
+                if ($deadline === null || ! $this->isOnLocalTomorrow($referenceNow, $deadline, $user)) {
                     return null;
                 }
 
@@ -245,6 +245,22 @@ class ScheduledNotificationCollector
 
         return $target->greaterThan($referenceNow)
             && $target->lessThanOrEqualTo($referenceNow->addHours($hours));
+    }
+
+    /**
+     * Cancellation-deadline digests fire on the local calendar day before the cutoff,
+     * so participants typically get a full day to opt out after the morning send.
+     */
+    private function isOnLocalTomorrow(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user): bool
+    {
+        if ($target->lessThanOrEqualTo($referenceNow)) {
+            return false;
+        }
+
+        $timezone = $this->timezoneForUser($user);
+        $localTomorrow = $referenceNow->setTimezone($timezone)->addDay()->toDateString();
+
+        return $target->setTimezone($timezone)->toDateString() === $localTomorrow;
     }
 
     private function timezoneForUser(User $user): DateTimeZone

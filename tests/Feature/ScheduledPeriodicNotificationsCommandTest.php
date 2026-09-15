@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ActivityProposalStatus;
+use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -131,19 +132,23 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    public function test_cancellation_deadline_within_24h_is_included(): void
+    public function test_cancellation_deadline_tomorrow_is_included(): void
     {
         config()->set('scheduled_notifications.daily_send_time', '09:00');
         $this->travelTo('2026-06-01 09:00:00');
 
         $user = User::factory()->create();
-        $user->profile()->update(['timezone' => 'UTC']);
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledParticipantDeadlinePreferences(),
+        ]);
         $host = User::factory()->create();
 
+        // Deadline = start - 8h = now + 32h = 2026-06-02 17:00 (tomorrow).
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
-            'starts_at' => now()->addHours(20),
-            'ends_at' => now()->addHours(22),
+            'starts_at' => now()->addHours(40),
+            'ends_at' => now()->addHours(42),
             'cancellation_deadline_in_hours' => 8,
         ]);
         DB::table('activity_user')->insert([
@@ -167,5 +172,88 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
                     ->contains(fn (array $item): bool => ($item['category'] ?? '') === 'participant_cancellation_deadline');
             }
         );
+    }
+
+    public function test_cancellation_deadline_same_day_is_not_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledParticipantDeadlinePreferences(),
+        ]);
+        $host = User::factory()->create();
+
+        // Deadline = start - 8h = now + 12h = 2026-06-01 21:00 (today, within old 24h window).
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->addHours(20),
+            'ends_at' => now()->addHours(22),
+            'cancellation_deadline_in_hours' => 8,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_cancellation_deadline_beyond_tomorrow_is_not_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledParticipantDeadlinePreferences(),
+        ]);
+        $host = User::factory()->create();
+
+        // Deadline = start - 8h = now + 56h = 2026-06-03 17:00 (day after tomorrow).
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->addHours(64),
+            'ends_at' => now()->addHours(66),
+            'cancellation_deadline_in_hours' => 8,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * @return array<string, array{in_app: bool, email: bool}>
+     */
+    private function onlyScheduledParticipantDeadlinePreferences(): array
+    {
+        $preferences = [];
+        foreach (NotificationPreferenceKey::cases() as $key) {
+            $enabled = $key === NotificationPreferenceKey::ScheduledParticipantCancellationDeadline;
+            $preferences[$key->value] = [
+                'in_app' => $enabled,
+                'email' => $enabled,
+            ];
+        }
+
+        return $preferences;
     }
 }
