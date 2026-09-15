@@ -15,7 +15,7 @@
     <x-modal
         wire:model="activityPreviewModalOpen"
         :title="$previewActivity->name"
-        box-class="max-w-4xl ui-modal-surface"
+        box-class="max-w-4xl ui-modal-surface ui-listing-preview-modal"
         class="backdrop-blur"
         separator
     >

@@ -1670,6 +1670,17 @@ dialog.modal:has(.ui-invite-user-request-modal) {
     overflow: visible;
 }
 
+/**
+ * Activity/event listing preview modals: keep actions above mobile browser chrome.
+ * DaisyUI .modal-box uses max-height: 100vh, which sits under the bottom bar on phones.
+ */
+@media (max-width: 767px) {
+    .modal-box.ui-listing-preview-modal {
+        margin-block: 1rem 1.5rem;
+        max-height: calc(100svh - 2.5rem);
+    }
+}
+
 .ui-invite-user-suggestions {
     background-color: var(--ui-field-bg);
     border-color: var(--ui-field-border-color);
