@@ -16,7 +16,11 @@ function bootMaps() {
         import('./maps/event-show-map.js').then((m) => m.initEventShowMap(root));
     });
     if (document.querySelector('[data-browse-events-map]')) {
-        import('./maps/browse-events-map.js').then((m) => m.initBrowseEventsMap().catch(() => {}));
+        import('./maps/browse-events-map.js')
+            .then((m) => {
+                m.initBrowseEventsMap();
+            })
+            .catch(() => {});
     }
 }
 
