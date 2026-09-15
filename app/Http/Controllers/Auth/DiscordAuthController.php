@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
+use App\Http\Controllers\Auth\Concerns\HandlesOAuthCallbackFailures;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 class DiscordAuthController extends Controller
 {
+    use HandlesOAuthCallbackFailures;
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
     use SyncsProviderOAuthData;
@@ -37,7 +40,16 @@ class DiscordAuthController extends Controller
 
     public function callback(): RedirectResponse
     {
-        $discordUser = Socialite::driver('discord')->user();
+        if ($denied = $this->oauthCallbackDeniedOrInvalid()) {
+            return $denied;
+        }
+
+        try {
+            $discordUser = Socialite::driver('discord')->user();
+        } catch (InvalidStateException) {
+            return $this->oauthInvalidStateRedirect();
+        }
+
         $discordEmail = $discordUser->getEmail();
 
         if ($this->shouldCompleteAccountLinking()) {

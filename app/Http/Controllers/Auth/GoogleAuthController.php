@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
+use App\Http\Controllers\Auth\Concerns\HandlesOAuthCallbackFailures;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
@@ -18,10 +19,12 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 class GoogleAuthController extends Controller
 {
+    use HandlesOAuthCallbackFailures;
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
     use SyncsProviderOAuthData;
@@ -40,7 +43,15 @@ class GoogleAuthController extends Controller
 
     public function callback(): RedirectResponse
     {
-        $googleUser = Socialite::driver('google')->user();
+        if ($denied = $this->oauthCallbackDeniedOrInvalid()) {
+            return $denied;
+        }
+
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException) {
+            return $this->oauthInvalidStateRedirect();
+        }
 
         if ($this->shouldCompleteAccountLinking()) {
             return $this->completeAccountLinking($googleUser);

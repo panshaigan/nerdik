@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Avatars\RefreshCachedAvatar;
 use App\Enums\AvatarSource;
+use App\Http\Controllers\Auth\Concerns\HandlesOAuthCallbackFailures;
 use App\Http\Controllers\Auth\Concerns\PersistsOAuthLinkIntent;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderEmail;
 use App\Http\Controllers\Auth\Concerns\SyncsProviderOAuthData;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 
 class FacebookAuthController extends Controller
 {
+    use HandlesOAuthCallbackFailures;
     use PersistsOAuthLinkIntent;
     use SyncsProviderEmail;
     use SyncsProviderOAuthData;
@@ -40,7 +43,16 @@ class FacebookAuthController extends Controller
 
     public function callback(): RedirectResponse
     {
-        $facebookUser = Socialite::driver('facebook')->user();
+        if ($denied = $this->oauthCallbackDeniedOrInvalid()) {
+            return $denied;
+        }
+
+        try {
+            $facebookUser = Socialite::driver('facebook')->user();
+        } catch (InvalidStateException) {
+            return $this->oauthInvalidStateRedirect();
+        }
+
         $facebookEmail = $facebookUser->getEmail();
 
         if ($this->shouldCompleteAccountLinking()) {

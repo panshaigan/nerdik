@@ -178,6 +178,8 @@ return [
         'confirm_password_intro' => 'To chroniony obszar aplikacji. Potwierdź hasło, aby kontynuować.',
         'session_expired' => 'Sesja wygasła',
         'session_expired_redirect' => 'Twoja sesja nie jest już ważna. Przekierowujemy do logowania...',
+        'oauth_state_invalid' => 'Sesja logowania społecznościowego wygasła lub była nieprawidłowa. Spróbuj ponownie.',
+        'oauth_denied' => 'Logowanie społecznościowe zostało anulowane lub odrzucone. Spróbuj ponownie.',
     ],
     'seo' => [
         'default_description' => 'Odkrywaj wydarzenia i aktywności, zarządzaj harmonogramem i współpracuj z organizatorami w nerdik.',

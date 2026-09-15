@@ -5,19 +5,22 @@ use App\Http\Controllers\Auth\FacebookAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\VerifyPendingEmailController;
+use App\Http\Middleware\BlockBotsFromAuth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
-Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+Route::middleware([BlockBotsFromAuth::class, 'throttle:oauth'])->group(function () {
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
-Route::get('auth/facebook', [FacebookAuthController::class, 'redirect'])->name('facebook.redirect');
-Route::get('auth/facebook/callback', [FacebookAuthController::class, 'callback'])->name('facebook.callback');
+    Route::get('auth/facebook', [FacebookAuthController::class, 'redirect'])->name('facebook.redirect');
+    Route::get('auth/facebook/callback', [FacebookAuthController::class, 'callback'])->name('facebook.callback');
 
-Route::get('auth/discord', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
-Route::get('auth/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
+    Route::get('auth/discord', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
+    Route::get('auth/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
+});
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', BlockBotsFromAuth::class])->group(function () {
     Volt::route('register', 'pages.auth.register')
         ->middleware(['throttle:registration'])
         ->name('register');

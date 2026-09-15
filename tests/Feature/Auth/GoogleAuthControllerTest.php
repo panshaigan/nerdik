@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -262,5 +263,32 @@ class GoogleAuthControllerTest extends TestCase
         $user = User::where('email', 'newuser@example.com')->firstOrFail();
         $this->assertSame('google-new-1', $user->profile?->google_id);
         $this->assertAuthenticatedAs($user);
+    }
+
+    #[Test]
+    public function callback_redirects_to_login_when_oauth_state_is_invalid(): void
+    {
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('user')->andThrow(new InvalidStateException);
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
+
+        $response = $this->get(route('google.callback'));
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('status', __('ui.auth.oauth_state_invalid'));
+        $this->assertGuest();
+    }
+
+    #[Test]
+    public function callback_redirects_to_login_when_provider_returns_error(): void
+    {
+        $response = $this->get(route('google.callback', [
+            'error' => 'access_denied',
+        ]));
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('status', __('ui.auth.oauth_denied'));
+        $this->assertGuest();
     }
 }
