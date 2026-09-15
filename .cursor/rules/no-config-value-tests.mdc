@@ -1,0 +1,43 @@
+---
+description: Do not write tests that assert concrete config or schedule registry values
+globs: tests/**/*.php
+alwaysApply: false
+---
+
+# No concrete config value tests
+
+Do **not** write tests whose purpose is to assert that a config key, env default, or scheduled command list currently equals a specific value.
+
+Config exists so values can change without code changes. Locking literals in tests forces pointless test edits on every normal config tweak.
+
+## Do not test
+
+- `assertSame` / `assertEquals` / `assertContains` on `config('…')` or `Config::get('…')` for defaults or tunable settings
+- `schedule:list` (or `Schedule::events()`) checklists that command X / flag Y is registered
+- Snapshotting arrays from config files (ignore lists, retention days, badge maps, disk names, etc.)
+
+```php
+// BAD — breaks when someone changes a default
+$this->assertSame(14, config('housekeeping.log_retention_days'));
+$this->assertContains('Java object is gone', config('sentry.browser.ignore_errors'));
+
+// BAD — schedule registry snapshot
+$this->artisan('schedule:list')
+    ->expectsOutputToContain('media-library:clean --delete-orphaned --force');
+```
+
+## Do test
+
+- **Behavior under a given config** — `Config::set(...)` (or env) as a fixture, then assert runtime outcome
+- **Config transforms / safety rules** — e.g. staging mail must force Mailpit even if SMTP env is set
+- **Infrastructure wiring that is not a tunable knob** only when the app hard-depends on it (e.g. queue connection driver the worker assumes) — prefer behavior tests when possible
+
+```php
+// GOOD — fixture drives behavior
+Config::set('monitoring.scheduler_heartbeat_url', 'https://heartbeat.example/scheduler');
+$this->artisan('monitoring:heartbeat', ['target' => 'scheduler'])->assertSuccessful();
+Http::assertSent(...);
+
+// GOOD — safety rule under env
+// staging APP_ENV forces mailpit host regardless of MAIL_HOST
+```

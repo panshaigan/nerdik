@@ -12,31 +12,4 @@ class QueueAndScheduleConfigurationTest extends TestCase
         $this->assertSame('database', Config::get('queue.connections.database.driver'));
         $this->assertSame('jobs', Config::get('queue.connections.database.table'));
     }
-
-    public function test_scheduler_commands_are_registered(): void
-    {
-        $this->artisan('schedule:list')
-            ->expectsOutputToContain('telescope:prune')
-            ->expectsOutputToContain('notifications:scheduled-digest')
-            ->expectsOutputToContain('auth:clear-resets')
-            ->expectsOutputToContain('queue:prune-failed')
-            ->expectsOutputToContain('queue:prune-batches')
-            ->expectsOutputToContain('housekeeping:prune-sessions')
-            ->expectsOutputToContain('housekeeping:prune-cache')
-            ->expectsOutputToContain('housekeeping:prune-livewire-uploads')
-            ->expectsOutputToContain('housekeeping:prune-logs')
-            ->expectsOutputToContain('housekeeping:prune-sent-emails')
-            ->expectsOutputToContain('media-library:clean --delete-orphaned --force')
-            ->expectsOutputToContain('monitoring:heartbeat')
-            ->assertExitCode(0);
-    }
-
-    public function test_media_library_clean_schedule_uses_valueless_flags(): void
-    {
-        $this->artisan('schedule:list')
-            ->expectsOutputToContain('media-library:clean --delete-orphaned --force')
-            ->doesntExpectOutputToContain('--delete-orphaned=')
-            ->doesntExpectOutputToContain('--force=')
-            ->assertExitCode(0);
-    }
 }

@@ -51,17 +51,6 @@ class MonitoringTest extends TestCase
         Http::assertSent(fn ($request): bool => $request->url() === 'https://heartbeat.example/worker');
     }
 
-    public function test_monitoring_heartbeat_tasks_are_registered_when_urls_configured(): void
-    {
-        Config::set('monitoring.scheduler_heartbeat_url', 'https://heartbeat.example/scheduler');
-        Config::set('monitoring.worker_heartbeat_url', 'https://heartbeat.example/worker');
-
-        $this->artisan('schedule:list')
-            ->expectsOutputToContain('monitoring:heartbeat')
-            ->expectsOutputToContain(SendWorkerMonitoringHeartbeatJob::class)
-            ->assertExitCode(0);
-    }
-
     public function test_sentry_config_is_injected_when_dsn_is_set(): void
     {
         Config::set('sentry.dsn', 'https://public@o0.ingest.sentry.io/0');
@@ -69,9 +58,7 @@ class MonitoringTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('window.__nerdikSentry', false)
-            ->assertSee('ingest.sentry.io', false)
-            ->assertSee('Java object is gone', false)
-            ->assertSee('iabjs:', false);
+            ->assertSee('ingest.sentry.io', false);
     }
 
     public function test_sentry_config_is_omitted_when_dsn_is_empty(): void
@@ -81,18 +68,5 @@ class MonitoringTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertDontSee('window.__nerdikSentry', false);
-    }
-
-    public function test_sentry_browser_filters_include_facebook_iab_noise(): void
-    {
-        $ignoreErrors = config('sentry.browser.ignore_errors');
-        $denyUrls = config('sentry.browser.deny_urls');
-
-        $this->assertIsArray($ignoreErrors);
-        $this->assertContains('Java object is gone', $ignoreErrors);
-        $this->assertContains('Java exception was raised during method invocation', $ignoreErrors);
-
-        $this->assertIsArray($denyUrls);
-        $this->assertContains('iabjs:', $denyUrls);
     }
 }
