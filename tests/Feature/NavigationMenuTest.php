@@ -212,7 +212,7 @@ class NavigationMenuTest extends TestCase
     public function test_admin_sees_ops_links_in_profile_menu(): void
     {
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
-        Config::set('mail.support_email', 'ops@example.com');
+        Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
 
         $admin = User::factory()->admin()->create();
 
@@ -229,13 +229,13 @@ class NavigationMenuTest extends TestCase
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
             ->assertSee('https://sentry.example/org/project', false)
-            ->assertSee('mailto:ops@example.com', false);
+            ->assertSee('https://mail.example/inbox', false);
     }
 
     public function test_non_admin_does_not_see_ops_links_in_profile_menu(): void
     {
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
-        Config::set('mail.support_email', 'ops@example.com');
+        Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
 
         $user = User::factory()->organizer()->create([
             'is_admin' => false,
@@ -254,13 +254,13 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee($filamentUrl, false)
             ->assertDontSee($pulseUrl, false)
             ->assertDontSee('https://sentry.example/org/project', false)
-            ->assertDontSee('mailto:ops@example.com', false);
+            ->assertDontSee('https://mail.example/inbox', false);
     }
 
     public function test_admin_ops_menu_hides_sentry_and_support_when_unconfigured(): void
     {
         Config::set('sentry.dashboard_url', null);
-        Config::set('mail.support_email', null);
+        Config::set('mail.support_mailbox_url', null);
 
         $admin = User::factory()->admin()->create();
 
@@ -275,7 +275,6 @@ class NavigationMenuTest extends TestCase
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
             ->assertDontSee(__('ui.nav.sentry'), false)
-            ->assertDontSee(__('ui.nav.support'), false)
-            ->assertDontSee('mailto:', false);
+            ->assertDontSee(__('ui.nav.support'), false);
     }
 }

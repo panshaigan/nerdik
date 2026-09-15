@@ -117,13 +117,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Support Mailbox
+    | Support Mailbox Web App
     |--------------------------------------------------------------------------
     |
-    | Shown as a mailto link in the admin profile menu. Leave empty to hide.
+    | URL of the support mailbox web UI (e.g. Mailpit, Roundcube). Shown as a
+    | link in the admin profile menu. Leave empty to hide.
     |
     */
 
-    'support_email' => env('SUPPORT_EMAIL'),
+    'support_mailbox_url' => env('SUPPORT_MAILBOX_URL'),
 
 ];

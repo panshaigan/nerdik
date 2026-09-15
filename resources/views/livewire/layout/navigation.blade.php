@@ -219,10 +219,10 @@ new class extends Component
                                     >{{ __('ui.nav.sentry') }}</a>
                                 </li>
                             @endif
-                            @if (filled(config('mail.support_email')))
+                            @if (filled(config('mail.support_mailbox_url')))
                                 <li>
                                     <a
-                                        href="mailto:{{ config('mail.support_email') }}"
+                                        href="{{ config('mail.support_mailbox_url') }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >{{ __('ui.nav.support') }}</a>
@@ -469,10 +469,10 @@ new class extends Component
                                             </a>
                                         </li>
                                     @endif
-                                    @if (filled(config('mail.support_email')))
+                                    @if (filled(config('mail.support_mailbox_url')))
                                         <li>
                                             <a
-                                                href="mailto:{{ config('mail.support_email') }}"
+                                                href="{{ config('mail.support_mailbox_url') }}"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 @click="close()"
