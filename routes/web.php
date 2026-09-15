@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (WelcomePageDataService $welcome) {
     return view('welcome', $welcome->data());
-});
+})->middleware('guest');
 
 Route::get('locale/{locale}', SwitchLocale::class)->name('locale.switch');
 

@@ -35,6 +35,16 @@ class WelcomePageTest extends TestCase
     }
 
     #[Test]
+    public function test_authenticated_users_are_redirected_to_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/')
+            ->assertRedirect(route('dashboard'));
+    }
+
+    #[Test]
     public function test_home_page_shows_nearest_upcoming_public_listings_only(): void
     {
         $user = User::factory()->create();
