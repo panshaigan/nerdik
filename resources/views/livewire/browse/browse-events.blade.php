@@ -1,5 +1,8 @@
 <div class="pt-4 pb-12 px-1">
-    <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 mt-6 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
+    <div
+        class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 mt-6 sm:px-6 lg:px-8"
+        x-data="{ filtersOpen: false }"
+    >
         <div
             class="ui-filter-form ui-filter-form-events ui-browse-events-filter-shell mb-10"
             data-ui="browse-events-form"
@@ -35,7 +38,7 @@
             </div>
 
             <div
-                x-show="filtersOpen"
+                x-show="!!$data.filtersOpen"
                 x-cloak
                 class="ui-tile-empty mt-3 w-full rounded-2xl p-6 shadow-sm"
                 data-ui="browse-events-filters-panel"

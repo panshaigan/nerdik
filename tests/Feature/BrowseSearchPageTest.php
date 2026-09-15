@@ -25,6 +25,7 @@ class BrowseSearchPageTest extends TestCase
         $response->assertSee('data-ui="browse-events-form"', false);
         $response->assertSee('data-ui="browse-events-toolbar"', false);
         $response->assertSee('ui-browse-events-filter-shell', false);
+        $response->assertSee('data-ui="browse-filters-toggle"', false);
         $response->assertSee('data-ui="browse-events-filters-panel"', false);
         $response->assertSee('data-ts-field', false);
         $response->assertSee('data-ts-placeholder', false);

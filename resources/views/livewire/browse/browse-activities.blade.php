@@ -4,7 +4,6 @@
             <div class="card border border-base-300 bg-base-100 p-4 shadow-sm" data-ui="browse-activities-filters-card">
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-wrap items-end gap-x-4 gap-y-3">
-                        @include('livewire.browse.partials.tag-filter-toggles')
                         <x-input
                             id="from_date"
                             wire:model.live.debounce.300ms="from_date"
