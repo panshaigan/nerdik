@@ -26,8 +26,17 @@ class QueueAndScheduleConfigurationTest extends TestCase
             ->expectsOutputToContain('housekeeping:prune-livewire-uploads')
             ->expectsOutputToContain('housekeeping:prune-logs')
             ->expectsOutputToContain('housekeeping:prune-sent-emails')
-            ->expectsOutputToContain('media-library:clean')
+            ->expectsOutputToContain('media-library:clean --delete-orphaned --force')
             ->expectsOutputToContain('monitoring:heartbeat')
+            ->assertExitCode(0);
+    }
+
+    public function test_media_library_clean_schedule_uses_valueless_flags(): void
+    {
+        $this->artisan('schedule:list')
+            ->expectsOutputToContain('media-library:clean --delete-orphaned --force')
+            ->doesntExpectOutputToContain('--delete-orphaned=')
+            ->doesntExpectOutputToContain('--force=')
             ->assertExitCode(0);
     }
 }

@@ -41,9 +41,8 @@ Schedule::command('housekeeping:prune-cache')->dailyAt('03:30')->withoutOverlapp
 Schedule::command('housekeeping:prune-livewire-uploads')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('housekeeping:prune-logs')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('housekeeping:prune-sent-emails')->dailyAt('03:30')->withoutOverlapping();
-Schedule::command('media-library:clean', [
-    '--delete-orphaned' => true,
-    '--force' => true,
-])->weeklyOn(0, '04:00')->withoutOverlapping();
+Schedule::command('media-library:clean --delete-orphaned --force')
+    ->weeklyOn(0, '04:00')
+    ->withoutOverlapping();
 
 // Schedule::command('model:prune')->daily();
