@@ -67,7 +67,7 @@ class ParticipantRosterPdfBuilder
                 'place.parent',
             ])
             ->get()
-            ->sortBy(fn (Activity $activity): string => (string) ($activity->slot?->starts_at?->timestamp ?? PHP_INT_MAX).'-'.$activity->id)
+            ->sortBy(fn (Activity $activity): string => Str::lower(trim((string) ($activity->slot?->name ?? ''))).'|'.$activity->id)
             ->values();
 
         $eventName = (string) $event->name;

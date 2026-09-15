@@ -215,16 +215,19 @@ final class ParticipantRosterPdfTest extends TestCase
         ]);
 
         Slot::factory()->create([
+            'name' => 'Zebra Slot',
             'event_id' => $event->id,
             'activity_id' => $active->id,
             'starts_at' => now()->addWeek()->setTime(12, 0),
         ]);
         Slot::factory()->create([
+            'name' => 'Alpha Slot',
             'event_id' => $event->id,
             'activity_id' => $second->id,
             'starts_at' => now()->addWeek()->setTime(14, 0),
         ]);
         Slot::factory()->create([
+            'name' => 'Middle Slot',
             'event_id' => $event->id,
             'activity_id' => $cancelled->id,
             'starts_at' => now()->addWeek()->setTime(16, 0),
@@ -238,8 +241,10 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertNotNull($roster['when']);
         $this->assertStringContainsString(':', $roster['when']);
         $this->assertCount(2, $roster['activities']);
-        $this->assertSame('Active Table', $roster['activities'][0]['name']);
-        $this->assertSame('Second Table', $roster['activities'][1]['name']);
+        $this->assertSame('Second Table', $roster['activities'][0]['name']);
+        $this->assertSame('Active Table', $roster['activities'][1]['name']);
+        $this->assertStringStartsWith('Alpha Slot', (string) $roster['activities'][0]['where']);
+        $this->assertStringStartsWith('Zebra Slot', (string) $roster['activities'][1]['where']);
 
         $html = view('pdf.event-participants', ['roster' => $roster])->render();
         $this->assertStringContainsString('Con Alpha - Participant roster', $html);
