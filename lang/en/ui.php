@@ -19,6 +19,10 @@ return [
         'preferences' => 'Preferences',
         'account' => 'Account',
         'account_settings' => 'Account settings',
+        'admin_panel' => 'Admin panel',
+        'pulse' => 'Pulse',
+        'sentry' => 'Sentry',
+        'support' => 'Support',
     ],
     'me' => [
         'menu_events' => 'My events',

@@ -10,6 +10,9 @@ return [
     // @see https://docs.sentry.io/concepts/key-terms/dsn-explainer/
     'dsn' => env('SENTRY_LARAVEL_DSN', env('SENTRY_DSN')),
 
+    // Public Sentry project/org dashboard URL for admin nav links (not the DSN).
+    'dashboard_url' => env('SENTRY_DASHBOARD_URL'),
+
     // @see https://spotlightjs.com/
     // 'spotlight' => env('SENTRY_SPOTLIGHT', false),
 

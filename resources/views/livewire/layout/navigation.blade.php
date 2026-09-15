@@ -195,6 +195,40 @@ new class extends Component
                             <li><a wire:navigate href="{{ url_with_return(route('events.create')) }}">{{ __('ui.nav.create_event') }}</a></li>
                         @endif
                         <li><a wire:navigate href="{{ url_with_return(route('activities.create')) }}">{{ __('ui.nav.create_activity') }}</a></li>
+                        @if (auth()->user()->is_admin)
+                            <li class="mt-1 border-t border-base-300 pt-1 light:border-neutral">
+                                <a
+                                    href="{{ url('/'.trim((string) config('filament.admin_path'), '/')) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >{{ __('ui.nav.admin_panel') }}</a>
+                            </li>
+                            <li>
+                                <a
+                                    href="{{ url('/'.trim((string) config('pulse.path'), '/')) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >{{ __('ui.nav.pulse') }}</a>
+                            </li>
+                            @if (filled(config('sentry.dashboard_url')))
+                                <li>
+                                    <a
+                                        href="{{ config('sentry.dashboard_url') }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >{{ __('ui.nav.sentry') }}</a>
+                                </li>
+                            @endif
+                            @if (filled(config('mail.support_email')))
+                                <li>
+                                    <a
+                                        href="mailto:{{ config('mail.support_email') }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >{{ __('ui.nav.support') }}</a>
+                                </li>
+                            @endif
+                        @endif
                         <li>
                             <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
                         </li>
@@ -402,6 +436,52 @@ new class extends Component
                                         {{ __('ui.nav.create_activity') }}
                                     </a>
                                 </li>
+                                @if (auth()->user()->is_admin)
+                                    <li class="mt-1 border-t border-base-300 pt-1 light:border-neutral">
+                                        <a
+                                            href="{{ url('/'.trim((string) config('filament.admin_path'), '/')) }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            @click="close()"
+                                        >
+                                            {{ __('ui.nav.admin_panel') }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="{{ url('/'.trim((string) config('pulse.path'), '/')) }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            @click="close()"
+                                        >
+                                            {{ __('ui.nav.pulse') }}
+                                        </a>
+                                    </li>
+                                    @if (filled(config('sentry.dashboard_url')))
+                                        <li>
+                                            <a
+                                                href="{{ config('sentry.dashboard_url') }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                @click="close()"
+                                            >
+                                                {{ __('ui.nav.sentry') }}
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if (filled(config('mail.support_email')))
+                                        <li>
+                                            <a
+                                                href="mailto:{{ config('mail.support_email') }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                @click="close()"
+                                            >
+                                                {{ __('ui.nav.support') }}
+                                            </a>
+                                        </li>
+                                    @endif
+                                @endif
                                 <li>
                                     <button type="button" wire:click="logout" @click="close()">
                                         {{ __('Log Out') }}

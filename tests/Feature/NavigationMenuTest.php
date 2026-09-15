@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\User;
 use App\Models\UserRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -206,5 +207,75 @@ class NavigationMenuTest extends TestCase
             '/data-ui="nav-requests"[\s\S]*?<span[^>]*>\s*\d+\s*<\/span>/',
             $response->getContent(),
         );
+    }
+
+    public function test_admin_sees_ops_links_in_profile_menu(): void
+    {
+        Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
+        Config::set('mail.support_email', 'ops@example.com');
+
+        $admin = User::factory()->admin()->create();
+
+        $filamentUrl = url('/'.trim((string) config('filament.admin_path'), '/'));
+        $pulseUrl = url('/'.trim((string) config('pulse.path'), '/'));
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('ui.nav.admin_panel'), false)
+            ->assertSee(__('ui.nav.pulse'), false)
+            ->assertSee(__('ui.nav.sentry'), false)
+            ->assertSee(__('ui.nav.support'), false)
+            ->assertSee($filamentUrl, false)
+            ->assertSee($pulseUrl, false)
+            ->assertSee('https://sentry.example/org/project', false)
+            ->assertSee('mailto:ops@example.com', false);
+    }
+
+    public function test_non_admin_does_not_see_ops_links_in_profile_menu(): void
+    {
+        Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
+        Config::set('mail.support_email', 'ops@example.com');
+
+        $user = User::factory()->organizer()->create([
+            'is_admin' => false,
+        ]);
+
+        $filamentUrl = url('/'.trim((string) config('filament.admin_path'), '/'));
+        $pulseUrl = url('/'.trim((string) config('pulse.path'), '/'));
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee(__('ui.nav.admin_panel'), false)
+            ->assertDontSee(__('ui.nav.pulse'), false)
+            ->assertDontSee(__('ui.nav.sentry'), false)
+            ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee($filamentUrl, false)
+            ->assertDontSee($pulseUrl, false)
+            ->assertDontSee('https://sentry.example/org/project', false)
+            ->assertDontSee('mailto:ops@example.com', false);
+    }
+
+    public function test_admin_ops_menu_hides_sentry_and_support_when_unconfigured(): void
+    {
+        Config::set('sentry.dashboard_url', null);
+        Config::set('mail.support_email', null);
+
+        $admin = User::factory()->admin()->create();
+
+        $filamentUrl = url('/'.trim((string) config('filament.admin_path'), '/'));
+        $pulseUrl = url('/'.trim((string) config('pulse.path'), '/'));
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('ui.nav.admin_panel'), false)
+            ->assertSee(__('ui.nav.pulse'), false)
+            ->assertSee($filamentUrl, false)
+            ->assertSee($pulseUrl, false)
+            ->assertDontSee(__('ui.nav.sentry'), false)
+            ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee('mailto:', false);
     }
 }

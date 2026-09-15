@@ -115,4 +115,15 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Support Mailbox
+    |--------------------------------------------------------------------------
+    |
+    | Shown as a mailto link in the admin profile menu. Leave empty to hide.
+    |
+    */
+
+    'support_email' => env('SUPPORT_EMAIL'),
+
 ];
