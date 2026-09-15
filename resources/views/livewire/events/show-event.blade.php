@@ -114,6 +114,15 @@
                                     icon="o-plus"
                                 />
                             <x-button
+                                :link="route('events.participants.pdf', $event)"
+                                external
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
+                                :tooltip="__('ui.pdf.roster.print_action')"
+                                :aria-label="__('ui.pdf.roster.print_action').': '.$event->name"
+                                data-ui="event-show-print-participants"
+                                icon="o-printer"
+                            />
+                            <x-button
                                 :link="url_with_return(route('events.edit', $event))"
                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
                                 :tooltip="__('ui.common.edit')"

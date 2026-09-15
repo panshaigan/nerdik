@@ -4,6 +4,8 @@ use App\Actions\Locale\SwitchLocale;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\Browse\BrowseMapFeaturesController;
+use App\Http\Controllers\DownloadActivityParticipantsPdfController;
+use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\InterestController;
@@ -97,6 +99,11 @@ Route::middleware(['auth'])->group(function () {
         ->except(['show']);
 
     Route::resource('activities', ActivityController::class)->except(['store', 'update', 'show', 'index']);
+
+    Route::get('activities/{activity}/participants.pdf', DownloadActivityParticipantsPdfController::class)
+        ->name('activities.participants.pdf');
+    Route::get('events/{event}/participants.pdf', DownloadEventParticipantsPdfController::class)
+        ->name('events.participants.pdf');
 
     Route::view('activity-proposals', 'activity-proposals.index')->name('activity-proposals.index');
     Route::post('activity-proposals/{proposal}/accept', [ActivityProposalController::class, 'accept'])->name('activity-proposals.accept');

@@ -934,6 +934,19 @@ return [
         'declined' => 'Prośba odrzucona.',
         'cancelled' => 'Prośba anulowana.',
     ],
+    'pdf' => [
+        'roster' => [
+            'title' => 'Lista uczestników',
+            'print_action' => 'Drukuj listę uczestników',
+            'host' => 'Prowadzący',
+            'games' => 'Gry',
+            'participant' => 'Uczestnik',
+            'present' => 'Obecny',
+            'absent_note' => 'oznaczony jako nieobecny',
+            'no_participants' => 'Brak uczestników.',
+            'no_activities' => 'Brak aktywności na tym wydarzeniu.',
+        ],
+    ],
     'pagination' => [
         'navigation' => 'Nawigacja paginacji',
         'showing' => 'Wyświetlanie',

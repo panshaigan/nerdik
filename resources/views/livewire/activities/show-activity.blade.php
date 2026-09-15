@@ -126,6 +126,15 @@
                         <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
                             @if ($canManageActivity)
                                 <x-button
+                                    :link="route('activities.participants.pdf', $activity)"
+                                    external
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                    :tooltip="__('ui.pdf.roster.print_action')"
+                                    :aria-label="__('ui.pdf.roster.print_action').': '.$activity->name"
+                                    data-ui="activity-show-print-participants"
+                                    icon="o-printer"
+                                />
+                                <x-button
                                     :link="url_with_return(route('activities.edit', $activity))"
                                     class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                     :tooltip="__('ui.common.edit')"

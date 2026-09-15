@@ -944,4 +944,17 @@ return [
         'declined' => 'Request declined.',
         'cancelled' => 'Request cancelled.',
     ],
+    'pdf' => [
+        'roster' => [
+            'title' => 'Participant roster',
+            'print_action' => 'Print participant list',
+            'host' => 'Host',
+            'games' => 'Games',
+            'participant' => 'Participant',
+            'present' => 'Present',
+            'absent_note' => 'marked absent',
+            'no_participants' => 'No participants.',
+            'no_activities' => 'No activities on this event.',
+        ],
+    ],
 ];
