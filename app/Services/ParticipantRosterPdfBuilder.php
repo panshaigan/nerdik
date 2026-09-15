@@ -21,9 +21,8 @@ class ParticipantRosterPdfBuilder
      *     documentTitle: string,
      *     host: string|null,
      *     gameNames: list<string>,
-     *     slotName: string|null,
-     *     time: string|null,
-     *     room: string|null,
+     *     when: string|null,
+     *     where: string|null,
      *     participants: list<array{name: string, is_absent: bool}>
      * }
      */
@@ -38,16 +37,15 @@ class ParticipantRosterPdfBuilder
      * @return array{
      *     eventName: string,
      *     documentTitle: string,
-     *     place: string|null,
-     *     time: string|null,
+     *     where: string|null,
+     *     when: string|null,
      *     activities: list<array{
      *         name: string,
      *         documentTitle: string,
      *         host: string|null,
      *         gameNames: list<string>,
-     *         slotName: string|null,
-     *         time: string|null,
-     *         room: string|null,
+     *         when: string|null,
+     *         where: string|null,
      *         participants: list<array{name: string, is_absent: bool}>
      *     }>
      * }
@@ -73,14 +71,14 @@ class ParticipantRosterPdfBuilder
             ->values();
 
         $eventName = (string) $event->name;
-        $placeSummary = trim($event->compactPlaceSummary());
-        $timeSummary = trim(format_date_range_compact($event->starts_at, $event->ends_at));
+        $whereSummary = trim($event->compactPlaceSummary());
+        $whenSummary = trim(format_datetime_range_compact($event->starts_at, $event->ends_at));
 
         return [
             'eventName' => $eventName,
             'documentTitle' => $this->namedTitle($eventName),
-            'place' => $placeSummary !== '' ? $placeSummary : null,
-            'time' => $timeSummary !== '' ? $timeSummary : null,
+            'where' => $whereSummary !== '' ? $whereSummary : null,
+            'when' => $whenSummary !== '' ? $whenSummary : null,
             'activities' => $activities
                 ->map(fn (Activity $activity): array => $this->mapActivityRoster($activity))
                 ->all(),
@@ -124,9 +122,8 @@ class ParticipantRosterPdfBuilder
      *     documentTitle: string,
      *     host: string|null,
      *     gameNames: list<string>,
-     *     slotName: string|null,
-     *     time: string|null,
-     *     room: string|null,
+     *     when: string|null,
+     *     where: string|null,
      *     participants: list<array{name: string, is_absent: bool}>
      * }
      */
@@ -152,6 +149,7 @@ class ParticipantRosterPdfBuilder
         $startsAt = $slot?->starts_at ?? $activity->starts_at;
         $endsAt = $slot?->ends_at ?? $activity->ends_at;
         $place = $slot?->place ?? $activity->place;
+        $roomName = $this->roomNameFromPlace($place);
         $name = (string) $activity->name;
 
         return [
@@ -163,11 +161,23 @@ class ParticipantRosterPdfBuilder
                 ->filter(fn (string $label): bool => $label !== '')
                 ->values()
                 ->all(),
-            'slotName' => $slotName !== '' ? $slotName : null,
-            'time' => $this->formatTimeRange($startsAt, $endsAt),
-            'room' => $this->roomNameFromPlace($place),
+            'when' => $this->formatTimeRange($startsAt, $endsAt),
+            'where' => $this->composeWhereLabel(
+                $slotName !== '' ? $slotName : null,
+                $roomName,
+            ),
             'participants' => $participants,
         ];
+    }
+
+    private function composeWhereLabel(?string $slotName, ?string $roomName): ?string
+    {
+        $parts = array_values(array_filter(
+            [$slotName, $roomName],
+            fn (?string $part): bool => $part !== null && $part !== '',
+        ));
+
+        return $parts === [] ? null : implode(' · ', $parts);
     }
 
     private function namedTitle(string $name): string

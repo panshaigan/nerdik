@@ -42,7 +42,10 @@
         }
         .col-check {
             width: 56px;
-            text-align: center;
+            text-align: right;
+        }
+        .col-check .checkbox {
+            margin-left: auto;
         }
         .checkbox {
             display: inline-block;

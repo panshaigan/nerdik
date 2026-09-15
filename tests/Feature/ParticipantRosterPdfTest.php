@@ -166,9 +166,8 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertSame('Midnight Heist - Participant roster', $roster['documentTitle']);
         $this->assertSame('gm_host', $roster['host']);
         $this->assertSame(['Blades in the Dark'], $roster['gameNames']);
-        $this->assertSame('Slot Alpha', $roster['slotName']);
-        $this->assertSame('Room 12', $roster['room']);
-        $this->assertNotNull($roster['time']);
+        $this->assertSame('Slot Alpha · Room 12', $roster['where']);
+        $this->assertNotNull($roster['when']);
         $this->assertSame(['alice_player', 'bob_missing', 'charlie_player'], array_column($roster['participants'], 'name'));
         $this->assertTrue($roster['participants'][1]['is_absent']);
 
@@ -176,12 +175,17 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringContainsString('Midnight Heist - Participant roster', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.game').':', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
-        $this->assertStringContainsString('Slot Alpha', $html);
-        $this->assertStringContainsString('Room 12', $html);
+        $this->assertStringContainsString(__('ui.pdf.roster.where').':', $html);
+        $this->assertStringContainsString('Slot Alpha · Room 12', $html);
+        $this->assertStringContainsString(__('ui.pdf.roster.when').':', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.absent_note'), $html);
+        $this->assertMatchesRegularExpression(
+            '/col-name.*col-check/s',
+            $html,
+        );
     }
 
-    public function test_event_roster_includes_place_time_two_column_layout_and_skips_cancelled(): void
+    public function test_event_roster_includes_where_when_two_column_layout_and_skips_cancelled(): void
     {
         $owner = User::factory()->create();
         $venue = Place::factory()->venue()->create(['name' => 'Expo Center']);
@@ -230,15 +234,18 @@ final class ParticipantRosterPdfTest extends TestCase
 
         $this->assertSame('Con Alpha', $roster['eventName']);
         $this->assertSame('Con Alpha - Participant roster', $roster['documentTitle']);
-        $this->assertSame('Expo Center', $roster['place']);
-        $this->assertNotNull($roster['time']);
+        $this->assertSame('Expo Center', $roster['where']);
+        $this->assertNotNull($roster['when']);
+        $this->assertStringContainsString(':', $roster['when']);
         $this->assertCount(2, $roster['activities']);
         $this->assertSame('Active Table', $roster['activities'][0]['name']);
         $this->assertSame('Second Table', $roster['activities'][1]['name']);
 
         $html = view('pdf.event-participants', ['roster' => $roster])->render();
         $this->assertStringContainsString('Con Alpha - Participant roster', $html);
+        $this->assertStringContainsString(__('ui.pdf.roster.where').':', $html);
         $this->assertStringContainsString('Expo Center', $html);
+        $this->assertStringContainsString(__('ui.pdf.roster.when').':', $html);
         $this->assertStringContainsString('activities-grid', $html);
         $this->assertStringContainsString('Active Table', $html);
         $this->assertStringContainsString('Second Table', $html);

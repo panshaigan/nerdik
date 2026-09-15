@@ -68,7 +68,10 @@
         }
         .col-check {
             width: 48px;
-            text-align: center;
+            text-align: right;
+        }
+        .col-check .checkbox {
+            margin-left: auto;
         }
         .checkbox {
             display: inline-block;
@@ -94,13 +97,13 @@
 <body>
     <h1>{{ $roster['documentTitle'] }}</h1>
 
-    @if (($roster['place'] ?? null) || ($roster['time'] ?? null))
+    @if (($roster['where'] ?? null) || ($roster['when'] ?? null))
         <div class="event-meta">
-            @if (($roster['place'] ?? null) !== null && $roster['place'] !== '')
-                <p><strong>{{ __('ui.pdf.roster.place') }}:</strong> {{ $roster['place'] }}</p>
+            @if (($roster['where'] ?? null) !== null && $roster['where'] !== '')
+                <p><strong>{{ __('ui.pdf.roster.where') }}:</strong> {{ $roster['where'] }}</p>
             @endif
-            @if (($roster['time'] ?? null) !== null && $roster['time'] !== '')
-                <p><strong>{{ __('ui.pdf.roster.time') }}:</strong> {{ $roster['time'] }}</p>
+            @if (($roster['when'] ?? null) !== null && $roster['when'] !== '')
+                <p><strong>{{ __('ui.pdf.roster.when') }}:</strong> {{ $roster['when'] }}</p>
             @endif
         </div>
     @endif
