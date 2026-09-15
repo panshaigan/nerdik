@@ -947,9 +947,15 @@ return [
     'pdf' => [
         'roster' => [
             'title' => 'Participant roster',
+            'title_named' => ':name - Participant roster',
             'print_action' => 'Print participant list',
             'host' => 'Host',
+            'game' => 'Game',
             'games' => 'Games',
+            'slot' => 'Slot',
+            'time' => 'Time',
+            'room' => 'Room',
+            'place' => 'Place',
             'participant' => 'Participant',
             'present' => 'Present',
             'absent_note' => 'marked absent',

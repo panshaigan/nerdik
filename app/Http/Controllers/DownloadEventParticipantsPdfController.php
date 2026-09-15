@@ -15,6 +15,6 @@ class DownloadEventParticipantsPdfController extends Controller
     {
         $this->authorizeCreatedBy($event);
 
-        return $builder->downloadForEvent($event);
+        return $builder->streamForEvent($event);
     }
 }

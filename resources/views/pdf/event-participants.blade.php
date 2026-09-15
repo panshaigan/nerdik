@@ -2,67 +2,84 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <title>{{ $roster['eventName'] }} — {{ __('ui.pdf.roster.title') }}</title>
+    <title>{{ $roster['documentTitle'] }}</title>
     <style>
         @page { margin: 24px 28px; }
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             color: #111;
-            line-height: 1.4;
+            line-height: 1.35;
         }
         h1 {
-            font-size: 18px;
+            font-size: 17px;
             margin: 0 0 6px;
         }
-        .event-subtitle {
-            margin: 0 0 18px;
-            color: #444;
-            font-size: 13px;
+        .event-meta {
+            margin: 0 0 14px;
+            color: #333;
+            font-size: 12px;
+        }
+        .event-meta p {
+            margin: 0 0 3px;
         }
         h2.activity-title {
-            font-size: 15px;
-            margin: 0 0 8px;
+            font-size: 13px;
+            margin: 0 0 6px;
         }
         .meta {
-            margin: 0 0 4px;
+            margin: 0 0 3px;
+        }
+        table.activities-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.activities-grid > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0 8px 16px 0;
+        }
+        table.activities-grid > tbody > tr > td:last-child {
+            padding-right: 0;
+            padding-left: 8px;
         }
         .activity-roster {
-            margin-bottom: 22px;
             page-break-inside: avoid;
+            border: 1px solid #ddd;
+            padding: 8px;
         }
         table.participants {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
+            margin-top: 8px;
         }
         table.participants th,
         table.participants td {
             border-bottom: 1px solid #ccc;
-            padding: 6px 4px;
+            padding: 4px 3px;
             text-align: left;
             vertical-align: middle;
         }
         table.participants th {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.03em;
             color: #444;
         }
         .col-check {
-            width: 56px;
+            width: 48px;
             text-align: center;
         }
         .checkbox {
             display: inline-block;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 1.5px solid #222;
             vertical-align: middle;
         }
         .absent-note {
             color: #666;
-            font-size: 11px;
+            font-size: 10px;
         }
         .empty {
             color: #666;
@@ -75,13 +92,36 @@
     </style>
 </head>
 <body>
-    <h1>{{ __('ui.pdf.roster.title') }}</h1>
-    <p class="event-subtitle">{{ $roster['eventName'] }}</p>
+    <h1>{{ $roster['documentTitle'] }}</h1>
 
-    @forelse ($roster['activities'] as $activityRoster)
-        @include('pdf.partials.activity-roster', ['roster' => $activityRoster])
-    @empty
+    @if (($roster['place'] ?? null) || ($roster['time'] ?? null))
+        <div class="event-meta">
+            @if (($roster['place'] ?? null) !== null && $roster['place'] !== '')
+                <p><strong>{{ __('ui.pdf.roster.place') }}:</strong> {{ $roster['place'] }}</p>
+            @endif
+            @if (($roster['time'] ?? null) !== null && $roster['time'] !== '')
+                <p><strong>{{ __('ui.pdf.roster.time') }}:</strong> {{ $roster['time'] }}</p>
+            @endif
+        </div>
+    @endif
+
+    @if ($roster['activities'] === [])
         <p class="no-activities">{{ __('ui.pdf.roster.no_activities') }}</p>
-    @endforelse
+    @else
+        <table class="activities-grid">
+            @foreach (array_chunk($roster['activities'], 2) as $pair)
+                <tr>
+                    @foreach ($pair as $activityRoster)
+                        <td>
+                            @include('pdf.partials.activity-roster', ['roster' => $activityRoster, 'showHeading' => true])
+                        </td>
+                    @endforeach
+                    @if (count($pair) === 1)
+                        <td></td>
+                    @endif
+                </tr>
+            @endforeach
+        </table>
+    @endif
 </body>
 </html>

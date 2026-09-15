@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <title>{{ $roster['name'] }} — {{ __('ui.pdf.roster.title') }}</title>
+    <title>{{ $roster['documentTitle'] }}</title>
     <style>
         @page { margin: 24px 28px; }
         body {
@@ -62,7 +62,7 @@
     </style>
 </head>
 <body>
-    <h1>{{ __('ui.pdf.roster.title') }}</h1>
-    @include('pdf.partials.activity-roster', ['roster' => $roster])
+    <h1>{{ $roster['documentTitle'] }}</h1>
+    @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
 </body>
 </html>

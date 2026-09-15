@@ -937,9 +937,15 @@ return [
     'pdf' => [
         'roster' => [
             'title' => 'Lista uczestników',
+            'title_named' => ':name - Lista uczestników',
             'print_action' => 'Drukuj listę uczestników',
             'host' => 'Prowadzący',
+            'game' => 'Gra',
             'games' => 'Gry',
+            'slot' => 'Slot',
+            'time' => 'Czas',
+            'room' => 'Sala',
+            'place' => 'Miejsce',
             'participant' => 'Uczestnik',
             'present' => 'Obecny',
             'absent_note' => 'oznaczony jako nieobecny',

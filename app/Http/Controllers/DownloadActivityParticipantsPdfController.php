@@ -15,6 +15,6 @@ class DownloadActivityParticipantsPdfController extends Controller
     {
         $this->authorizeCreatedBy($activity);
 
-        return $builder->downloadForActivity($activity);
+        return $builder->streamForActivity($activity);
     }
 }
