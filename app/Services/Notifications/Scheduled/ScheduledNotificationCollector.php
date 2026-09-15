@@ -2,6 +2,7 @@
 
 namespace App\Services\Notifications\Scheduled;
 
+use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
@@ -22,13 +23,31 @@ class ScheduledNotificationCollector
      */
     public function collectForUser(User $user, CarbonImmutable $referenceNow): array
     {
-        return collect()
-            ->concat($this->collectInterestedEnrollmentWindows($user, $referenceNow))
-            ->concat($this->collectDashboardFeedItems($user, $referenceNow))
-            ->concat($this->collectParticipantCancellationDeadlines($user, $referenceNow))
-            ->concat($this->collectHostLowParticipationWarnings($user, $referenceNow))
-            ->values()
-            ->all();
+        $items = collect();
+
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledInterestedEnrollmentWindow)) {
+            $items = $items->concat($this->collectInterestedEnrollmentWindows($user, $referenceNow));
+        }
+
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledDashboardFeed)) {
+            $items = $items->concat($this->collectDashboardFeedItems($user, $referenceNow));
+        }
+
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledParticipantCancellationDeadline)) {
+            $items = $items->concat($this->collectParticipantCancellationDeadlines($user, $referenceNow));
+        }
+
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledHostLowParticipation)) {
+            $items = $items->concat($this->collectHostLowParticipationWarnings($user, $referenceNow));
+        }
+
+        return $items->values()->all();
+    }
+
+    private function wantsScheduledCategory(User $user, NotificationPreferenceKey $key): bool
+    {
+        return $user->wantsNotificationChannel($key, 'in_app')
+            || $user->wantsNotificationChannel($key, 'email');
     }
 
     /**

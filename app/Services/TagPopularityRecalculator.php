@@ -15,10 +15,7 @@ class TagPopularityRecalculator
         Tag::query()->update(['popularity_score' => 0]);
 
         $countsByTagId = $this->countsByTagId();
-
-        foreach ($countsByTagId as $tagId => $score) {
-            Tag::query()->whereKey($tagId)->update(['popularity_score' => $score]);
-        }
+        $this->applyScores($countsByTagId);
 
         return count($countsByTagId);
     }
@@ -34,12 +31,52 @@ class TagPopularityRecalculator
         }
 
         $countsByTagId = $this->countsByTagId($tagIds);
+        $scores = [];
 
         foreach ($tagIds as $tagId) {
-            Tag::query()->whereKey($tagId)->update([
-                'popularity_score' => $countsByTagId[$tagId] ?? 0,
-            ]);
+            $scores[$tagId] = $countsByTagId[$tagId] ?? 0;
         }
+
+        $this->applyScores($scores);
+    }
+
+    /**
+     * @param  array<int, int>  $scoresByTagId
+     */
+    private function applyScores(array $scoresByTagId): void
+    {
+        if ($scoresByTagId === []) {
+            return;
+        }
+
+        $driver = DB::connection()->getDriverName();
+        $ids = array_keys($scoresByTagId);
+        $cases = [];
+        $bindings = [];
+
+        foreach ($scoresByTagId as $tagId => $score) {
+            $cases[] = 'WHEN ? THEN ?';
+            $bindings[] = $tagId;
+            $bindings[] = $score;
+        }
+
+        $caseSql = 'CASE id '.implode(' ', $cases).' END';
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $bindings = array_merge($bindings, $ids);
+
+        if ($driver === 'pgsql') {
+            DB::update(
+                "UPDATE tags SET popularity_score = ({$caseSql})::integer WHERE id IN ({$placeholders})",
+                $bindings
+            );
+
+            return;
+        }
+
+        DB::update(
+            "UPDATE tags SET popularity_score = {$caseSql} WHERE id IN ({$placeholders})",
+            $bindings
+        );
     }
 
     /**

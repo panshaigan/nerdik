@@ -101,7 +101,8 @@ class ActivityLotteryService
         return Activity::query()
             ->where('participation_mode', ParticipationMode::Lottery->value)
             ->whereNull('cancelled_at')
-            ->with(['slot.event.enrollmentWindows', 'waitlist.user', 'participants', 'lotteryDraws'])
+            ->whereNull('lottery_resolved_at')
+            ->with(['slot.event.enrollmentWindows', 'lotteryDraws'])
             ->get()
             ->filter(fn (Activity $activity): bool => $this->dueDraws($activity)->isNotEmpty())
             ->values();
@@ -327,12 +328,14 @@ class ActivityLotteryService
             return PHP_INT_MAX;
         }
 
-        return max(0, $activity->max_participants - $activity->participants()->count());
+        return max(0, $activity->max_participants - $this->participantCount($activity));
     }
 
     protected function pickAndPromoteRandomEntry(Activity $activity, bool $notify): ?User
     {
-        $entries = $activity->waitlist()->with('user')->get()->shuffle();
+        $activity->loadMissing(['waitlist.user', 'participants']);
+
+        $entries = $activity->waitlist->shuffle()->values();
 
         foreach ($entries as $entry) {
             $user = $entry->user;
@@ -340,7 +343,7 @@ class ActivityLotteryService
                 continue;
             }
 
-            if ($activity->participants()->where('user_id', $user->id)->exists()) {
+            if ($activity->participants->contains('user_id', $user->id)) {
                 $this->removeWaitlistEntry($activity, $entry);
 
                 continue;
@@ -367,9 +370,32 @@ class ActivityLotteryService
         $pos = $entry->position;
         $entry->delete();
         $activity->waitlist()->where('position', '>', $pos)->decrement('position');
-        $activity->participants()->create([
+        $participant = $activity->participants()->create([
             'user_id' => $entry->user_id,
         ]);
+
+        if ($activity->relationLoaded('waitlist')) {
+            $activity->setRelation(
+                'waitlist',
+                $activity->waitlist
+                    ->reject(fn (ActivityWaitlistEntry $waitlistEntry): bool => $waitlistEntry->is($entry))
+                    ->map(function (ActivityWaitlistEntry $waitlistEntry) use ($pos): ActivityWaitlistEntry {
+                        if ($waitlistEntry->position > $pos) {
+                            $waitlistEntry->position--;
+                        }
+
+                        return $waitlistEntry;
+                    })
+                    ->values()
+            );
+        }
+
+        if ($activity->relationLoaded('participants')) {
+            $activity->setRelation(
+                'participants',
+                $activity->participants->push($participant)->values()
+            );
+        }
 
         if ($notify && $targetUser instanceof User) {
             $targetUser->notify(new WaitlistPromotedNotification($activity->fresh()));
@@ -386,6 +412,22 @@ class ActivityLotteryService
         $pos = $entry->position;
         $entry->delete();
         $activity->waitlist()->where('position', '>', $pos)->decrement('position');
+
+        if ($activity->relationLoaded('waitlist')) {
+            $activity->setRelation(
+                'waitlist',
+                $activity->waitlist
+                    ->reject(fn (ActivityWaitlistEntry $waitlistEntry): bool => $waitlistEntry->is($entry))
+                    ->map(function (ActivityWaitlistEntry $waitlistEntry) use ($pos): ActivityWaitlistEntry {
+                        if ($waitlistEntry->position > $pos) {
+                            $waitlistEntry->position--;
+                        }
+
+                        return $waitlistEntry;
+                    })
+                    ->values()
+            );
+        }
     }
 
     protected function isAtCapacity(Activity $activity): bool
@@ -394,7 +436,16 @@ class ActivityLotteryService
             return false;
         }
 
-        return $activity->participants()->count() >= $activity->max_participants;
+        return $this->participantCount($activity) >= $activity->max_participants;
+    }
+
+    protected function participantCount(Activity $activity): int
+    {
+        if ($activity->relationLoaded('participants')) {
+            return $activity->participants->count();
+        }
+
+        return $activity->participants()->count();
     }
 
     /**

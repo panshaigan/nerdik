@@ -1,5 +1,9 @@
 <?php
 
+use App\Jobs\ExpireUserRequestsJob;
+use App\Jobs\RecalculateAllTagPopularityJob;
+use App\Jobs\ResolveActivityLotteriesJob;
+use App\Jobs\SendScheduledPeriodicDigestJob;
 use App\Jobs\SendWorkerMonitoringHeartbeatJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -14,10 +18,10 @@ Schedule::command('telescope:prune')
     ->daily()
     ->when(fn (): bool => class_exists(Telescope::class)
         && (bool) config('telescope.enabled', false));
-Schedule::command('notifications:scheduled-digest')->hourly()->withoutOverlapping();
-Schedule::command('user-requests:expire')->hourly()->withoutOverlapping();
-Schedule::command('activities:resolve-lotteries')->everyMinute()->withoutOverlapping();
-Schedule::command('tags:recalculate-popularity')->everySixHours()->withoutOverlapping();
+Schedule::job(new SendScheduledPeriodicDigestJob)->hourly()->withoutOverlapping();
+Schedule::job(new ExpireUserRequestsJob)->hourly()->withoutOverlapping();
+Schedule::job(new ResolveActivityLotteriesJob)->everyMinute()->withoutOverlapping();
+Schedule::job(new RecalculateAllTagPopularityJob)->everySixHours()->withoutOverlapping();
 
 Schedule::command('monitoring:heartbeat', ['scheduler'])
     ->everyMinute()
