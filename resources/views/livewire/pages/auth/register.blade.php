@@ -94,10 +94,6 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-@php
-    use Anhskohbo\NoCaptcha\Facades\NoCaptcha;
-@endphp
-
 <div id="ui-auth-register-root" class="ui-auth ui-auth-register" data-ui="auth-register-root">
     @if (config('services.google.client_id'))
         <div class="mb-4">
@@ -138,7 +134,7 @@ new #[Layout('layouts.guest')] class extends Component
 
     @if (auth_recaptcha_enforced())
         @push('scripts')
-            {!! NoCaptcha::renderJs() !!}
+            {!! auth_recaptcha_api_script() !!}
         @endpush
     @endif
 
@@ -193,7 +189,11 @@ new #[Layout('layouts.guest')] class extends Component
 
         @if (auth_recaptcha_enforced())
             <div wire:ignore class="flex min-h-[78px] flex-col justify-center" data-ui="auth-register-recaptcha">
-                {!! NoCaptcha::display(['data-callback' => $this->recaptchaDataCallback()]) !!}
+                <div
+                    data-nerdik-recaptcha
+                    data-sitekey="{{ config('captcha.sitekey') }}"
+                    data-callback="{{ $this->recaptchaDataCallback() }}"
+                ></div>
             </div>
 
             @error('gRecaptchaResponse')

@@ -111,6 +111,24 @@ class RegistrationTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_registration_page_loads_recaptcha_with_explicit_navigate_safe_script(): void
+    {
+        Config::set('services.recaptcha.enabled', true);
+        Config::set('captcha.sitekey', 'test-site-key');
+        Config::set('captcha.secret', 'test-secret-key');
+
+        $response = $this->get('/register');
+
+        $response->assertOk();
+        $response->assertSee('data-nerdik-recaptcha', false);
+        $response->assertSee('data-sitekey="test-site-key"', false);
+        $response->assertSee('data-callback="nerdikAuthRegisterRecaptcha"', false);
+        $response->assertSee('data-navigate-once', false);
+        $response->assertSee('render=explicit', false);
+        $response->assertSee('onload=nerdikRecaptchaOnload', false);
+        $response->assertDontSee('class="g-recaptcha"', false);
+    }
+
     public function test_registration_form_errors_do_not_verify_recaptcha_when_recaptcha_enabled(): void
     {
         Notification::fake();

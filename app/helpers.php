@@ -21,6 +21,23 @@ if (! function_exists('auth_recaptcha_enforced')) {
     }
 }
 
+if (! function_exists('auth_recaptcha_api_script')) {
+    /**
+     * Explicit-render api.js tag. data-navigate-once prevents Livewire wire:navigate from reloading it.
+     */
+    function auth_recaptcha_api_script(): HtmlString
+    {
+        $src = 'https://www.google.com/recaptcha/api.js?'.http_build_query([
+            'render' => 'explicit',
+            'onload' => 'nerdikRecaptchaOnload',
+        ]);
+
+        return new HtmlString(
+            '<script src="'.e($src).'" async defer data-navigate-once></script>'
+        );
+    }
+}
+
 if (! function_exists('browser_timezone_from_request')) {
     /**
      * Read and validate the browser timezone cookie set by client-side JS.

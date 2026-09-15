@@ -76,10 +76,6 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-@php
-    use Anhskohbo\NoCaptcha\Facades\NoCaptcha;
-@endphp
-
 <div id="ui-auth-forgot-root" class="ui-auth ui-auth-forgot" data-ui="auth-forgot-root">
     <div class="mb-4 text-sm text-base-content/80">
         {{ __('ui.auth.forgot_password_intro') }}
@@ -87,7 +83,7 @@ new #[Layout('layouts.guest')] class extends Component
 
     @if (auth_recaptcha_enforced())
         @push('scripts')
-            {!! NoCaptcha::renderJs() !!}
+            {!! auth_recaptcha_api_script() !!}
         @endpush
     @endif
 
@@ -108,7 +104,11 @@ new #[Layout('layouts.guest')] class extends Component
 
         @if (auth_recaptcha_enforced())
             <div wire:ignore class="flex min-h-[78px] flex-col justify-center" data-ui="auth-forgot-recaptcha">
-                {!! NoCaptcha::display(['data-callback' => $this->recaptchaDataCallback()]) !!}
+                <div
+                    data-nerdik-recaptcha
+                    data-sitekey="{{ config('captcha.sitekey') }}"
+                    data-callback="{{ $this->recaptchaDataCallback() }}"
+                ></div>
             </div>
 
             @error('gRecaptchaResponse')

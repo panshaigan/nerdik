@@ -25,6 +25,22 @@ class PasswordResetTest extends TestCase
             ->assertStatus(200);
     }
 
+    public function test_forgot_password_page_loads_recaptcha_with_explicit_navigate_safe_script(): void
+    {
+        Config::set('services.recaptcha.enabled', true);
+        Config::set('captcha.sitekey', 'test-site-key');
+        Config::set('captcha.secret', 'test-secret-key');
+
+        $response = $this->get('/forgot-password');
+
+        $response->assertOk();
+        $response->assertSee('data-nerdik-recaptcha', false);
+        $response->assertSee('data-callback="nerdikAuthForgotRecaptcha"', false);
+        $response->assertSee('data-navigate-once', false);
+        $response->assertSee('render=explicit', false);
+        $response->assertDontSee('class="g-recaptcha"', false);
+    }
+
     public function test_reset_password_link_can_be_requested(): void
     {
         Notification::fake();

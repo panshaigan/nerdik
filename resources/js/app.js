@@ -4,6 +4,7 @@ import { bootSentry, captureLivewireFailure } from './sentry';
 import './close-modals-on-navigate';
 import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
+import './auth-recaptcha';
 import './copy-to-clipboard';
 import './tinymce-field-chrome';
 import './image-cropper';
