@@ -17,6 +17,7 @@ use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
 use App\Services\LifecycleMutationRateLimiter;
 use App\Services\UserInterestService;
+use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -369,6 +370,7 @@ class ShowEvent extends Component
         EventActivitySignupService $signupService,
         EventShowReadCache $eventShowReadCache,
         EventListingImageResolver $eventListingImageResolver,
+        ShareLinks $shareLinks,
     ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -427,6 +429,7 @@ class ShowEvent extends Component
         return view('livewire.events.show-event', [
             'event' => $event,
             'coverPicture' => $eventListingImageResolver->resolve($event, 'listing_hero'),
+            'sharePayload' => $shareLinks->forEvent($event),
             'attachedActivityIds' => $eventActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'hasPendingProposals' => $hasPendingProposals,

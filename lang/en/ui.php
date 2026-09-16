@@ -200,6 +200,17 @@ return [
         'contact_description' => 'Get in touch with the nerdik team for support and inquiries.',
         'entity_fallback_description' => 'View details for :name on nerdik.',
     ],
+    'share' => [
+        'share' => 'Share',
+        'copy_link' => 'Copy link',
+        'native' => 'Share via device',
+        'platforms' => [
+            'facebook' => 'Facebook',
+            'whatsapp' => 'WhatsApp',
+            'x' => 'X',
+            'telegram' => 'Telegram',
+        ],
+    ],
     'profile' => [
         'title' => 'Profile',
         'tab_identity' => 'Identity',

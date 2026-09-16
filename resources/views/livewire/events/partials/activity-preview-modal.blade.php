@@ -58,6 +58,12 @@
             </x-ui.tabs-with-toolbar>
 
             <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="event-activity-preview-actions">
+                @php
+                    $previewActivitySharePayload = app(\App\Support\Sharing\ShareLinks::class)->forActivity($previewActivity);
+                @endphp
+                @if ($previewActivitySharePayload)
+                    <x-ui.share-menu :payload="$previewActivitySharePayload" />
+                @endif
                 @auth
                     @if ($showPreviewParticipationTab ?? false)
                         @if ($previewActivityParticipation?->isParticipant)

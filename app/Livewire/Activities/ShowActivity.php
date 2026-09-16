@@ -13,6 +13,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Services\UserInterestService;
+use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Support\Ui\ActivityShowSchedulePresenter;
 use Livewire\Attributes\On;
@@ -289,6 +290,7 @@ class ShowActivity extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         ActivityListingImageResolver $activityListingImageResolver,
         ActivityShowSchedulePresenter $schedulePresenter,
+        ShareLinks $shareLinks,
     ) {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
@@ -319,6 +321,7 @@ class ShowActivity extends Component
             'activity' => $activity,
             'schedule' => $schedule,
             'coverPicture' => $activityListingImageResolver->resolve($activity, 'listing_hero'),
+            'sharePayload' => $shareLinks->forActivity($activity),
             'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,

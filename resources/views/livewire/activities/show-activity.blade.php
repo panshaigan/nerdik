@@ -65,7 +65,7 @@
                             </p>
                             <p>
                                 <span class="font-semibold">{{ __('ui.events.cancellation_popover_when') }}:</span>
-                                <span class="mt-0.5 block">{{ $activity->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—' }}</span>
+                                <span class="mt-0.5 block">{{ $activity->cancelled_at ? format_datetime_in_user_tz($activity->cancelled_at) : '—' }}</span>
                             </p>
                         </div>
                     </x-slot:content>
@@ -122,8 +122,11 @@
                 data-ui="activity-show-tabs"
             >
                 <x-slot:toolbar>
-                    @auth
-                        <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
+                    <div class="flex shrink-0 items-center gap-1" data-ui="activity-show-tabs-toolbar">
+                        @if ($sharePayload)
+                            <x-ui.share-menu :payload="$sharePayload" />
+                        @endif
+                        @auth
                             @if ($canManageActivity)
                                 <x-button
                                     :link="route('activities.participants.pdf', $activity)"
@@ -181,8 +184,8 @@
                                     />
                                 @endif
                             @endif
-                        </div>
-                    @endauth
+                        @endauth
+                    </div>
                 </x-slot:toolbar>
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-light-bulb">
                     @include('livewire.activities.partials.show-about-tab', [

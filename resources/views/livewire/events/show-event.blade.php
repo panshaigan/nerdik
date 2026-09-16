@@ -97,8 +97,11 @@
             data-ui="event-show-tabs"
         >
             <x-slot:toolbar>
-                @auth
-                    <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
+                <div class="flex shrink-0 items-center gap-1" data-ui="event-show-tabs-toolbar">
+                    @if ($sharePayload)
+                        <x-ui.share-menu :payload="$sharePayload" />
+                    @endif
+                    @auth
                         @if ($canManageEvent)
                             <div class="flex shrink-0 items-center gap-1">
                                 <x-button
@@ -184,8 +187,8 @@
                             @endif
                             </div>
                         @endif
-                    </div>
-                @endauth
+                    @endauth
+                </div>
             </x-slot:toolbar>
 
             <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">

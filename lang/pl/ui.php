@@ -200,6 +200,17 @@ return [
         'contact_description' => 'Skontaktuj się z zespołem nerdik w sprawie wsparcia i zapytań.',
         'entity_fallback_description' => 'Zobacz szczegóły wydarzenia :name w nerdik.',
     ],
+    'share' => [
+        'share' => 'Udostępnij',
+        'copy_link' => 'Kopiuj link',
+        'native' => 'Udostępnij przez urządzenie',
+        'platforms' => [
+            'facebook' => 'Facebook',
+            'whatsapp' => 'WhatsApp',
+            'x' => 'X',
+            'telegram' => 'Telegram',
+        ],
+    ],
     'profile' => [
         'title' => 'Profil',
         'tab_identity' => 'Tożsamość',
