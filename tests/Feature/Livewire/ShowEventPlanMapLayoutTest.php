@@ -26,7 +26,7 @@ class ShowEventPlanMapLayoutTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_plan_tab_shows_description_and_enrollment_windows(): void
+    public function test_plan_tab_shows_info_with_description_and_enrollment_windows(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
         $event = Event::factory()->public()->create([
@@ -46,18 +46,21 @@ class ShowEventPlanMapLayoutTest extends TestCase
 
         $html = Livewire::withoutLazyLoading()
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
-            ->assertSeeHtml('data-ui="event-show-plan-description"')
+            ->assertSeeHtml('data-ui="event-show-plan-info"')
             ->assertSeeHtml('data-ui="event-show-plan-enrollment"')
             ->assertSeeHtml('data-ui="event-show-enrollment-window"')
+            ->assertSee(__('ui.events.show_info'))
             ->assertSee('Unique plan description copy for layout test.')
             ->assertSee('Early bird')
+            ->assertDontSeeHtml('data-ui="event-show-plan-info-enrollment-badge"')
             ->assertDontSeeHtml('data-ui="event-show-map"')
             ->html();
 
         $this->assertStringNotContainsString('data-ui="event-show-enrollment-open"', $html);
+        $this->assertSame(1, substr_count($html, 'data-ui="event-show-plan-info"'));
     }
 
-    public function test_plan_description_collapse_starts_closed_when_enrollment_is_open(): void
+    public function test_plan_info_collapse_starts_closed_with_badge_when_enrollment_is_open(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-05 12:00:00', 'UTC'));
         $event = Event::factory()->public()->create([
@@ -77,19 +80,18 @@ class ShowEventPlanMapLayoutTest extends TestCase
 
         $html = Livewire::withoutLazyLoading()
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
-            ->assertSeeHtml('data-ui="event-show-plan-description"')
+            ->assertSeeHtml('data-ui="event-show-plan-info"')
+            ->assertSeeHtml('data-ui="event-show-plan-info-enrollment-badge"')
             ->assertSeeHtml('data-ui="event-show-plan-enrollment"')
             ->assertSee(__('ui.events.enrollment_window_active_badge'))
             ->html();
 
         $this->assertMatchesRegularExpression(
-            '/data-ui="event-show-plan-description"[\s\S]*?<input(?![^>]*\bchecked\b)[^>]*type="checkbox"/',
+            '/data-ui="event-show-plan-info"[\s\S]*?<input(?![^>]*\bchecked\b)[^>]*type="checkbox"/',
             $html,
         );
-        $this->assertMatchesRegularExpression(
-            '/data-ui="event-show-plan-enrollment"[\s\S]*?<input[^>]*\bchecked\b[^>]*type="checkbox"/',
-            $html,
-        );
+        $this->assertSame(1, substr_count($html, 'data-ui="event-show-plan-info"'));
+        $this->assertStringNotContainsString(__('ui.events.enrollment_windows_heading'), $html);
     }
 
     public function test_map_tab_renders_map_markup_not_description(): void

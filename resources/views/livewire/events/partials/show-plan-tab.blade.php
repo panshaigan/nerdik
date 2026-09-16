@@ -42,72 +42,6 @@
         $guestProposeLoginUrl = login_url($proposeReturnPath);
     @endphp
 
-    @if ($hasEventDescription || $hasEnrollmentWindows)
-        <div class="space-y-4 px-1 pb-2 pt-2 sm:px-4 sm:pt-4" data-ui="event-show-plan-meta">
-            @if ($hasEventDescription)
-                <x-collapse
-                    class="border border-primary/25 bg-base-200/40"
-                    separator
-                    :open="! $activeEnrollmentWindow"
-                    data-ui="event-show-plan-description"
-                >
-                    <x-slot:heading>
-                        <span class="text-base font-semibold text-base-content">{{ __('ui.events.show_about') }}</span>
-                    </x-slot:heading>
-                    <x-slot:content>
-                        <div class="rich-text-content text-justify text-base-content/80 p-2 sm:p-4">
-                            {!! rich_text($event->description) !!}
-                        </div>
-                    </x-slot:content>
-                </x-collapse>
-            @endif
-
-            @if ($hasEnrollmentWindows)
-                @if ($activeEnrollmentWindow)
-                    <x-collapse
-                        class="border border-primary/25 bg-base-200/40"
-                        separator
-                        :open="true"
-                        data-ui="event-show-plan-enrollment"
-                    >
-                        <x-slot:heading>
-                            <span class="text-base font-semibold text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</span>
-                        </x-slot:heading>
-                        <x-slot:content>
-                            @include('livewire.events.partials.show-plan-enrollment-windows', [
-                                'event' => $event,
-                                'activeEnrollmentWindow' => $activeEnrollmentWindow,
-                            ])
-                        </x-slot:content>
-                    </x-collapse>
-                @else
-                    <div data-ui="event-show-plan-enrollment">
-                        <h3 class="text-base font-semibold text-base-content pl-2">{{ __('ui.events.enrollment_windows_heading') }}</h3>
-                        @include('livewire.events.partials.show-plan-enrollment-windows', [
-                            'event' => $event,
-                            'activeEnrollmentWindow' => $activeEnrollmentWindow,
-                        ])
-                    </div>
-                @endif
-            @endif
-        </div>
-    @endif
-
-    @auth
-        @if ($canShowPlanActivityProposalUi ?? false)
-            @php
-                $proposeActivityUrl = ! empty($proposalSlotIds)
-                    ? url_with_return(
-                        route('activities.create').'?'.http_build_query([
-                            'proposal_event_id' => $event->id,
-                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
-                        ]),
-                        $proposeReturnPath,
-                    )
-                    : url_with_return(route('activities.create', ['proposal_event_id' => $event->id]), $proposeReturnPath);
-            @endphp
-        @endif
-    @endauth
     @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
         <div class="flex items-center justify-end gap-2 mb-4">
             @if ($canShowPlanActivityProposalUi ?? false)
@@ -141,6 +75,60 @@
             @endif
         </div>
     @endif
+
+    @if ($hasEventDescription || $hasEnrollmentWindows)
+        <div class="space-y-4 py-2 sm:py-4" data-ui="event-show-plan-meta">
+            <x-collapse
+                class="border border-primary/25 bg-base-200/40"
+                separator
+                :open="! $activeEnrollmentWindow"
+                data-ui="event-show-plan-info"
+            >
+                <x-slot:heading>
+                    <span class="inline-flex flex-wrap items-center gap-2">
+                        <span class="text-base font-semibold text-base-content">{{ __('ui.events.show_info') }}</span>
+                        @if ($activeEnrollmentWindow)
+                            <span class="badge badge-success badge-sm shrink-0" data-ui="event-show-plan-info-enrollment-badge">
+                                {{ __('ui.events.enrollment_window_active_badge') }}
+                            </span>
+                        @endif
+                    </span>
+                </x-slot:heading>
+                <x-slot:content>
+                    @if ($hasEventDescription)
+                        <div class="rich-text-content text-justify text-base-content/80 p-2 sm:p-4" data-ui="event-show-plan-info-description">
+                            {!! rich_text($event->description) !!}
+                        </div>
+                    @endif
+
+                    @if ($hasEnrollmentWindows)
+                        <div @class(['mt-4' => $hasEventDescription]) data-ui="event-show-plan-enrollment">
+                            @include('livewire.events.partials.show-plan-enrollment-windows', [
+                                'event' => $event,
+                                'activeEnrollmentWindow' => $activeEnrollmentWindow,
+                            ])
+                        </div>
+                    @endif
+                </x-slot:content>
+            </x-collapse>
+        </div>
+    @endif
+
+    @auth
+        @if ($canShowPlanActivityProposalUi ?? false)
+            @php
+                $proposeActivityUrl = ! empty($proposalSlotIds)
+                    ? url_with_return(
+                        route('activities.create').'?'.http_build_query([
+                            'proposal_event_id' => $event->id,
+                            'proposal_slot_ids' => array_map('intval', $proposalSlotIds),
+                        ]),
+                        $proposeReturnPath,
+                    )
+                    : url_with_return(route('activities.create', ['proposal_event_id' => $event->id]), $proposeReturnPath);
+            @endphp
+        @endif
+    @endauth
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             @php
