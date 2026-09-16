@@ -870,7 +870,6 @@ return [
         'no_members' => 'Brak członków.',
     ],
     'event_series' => [
-        'show_subtitle' => 'Edycje tego cyklu',
         'tab_events' => 'Wydarzenia',
         'tab_hosts' => 'Gospodarze',
         'tab_activities' => 'Aktywności',

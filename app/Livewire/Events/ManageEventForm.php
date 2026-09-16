@@ -311,8 +311,6 @@ class ManageEventForm extends Component
         $this->event_series_id = $event->event_series_id;
         $this->event_series_name = (string) (optional($event->eventSeries)->name ?? '');
         $this->is_public = (bool) $event->is_public;
-        $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
-        $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
         $this->place_ids = $event->places
             ->filter(fn (Place $p) => $p->type === 'venue')
             ->pluck('id')
@@ -321,17 +319,63 @@ class ManageEventForm extends Component
             ->all();
         $this->new_places = [];
         $this->hydrateLogoFieldsFromEvent($event);
-        $this->enrollment_windows = $event->enrollmentWindows
-            ->map(fn ($p) => [
-                'name' => (string) $p->name,
-                'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
-                'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
-                'max_activities_per_user' => $p->max_activities_per_user,
-                'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
-                'accumulative_activities' => (bool) $p->accumulative_activities,
-            ])
-            ->values()
-            ->all();
+
+        $dateSource = $forDuplicate
+            ? $this->latestSeriesEventForDuplicateDates($event)
+            : $event;
+
+        if ($forDuplicate) {
+            $dateSource->loadMissing('enrollmentWindows');
+            $this->starts_at = $dateSource->starts_at
+                ? format_in_user_tz($dateSource->starts_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i')
+                : '';
+            $this->ends_at = $dateSource->ends_at
+                ? format_in_user_tz($dateSource->ends_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i')
+                : '';
+            $this->enrollment_windows = $dateSource->enrollmentWindows
+                ->map(fn ($p) => [
+                    'name' => (string) $p->name,
+                    'starts_at' => format_in_user_tz($p->starts_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i'),
+                    'ends_at' => format_in_user_tz($p->ends_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i'),
+                    'max_activities_per_user' => $p->max_activities_per_user,
+                    'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
+                    'accumulative_activities' => (bool) $p->accumulative_activities,
+                ])
+                ->values()
+                ->all();
+        } else {
+            $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
+            $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
+            $this->enrollment_windows = $event->enrollmentWindows
+                ->map(fn ($p) => [
+                    'name' => (string) $p->name,
+                    'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
+                    'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
+                    'max_activities_per_user' => $p->max_activities_per_user,
+                    'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
+                    'accumulative_activities' => (bool) $p->accumulative_activities,
+                ])
+                ->values()
+                ->all();
+        }
+    }
+
+    /**
+     * Date/window source for duplicate: latest edition in the series when linked, else the source event.
+     */
+    private function latestSeriesEventForDuplicateDates(Event $event): Event
+    {
+        if ($event->event_series_id === null) {
+            return $event;
+        }
+
+        $latest = Event::query()
+            ->where('event_series_id', $event->event_series_id)
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->first();
+
+        return $latest ?? $event;
     }
 
     private function hydrateLogoFieldsFromEvent(Event $event): void

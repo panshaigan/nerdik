@@ -1,10 +1,6 @@
 <div class="relative" data-ui="event-series-show" data-show-event-series-id="{{ $series->id }}">
     <div class="relative z-0 space-y-4 sm:space-y-6">
-        <x-page-header :title="$series->name">
-            <x-slot:subtitle>
-                <div>{{ __('ui.event_series.show_subtitle') }}</div>
-            </x-slot:subtitle>
-        </x-page-header>
+        <x-page-header :title="$series->name" />
 
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">
             <x-ui.tabs-with-toolbar
@@ -20,39 +16,60 @@
                     @if ($events->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_events') }}</p>
                     @else
-                        <ul class="divide-y divide-base-300" data-ui="event-series-editions-list">
+                        <div class="space-y-6" data-ui="event-series-editions-list">
                             @foreach ($events as $edition)
-                                <li
+                                @php
+                                    $editionStats = $eventStatsById[(int) $edition->id] ?? [
+                                        'confirmed_activities' => 0,
+                                        'confirmed_participants' => 0,
+                                        'available_places_label' => '∞',
+                                        'interested_people_count' => 0,
+                                    ];
+                                @endphp
+                                <div
+                                    wire:key="series-edition-{{ $edition->id }}"
                                     @class([
-                                        'flex flex-wrap items-center justify-between gap-3 py-3',
+                                        'grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(11rem,14rem)] lg:items-stretch',
                                         'opacity-50' => $edition->isCancelled(),
                                     ])
                                     data-ui="event-series-edition"
                                 >
-                                    <div class="min-w-0 flex-1">
-                                        <a
-                                            href="{{ route('events.show', $edition) }}"
-                                            wire:navigate
-                                            class="link link-hover font-semibold break-words"
-                                            data-ui="event-series-edition-link"
-                                        >{{ $edition->name }}</a>
-                                        <div class="mt-1 text-sm text-base-content/70">
-                                            {{ format_date_range_compact($edition->starts_at, $edition->ends_at) }}
-                                            @if ($edition->compactPlaceSummary() !== '')
-                                                · {{ $edition->compactPlaceSummary() }}
-                                            @endif
+                                    <div class="min-w-0">
+                                        <x-cards.listing-card
+                                            :listing="$edition"
+                                            :interested-ids="$interestedEventIds"
+                                            :return-url="$browsingReturnUrl"
+                                        />
+                                    </div>
+                                    <div class="flex flex-col gap-2" data-ui="event-series-edition-stats">
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                            <x-stat
+                                                title="{{ __('ui.events.confirmed_activities') }}"
+                                                value="{{ $editionStats['confirmed_activities'] }}"
+                                                icon="o-puzzle-piece"
+                                                class="ui-stat-embed ui-activity-show-stat"
+                                            />
+                                        </div>
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                            <x-stat
+                                                title="{{ __('ui.events.confirmed_participants') }}"
+                                                value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
+                                                icon="o-users"
+                                                class="ui-stat-embed ui-activity-show-stat"
+                                            />
+                                        </div>
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                            <x-stat
+                                                title="{{ __('ui.events.interested_people_count') }}"
+                                                value="{{ $editionStats['interested_people_count'] }}"
+                                                icon="o-heart"
+                                                class="ui-stat-embed ui-activity-show-stat"
+                                            />
                                         </div>
                                     </div>
-                                    @if ($edition->isCancelled())
-                                        <x-badge
-                                            :value="__('ui.events.cancelled_short')"
-                                            icon="o-x-circle"
-                                            class="badge-warning badge-sm shrink-0 font-semibold normal-case"
-                                        />
-                                    @endif
-                                </li>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @endif
                 </x-tab>
 
@@ -63,19 +80,10 @@
                         <ul class="space-y-3" data-ui="event-series-hosts-list">
                             @foreach ($hosts as $host)
                                 <li class="flex items-center gap-3" data-ui="event-series-host">
-                                    @if ($host['type'] === 'organization' && $host['organization'] !== null)
-                                        <livewire:activities.organization-badge-contact
-                                            :organization="$host['organization']"
-                                            :key="'series-host-org-'.$host['organization']->id"
-                                        />
-                                    @elseif ($host['user'] !== null)
-                                        <livewire:activities.user-badge-contact
-                                            :user="$host['user']"
-                                            :key="'series-host-user-'.$host['user']->id"
-                                        />
-                                    @else
-                                        <span>{{ $host['label'] }}</span>
-                                    @endif
+                                    <livewire:activities.user-badge-contact
+                                        :user="$host['user']"
+                                        :key="'series-host-user-'.$host['user']->id"
+                                    />
                                 </li>
                             @endforeach
                         </ul>
@@ -86,28 +94,20 @@
                     @if ($activities->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_activities') }}</p>
                     @else
-                        <ul class="divide-y divide-base-300" data-ui="event-series-activities-list">
+                        <div
+                            class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6"
+                            data-ui="event-series-activities-list"
+                        >
                             @foreach ($activities as $activity)
-                                <li class="flex flex-wrap items-center justify-between gap-3 py-3" data-ui="event-series-activity">
-                                    <div class="min-w-0 flex-1">
-                                        <a
-                                            href="{{ route('activities.show', $activity) }}"
-                                            wire:navigate
-                                            class="link link-hover font-semibold break-words"
-                                        >{{ $activity->name }}</a>
-                                        @if ($activity->slot?->event)
-                                            <div class="mt-1 text-sm text-base-content/70">
-                                                <a
-                                                    href="{{ route('events.show', $activity->slot->event) }}"
-                                                    wire:navigate
-                                                    class="link link-primary"
-                                                >{{ $activity->slot->event->name }}</a>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </li>
+                                <div wire:key="series-activity-{{ $activity->id }}" class="contents">
+                                    <x-cards.listing-card
+                                        :listing="$activity"
+                                        :interested-ids="$interestedActivityIds"
+                                        :return-url="$browsingReturnUrl"
+                                    />
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @endif
                 </x-tab>
 
@@ -154,17 +154,33 @@
                             />
                         </div>
                         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
-                            <x-stat
-                                title="{{ __('ui.event_series.stats_participants') }}"
-                                value="{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}"
-                                icon="o-users"
-                                class="ui-stat-embed ui-activity-show-stat"
-                            />
+                            <div class="ui-stat-embed ui-activity-show-stat relative w-full px-5 py-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
+                                    <x-popover class="shrink-0 transition-none" position="top" offset="8">
+                                        <x-slot:trigger>
+                                            <x-icon
+                                                name="o-information-circle"
+                                                class="h-4 w-4 text-base-content/50"
+                                                :popover="__('ui.event_series.stats_participants_hint')"
+                                            />
+                                        </x-slot:trigger>
+                                        <x-slot:content class="max-w-xs text-sm text-base-content">
+                                            {{ __('ui.event_series.stats_participants_hint') }}
+                                        </x-slot:content>
+                                    </x-popover>
+                                </div>
+                                <div class="mt-1 flex items-center gap-2 text-2xl font-semibold">
+                                    <x-icon name="o-users" class="h-6 w-6 shrink-0 opacity-70" />
+                                    <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <p class="mt-3 text-sm text-base-content/60">{{ __('ui.event_series.stats_participants_hint') }}</p>
                 </x-tab>
             </x-ui.tabs-with-toolbar>
         </div>
     </div>
+
+    @include('livewire.partials.listing-preview-modals')
 </div>

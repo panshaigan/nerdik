@@ -870,7 +870,6 @@ return [
         'no_members' => 'No members yet.',
     ],
     'event_series' => [
-        'show_subtitle' => 'Editions of this series',
         'tab_events' => 'Events',
         'tab_hosts' => 'Hosts',
         'tab_activities' => 'Activities',

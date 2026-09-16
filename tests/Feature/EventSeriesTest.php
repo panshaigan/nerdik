@@ -18,7 +18,7 @@ class EventSeriesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_duplicate_prefills_series_and_bumps_roman_edition_name(): void
+    public function test_duplicate_prefills_series_bumps_name_and_shifts_dates_from_latest_edition(): void
     {
         app()->setLocale('en');
 
@@ -27,22 +27,59 @@ class EventSeriesTest extends TestCase
             'name' => 'Porzucane',
             'created_by' => $user->id,
         ]);
-        $event = Event::factory()->create([
+
+        $olderStarts = now()->utc()->addMonths(1)->setTime(18, 30, 0);
+        $olderEnds = (clone $olderStarts)->addHours(4);
+        $latestStarts = now()->utc()->addMonths(2)->setTime(19, 15, 0);
+        $latestEnds = (clone $latestStarts)->addHours(5);
+        $windowStarts = (clone $latestStarts)->subDays(7)->setTime(12, 0, 0);
+        $windowEnds = (clone $latestEnds)->subHours(1);
+
+        $older = Event::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'organization_id' => null,
             'event_series_id' => $series->id,
             'name' => 'Porzucane II',
             'is_public' => true,
+            'starts_at' => $olderStarts,
+            'ends_at' => $olderEnds,
+        ]);
+        $latest = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'organization_id' => null,
+            'event_series_id' => $series->id,
+            'name' => 'Porzucane III',
+            'is_public' => true,
+            'starts_at' => $latestStarts,
+            'ends_at' => $latestEnds,
+        ]);
+        $latest->enrollmentWindows()->create([
+            'name' => 'Main window',
+            'starts_at' => $windowStarts,
+            'ends_at' => $windowEnds,
+            'max_activities_per_user' => null,
+            'max_allowed_participants_per_activity' => null,
+            'accumulative_activities' => false,
         ]);
 
+        $expectedStarts = format_in_user_tz($latestStarts->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
+        $expectedEnds = format_in_user_tz($latestEnds->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
+        $expectedWindowStarts = format_in_user_tz($windowStarts->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
+        $expectedWindowEnds = format_in_user_tz($windowEnds->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
+
         Livewire::actingAs($user)
-            ->withQueryParams(['duplicate' => $event->slug])
+            ->withQueryParams(['duplicate' => $older->slug])
             ->test(ManageEventForm::class)
             ->assertSet('name', 'Porzucane III')
             ->assertSet('event_series_id', $series->id)
             ->assertSet('event_series_name', 'Porzucane')
-            ->assertSet('duplicateSlotsFromEventId', $event->id);
+            ->assertSet('starts_at', $expectedStarts)
+            ->assertSet('ends_at', $expectedEnds)
+            ->assertSet('enrollment_windows.0.starts_at', $expectedWindowStarts)
+            ->assertSet('enrollment_windows.0.ends_at', $expectedWindowEnds)
+            ->assertSet('duplicateSlotsFromEventId', $older->id);
     }
 
     public function test_saving_event_with_new_series_name_creates_creator_scoped_series(): void
@@ -79,7 +116,7 @@ class EventSeriesTest extends TestCase
             'name' => 'Porzucane',
             'created_by' => $user->id,
         ]);
-        $first = Event::factory()->public()->create([
+        Event::factory()->public()->create([
             'created_by' => $user->id,
             'event_series_id' => $series->id,
             'name' => 'Porzucane I',
@@ -87,7 +124,7 @@ class EventSeriesTest extends TestCase
             'ends_at' => now()->subMonths(2)->addHours(4),
             'cancelled_at' => now()->subMonths(2)->addHour(),
         ]);
-        $second = Event::factory()->public()->create([
+        Event::factory()->public()->create([
             'created_by' => $user->id,
             'event_series_id' => $series->id,
             'name' => 'Porzucane II',
@@ -100,12 +137,12 @@ class EventSeriesTest extends TestCase
             ->assertSeeLivewire(ShowEventSeries::class)
             ->assertSee('Porzucane I', false)
             ->assertSee('Porzucane II', false)
-            ->assertSee(route('events.show', $first), false)
-            ->assertSee(route('events.show', $second), false);
+            ->assertSeeHtml('data-ui="event-series-edition"')
+            ->assertSeeHtml('data-ui="event-card"');
 
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
-            ->assertSee(__('ui.events.cancelled_short'), false);
+            ->assertSeeHtml('data-ui="event-series-edition-stats"');
     }
 
     public function test_private_series_is_hidden_from_strangers(): void

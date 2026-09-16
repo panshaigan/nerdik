@@ -2,18 +2,32 @@
 
 namespace App\Livewire\Events;
 
+use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Livewire\Concerns\WithActivityPreviewModal;
+use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\EventSeries;
-use App\Models\Organization;
 use App\Models\User;
+use App\Services\ActivityParticipationViewService;
+use App\Services\EventActivitySignupService;
+use App\Services\EventShowReadCache;
+use App\Services\UserInterestService;
+use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class ShowEventSeries extends Component
 {
+    use Toast;
+    use WithActivityPreviewModal;
+    use WithEventPreviewModal;
+
     public int $eventSeriesId;
 
     public string $tab = 'events';
@@ -35,27 +49,81 @@ class ShowEventSeries extends Component
         $this->tab = $this->normalizeTab($value);
     }
 
-    public function render(): View
+    public function toggleEventInterest(int $eventId, UserInterestService $interests): void
     {
+        $event = $this->seriesEventsQuery()->whereKey($eventId)->firstOrFail();
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        $added = $interests->toggleEventInterest($user, $event);
+        if ($added) {
+            $this->success(__('ui.interests.added_event'));
+        } else {
+            $this->warning(__('ui.interests.removed_event'));
+        }
+    }
+
+    public function toggleActivityInterest(int $activityId, UserInterestService $interests): void
+    {
+        $activity = $this->previewActivityQuery($activityId)->firstOrFail();
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        $added = $interests->toggleActivityInterest($user, $activity);
+        if ($added) {
+            $this->success(__('ui.interests.added_activity'));
+        } else {
+            $this->warning(__('ui.interests.removed_activity'));
+        }
+    }
+
+    public function render(
+        ActivityParticipationViewService $participationView,
+        ActivityBadgeGroupBuilder $badgeGroupBuilder,
+        EventActivitySignupService $signupService,
+        BrowseListingCardPresenter $listingCardPresenter,
+        EventShowReadCache $eventShowReadCache,
+    ): View {
         $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
         abort_unless($series->isVisibleTo(auth()->user()), 404);
 
-        $viewer = auth()->user();
-        $eventsQuery = $series->events()
-            ->with(['creator', 'organization', 'places.city.translations'])
+        /** @var Collection<int, Event> $events */
+        $events = $this->seriesEventsQuery()
+            ->with(Event::listingCardEagerLoad())
             ->orderBy('starts_at')
-            ->orderBy('id');
+            ->orderBy('id')
+            ->get();
 
-        if ($viewer === null || (int) $viewer->id !== (int) $series->created_by) {
-            $eventsQuery->where('is_public', true);
+        $activities = $this->seriesActivities($events);
+        $hosts = $this->uniqueActivityHosts($activities);
+        $stats = $this->seriesStats($events, $activities);
+
+        $eventStatsById = [];
+        foreach ($events as $event) {
+            [$confirmedActivities, $confirmedParticipants, $availablePlaces] = $eventShowReadCache->programmeStats((int) $event->id);
+            $eventStatsById[(int) $event->id] = [
+                'confirmed_activities' => $confirmedActivities,
+                'confirmed_participants' => $confirmedParticipants,
+                'available_places_label' => $availablePlaces === null ? '∞' : (string) $availablePlaces,
+                'interested_people_count' => $eventShowReadCache->eventInterestedCount((int) $event->id),
+            ];
         }
 
-        /** @var Collection<int, Event> $events */
-        $events = $eventsQuery->get();
-
-        $hosts = $this->uniqueHosts($events);
-        $activities = $this->seriesActivities($events);
-        $stats = $this->seriesStats($events, $activities);
+        $user = Auth::user();
+        $interestedEventIds = $user !== null
+            ? $user->interestedEvents()
+                ->whereIn('events.id', $events->pluck('id'))
+                ->pluck('events.id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
+        $interestedActivityIds = $user !== null
+            ? $user->interestedActivities()
+                ->whereIn('activities.id', $activities->pluck('id'))
+                ->pluck('activities.id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
 
         return view('livewire.events.show-event-series', [
             'series' => $series,
@@ -63,39 +131,51 @@ class ShowEventSeries extends Component
             'hosts' => $hosts,
             'activities' => $activities,
             'stats' => $stats,
+            'eventStatsById' => $eventStatsById,
+            'interestedEventIds' => $interestedEventIds,
+            'interestedActivityIds' => $interestedActivityIds,
+            'browsingReturnUrl' => route('event-series.show', $series),
+            ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
+            ...$this->resolveEventPreviewViewData($listingCardPresenter),
+            'includeEventPreviewModal' => true,
         ]);
     }
 
     /**
-     * @param  Collection<int, Event>  $events
-     * @return list<array{type: string, user: ?User, organization: ?Organization, label: string}>
+     * @return Builder<Event>
      */
-    private function uniqueHosts(Collection $events): array
+    private function seriesEventsQuery(): Builder
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        $viewer = auth()->user();
+
+        $query = Event::query()->where('event_series_id', $this->eventSeriesId);
+
+        if ($viewer === null || (int) $viewer->id !== (int) $series->created_by) {
+            $query->where('is_public', true);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $activities
+     * @return list<array{user: User, label: string}>
+     */
+    private function uniqueActivityHosts(Collection $activities): array
     {
         $hosts = [];
 
-        foreach ($events as $event) {
-            if ($event->organization !== null) {
-                $key = 'org:'.$event->organization->id;
-                $hosts[$key] = [
-                    'type' => 'organization',
-                    'user' => null,
-                    'organization' => $event->organization,
-                    'label' => $event->organization->name,
-                ];
-
+        foreach ($activities as $activity) {
+            $creator = $activity->creator;
+            if ($creator === null) {
                 continue;
             }
 
-            if ($event->creator !== null) {
-                $key = 'user:'.$event->creator->id;
-                $hosts[$key] = [
-                    'type' => 'user',
-                    'user' => $event->creator,
-                    'organization' => null,
-                    'label' => $event->creator->displayName(),
-                ];
-            }
+            $hosts[(int) $creator->id] = [
+                'user' => $creator,
+                'label' => $creator->displayName(),
+            ];
         }
 
         return array_values($hosts);
@@ -114,7 +194,7 @@ class ShowEventSeries extends Component
 
         return Activity::query()
             ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
-            ->with(['creator', 'activityType', 'slot.event'])
+            ->with(Activity::listingCardEagerLoad())
             ->orderBy('name')
             ->get();
     }
@@ -167,6 +247,28 @@ class ShowEventSeries extends Component
             'participants_total' => $participantsTotal,
             'participants_unique' => $participantsUnique,
         ];
+    }
+
+    protected function previewEventQuery(int $eventId): Builder
+    {
+        return $this->seriesEventsQuery()
+            ->whereKey($eventId)
+            ->with(Event::listingCardEagerLoad());
+    }
+
+    protected function previewActivityQuery(int $activityId): Builder
+    {
+        $eventIds = $this->seriesEventsQuery()->pluck('id')->all();
+
+        return Activity::query()
+            ->whereKey($activityId)
+            ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
+            ->with(Activity::listingCardEagerLoad());
+    }
+
+    protected function useListingCardLocationInActivityPreview(): bool
+    {
+        return true;
     }
 
     private function normalizeTab(?string $value): string
