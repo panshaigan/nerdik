@@ -52,37 +52,37 @@
                 {
                     "width": 384,
                     "path": "images/app/backgrounds/light/384w.webp",
-                    "bytes": 1068
+                    "bytes": 1462
                 },
                 {
                     "width": 512,
                     "path": "images/app/backgrounds/light/512w.webp",
-                    "bytes": 1644
+                    "bytes": 2406
                 },
                 {
                     "width": 640,
                     "path": "images/app/backgrounds/light/640w.webp",
-                    "bytes": 2306
+                    "bytes": 3462
                 },
                 {
                     "width": 768,
                     "path": "images/app/backgrounds/light/768w.webp",
-                    "bytes": 3052
+                    "bytes": 4814
                 },
                 {
                     "width": 1024,
                     "path": "images/app/backgrounds/light/1024w.webp",
-                    "bytes": 5038
+                    "bytes": 8240
                 },
                 {
                     "width": 1536,
                     "path": "images/app/backgrounds/light/1536w.webp",
-                    "bytes": 10334
+                    "bytes": 17060
                 },
                 {
                     "width": 1716,
                     "path": "images/app/backgrounds/light/1716w.webp",
-                    "bytes": 13678
+                    "bytes": 24170
                 }
             ]
         }
