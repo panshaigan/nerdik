@@ -63,7 +63,7 @@
 
         <x-toast />
         <x-ui.toast-from-session />
-        <x-impersonate::banner :display="auth()->user()?->displayName()" />
+        <x-impersonate::banner :display="auth()->user()?->displayName()" position="bottom" />
 
         <dialog
             id="ui-session-expired-modal"
