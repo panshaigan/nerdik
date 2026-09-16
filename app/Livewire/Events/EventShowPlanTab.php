@@ -494,8 +494,7 @@ class EventShowPlanTab extends Component
             fn (Slot $slot): bool => $slot->activity === null,
         );
 
-        $canShowPlanActivityProposalUi = $user !== null
-            && ! $event->isCancelled()
+        $canShowPlanActivityProposalUi = ! $event->isCancelled()
             && ($event->starts_at === null || now()->lt($event->starts_at))
             && ($activeEnrollmentWindow === null || $hasEmptySlots);
 

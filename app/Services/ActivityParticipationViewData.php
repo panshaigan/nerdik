@@ -23,5 +23,6 @@ final class ActivityParticipationViewData
         public readonly bool $isLotteryResolved = false,
         /** @var list<array{message: string, dataUi: string}> */
         public readonly array $lotteryDrawNotices = [],
+        public readonly bool $canPromptGuestJoin = false,
     ) {}
 }

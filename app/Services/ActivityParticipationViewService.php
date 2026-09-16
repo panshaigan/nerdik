@@ -82,6 +82,7 @@ class ActivityParticipationViewService
             && ! $onWaitlist
             && $signupGateOk
             && $stateBlockedMessage === null;
+        $canPromptGuestJoin = $user === null && $stateBlockedMessage === null;
         $isFull = $activity->max_participants !== null
             && $activity->participants()->count() >= $activity->max_participants;
         $hasInterest = $user !== null
@@ -102,6 +103,7 @@ class ActivityParticipationViewService
             isLotteryPending: $activity->isLotteryPending(),
             isLotteryResolved: $activity->isLotteryResolved(),
             lotteryDrawNotices: $this->lotteryService->upcomingDrawNotices($activity),
+            canPromptGuestJoin: $canPromptGuestJoin,
         );
     }
 }

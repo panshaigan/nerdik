@@ -267,6 +267,29 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSeeHtml('wire:target="joinPreviewActivity"');
     }
 
+    public function test_guest_sees_join_login_link_on_self_hosted_preview(): void
+    {
+        $owner = User::factory()->create();
+        $startsAt = now()->addDay()->setTime(10, 0);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 4,
+            'starts_at' => $startsAt,
+            'ends_at' => (clone $startsAt)->addHours(2),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(BrowseActivities::class)
+            ->call('openListingActivityPreview', $activity->id)
+            ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
+            ->assertSeeHtml('data-ui="event-activity-preview-guest-join"')
+            ->assertSee(route('login'), false)
+            ->assertDontSeeHtml('wire:target="joinPreviewActivity"');
+    }
+
     public function test_listing_self_hosted_preview_join_updates_roster_count(): void
     {
         $owner = User::factory()->create();

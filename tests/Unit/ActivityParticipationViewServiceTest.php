@@ -30,8 +30,39 @@ class ActivityParticipationViewServiceTest extends TestCase
         $this->assertFalse($vm->isParticipant);
         $this->assertFalse($vm->onWaitlist);
         $this->assertFalse($vm->canJoin);
+        $this->assertTrue($vm->canPromptGuestJoin);
         $this->assertFalse($vm->hasInterest);
         $this->assertFalse($vm->canManageActivity);
+    }
+
+    #[Test]
+    public function guest_cannot_prompt_join_when_activity_is_cancelled(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+            'cancelled_at' => now(),
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity, null);
+
+        $this->assertFalse($vm->canJoin);
+        $this->assertFalse($vm->canPromptGuestJoin);
+        $this->assertSame(__('ui.activities.signup_blocked_cancelled'), $vm->stateBlockedMessage);
+    }
+
+    #[Test]
+    public function guest_cannot_prompt_join_when_mode_is_not_joinable(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity, null);
+
+        $this->assertFalse($vm->canJoin);
+        $this->assertFalse($vm->canPromptGuestJoin);
+        $this->assertSame(__('ui.activities.signup_blocked_not_joinable_mode'), $vm->stateBlockedMessage);
     }
 
     #[Test]

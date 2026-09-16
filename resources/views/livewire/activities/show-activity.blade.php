@@ -201,6 +201,7 @@
                         'isParticipant' => $isParticipant,
                         'onWaitlist' => $onWaitlist,
                         'canJoin' => $canJoin,
+                        'canPromptGuestJoin' => $canPromptGuestJoin,
                         'isFull' => $isFull,
                         'canManageActivity' => $canManageActivity,
                         'stateBlockedMessage' => $stateBlockedMessage,

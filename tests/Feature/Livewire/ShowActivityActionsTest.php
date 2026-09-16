@@ -68,6 +68,54 @@ class ShowActivityActionsTest extends TestCase
         );
     }
 
+    public function test_guest_sees_join_login_link_on_participation_tab(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 5,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $returnPath = route('activities.show', ['activity' => $activity, 'tab' => 'participation'], false);
+        $loginHref = login_url($returnPath);
+
+        Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertViewHas('canPromptGuestJoin', true)
+            ->assertSeeHtml('data-ui="activity-show-guest-join"')
+            ->assertSee($loginHref, false)
+            ->assertDontSeeHtml('wire:click="join"');
+    }
+
+    public function test_guest_sees_join_waitlist_login_link_when_activity_is_full(): void
+    {
+        $host = User::factory()->create();
+        $filler = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 1,
+            'starts_at' => now()->addDay(),
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $filler->id,
+        ]);
+
+        Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertViewHas('canPromptGuestJoin', true)
+            ->assertSeeHtml('data-ui="activity-show-guest-join-waitlist"')
+            ->assertDontSeeHtml('data-ui="activity-show-guest-join"')
+            ->assertDontSeeHtml('wire:click="joinWaitlist"');
+    }
+
     public function test_remove_participant_executes_only_after_confirmation(): void
     {
         $host = User::factory()->create();

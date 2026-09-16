@@ -15,6 +15,14 @@ class ManageFormBackUrlTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_login_url_appends_return_query_param(): void
+    {
+        $url = login_url('/events/foo?tab=plan');
+
+        $this->assertStringContainsString(route('login', absolute: false), $url);
+        $this->assertStringContainsString('return=%2Fevents%2Ffoo%3Ftab%3Dplan', $url);
+    }
+
     public function test_safe_return_url_accepts_internal_paths(): void
     {
         $this->assertSame('/search', safe_return_url('/search'));

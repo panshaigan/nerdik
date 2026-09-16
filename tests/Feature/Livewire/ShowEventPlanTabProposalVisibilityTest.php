@@ -44,6 +44,46 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             ->assertSee(__('ui.events.plan_propose_hero_title'));
     }
 
+    public function test_guest_sees_propose_ctas_linking_to_login_when_eligible(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        $planReturn = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
+        $loginHref = login_url($planReturn);
+
+        Livewire::withoutLazyLoading()
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('canShowPlanActivityProposalUi', true)
+            ->assertSee(__('ui.events.propose_activity'))
+            ->assertSee(__('ui.events.plan_propose_hero_title'))
+            ->assertSeeHtml('data-ui="event-show-propose-guest"')
+            ->assertSee($loginHref, false)
+            ->assertDontSeeHtml('data-ui="event-show-propose"');
+    }
+
+    public function test_guest_does_not_see_propose_ctas_after_event_has_started(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00', 'UTC'));
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('canShowPlanActivityProposalUi', false)
+            ->assertDontSee(__('ui.events.propose_activity'))
+            ->assertDontSee(__('ui.events.plan_propose_hero_title'));
+    }
+
     public function test_plan_tab_hides_propose_ctas_after_event_has_started(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00', 'UTC'));

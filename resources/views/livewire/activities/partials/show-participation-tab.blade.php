@@ -114,6 +114,17 @@
                         @endif
                     </div>
                 @endif
+            @else
+                @if (($canPromptGuestJoin ?? false) && $activity->isOpenParticipationMode() && ! $isFull && ! filled($stateBlockedMessage ?? null))
+                    <div class="mt-6 flex flex-wrap gap-2" data-ui="activity-show-participants-actions">
+                        <x-button
+                            :link="login_url(route('activities.show', ['activity' => $activity, 'tab' => 'participation'], false))"
+                            :no-wire-navigate="true"
+                            class="btn-primary mx-auto"
+                            data-ui="activity-show-guest-join"
+                        >{{ __('ui.activities.join') }}</x-button>
+                    </div>
+                @endif
             @endauth
         </div>
         <div class="min-w-0 border-t border-base-300 pt-6 md:border-l md:border-t-0 md:pl-6 md:pt-0" data-ui="activity-show-waitlist">
@@ -159,6 +170,17 @@
                         @elseif ($canJoin && ($usesWaitlistSignup || $isFull))
                             <x-button type="button" class="btn-primary" wire:click="joinWaitlist" spinner="joinWaitlist">{{ __('ui.activities.join_waitlist') }}</x-button>
                         @endif
+                    </div>
+                @endif
+            @else
+                @if (($canPromptGuestJoin ?? false) && ($usesWaitlistSignup || $isFull) && ! filled($stateBlockedMessage ?? null))
+                    <div class="mt-6 flex flex-wrap gap-2 justify-end" data-ui="activity-show-waitlist-actions">
+                        <x-button
+                            :link="login_url(route('activities.show', ['activity' => $activity, 'tab' => 'participation'], false))"
+                            :no-wire-navigate="true"
+                            class="btn-primary"
+                            data-ui="activity-show-guest-join-waitlist"
+                        >{{ __('ui.activities.join_waitlist') }}</x-button>
                     </div>
                 @endif
             @endauth

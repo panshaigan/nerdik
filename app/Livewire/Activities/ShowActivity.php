@@ -324,6 +324,7 @@ class ShowActivity extends Component
             'isParticipant' => $vm->isParticipant,
             'onWaitlist' => $vm->onWaitlist,
             'canJoin' => $vm->canJoin,
+            'canPromptGuestJoin' => $vm->canPromptGuestJoin,
             'isFull' => $vm->isFull,
             'hasInterest' => $vm->hasInterest,
             'interestedPeopleCount' => $interestedPeopleCount,

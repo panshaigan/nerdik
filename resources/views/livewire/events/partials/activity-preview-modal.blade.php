@@ -10,6 +10,12 @@
         $previewCanJoinDirectly = $previewActivityParticipation?->canJoin
             && $previewActivity->isOpenParticipationMode()
             && ! $previewActivityParticipation?->isFull;
+        $previewCanPromptGuestJoinWaitlist = $previewActivityParticipation?->canPromptGuestJoin
+            && ($previewActivity->isHostApprovalMode() || $previewActivity->isLotteryMode() || $previewActivityParticipation?->isFull);
+        $previewCanPromptGuestJoinDirectly = $previewActivityParticipation?->canPromptGuestJoin
+            && $previewActivity->isOpenParticipationMode()
+            && ! $previewActivityParticipation?->isFull;
+        $previewGuestLoginUrl = login_url(browsing_return_url());
     @endphp
 
     <x-modal
@@ -72,6 +78,28 @@
                             </x-button>
                         @else
                             <x-button type="button" class="btn-primary" disabled>
+                                {{ __('ui.activities.join') }}
+                            </x-button>
+                        @endif
+                    @endif
+                @else
+                    @if ($showPreviewParticipationTab ?? false)
+                        @if ($previewCanPromptGuestJoinWaitlist)
+                            <x-button
+                                :link="$previewGuestLoginUrl"
+                                :no-wire-navigate="true"
+                                class="btn-primary"
+                                data-ui="event-activity-preview-guest-join-waitlist"
+                            >
+                                {{ __('ui.activities.join_waitlist') }}
+                            </x-button>
+                        @elseif ($previewCanPromptGuestJoinDirectly)
+                            <x-button
+                                :link="$previewGuestLoginUrl"
+                                :no-wire-navigate="true"
+                                class="btn-primary"
+                                data-ui="event-activity-preview-guest-join"
+                            >
                                 {{ __('ui.activities.join') }}
                             </x-button>
                         @endif

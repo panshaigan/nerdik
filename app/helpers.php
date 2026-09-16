@@ -626,6 +626,16 @@ if (! function_exists('url_with_return')) {
     }
 }
 
+if (! function_exists('login_url')) {
+    /**
+     * Login URL that carries a validated `return` path for post-auth redirect.
+     */
+    function login_url(?string $return = null): string
+    {
+        return url_with_return(route('login'), $return);
+    }
+}
+
 if (! function_exists('legal_placeholders')) {
     /**
      * @return array<string, string>

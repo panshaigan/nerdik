@@ -36,11 +36,12 @@
 >
     @php
         $autoOpenDone = false;
+        $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
+        $guestProposeLoginUrl = login_url($proposeReturnPath);
     @endphp
     @auth
         @if ($canShowPlanActivityProposalUi ?? false)
             @php
-                $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
                 $proposeActivityUrl = ! empty($proposalSlotIds)
                     ? url_with_return(
                         route('activities.create').'?'.http_build_query([
@@ -55,18 +56,16 @@
     @endauth
     @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
         <div class="flex items-center justify-end gap-2 mb-4">
-            @auth
-                @if ($canShowPlanActivityProposalUi ?? false)
-                    <x-button
-                        type="button"
-                        class="btn-outline btn-sm btn-primary"
-                        x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
-                        data-ui="event-show-scroll-to-propose-hero"
-                    >
-                        {{ __('ui.events.want_to_propose_activity') }}
-                    </x-button>
-                @endif
-            @endauth
+            @if ($canShowPlanActivityProposalUi ?? false)
+                <x-button
+                    type="button"
+                    class="btn-outline btn-sm btn-primary"
+                    x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+                    data-ui="event-show-scroll-to-propose-hero"
+                >
+                    {{ __('ui.events.want_to_propose_activity') }}
+                </x-button>
+            @endif
             @if ($hasEmptySlots && false)
                 <x-button
                     type="button"
@@ -411,10 +410,9 @@
             <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
         @endforelse
     </ul>
-    @auth
-        @if ($canShowPlanActivityProposalUi ?? false)
+    @if ($canShowPlanActivityProposalUi ?? false)
+        @auth
             @php
-                $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
                 $proposeActivityUrl = ! empty($proposalSlotIds)
                     ? url_with_return(
                         route('activities.create').'?'.http_build_query([
@@ -425,17 +423,19 @@
                     )
                     : url_with_return(route('activities.create', ['proposal_event_id' => $event->id]), $proposeReturnPath);
             @endphp
-            <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
-                <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
-                    <div class="hero w-full max-w-2xl rounded-2xl box-glow-neutral">
-                        <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
-                            <div class="max-w-xl px-2">
-                                <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
-                                    {{ __('ui.events.plan_propose_hero_title') }}
-                                </h2>
-                                <p class="py-5 text-base leading-relaxed text-base-content/80">
-                                    {{ __('ui.events.plan_propose_hero_description') }}
-                                </p>
+        @endauth
+        <div class="mt-8 flex w-full justify-center" data-ui="event-show-plan-propose-footer">
+            <div id="ui-event-show-plan-propose-hero" class="mb-6 flex w-full justify-center pb-4" data-ui="event-show-plan-propose-hero">
+                <div class="hero w-full max-w-2xl rounded-2xl box-glow-neutral">
+                    <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
+                        <div class="max-w-xl px-2">
+                            <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
+                                {{ __('ui.events.plan_propose_hero_title') }}
+                            </h2>
+                            <p class="py-5 text-base leading-relaxed text-base-content/80">
+                                {{ __('ui.events.plan_propose_hero_description') }}
+                            </p>
+                            @auth
                                 <x-ui.magic-button
                                     id="ui-event-show-propose-primary"
                                     :link="$proposeActivityUrl"
@@ -446,11 +446,21 @@
                                 >
                                     {{ __('ui.events.propose_activity') }}
                                 </x-ui.magic-button>
-                            </div>
+                            @else
+                                <x-ui.magic-button
+                                    id="ui-event-show-propose-primary"
+                                    :link="$guestProposeLoginUrl"
+                                    :no-wire-navigate="true"
+                                    class="ui-action ui-action-propose"
+                                    data-ui="event-show-propose-guest"
+                                >
+                                    {{ __('ui.events.propose_activity') }}
+                                </x-ui.magic-button>
+                            @endauth
                         </div>
                     </div>
                 </div>
             </div>
-        @endif
-    @endauth
+        </div>
+    @endif
 </div>

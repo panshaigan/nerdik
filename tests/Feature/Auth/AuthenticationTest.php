@@ -46,6 +46,26 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticated();
     }
 
+    public function test_login_return_query_sets_intended_url_and_redirects_after_authenticate(): void
+    {
+        $user = User::factory()->create();
+        $returnPath = '/events/demo-event?tab=plan';
+
+        $this->get(route('login', ['return' => $returnPath]))
+            ->assertOk();
+
+        $this->assertSame(url($returnPath), session('url.intended'));
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login')
+            ->assertHasNoErrors()
+            ->assertRedirect($returnPath);
+
+        $this->assertAuthenticated();
+    }
+
     public function test_login_learns_current_locale_when_user_has_none_stored(): void
     {
         $user = User::factory()->create(['locale' => null]);
