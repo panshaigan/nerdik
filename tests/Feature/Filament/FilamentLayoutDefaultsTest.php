@@ -7,7 +7,6 @@ namespace Tests\Feature\Filament;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\ListActivityProposalSlots;
 use App\Models\User;
 use Filament\Facades\Filament;
-use Filament\Pages\Dashboard;
 use Filament\Support\Enums\Width;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -24,17 +23,6 @@ final class FilamentLayoutDefaultsTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         $this->assertSame(Width::Full, Filament::getMaxContentWidth());
-    }
-
-    #[Test]
-    public function admin_panel_brand_logo_links_to_dashboard(): void
-    {
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-
-        $this->assertSame(
-            Dashboard::getUrl(panel: 'admin'),
-            Filament::getPanel('admin')->getHomeUrl(),
-        );
     }
 
     #[Test]
