@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth\Concerns;
 
+use App\Support\Auth\ImpersonationAccountGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
@@ -14,6 +15,15 @@ trait PersistsOAuthLinkIntent
 
     /** @var list<string> */
     private const array OAUTH_RETURN_TABS = ['avatar', 'contact'];
+
+    protected function denyOAuthWhileImpersonating(): ?RedirectResponse
+    {
+        if (! ImpersonationAccountGuard::blocksMutations()) {
+            return null;
+        }
+
+        return ImpersonationAccountGuard::deniedRedirect();
+    }
 
     private function captureOAuthLinkIntent(): void
     {

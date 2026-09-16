@@ -3,6 +3,7 @@
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Livewire\Profile\Concerns\WithAdvancedPasswordConfirmation;
 use App\Models\User;
+use App\Support\Auth\ImpersonationAccountGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Js;
@@ -30,6 +31,12 @@ new class extends Component
 
     public function requestEmailChange(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->validate([
             'new_email' => [
                 'required',
@@ -48,6 +55,12 @@ new class extends Component
 
     public function confirmEmailChange(string $password): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->passwordConfirmationPassword = $password;
 
         $this->reportProfileTabValidation('advanced', function (): void {
@@ -87,6 +100,12 @@ new class extends Component
 
     public function resendPendingEmailVerification(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $user = Auth::user();
 
         if ($user === null || ! $user->hasPendingEmailChange()) {
@@ -104,6 +123,12 @@ new class extends Component
 
     public function cancelPendingEmailChange(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $user = Auth::user();
 
         if ($user === null || ! $user->hasPendingEmailChange()) {

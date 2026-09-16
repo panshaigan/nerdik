@@ -25,6 +25,10 @@ return [
         'support' => 'Support',
         'adminer' => 'Adminer',
     ],
+    'impersonation' => [
+        'log_in_as' => 'Log in as',
+        'account_mutation_blocked' => 'Account changes are disabled while impersonating another user. Leave impersonation first.',
+    ],
     'me' => [
         'menu_events' => 'My events',
         'menu_activities' => 'My activities',
@@ -953,7 +957,6 @@ return [
     ],
     'pdf' => [
         'roster' => [
-            'title' => 'Participant roster',
             'title_named' => ':name - Participant roster',
             'print_action' => 'Print participant list',
             'host' => 'Host',

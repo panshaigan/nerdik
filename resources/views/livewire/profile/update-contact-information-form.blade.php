@@ -6,6 +6,7 @@ use App\Enums\AvatarSource;
 use App\Models\User;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
+use App\Support\Auth\ImpersonationAccountGuard;
 use App\Support\Profile\ProviderEmailOptions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -96,6 +97,12 @@ new class extends Component
 
     public function switchEmailFromProvider(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->reportProfileTabValidation('contact', function (): void {
             $availableEmails = ProviderEmailOptions::availableEmails(Auth::user());
 
@@ -143,6 +150,12 @@ new class extends Component
 
     public function confirmUnlinkGoogle(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->openConfirm(
             'unlink_google',
             __('ui.profile.integrations_google_unlink'),
@@ -152,6 +165,12 @@ new class extends Component
 
     public function confirmUnlinkFacebook(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->openConfirm(
             'unlink_facebook',
             __('ui.profile.integrations_facebook_unlink'),
@@ -161,6 +180,12 @@ new class extends Component
 
     public function confirmUnlinkDiscord(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->openConfirm(
             'unlink_discord',
             __('ui.profile.integrations_discord_unlink'),
@@ -187,6 +212,12 @@ new class extends Component
 
     public function unlinkGoogle(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $user = Auth::user();
         $profile = $user->profile;
 
@@ -226,6 +257,12 @@ new class extends Component
 
     public function unlinkFacebook(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $user = Auth::user();
         $profile = $user->profile;
 
@@ -267,6 +304,12 @@ new class extends Component
 
     public function unlinkDiscord(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $user = Auth::user();
         $profile = $user->profile;
 

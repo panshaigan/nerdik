@@ -25,6 +25,10 @@ return [
         'support' => 'Wsparcie',
         'adminer' => 'Adminer',
     ],
+    'impersonation' => [
+        'log_in_as' => 'Zaloguj jako',
+        'account_mutation_blocked' => 'Zmiany konta są wyłączone podczas podszywania się pod innego użytkownika. Najpierw zakończ podszywanie.',
+    ],
     'me' => [
         'menu_events' => 'Moje wydarzenia',
         'menu_activities' => 'Moje aktywności',
@@ -943,7 +947,6 @@ return [
     ],
     'pdf' => [
         'roster' => [
-            'title' => 'Lista uczestników',
             'title_named' => ':name - Lista uczestników',
             'print_action' => 'Drukuj listę uczestników',
             'host' => 'Prowadzący',

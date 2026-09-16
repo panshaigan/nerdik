@@ -30,6 +30,10 @@ class DiscordAuthController extends Controller
 
     public function redirect(): SymfonyRedirectResponse
     {
+        if ($denied = $this->denyOAuthWhileImpersonating()) {
+            return $denied;
+        }
+
         $this->captureOAuthLinkIntent();
         $this->captureBrowserTimezoneFromRequest();
 

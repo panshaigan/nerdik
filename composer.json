@@ -25,6 +25,7 @@
         "sentry/sentry-laravel": "^4.27",
         "socialiteproviders/discord": "^4.2",
         "spatie/laravel-medialibrary": "^11.0",
+        "stechstudio/filament-impersonate": "^5.6",
         "stevebauman/purify": "^6.3"
     },
     "require-dev": {

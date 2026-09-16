@@ -8,7 +8,9 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\ContactVisibilityService;
 use App\Support\Profile\ProviderContactUrls;
+use Illuminate\Http\RedirectResponse;
 use Livewire\Component;
+use STS\FilamentImpersonate\Facades\Impersonation;
 
 class UserContactPopover extends Component
 {
@@ -17,6 +19,28 @@ class UserContactPopover extends Component
     public ?int $contextOrganizationId = null;
 
     public int $targetUserId;
+
+    /**
+     * Start impersonating the target user (admins only).
+     */
+    public function impersonate(): RedirectResponse|bool
+    {
+        $viewer = auth()->user();
+        if (! $viewer instanceof User || ! $viewer->canImpersonate() || Impersonation::isImpersonating()) {
+            abort(403);
+        }
+
+        $targetUser = User::query()->whereKey($this->targetUserId)->first();
+        if (! $targetUser instanceof User || ! $targetUser->canBeImpersonated() || $viewer->is($targetUser)) {
+            abort(403);
+        }
+
+        if (! Impersonation::enter($viewer, $targetUser, config('auth.defaults.guard'))) {
+            return false;
+        }
+
+        return redirect()->to(route('dashboard'));
+    }
 
     /**
      * @return array<int, array{label: string, count: int}>
@@ -118,6 +142,7 @@ class UserContactPopover extends Component
     /**
      * @return array{
      *     canViewContact: bool,
+     *     canImpersonateTarget: bool,
      *     targetUser: ?User,
      *     hostedStatsByType: array<int, array{label: string, count: int}>,
      *     participationStatsByType: array<int, array{label: string, count: int}>,
@@ -142,9 +167,14 @@ class UserContactPopover extends Component
         }
 
         $canViewContact = $contactVisibility->canViewContactInfo($viewer, $targetUser);
+        $canImpersonateTarget = $viewer->canImpersonate()
+            && $targetUser->canBeImpersonated()
+            && ! $viewer->is($targetUser)
+            && ! Impersonation::isImpersonating();
 
         return [
             'canViewContact' => $canViewContact,
+            'canImpersonateTarget' => $canImpersonateTarget,
             'targetUser' => $targetUser,
             'hostedStatsByType' => $this->hostedStatsByType($targetUser->id),
             'participationStatsByType' => $this->participationStatsByType($targetUser->id),
@@ -209,6 +239,7 @@ class UserContactPopover extends Component
     /**
      * @return array{
      *     canViewContact: bool,
+     *     canImpersonateTarget: bool,
      *     targetUser: ?User,
      *     hostedStatsByType: array<int, array{label: string, count: int}>,
      *     participationStatsByType: array<int, array{label: string, count: int}>,
@@ -223,6 +254,7 @@ class UserContactPopover extends Component
     {
         return [
             'canViewContact' => false,
+            'canImpersonateTarget' => false,
             'targetUser' => null,
             'hostedStatsByType' => [],
             'participationStatsByType' => [],

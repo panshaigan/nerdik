@@ -11,6 +11,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use STS\FilamentImpersonate\Actions\Impersonate;
 
 class UsersTable
 {
@@ -50,6 +51,8 @@ class UsersTable
                 ...CommonFilters::auditTimestampFilters(includeDeletedAt: false),
             ])
             ->recordActions([
+                Impersonate::make()
+                    ->redirectTo(route('dashboard')),
                 EditAction::make(),
             ])
             ->toolbarActions([

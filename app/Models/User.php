@@ -276,6 +276,22 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     }
 
     /**
+     * Whether this user may start Filament impersonation of another user.
+     */
+    public function canImpersonate(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    /**
+     * Whether this user may be impersonated by an admin.
+     */
+    public function canBeImpersonated(): bool
+    {
+        return $this->is_admin !== true;
+    }
+
+    /**
      * Whether this user may edit or delete the model: admins always; otherwise the row's `created_by` must match.
      */
     public function canModifyEntity(Model $entity): bool

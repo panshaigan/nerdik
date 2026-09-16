@@ -2,6 +2,7 @@
 
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Livewire\Profile\Concerns\WithAdvancedPasswordConfirmation;
+use App\Support\Auth\ImpersonationAccountGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Js;
@@ -21,6 +22,12 @@ new class extends Component
      */
     public function updatePassword(): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->validate([
             'password' => ['required', 'string', Password::defaults(), 'confirmed'],
         ]);
@@ -30,6 +37,12 @@ new class extends Component
 
     public function confirmPasswordUpdate(string $password): void
     {
+        if (ImpersonationAccountGuard::blocksMutations()) {
+            $this->js('window.toast('.Js::from(ImpersonationAccountGuard::deniedToastPayload()).')');
+
+            return;
+        }
+
         $this->passwordConfirmationPassword = $password;
 
         $this->reportProfileTabValidation('advanced', function (): void {

@@ -130,6 +130,14 @@
 
     @if ($targetUser !== null)
         <div class="flex flex-wrap gap-2 border-t border-base-300 pt-4" data-ui="user-contact-popover-requests">
+            @if ($canImpersonateTarget)
+                <button
+                    type="button"
+                    wire:click="impersonate"
+                    class="btn btn-xs btn-warning"
+                    data-ui="user-contact-popover-impersonate"
+                >{{ __('ui.impersonation.log_in_as') }}</button>
+            @endif
             @if ($activityInviteSubjectId)
                 <livewire:user-requests.send-user-request
                     type="activity_invite"
