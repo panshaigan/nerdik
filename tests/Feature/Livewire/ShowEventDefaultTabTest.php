@@ -27,7 +27,7 @@ class ShowEventDefaultTabTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_defaults_to_description_before_event_without_enrollment_or_proposals(): void
+    public function test_defaults_to_plan_before_event_without_enrollment_or_proposals(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
         $viewer = User::factory()->create();
@@ -38,7 +38,7 @@ class ShowEventDefaultTabTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
-            ->assertSet('tab', 'description');
+            ->assertSet('tab', 'plan');
     }
 
     public function test_defaults_to_plan_during_active_enrollment_window_for_non_organizer(): void
@@ -123,7 +123,7 @@ class ShowEventDefaultTabTest extends TestCase
             ->assertSet('tab', 'proposals');
     }
 
-    public function test_explicit_tab_query_param_description_wins_during_enrollment(): void
+    public function test_explicit_tab_query_param_map_wins_during_enrollment(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-05 12:00:00', 'UTC'));
         $viewer = User::factory()->create();
@@ -133,10 +133,10 @@ class ShowEventDefaultTabTest extends TestCase
         ]);
         $this->createActiveEnrollmentWindow($event);
 
-        Livewire::withQueryParams(['tab' => 'description'])
+        Livewire::withQueryParams(['tab' => 'map'])
             ->actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
-            ->assertSet('tab', 'description');
+            ->assertSet('tab', 'map');
     }
 
     public function test_explicit_tab_query_param_plan_wins_during_enrollment(): void
@@ -150,6 +150,17 @@ class ShowEventDefaultTabTest extends TestCase
         $this->createActiveEnrollmentWindow($event);
 
         Livewire::withQueryParams(['tab' => 'plan'])
+            ->actingAs($viewer)
+            ->test(ShowEvent::class, ['event' => $event])
+            ->assertSet('tab', 'plan');
+    }
+
+    public function test_invalid_tab_query_param_falls_back_to_plan(): void
+    {
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create();
+
+        Livewire::withQueryParams(['tab' => 'description'])
             ->actingAs($viewer)
             ->test(ShowEvent::class, ['event' => $event])
             ->assertSet('tab', 'plan');

@@ -35,10 +35,64 @@
     }"
 >
     @php
+        $hasEventDescription = filled(rich_text_excerpt($event->description));
+        $hasEnrollmentWindows = $event->enrollmentWindows->isNotEmpty();
         $autoOpenDone = false;
         $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
         $guestProposeLoginUrl = login_url($proposeReturnPath);
     @endphp
+
+    @if ($hasEventDescription || $hasEnrollmentWindows)
+        <div class="space-y-4 px-1 pb-2 pt-2 sm:px-4 sm:pt-4" data-ui="event-show-plan-meta">
+            @if ($hasEventDescription)
+                <x-collapse
+                    class="border border-primary/25 bg-base-200/40"
+                    separator
+                    :open="! $activeEnrollmentWindow"
+                    data-ui="event-show-plan-description"
+                >
+                    <x-slot:heading>
+                        <span class="text-base font-semibold text-base-content">{{ __('ui.events.show_about') }}</span>
+                    </x-slot:heading>
+                    <x-slot:content>
+                        <div class="rich-text-content text-justify text-base-content/80 p-2 sm:p-4">
+                            {!! rich_text($event->description) !!}
+                        </div>
+                    </x-slot:content>
+                </x-collapse>
+            @endif
+
+            @if ($hasEnrollmentWindows)
+                @if ($activeEnrollmentWindow)
+                    <x-collapse
+                        class="border border-primary/25 bg-base-200/40"
+                        separator
+                        :open="true"
+                        data-ui="event-show-plan-enrollment"
+                    >
+                        <x-slot:heading>
+                            <span class="text-base font-semibold text-base-content">{{ __('ui.events.enrollment_windows_heading') }}</span>
+                        </x-slot:heading>
+                        <x-slot:content>
+                            @include('livewire.events.partials.show-plan-enrollment-windows', [
+                                'event' => $event,
+                                'activeEnrollmentWindow' => $activeEnrollmentWindow,
+                            ])
+                        </x-slot:content>
+                    </x-collapse>
+                @else
+                    <div data-ui="event-show-plan-enrollment">
+                        <h3 class="text-base font-semibold text-base-content pl-2">{{ __('ui.events.enrollment_windows_heading') }}</h3>
+                        @include('livewire.events.partials.show-plan-enrollment-windows', [
+                            'event' => $event,
+                            'activeEnrollmentWindow' => $activeEnrollmentWindow,
+                        ])
+                    </div>
+                @endif
+            @endif
+        </div>
+    @endif
+
     @auth
         @if ($canShowPlanActivityProposalUi ?? false)
             @php

@@ -598,6 +598,7 @@ return [
         'show_details' => 'Szczegóły',
         'show_no_description' => 'Brak opisu.',
         'show_plan' => 'Plan',
+        'show_map' => 'Mapa',
         'show_proposals' => 'Propozycje',
         'confirmed_activities' => 'Aktywności',
         'confirmed_participants' => 'Uczestnicy',

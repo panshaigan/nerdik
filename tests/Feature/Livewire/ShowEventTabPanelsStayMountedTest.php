@@ -20,9 +20,9 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
         $event = Event::factory()->create();
 
         Livewire::test(ShowEvent::class, ['event' => $event])
-            ->assertSet('mountedTabs', ['description'])
-            ->set('tab', 'plan')
-            ->assertSet('mountedTabs', ['description', 'plan']);
+            ->assertSet('mountedTabs', ['plan'])
+            ->set('tab', 'map')
+            ->assertSet('mountedTabs', ['plan', 'map']);
     }
 
     public function test_shell_does_not_render_tab_switch_loading_overlay(): void
@@ -41,16 +41,15 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
         $event = Event::factory()->create(['created_by' => $user->id]);
 
         $component = Livewire::actingAs($user)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan');
+            ->test(ShowEvent::class, ['event' => $event]);
 
         $this->assertStringContainsString('event-plan-', $component->html());
 
-        $component->set('tab', 'description');
+        $component->set('tab', 'map');
 
         $htmlAfterReturn = $component->html();
 
         $this->assertStringContainsString('event-plan-', $htmlAfterReturn);
-        $this->assertStringContainsString('event-desc-', $htmlAfterReturn);
+        $this->assertStringContainsString('event-map-', $htmlAfterReturn);
     }
 }

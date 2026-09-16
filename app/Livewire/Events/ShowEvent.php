@@ -20,7 +20,6 @@ use App\Services\UserInterestService;
 use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +34,7 @@ use Mary\Traits\Toast;
  * {@see Url} or read `tab` from the request for routing UI state.
  *
  * Default tab when `?tab=` is absent (see {@see self::resolveDefaultTab()}): pending proposals for organizers,
- * then plan during active enrollment or while the event is in progress, otherwise description.
+ * otherwise plan (canonical bare `/events/{slug}` URL).
  */
 class ShowEvent extends Component
 {
@@ -49,7 +48,7 @@ class ShowEvent extends Component
     /**
      * Active main panel tab; synchronized with `?tab=` on this component only (see {@see ShowEvent::$queryString}).
      */
-    public string $tab = 'description';
+    public string $tab = 'plan';
 
     /**
      * Tab keys whose panel Livewire children stay mounted so switching tabs does not wipe rendered content during requests.
@@ -60,7 +59,7 @@ class ShowEvent extends Component
 
     /** Query string binding for {@see ShowEvent::$tab}. Nested tab Livewire children do not declare their own `tab` URL binding. */
     protected array $queryString = [
-        'tab' => ['except' => 'description'],
+        'tab' => ['except' => 'plan'],
     ];
 
     /** Bumped when nested tabs mutate programme shell meta (e.g. proposals cleared). */
@@ -98,7 +97,8 @@ class ShowEvent extends Component
         $this->mountedTabs = [$this->tab];
         $user = auth()->user();
         if ($this->tab === 'proposals' && ($user === null || ! $user->canModifyEntity($event))) {
-            $this->tab = 'description';
+            $this->tab = 'plan';
+            $this->mountedTabs = [$this->tab];
         }
     }
 
@@ -502,7 +502,7 @@ class ShowEvent extends Component
 
     private function normalizeTab(?string $value): string
     {
-        return in_array($value, ['description', 'plan', 'proposals'], true) ? $value : 'description';
+        return in_array($value, ['plan', 'map', 'proposals'], true) ? $value : 'plan';
     }
 
     private function resolveDefaultTab(Event $event): string
@@ -516,38 +516,6 @@ class ShowEvent extends Component
             return 'proposals';
         }
 
-        $now = now();
-
-        if ($this->hasActiveEnrollmentWindow($event, $now) || $this->eventIsInProgress($event, $now)) {
-            return 'plan';
-        }
-
-        return 'description';
-    }
-
-    private function hasActiveEnrollmentWindow(Event $event, Carbon $now): bool
-    {
-        return $event->enrollmentWindows->contains(function ($window) use ($now): bool {
-            return $window->starts_at !== null
-                && $window->ends_at !== null
-                && $now->between($window->starts_at, $window->ends_at);
-        });
-    }
-
-    private function eventIsInProgress(Event $event, Carbon $now): bool
-    {
-        if ($event->starts_at === null) {
-            return false;
-        }
-
-        if (! $now->gte($event->starts_at)) {
-            return false;
-        }
-
-        if ($event->ends_at !== null && $now->gt($event->ends_at)) {
-            return false;
-        }
-
-        return true;
+        return 'plan';
     }
 }

@@ -191,17 +191,6 @@
                 </div>
             </x-slot:toolbar>
 
-            <x-tab name="description" :label="__('ui.events.show_about')" class="!p-0" data-ui="event-show-tab-description" icon="o-document-text">
-                @if (in_array('description', $mountedTabs, true))
-                    <livewire:events.event-show-description-tab
-                        defer
-                        :event-id="$eventId"
-                        :active-tab="$tab"
-                        wire:key="event-desc-{{ $eventId }}"
-                    />
-                @endif
-            </x-tab>
-
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
                 @if (in_array('plan', $mountedTabs, true))
                     <livewire:events.event-show-plan-tab
@@ -211,6 +200,17 @@
                         :attached-activity-ids="$attachedActivityIds"
                         :shell-interested-activity-ids="$interestedActivityIds"
                         wire:key="event-plan-{{ $eventId }}"
+                    />
+                @endif
+            </x-tab>
+
+            <x-tab name="map" :label="__('ui.events.show_map')" class="!p-0" data-ui="event-show-tab-map" icon="o-map-pin">
+                @if (in_array('map', $mountedTabs, true))
+                    <livewire:events.event-show-map-tab
+                        defer
+                        :event-id="$eventId"
+                        :active-tab="$tab"
+                        wire:key="event-map-{{ $eventId }}"
                     />
                 @endif
             </x-tab>
