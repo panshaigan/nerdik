@@ -46,6 +46,11 @@ new class extends Component
 
         $this->redirect('/', navigate: true);
     }
+
+    public function openOrganizerRequestModal(): void
+    {
+        $this->dispatch('open-send-user-request', type: 'event_organizer_flag');
+    }
 }; ?>
 
 @php
@@ -189,6 +194,17 @@ new class extends Component
                         @endif
                         @if (auth()->user()->canCreateEvents())
                             <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
+                        @else
+                            <li>
+                                <button
+                                    type="button"
+                                    wire:click="openOrganizerRequestModal"
+                                    class="w-full cursor-pointer text-left"
+                                    data-ui="nav-request-organizer"
+                                >
+                                    {{ __('ui.user_requests.request_organizer_access') }}
+                                </button>
+                            </li>
                         @endif
                         <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
                         @if (auth()->user()->canCreateEvents())
@@ -412,6 +428,18 @@ new class extends Component
                                             {{ __('ui.me.menu_events') }}
                                         </a>
                                     </li>
+                                @else
+                                    <li>
+                                        <button
+                                            type="button"
+                                            wire:click="openOrganizerRequestModal"
+                                            @click="close()"
+                                            class="w-full cursor-pointer text-left"
+                                            data-ui="nav-request-organizer"
+                                        >
+                                            {{ __('ui.user_requests.request_organizer_access') }}
+                                        </button>
+                                    </li>
                                 @endif
                                 <li>
                                     <a
@@ -545,4 +573,14 @@ new class extends Component
             </aside>
         </div>
     </template>
+
+    @auth
+        @if (! auth()->user()->canCreateEvents())
+            <livewire:user-requests.send-user-request
+                type="event_organizer_flag"
+                :show-trigger="false"
+                :key="'nav-organizer-request-modal-'.auth()->id()"
+            />
+        @endif
+    @endauth
 </div>

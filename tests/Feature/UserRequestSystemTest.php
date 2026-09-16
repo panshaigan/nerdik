@@ -49,6 +49,32 @@ class UserRequestSystemTest extends TestCase
             ->assertSet('modalOpen', true);
     }
 
+    public function test_hidden_send_user_request_opens_from_nav_event(): void
+    {
+        $user = User::factory()->create(['is_event_organizer' => false]);
+
+        Livewire::actingAs($user)
+            ->test(SendUserRequest::class, [
+                'type' => 'event_organizer_flag',
+                'showTrigger' => false,
+            ])
+            ->dispatch('open-send-user-request', type: 'event_organizer_flag')
+            ->assertSet('modalOpen', true);
+    }
+
+    public function test_visible_send_user_request_ignores_nav_open_event(): void
+    {
+        $user = User::factory()->create(['is_event_organizer' => false]);
+
+        Livewire::actingAs($user)
+            ->test(SendUserRequest::class, [
+                'type' => 'event_organizer_flag',
+                'showTrigger' => true,
+            ])
+            ->dispatch('open-send-user-request', type: 'event_organizer_flag')
+            ->assertSet('modalOpen', false);
+    }
+
     public function test_organization_invite_accept_moves_recipient_and_leaves_previous_org(): void
     {
         Notification::fake();

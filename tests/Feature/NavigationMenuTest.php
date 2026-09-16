@@ -79,7 +79,8 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertDontSee(__('ui.nav.create_event'), false)
             ->assertDontSee(__('ui.me.menu_events'), false)
-            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
+            ->assertSee(__('ui.user_requests.request_organizer_access'), false)
+            ->assertSee('data-ui="nav-request-organizer"', false)
             ->assertSee(__('ui.nav.create_activity'), false)
             ->assertSee(route('activities.create'), false);
     }
@@ -160,7 +161,8 @@ class NavigationMenuTest extends TestCase
             ->assertSee(route('requests.index'), false)
             ->assertSee('data-ui="nav-requests"', false)
             ->assertDontSee(route('organizations.index'), false)
-            ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
+            ->assertSee(__('ui.user_requests.request_organizer_access'), false)
+            ->assertSee('data-ui="nav-request-organizer"', false)
             ->assertDontSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.me.menu_activities'), false)
             ->assertSee(__('Log Out'), false)

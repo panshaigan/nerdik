@@ -1,5 +1,5 @@
 <div class="inline-flex">
-    @if ($sendable)
+    @if ($showTrigger && $sendable)
         <x-button type="button" class="btn-sm btn-outline" wire:click="openModal">
             {{ $this->buttonLabel() }}
         </x-button>

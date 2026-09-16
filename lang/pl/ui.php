@@ -876,7 +876,7 @@ return [
         'review_request' => 'Przejrzyj prośbę',
         'send_request' => 'Wyślij prośbę',
         'send_invite' => 'Wyślij zaproszenie',
-        'request_organizer_access' => 'Poproś o dostęp organizatora',
+        'request_organizer_access' => 'Uzyskaj status organizatora wydarzeń',
         'invite_to_organization' => 'Zaproś do organizacji',
         'request_to_join_organization' => 'Poproś o dołączenie',
         'invite_to_activity' => 'Zaproś do aktywności',

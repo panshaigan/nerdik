@@ -12,6 +12,7 @@ use App\Services\UserRequests\UserRequestHandlerRegistry;
 use App\Services\UserRequests\UserRequestService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -27,6 +28,8 @@ class SendUserRequest extends Component
 
     public ?int $recipientId = null;
 
+    public bool $showTrigger = true;
+
     public bool $modalOpen = false;
 
     public string $message = '';
@@ -36,16 +39,40 @@ class SendUserRequest extends Component
         ?string $subjectType = null,
         ?int $subjectId = null,
         ?int $recipientId = null,
+        bool $showTrigger = true,
     ): void {
         $this->type = $type;
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
         $this->recipientId = $recipientId;
+        $this->showTrigger = $showTrigger;
+    }
+
+    #[On('open-send-user-request')]
+    public function handleOpenSendUserRequest(string $type): void
+    {
+        if ($this->showTrigger || $type !== $this->type) {
+            return;
+        }
+
+        $this->openModal();
     }
 
     public function openModal(): void
     {
-        if (! $this->sendable()) {
+        $handlers = app(UserRequestHandlerRegistry::class);
+        $requester = Auth::user();
+
+        if ($requester === null) {
+            return;
+        }
+
+        try {
+            $handlers->get(UserRequestType::from($this->type))
+                ->assertCanSend($requester, $this->resolveRecipient(), $this->resolveSubject());
+        } catch (ValidationException $e) {
+            $this->error((string) collect($e->errors())->flatten()->first());
+
             return;
         }
 
@@ -123,6 +150,7 @@ class SendUserRequest extends Component
     {
         return view('livewire.user-requests.send-user-request', [
             'sendable' => $this->sendable($handlers),
+            'showTrigger' => $this->showTrigger,
         ]);
     }
 

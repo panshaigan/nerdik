@@ -886,7 +886,7 @@ return [
         'review_request' => 'Review request',
         'send_request' => 'Send request',
         'send_invite' => 'Send invitation',
-        'request_organizer_access' => 'Request organizer access',
+        'request_organizer_access' => 'Request event organizer features',
         'invite_to_organization' => 'Invite to organization',
         'request_to_join_organization' => 'Request to join',
         'invite_to_activity' => 'Invite to activity',
