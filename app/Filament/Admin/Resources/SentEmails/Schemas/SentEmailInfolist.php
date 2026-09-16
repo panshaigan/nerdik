@@ -64,8 +64,10 @@ class SentEmailInfolist
                     ->schema([
                         ViewEntry::make('html_preview')
                             ->hiddenLabel()
+                            ->columnSpanFull()
                             ->view('filament.admin.resources.sent-emails.html-preview'),
                     ])
+                    ->columnSpanFull()
                     ->visible(fn (SentEmail $record): bool => filled($record->html_path)),
                 Section::make('Plain text')
                     ->schema([

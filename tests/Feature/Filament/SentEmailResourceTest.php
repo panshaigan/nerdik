@@ -52,6 +52,21 @@ final class SentEmailResourceTest extends TestCase
             ->assertSee('Waitlist promotion for Laser Tag');
     }
 
+    public function test_admin_view_sent_email_groups_download_actions(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $email = SentEmail::factory()->create();
+        $path = now()->format('Y/m').'/'.$email->uuid.'.html';
+        Storage::disk('email_logs')->put($path, '<p>Preview body</p>');
+        $email->update(['html_path' => $path]);
+
+        Livewire::actingAs($admin)
+            ->test(ViewSentEmail::class, ['record' => $email->id])
+            ->assertOk()
+            ->assertSee('Download')
+            ->assertSeeHtml('fi-sent-email-html-preview');
+    }
+
     public function test_admin_can_preview_stored_html(): void
     {
         $admin = User::factory()->admin()->create();
