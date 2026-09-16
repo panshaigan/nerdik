@@ -293,7 +293,7 @@ class ListingCardActivityPreviewTest extends TestCase
     public function test_listing_self_hosted_preview_join_updates_roster_count(): void
     {
         $owner = User::factory()->create();
-        $viewer = User::factory()->create();
+        $viewer = User::factory()->create(['nickname' => 'Preview Joiner Nick']);
         $startsAt = now()->addDay()->setTime(10, 0);
         $activity = Activity::factory()->create([
             'created_by' => $owner->id,
@@ -312,7 +312,8 @@ class ListingCardActivityPreviewTest extends TestCase
             ->call('joinPreviewActivity')
             ->assertSet('activityPreviewTab', 'participation')
             ->assertSeeHtml('data-ui="event-activity-preview-tab-participation"')
-            ->assertSee('1/4')
+            ->assertSeeHtml('data-ui="event-activity-preview-participants"')
+            ->assertSee('Preview Joiner Nick')
             ->assertSeeHtml('wire:target="leavePreviewActivity"');
 
         $this->assertTrue(ActivityUser::query()
