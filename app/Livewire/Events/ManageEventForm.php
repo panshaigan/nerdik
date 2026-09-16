@@ -14,6 +14,7 @@ use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
 use App\Support\Events\EventDefaultImageCatalog;
+use App\Support\Events\EventEditionDateBumper;
 use App\Support\Events\EventEditionNameSuggester;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Media\UserGalleryCatalog;
@@ -326,17 +327,18 @@ class ManageEventForm extends Component
 
         if ($forDuplicate) {
             $dateSource->loadMissing('enrollmentWindows');
+            $dateBumper = app(EventEditionDateBumper::class);
             $this->starts_at = $dateSource->starts_at
-                ? format_in_user_tz($dateSource->starts_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i')
+                ? $dateBumper->formatForDatetimeLocal($dateSource->starts_at)
                 : '';
             $this->ends_at = $dateSource->ends_at
-                ? format_in_user_tz($dateSource->ends_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i')
+                ? $dateBumper->formatForDatetimeLocal($dateSource->ends_at)
                 : '';
             $this->enrollment_windows = $dateSource->enrollmentWindows
                 ->map(fn ($p) => [
                     'name' => (string) $p->name,
-                    'starts_at' => format_in_user_tz($p->starts_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i'),
-                    'ends_at' => format_in_user_tz($p->ends_at->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i'),
+                    'starts_at' => $dateBumper->formatForDatetimeLocal($p->starts_at),
+                    'ends_at' => $dateBumper->formatForDatetimeLocal($p->ends_at),
                     'max_activities_per_user' => $p->max_activities_per_user,
                     'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
                     'accumulative_activities' => (bool) $p->accumulative_activities,

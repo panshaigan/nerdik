@@ -16,7 +16,7 @@
                     @if ($events->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_events') }}</p>
                     @else
-                        <div class="space-y-6" data-ui="event-series-editions-list">
+                        <div class="space-y-2" data-ui="event-series-editions-list">
                             @foreach ($events as $edition)
                                 @php
                                     $editionStats = $eventStatsById[(int) $edition->id] ?? [
@@ -29,20 +29,23 @@
                                 <div
                                     wire:key="series-edition-{{ $edition->id }}"
                                     @class([
-                                        'grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(11rem,14rem)] lg:items-stretch',
+                                        'grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-stretch',
                                         'opacity-50' => $edition->isCancelled(),
                                     ])
                                     data-ui="event-series-edition"
                                 >
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 lg:col-span-1">
                                         <x-cards.listing-card
                                             :listing="$edition"
                                             :interested-ids="$interestedEventIds"
                                             :return-url="$browsingReturnUrl"
                                         />
                                     </div>
-                                    <div class="flex flex-col gap-2" data-ui="event-series-edition-stats">
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                    <div
+                                        class="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
+                                        data-ui="event-series-edition-stats"
+                                    >
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
                                             <x-stat
                                                 title="{{ __('ui.events.confirmed_activities') }}"
                                                 value="{{ $editionStats['confirmed_activities'] }}"
@@ -50,7 +53,7 @@
                                                 class="ui-stat-embed ui-activity-show-stat"
                                             />
                                         </div>
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
                                             <x-stat
                                                 title="{{ __('ui.events.confirmed_participants') }}"
                                                 value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
@@ -58,7 +61,7 @@
                                                 class="ui-stat-embed ui-activity-show-stat"
                                             />
                                         </div>
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
                                             <x-stat
                                                 title="{{ __('ui.events.interested_people_count') }}"
                                                 value="{{ $editionStats['interested_people_count'] }}"
@@ -68,6 +71,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                @if (! $loop->last)
+                                    <x-ui.hr class="mt-6 mb-6" data-ui="event-series-edition-hr" icon="o-sparkles" color="neutral" />
+                                @endif
                             @endforeach
                         </div>
                     @endif
@@ -77,9 +83,12 @@
                     @if ($hosts === [])
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_hosts') }}</p>
                     @else
-                        <ul class="space-y-3" data-ui="event-series-hosts-list">
+                        <ul
+                            class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                            data-ui="event-series-hosts-list"
+                        >
                             @foreach ($hosts as $host)
-                                <li class="flex items-center gap-3" data-ui="event-series-host">
+                                <li class="min-w-0" data-ui="event-series-host">
                                     <livewire:activities.user-badge-contact
                                         :user="$host['user']"
                                         :key="'series-host-user-'.$host['user']->id"
@@ -162,10 +171,9 @@
                                             <x-icon
                                                 name="o-information-circle"
                                                 class="h-4 w-4 text-base-content/50"
-                                                :popover="__('ui.event_series.stats_participants_hint')"
                                             />
                                         </x-slot:trigger>
-                                        <x-slot:content class="max-w-xs text-sm text-base-content">
+                                        <x-slot:content class="!w-72 max-w-[min(18rem,calc(100vw-2rem))] whitespace-normal text-sm text-base-content">
                                             {{ __('ui.event_series.stats_participants_hint') }}
                                         </x-slot:content>
                                     </x-popover>

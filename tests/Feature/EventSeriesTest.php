@@ -9,6 +9,7 @@ use App\Livewire\Events\ShowEventSeries;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\User;
+use App\Support\Events\EventEditionDateBumper;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -64,10 +65,11 @@ class EventSeriesTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
-        $expectedStarts = format_in_user_tz($latestStarts->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
-        $expectedEnds = format_in_user_tz($latestEnds->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
-        $expectedWindowStarts = format_in_user_tz($windowStarts->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
-        $expectedWindowEnds = format_in_user_tz($windowEnds->copy()->addMonthNoOverflow(), 'Y-m-d\TH:i');
+        $dateBumper = app(EventEditionDateBumper::class);
+        $expectedStarts = $dateBumper->formatForDatetimeLocal($latestStarts);
+        $expectedEnds = $dateBumper->formatForDatetimeLocal($latestEnds);
+        $expectedWindowStarts = $dateBumper->formatForDatetimeLocal($windowStarts);
+        $expectedWindowEnds = $dateBumper->formatForDatetimeLocal($windowEnds);
 
         Livewire::actingAs($user)
             ->withQueryParams(['duplicate' => $older->slug])

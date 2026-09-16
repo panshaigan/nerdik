@@ -28,6 +28,9 @@
                             <x-icon name="o-chevron-double-left" class="h-8 w-8 shrink-0" />
                         </a>
                     @endif
+                    @isset($titlePrefix)
+                        {{ $titlePrefix }}
+                    @endisset
                     <span>{{ $title }}</span>
                     @isset($titleSuffix)
                         {{ $titleSuffix }}
