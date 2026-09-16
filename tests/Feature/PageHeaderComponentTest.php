@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
 class PageHeaderComponentTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_page_header_renders_title(): void
     {
         $html = Blade::render('<x-page-header title="Szept w Ciemności" />');

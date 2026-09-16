@@ -22,7 +22,7 @@ passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdli
 .PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy init dump-schema sync-from-prod sync-to-staging check \
-        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild \
+        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
 # Data sync flags
@@ -212,6 +212,10 @@ sail-build:
 sail-rebuild: down
 	$(SAIL) build --no-cache
 	$(SAIL) up -d
+
+restart-db:
+	$(SAIL) build --no-cache pgsql
+	$(SAIL) up -d --force-recreate pgsql
 
 %:
 	@:

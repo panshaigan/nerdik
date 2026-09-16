@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ThemeDefaultsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_guest_layout_defaults_to_dark_theme_before_javascript_runs(): void
     {
         $this->get(route('login'))
