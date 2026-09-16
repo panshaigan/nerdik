@@ -26,6 +26,10 @@ class UsersTable
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable(),
+                TextColumn::make('sent_emails_count')
+                    ->counts('sentEmails')
+                    ->label('Sent emails')
+                    ->sortable(),
                 TextColumn::make('organization.name')
                     ->searchable(),
                 IconColumn::make('is_admin')

@@ -21,9 +21,6 @@ class UserForm
                     ->label('Email address')
                     ->email()
                     ->required(),
-                TextInput::make('password')
-                    ->password()
-                    ->required(),
                 BelongsToSelect::make('organization_id', 'organization'),
                 Toggle::make('is_admin')
                     ->required(),
