@@ -61,7 +61,7 @@
                                         <span class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">{{ $group['label'] }}</span>
                                     </x-slot:heading>
                                     <x-slot:content class="ui-dashboard-feed-collapse-content">
-                                        <div class="ui-dashboard-feed-listings grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                                        <div class="ui-dashboard-feed-listings grid grid-cols-1 gap-8 md:grid-cols-3">
                                             @foreach ($groupItems as $row)
                                                 <x-cards.listing-card
                                                     :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
