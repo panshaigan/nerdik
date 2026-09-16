@@ -88,14 +88,12 @@
                 <span class="ui-link ui-link-title" data-ui="{{ $d->dataUiPrefix }}-title-link">{{ $d->name }}</span>
             </h3>
             @if ($d->hostUser)
-                <div class="mt-1 mb-3 pb-2 z-20" data-ui="{{ $d->dataUiPrefix }}-host">
-                    <x-user-badge
-                        :user="$d->hostUser"
-                        :organization="$d->hostOrganization"
-                        size="sm"
-                        nameClass="truncate text-xs font-medium text-base-content"
-                    />
-                </div>
+                <x-user-badge
+                    :user="$d->hostUser"
+                    :organization="$d->hostOrganization"
+                    size="sm"
+                    nameClass="truncate text-xs font-medium text-base-content"
+                />
             @endif
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
