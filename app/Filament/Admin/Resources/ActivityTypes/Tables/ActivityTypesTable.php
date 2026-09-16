@@ -16,6 +16,9 @@ class ActivityTypesTable
             ->columns([
                 TextColumn::make('slug')
                     ->searchable(),
+                TextColumn::make('max_participants_limit')
+                    ->label('Max participants')
+                    ->sortable(),
             ])
             ->filters([
                 //

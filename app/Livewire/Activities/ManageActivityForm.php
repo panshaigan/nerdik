@@ -241,8 +241,10 @@ class ManageActivityForm extends Component
         $this->applyProposalContextPrefill();
 
         if ($this->editingActivityId === null && $this->activity_type_id === null) {
-            $this->activity_type_id = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+            $this->activity_type_id = $this->defaultActivityTypeId();
         }
+
+        $this->normalizeParticipantBounds();
 
         if ($this->editingActivityId === null && $this->cancellation_deadline_in_hours === null) {
             $this->cancellation_deadline_in_hours = 24;
@@ -855,12 +857,9 @@ class ManageActivityForm extends Component
         $activityTypeRules = ['required', 'integer', 'exists:activity_types,id'];
         if ($this->proposal_allowed_activity_type_ids !== null) {
             $activityTypeRules[] = Rule::in($this->proposal_allowed_activity_type_ids);
-        } else {
-            $rpgTypeId = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
-            if ($rpgTypeId !== null) {
-                $activityTypeRules[] = Rule::in([(int) $rpgTypeId]);
-            }
         }
+
+        $participantsLimit = $this->participantsMaxLimit();
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -870,6 +869,7 @@ class ManageActivityForm extends Component
                 'nullable',
                 'integer',
                 'min:1',
+                'max:'.$participantsLimit,
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if ($value === null || $value === '') {
                         return;
@@ -884,6 +884,7 @@ class ManageActivityForm extends Component
                 'nullable',
                 'integer',
                 'min:1',
+                'max:'.$participantsLimit,
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if ($value === null || $value === '') {
                         return;
@@ -1198,6 +1199,8 @@ class ManageActivityForm extends Component
             $this->max_participants = $prefilledMaxParticipants;
         }
 
+        $this->normalizeParticipantBounds();
+
         $prefilledDuration = $slots
             ->map(function (Slot $slot): ?int {
                 if ($slot->starts_at === null || $slot->ends_at === null || $slot->ends_at->lte($slot->starts_at)) {
@@ -1339,15 +1342,52 @@ class ManageActivityForm extends Component
 
     private function normalizeParticipantBounds(): void
     {
+        $limit = $this->participantsMaxLimit();
+
         if ($this->min_participants !== null && $this->min_participants < 1) {
             $this->min_participants = 1;
         }
         if ($this->max_participants !== null && $this->max_participants < 1) {
             $this->max_participants = 1;
         }
+        if ($this->min_participants !== null && $this->min_participants > $limit) {
+            $this->min_participants = $limit;
+        }
+        if ($this->max_participants !== null && $this->max_participants > $limit) {
+            $this->max_participants = $limit;
+        }
         if ($this->min_participants !== null && $this->max_participants !== null && $this->min_participants > $this->max_participants) {
             $this->min_participants = $this->max_participants;
         }
+    }
+
+    public function participantsMaxLimit(): int
+    {
+        return ActivityType::maxParticipantsLimitForId($this->activity_type_id);
+    }
+
+    public function updatedActivityTypeId(mixed $value): void
+    {
+        $this->activity_type_id = $value !== null && $value !== '' ? (int) $value : null;
+        $this->normalizeParticipantBounds();
+    }
+
+    protected function defaultActivityTypeId(): ?int
+    {
+        $rpgTypeId = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        if ($rpgTypeId !== null) {
+            $rpgTypeId = (int) $rpgTypeId;
+            if ($this->proposal_allowed_activity_type_ids === null
+                || in_array($rpgTypeId, $this->proposal_allowed_activity_type_ids, true)) {
+                return $rpgTypeId;
+            }
+        }
+
+        if ($this->proposal_allowed_activity_type_ids !== null && count($this->proposal_allowed_activity_type_ids) === 1) {
+            return (int) $this->proposal_allowed_activity_type_ids[0];
+        }
+
+        return null;
     }
 
     public function render()
@@ -1502,6 +1542,7 @@ class ManageActivityForm extends Component
             'proposalEventSuggestions' => $proposalEventSuggestions,
             'proposalEventSlots' => $proposalEventSlots,
             'activityTypes' => $activityTypesQuery->get(),
+            'participantsMaxLimit' => $this->participantsMaxLimit(),
             'proposalFieldsReadonly' => $this->proposalFieldsReadonly,
             'participationConstrainedBySlots' => $this->participationConstrainedBySlots,
             'allowedParticipationModes' => $this->allowedParticipationModes,

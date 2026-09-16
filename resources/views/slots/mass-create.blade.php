@@ -32,7 +32,7 @@
         'oldVenuePlaceId' => $defaultVenuePlaceId !== null && $defaultVenuePlaceId !== '' ? (int) $defaultVenuePlaceId : null,
         'isEdit' => $editMode,
         'initialActivityTypes' => $oldActivityTypeIds,
-        'allowedActivityTypeIds' => $rpgActivityTypeId > 0 ? [$rpgActivityTypeId] : [],
+        'allowedActivityTypeIds' => [],
         'activityTypeLabels' => $activityTypes->mapWithKeys(fn ($type) => [$type->id => __('ui.activities.types.'.$type->slug)])->all(),
         'strings' => [
             'none' => __('ui.common.none'),
@@ -276,7 +276,6 @@
                         :options="$activityTypes->map(fn ($type) => [
                             'id' => $type->id,
                             'name' => __('ui.activities.types.'.$type->slug),
-                            'disabled' => $type->slug !== \App\Models\ActivityType::SLUG_RPG,
                         ])->values()->all()"
                         placeholder-value=""
                         icon="o-squares-2x2"

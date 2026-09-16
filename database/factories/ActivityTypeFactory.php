@@ -26,7 +26,8 @@ final class ActivityTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'slug' => fake()->slug,
+            'slug' => fake()->unique()->slug(2),
+            'max_participants_limit' => ActivityType::DEFAULT_MAX_PARTICIPANTS_LIMIT,
         ];
     }
 }

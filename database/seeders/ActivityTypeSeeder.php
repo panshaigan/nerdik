@@ -14,7 +14,16 @@ class ActivityTypeSeeder extends Seeder
     public function run(): void
     {
         foreach (ActivityType::slugs() as $slug) {
-            DB::table('activity_types')->updateOrInsert(['slug' => $slug]);
+            $exists = DB::table('activity_types')->where('slug', $slug)->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            DB::table('activity_types')->insert([
+                'slug' => $slug,
+                'max_participants_limit' => ActivityType::defaultMaxParticipantsLimitForSlug($slug),
+            ]);
         }
     }
 }

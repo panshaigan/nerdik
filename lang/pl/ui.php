@@ -453,6 +453,7 @@ return [
         'max_participants_gte_min' => 'Maksimum uczestników nie może być mniejsze niż minimum.',
         'min_participants_lte_max' => 'Minimum uczestników nie może być większe niż maksimum.',
         'max_participants' => 'Maks. liczba uczestników',
+        'max_participants_limit' => 'Limit pojemności uczestników dla tego typu aktywności',
         'minimum_age' => 'Minimalny wiek',
         'minimum_age_no_limit' => 'Bez limitu',
         'duration_in_minutes' => 'Czas trwania (minuty)',

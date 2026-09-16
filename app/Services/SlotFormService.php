@@ -360,20 +360,7 @@ class SlotFormService
      */
     private function activityTypeItemRules(): array
     {
-        $rpgTypeId = $this->rpgActivityTypeId();
-        $rules = ['integer', 'exists:activity_types,id'];
-        if ($rpgTypeId !== null) {
-            $rules[] = Rule::in([$rpgTypeId]);
-        }
-
-        return $rules;
-    }
-
-    private function rpgActivityTypeId(): ?int
-    {
-        $id = ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
-
-        return $id !== null ? (int) $id : null;
+        return ['integer', 'exists:activity_types,id'];
     }
 
     private function normalizeMaxCapacity(mixed $maxCapacity): ?int

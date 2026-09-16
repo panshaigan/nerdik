@@ -1,6 +1,3 @@
-@php
-    use App\Models\ActivityType;
-@endphp
 <div>
     <div class="grid min-w-0 gap-4 sm:grid-cols-2">
         <div class="min-w-0">
@@ -21,14 +18,13 @@
         <div class="min-w-0">
             <x-select
                 id="activity_type_id"
-                wire:model="activity_type_id"
+                wire:model.live="activity_type_id"
                 :label="__('ui.activities.type')"
                 error-field="activity_type_id"
                 required
                 :options="$activityTypes->map(fn ($type) => [
                     'id' => $type->id,
                     'name' => __('ui.activities.types.'.$type->slug),
-                    'disabled' => $type->slug !== ActivityType::SLUG_RPG,
                 ])->values()->all()"
                 :placeholder="__('ui.activities.choose_type')"
                 placeholder-value=""
@@ -40,12 +36,13 @@
         <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-8">
             <div class="grid min-w-0 grid-cols-1 gap-4 space-y-4 md:grid-cols-1">
                 <x-range-dual
+                    wire:key="participants-range-{{ $activity_type_id ?? 'none' }}-{{ $participantsMaxLimit }}"
                     class="min-w-0"
                     :label="__('ui.activities.participants')"
                     min-wire-model="min_participants"
                     max-wire-model="max_participants"
                     :min-limit="1"
-                    :max-limit="20"
+                    :max-limit="$participantsMaxLimit"
                     :step="1"
                     range-class="range-xs"
                 />

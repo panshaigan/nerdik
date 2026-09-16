@@ -33,11 +33,24 @@ class ActivityType extends Model implements HasMedia
 
     public const SLUG_SHOW = 'show';
 
+    public const DEFAULT_MAX_PARTICIPANTS_LIMIT = 20;
+
     public $timestamps = false;
 
     protected $fillable = [
         'slug',
+        'max_participants_limit',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'max_participants_limit' => 'integer',
+        ];
+    }
 
     public function activities(): HasMany
     {
@@ -54,6 +67,9 @@ class ActivityType extends Model implements HasMedia
         return static::where('slug', $slug)->first();
     }
 
+    /**
+     * @return list<string>
+     */
     public static function slugs(): array
     {
         $reflection = new \ReflectionClass(static::class);
@@ -62,5 +78,44 @@ class ActivityType extends Model implements HasMedia
             ->filter(fn ($value, $key) => str_starts_with($key, 'SLUG_'))
             ->values()
             ->all();
+    }
+
+    public static function defaultMaxParticipantsLimitForSlug(string $slug): int
+    {
+        return match ($slug) {
+            self::SLUG_RPG => 20,
+            self::SLUG_WARGAME => 12,
+            self::SLUG_BOARD => 8,
+            self::SLUG_CARD => 8,
+            self::SLUG_LARP => 40,
+            self::SLUG_DISCUSSION => 30,
+            self::SLUG_LECTURE => 100,
+            self::SLUG_WORKSHOP => 24,
+            self::SLUG_COMPETITION => 64,
+            self::SLUG_SHOW => 100,
+            default => self::DEFAULT_MAX_PARTICIPANTS_LIMIT,
+        };
+    }
+
+    public static function maxParticipantsLimitForId(?int $activityTypeId): int
+    {
+        if ($activityTypeId === null || $activityTypeId <= 0) {
+            return self::DEFAULT_MAX_PARTICIPANTS_LIMIT;
+        }
+
+        $limit = static::query()->whereKey($activityTypeId)->value('max_participants_limit');
+
+        if ($limit === null || (int) $limit < 1) {
+            return self::DEFAULT_MAX_PARTICIPANTS_LIMIT;
+        }
+
+        return (int) $limit;
+    }
+
+    public function resolvedMaxParticipantsLimit(): int
+    {
+        $limit = (int) ($this->max_participants_limit ?? 0);
+
+        return $limit >= 1 ? $limit : self::DEFAULT_MAX_PARTICIPANTS_LIMIT;
     }
 }

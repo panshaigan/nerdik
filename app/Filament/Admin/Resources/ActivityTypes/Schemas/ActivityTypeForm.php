@@ -17,6 +17,15 @@ class ActivityTypeForm
             ->components([
                 TextInput::make('slug')
                     ->required(),
+                TextInput::make('max_participants_limit')
+                    ->label('Max participants limit')
+                    ->helperText('Upper bound for the activity participant range when this type is selected.')
+                    ->numeric()
+                    ->integer()
+                    ->minValue(1)
+                    ->maxValue(500)
+                    ->required()
+                    ->default(ActivityType::DEFAULT_MAX_PARTICIPANTS_LIMIT),
                 Section::make('Activity fallback images')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('images')
