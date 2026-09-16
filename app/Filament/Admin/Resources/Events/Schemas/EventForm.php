@@ -8,6 +8,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class EventForm
 {
@@ -17,6 +18,14 @@ class EventForm
             ->components([
                 TextInput::make('name'),
                 BelongsToSelect::make('organization_id', 'organization'),
+                BelongsToSelect::place(
+                    name: 'places',
+                    relationship: 'places',
+                    modifyQuery: fn (Builder $query): Builder => $query->venues(),
+                    includeChildRooms: false,
+                )
+                    ->multiple()
+                    ->label('Places'),
                 Toggle::make('is_public')
                     ->required(),
                 TextInput::make('logo_path'),

@@ -223,17 +223,26 @@ final class BelongsToSelect
         );
     }
 
-    public static function place(string $name = 'place_id', string $relationship = 'place'): Select
-    {
+    /**
+     * @param  (Closure(Builder, ?string): Builder)|null  $modifyQuery
+     */
+    public static function place(
+        string $name = 'place_id',
+        string $relationship = 'place',
+        ?Closure $modifyQuery = null,
+        bool $includeChildRooms = true,
+    ): Select {
         return self::applyDefaults(
             self::configurePlaceSearch(
                 Select::make($name)
                     ->relationship(
                         $relationship,
                         'name',
-                        self::preloadRelationshipModifier(),
+                        self::preloadRelationshipModifier($modifyQuery),
                     )
                     ->getOptionLabelFromRecordUsing(fn (Place $record): string => FilamentRecordLabel::for($record)),
+                modifyQuery: $modifyQuery,
+                includeChildRooms: $includeChildRooms,
             ),
         );
     }
@@ -364,11 +373,17 @@ final class BelongsToSelect
             ->all();
     }
 
-    private static function configurePlaceSearch(Select $select): Select
-    {
+    /**
+     * @param  (Closure(Builder, ?string): Builder)|null  $modifyQuery
+     */
+    private static function configurePlaceSearch(
+        Select $select,
+        ?Closure $modifyQuery = null,
+        bool $includeChildRooms = true,
+    ): Select {
         $select->searchable();
 
-        $select->getSearchResultsUsing(function (Select $component, string $search): array {
+        $select->getSearchResultsUsing(function (Select $component, string $search) use ($modifyQuery, $includeChildRooms): array {
             $relationship = $component->getRelationship();
 
             if ($relationship === null) {
@@ -377,11 +392,19 @@ final class BelongsToSelect
 
             $relationshipQuery = $relationship->getRelated()->newQuery()->with('parent');
 
+            if ($modifyQuery !== null) {
+                $relationshipQuery = $component->evaluate($modifyQuery, [
+                    'query' => $relationshipQuery,
+                    'search' => blank($search) ? null : $search,
+                ]) ?? $relationshipQuery;
+            }
+
             if (blank($search)) {
                 return self::mapPlaceRecordsToOptions(
                     $component,
                     $relationshipQuery->orderBy('name'),
                     self::INITIAL_SUGGESTIONS_LIMIT,
+                    $includeChildRooms,
                 );
             }
 
@@ -391,6 +414,7 @@ final class BelongsToSelect
                 $component,
                 $relationshipQuery,
                 self::SEARCH_OPTIONS_LIMIT,
+                $includeChildRooms,
             );
         });
 
@@ -400,27 +424,33 @@ final class BelongsToSelect
     /**
      * @return array<int|string, string>
      */
-    private static function mapPlaceRecordsToOptions(Select $component, Builder $query, int $limit): array
-    {
+    private static function mapPlaceRecordsToOptions(
+        Select $component,
+        Builder $query,
+        int $limit,
+        bool $includeChildRooms = true,
+    ): array {
         $places = $query
             ->limit($limit)
             ->get();
 
-        $venueIds = $places
-            ->filter(fn (Place $place): bool => $place->type === Place::TYPE_VENUE)
-            ->pluck('id');
+        if ($includeChildRooms) {
+            $venueIds = $places
+                ->filter(fn (Place $place): bool => $place->type === Place::TYPE_VENUE)
+                ->pluck('id');
 
-        if ($venueIds->isNotEmpty()) {
-            $existingIds = $places->pluck('id');
-            $rooms = Place::query()
-                ->with('parent')
-                ->whereIn('parent_id', $venueIds)
-                ->whereNotIn('id', $existingIds)
-                ->orderBy('name')
-                ->limit(max(0, $limit - $places->count()))
-                ->get();
+            if ($venueIds->isNotEmpty()) {
+                $existingIds = $places->pluck('id');
+                $rooms = Place::query()
+                    ->with('parent')
+                    ->whereIn('parent_id', $venueIds)
+                    ->whereNotIn('id', $existingIds)
+                    ->orderBy('name')
+                    ->limit(max(0, $limit - $places->count()))
+                    ->get();
 
-            $places = $places->concat($rooms);
+                $places = $places->concat($rooms);
+            }
         }
 
         return $places

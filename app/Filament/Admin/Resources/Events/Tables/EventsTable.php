@@ -21,6 +21,7 @@ class EventsTable
     {
         return BelongsToColumn::withEagerLoads($table, [
             'organization',
+            'places',
             ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
         ])
             ->columns([
@@ -28,6 +29,10 @@ class EventsTable
                     ->searchable(),
                 TextColumn::make('organization.name')
                     ->searchable(),
+                TextColumn::make('places.name')
+                    ->badge()
+                    ->separator(',')
+                    ->toggleable(),
                 IconColumn::make('is_public')
                     ->boolean(),
                 TextColumn::make('logo_path')
