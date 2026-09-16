@@ -23,6 +23,7 @@ return [
         'pulse' => 'Pulse',
         'sentry' => 'Sentry',
         'support' => 'Support',
+        'adminer' => 'Adminer',
     ],
     'me' => [
         'menu_events' => 'My events',

@@ -228,6 +228,15 @@ new class extends Component
                                     >{{ __('ui.nav.support') }}</a>
                                 </li>
                             @endif
+                            @if (filled(config('services.adminer.url')))
+                                <li>
+                                    <a
+                                        href="{{ config('services.adminer.url') }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >{{ __('ui.nav.adminer') }}</a>
+                                </li>
+                            @endif
                         @endif
                         <li>
                             <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
@@ -478,6 +487,18 @@ new class extends Component
                                                 @click="close()"
                                             >
                                                 {{ __('ui.nav.support') }}
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if (filled(config('services.adminer.url')))
+                                        <li>
+                                            <a
+                                                href="{{ config('services.adminer.url') }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                @click="close()"
+                                            >
+                                                {{ __('ui.nav.adminer') }}
                                             </a>
                                         </li>
                                     @endif

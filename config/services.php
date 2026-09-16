@@ -66,4 +66,18 @@ return [
         'enabled' => filter_var(env('RECAPTCHA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Adminer
+    |--------------------------------------------------------------------------
+    |
+    | URL of the Adminer database UI (Sail: http://localhost:8080). Shown as a
+    | link in the admin profile menu. Leave empty to hide.
+    |
+    */
+
+    'adminer' => [
+        'url' => env('ADMINER_URL'),
+    ],
+
 ];

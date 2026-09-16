@@ -23,6 +23,7 @@ return [
         'pulse' => 'Pulse',
         'sentry' => 'Sentry',
         'support' => 'Wsparcie',
+        'adminer' => 'Adminer',
     ],
     'me' => [
         'menu_events' => 'Moje wydarzenia',

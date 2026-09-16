@@ -213,6 +213,7 @@ class NavigationMenuTest extends TestCase
     {
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
         Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
+        Config::set('services.adminer.url', 'https://adminer.example');
 
         $admin = User::factory()->admin()->create();
 
@@ -226,16 +227,19 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.pulse'), false)
             ->assertSee(__('ui.nav.sentry'), false)
             ->assertSee(__('ui.nav.support'), false)
+            ->assertSee(__('ui.nav.adminer'), false)
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
             ->assertSee('https://sentry.example/org/project', false)
-            ->assertSee('https://mail.example/inbox', false);
+            ->assertSee('https://mail.example/inbox', false)
+            ->assertSee('https://adminer.example', false);
     }
 
     public function test_non_admin_does_not_see_ops_links_in_profile_menu(): void
     {
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
         Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
+        Config::set('services.adminer.url', 'https://adminer.example');
 
         $user = User::factory()->organizer()->create([
             'is_admin' => false,
@@ -251,16 +255,19 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee(__('ui.nav.pulse'), false)
             ->assertDontSee(__('ui.nav.sentry'), false)
             ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee(__('ui.nav.adminer'), false)
             ->assertDontSee($filamentUrl, false)
             ->assertDontSee($pulseUrl, false)
             ->assertDontSee('https://sentry.example/org/project', false)
-            ->assertDontSee('https://mail.example/inbox', false);
+            ->assertDontSee('https://mail.example/inbox', false)
+            ->assertDontSee('https://adminer.example', false);
     }
 
-    public function test_admin_ops_menu_hides_sentry_and_support_when_unconfigured(): void
+    public function test_admin_ops_menu_hides_optional_links_when_unconfigured(): void
     {
         Config::set('sentry.dashboard_url', null);
         Config::set('mail.support_mailbox_url', null);
+        Config::set('services.adminer.url', null);
 
         $admin = User::factory()->admin()->create();
 
@@ -275,6 +282,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
             ->assertDontSee(__('ui.nav.sentry'), false)
-            ->assertDontSee(__('ui.nav.support'), false);
+            ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee(__('ui.nav.adminer'), false);
     }
 }
