@@ -7,7 +7,6 @@ namespace App\Support\Sharing;
 enum ShareTarget: string
 {
     case Copy = 'copy';
-    case Native = 'native';
     case Facebook = 'facebook';
     case WhatsApp = 'whatsapp';
     case X = 'x';
@@ -17,7 +16,7 @@ enum ShareTarget: string
     {
         return match ($this) {
             self::Facebook, self::WhatsApp, self::X, self::Telegram => true,
-            self::Copy, self::Native => false,
+            self::Copy => false,
         };
     }
 

@@ -203,7 +203,6 @@ return [
     'share' => [
         'share' => 'Udostępnij',
         'copy_link' => 'Kopiuj link',
-        'native' => 'Udostępnij przez urządzenie',
         'platforms' => [
             'facebook' => 'Facebook',
             'whatsapp' => 'WhatsApp',

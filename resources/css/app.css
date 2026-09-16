@@ -1670,6 +1670,15 @@ dialog.modal:has(.ui-invite-user-request-modal) {
     overflow: visible;
 }
 
+.ui-listing-preview-modal.modal-box,
+dialog.modal:has(.ui-listing-preview-modal) {
+    overflow: visible !important;
+}
+
+.ui-listing-preview-modal .modal-action {
+    overflow: visible;
+}
+
 /**
  * Activity/event listing preview modals: keep actions above mobile browser chrome.
  * DaisyUI .modal-box uses max-height: 100vh, which sits under the bottom bar on phones.

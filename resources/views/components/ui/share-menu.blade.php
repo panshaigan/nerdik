@@ -6,68 +6,71 @@
     /** @var \App\Support\Sharing\SharePayload $payload */
     $shareLinks = app(\App\Support\Sharing\ShareLinks::class);
     $copyUrl = $shareLinks->trackedUrl($payload, \App\Support\Sharing\ShareTarget::Copy);
-    $nativeUrl = $shareLinks->trackedUrl($payload, \App\Support\Sharing\ShareTarget::Native);
     $externalTargets = \App\Support\Sharing\ShareTarget::externalCases();
+    $platformIcon = [
+        \App\Support\Sharing\ShareTarget::Facebook->value => 'o-globe-alt',
+        \App\Support\Sharing\ShareTarget::WhatsApp->value => 'o-chat-bubble-oval-left-ellipsis',
+        \App\Support\Sharing\ShareTarget::X->value => 'o-hashtag',
+        \App\Support\Sharing\ShareTarget::Telegram->value => 'o-paper-airplane',
+    ];
 @endphp
 
 <div
-    class="dropdown dropdown-end relative"
+    class="relative z-[9999]"
     data-ui="share-menu"
     x-data="{
-        canNativeShare: typeof navigator !== 'undefined' && typeof navigator.share === 'function',
+        open: false,
         copyUrl: @js($copyUrl),
-        nativeShare() {
-            if (! this.canNativeShare) {
-                return;
-            }
-
-            navigator.share({
-                title: @js($payload->title),
-                text: @js($payload->text),
-                url: @js($nativeUrl),
-            }).catch(() => {});
+        toggle() {
+            this.open = ! this.open;
+        },
+        close() {
+            this.open = false;
         },
         copyLink() {
             window.copyToClipboard(this.copyUrl, { message: @js(__('ui.common.copied')) });
+            this.close();
+        },
+        openExternal(url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            this.close();
         },
     }"
+    x-on:keydown.escape.window="close()"
+    x-on:click.outside="close()"
 >
-    <x-button
+    <button
         type="button"
-        tabindex="0"
-        role="button"
-        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-        :tooltip="__('ui.share.share')"
-        :aria-label="__('ui.share.share')"
+        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+        x-on:click="toggle()"
+        :aria-expanded="open"
+        aria-haspopup="menu"
+        :aria-label="@js(__('ui.share.share'))"
+        title="{{ __('ui.share.share') }}"
         data-ui="share-menu-trigger"
-        icon="o-share"
-    />
+    >
+        <x-icon name="o-share" class="h-5 w-5" />
+    </button>
 
     <ul
-        tabindex="0"
-        class="menu dropdown-content z-[100] mt-2 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral"
+        x-show="open"
+        x-cloak
+        x-transition.opacity.duration.150ms
+        role="menu"
+        class="absolute end-0 top-full z-[9999] mt-2 flex w-52 flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral"
         data-ui="share-menu-list"
+        style="display: none;"
     >
-        <li>
+        <li role="none">
             <button
                 type="button"
-                class="gap-2"
+                role="menuitem"
+                class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200"
                 data-ui="share-copy"
                 x-on:click="copyLink()"
             >
-                <x-icon name="o-clipboard-document" class="h-4 w-4" />
+                <x-icon name="o-clipboard-document" class="h-4 w-4 shrink-0" />
                 {{ __('ui.share.copy_link') }}
-            </button>
-        </li>
-        <li x-show="canNativeShare" x-cloak>
-            <button
-                type="button"
-                class="gap-2"
-                data-ui="share-native"
-                x-on:click="nativeShare()"
-            >
-                <x-icon name="o-share" class="h-4 w-4" />
-                {{ __('ui.share.native') }}
             </button>
         </li>
         @foreach ($externalTargets as $target)
@@ -75,25 +78,20 @@
                 $intentUrl = $shareLinks->intentUrl($payload, $target);
             @endphp
             @if ($intentUrl !== null)
-                <li>
-                    <a
-                        href="{{ $intentUrl }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="gap-2"
+                <li role="none">
+                    <button
+                        type="button"
+                        role="menuitem"
+                        class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200"
                         data-ui="share-{{ $target->value }}"
+                        x-on:click="openExternal(@js($intentUrl))"
                     >
                         <x-icon
-                            :name="match ($target) {
-                                \App\Support\Sharing\ShareTarget::Facebook => 'o-globe-alt',
-                                \App\Support\Sharing\ShareTarget::WhatsApp => 'o-chat-bubble-oval-left-ellipsis',
-                                \App\Support\Sharing\ShareTarget::X => 'o-hashtag',
-                                \App\Support\Sharing\ShareTarget::Telegram => 'o-paper-airplane',
-                            }"
-                            class="h-4 w-4"
+                            :name="$platformIcon[$target->value]"
+                            class="h-4 w-4 shrink-0"
                         />
                         {{ __('ui.share.platforms.'.$target->value) }}
-                    </a>
+                    </button>
                 </li>
             @endif
         @endforeach

@@ -203,7 +203,6 @@ return [
     'share' => [
         'share' => 'Share',
         'copy_link' => 'Copy link',
-        'native' => 'Share via device',
         'platforms' => [
             'facebook' => 'Facebook',
             'whatsapp' => 'WhatsApp',

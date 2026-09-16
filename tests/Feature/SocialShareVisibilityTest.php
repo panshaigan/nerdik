@@ -30,7 +30,12 @@ final class SocialShareVisibilityTest extends TestCase
         ]);
 
         Livewire::test(ShowEvent::class, ['event' => $event])
-            ->assertSeeHtml('data-ui="share-menu"');
+            ->assertSeeHtml('data-ui="share-menu"')
+            ->assertSeeHtml('data-ui="share-copy"')
+            ->assertSeeHtml('data-ui="share-facebook"')
+            ->assertSeeHtml('data-ui="share-whatsapp"')
+            ->assertSeeHtml('data-ui="share-x"')
+            ->assertSeeHtml('data-ui="share-telegram"');
     }
 
     public function test_guest_event_show_hides_share_menu_when_cancelled(): void

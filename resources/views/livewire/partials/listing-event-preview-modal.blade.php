@@ -2,7 +2,7 @@
     <x-modal
         wire:model="eventPreviewModalOpen"
         :title="$previewEvent->name"
-        box-class="max-w-4xl ui-modal-surface ui-listing-preview-modal"
+        box-class="max-w-4xl overflow-visible ui-modal-surface ui-listing-preview-modal"
         class="backdrop-blur"
         separator
     >
