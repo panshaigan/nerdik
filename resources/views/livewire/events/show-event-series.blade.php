@@ -29,7 +29,7 @@
                                 <div
                                     wire:key="series-edition-{{ $edition->id }}"
                                     @class([
-                                        'grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-stretch',
+                                        'grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-start',
                                         'opacity-50' => $edition->isCancelled(),
                                     ])
                                     data-ui="event-series-edition"
@@ -42,7 +42,7 @@
                                         />
                                     </div>
                                     <div
-                                        class="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
+                                        class="grid grid-cols-1 gap-2 self-start sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
                                         data-ui="event-series-edition-stats"
                                     >
                                         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">

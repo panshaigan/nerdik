@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -69,6 +70,9 @@ trait HasAutoSlug
         $candidate = $slugBase;
 
         $query = static::query()->where($slugColumn, $candidate);
+        if (static::usesSoftDeletesForSlugUniqueness()) {
+            $query->withTrashed();
+        }
         if ($ignoreId !== null) {
             $query->where($model->getKeyName(), '!=', $ignoreId);
         }
@@ -78,6 +82,9 @@ trait HasAutoSlug
             while (true) {
                 $candidate = $slugBase.'-'.$counter;
                 $query = static::query()->where($slugColumn, $candidate);
+                if (static::usesSoftDeletesForSlugUniqueness()) {
+                    $query->withTrashed();
+                }
                 if ($ignoreId !== null) {
                     $query->where($model->getKeyName(), '!=', $ignoreId);
                 }
@@ -89,5 +96,10 @@ trait HasAutoSlug
         }
 
         return $candidate;
+    }
+
+    private static function usesSoftDeletesForSlugUniqueness(): bool
+    {
+        return in_array(SoftDeletes::class, class_uses_recursive(static::class), true);
     }
 }

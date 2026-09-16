@@ -302,8 +302,10 @@ class ManageEventForm extends Component
                 $maxBase = max(0, 255 - mb_strlen($suffix));
                 $name = mb_substr($name, 0, $maxBase).$suffix;
             }
+            $this->slug = null;
+        } else {
+            $this->slug = $event->slug;
         }
-        $this->slug = $event->slug;
         $this->name = $name;
         $this->isCancelled = $event->isCancelled();
         $this->description = (string) ($event->description ?? '');
