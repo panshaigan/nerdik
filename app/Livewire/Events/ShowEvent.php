@@ -378,6 +378,7 @@ class ShowEvent extends Component
             'creator',
             'canceller',
             'organization',
+            'eventSeries',
             'listingMedia',
             'places',
             'enrollmentWindows',
@@ -385,6 +386,9 @@ class ShowEvent extends Component
 
         $user = auth()->user();
         $canManageEvent = $user !== null && $user->canModifyEntity($event);
+
+        $previousInSeries = $event->previousInSeries();
+        $nextInSeries = $event->nextInSeries();
 
         $eventActivityIds = $this->slotAttachmentActivityIdsForEvent($event->id);
         [$confirmedActivitiesCount, $confirmedParticipantsCount, $availablePlaces] = $eventShowReadCache->programmeStats($event->id);
@@ -440,6 +444,8 @@ class ShowEvent extends Component
             'confirmedParticipantsCount' => $confirmedParticipantsCount,
             'availablePlacesLabel' => $availablePlacesLabel,
             'interestedPeopleCount' => $interestedPeopleCount,
+            'previousInSeries' => $previousInSeries,
+            'nextInSeries' => $nextInSeries,
             ...$activityPreviewData,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,

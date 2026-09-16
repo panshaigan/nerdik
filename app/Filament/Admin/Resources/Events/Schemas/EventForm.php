@@ -18,6 +18,7 @@ class EventForm
             ->components([
                 TextInput::make('name'),
                 BelongsToSelect::make('organization_id', 'organization'),
+                BelongsToSelect::make('event_series_id', 'eventSeries'),
                 BelongsToSelect::place(
                     name: 'places',
                     relationship: 'places',

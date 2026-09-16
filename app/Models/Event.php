@@ -30,6 +30,7 @@ class Event extends Model implements HasMedia
         'name',
         'description',
         'organization_id',
+        'event_series_id',
         'is_public',
         'created_by',
         'updated_by',
@@ -73,6 +74,7 @@ class Event extends Model implements HasMedia
             'galleryMedia',
             'creator',
             'organization',
+            'eventSeries',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),
             'places.country.translations',
             'places.city.translations',
@@ -156,9 +158,60 @@ class Event extends Model implements HasMedia
         return $this->belongsTo(Organization::class);
     }
 
+    public function eventSeries(): BelongsTo
+    {
+        return $this->belongsTo(EventSeries::class);
+    }
+
     public function slots(): HasMany
     {
         return $this->hasMany(Slot::class);
+    }
+
+    /**
+     * Previous edition in the same series by starts_at (then id), including cancelled.
+     */
+    public function previousInSeries(): ?self
+    {
+        if ($this->event_series_id === null) {
+            return null;
+        }
+
+        return self::query()
+            ->where('event_series_id', $this->event_series_id)
+            ->where(function ($query): void {
+                $query->where('starts_at', '<', $this->starts_at)
+                    ->orWhere(function ($q): void {
+                        $q->where('starts_at', $this->starts_at)
+                            ->where('id', '<', $this->id);
+                    });
+            })
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    /**
+     * Next edition in the same series by starts_at (then id), including cancelled.
+     */
+    public function nextInSeries(): ?self
+    {
+        if ($this->event_series_id === null) {
+            return null;
+        }
+
+        return self::query()
+            ->where('event_series_id', $this->event_series_id)
+            ->where(function ($query): void {
+                $query->where('starts_at', '>', $this->starts_at)
+                    ->orWhere(function ($q): void {
+                        $q->where('starts_at', $this->starts_at)
+                            ->where('id', '>', $this->id);
+                    });
+            })
+            ->orderBy('starts_at')
+            ->orderBy('id')
+            ->first();
     }
 
     public function proposals(): HasMany

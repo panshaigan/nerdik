@@ -56,6 +56,31 @@
     </div>
 
     <div class="relative">
+        <input type="hidden" wire:model="event_series_id" data-event-series-id />
+        <x-input
+            wire:model.live.debounce.300ms="event_series_name"
+            label="{{ __('ui.events.form_event_series') }}"
+            placeholder="{{ __('ui.events.form_event_series_optional') }}"
+            type="text"
+            error-field="event_series_name"
+            autocomplete="off"
+            data-event-series-input
+            aria-autocomplete="list"
+            aria-expanded="false"
+            aria-controls="event-series-suggestions-popup"
+            icon="o-rectangle-stack"
+            inline
+        />
+        <div id="event-series-suggestions-popup"
+             class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+             data-event-series-popup
+             wire:ignore
+             role="listbox"></div>
+        <x-field-error :messages="$errors->get('event_series_id')" class="mt-2" />
+        <x-field-error :messages="$errors->get('event_series_name')" class="mt-2" />
+    </div>
+
+    <div class="relative">
         <x-input
             wire:model="starts_at"
             label="{{ __('ui.events.form_starts_at') }}"

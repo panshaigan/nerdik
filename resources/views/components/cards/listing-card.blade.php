@@ -149,6 +149,22 @@
                         </dd>
                     </div>
                 @endif
+                @if ($d->seriesName !== null && $d->seriesUrl !== null)
+                    <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="event-card-series">
+                        <dt class="sr-only">{{ __('ui.browse.event_series') }}</dt>
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
+                            <x-icon name="o-rectangle-stack" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                            <span class="min-w-0 leading-snug">
+                                <a
+                                    href="{{ $d->seriesUrl }}"
+                                    wire:navigate
+                                    class="link link-primary break-words"
+                                    data-ui="event-card-series-link"
+                                >{{ __('ui.browse.event_series_label', ['name' => $d->seriesName]) }}</a>
+                            </span>
+                        </dd>
+                    </div>
+                @endif
             </dl>
         </div>
         @if ($d->badgeItems !== [])

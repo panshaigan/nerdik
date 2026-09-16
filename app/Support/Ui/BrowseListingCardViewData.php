@@ -44,5 +44,7 @@ final readonly class BrowseListingCardViewData
         public bool $showDetailsLink,
         public ?int $confirmedActivitiesCount = null,
         public bool $hasActiveEnrollmentWindow = false,
+        public ?string $seriesName = null,
+        public ?string $seriesUrl = null,
     ) {}
 }

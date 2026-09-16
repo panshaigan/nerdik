@@ -84,13 +84,14 @@ final class BrowseListingCardPresenter
         $currentUser = auth()->user();
         $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
         [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
-        $event->loadMissing('enrollmentWindows');
+        $event->loadMissing(['enrollmentWindows', 'eventSeries']);
         $now = now();
         $hasActiveEnrollmentWindow = $event->enrollmentWindows->contains(function ($window) use ($now): bool {
             return $window->starts_at !== null
                 && $window->ends_at !== null
                 && $now->between($window->starts_at, $window->ends_at);
         });
+        $series = $event->eventSeries;
 
         return new BrowseListingCardViewData(
             kind: 'event',
@@ -123,6 +124,8 @@ final class BrowseListingCardPresenter
             showDetailsLink: true,
             confirmedActivitiesCount: $confirmedActivitiesCount,
             hasActiveEnrollmentWindow: $hasActiveEnrollmentWindow,
+            seriesName: $series !== null ? (string) $series->name : null,
+            seriesUrl: $series !== null ? route('event-series.show', $series) : null,
         );
     }
 

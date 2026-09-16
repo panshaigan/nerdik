@@ -7,12 +7,14 @@ use App\Actions\Media\AttachEntityLogoCrop;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\EventLogoSource;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
 use App\Services\LocationResolver;
 use App\Support\Events\EventDefaultImageCatalog;
+use App\Support\Events\EventEditionNameSuggester;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Media\UserGalleryCatalog;
 use App\Support\RichText;
@@ -34,6 +36,8 @@ class ManageEventForm extends Component
 
     private const ORGANIZATION_SUGGESTIONS_LIMIT = 500;
 
+    private const EVENT_SERIES_SUGGESTIONS_LIMIT = 500;
+
     /** @var list<string> */
     private const FORM_TAB_ORDER = ['main-details', 'image', 'location', 'enrollment-windows'];
 
@@ -46,6 +50,10 @@ class ManageEventForm extends Component
     public ?int $organization_id = null;
 
     public string $organization_name = '';
+
+    public ?int $event_series_id = null;
+
+    public string $event_series_name = '';
 
     public bool $is_public = true;
 
@@ -181,7 +189,8 @@ class ManageEventForm extends Component
         $root = str_contains($attribute, '.') ? explode('.', $attribute, 2)[0] : $attribute;
 
         return match ($root) {
-            'name', 'organization_id', 'organization_name', 'description', 'is_public',
+            'name', 'organization_id', 'organization_name', 'event_series_id', 'event_series_name',
+            'description', 'is_public',
             'starts_at', 'ends_at' => 'main-details',
             'logo_source', 'listing_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
             'place_ids', 'new_places' => 'location',
@@ -278,15 +287,20 @@ class ManageEventForm extends Component
 
     private function hydrateFormFromEvent(Event $event, bool $forEdit, bool $forDuplicate = false): void
     {
-        $event->load(['places', 'organization', 'enrollmentWindows']);
+        $event->load(['places', 'organization', 'eventSeries', 'enrollmentWindows']);
         if ($forEdit) {
             $this->editingEventId = $event->id;
         }
         $name = (string) $event->name;
         if ($forDuplicate) {
-            $suffix = __('ui.events.duplicate_name_suffix');
-            $maxBase = max(0, 255 - mb_strlen($suffix));
-            $name = mb_substr($name, 0, $maxBase).$suffix;
+            $suggested = app(EventEditionNameSuggester::class)->suggest($name);
+            if ($suggested !== null) {
+                $name = $suggested;
+            } else {
+                $suffix = __('ui.events.duplicate_name_suffix');
+                $maxBase = max(0, 255 - mb_strlen($suffix));
+                $name = mb_substr($name, 0, $maxBase).$suffix;
+            }
         }
         $this->slug = $event->slug;
         $this->name = $name;
@@ -294,6 +308,8 @@ class ManageEventForm extends Component
         $this->description = (string) ($event->description ?? '');
         $this->organization_id = $event->organization_id;
         $this->organization_name = (string) (optional($event->organization)->name ?? '');
+        $this->event_series_id = $event->event_series_id;
+        $this->event_series_name = (string) (optional($event->eventSeries)->name ?? '');
         $this->is_public = (bool) $event->is_public;
         $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
         $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
@@ -474,6 +490,12 @@ class ManageEventForm extends Component
             $this->organization_id = (int) $this->organization_id;
         }
 
+        if ($this->event_series_id === '' || $this->event_series_id === 0) {
+            $this->event_series_id = null;
+        } elseif ($this->event_series_id !== null) {
+            $this->event_series_id = (int) $this->event_series_id;
+        }
+
         foreach (array_keys($attributes) as $key) {
             if (property_exists($this, $key)) {
                 $attributes[$key] = $this->{$key};
@@ -518,6 +540,13 @@ class ManageEventForm extends Component
                 $orgName !== '' ? $orgName : null
             );
             unset($validated['organization_name']);
+
+            $seriesName = isset($validated['event_series_name']) ? trim((string) $validated['event_series_name']) : '';
+            $validated['event_series_id'] = $this->resolveEventSeriesIdFromRequest(
+                $validated['event_series_id'] ?? null,
+                $seriesName !== '' ? $seriesName : null
+            );
+            unset($validated['event_series_name']);
 
             $placeIds = $this->place_ids;
             unset($validated['place_ids'], $validated['new_places']);
@@ -597,6 +626,8 @@ class ManageEventForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['nullable', 'integer', Rule::exists(Organization::class, 'id')->withoutTrashed()],
             'organization_name' => ['nullable', 'string', 'max:255'],
+            'event_series_id' => ['nullable', 'integer', Rule::exists(EventSeries::class, 'id')->withoutTrashed()],
+            'event_series_name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
             'enrollment_windows.*.name' => ['required', 'string', 'max:255'],
@@ -815,6 +846,52 @@ class ManageEventForm extends Component
         ]);
     }
 
+    protected function resolveEventSeriesIdFromRequest(mixed $eventSeriesId, ?string $eventSeriesName): ?int
+    {
+        $id = $eventSeriesId;
+        if ($id === null || $id === '') {
+            $id = null;
+        } else {
+            $id = (int) $id;
+        }
+
+        $userId = Auth::id();
+        if ($id !== null && $userId !== null) {
+            $owned = EventSeries::query()
+                ->whereKey($id)
+                ->where('created_by', $userId)
+                ->exists();
+            if ($owned) {
+                return $id;
+            }
+        }
+
+        $name = trim((string) $eventSeriesName);
+        if ($name === '' || $userId === null) {
+            return null;
+        }
+
+        return $this->findOrCreateEventSeriesForUser($name)->id;
+    }
+
+    protected function findOrCreateEventSeriesForUser(string $name): EventSeries
+    {
+        $userId = Auth::id();
+        $existing = EventSeries::query()
+            ->where('created_by', $userId)
+            ->whereRaw('LOWER(name) = LOWER(?)', [$name])
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return EventSeries::create([
+            'name' => $name,
+            'created_by' => $userId,
+        ]);
+    }
+
     /**
      * @return list<string>
      */
@@ -857,6 +934,28 @@ class ManageEventForm extends Component
             ->limit(self::ORGANIZATION_SUGGESTIONS_LIMIT)
             ->get(['id', 'name'])
             ->map(fn (Organization $org) => ['id' => $org->id, 'name' => $org->name])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Creator-scoped event series suggestions for autocomplete.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    protected function eventSeriesSuggestionsForCurrentUser(): array
+    {
+        $userId = Auth::id();
+        if ($userId === null) {
+            return [];
+        }
+
+        return EventSeries::query()
+            ->where('created_by', $userId)
+            ->orderBy('name')
+            ->limit(self::EVENT_SERIES_SUGGESTIONS_LIMIT)
+            ->get(['id', 'name'])
+            ->map(fn (EventSeries $series) => ['id' => $series->id, 'name' => $series->name])
             ->values()
             ->all();
     }
@@ -977,6 +1076,7 @@ class ManageEventForm extends Component
             ),
             'nameSuggestions' => $this->nameSuggestionsForCurrentUser($exceptId),
             'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
+            'eventSeriesSuggestions' => $this->eventSeriesSuggestionsForCurrentUser(),
             'eventPlacesConfig' => $eventPlacesConfig,
             'enforceFutureDates' => $this->editingEventId === null,
             'submitLabel' => $this->editingEventId !== null ? __('Update') : __('Create'),

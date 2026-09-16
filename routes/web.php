@@ -16,6 +16,7 @@ use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Support\Seo\Seo;
 use Illuminate\Support\Facades\Route;
@@ -143,6 +144,10 @@ Route::middleware(['auth'])->group(function () {
 Route::get('events/{event}', function (Event $event) {
     return view('events.show', compact('event'));
 })->name('events.show');
+
+Route::get('event-series/{eventSeries}', function (EventSeries $eventSeries) {
+    return view('event-series.show', compact('eventSeries'));
+})->name('event-series.show');
 
 // Public activity detail route.
 // Must be declared after more specific routes like `activities/create` and `activities/*/edit`.
