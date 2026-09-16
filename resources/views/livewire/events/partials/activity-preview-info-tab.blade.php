@@ -37,6 +37,17 @@
                     <span>{{ $about->locationLabel }}</span>
                 </p>
             @endif
+
+            @if ($activity->creator)
+                <div class="pointer-events-auto" data-ui="event-activity-preview-host">
+                    <x-user-badge
+                        :user="$activity->creator"
+                        size="sm"
+                        :context-activity-id="$activity->id"
+                        name-class="truncate text-xs font-medium text-base-content"
+                    />
+                </div>
+            @endif
         </div>
     </div>
 

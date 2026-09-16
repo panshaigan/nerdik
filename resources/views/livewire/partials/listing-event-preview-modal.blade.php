@@ -41,6 +41,17 @@
                         </div>
                     @endif
                 </dl>
+
+                @if ($previewEvent->creator)
+                    <div data-ui="listing-event-preview-host">
+                        <x-user-badge
+                            :user="$previewEvent->creator"
+                            :organization="$previewEvent->organization"
+                            size="sm"
+                            name-class="truncate text-xs font-medium text-base-content"
+                        />
+                    </div>
+                @endif
             </div>
 
             <div class="rounded-xl border border-base-300 bg-base-300/70 p-4">

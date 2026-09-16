@@ -109,9 +109,11 @@ class ListingCardActivityPreviewTest extends TestCase
 
     public function test_open_listing_activity_preview_shows_description_and_details_link(): void
     {
-        $owner = User::factory()->create();
-        $owner->profile()->update(['timezone' => 'UTC']);
-        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $host = User::factory()->create(['nickname' => 'Preview Host Nick']);
+        $viewer = User::factory()->create();
+        $host->profile()->update(['timezone' => 'UTC']);
+        $viewer->profile()->update(['timezone' => 'UTC']);
+        $event = Event::factory()->public()->create(['created_by' => $host->id]);
         $city = $this->createCity('Wroclaw');
         $venue = Place::factory()->venue()->create([
             'name' => 'Preview Venue',
@@ -121,8 +123,8 @@ class ListingCardActivityPreviewTest extends TestCase
         $startsAt = now()->addDay()->setTime(10, 0);
         $endsAt = (clone $startsAt)->setTime(12, 0);
         $activity = Activity::factory()->scheduled()->create([
-            'created_by' => $owner->id,
-            'updated_by' => $owner->id,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
             'description' => 'Unique preview body for listing modal',
         ]);
 
@@ -136,12 +138,15 @@ class ListingCardActivityPreviewTest extends TestCase
         ]);
 
         Livewire::withoutLazyLoading()
-            ->actingAs($owner)
+            ->actingAs($viewer)
             ->test(BrowseActivities::class)
             ->call('openListingActivityPreview', $activity->id)
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSee('Unique preview body for listing modal')
+            ->assertSee('Preview Host Nick')
+            ->assertSeeHtml('data-ui="event-activity-preview-host"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0"')
             ->assertSee('Slot Alpha')
             ->assertSee('Preview Venue (Wroclaw)')
             ->assertDontSee('Preview Venue · Room B')

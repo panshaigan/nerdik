@@ -23,9 +23,10 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 
     public function test_plan_tab_renders_activity_preview_loading_markers_on_attached_slot(): void
     {
-        $owner = User::factory()->create();
-        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
-        $activity = Activity::factory()->create(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $host = User::factory()->create(['nickname' => 'Plan Tab Host']);
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $host->id]);
+        $activity = Activity::factory()->create(['created_by' => $host->id, 'updated_by' => $host->id]);
 
         Slot::factory()->create([
             'event_id' => $event->id,
@@ -35,8 +36,11 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
         $activityId = (int) $activity->id;
 
         Livewire::withoutLazyLoading()
-            ->actingAs($owner)
+            ->actingAs($viewer)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertSee('Plan Tab Host')
+            ->assertSeeHtml('data-ui="event-show-slot-host"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0"')
             ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')

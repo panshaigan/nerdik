@@ -64,19 +64,23 @@ class ListingCardEventPreviewTest extends TestCase
 
     public function test_open_listing_event_preview_shows_description_and_details_link(): void
     {
-        $owner = User::factory()->create();
+        $host = User::factory()->create(['nickname' => 'Event Preview Host']);
+        $viewer = User::factory()->create();
         $event = Event::factory()->public()->create([
-            'created_by' => $owner->id,
+            'created_by' => $host->id,
+            'organization_id' => null,
             'description' => 'Unique event preview body for listing modal',
         ]);
 
         Livewire::withoutLazyLoading()
-            ->actingAs($owner)
+            ->actingAs($viewer)
             ->test(BrowseEvents::class)
             ->call('openListingEventPreview', $event->id)
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSet('previewEventId', $event->id)
             ->assertSee('Unique event preview body for listing modal')
+            ->assertSeeHtml('data-ui="listing-event-preview-host"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-0-0"')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'));
     }

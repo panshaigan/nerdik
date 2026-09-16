@@ -342,6 +342,16 @@
                                                 @if ($activity->isCancelled() && $activity->cancel_reason)
                                                     <p class="mt-2 text-xs text-error">{{ __('ui.activities.cancel_reason_label') }}: {{ $activity->cancel_reason }}</p>
                                                 @endif
+                                                @if ($activity->creator)
+                                                    <div class="relative z-[3] mt-1 pointer-events-auto" data-ui="event-show-slot-host">
+                                                        <x-user-badge
+                                                            :user="$activity->creator"
+                                                            size="sm"
+                                                            :context-activity-id="$activity->id"
+                                                            name-class="truncate text-xs font-medium text-base-content"
+                                                        />
+                                                    </div>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>

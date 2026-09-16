@@ -469,6 +469,7 @@ class EventShowPlanTab extends Component
             'slots' => fn ($q) => $q->with([
                 'place.parent',
                 'activity' => fn ($aq) => $aq->with([
+                    'creator',
                     'media',
                     'tagMedia',
                     'galleryMedia',
