@@ -13,6 +13,7 @@
     'contactTooltip' => null,
     'contextActivityId' => null,
     'contextOrganizationId' => null,
+    'contactWireKey' => null,
 ])
 
 @php
@@ -52,6 +53,11 @@
     $resolvedOrganizationTooltip = is_string($contactTooltip) && $contactTooltip !== ''
         ? $contactTooltip
         : __('ui.common.click_for_details');
+    // Keep nested Livewire badge instances unique when the same host appears on a listing
+    // card and again inside a preview modal on the same page (duplicate keys mis-route openModal).
+    $contactWireKeySuffix = is_string($contactWireKey) && $contactWireKey !== ''
+        ? '-'.$contactWireKey
+        : '';
 @endphp
 
 @if ($canRenderOrganizationPopover)
@@ -68,7 +74,7 @@
         :track-nav-avatar="$trackNavAvatar"
         :contact-tooltip="$resolvedOrganizationTooltip"
         :container-class="$containerClass"
-        :key="'organization-badge-contact-'.$organization->id"
+        :key="'organization-badge-contact-'.$organization->id.$contactWireKeySuffix"
     />
 @elseif ($canRenderContactPopover)
     @php
@@ -85,7 +91,7 @@
         :container-class="$containerClass"
         :context-activity-id="$contextActivityId"
         :context-organization-id="$contextOrganizationId"
-        :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0')"
+        :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0').$contactWireKeySuffix"
     />
 @elseif ($avatarOnly)
     <div {{ $attributes->class('avatar') }}>

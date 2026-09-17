@@ -93,6 +93,7 @@
                     :organization="$d->hostOrganization"
                     size="sm"
                     nameClass="truncate text-xs font-medium text-base-content"
+                    :contact-wire-key="'listing-'.$d->kind.'-'.$d->id"
                 />
             @endif
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">

@@ -51,4 +51,34 @@ class DashboardUserInterestsFeedTest extends TestCase
             ->test(Dashboard::class)
             ->assertSee('Dashboard Interest Activity Beta');
     }
+
+    public function test_event_preview_host_badge_uses_distinct_livewire_key_from_listing_card(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create(['nickname' => 'Rynek58']);
+        $event = Event::factory()->create([
+            'name' => 'Porzucane I',
+            'created_by' => $host->id,
+            'organization_id' => null,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(4),
+        ]);
+
+        $viewer->interestedEvents()->attach($event->id);
+
+        $eventId = (int) $event->id;
+        $hostId = (int) $host->id;
+        $listingKey = 'user-badge-contact-'.$hostId.'-0-0-listing-event-'.$eventId;
+        $previewKey = 'user-badge-contact-'.$hostId.'-0-0-listing-event-preview-'.$eventId;
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(Dashboard::class)
+            ->assertSeeHtml('wire:key="'.$listingKey.'"')
+            ->call('openListingEventPreview', $eventId)
+            ->assertSet('eventPreviewModalOpen', true)
+            ->assertSeeHtml('data-ui="listing-event-preview-host"')
+            ->assertSeeHtml('wire:key="'.$listingKey.'"')
+            ->assertSeeHtml('wire:key="'.$previewKey.'"');
+    }
 }

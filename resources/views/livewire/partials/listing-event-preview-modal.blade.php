@@ -49,6 +49,7 @@
                             :organization="$previewEvent->organization"
                             size="sm"
                             name-class="truncate text-xs font-medium text-base-content"
+                            :contact-wire-key="'listing-event-preview-'.$previewEvent->id"
                         />
                     </div>
                 @endif
