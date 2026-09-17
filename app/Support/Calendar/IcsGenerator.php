@@ -11,18 +11,22 @@ final class IcsGenerator
     public function generate(CalendarPayload $payload): string
     {
         $now = now('UTC');
+        $method = $payload->method;
+        $status = $method === IcsMethod::Cancel ? 'CANCELLED' : 'CONFIRMED';
 
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Nerdik//EN',
             'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
+            'METHOD:'.$method->value,
             'BEGIN:VEVENT',
             'UID:'.$payload->uid,
             'DTSTAMP:'.$this->formatUtc($now),
             'DTSTART:'.$this->formatUtc($payload->startsAt),
             'DTEND:'.$this->formatUtc($payload->endsAt),
+            'SEQUENCE:'.$payload->sequence,
+            'STATUS:'.$status,
             'SUMMARY:'.$this->escapeText($payload->title),
         ];
 
@@ -46,7 +50,6 @@ final class IcsGenerator
             $lines[] = 'URL:'.$payload->url;
         }
 
-        $lines[] = 'STATUS:CONFIRMED';
         $lines[] = 'END:VEVENT';
         $lines[] = 'END:VCALENDAR';
 

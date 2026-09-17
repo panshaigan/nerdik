@@ -6,8 +6,10 @@ use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\User;
+use App\Notifications\Concerns\AttachesCalendarIcs;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
 use App\Notifications\Concerns\RespectsNotificationPreferences;
+use App\Support\Calendar\CalendarLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -16,6 +18,7 @@ use Illuminate\Notifications\Notification;
 
 class ActivityCancelledNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
+    use AttachesCalendarIcs;
     use BroadcastsWithDatabasePayload;
     use Queueable;
     use RespectsNotificationPreferences;
@@ -52,9 +55,14 @@ class ActivityCancelledNotification extends Notification implements ShouldQueue,
             $message->line(__('ui.notifications.cancel_reason_email_label', ['reason' => $reason]));
         }
 
-        return $message->action(
+        $message->action(
             __('ui.notifications.view_activity'),
             route('activities.show', ['activity' => $this->activity, 'tab' => 'participation']),
+        );
+
+        return $this->attachCalendarIcs(
+            $message,
+            app(CalendarLinks::class)->forActivityCancellation($this->activity),
         );
     }
 

@@ -21,7 +21,55 @@ final class CalendarLinks
 
     public function forEvent(Event $event): ?CalendarPayload
     {
-        if ($event->isCancelled() || $event->starts_at === null) {
+        if ($event->isCancelled()) {
+            return null;
+        }
+
+        return $this->buildEventPayload($event, IcsMethod::Publish, sequence: 0);
+    }
+
+    /**
+     * Cancellation ICS for email clients — same UID as the published event.
+     */
+    public function forEventCancellation(Event $event): ?CalendarPayload
+    {
+        return $this->buildEventPayload($event, IcsMethod::Cancel, sequence: 1);
+    }
+
+    public function forActivity(Activity $activity): ?CalendarPayload
+    {
+        if ($activity->isCancelled()) {
+            return null;
+        }
+
+        return $this->buildActivityPayload($activity, IcsMethod::Publish, sequence: 0);
+    }
+
+    /**
+     * Cancellation ICS for email clients — same UID as the published activity.
+     */
+    public function forActivityCancellation(Activity $activity): ?CalendarPayload
+    {
+        return $this->buildActivityPayload($activity, IcsMethod::Cancel, sequence: 1);
+    }
+
+    public function icsContent(CalendarPayload $payload): string
+    {
+        return $this->icsGenerator->generate($payload);
+    }
+
+    public function intentUrl(CalendarPayload $payload, CalendarTarget $target): ?string
+    {
+        return match ($target) {
+            CalendarTarget::Google => $this->googleUrl($payload),
+            CalendarTarget::Outlook => $this->outlookUrl($payload),
+            CalendarTarget::Download => $payload->icsDownloadUrl,
+        };
+    }
+
+    private function buildEventPayload(Event $event, IcsMethod $method, int $sequence): ?CalendarPayload
+    {
+        if ($event->starts_at === null) {
             return null;
         }
 
@@ -47,19 +95,17 @@ final class CalendarLinks
             url: $url,
             startsAt: $startsAt,
             endsAt: $endsAt,
-            downloadFilename: $this->downloadFilename($title),
+            downloadFilename: $this->downloadFilename($title, $method),
             icsDownloadUrl: route('events.calendar.ics', $event),
             latitude: $latitude,
             longitude: $longitude,
+            method: $method,
+            sequence: $sequence,
         );
     }
 
-    public function forActivity(Activity $activity): ?CalendarPayload
+    private function buildActivityPayload(Activity $activity, IcsMethod $method, int $sequence): ?CalendarPayload
     {
-        if ($activity->isCancelled()) {
-            return null;
-        }
-
         $schedule = $this->activitySchedulePresenter->build($activity);
         $selfHosted = (int) $activity->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED;
         $slot = $activity->slot;
@@ -90,25 +136,13 @@ final class CalendarLinks
             url: $url,
             startsAt: $startsAt,
             endsAt: $endsAt,
-            downloadFilename: $this->downloadFilename($title),
+            downloadFilename: $this->downloadFilename($title, $method),
             icsDownloadUrl: route('activities.calendar.ics', $activity),
             latitude: $latitude,
             longitude: $longitude,
+            method: $method,
+            sequence: $sequence,
         );
-    }
-
-    public function icsContent(CalendarPayload $payload): string
-    {
-        return $this->icsGenerator->generate($payload);
-    }
-
-    public function intentUrl(CalendarPayload $payload, CalendarTarget $target): ?string
-    {
-        return match ($target) {
-            CalendarTarget::Google => $this->googleUrl($payload),
-            CalendarTarget::Outlook => $this->outlookUrl($payload),
-            CalendarTarget::Download => $payload->icsDownloadUrl,
-        };
     }
 
     private function googleUrl(CalendarPayload $payload): string
@@ -150,7 +184,7 @@ final class CalendarLinks
     }
 
     /**
-     * Deep links have no GEO field — append coordinates when LOCATION has no street address cue.
+     * Deep links have no GEO field — append coordinates so clients can map the venue.
      */
     private function deepLinkLocation(CalendarPayload $payload): string
     {
@@ -248,11 +282,15 @@ final class CalendarLinks
         return sprintf('%s-%d@%s', $type, $id, $host);
     }
 
-    private function downloadFilename(string $title): string
+    private function downloadFilename(string $title, IcsMethod $method): string
     {
         $slug = Str::slug($title);
         if ($slug === '') {
             $slug = 'calendar';
+        }
+
+        if ($method === IcsMethod::Cancel) {
+            return $slug.'-cancelled.ics';
         }
 
         return $slug.'.ics';

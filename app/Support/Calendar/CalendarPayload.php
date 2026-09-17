@@ -20,6 +20,8 @@ final readonly class CalendarPayload
         public string $icsDownloadUrl,
         public ?float $latitude = null,
         public ?float $longitude = null,
+        public IcsMethod $method = IcsMethod::Publish,
+        public int $sequence = 0,
     ) {}
 
     public function hasCoordinates(): bool

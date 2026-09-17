@@ -3,8 +3,11 @@
 namespace App\Notifications;
 
 use App\Enums\NotificationPreferenceKey;
+use App\Models\Event;
+use App\Notifications\Concerns\AttachesCalendarIcs;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
 use App\Notifications\Concerns\RespectsNotificationPreferences;
+use App\Support\Calendar\CalendarLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -13,6 +16,7 @@ use Illuminate\Notifications\Notification;
 
 class EventCancelledNotification extends Notification implements ShouldQueue, ShouldQueueAfterCommit
 {
+    use AttachesCalendarIcs;
     use BroadcastsWithDatabasePayload;
     use Queueable;
     use RespectsNotificationPreferences;
@@ -34,7 +38,17 @@ class EventCancelledNotification extends Notification implements ShouldQueue, Sh
             ->subject(__('ui.notifications.event_cancelled_email_subject', ['event' => $this->eventName]))
             ->line(__('ui.notifications.event_cancelled_email_intro', ['event' => $this->eventName]));
 
-        return $message->action(__('ui.notifications.view_event'), $this->resolveEventShowUrl(true));
+        $message->action(__('ui.notifications.view_event'), $this->resolveEventShowUrl(true));
+
+        $event = Event::query()->find($this->eventId);
+        if ($event instanceof Event) {
+            $message = $this->attachCalendarIcs(
+                $message,
+                app(CalendarLinks::class)->forEventCancellation($event),
+            );
+        }
+
+        return $message;
     }
 
     /**

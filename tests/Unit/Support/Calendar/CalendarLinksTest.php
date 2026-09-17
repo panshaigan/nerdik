@@ -10,6 +10,7 @@ use App\Models\Place;
 use App\Models\User;
 use App\Support\Calendar\CalendarLinks;
 use App\Support\Calendar\CalendarTarget;
+use App\Support\Calendar\IcsMethod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -335,13 +336,47 @@ final class CalendarLinksTest extends TestCase
         $ics = $this->calendarLinks->icsContent($payload);
 
         $this->assertStringContainsString('BEGIN:VCALENDAR', $ics);
+        $this->assertStringContainsString('METHOD:PUBLISH', $ics);
         $this->assertStringContainsString('BEGIN:VEVENT', $ics);
         $this->assertStringContainsString('SUMMARY:ICS Content Event', $ics);
         $this->assertStringContainsString('DTSTART:'.$startsAt->format('Ymd\THis\Z'), $ics);
         $this->assertStringContainsString('DTEND:'.$endsAt->format('Ymd\THis\Z'), $ics);
         $this->assertStringContainsString('UID:'.$payload->uid, $ics);
+        $this->assertStringContainsString('SEQUENCE:0', $ics);
+        $this->assertStringContainsString('STATUS:CONFIRMED', $ics);
         $this->assertStringContainsString('END:VEVENT', $ics);
         $this->assertStringContainsString('END:VCALENDAR', $ics);
         $this->assertSame(1, substr_count($ics, 'BEGIN:VEVENT'));
+    }
+
+    public function test_activity_cancellation_ics_reuses_uid_with_cancel_method(): void
+    {
+        $user = User::factory()->create();
+        $place = Place::factory()->venue()->create();
+        $startsAt = now()->addDays(2)->utc()->startOfMinute();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+            'name' => 'Will Cancel',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(2),
+            'cancelled_at' => now(),
+            'cancelled_by' => $user->id,
+        ]);
+
+        $this->assertNull($this->calendarLinks->forActivity($activity));
+
+        $cancelPayload = $this->calendarLinks->forActivityCancellation($activity);
+        $this->assertNotNull($cancelPayload);
+        $this->assertSame(IcsMethod::Cancel, $cancelPayload->method);
+        $this->assertSame(1, $cancelPayload->sequence);
+        $this->assertStringContainsString('activity-'.$activity->id.'@', $cancelPayload->uid);
+
+        $ics = $this->calendarLinks->icsContent($cancelPayload);
+        $this->assertStringContainsString('METHOD:CANCEL', $ics);
+        $this->assertStringContainsString('STATUS:CANCELLED', $ics);
+        $this->assertStringContainsString('UID:'.$cancelPayload->uid, $ics);
     }
 }
