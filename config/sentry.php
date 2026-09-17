@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\SentryBeforeSend;
+
 /**
  * Sentry Laravel SDK configuration file.
  *
@@ -58,6 +60,10 @@ return [
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#ignore_exceptions
     // 'ignore_exceptions' => [],
+
+    // Callable (not a Closure) so `php artisan optimize` / config:cache still works.
+    // Drops transient Docker DNS failures for the Compose `pgsql` service name.
+    'before_send' => [SentryBeforeSend::class, 'beforeSend'],
 
     // @see: https://docs.sentry.io/platforms/php/guides/laravel/configuration/options/#ignore_transactions
     'ignore_transactions' => [

@@ -308,6 +308,17 @@ Production serves a branded static page from Caddy when maintenance is enabled. 
 
 `make deploy` on production **enables maintenance automatically** as the first deploy step (before image pull/build) and disables it after a successful deploy. If deploy fails, maintenance stays on so visitors see the page instead of errors.
 
+During deploy the script also **stops** `worker` / `scheduler` / `reverb` / `pulse` before pull/build, brings Postgres up with `--no-recreate` (so a normal app deploy does not bounce Docker DNS for `pgsql`), waits until Postgres is healthy, migrates, then starts those consumers again — and only then turns maintenance off. That avoids Sentry noise and 500s from transient `could not translate host name "pgsql"` failures.
+
+To recreate Postgres itself (for example after changing `docker/pgsql`), run a force-recreate during a maintenance window:
+
+```bash
+make maintenance on
+./scripts/compose-exec.sh up -d --force-recreate pgsql
+./scripts/compose-exec.sh wait pgsql
+make maintenance off
+```
+
 Emergency bypass (skip auto maintenance during deploy):
 
 ```bash

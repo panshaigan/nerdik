@@ -133,18 +133,30 @@ class MaintenanceScriptTest extends TestCase
         $this->assertIsString($script);
 
         $onPos = strpos($script, 'scripts/maintenance.sh" on');
+        $stopConsumersPos = strpos($script, 'stop "${DB_CONSUMERS[@]}"');
         $pullPos = strpos($script, 'pull --ignore-buildable');
-        $upPos = strpos($script, 'up -d');
+        $noRecreatePgsqlPos = strpos($script, 'up -d --no-recreate pgsql');
+        $migratePos = strpos($script, 'migrate --force');
+        $startConsumersPos = strpos($script, 'up -d "${DB_CONSUMERS[@]}"');
         $offPos = strpos($script, 'scripts/maintenance.sh" off');
 
         $this->assertNotFalse($onPos);
+        $this->assertNotFalse($stopConsumersPos);
         $this->assertNotFalse($pullPos);
-        $this->assertNotFalse($upPos);
+        $this->assertNotFalse($noRecreatePgsqlPos);
+        $this->assertNotFalse($migratePos);
+        $this->assertNotFalse($startConsumersPos);
         $this->assertNotFalse($offPos);
 
         $this->assertLessThan($pullPos, $onPos, 'Maintenance must turn on before image pull/build.');
-        $this->assertLessThan($upPos, $onPos, 'Maintenance must turn on before compose up.');
-        $this->assertGreaterThan($upPos, $offPos, 'Maintenance must turn off after deploy steps.');
+        $this->assertLessThan($pullPos, $stopConsumersPos, 'DB consumers must stop before image pull/build.');
+        $this->assertLessThan($noRecreatePgsqlPos, $stopConsumersPos, 'Consumers must stop before pgsql up.');
+        $this->assertLessThan($migratePos, $noRecreatePgsqlPos, 'Postgres must be up before migrate.');
+        $this->assertLessThan($startConsumersPos, $migratePos, 'Migrate must finish before consumers start.');
+        $this->assertLessThan($offPos, $startConsumersPos, 'Maintenance must stay on until consumers are back.');
         $this->assertStringContainsString('PULL_ONLY" != "1"', $script);
+        $this->assertStringContainsString('DB_CONSUMERS=(worker scheduler reverb pulse)', $script);
+        $this->assertStringContainsString('wait_for_pgsql', $script);
+        $this->assertStringContainsString('wait --timeout', $script);
     }
 }

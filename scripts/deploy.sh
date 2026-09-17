@@ -9,6 +9,10 @@
 # On production, maintenance mode is enabled before pull/build and disabled
 # after a successful deploy (SKIP_MAINTENANCE=1 to bypass).
 #
+# During deploy, DB consumers (worker/scheduler/reverb/pulse) are stopped first,
+# Postgres is left running (not recreated), and consumers start only after
+# migrate succeeds — so they never race Docker DNS while `pgsql` is bouncing.
+#
 # Env is taken from APP_ENV in .env (production → prod, staging → staging),
 # or pass an explicit first argument: prod|staging.
 #
@@ -38,6 +42,7 @@ EOF
 DEPLOY_ENV=""
 USE_BUILD="${DEPLOY_BUILD:-0}"
 PULL_ONLY=0
+DB_CONSUMERS=(worker scheduler reverb pulse)
 
 for arg in "$@"; do
     case "$arg" in
@@ -130,10 +135,29 @@ fi
 
 COMPOSE=(docker compose "${COMPOSE_FILES[@]}")
 
+wait_for_pgsql() {
+    local timeout_seconds="${DEPLOY_PGSQL_WAIT_SECONDS:-120}"
+
+    echo "Waiting for pgsql to be healthy (timeout ${timeout_seconds}s)..."
+
+    if "${COMPOSE[@]}" wait --timeout "${timeout_seconds}" pgsql; then
+        return 0
+    fi
+
+    echo "pgsql did not become healthy within ${timeout_seconds}s." >&2
+    exit 1
+}
+
 # Block public traffic before pull/build so visitors never hit a half-updated stack.
 # Skip for --pull-only (no restart). Leave on if later steps fail (intentional).
 if [[ "$PULL_ONLY" != "1" && "$DEPLOY_ENV" == "prod" && "${SKIP_MAINTENANCE:-0}" != "1" ]]; then
     "${ROOT}/scripts/maintenance.sh" on
+fi
+
+# Stop queue/scheduler/realtime consumers before image swaps so they cannot
+# hit Docker DNS while app/pgsql containers are recreating.
+if [[ "$PULL_ONLY" != "1" ]]; then
+    "${COMPOSE[@]}" stop "${DB_CONSUMERS[@]}" 2>/dev/null || true
 fi
 
 if [[ "$USE_BUILD" == "1" ]]; then
@@ -156,7 +180,36 @@ if [[ "$PULL_ONLY" == "1" ]]; then
     exit 0
 fi
 
-"${COMPOSE[@]}" up -d
+# Keep a running Postgres container; only create/start it if missing/stopped.
+# Force-recreate pgsql separately during a maintenance window when the image
+# itself must change (docker/pgsql).
+"${COMPOSE[@]}" up -d --no-recreate pgsql
+wait_for_pgsql
+
+# Recreate app-facing services without bouncing Postgres DNS.
+mapfile -t STACK_SERVICES < <("${COMPOSE[@]}" config --services | grep -vx 'pgsql' || true)
+if [[ ${#STACK_SERVICES[@]} -eq 0 ]]; then
+    echo "No non-pgsql services found in compose config." >&2
+    exit 1
+fi
+
+APP_LAYER=()
+for service in "${STACK_SERVICES[@]}"; do
+    skip=0
+    for consumer in "${DB_CONSUMERS[@]}"; do
+        if [[ "$service" == "$consumer" ]]; then
+            skip=1
+            break
+        fi
+    done
+    if [[ "$skip" -eq 0 ]]; then
+        APP_LAYER+=("$service")
+    fi
+done
+
+"${COMPOSE[@]}" up -d --no-deps "${APP_LAYER[@]}"
+wait_for_pgsql
+
 "${COMPOSE[@]}" exec -T app php artisan migrate --force
 "${COMPOSE[@]}" exec -T app php artisan optimize
 "${COMPOSE[@]}" exec -T app php artisan filament:optimize
@@ -164,7 +217,8 @@ fi
 log_retention_days="${LOG_DAILY_DAYS:-14}"
 "${COMPOSE[@]}" exec -T app sh -c "find storage/logs -type f -name '*.log' -mtime +${log_retention_days} -delete 2>/dev/null || true"
 
-"${COMPOSE[@]}" restart worker scheduler reverb pulse
+# Bring DB consumers back only after migrate/optimize succeeded.
+"${COMPOSE[@]}" up -d "${DB_CONSUMERS[@]}"
 "${COMPOSE[@]}" exec -T app php artisan pulse:restart
 
 if ! "${COMPOSE[@]}" exec -T app php -r 'exit((gd_info()["WebP Support"] ?? false) ? 0 : 1);'; then
