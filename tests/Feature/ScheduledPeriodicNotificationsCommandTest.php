@@ -750,6 +750,251 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_organizer_low_participation_within_event_runway_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.organizer_low_participation_runway_days', 7);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $organizer = User::factory()->create();
+        $organizer->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledOrganizerLowParticipationPreferences(),
+        ]);
+        $host = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'name' => 'Underfilled Slot Activity',
+            'min_participants' => 4,
+            'cancellation_deadline_in_hours' => null,
+        ]);
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'name' => 'Runway Event',
+            'starts_at' => now()->addDays(5)->setTime(10, 0),
+            'ends_at' => now()->addDays(5)->setTime(22, 0),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addDays(5)->setTime(14, 0),
+            'ends_at' => now()->addDays(5)->setTime(16, 0),
+            'created_by' => $organizer->id,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $organizer,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($organizer): bool {
+                $payload = $notification->toArray($organizer);
+
+                return collect($payload['items'] ?? [])
+                    ->contains(fn (array $item): bool => ($item['category'] ?? '') === 'organizer_low_participation');
+            }
+        );
+        Notification::assertNotSentTo($host, ScheduledPeriodicDigestNotification::class);
+    }
+
+    public function test_organizer_low_participation_outside_event_runway_is_not_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.organizer_low_participation_runway_days', 7);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $organizer = User::factory()->create();
+        $organizer->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledOrganizerLowParticipationPreferences(),
+        ]);
+        $host = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+        ]);
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => now()->addDays(10)->setTime(10, 0),
+            'ends_at' => now()->addDays(10)->setTime(22, 0),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addDays(10)->setTime(14, 0),
+            'ends_at' => now()->addDays(10)->setTime(16, 0),
+            'created_by' => $organizer->id,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_host_low_participation_does_not_use_activity_start_runway(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+
+        // Activity starts in 5 days but cancel deadline is in 4 days — not a 3-/1-day host offset.
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+            'starts_at' => now()->addDays(5)->setTime(18, 0),
+            'ends_at' => now()->addDays(5)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_host_low_participation_three_days_before_deadline_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+
+        // Deadline = start - 408h = now + 20d - 17d = now + 3d.
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+            'starts_at' => now()->addDays(20)->setTime(18, 0),
+            'ends_at' => now()->addDays(20)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 17 * 24,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $host,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($host): bool {
+                $payload = $notification->toArray($host);
+
+                return collect($payload['items'] ?? [])
+                    ->contains(fn (array $item): bool => ($item['category'] ?? '') === 'host_low_participation');
+            }
+        );
+    }
+
+    public function test_host_low_participation_day_before_deadline_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+
+        // Deadline = start - 336h = now + 15d - 14d = now + 1d.
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+            'starts_at' => now()->addDays(15)->setTime(18, 0),
+            'ends_at' => now()->addDays(15)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 14 * 24,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $host,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($host): bool {
+                $payload = $notification->toArray($host);
+
+                return collect($payload['items'] ?? [])
+                    ->contains(fn (array $item): bool => ($item['category'] ?? '') === 'host_low_participation');
+            }
+        );
+    }
+
+    public function test_host_low_participation_two_days_before_deadline_is_not_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+
+        // Deadline = start - 240h = now + 12d - 10d = now + 2d (not 3 or 1).
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+            'starts_at' => now()->addDays(12)->setTime(18, 0),
+            'ends_at' => now()->addDays(12)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 10 * 24,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_host_low_participation_skipped_when_at_minimum(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+        $participant = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 1,
+            'starts_at' => now()->addDays(20)->setTime(18, 0),
+            'ends_at' => now()->addDays(20)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 17 * 24,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
     /**
      * @return array<string, array{in_app: bool, email: bool}>
      */
@@ -758,6 +1003,40 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         $preferences = [];
         foreach (NotificationPreferenceKey::cases() as $key) {
             $enabled = $key === NotificationPreferenceKey::ScheduledParticipantCancellationDeadline;
+            $preferences[$key->value] = [
+                'in_app' => $enabled,
+                'email' => $enabled,
+            ];
+        }
+
+        return $preferences;
+    }
+
+    /**
+     * @return array<string, array{in_app: bool, email: bool}>
+     */
+    private function onlyScheduledOrganizerLowParticipationPreferences(): array
+    {
+        $preferences = [];
+        foreach (NotificationPreferenceKey::cases() as $key) {
+            $enabled = $key === NotificationPreferenceKey::ScheduledOrganizerLowParticipation;
+            $preferences[$key->value] = [
+                'in_app' => $enabled,
+                'email' => $enabled,
+            ];
+        }
+
+        return $preferences;
+    }
+
+    /**
+     * @return array<string, array{in_app: bool, email: bool}>
+     */
+    private function onlyScheduledHostLowParticipationPreferences(): array
+    {
+        $preferences = [];
+        foreach (NotificationPreferenceKey::cases() as $key) {
+            $enabled = $key === NotificationPreferenceKey::ScheduledHostLowParticipation;
             $preferences[$key->value] = [
                 'in_app' => $enabled,
                 'email' => $enabled,

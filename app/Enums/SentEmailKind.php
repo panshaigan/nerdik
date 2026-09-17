@@ -44,6 +44,7 @@ enum SentEmailKind: string
     case ScheduledInterestedEnrollmentWindow = 'scheduled_interested_enrollment_window';
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
     case ScheduledParticipantCancellationDeadline = 'scheduled_participant_cancellation_deadline';
+    case ScheduledOrganizerLowParticipation = 'scheduled_organizer_low_participation';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
     case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
     case ScheduledDigest = 'scheduled_digest';

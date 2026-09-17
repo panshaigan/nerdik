@@ -27,6 +27,7 @@ enum NotificationPreferenceKey: string
     case ScheduledInterestedEnrollmentWindow = 'scheduled_interested_enrollment_window';
     case ScheduledDashboardFeed = 'scheduled_dashboard_feed';
     case ScheduledParticipantCancellationDeadline = 'scheduled_participant_cancellation_deadline';
+    case ScheduledOrganizerLowParticipation = 'scheduled_organizer_low_participation';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
     case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
     case UserRequests = 'user_requests';
@@ -71,6 +72,7 @@ enum NotificationPreferenceKey: string
             'interested_enrollment_window' => self::ScheduledInterestedEnrollmentWindow,
             'dashboard_feed' => self::ScheduledDashboardFeed,
             'participant_cancellation_deadline' => self::ScheduledParticipantCancellationDeadline,
+            'organizer_low_participation' => self::ScheduledOrganizerLowParticipation,
             'host_low_participation' => self::ScheduledHostLowParticipation,
             'host_upcoming_mark_absences' => self::ScheduledHostMarkAbsences,
             'host_mark_absences' => self::ScheduledHostMarkAbsences,
@@ -120,6 +122,7 @@ enum NotificationPreferenceKey: string
                     self::ScheduledInterestedEnrollmentWindow,
                     self::ScheduledDashboardFeed,
                     self::ScheduledParticipantCancellationDeadline,
+                    self::ScheduledOrganizerLowParticipation,
                     self::ScheduledHostLowParticipation,
                     self::ScheduledHostMarkAbsences,
                 ],

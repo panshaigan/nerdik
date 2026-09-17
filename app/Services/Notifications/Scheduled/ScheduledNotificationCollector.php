@@ -37,6 +37,10 @@ class ScheduledNotificationCollector
             $items = $items->concat($this->collectParticipantCancellationDeadlines($user, $referenceNow));
         }
 
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledOrganizerLowParticipation)) {
+            $items = $items->concat($this->collectOrganizerLowParticipationWarnings($user, $referenceNow));
+        }
+
         if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledHostLowParticipation)) {
             $items = $items->concat($this->collectHostLowParticipationWarnings($user, $referenceNow));
         }
@@ -195,10 +199,87 @@ class ScheduledNotificationCollector
     }
 
     /**
+     * Event organizer digest: daily while the event's local start is within the
+     * runway and any slotted activity is under min_participants.
+     *
+     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
+     */
+    private function collectOrganizerLowParticipationWarnings(User $user, CarbonImmutable $referenceNow): Collection
+    {
+        $runwayDays = max(0, (int) config('scheduled_notifications.organizer_low_participation_runway_days', 7));
+
+        return Activity::query()
+            ->whereNotNull('min_participants')
+            ->whereNull('cancelled_at')
+            ->whereHas('slot.event', function ($query) use ($user): void {
+                $query
+                    ->where('created_by', $user->id)
+                    ->whereNull('cancelled_at')
+                    ->whereNotNull('starts_at');
+            })
+            ->with(['slot.event'])
+            ->withCount(['participants as active_participants_count' => fn ($query) => $query->where('is_absent', false)])
+            ->get()
+            ->map(function (Activity $activity) use ($user, $referenceNow, $runwayDays): ?array {
+                $minimum = (int) ($activity->min_participants ?? 0);
+                $current = (int) ($activity->active_participants_count ?? 0);
+                if ($minimum <= 0 || $current >= $minimum) {
+                    return null;
+                }
+
+                $event = $activity->slot?->event;
+                $eventStart = $event?->starts_at !== null
+                    ? CarbonImmutable::instance($event->starts_at)
+                    : null;
+
+                if ($eventStart === null || ! $this->isWithinLocalDaysAhead($referenceNow, $eventStart, $user, $runwayDays)) {
+                    return null;
+                }
+
+                $timezone = $this->timezoneForUser($user);
+                $localDay = $referenceNow->setTimezone($timezone)->startOfDay()->utc();
+
+                return [
+                    'category' => 'organizer_low_participation',
+                    'title' => __('ui.notifications.scheduled.organizer_low_participation_title', [
+                        'activity' => (string) $activity->name,
+                        'event' => (string) ($event->name ?? ''),
+                    ]),
+                    'lines' => [
+                        __('ui.notifications.scheduled.organizer_low_participation_line', [
+                            'current' => $current,
+                            'minimum' => $minimum,
+                            'when' => $eventStart->setTimezone($timezone)->format('Y-m-d H:i'),
+                        ]),
+                    ],
+                    'url' => route('activities.show', ['activity' => $activity], false),
+                    'dedupe_key' => $this->dedupeKey('organizer_low_participation', (int) $activity->id, $localDay),
+                ];
+            })
+            ->filter();
+    }
+
+    /**
+     * Activity host digest: only on configured local calendar offsets before the
+     * cancellation deadline (default 3 and 1 days), while under min_participants.
+     *
      * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
      */
     private function collectHostLowParticipationWarnings(User $user, CarbonImmutable $referenceNow): Collection
     {
+        /** @var list<int> $deadlineOffsets */
+        $deadlineOffsets = array_values(array_filter(
+            array_map(static fn (mixed $value): int => (int) $value, (array) config(
+                'scheduled_notifications.host_low_participation_deadline_offsets',
+                [3, 1]
+            )),
+            static fn (int $days): bool => $days >= 1
+        ));
+
+        if ($deadlineOffsets === []) {
+            return collect();
+        }
+
         return Activity::query()
             ->where('created_by', $user->id)
             ->whereNotNull('min_participants')
@@ -207,7 +288,7 @@ class ScheduledNotificationCollector
             ->with('slot')
             ->withCount(['participants as active_participants_count' => fn ($query) => $query->where('is_absent', false)])
             ->get()
-            ->map(function (Activity $activity) use ($user, $referenceNow): ?array {
+            ->map(function (Activity $activity) use ($user, $referenceNow, $deadlineOffsets): ?array {
                 $minimum = (int) ($activity->min_participants ?? 0);
                 $current = (int) ($activity->active_participants_count ?? 0);
                 if ($minimum <= 0 || $current >= $minimum) {
@@ -215,9 +296,12 @@ class ScheduledNotificationCollector
                 }
 
                 $deadline = $this->cancellationDeadlineAt($activity);
-                if ($deadline === null || ! $this->isOnLocalTomorrow($referenceNow, $deadline, $user)) {
+                if ($deadline === null || ! $this->isOnAnyLocalDayOffset($referenceNow, $deadline, $user, $deadlineOffsets)) {
                     return null;
                 }
+
+                $timezone = $this->timezoneForUser($user);
+                $localDay = $referenceNow->setTimezone($timezone)->startOfDay()->utc();
 
                 return [
                     'category' => 'host_low_participation',
@@ -226,11 +310,11 @@ class ScheduledNotificationCollector
                         __('ui.notifications.scheduled.host_low_participation_line', [
                             'current' => $current,
                             'minimum' => $minimum,
-                            'when' => $deadline->setTimezone($this->timezoneForUser($user))->format('Y-m-d H:i'),
+                            'when' => $deadline->setTimezone($timezone)->format('Y-m-d H:i'),
                         ]),
                     ],
                     'url' => route('activities.show', ['activity' => $activity], false),
-                    'dedupe_key' => $this->dedupeKey('host_low_participation', (int) $activity->id, $deadline),
+                    'dedupe_key' => $this->dedupeKey('host_low_participation', (int) $activity->id, $localDay),
                 ];
             })
             ->filter();
@@ -358,14 +442,55 @@ class ScheduledNotificationCollector
      */
     private function isOnLocalTomorrow(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user): bool
     {
-        if ($target->lessThanOrEqualTo($referenceNow)) {
+        return $this->isOnLocalDayOffset($referenceNow, $target, $user, 1);
+    }
+
+    /**
+     * True when the target's local calendar date equals today + $daysAhead for the user.
+     */
+    private function isOnLocalDayOffset(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user, int $daysAhead): bool
+    {
+        if ($daysAhead < 1 || $target->lessThanOrEqualTo($referenceNow)) {
             return false;
         }
 
         $timezone = $this->timezoneForUser($user);
-        $localTomorrow = $referenceNow->setTimezone($timezone)->addDay()->toDateString();
+        $expectedDate = $referenceNow->setTimezone($timezone)->addDays($daysAhead)->toDateString();
 
-        return $target->setTimezone($timezone)->toDateString() === $localTomorrow;
+        return $target->setTimezone($timezone)->toDateString() === $expectedDate;
+    }
+
+    /**
+     * @param  list<int>  $daysAheadOffsets
+     */
+    private function isOnAnyLocalDayOffset(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user, array $daysAheadOffsets): bool
+    {
+        foreach ($daysAheadOffsets as $daysAhead) {
+            if ($this->isOnLocalDayOffset($referenceNow, $target, $user, $daysAhead)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * True when the target is still in the future and its local calendar date is
+     * between the user's local today and today + $daysAhead (inclusive).
+     */
+    private function isWithinLocalDaysAhead(CarbonImmutable $referenceNow, CarbonImmutable $target, User $user, int $daysAhead): bool
+    {
+        if ($daysAhead < 0 || $target->lessThanOrEqualTo($referenceNow)) {
+            return false;
+        }
+
+        $timezone = $this->timezoneForUser($user);
+        $localToday = $referenceNow->setTimezone($timezone)->startOfDay();
+        $localTarget = $target->setTimezone($timezone)->startOfDay();
+        $latest = $localToday->addDays($daysAhead);
+
+        return $localTarget->greaterThanOrEqualTo($localToday)
+            && $localTarget->lessThanOrEqualTo($latest);
     }
 
     /**
