@@ -3,6 +3,9 @@
 <title>{{ $metadata->title }}</title>
 <meta name="description" content="{{ $metadata->description }}">
 <link rel="canonical" href="{{ $metadata->canonical }}">
+@if (filled(config('services.google.site_verification')))
+    <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+@endif
 <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
 <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">

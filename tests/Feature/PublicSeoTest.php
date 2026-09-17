@@ -41,6 +41,26 @@ class PublicSeoTest extends TestCase
         $response->assertSee('<link rel="apple-touch-icon" href="'.e(asset('apple-touch-icon.png')).'">', false);
     }
 
+    public function test_home_page_includes_google_site_verification_when_configured(): void
+    {
+        config(['services.google.site_verification' => 'google-verification-token']);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('<meta name="google-site-verification" content="google-verification-token">', false);
+    }
+
+    public function test_home_page_omits_google_site_verification_when_missing(): void
+    {
+        config(['services.google.site_verification' => null]);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertDontSee('google-site-verification', false);
+    }
+
     public function test_home_page_includes_fb_app_id_when_facebook_client_id_is_configured(): void
     {
         config(['services.facebook.client_id' => '123456789012345']);

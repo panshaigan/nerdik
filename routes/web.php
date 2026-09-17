@@ -14,6 +14,8 @@ use App\Http\Controllers\InterestController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\RobotsTxtController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Models\Activity;
@@ -22,6 +24,9 @@ use App\Models\EventSeries;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Support\Seo\Seo;
 use Illuminate\Support\Facades\Route;
+
+Route::get('robots.txt', RobotsTxtController::class)->name('robots');
+Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/', function (WelcomePageDataService $welcome) {
     return view('welcome', $welcome->data());

@@ -50,12 +50,13 @@ class BlockBotsFromAuthTest extends TestCase
     #[Test]
     public function robots_txt_disallows_auth_paths(): void
     {
-        $body = file_get_contents(public_path('robots.txt'));
+        $response = $this->get(route('robots'));
 
-        $this->assertIsString($body);
-        $this->assertStringContainsString('Disallow: /login', $body);
-        $this->assertStringContainsString('Disallow: /register', $body);
-        $this->assertStringContainsString('Disallow: /auth/', $body);
-        $this->assertStringContainsString('User-agent: Amazonbot', $body);
+        $response->assertOk();
+        $response->assertSee('Disallow: /login', false);
+        $response->assertSee('Disallow: /register', false);
+        $response->assertSee('Disallow: /auth/', false);
+        $response->assertSee('User-agent: Amazonbot', false);
+        $response->assertSee('Sitemap: '.url('/sitemap.xml'), false);
     }
 }
