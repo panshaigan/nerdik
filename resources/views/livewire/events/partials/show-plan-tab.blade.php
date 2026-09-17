@@ -170,6 +170,7 @@
                                 $slotTypeBadgeItems = ! $activity
                                     ? ($slotTypeBadgeItemsBySlotId[(int) $slot->id] ?? [])
                                     : [];
+                                $showActivityDetailsLink = $activity?->isPubliclyShowable() ?? false;
                             @endphp
                             <li
                                 @class([
@@ -211,7 +212,7 @@
                                             $showSlotEditDelete = auth()->user()?->canModifyEntity($slot) ?? false;
                                         @endphp
                                         @if ($showDetachActivity || $showSlotEditDelete || $activity)
-                                            <div class="flex justify-end relative z-[3] gap-0.5 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
+                                            <div class="flex items-start justify-end relative z-[3] gap-1 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>
                                                 @if ($showSlotEditDelete)
                                                     <x-button
                                                         type="button"
@@ -260,10 +261,12 @@
                                                         wire:click="confirmDeleteSlot({{ $slot->id }})"
                                                         icon="o-trash"
                                                     />
-                                                    @if ($activity)
-                                                        @php
-                                                            $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
-                                                        @endphp
+                                                @endif
+                                                @if ($activity)
+                                                    @php
+                                                        $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
+                                                    @endphp
+                                                    <div class="relative">
                                                         @if ($isInterestedInActivity)
                                                             <x-button
                                                                 type="button"
@@ -283,13 +286,40 @@
                                                                 icon="o-star"
                                                             />
                                                         @endif
-                                                    @endif
+                                                        @if ($showActivityDetailsLink)
+                                                            <div class="absolute left-1/2 top-full z-[4] mt-1 -translate-x-1/2">
+                                                                <x-button
+                                                                    :link="route('activities.show', $activity)"
+                                                                    wire:navigate
+                                                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                                    :aria-label="__('ui.activities.show_details').': '.$activity->name"
+                                                                    :tooltip="__('ui.activities.show_details')"
+                                                                    icon="o-arrow-top-right-on-square"
+                                                                    data-ui="event-show-slot-open-details"
+                                                                />
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 @endif
+                                            </div>
+                                        @endif
+                                    @else
+                                        @if ($showActivityDetailsLink)
+                                            <div class="flex justify-end relative z-[3] pointer-events-auto">
+                                                <x-button
+                                                    :link="route('activities.show', $activity)"
+                                                    wire:navigate
+                                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                    :aria-label="__('ui.activities.show_details').': '.$activity->name"
+                                                    :tooltip="__('ui.activities.show_details')"
+                                                    icon="o-arrow-top-right-on-square"
+                                                    data-ui="event-show-slot-open-details"
+                                                />
                                             </div>
                                         @endif
                                     @endauth
                                 </div>
-                                <div class="px-4 pb-6">
+                                <div @class(['px-4 pb-6', 'pr-12' => $showActivityDetailsLink && auth()->check()])>
                                     @if ($activity)
                                         <button
                                             type="button"
