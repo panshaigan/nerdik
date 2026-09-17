@@ -17,6 +17,7 @@ use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
 use App\Services\LifecycleMutationRateLimiter;
 use App\Services\UserInterestService;
+use App\Support\Calendar\CalendarLinks;
 use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
@@ -371,6 +372,7 @@ class ShowEvent extends Component
         EventShowReadCache $eventShowReadCache,
         EventListingImageResolver $eventListingImageResolver,
         ShareLinks $shareLinks,
+        CalendarLinks $calendarLinks,
     ): View {
         $event = Event::query()->whereKey($this->eventId)->firstOrFail();
 
@@ -434,6 +436,7 @@ class ShowEvent extends Component
             'event' => $event,
             'coverPicture' => $eventListingImageResolver->resolve($event, 'listing_hero'),
             'sharePayload' => $shareLinks->forEvent($event),
+            'calendarPayload' => $calendarLinks->forEvent($event),
             'attachedActivityIds' => $eventActivityIds,
             'eventSignupPressureBlocksDelete' => $event->organiserHardDeleteBlockedWhileActive(),
             'hasPendingProposals' => $hasPendingProposals,

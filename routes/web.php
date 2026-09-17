@@ -4,7 +4,9 @@ use App\Actions\Locale\SwitchLocale;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\Browse\BrowseMapFeaturesController;
+use App\Http\Controllers\DownloadActivityCalendarController;
 use App\Http\Controllers\DownloadActivityParticipantsPdfController;
+use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GeocodeController;
@@ -141,6 +143,10 @@ Route::middleware(['auth'])->group(function () {
 // Public event detail route.
 // Must be declared after more specific routes like `events/create` and `events/*/edit`,
 // otherwise `events/{event}` can consume `create` as the `{event}` slug.
+Route::get('events/{event}/calendar.ics', DownloadEventCalendarController::class)
+    ->middleware('throttle:60,1')
+    ->name('events.calendar.ics');
+
 Route::get('events/{event}', function (Event $event) {
     return view('events.show', compact('event'));
 })->name('events.show');
@@ -151,6 +157,10 @@ Route::get('event-series/{eventSeries}', function (EventSeries $eventSeries) {
 
 // Public activity detail route.
 // Must be declared after more specific routes like `activities/create` and `activities/*/edit`.
+Route::get('activities/{activity}/calendar.ics', DownloadActivityCalendarController::class)
+    ->middleware('throttle:60,1')
+    ->name('activities.calendar.ics');
+
 Route::get('activities/{activity}', function (Activity $activity) {
     abort_unless(
         Activity::query()->whereKey($activity->getKey())->attachedToPublicEvent()->exists(),

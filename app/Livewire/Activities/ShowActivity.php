@@ -13,6 +13,7 @@ use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
 use App\Services\UserInterestService;
+use App\Support\Calendar\CalendarLinks;
 use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Support\Ui\ActivityShowSchedulePresenter;
@@ -291,6 +292,7 @@ class ShowActivity extends Component
         ActivityListingImageResolver $activityListingImageResolver,
         ActivityShowSchedulePresenter $schedulePresenter,
         ShareLinks $shareLinks,
+        CalendarLinks $calendarLinks,
     ) {
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
 
@@ -322,6 +324,7 @@ class ShowActivity extends Component
             'schedule' => $schedule,
             'coverPicture' => $activityListingImageResolver->resolve($activity, 'listing_hero'),
             'sharePayload' => $shareLinks->forActivity($activity),
+            'calendarPayload' => $calendarLinks->forActivity($activity),
             'canHardDeleteActivity' => $activity->allowsHardDeletion(),
             'badgeItems' => $badgeItems,
             'isParticipant' => $vm->isParticipant,

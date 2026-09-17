@@ -210,6 +210,14 @@ return [
             'telegram' => 'Telegram',
         ],
     ],
+    'calendar' => [
+        'add_to_calendar' => 'Add to calendar',
+        'targets' => [
+            'google' => 'Google Calendar',
+            'outlook' => 'Outlook',
+            'download' => 'Download .ics',
+        ],
+    ],
     'profile' => [
         'title' => 'Profile',
         'tab_identity' => 'Identity',

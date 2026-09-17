@@ -74,9 +74,13 @@
             <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="listing-event-preview-actions">
                 @php
                     $previewEventSharePayload = app(\App\Support\Sharing\ShareLinks::class)->forEvent($previewEvent);
+                    $previewEventCalendarPayload = app(\App\Support\Calendar\CalendarLinks::class)->forEvent($previewEvent);
                 @endphp
                 @if ($previewEventSharePayload)
                     <x-ui.share-menu :payload="$previewEventSharePayload" />
+                @endif
+                @if ($previewEventCalendarPayload)
+                    <x-ui.calendar-menu :payload="$previewEventCalendarPayload" />
                 @endif
                 <x-button
                     :link="route('events.show', $previewEvent)"

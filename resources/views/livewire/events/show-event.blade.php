@@ -158,6 +158,9 @@
                     @if ($sharePayload)
                         <x-ui.share-menu :payload="$sharePayload" />
                     @endif
+                    @if ($calendarPayload)
+                        <x-ui.calendar-menu :payload="$calendarPayload" />
+                    @endif
                     @auth
                         @if ($canManageEvent)
                             <div class="flex shrink-0 items-center gap-1">
