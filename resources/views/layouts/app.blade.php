@@ -23,6 +23,9 @@
 
         @stack('head')
 
+        {{-- Global feedback modal uses Mary <x-editor>; must load before Livewire mounts it. --}}
+        <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+
         <x-echo-config />
         <x-sentry-config />
         <x-umami-analytics />
@@ -57,10 +60,18 @@
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>
                         <a href="{{ route('contact') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.contact') }}</a>
+                        <button
+                            type="button"
+                            class="link link-hover opacity-80"
+                            x-data
+                            x-on:click="$dispatch('open-feedback-modal')"
+                        >{{ __('feedback.modal.trigger') }}</button>
                     </div>
                 </div>
             </footer>
         </div>
+
+        <livewire:feedback.feedback-modal />
 
         <x-toast />
         <x-ui.toast-from-session />

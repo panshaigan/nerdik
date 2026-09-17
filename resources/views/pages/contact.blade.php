@@ -10,6 +10,17 @@
 
             <p>{{ $content['intro'] }}</p>
 
+            <h2>{{ __('feedback.contact.feedback_heading') }}</h2>
+            <p>{{ __('feedback.contact.feedback_body') }}</p>
+            <p>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    x-data
+                    x-on:click="$dispatch('open-feedback-modal')"
+                >{{ __('feedback.contact.feedback_button') }}</button>
+            </p>
+
             <h2>{{ $content['email_heading'] }}</h2>
             <p>
                 {{ $content['email_body'] }}

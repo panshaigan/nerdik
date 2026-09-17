@@ -315,4 +315,48 @@ final class NotificationListItemPresenterTest extends TestCase
             $display->subtitle,
         );
     }
+
+    #[Test]
+    public function it_maps_feedback_received_notification(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'feedback_received',
+                    'toast_title' => 'New feedback',
+                    'toast_description' => 'Bug — Broken button',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame('New feedback', $display->title);
+        $this->assertSame('Bug — Broken button', $display->subtitle);
+        $this->assertSame('o-chat-bubble-left-right', $display->icon);
+    }
+
+    #[Test]
+    public function it_maps_feedback_replied_notification(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'feedback_replied',
+                    'toast_title' => 'Reply to your feedback',
+                    'toast_description' => 'Broken button',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame('Reply to your feedback', $display->title);
+        $this->assertSame('Broken button', $display->subtitle);
+        $this->assertSame('o-chat-bubble-bottom-center-text', $display->icon);
+    }
 }

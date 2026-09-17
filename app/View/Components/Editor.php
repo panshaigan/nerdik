@@ -6,6 +6,49 @@ use Mary\View\Components\Editor as MaryEditor;
 
 class Editor extends MaryEditor
 {
+    public function __construct(
+        ?string $id = null,
+        ?string $label = null,
+        ?string $hint = null,
+        ?string $hintClass = 'fieldset-label',
+        ?string $disk = 'public',
+        ?string $folder = 'editor',
+        ?bool $gplLicense = false,
+        ?array $config = [],
+        ?string $popover = null,
+        ?string $popoverIcon = 'o-question-mark-circle',
+        ?string $popoverTriggerClass = '',
+        ?string $popoverContentClass = '',
+        ?string $errorField = null,
+        ?string $errorClass = 'text-error',
+        ?bool $omitError = false,
+        ?bool $firstErrorOnly = false,
+        ?string $uploadUrl = null,
+    ) {
+        parent::__construct(
+            id: $id,
+            label: $label,
+            hint: $hint,
+            hintClass: $hintClass,
+            disk: $disk,
+            folder: $folder,
+            gplLicense: $gplLicense,
+            config: $config,
+            popover: $popover,
+            popoverIcon: $popoverIcon,
+            popoverTriggerClass: $popoverTriggerClass,
+            popoverContentClass: $popoverContentClass,
+            errorField: $errorField,
+            errorClass: $errorClass,
+            omitError: $omitError,
+            firstErrorOnly: $firstErrorOnly,
+        );
+
+        if ($uploadUrl !== null && $uploadUrl !== '') {
+            $this->uploadUrl = $uploadUrl;
+        }
+    }
+
     #[\Override]
     public function setup(): string
     {

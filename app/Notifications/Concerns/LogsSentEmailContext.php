@@ -8,6 +8,7 @@ use App\Enums\SentEmailKind;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
+use App\Models\Feedback;
 use App\Models\UserRequest;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,6 +35,10 @@ trait LogsSentEmailContext
 
         if (isset($this->request) && $this->request instanceof UserRequest) {
             return $this->request;
+        }
+
+        if (isset($this->feedback) && $this->feedback instanceof Feedback) {
+            return $this->feedback;
         }
 
         if (isset($this->eventId) && is_int($this->eventId)) {

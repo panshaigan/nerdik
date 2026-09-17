@@ -14,6 +14,7 @@ use App\Notifications\ActivityReopenedNotification;
 use App\Notifications\EventCancelledNotification;
 use App\Notifications\EventPlacesLowNotification;
 use App\Notifications\EventReopenedNotification;
+use App\Notifications\FeedbackRepliedNotification;
 use App\Notifications\ProposalAcceptedNotification;
 use App\Notifications\ProposalRejectedNotification;
 use App\Notifications\ProposalSubmittedNotification;
@@ -47,6 +48,7 @@ enum SentEmailKind: string
     case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
     case ScheduledDigest = 'scheduled_digest';
     case UserRequests = 'user_requests';
+    case FeedbackReply = 'feedback_reply';
     case VerifyEmail = 'verify_email';
     case ResetPassword = 'reset_password';
     case VerifyPendingEmail = 'verify_pending_email';
@@ -81,6 +83,7 @@ enum SentEmailKind: string
             EventPlacesLowNotification::class => self::EventPlacesLow,
             UserRequestReceivedNotification::class,
             UserRequestResolvedNotification::class => self::UserRequests,
+            FeedbackRepliedNotification::class => self::FeedbackReply,
             ScheduledPeriodicDigestNotification::class => self::ScheduledDigest,
             VerifyPendingEmailNotification::class => self::VerifyPendingEmail,
             VerifyEmailNotification::class => self::VerifyEmail,

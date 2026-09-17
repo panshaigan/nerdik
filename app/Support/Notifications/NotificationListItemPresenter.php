@@ -46,6 +46,8 @@ final class NotificationListItemPresenter
             'activity_participant_left' => [$this->toastTitle($data), 'o-user-minus'],
             'activity_participant_joined' => [$this->toastTitle($data), 'o-user-plus'],
             'activity_removed_by_host' => [$this->toastTitle($data), 'o-user-minus'],
+            'feedback_received' => [$this->toastTitle($data), 'o-chat-bubble-left-right'],
+            'feedback_replied' => [$this->toastTitle($data), 'o-chat-bubble-bottom-center-text'],
             default => [$this->fallbackTitle($data), 'o-bell'],
         };
     }
@@ -64,6 +66,7 @@ final class NotificationListItemPresenter
             'scheduled_periodic_digest' => $this->scheduledDigestSubtitle($data),
             'user_request_received' => $this->userRequestReceivedSubtitle($data),
             'user_request_resolved' => $this->userRequestResolvedSubtitle($data),
+            'feedback_received', 'feedback_replied' => $this->toastSubtitle($data),
             'activity_participant_left', 'activity_participant_joined', 'activity_removed_by_host' => $this->toastSubtitle($data, $activity, $event),
             default => $this->joinLabelParts($activity, $event) ?? $this->toastSubtitle($data, $activity, $event),
         };

@@ -9,6 +9,7 @@ use App\Http\Controllers\DownloadActivityParticipantsPdfController;
 use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\FeedbackEditorUploadController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\OrganizationController;
@@ -61,6 +62,10 @@ Route::get('geocode/search', [GeocodeController::class, 'search'])
 Route::get('privacy', fn () => view('pages.privacy', ['seo' => Seo::forPrivacy()]))->name('privacy');
 Route::get('terms', fn () => view('pages.terms', ['seo' => Seo::forTerms()]))->name('terms');
 Route::get('contact', fn () => view('pages.contact', ['seo' => Seo::forContact()]))->name('contact');
+
+Route::post('feedback/editor-upload', FeedbackEditorUploadController::class)
+    ->middleware('throttle:feedback-upload')
+    ->name('feedback.editor-upload');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])

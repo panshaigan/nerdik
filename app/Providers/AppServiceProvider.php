@@ -7,6 +7,7 @@ use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
 use App\Models\Event;
+use App\Models\Feedback;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
@@ -96,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
             'activity_type' => ActivityType::class,
             'activity_proposal' => ActivityProposal::class,
             'user_request' => UserRequest::class,
+            'feedback' => Feedback::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.
@@ -146,6 +148,13 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(
                 (int) config('notification_throttle.participation_mutations_per_minute', 3)
             )->by("participation:{$userId}:{$activityId}");
+        });
+
+        RateLimiter::for('feedback-upload', function (Request $request) {
+            return Limit::perMinutes(
+                max(1, (int) config('feedback.upload_decay_minutes', 1)),
+                max(1, (int) config('feedback.upload_max_attempts', 30)),
+            )->by((string) $request->ip());
         });
 
         RateLimiter::for('lifecycle', function (Request $request) {
