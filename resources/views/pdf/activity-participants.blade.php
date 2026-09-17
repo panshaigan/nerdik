@@ -15,6 +15,10 @@
             font-size: 18px;
             margin: 0 0 16px;
         }
+        .header-schedule {
+            font-weight: normal;
+            color: #333;
+        }
         h2.activity-title {
             font-size: 15px;
             margin: 0 0 8px;
@@ -62,7 +66,18 @@
     </style>
 </head>
 <body>
-    <h1>{{ $roster['documentTitle'] }}</h1>
+    @php
+        $scheduleBits = array_values(array_filter(
+            [
+                ($roster['where'] ?? null) !== null && $roster['where'] !== '' ? $roster['where'] : null,
+                ($roster['when'] ?? null) !== null && $roster['when'] !== '' ? $roster['when'] : null,
+            ],
+            fn (?string $bit): bool => $bit !== null,
+        ));
+    @endphp
+    <h1>
+        {{ $roster['documentTitle'] }}@if ($scheduleBits !== []) <span class="header-schedule">· {{ implode(' · ', $scheduleBits) }}</span>@endif
+    </h1>
     @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
     @include('pdf.partials.activity-table-sign', ['roster' => $roster])
 </body>

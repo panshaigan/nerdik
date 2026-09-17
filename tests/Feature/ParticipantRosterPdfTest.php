@@ -176,9 +176,9 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringContainsString('Midnight Heist - Participant roster', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.game').':', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
-        $this->assertStringContainsString(__('ui.pdf.roster.where').':', $html);
         $this->assertStringContainsString('Slot Alpha · Room 12', $html);
-        $this->assertStringContainsString(__('ui.pdf.roster.when').':', $html);
+        $this->assertStringNotContainsString(__('ui.pdf.roster.where').':', $html);
+        $this->assertStringNotContainsString(__('ui.pdf.roster.when').':', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.absent_note'), $html);
         $this->assertMatchesRegularExpression(
             '/col-name.*col-check/s',
@@ -255,13 +255,13 @@ final class ParticipantRosterPdfTest extends TestCase
 
         $html = view('pdf.event-participants', ['roster' => $roster])->render();
         $this->assertStringContainsString('Con Alpha - Participant roster', $html);
-        $this->assertStringContainsString(__('ui.pdf.roster.where').':', $html);
         $this->assertStringContainsString('Expo Center', $html);
-        $this->assertStringContainsString(__('ui.pdf.roster.when').':', $html);
         $this->assertStringContainsString('activities-grid', $html);
         $this->assertStringContainsString('Active Table', $html);
         $this->assertStringContainsString('Second Table', $html);
         $this->assertStringNotContainsString('Cancelled Table', $html);
+        $this->assertStringNotContainsString(__('ui.pdf.roster.where').':', $html);
+        $this->assertStringNotContainsString(__('ui.pdf.roster.when').':', $html);
         $this->assertSame(2, substr_count($html, 'class="activity-table-sign"'));
         $this->assertStringContainsString('Alpha Slot', $html);
         $this->assertStringContainsString('Zebra Slot', $html);

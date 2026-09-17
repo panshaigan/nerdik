@@ -13,19 +13,19 @@
         }
         h1 {
             font-size: 17px;
-            margin: 0 0 6px;
-        }
-        .event-meta {
             margin: 0 0 14px;
+        }
+        .header-schedule {
+            font-weight: normal;
             color: #333;
             font-size: 12px;
-        }
-        .event-meta p {
-            margin: 0 0 3px;
         }
         h2.activity-title {
             font-size: 13px;
             margin: 0 0 6px;
+        }
+        h2.activity-title .header-schedule {
+            font-size: 11px;
         }
         .meta {
             margin: 0 0 3px;
@@ -91,18 +91,18 @@
     </style>
 </head>
 <body>
-    <h1>{{ $roster['documentTitle'] }}</h1>
-
-    @if (($roster['where'] ?? null) || ($roster['when'] ?? null))
-        <div class="event-meta">
-            @if (($roster['where'] ?? null) !== null && $roster['where'] !== '')
-                <p><strong>{{ __('ui.pdf.roster.where') }}:</strong> {{ $roster['where'] }}</p>
-            @endif
-            @if (($roster['when'] ?? null) !== null && $roster['when'] !== '')
-                <p><strong>{{ __('ui.pdf.roster.when') }}:</strong> {{ $roster['when'] }}</p>
-            @endif
-        </div>
-    @endif
+    @php
+        $scheduleBits = array_values(array_filter(
+            [
+                ($roster['where'] ?? null) !== null && $roster['where'] !== '' ? $roster['where'] : null,
+                ($roster['when'] ?? null) !== null && $roster['when'] !== '' ? $roster['when'] : null,
+            ],
+            fn (?string $bit): bool => $bit !== null,
+        ));
+    @endphp
+    <h1>
+        {{ $roster['documentTitle'] }}@if ($scheduleBits !== []) <span class="header-schedule">· {{ implode(' · ', $scheduleBits) }}</span>@endif
+    </h1>
 
     @if ($roster['activities'] === [])
         <p class="no-activities">{{ __('ui.pdf.roster.no_activities') }}</p>
