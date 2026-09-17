@@ -49,6 +49,7 @@ class FeedbackModalTest extends TestCase
             ->test(FeedbackModal::class)
             ->call('openModal', 'https://example.test/page')
             ->assertSet('open', true)
+            ->assertSet('type', FeedbackType::Question->value)
             ->set('type', FeedbackType::Bug->value)
             ->set('subject', 'Broken button')
             ->set('body', '<p>The submit button does nothing.</p>')
@@ -109,6 +110,27 @@ class FeedbackModalTest extends TestCase
         Notification::assertSentTo($admin, FeedbackReceivedNotification::class);
     }
 
+    public function test_subject_is_optional(): void
+    {
+        Notification::fake();
+        User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(FeedbackModal::class)
+            ->call('openModal')
+            ->set('body', '<p>Just a message with no subject.</p>')
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertSet('open', false);
+
+        $this->assertDatabaseHas(Feedback::class, [
+            'user_id' => $user->id,
+            'type' => FeedbackType::Question->value,
+            'subject' => '',
+        ]);
+    }
+
     public function test_guest_submit_requires_email(): void
     {
         Livewire::test(FeedbackModal::class)
@@ -159,7 +181,7 @@ class FeedbackModalTest extends TestCase
             ->set('subject', 'Second')
             ->set('body', '<p>Second message</p>')
             ->call('submit')
-            ->assertHasErrors(['subject']);
+            ->assertHasErrors(['body']);
 
         RateLimiter::clear(Str::transliterate('feedback-submit|user:'.$user->id));
     }

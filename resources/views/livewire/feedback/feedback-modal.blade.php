@@ -136,8 +136,6 @@
                         wire:model="type"
                         :label="__('feedback.modal.type')"
                         :options="$this->typeOptions()"
-                        :placeholder="__('feedback.modal.type')"
-                        placeholder-value=""
                         required
                     />
 
@@ -146,7 +144,6 @@
                         :label="__('feedback.modal.subject')"
                         type="text"
                         maxlength="200"
-                        required
                     />
 
                     <div wire:key="feedback-editor-{{ $modalRenderKey }}">
@@ -158,6 +155,8 @@
                             :config="$this->editorConfig()"
                             folder="feedback/editor"
                             :upload-url="route('feedback.editor-upload', absolute: false)"
+                            :omit-error="true"
+                            required
                         />
                         <x-field-error :messages="$errors->get('body')" class="mt-2" />
                     </div>

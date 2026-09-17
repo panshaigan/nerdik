@@ -46,7 +46,7 @@ final class FeedbackSubmissionService
 
         $feedback = Feedback::query()->create([
             'type' => $type,
-            'subject' => trim($data['subject']),
+            'subject' => trim((string) ($data['subject'] ?? '')),
             'body' => $body,
             'email' => $email,
             'user_id' => $user?->id,

@@ -23,7 +23,7 @@ class FeedbackModal extends Component
 
     public bool $open = false;
 
-    public string $type = '';
+    public string $type = FeedbackType::Question->value;
 
     public string $subject = '';
 
@@ -58,7 +58,7 @@ class FeedbackModal extends Component
 
         $rules = [
             'type' => ['required', 'string', Rule::enum(FeedbackType::class)],
-            'subject' => ['required', 'string', 'max:200'],
+            'subject' => ['nullable', 'string', 'max:200'],
             'body' => ['required', 'string', 'max:50000'],
             'pageUrl' => ['nullable', 'string', 'max:2048'],
         ];
@@ -75,7 +75,7 @@ class FeedbackModal extends Component
 
         $submissions->submit([
             'type' => $validated['type'],
-            'subject' => $validated['subject'],
+            'subject' => $validated['subject'] ?? '',
             'body' => $validated['body'],
             'email' => $validated['email'] ?? null,
             'page_url' => $validated['pageUrl'] ?? $this->pageUrl,
@@ -144,7 +144,7 @@ class FeedbackModal extends Component
         }
 
         throw ValidationException::withMessages([
-            'subject' => [__('feedback.modal.rate_limited')],
+            'body' => [__('feedback.modal.rate_limited')],
         ]);
     }
 
@@ -159,7 +159,8 @@ class FeedbackModal extends Component
 
     private function resetForm(): void
     {
-        $this->reset('type', 'subject', 'body', 'email', 'pageUrl', 'gRecaptchaResponse');
+        $this->reset('subject', 'body', 'email', 'pageUrl', 'gRecaptchaResponse');
+        $this->type = FeedbackType::Question->value;
         $this->resetValidation();
         $this->clearRecaptchaState();
     }
