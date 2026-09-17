@@ -57,6 +57,7 @@ final class CalendarLinks
             events: $payloads,
             icsDownloadUrl: route('event-series.calendar.ics', $series),
             downloadFilename: $slug.'.ics',
+            title: $title,
         );
     }
 
@@ -113,7 +114,7 @@ final class CalendarLinks
             CalendarTarget::Download => $payload->icsDownloadUrl,
             CalendarTarget::Google, CalendarTarget::Outlook => ($single = $payload->singleEvent()) !== null
                 ? $this->intentUrl($single, $target)
-                : null,
+                : $this->seriesSubscribeUrl($payload, $target),
         };
     }
 
@@ -212,6 +213,25 @@ final class CalendarLinks
             'details' => $details,
             'location' => $this->deepLinkLocation($payload),
         ], '', '&', PHP_QUERY_RFC3986);
+    }
+
+    /**
+     * Subscribe to the series ICS feed — Google/Outlook template URLs only accept one event.
+     */
+    private function seriesSubscribeUrl(CalendarSeriesPayload $payload, CalendarTarget $target): string
+    {
+        $icsUrl = $payload->icsDownloadUrl;
+
+        return match ($target) {
+            CalendarTarget::Google => 'https://calendar.google.com/calendar/render?'.http_build_query([
+                'cid' => $icsUrl,
+            ], '', '&', PHP_QUERY_RFC3986),
+            CalendarTarget::Outlook => 'https://outlook.live.com/calendar/0/addfromweb?'.http_build_query([
+                'url' => $icsUrl,
+                'name' => $payload->title,
+            ], '', '&', PHP_QUERY_RFC3986),
+            CalendarTarget::Download => $icsUrl,
+        };
     }
 
     private function outlookUrl(CalendarPayload $payload): string

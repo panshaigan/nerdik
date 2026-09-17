@@ -13,6 +13,7 @@ final readonly class CalendarSeriesPayload
         public array $events,
         public string $icsDownloadUrl,
         public string $downloadFilename,
+        public string $title,
     ) {}
 
     public function singleEvent(): ?CalendarPayload

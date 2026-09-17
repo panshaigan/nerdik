@@ -247,7 +247,7 @@ new class extends Component
                             @if (filled(config('services.adminer.url')))
                                 <li>
                                     <a
-                                        href="{{ config('services.adminer.url') }}"
+                                        href="{{ config('services.adminer.url') }}/?pgsql=pgsql&username=sail"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >{{ __('ui.nav.adminer') }}</a>
@@ -521,7 +521,7 @@ new class extends Component
                                     @if (filled(config('services.adminer.url')))
                                         <li>
                                             <a
-                                                href="{{ config('services.adminer.url') }}"
+                                                href="{{ config('services.adminer.url') }}/?pgsql=pgsql&username=sail"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 @click="close()"

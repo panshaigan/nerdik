@@ -398,7 +398,7 @@ final class CalendarLinksTest extends TestCase
         ));
     }
 
-    public function test_for_event_series_builds_multi_event_download_without_external_intents(): void
+    public function test_for_event_series_builds_multi_event_subscribe_intents(): void
     {
         $user = User::factory()->create();
         $series = EventSeries::factory()->create([
@@ -430,8 +430,19 @@ final class CalendarLinksTest extends TestCase
         $this->assertSame(route('event-series.calendar.ics', $series), $payload->icsDownloadUrl);
         $this->assertNull($payload->singleEvent());
         $this->assertSame($payload->icsDownloadUrl, $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Download));
-        $this->assertNull($this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Google));
-        $this->assertNull($this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Outlook));
+
+        $google = $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Google);
+        $this->assertNotNull($google);
+        $this->assertStringStartsWith('https://calendar.google.com/calendar/render?', $google);
+        $this->assertStringContainsString('cid=', $google);
+        $this->assertStringContainsString(rawurlencode($payload->icsDownloadUrl), $google);
+        $this->assertStringNotContainsString('action=TEMPLATE', $google);
+
+        $outlook = $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Outlook);
+        $this->assertNotNull($outlook);
+        $this->assertStringStartsWith('https://outlook.live.com/calendar/0/addfromweb?', $outlook);
+        $this->assertStringContainsString(rawurlencode($payload->icsDownloadUrl), $outlook);
+        $this->assertStringContainsString('name=Porzucane', $outlook);
 
         $ics = $this->calendarLinks->icsContentMany($payload->events);
         $this->assertSame(2, substr_count($ics, 'BEGIN:VEVENT'));
@@ -439,5 +450,34 @@ final class CalendarLinksTest extends TestCase
         $this->assertStringContainsString('SUMMARY:Porzucane II', $ics);
         $this->assertStringContainsString('event-'.$first->id.'@', $ics);
         $this->assertStringContainsString('event-'.$second->id.'@', $ics);
+    }
+
+    public function test_for_event_series_with_one_upcoming_uses_single_event_intents(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $user->id]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(8),
+            'ends_at' => now()->addDays(8)->addHours(4),
+        ]);
+
+        $payload = $this->calendarLinks->forEventSeries(
+            $series,
+            $series->visibleUpcomingEvents($user),
+        );
+        $this->assertNotNull($payload);
+        $single = $payload->singleEvent();
+        $this->assertNotNull($single);
+
+        $this->assertSame(
+            $this->calendarLinks->intentUrl($single, CalendarTarget::Google),
+            $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Google),
+        );
+        $this->assertSame(
+            $this->calendarLinks->intentUrl($single, CalendarTarget::Outlook),
+            $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Outlook),
+        );
     }
 }
