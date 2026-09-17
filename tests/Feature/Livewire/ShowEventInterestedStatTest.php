@@ -80,6 +80,34 @@ class ShowEventInterestedStatTest extends TestCase
         $this->assertStringNotContainsString('wire:target', $opening);
     }
 
+    public function test_toolbar_interest_buttons_toggle_for_authenticated_user(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(ShowEvent::class, ['event' => $event])
+            ->assertSeeHtml('data-ui="event-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="event-show-interest-remove"');
+
+        $component->call('addInterest')
+            ->assertSeeHtml('data-ui="event-show-interest-remove"')
+            ->assertDontSeeHtml('data-ui="event-show-interest-add"');
+
+        $component->call('removeInterest')
+            ->assertSeeHtml('data-ui="event-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="event-show-interest-remove"');
+    }
+
+    public function test_toolbar_interest_buttons_are_hidden_for_guests(): void
+    {
+        $event = Event::factory()->create();
+
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->assertDontSeeHtml('data-ui="event-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="event-show-interest-remove"');
+    }
+
     public function test_shell_stat_updates_after_plan_tab_activity_interest_sync(): void
     {
         config(['cache.default' => 'array']);

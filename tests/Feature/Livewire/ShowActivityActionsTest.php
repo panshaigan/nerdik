@@ -227,13 +227,30 @@ class ShowActivityActionsTest extends TestCase
         $this->assertStringNotContainsString('wire:target', $opening);
     }
 
-    public function test_toolbar_interest_buttons_are_not_rendered(): void
+    public function test_toolbar_interest_buttons_toggle_for_authenticated_user(): void
     {
         $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
-        Livewire::actingAs($user)
+        $component = Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSeeHtml('data-ui="activity-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="activity-show-interest-remove"');
+
+        $component->call('addInterest')
+            ->assertSeeHtml('data-ui="activity-show-interest-remove"')
+            ->assertDontSeeHtml('data-ui="activity-show-interest-add"');
+
+        $component->call('removeInterest')
+            ->assertSeeHtml('data-ui="activity-show-interest-add"')
+            ->assertDontSeeHtml('data-ui="activity-show-interest-remove"');
+    }
+
+    public function test_toolbar_interest_buttons_are_hidden_for_guests(): void
+    {
+        $activity = Activity::factory()->create();
+
+        Livewire::test(ShowActivity::class, ['activity' => $activity])
             ->assertDontSeeHtml('data-ui="activity-show-interest-add"')
             ->assertDontSeeHtml('data-ui="activity-show-interest-remove"');
     }

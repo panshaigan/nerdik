@@ -244,6 +244,27 @@
                             @endif
                             </div>
                         @endif
+                        @if ($hasInterest)
+                            <x-button
+                                type="button"
+                                wire:click="removeInterest"
+                                class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                :tooltip="__('ui.interests.remove_from_interests')"
+                                :aria-label="__('ui.interests.remove_from_interests')"
+                                data-ui="event-show-interest-remove"
+                                icon="s-star"
+                            />
+                        @else
+                            <x-button
+                                type="button"
+                                wire:click="addInterest"
+                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                :tooltip="__('ui.interests.add_to_interests')"
+                                :aria-label="__('ui.interests.add_to_interests')"
+                                data-ui="event-show-interest-add"
+                                icon="o-star"
+                            />
+                        @endif
                     @endauth
                 </div>
             </x-slot:toolbar>
