@@ -101,7 +101,12 @@ final class CalendarLinksTest extends TestCase
     public function test_for_activity_builds_payload_from_self_hosted_schedule(): void
     {
         $user = User::factory()->create();
-        $place = Place::factory()->venue()->create(['name' => 'Dice Hall']);
+        $place = Place::factory()->venue()->create([
+            'name' => 'Dice Hall',
+            'address' => 'Main Street 10',
+            'latitude' => 52.2297,
+            'longitude' => 21.0122,
+        ]);
         $startsAt = now()->addDays(5)->utc()->startOfMinute();
         $endsAt = $startsAt->copy()->addHours(3);
         $activity = Activity::factory()->create([
@@ -123,8 +128,124 @@ final class CalendarLinksTest extends TestCase
         $this->assertSame(route('activities.calendar.ics', $activity), $payload->icsDownloadUrl);
         $this->assertSame($startsAt->toIso8601String(), $payload->startsAt->toIso8601String());
         $this->assertSame($endsAt->toIso8601String(), $payload->endsAt->toIso8601String());
-        $this->assertSame('Dice Hall', $payload->location);
+        $this->assertSame('Dice Hall, Main Street 10', $payload->location);
+        $this->assertSame(52.2297, $payload->latitude);
+        $this->assertSame(21.0122, $payload->longitude);
         $this->assertStringContainsString('Bring your character sheet.', $payload->description);
+    }
+
+    public function test_for_activity_uses_venue_without_room_in_location(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Convention Center',
+            'address' => 'Expo Road 1',
+            'latitude' => 51.1,
+            'longitude' => 17.0,
+        ]);
+        $room = Place::factory()->room($venue)->create([
+            'name' => 'Room A',
+            'created_by' => $user->id,
+        ]);
+        $startsAt = now()->addDays(2)->utc()->startOfMinute();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $room->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(2),
+            'name' => 'Panel in Room A',
+        ]);
+
+        $payload = $this->calendarLinks->forActivity($activity);
+
+        $this->assertNotNull($payload);
+        $this->assertSame('Convention Center, Expo Road 1', $payload->location);
+        $this->assertStringNotContainsString('Room A', $payload->location);
+        $this->assertSame(51.1, $payload->latitude);
+        $this->assertSame(17.0, $payload->longitude);
+    }
+
+    public function test_for_event_includes_venue_address_and_coordinates(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Festival Hall',
+            'address' => 'River Quay 5',
+            'latitude' => 50.0614,
+            'longitude' => 19.9370,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Geo Event',
+        ]);
+        $event->places()->attach($venue->id);
+
+        $payload = $this->calendarLinks->forEvent($event);
+
+        $this->assertNotNull($payload);
+        $this->assertSame('Festival Hall, River Quay 5', $payload->location);
+        $this->assertSame(50.0614, $payload->latitude);
+        $this->assertSame(19.9370, $payload->longitude);
+
+        $ics = $this->calendarLinks->icsContent($payload);
+        $this->assertStringContainsString('LOCATION:Festival Hall\, River Quay 5', $ics);
+        $this->assertStringContainsString('GEO:50.0614;19.937', $ics);
+    }
+
+    public function test_multi_venue_event_joins_locations_without_geo(): void
+    {
+        $user = User::factory()->create();
+        $first = Place::factory()->venue()->create([
+            'name' => 'Hall A',
+            'address' => 'Street 1',
+            'latitude' => 51.0,
+            'longitude' => 17.0,
+        ]);
+        $second = Place::factory()->venue()->create([
+            'name' => 'Hall B',
+            'address' => 'Street 2',
+            'latitude' => 51.1,
+            'longitude' => 17.1,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Two Venue Event',
+        ]);
+        $event->places()->attach([$first->id, $second->id]);
+
+        $payload = $this->calendarLinks->forEvent($event);
+
+        $this->assertNotNull($payload);
+        $this->assertSame('Hall A, Street 1; Hall B, Street 2', $payload->location);
+        $this->assertNull($payload->latitude);
+        $this->assertNull($payload->longitude);
+    }
+
+    public function test_google_intent_url_appends_coordinates_to_location(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Pin Hall',
+            'address' => 'Map Street 3',
+            'latitude' => 52.25,
+            'longitude' => 21.0,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Pinned Event',
+        ]);
+        $event->places()->attach($venue->id);
+        $payload = $this->calendarLinks->forEvent($event);
+        $this->assertNotNull($payload);
+
+        $url = $this->calendarLinks->intentUrl($payload, CalendarTarget::Google);
+        $this->assertNotNull($url);
+
+        $query = [];
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+        $this->assertSame('Pin Hall, Map Street 3, 52.25, 21', $query['location']);
     }
 
     public function test_google_intent_url_includes_utc_dates_and_title(): void

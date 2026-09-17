@@ -146,6 +146,57 @@ class Place extends Model
     }
 
     /**
+     * Calendar LOCATION text for the venue (never the room): "Venue, Address, City".
+     */
+    public function calendarLocationLabel(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+        $this->loadMissing(['city', 'parent']);
+
+        $venue = $this->parent_id && $this->parent ? $this->parent : $this;
+        $venue->loadMissing('city');
+
+        $name = trim((string) $venue->name);
+        $address = trim((string) ($venue->address ?? ''));
+        $cityName = trim((string) ($venue->city?->name($locale) ?? ''));
+
+        $parts = [];
+        if ($name !== '') {
+            $parts[] = $name;
+        }
+        if ($address !== '') {
+            $parts[] = $address;
+        }
+        if ($cityName !== '' && ($address === '' || ! str_contains(mb_strtolower($address), mb_strtolower($cityName)))) {
+            $parts[] = $cityName;
+        }
+
+        return implode(', ', $parts);
+    }
+
+    public function hasCoordinates(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
+    }
+
+    /**
+     * Coordinates for the physical venue (parent when this place is a room).
+     *
+     * @return array{0: float, 1: float}|null
+     */
+    public function venueCoordinates(): ?array
+    {
+        $this->loadMissing('parent');
+        $venue = $this->parent_id && $this->parent ? $this->parent : $this;
+
+        if (! $venue->hasCoordinates()) {
+            return null;
+        }
+
+        return [(float) $venue->latitude, (float) $venue->longitude];
+    }
+
+    /**
      * For slot UIs: "Venue · Room" when this place is a room under a venue; otherwise the place name.
      */
     public function venueRoomLabel(): string

@@ -34,6 +34,14 @@ final class IcsGenerator
             $lines[] = 'LOCATION:'.$this->escapeText($payload->location);
         }
 
+        if ($payload->hasCoordinates()) {
+            $lines[] = sprintf(
+                'GEO:%s;%s',
+                $this->formatCoordinate((float) $payload->latitude),
+                $this->formatCoordinate((float) $payload->longitude),
+            );
+        }
+
         if ($payload->url !== '') {
             $lines[] = 'URL:'.$payload->url;
         }
@@ -88,5 +96,10 @@ final class IcsGenerator
         }
 
         return implode("\r\n", $parts);
+    }
+
+    private function formatCoordinate(float $value): string
+    {
+        return rtrim(rtrim(sprintf('%.6F', $value), '0'), '.');
     }
 }

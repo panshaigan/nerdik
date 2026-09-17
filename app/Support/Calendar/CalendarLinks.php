@@ -6,8 +6,10 @@ namespace App\Support\Calendar;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Place;
 use App\Support\Ui\ActivityShowSchedulePresenter;
 use App\Support\Ui\ActivityShowScheduleViewData;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 final class CalendarLinks
@@ -29,9 +31,12 @@ final class CalendarLinks
             $endsAt = $startsAt;
         }
 
+        $event->loadMissing('places.city');
+        $venues = $this->eventVenues($event);
+        [$location, $latitude, $longitude] = $this->locationFromVenues($venues);
+
         $title = (string) $event->name;
         $description = $this->descriptionFromRichText($event->description, $title);
-        $location = $event->compactPlaceSummary();
         $url = route('events.show', $event);
 
         return new CalendarPayload(
@@ -44,6 +49,8 @@ final class CalendarLinks
             endsAt: $endsAt,
             downloadFilename: $this->downloadFilename($title),
             icsDownloadUrl: route('events.calendar.ics', $event),
+            latitude: $latitude,
+            longitude: $longitude,
         );
     }
 
@@ -69,9 +76,10 @@ final class CalendarLinks
             $endsAt = $startsAt;
         }
 
+        [$location, $latitude, $longitude] = $this->activityLocationParts($schedule);
+
         $title = (string) $activity->name;
         $description = $this->descriptionFromRichText($activity->description, $title);
-        $location = $this->activityLocation($schedule);
         $url = route('activities.show', $activity);
 
         return new CalendarPayload(
@@ -84,6 +92,8 @@ final class CalendarLinks
             endsAt: $endsAt,
             downloadFilename: $this->downloadFilename($title),
             icsDownloadUrl: route('activities.calendar.ics', $activity),
+            latitude: $latitude,
+            longitude: $longitude,
         );
     }
 
@@ -116,7 +126,7 @@ final class CalendarLinks
             'text' => $payload->title,
             'dates' => $dates,
             'details' => $details,
-            'location' => $payload->location,
+            'location' => $this->deepLinkLocation($payload),
         ], '', '&', PHP_QUERY_RFC3986);
     }
 
@@ -134,9 +144,31 @@ final class CalendarLinks
             'body' => $body,
             'startdt' => $payload->startsAt->copy()->utc()->toIso8601String(),
             'enddt' => $payload->endsAt->copy()->utc()->toIso8601String(),
-            'location' => $payload->location,
+            'location' => $this->deepLinkLocation($payload),
             'allday' => 'false',
         ], '', '&', PHP_QUERY_RFC3986);
+    }
+
+    /**
+     * Deep links have no GEO field — append coordinates when LOCATION has no street address cue.
+     */
+    private function deepLinkLocation(CalendarPayload $payload): string
+    {
+        $location = $payload->location;
+        if (! $payload->hasCoordinates()) {
+            return $location;
+        }
+
+        $coords = sprintf('%s, %s', $payload->latitude, $payload->longitude);
+        if ($location === '') {
+            return $coords;
+        }
+
+        if (str_contains($location, $coords)) {
+            return $location;
+        }
+
+        return $location.', '.$coords;
     }
 
     private function descriptionFromRichText(?string $stored, string $title): string
@@ -150,18 +182,60 @@ final class CalendarLinks
         return $excerpt;
     }
 
-    private function activityLocation(ActivityShowScheduleViewData $schedule): string
+    /**
+     * @return array{0: string, 1: ?float, 2: ?float}
+     */
+    private function activityLocationParts(ActivityShowScheduleViewData $schedule): array
     {
-        if (filled($schedule->schedulePlaceSummary)) {
-            return (string) $schedule->schedulePlaceSummary;
+        if ($schedule->scheduleVenue !== null) {
+            return $this->locationFromVenues(collect([$schedule->scheduleVenue]));
         }
 
-        $parts = array_values(array_filter([
-            $schedule->scheduleVenue?->name,
-            $schedule->scheduleRoom,
-        ], fn (?string $part): bool => filled($part)));
+        if (filled($schedule->schedulePlaceSummary)) {
+            return [(string) $schedule->schedulePlaceSummary, null, null];
+        }
 
-        return implode(' · ', $parts);
+        return ['', null, null];
+    }
+
+    /**
+     * @param  Collection<int, Place>  $venues
+     * @return array{0: string, 1: ?float, 2: ?float}
+     */
+    private function locationFromVenues(Collection $venues): array
+    {
+        $venues = $venues
+            ->filter(fn (?Place $place): bool => $place !== null && filled($place->name))
+            ->unique('id')
+            ->values();
+
+        if ($venues->isEmpty()) {
+            return ['', null, null];
+        }
+
+        $location = $venues
+            ->map(fn (Place $place): string => $place->calendarLocationLabel())
+            ->filter()
+            ->implode('; ');
+
+        if ($venues->count() === 1) {
+            $coords = $venues->first()?->venueCoordinates();
+
+            return [$location, $coords[0] ?? null, $coords[1] ?? null];
+        }
+
+        return [$location, null, null];
+    }
+
+    /**
+     * @return Collection<int, Place>
+     */
+    private function eventVenues(Event $event): Collection
+    {
+        return $event->places
+            ->filter(fn (?Place $place): bool => $place !== null && $place->type === Place::TYPE_VENUE)
+            ->unique('id')
+            ->values();
     }
 
     private function uid(string $type, int $id): string

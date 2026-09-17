@@ -18,5 +18,12 @@ final readonly class CalendarPayload
         public CarbonInterface $endsAt,
         public string $downloadFilename,
         public string $icsDownloadUrl,
+        public ?float $latitude = null,
+        public ?float $longitude = null,
     ) {}
+
+    public function hasCoordinates(): bool
+    {
+        return $this->latitude !== null && $this->longitude !== null;
+    }
 }
