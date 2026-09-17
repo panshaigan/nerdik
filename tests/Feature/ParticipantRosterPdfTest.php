@@ -166,6 +166,7 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertSame('Midnight Heist - Participant roster', $roster['documentTitle']);
         $this->assertSame('gm_host', $roster['host']);
         $this->assertSame(['Blades in the Dark'], $roster['gameNames']);
+        $this->assertSame('Slot Alpha', $roster['slotName']);
         $this->assertSame('Slot Alpha · Room 12', $roster['where']);
         $this->assertNotNull($roster['when']);
         $this->assertSame(['alice_player', 'bob_missing', 'charlie_player'], array_column($roster['participants'], 'name'));
@@ -183,6 +184,12 @@ final class ParticipantRosterPdfTest extends TestCase
             '/col-name.*col-check/s',
             $html,
         );
+        $this->assertStringContainsString('activity-table-sign', $html);
+        $this->assertStringContainsString('sign-slot', $html);
+        $this->assertStringContainsString('Slot Alpha', $html);
+        $this->assertStringContainsString('sign-session', $html);
+        $this->assertStringContainsString('Midnight Heist', $html);
+        $this->assertStringContainsString('sign-game', $html);
     }
 
     public function test_event_roster_includes_where_when_two_column_layout_and_skips_cancelled(): void
@@ -255,6 +262,10 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringContainsString('Active Table', $html);
         $this->assertStringContainsString('Second Table', $html);
         $this->assertStringNotContainsString('Cancelled Table', $html);
+        $this->assertSame(2, substr_count($html, 'class="activity-table-sign"'));
+        $this->assertStringContainsString('Alpha Slot', $html);
+        $this->assertStringContainsString('Zebra Slot', $html);
+        $this->assertStringNotContainsString('Middle Slot', $html);
     }
 
     public function test_admin_can_download_activity_participants_pdf(): void

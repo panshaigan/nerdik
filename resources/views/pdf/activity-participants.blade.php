@@ -64,5 +64,6 @@
 <body>
     <h1>{{ $roster['documentTitle'] }}</h1>
     @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
+    @include('pdf.partials.activity-table-sign', ['roster' => $roster])
 </body>
 </html>

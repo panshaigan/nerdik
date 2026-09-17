@@ -122,6 +122,10 @@
                 </tr>
             @endforeach
         </table>
+
+        @foreach ($roster['activities'] as $activityRoster)
+            @include('pdf.partials.activity-table-sign', ['roster' => $activityRoster])
+        @endforeach
     @endif
 </body>
 </html>

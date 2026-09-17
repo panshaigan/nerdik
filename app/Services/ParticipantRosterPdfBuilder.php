@@ -21,6 +21,7 @@ class ParticipantRosterPdfBuilder
      *     documentTitle: string,
      *     host: string|null,
      *     gameNames: list<string>,
+     *     slotName: string|null,
      *     when: string|null,
      *     where: string|null,
      *     participants: list<array{name: string, is_absent: bool}>
@@ -44,6 +45,7 @@ class ParticipantRosterPdfBuilder
      *         documentTitle: string,
      *         host: string|null,
      *         gameNames: list<string>,
+     *         slotName: string|null,
      *         when: string|null,
      *         where: string|null,
      *         participants: list<array{name: string, is_absent: bool}>
@@ -91,6 +93,7 @@ class ParticipantRosterPdfBuilder
         $filename = $this->filenameFromSlug((string) $activity->slug, 'participants');
 
         return Pdf::loadView('pdf.activity-participants', ['roster' => $roster])
+            ->setPaper('a4', 'landscape')
             ->stream($filename);
     }
 
@@ -100,6 +103,7 @@ class ParticipantRosterPdfBuilder
         $filename = $this->filenameFromSlug((string) $event->slug, 'participants');
 
         return Pdf::loadView('pdf.event-participants', ['roster' => $roster])
+            ->setPaper('a4', 'landscape')
             ->stream($filename);
     }
 
@@ -122,6 +126,7 @@ class ParticipantRosterPdfBuilder
      *     documentTitle: string,
      *     host: string|null,
      *     gameNames: list<string>,
+     *     slotName: string|null,
      *     when: string|null,
      *     where: string|null,
      *     participants: list<array{name: string, is_absent: bool}>
@@ -161,6 +166,7 @@ class ParticipantRosterPdfBuilder
                 ->filter(fn (string $label): bool => $label !== '')
                 ->values()
                 ->all(),
+            'slotName' => $slotName !== '' ? $slotName : null,
             'when' => $this->formatTimeRange($startsAt, $endsAt),
             'where' => $this->composeWhereLabel(
                 $slotName !== '' ? $slotName : null,
