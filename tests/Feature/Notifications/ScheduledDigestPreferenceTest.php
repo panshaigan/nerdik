@@ -110,6 +110,7 @@ class ScheduledDigestPreferenceTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationList::class)
             ->call('handleNotificationClick', $notification->id)
+            ->assertNotDispatched('database-notifications-updated')
             ->assertRedirect($itemUrl);
     }
 

@@ -303,6 +303,7 @@ class UserRequestNotificationsInboxTest extends TestCase
         Livewire::actingAs($recipient)
             ->test(NotificationList::class)
             ->call('handleNotificationClick', $notification->id)
+            ->assertNotDispatched('database-notifications-updated')
             ->assertRedirect(route('requests.index', ['request' => $request->id]));
     }
 

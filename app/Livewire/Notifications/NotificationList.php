@@ -41,10 +41,16 @@ class NotificationList extends Component
         $isActionable = ($data['actionable'] ?? false) === true
             && isset($data['request_id']);
 
-        if ($isActionable) {
-            $this->dispatch('database-notifications-updated', resetPagination: false);
+        // Do not dispatch database-notifications-updated before redirect: that
+        // races a second Livewire update against navigation and aborts mid-flight
+        // (Sentry UnhandledRejection with Livewire's {status,body,json,errors}).
+        // The destination page loads fresh unread indicators.
 
-            $this->redirect(route('requests.index', ['request' => $data['request_id']]));
+        if ($isActionable) {
+            $this->redirect(
+                route('requests.index', ['request' => $data['request_id']]),
+                navigate: true,
+            );
 
             return;
         }
@@ -54,8 +60,7 @@ class NotificationList extends Component
             if (count($items) === 1) {
                 $itemUrl = $items[0]['url'] ?? '';
                 if (is_string($itemUrl) && Str::startsWith($itemUrl, '/') && ! Str::startsWith($itemUrl, '//')) {
-                    $this->dispatch('database-notifications-updated', resetPagination: false);
-                    $this->redirect($itemUrl);
+                    $this->redirect($itemUrl, navigate: true);
 
                     return;
                 }
@@ -67,7 +72,7 @@ class NotificationList extends Component
             ? $url
             : route('dashboard');
 
-        $this->redirect($safeUrl);
+        $this->redirect($safeUrl, navigate: true);
     }
 
     public function render(NotificationListItemPresenter $presenter)

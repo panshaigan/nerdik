@@ -181,6 +181,9 @@ return [
         'ignore_errors' => [
             'Java object is gone',
             'Java exception was raised during method invocation',
+            // Livewire rejects cancelled/aborted action promises as a plain object;
+            // Sentry stringifies that as this UnhandledRejection message.
+            'Object captured as promise rejection with keys: body, errors, json, status',
         ],
         'deny_urls' => [
             'iabjs:',

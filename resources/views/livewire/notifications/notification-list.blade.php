@@ -20,7 +20,7 @@
                 <x-button
                     type="button"
                     class="btn-ghost h-auto min-h-0 w-full justify-start rounded-none border-0 px-6 py-0 font-normal normal-case text-start shadow-none hover:bg-base-200/50"
-                    wire:click="handleNotificationClick('{{ $notification->id }}')"
+                    wire:click.prevent="handleNotificationClick('{{ $notification->id }}')"
                     wire:loading.attr="disabled"
                     wire:target="handleNotificationClick"
                 >

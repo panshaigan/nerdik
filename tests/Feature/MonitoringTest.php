@@ -54,11 +54,15 @@ class MonitoringTest extends TestCase
     public function test_sentry_config_is_injected_when_dsn_is_set(): void
     {
         Config::set('sentry.dsn', 'https://public@o0.ingest.sentry.io/0');
+        Config::set('sentry.browser.ignore_errors', [
+            'Object captured as promise rejection with keys: body, errors, json, status',
+        ]);
 
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('window.__nerdikSentry', false)
-            ->assertSee('ingest.sentry.io', false);
+            ->assertSee('ingest.sentry.io', false)
+            ->assertSee('Object captured as promise rejection with keys: body, errors, json, status', false);
     }
 
     public function test_sentry_config_is_omitted_when_dsn_is_empty(): void
