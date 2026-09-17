@@ -12,6 +12,15 @@ use Tests\TestCase;
 final class BrandLogoSourcesTest extends TestCase
 {
     #[Test]
+    public function it_resolves_absolute_path_for_width(): void
+    {
+        $path = BrandLogoSources::fromManifest()->absolutePathForWidth(64);
+
+        $this->assertSame(public_path('images/app/brand/64w.webp'), $path);
+        $this->assertFileExists($path);
+    }
+
+    #[Test]
     public function it_resolves_nav_preset_with_retina_srcset(): void
     {
         $logo = BrandLogoSources::fromManifest()->forPreset('nav');

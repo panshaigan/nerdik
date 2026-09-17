@@ -39,6 +39,9 @@
         font-size: 54pt;
         font-weight: bold;
         line-height: 1.2;
+        margin: 0 0 24px;
+    }
+    .activity-table-sign .sign-brand {
         margin: 0;
     }
 </style>
@@ -54,6 +57,9 @@
             @if ($gameLabel !== null)
                 <p class="sign-game">{{ $gameLabel }}</p>
             @endif
+            <p class="sign-brand">
+                @include('pdf.partials.brand-logo', ['path' => $brandLogos['sign'], 'height' => 48])
+            </p>
         </td>
     </tr>
 </table>

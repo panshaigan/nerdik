@@ -11,9 +11,30 @@
             color: #111;
             line-height: 1.4;
         }
+        table.doc-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 16px;
+        }
+        table.doc-header td {
+            vertical-align: middle;
+            padding: 0;
+        }
+        .doc-header-title {
+            width: auto;
+        }
+        .doc-header-logo {
+            width: 48px;
+            text-align: right;
+            white-space: nowrap;
+        }
         h1 {
             font-size: 18px;
-            margin: 0 0 16px;
+            margin: 0;
+        }
+        .roster-footer-logo {
+            margin-top: 24px;
+            text-align: center;
         }
         .header-schedule {
             font-weight: normal;
@@ -75,10 +96,18 @@
             fn (?string $bit): bool => $bit !== null,
         ));
     @endphp
-    <h1>
-        {{ $roster['documentTitle'] }}@if ($scheduleBits !== []) <span class="header-schedule">· {{ implode(' · ', $scheduleBits) }}</span>@endif
-    </h1>
+    @include('pdf.partials.document-header', [
+        'title' => $roster['documentTitle'],
+        'scheduleBits' => $scheduleBits,
+        'brandLogos' => $brandLogos,
+    ])
     @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
-    @include('pdf.partials.activity-table-sign', ['roster' => $roster])
+    <div class="roster-footer-logo">
+        @include('pdf.partials.brand-logo', ['path' => $brandLogos['footer'], 'height' => 72])
+    </div>
+    @include('pdf.partials.activity-table-sign', [
+        'roster' => $roster,
+        'brandLogos' => $brandLogos,
+    ])
 </body>
 </html>

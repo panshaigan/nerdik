@@ -11,9 +11,26 @@
             color: #111;
             line-height: 1.35;
         }
+        table.doc-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 14px;
+        }
+        table.doc-header td {
+            vertical-align: middle;
+            padding: 0;
+        }
+        .doc-header-title {
+            width: auto;
+        }
+        .doc-header-logo {
+            width: 48px;
+            text-align: right;
+            white-space: nowrap;
+        }
         h1 {
             font-size: 17px;
-            margin: 0 0 14px;
+            margin: 0;
         }
         .header-schedule {
             font-weight: normal;
@@ -100,9 +117,11 @@
             fn (?string $bit): bool => $bit !== null,
         ));
     @endphp
-    <h1>
-        {{ $roster['documentTitle'] }}@if ($scheduleBits !== []) <span class="header-schedule">· {{ implode(' · ', $scheduleBits) }}</span>@endif
-    </h1>
+    @include('pdf.partials.document-header', [
+        'title' => $roster['documentTitle'],
+        'scheduleBits' => $scheduleBits,
+        'brandLogos' => $brandLogos,
+    ])
 
     @if ($roster['activities'] === [])
         <p class="no-activities">{{ __('ui.pdf.roster.no_activities') }}</p>
@@ -112,7 +131,11 @@
                 <tr>
                     @foreach ($row as $activityRoster)
                         <td>
-                            @include('pdf.partials.activity-roster', ['roster' => $activityRoster, 'showHeading' => true])
+                            @include('pdf.partials.activity-roster', [
+                                'roster' => $activityRoster,
+                                'showHeading' => true,
+                                'brandLogos' => $brandLogos,
+                            ])
                         </td>
                     @endforeach
                     @for ($i = count($row); $i < 3; $i++)
@@ -123,7 +146,10 @@
         </table>
 
         @foreach ($roster['activities'] as $activityRoster)
-            @include('pdf.partials.activity-table-sign', ['roster' => $activityRoster])
+            @include('pdf.partials.activity-table-sign', [
+                'roster' => $activityRoster,
+                'brandLogos' => $brandLogos,
+            ])
         @endforeach
     @endif
 </body>

@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Place;
 use App\Models\Tag;
 use App\Models\TagCategory;
+use App\Support\Media\BrandLogoSources;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Response;
@@ -87,22 +88,28 @@ class ParticipantRosterPdfBuilder
         ];
     }
 
-    public function streamForActivity(Activity $activity): Response
+    public function streamForActivity(Activity $activity, ?CarbonInterface $generatedAt = null): Response
     {
         $roster = $this->activityRoster($activity);
-        $filename = $this->filenameFromSlug((string) $activity->slug, 'participants');
+        $filename = $this->participantsFilename((string) $activity->slug, $generatedAt);
 
-        return Pdf::loadView('pdf.activity-participants', ['roster' => $roster])
+        return Pdf::loadView('pdf.activity-participants', [
+            'roster' => $roster,
+            'brandLogos' => $this->brandLogoPaths(),
+        ])
             ->setPaper('a4', 'landscape')
             ->stream($filename);
     }
 
-    public function streamForEvent(Event $event): Response
+    public function streamForEvent(Event $event, ?CarbonInterface $generatedAt = null): Response
     {
         $roster = $this->eventRoster($event);
-        $filename = $this->filenameFromSlug((string) $event->slug, 'participants');
+        $filename = $this->participantsFilename((string) $event->slug, $generatedAt);
 
-        return Pdf::loadView('pdf.event-participants', ['roster' => $roster])
+        return Pdf::loadView('pdf.event-participants', [
+            'roster' => $roster,
+            'brandLogos' => $this->brandLogoPaths(),
+        ])
             ->setPaper('a4', 'landscape')
             ->stream($filename);
     }
@@ -231,7 +238,21 @@ class ParticipantRosterPdfBuilder
         return null;
     }
 
-    private function filenameFromSlug(string $slug, string $suffix): string
+    /**
+     * @return array{header: string, sign: string, footer: string}
+     */
+    private function brandLogoPaths(): array
+    {
+        $sources = BrandLogoSources::fromManifest();
+
+        return [
+            'header' => $sources->absolutePathForWidth(64),
+            'sign' => $sources->absolutePathForWidth(80),
+            'footer' => $sources->absolutePathForWidth(128),
+        ];
+    }
+
+    private function participantsFilename(string $slug, ?CarbonInterface $generatedAt = null): string
     {
         $safe = Str::slug($slug);
 
@@ -239,6 +260,9 @@ class ParticipantRosterPdfBuilder
             $safe = 'roster';
         }
 
-        return $safe.'-'.$suffix.'.pdf';
+        $generatedAt ??= now();
+        $timestamp = format_in_user_tz($generatedAt, 'Y-m-d H-i');
+
+        return "{$safe} - participants {$timestamp}.pdf";
     }
 }

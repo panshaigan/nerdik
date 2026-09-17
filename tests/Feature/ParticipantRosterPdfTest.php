@@ -14,6 +14,8 @@ use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use App\Models\User;
 use App\Services\ParticipantRosterPdfBuilder;
+use App\Support\Media\BrandLogoSources;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,10 +25,13 @@ final class ParticipantRosterPdfTest extends TestCase
 
     public function test_activity_owner_can_stream_participants_pdf_inline(): void
     {
+        Carbon::setTestNow('2026-09-17 18:45:00');
+
         $owner = User::factory()->create();
         $participant = User::factory()->create(['nickname' => 'alice_player']);
         $activity = Activity::factory()->create([
             'name' => 'Midnight Heist',
+            'slug' => 'midnight-heist',
             'created_by' => $owner->id,
             'updated_by' => $owner->id,
         ]);
@@ -41,10 +46,16 @@ final class ParticipantRosterPdfTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $expectedFilename = sprintf(
+            'midnight-heist - participants %s.pdf',
+            format_in_user_tz(now(), 'Y-m-d H-i'),
+        );
         $this->assertStringContainsString(
-            'inline; filename=',
+            'inline; filename="'.$expectedFilename.'"',
             (string) $response->headers->get('content-disposition'),
         );
+
+        Carbon::setTestNow();
     }
 
     public function test_guest_cannot_download_activity_participants_pdf(): void
@@ -71,9 +82,12 @@ final class ParticipantRosterPdfTest extends TestCase
 
     public function test_event_owner_can_stream_participants_pdf_inline(): void
     {
+        Carbon::setTestNow('2026-09-17 18:45:00');
+
         $owner = User::factory()->create();
         $event = Event::factory()->public()->create([
             'name' => 'Con Alpha',
+            'slug' => 'con-alpha',
             'created_by' => $owner->id,
         ]);
         $activity = Activity::factory()->scheduled()->create([
@@ -91,10 +105,16 @@ final class ParticipantRosterPdfTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+        $expectedFilename = sprintf(
+            'con-alpha - participants %s.pdf',
+            format_in_user_tz(now(), 'Y-m-d H-i'),
+        );
         $this->assertStringContainsString(
-            'inline; filename=',
+            'inline; filename="'.$expectedFilename.'"',
             (string) $response->headers->get('content-disposition'),
         );
+
+        Carbon::setTestNow();
     }
 
     public function test_non_owner_cannot_download_event_participants_pdf(): void
@@ -172,8 +192,16 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertSame(['alice_player', 'bob_missing', 'charlie_player'], array_column($roster['participants'], 'name'));
         $this->assertTrue($roster['participants'][1]['is_absent']);
 
-        $html = view('pdf.activity-participants', ['roster' => $roster])->render();
+        $brandLogos = $this->pdfBrandLogos();
+        $html = view('pdf.activity-participants', [
+            'roster' => $roster,
+            'brandLogos' => $brandLogos,
+        ])->render();
         $this->assertStringContainsString('Midnight Heist - Participant roster', $html);
+        $this->assertStringContainsString($brandLogos['header'], $html);
+        $this->assertStringContainsString($brandLogos['footer'], $html);
+        $this->assertStringContainsString($brandLogos['sign'], $html);
+        $this->assertStringContainsString('roster-footer-logo', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.game').':', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
         $this->assertStringContainsString('Slot Alpha · Room 12', $html);
@@ -253,8 +281,15 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringStartsWith('Alpha Slot', (string) $roster['activities'][0]['where']);
         $this->assertStringStartsWith('Zebra Slot', (string) $roster['activities'][1]['where']);
 
-        $html = view('pdf.event-participants', ['roster' => $roster])->render();
+        $brandLogos = $this->pdfBrandLogos();
+        $html = view('pdf.event-participants', [
+            'roster' => $roster,
+            'brandLogos' => $brandLogos,
+        ])->render();
         $this->assertStringContainsString('Con Alpha - Participant roster', $html);
+        $this->assertStringContainsString($brandLogos['header'], $html);
+        $this->assertStringContainsString($brandLogos['sign'], $html);
+        $this->assertStringContainsString('doc-header-logo', $html);
         $this->assertStringContainsString('Expo Center', $html);
         $this->assertStringContainsString('activities-grid', $html);
         $this->assertStringContainsString('Active Table', $html);
@@ -281,5 +316,19 @@ final class ParticipantRosterPdfTest extends TestCase
             ->get(route('activities.participants.pdf', $activity))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+    }
+
+    /**
+     * @return array{header: string, sign: string, footer: string}
+     */
+    private function pdfBrandLogos(): array
+    {
+        $sources = BrandLogoSources::fromManifest();
+
+        return [
+            'header' => $sources->absolutePathForWidth(64),
+            'sign' => $sources->absolutePathForWidth(80),
+            'footer' => $sources->absolutePathForWidth(128),
+        ];
     }
 }

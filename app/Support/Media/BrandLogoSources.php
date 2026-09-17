@@ -108,13 +108,28 @@ final class BrandLogoSources
         return $this->intrinsicHeight;
     }
 
+    public function absolutePathForWidth(int $width): string
+    {
+        $entry = $this->variantForWidth($width);
+
+        return public_path($entry['path']);
+    }
+
     private function urlForWidth(int $width): string
+    {
+        return asset($this->variantForWidth($width)['path']);
+    }
+
+    /**
+     * @return array{width: int, path: string, bytes: int}
+     */
+    private function variantForWidth(int $width): array
     {
         $entries = $this->variants['webp'] ?? [];
 
         foreach ($entries as $entry) {
             if ($entry['width'] === $width) {
-                return asset($entry['path']);
+                return $entry;
             }
         }
 
@@ -126,7 +141,7 @@ final class BrandLogoSources
             throw new RuntimeException("No brand logo variant found for width [{$width}].");
         }
 
-        return asset($closest['path']);
+        return $closest;
     }
 
     private function displayHeightForWidth(int $displayWidth): int
