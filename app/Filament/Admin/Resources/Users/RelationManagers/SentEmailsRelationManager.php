@@ -11,6 +11,8 @@ class SentEmailsRelationManager extends RelationManager
 {
     protected static string $relationship = 'sentEmails';
 
+    protected static ?string $relatedResource = SentEmailResource::class;
+
     protected static ?string $title = 'Sent emails';
 
     public function isReadOnly(): bool
@@ -20,7 +22,6 @@ class SentEmailsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return SentEmailsTable::configure($table)
-            ->recordUrl(fn ($record): string => SentEmailResource::getUrl('view', ['record' => $record]));
+        return SentEmailsTable::configure($table);
     }
 }
