@@ -18,6 +18,6 @@ return [
 
     'contact_email' => env('LEGAL_CONTACT_EMAIL'),
 
-    'effective_date' => '8 June 2026',
+    'effective_date' => '17 September 2026',
 
 ];

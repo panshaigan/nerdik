@@ -61,7 +61,7 @@ return [
                 'heading' => '5. Pliki cookie',
                 'paragraphs' => [
                     'Używamy niezbędnych plików cookie, aby utrzymać Twoje zalogowanie i zapamiętać preferencje językowe. Te pliki cookie są konieczne do działania Usługi i nie wymagają zgody na mocy obowiązującego prawa.',
-                    'Nie używamy zewnętrznych plików cookie reklamowych ani analitycznych, chyba że zostanie to wyraźnie określone w zaktualizowanej wersji tej polityki.',
+                    'Używamy przyjaznej prywatności analityki internetowej (Umami), aby rozumieć zagregowany ruch, na przykład ile osób przegląda stronę bez logowania. Skrypt analityczny nie używa plików cookie reklamowych, respektuje ustawienie Do Not Track w przeglądarce i nie zbiera parametrów wyszukiwania z adresów URL. Wizyty możemy oznaczać jako zalogowane lub gościa wyłącznie na potrzeby zagregowanych raportów.',
                 ],
             ],
             [
@@ -71,6 +71,7 @@ return [
                 ],
                 'list' => [
                     'Dostawcom hostingu i infrastruktury, którzy przetwarzają dane w naszym imieniu na podstawie umownych zabezpieczeń.',
+                    'Dostawcom przyjaznej prywatności analityki (obecnie Umami), którzy przetwarzają zagregowane dane o wizytach w naszym imieniu.',
                     'Dostawcom uwierzytelniania OAuth, gdy zdecydujesz się zalogować za ich pośrednictwem.',
                     'Organom lub podmiotom trzecim, gdy wymaga tego prawo lub w celu ochrony praw, bezpieczeństwa i ochrony.',
                 ],

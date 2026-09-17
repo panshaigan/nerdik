@@ -12,6 +12,8 @@
         <x-theme-script />
 
         <x-echo-config />
+        <x-sentry-config />
+        <x-umami-analytics />
 
         @vite(['resources/js/app.js'])
     </head>

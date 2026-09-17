@@ -17,6 +17,7 @@
 
         <x-echo-config />
         <x-sentry-config />
+        <x-umami-analytics />
 
         <!-- Scripts -->
         @vite(['resources/js/app.js'])

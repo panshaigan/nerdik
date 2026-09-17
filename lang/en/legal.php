@@ -61,7 +61,7 @@ return [
                 'heading' => '5. Cookies',
                 'paragraphs' => [
                     'We use essential cookies to keep you signed in and to remember your language preference. These cookies are necessary for the Service to function and do not require consent under applicable law.',
-                    'We do not use third-party advertising or analytics cookies unless explicitly stated otherwise in an updated version of this policy.',
+                    'We use privacy-friendly web analytics (Umami) to understand aggregate traffic, such as how many visitors browse without signing in. The analytics script does not use advertising cookies, respects Do Not Track when enabled in your browser, and does not collect search query parameters from URLs. We may tag visits as signed-in or guest for aggregate reporting only.',
                 ],
             ],
             [
@@ -71,6 +71,7 @@ return [
                 ],
                 'list' => [
                     'Hosting and infrastructure providers that process data on our behalf under contractual safeguards.',
+                    'Privacy-friendly analytics providers (currently Umami) that process aggregate visit metrics on our behalf.',
                     'OAuth authentication providers when you choose to sign in through them.',
                     'Authorities or third parties when required by law or to protect rights, safety, and security.',
                 ],
