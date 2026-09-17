@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
  * - Slug is generated on create when empty.
  * - Slug is regenerated on update when the source field changes.
  * - Uses incremental suffixes (`foo-2`, `foo-3`, ...) to resolve duplicates.
+ * - Uniqueness considers live rows only (soft-deleted slugs may be reused).
+ * - On restore, re-uniquifies the slug if another live row already holds it.
  */
 trait HasAutoSlug
 {
@@ -51,6 +53,40 @@ trait HasAutoSlug
                 $model->exists ? (int) $model->getKey() : null,
             );
         });
+
+        if (static::modelUsesSoftDeletes()) {
+            static::restoring(function (Model $model) {
+                $slugColumn = property_exists($model, 'slugColumn') ? $model->slugColumn : 'slug';
+                $sourceField = property_exists($model, 'slugSourceField') ? $model->slugSourceField : 'name';
+                $slug = $model->{$slugColumn} ?? null;
+
+                if ($slug === null || $slug === '') {
+                    return;
+                }
+
+                $taken = static::query()
+                    ->where($slugColumn, $slug)
+                    ->where($model->getKeyName(), '!=', $model->getKey())
+                    ->exists();
+
+                if (! $taken) {
+                    return;
+                }
+
+                $sourceValue = isset($model->{$sourceField}) && $model->{$sourceField} !== null
+                    ? (string) $model->{$sourceField}
+                    : (string) $slug;
+
+                if (trim($sourceValue) === '') {
+                    $sourceValue = (string) $slug;
+                }
+
+                $model->{$slugColumn} = static::makeUniqueSlug(
+                    $sourceValue,
+                    (int) $model->getKey(),
+                );
+            });
+        }
     }
 
     public static function makeUniqueSlug(string $sourceValue, ?int $ignoreId = null): string
@@ -70,9 +106,6 @@ trait HasAutoSlug
         $candidate = $slugBase;
 
         $query = static::query()->where($slugColumn, $candidate);
-        if (static::usesSoftDeletesForSlugUniqueness()) {
-            $query->withTrashed();
-        }
         if ($ignoreId !== null) {
             $query->where($model->getKeyName(), '!=', $ignoreId);
         }
@@ -82,9 +115,6 @@ trait HasAutoSlug
             while (true) {
                 $candidate = $slugBase.'-'.$counter;
                 $query = static::query()->where($slugColumn, $candidate);
-                if (static::usesSoftDeletesForSlugUniqueness()) {
-                    $query->withTrashed();
-                }
                 if ($ignoreId !== null) {
                     $query->where($model->getKeyName(), '!=', $ignoreId);
                 }
@@ -98,7 +128,7 @@ trait HasAutoSlug
         return $candidate;
     }
 
-    private static function usesSoftDeletesForSlugUniqueness(): bool
+    private static function modelUsesSoftDeletes(): bool
     {
         return in_array(SoftDeletes::class, class_uses_recursive(static::class), true);
     }

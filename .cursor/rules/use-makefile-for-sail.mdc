@@ -1,0 +1,36 @@
+---
+description: Prefer Makefile targets over raw Sail for Artisan, tests, and tooling
+alwaysApply: true
+---
+
+# Use Makefile for Sail commands
+
+This project wraps Sail (and compose) through the root [Makefile](Makefile). Prefer those targets so cwd, env, and app-cmd routing stay consistent.
+
+## Prefer
+
+- `make artisan …` — Artisan commands
+- `make test …` / `make test --filter=…` — PHPUnit
+- `make pint` — code style
+- `make migrate`, `make fresh`, `make refresh`, `make seed`
+- `make up` / `make down` / `make restart` / `make shell` / `make tinker`
+- `make composer …` / `make npm …`
+
+## Do not default to
+
+- `./vendor/bin/sail …` or `vendor/bin/sail …` for day-to-day Artisan, tests, Composer, or npm
+- Bare `php artisan` / `phpunit` on the host when Sail is the local runtime
+
+## Flags and passthrough
+
+GNU Make can eat `--flags`. Prefer `./bin/make` on `PATH`, or:
+
+```bash
+make test --filter=HasAutoSlugTest
+make artisan route:list --path=api
+# or: make test ARGS='--filter=HasAutoSlugTest'
+```
+
+## Exceptions
+
+Use `./vendor/bin/sail` only when no Make target covers the need (e.g. obscure Sail subcommands), or when a script/docs already document a Sail-only path (`sail-build`, `restart-db`).

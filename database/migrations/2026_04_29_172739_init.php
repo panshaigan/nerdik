@@ -75,7 +75,7 @@ return new class extends Migration
             $table->enum('logo_source', ['generated', 'upload'])->default('generated');
             $table->string('logo_bg_color', 7)->nullable();
             $table->string('logo_text_color', 7)->nullable();
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->string('acronym', 12)->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
@@ -88,6 +88,7 @@ return new class extends Migration
             $table->index('updated_by');
             $table->index('deleted_by');
         });
+        DB::statement('CREATE UNIQUE INDEX organizations_slug_unique ON organizations (slug) WHERE deleted_at IS NULL');
 
         // ------------------------------------------------------------------ //
         // 6. USERS
@@ -172,7 +173,7 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->string('logo_path')->nullable();
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -182,6 +183,7 @@ return new class extends Migration
             // Self-referential FK (parent venue -> room)
             $table->foreign('parent_id')->references('id')->on('places')->nullOnDelete();
         });
+        DB::statement('CREATE UNIQUE INDEX places_slug_unique ON places (slug) WHERE deleted_at IS NULL');
 
         // ------------------------------------------------------------------ //
         // 28b. MEDIA  (Spatie Media Library)
@@ -216,7 +218,7 @@ return new class extends Migration
             $table->string('logo_path')->nullable();
             $table->enum('logo_source', ['default', 'upload'])->nullable();
             $table->unsignedBigInteger('listing_media_id')->nullable();
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->dateTime('starts_at');
             $table->dateTime('ends_at');
@@ -230,6 +232,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
         });
+        DB::statement('CREATE UNIQUE INDEX events_slug_unique ON events (slug) WHERE deleted_at IS NULL');
 
         DB::statement("
             ALTER TABLE events
@@ -301,7 +304,7 @@ return new class extends Migration
             $table->string('logo_path')->nullable();
             $table->enum('logo_source', ['tag', 'upload'])->nullable();
             $table->unsignedBigInteger('tag_media_id')->nullable();
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->text('cancel_reason')->nullable();
             $table->dateTime('starts_at')->nullable();
@@ -317,6 +320,7 @@ return new class extends Migration
             $table->index('cancelled_at');
             $table->index('hosting_mode');
         });
+        DB::statement('CREATE UNIQUE INDEX activities_slug_unique ON activities (slug) WHERE deleted_at IS NULL');
 
         DB::statement("
             ALTER TABLE activities

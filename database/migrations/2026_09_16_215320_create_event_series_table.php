@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::create('event_series', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('created_by');
         });
+        DB::statement('CREATE UNIQUE INDEX event_series_slug_unique ON event_series (slug) WHERE deleted_at IS NULL');
 
         Schema::table('events', function (Blueprint $table) {
             $table->foreignId('event_series_id')
