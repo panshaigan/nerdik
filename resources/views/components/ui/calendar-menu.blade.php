@@ -3,9 +3,9 @@
 ])
 
 @php
-    /** @var \App\Support\Calendar\CalendarPayload $payload */
     $calendarLinks = app(\App\Support\Calendar\CalendarLinks::class);
     $targets = \App\Support\Calendar\CalendarTarget::menuCases();
+    $isSeries = $payload instanceof \App\Support\Calendar\CalendarSeriesPayload;
     $platformIcon = [
         \App\Support\Calendar\CalendarTarget::Google->value => 'o-calendar',
         \App\Support\Calendar\CalendarTarget::Outlook->value => 'o-calendar-days',
@@ -60,7 +60,9 @@
     >
         @foreach ($targets as $target)
             @php
-                $intentUrl = $calendarLinks->intentUrl($payload, $target);
+                $intentUrl = $isSeries
+                    ? $calendarLinks->seriesIntentUrl($payload, $target)
+                    : $calendarLinks->intentUrl($payload, $target);
             @endphp
             @if ($intentUrl !== null)
                 <li role="none">

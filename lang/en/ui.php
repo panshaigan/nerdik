@@ -894,6 +894,10 @@ return [
         'stats_activities' => 'Activities',
         'stats_participants' => 'Participants',
         'stats_participants_hint' => '(unique / total) Unique counts distinct people across editions; total counts every signup seat.',
+        'delete_confirm' => 'Are you sure you want to delete this series? Editions will not be deleted.',
+        'deleted_status' => 'Event series deleted.',
+        'followed_upcoming' => 'You are now following upcoming editions.',
+        'unfollowed_upcoming' => 'You stopped following upcoming editions.',
     ],
     'pagination' => [
         'navigation' => 'Pagination Navigation',

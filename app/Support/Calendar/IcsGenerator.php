@@ -10,9 +10,20 @@ final class IcsGenerator
 {
     public function generate(CalendarPayload $payload): string
     {
+        return $this->generateMany([$payload]);
+    }
+
+    /**
+     * @param  list<CalendarPayload>  $payloads
+     */
+    public function generateMany(array $payloads): string
+    {
+        if ($payloads === []) {
+            return '';
+        }
+
         $now = now('UTC');
-        $method = $payload->method;
-        $status = $method === IcsMethod::Cancel ? 'CANCELLED' : 'CONFIRMED';
+        $method = $payloads[0]->method;
 
         $lines = [
             'BEGIN:VCALENDAR',
@@ -20,37 +31,12 @@ final class IcsGenerator
             'PRODID:-//Nerdik//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:'.$method->value,
-            'BEGIN:VEVENT',
-            'UID:'.$payload->uid,
-            'DTSTAMP:'.$this->formatUtc($now),
-            'DTSTART:'.$this->formatUtc($payload->startsAt),
-            'DTEND:'.$this->formatUtc($payload->endsAt),
-            'SEQUENCE:'.$payload->sequence,
-            'STATUS:'.$status,
-            'SUMMARY:'.$this->escapeText($payload->title),
         ];
 
-        if ($payload->description !== '') {
-            $lines[] = 'DESCRIPTION:'.$this->escapeText($payload->description);
+        foreach ($payloads as $payload) {
+            array_push($lines, ...$this->veventLines($payload, $now));
         }
 
-        if ($payload->location !== '') {
-            $lines[] = 'LOCATION:'.$this->escapeText($payload->location);
-        }
-
-        if ($payload->hasCoordinates()) {
-            $lines[] = sprintf(
-                'GEO:%s;%s',
-                $this->formatCoordinate((float) $payload->latitude),
-                $this->formatCoordinate((float) $payload->longitude),
-            );
-        }
-
-        if ($payload->url !== '') {
-            $lines[] = 'URL:'.$payload->url;
-        }
-
-        $lines[] = 'END:VEVENT';
         $lines[] = 'END:VCALENDAR';
 
         $folded = array_map(fn (string $line): string => $this->foldLine($line), $lines);
@@ -99,6 +85,49 @@ final class IcsGenerator
         }
 
         return implode("\r\n", $parts);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function veventLines(CalendarPayload $payload, CarbonInterface $now): array
+    {
+        $status = $payload->method === IcsMethod::Cancel ? 'CANCELLED' : 'CONFIRMED';
+
+        $lines = [
+            'BEGIN:VEVENT',
+            'UID:'.$payload->uid,
+            'DTSTAMP:'.$this->formatUtc($now),
+            'DTSTART:'.$this->formatUtc($payload->startsAt),
+            'DTEND:'.$this->formatUtc($payload->endsAt),
+            'SEQUENCE:'.$payload->sequence,
+            'STATUS:'.$status,
+            'SUMMARY:'.$this->escapeText($payload->title),
+        ];
+
+        if ($payload->description !== '') {
+            $lines[] = 'DESCRIPTION:'.$this->escapeText($payload->description);
+        }
+
+        if ($payload->location !== '') {
+            $lines[] = 'LOCATION:'.$this->escapeText($payload->location);
+        }
+
+        if ($payload->hasCoordinates()) {
+            $lines[] = sprintf(
+                'GEO:%s;%s',
+                $this->formatCoordinate((float) $payload->latitude),
+                $this->formatCoordinate((float) $payload->longitude),
+            );
+        }
+
+        if ($payload->url !== '') {
+            $lines[] = 'URL:'.$payload->url;
+        }
+
+        $lines[] = 'END:VEVENT';
+
+        return $lines;
     }
 
     private function formatCoordinate(float $value): string

@@ -6,6 +6,7 @@ namespace Tests\Unit\Support\Calendar;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Calendar\CalendarLinks;
@@ -378,5 +379,65 @@ final class CalendarLinksTest extends TestCase
         $this->assertStringContainsString('METHOD:CANCEL', $ics);
         $this->assertStringContainsString('STATUS:CANCELLED', $ics);
         $this->assertStringContainsString('UID:'.$cancelPayload->uid, $ics);
+    }
+
+    public function test_for_event_series_returns_null_when_no_upcoming_events(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $user->id]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->subMonth()->addHours(3),
+        ]);
+
+        $this->assertNull($this->calendarLinks->forEventSeries(
+            $series,
+            $series->visibleUpcomingEvents($user),
+        ));
+    }
+
+    public function test_for_event_series_builds_multi_event_download_without_external_intents(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Porzucane',
+            'created_by' => $user->id,
+        ]);
+        $first = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Porzucane I',
+            'starts_at' => now()->addDays(10),
+            'ends_at' => now()->addDays(10)->addHours(4),
+        ]);
+        $second = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Porzucane II',
+            'starts_at' => now()->addDays(40),
+            'ends_at' => now()->addDays(40)->addHours(4),
+        ]);
+
+        $payload = $this->calendarLinks->forEventSeries(
+            $series,
+            $series->visibleUpcomingEvents($user),
+        );
+
+        $this->assertNotNull($payload);
+        $this->assertCount(2, $payload->events);
+        $this->assertSame(route('event-series.calendar.ics', $series), $payload->icsDownloadUrl);
+        $this->assertNull($payload->singleEvent());
+        $this->assertSame($payload->icsDownloadUrl, $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Download));
+        $this->assertNull($this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Google));
+        $this->assertNull($this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Outlook));
+
+        $ics = $this->calendarLinks->icsContentMany($payload->events);
+        $this->assertSame(2, substr_count($ics, 'BEGIN:VEVENT'));
+        $this->assertStringContainsString('SUMMARY:Porzucane I', $ics);
+        $this->assertStringContainsString('SUMMARY:Porzucane II', $ics);
+        $this->assertStringContainsString('event-'.$first->id.'@', $ics);
+        $this->assertStringContainsString('event-'.$second->id.'@', $ics);
     }
 }

@@ -17,8 +17,8 @@ return [
     ],
 
     'modal' => [
-        'title' => 'Wyślij opinię',
-        'trigger' => 'Opinia',
+        'title' => 'Pomoc/zgłoszenie',
+        'trigger' => 'Pomoc/zgłoszenie',
         'type' => 'Typ',
         'subject' => 'Temat',
         'body' => 'Wiadomość',
@@ -65,7 +65,7 @@ return [
     'contact' => [
         'feedback_heading' => 'Wyślij opinię',
         'feedback_body' => 'Wolisz krótki formularz? Otwórz okno opinii, aby wysłać pytanie, pomysł lub zgłoszenie błędu.',
-        'feedback_button' => 'Otwórz formularz opinii',
+        'feedback_button' => 'Otwórz formularz zgłoszenia',
     ],
 
     'admin' => [

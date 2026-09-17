@@ -8,6 +8,7 @@ use App\Http\Controllers\DownloadActivityCalendarController;
 use App\Http\Controllers\DownloadActivityParticipantsPdfController;
 use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
+use App\Http\Controllers\DownloadEventSeriesCalendarController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FeedbackEditorUploadController;
 use App\Http\Controllers\GeocodeController;
@@ -160,6 +161,10 @@ Route::get('events/{event}/calendar.ics', DownloadEventCalendarController::class
 Route::get('events/{event}', function (Event $event) {
     return view('events.show', compact('event'));
 })->name('events.show');
+
+Route::get('event-series/{eventSeries}/calendar.ics', DownloadEventSeriesCalendarController::class)
+    ->middleware('throttle:60,1')
+    ->name('event-series.calendar.ics');
 
 Route::get('event-series/{eventSeries}', function (EventSeries $eventSeries) {
     return view('event-series.show', compact('eventSeries'));

@@ -5,6 +5,7 @@ namespace App\Livewire\Events;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
+use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
@@ -14,7 +15,10 @@ use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
 use App\Services\EventShowReadCache;
 use App\Services\UserInterestService;
+use App\Support\Calendar\CalendarLinks;
+use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\BrowseListingCardPresenter;
+use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -24,9 +28,11 @@ use Mary\Traits\Toast;
 
 class ShowEventSeries extends Component
 {
+    use AuthorizesOwnership;
     use Toast;
     use WithActivityPreviewModal;
     use WithEventPreviewModal;
+    use WithUiConfirmModal;
 
     public int $eventSeriesId;
 
@@ -77,12 +83,68 @@ class ShowEventSeries extends Component
         }
     }
 
+    public function toggleUpcomingInterest(UserInterestService $interests): void
+    {
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        $upcoming = $this->upcomingEventsForFollow();
+        abort_if($upcoming->isEmpty(), 403);
+
+        $added = $interests->toggleUpcomingEventInterests($user, $upcoming);
+        if ($added) {
+            $this->success(__('ui.event_series.followed_upcoming'));
+        } else {
+            $this->warning(__('ui.event_series.unfollowed_upcoming'));
+        }
+    }
+
+    public function confirmDeleteSeries(): void
+    {
+        $this->openConfirm(
+            'delete_series',
+            __('ui.common.delete'),
+            __('ui.event_series.delete_confirm'),
+        );
+    }
+
+    public function runConfirmedAction(): void
+    {
+        $action = $this->pendingAction;
+        $this->closeConfirm();
+
+        if ($action === null) {
+            return;
+        }
+
+        match ($action) {
+            'delete_series' => $this->deleteSeries(),
+            default => null,
+        };
+    }
+
+    public function deleteSeries(): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        $this->authorizeCreatedBy($series);
+
+        Event::query()
+            ->where('event_series_id', $series->id)
+            ->update(['event_series_id' => null]);
+
+        $series->delete();
+        $this->success(__('ui.event_series.deleted_status'));
+        $this->redirect(route('search.index'), navigate: true);
+    }
+
     public function render(
         ActivityParticipationViewService $participationView,
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
         BrowseListingCardPresenter $listingCardPresenter,
         EventShowReadCache $eventShowReadCache,
+        ShareLinks $shareLinks,
+        CalendarLinks $calendarLinks,
     ): View {
         $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
         abort_unless($series->isVisibleTo(auth()->user()), 404);
@@ -125,6 +187,12 @@ class ShowEventSeries extends Component
                 ->all()
             : [];
 
+        $upcomingEvents = $series->visibleUpcomingEvents($user);
+        $upcomingEventIds = $upcomingEvents->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $hasUpcomingFollow = $upcomingEventIds !== [];
+        $hasUpcomingInterest = $hasUpcomingFollow
+            && array_diff($upcomingEventIds, $interestedEventIds) === [];
+
         return view('livewire.events.show-event-series', [
             'series' => $series,
             'events' => $events,
@@ -135,6 +203,11 @@ class ShowEventSeries extends Component
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'browsingReturnUrl' => route('event-series.show', $series),
+            'sharePayload' => $shareLinks->forEventSeries($series),
+            'calendarPayload' => $calendarLinks->forEventSeries($series, $upcomingEvents),
+            'canManageSeries' => $user !== null && $user->canModifyEntity($series),
+            'hasUpcomingFollow' => $hasUpcomingFollow,
+            'hasUpcomingInterest' => $hasUpcomingInterest,
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
             ...$this->resolveEventPreviewViewData($listingCardPresenter),
             'includeEventPreviewModal' => true,
@@ -276,5 +349,16 @@ class ShowEventSeries extends Component
         return in_array($value, ['events', 'hosts', 'activities', 'stats'], true)
             ? $value
             : 'events';
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    private function upcomingEventsForFollow(): Collection
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        abort_unless($series->isVisibleTo(auth()->user()), 404);
+
+        return $series->visibleUpcomingEvents(auth()->user());
     }
 }

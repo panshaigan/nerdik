@@ -6,6 +6,7 @@ namespace App\Support\Calendar;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Support\Ui\ActivityShowSchedulePresenter;
 use App\Support\Ui\ActivityShowScheduleViewData;
@@ -26,6 +27,45 @@ final class CalendarLinks
         }
 
         return $this->buildEventPayload($event, IcsMethod::Publish, sequence: 0);
+    }
+
+    /**
+     * @param  Collection<int, Event>  $upcomingEvents
+     */
+    public function forEventSeries(EventSeries $series, Collection $upcomingEvents): ?CalendarSeriesPayload
+    {
+        $payloads = [];
+
+        foreach ($upcomingEvents as $event) {
+            $payload = $this->forEvent($event);
+            if ($payload !== null) {
+                $payloads[] = $payload;
+            }
+        }
+
+        if ($payloads === []) {
+            return null;
+        }
+
+        $title = (string) $series->name;
+        $slug = Str::slug($title);
+        if ($slug === '') {
+            $slug = 'calendar';
+        }
+
+        return new CalendarSeriesPayload(
+            events: $payloads,
+            icsDownloadUrl: route('event-series.calendar.ics', $series),
+            downloadFilename: $slug.'.ics',
+        );
+    }
+
+    /**
+     * @param  list<CalendarPayload>  $payloads
+     */
+    public function icsContentMany(array $payloads): string
+    {
+        return $this->icsGenerator->generateMany($payloads);
     }
 
     /**
@@ -64,6 +104,16 @@ final class CalendarLinks
             CalendarTarget::Google => $this->googleUrl($payload),
             CalendarTarget::Outlook => $this->outlookUrl($payload),
             CalendarTarget::Download => $payload->icsDownloadUrl,
+        };
+    }
+
+    public function seriesIntentUrl(CalendarSeriesPayload $payload, CalendarTarget $target): ?string
+    {
+        return match ($target) {
+            CalendarTarget::Download => $payload->icsDownloadUrl,
+            CalendarTarget::Google, CalendarTarget::Outlook => ($single = $payload->singleEvent()) !== null
+                ? $this->intentUrl($single, $target)
+                : null,
         };
     }
 

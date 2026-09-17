@@ -6,6 +6,7 @@ namespace Tests\Unit\Support\Sharing;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Sharing\ShareLinks;
@@ -152,5 +153,23 @@ final class ShareLinksTest extends TestCase
         $telegram = $this->shareLinks->intentUrl($payload, ShareTarget::Telegram);
         $this->assertNotNull($telegram);
         $this->assertStringStartsWith('https://t.me/share/url?', $telegram);
+    }
+
+    public function test_for_event_series_builds_canonical_payload_without_utms(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Shareable Cycle',
+            'description' => '<p>Yearly gathering.</p>',
+        ]);
+
+        $payload = $this->shareLinks->forEventSeries($series);
+
+        $this->assertSame('Shareable Cycle', $payload->title);
+        $this->assertSame(route('event-series.show', $series), $payload->url);
+        $this->assertSame('event-series', $payload->campaign);
+        $this->assertStringContainsString('Yearly gathering.', $payload->text);
+        $this->assertStringNotContainsString('utm_', $payload->url);
     }
 }

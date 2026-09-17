@@ -217,4 +217,99 @@ class EventSeriesTest extends TestCase
         $this->assertSame('Porzucane', $card->seriesName);
         $this->assertSame(route('event-series.show', $series), $card->seriesUrl);
     }
+
+    public function test_owner_can_delete_series_without_deleting_events(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'name' => 'Kept Edition',
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('confirmDeleteSeries')
+            ->call('runConfirmedAction')
+            ->assertRedirect(route('search.index'));
+
+        $this->assertSoftDeleted($series);
+        $event->refresh();
+        $this->assertNull($event->event_series_id);
+        $this->assertNull($event->deleted_at);
+    }
+
+    public function test_stranger_cannot_delete_series(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($stranger)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('deleteSeries')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('event_series', ['id' => $series->id, 'deleted_at' => null]);
+    }
+
+    public function test_admin_can_delete_series(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('deleteSeries')
+            ->assertRedirect(route('search.index'));
+
+        $this->assertSoftDeleted($series);
+    }
+
+    public function test_follow_toggles_interest_on_upcoming_editions_only(): void
+    {
+        $owner = User::factory()->create();
+        $follower = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        $past = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->subMonth()->addHours(4),
+        ]);
+        $upcomingA = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(4),
+        ]);
+        $upcomingB = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(20),
+            'ends_at' => now()->addDays(20)->addHours(4),
+        ]);
+
+        $component = Livewire::actingAs($follower)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series]);
+
+        $component->call('toggleUpcomingInterest');
+        $this->assertTrue($follower->interestedEvents()->whereKey($upcomingA->id)->exists());
+        $this->assertTrue($follower->interestedEvents()->whereKey($upcomingB->id)->exists());
+        $this->assertFalse($follower->interestedEvents()->whereKey($past->id)->exists());
+
+        $component->call('toggleUpcomingInterest');
+        $this->assertFalse($follower->interestedEvents()->whereKey($upcomingA->id)->exists());
+        $this->assertFalse($follower->interestedEvents()->whereKey($upcomingB->id)->exists());
+    }
 }

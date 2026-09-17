@@ -12,6 +12,52 @@
                 toolbar-wrapper-class="flex shrink-0 items-center gap-1 px-2 sm:px-3"
                 data-ui="event-series-show-tabs"
             >
+                <x-slot:toolbar>
+                    <div class="flex shrink-0 items-center gap-1" data-ui="event-series-show-tabs-toolbar">
+                        @if ($sharePayload)
+                            <x-ui.share-menu :payload="$sharePayload" />
+                        @endif
+                        @if ($calendarPayload)
+                            <x-ui.calendar-menu :payload="$calendarPayload" />
+                        @endif
+                        @auth
+                            @if ($canManageSeries)
+                                <x-button
+                                    type="button"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                    wire:click="confirmDeleteSeries"
+                                    :tooltip="__('ui.common.delete')"
+                                    :aria-label="__('ui.common.delete').': '.$series->name"
+                                    data-ui="event-series-show-delete"
+                                    icon="o-trash"
+                                />
+                            @endif
+                            @if ($hasUpcomingFollow)
+                                @if ($hasUpcomingInterest)
+                                    <x-button
+                                        type="button"
+                                        wire:click="toggleUpcomingInterest"
+                                        class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                        :tooltip="__('ui.interests.remove_from_interests')"
+                                        :aria-label="__('ui.interests.remove_from_interests')"
+                                        data-ui="event-series-show-interest-remove"
+                                        icon="s-star"
+                                    />
+                                @else
+                                    <x-button
+                                        type="button"
+                                        wire:click="toggleUpcomingInterest"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                        :tooltip="__('ui.interests.add_to_interests')"
+                                        :aria-label="__('ui.interests.add_to_interests')"
+                                        data-ui="event-series-show-interest-add"
+                                        icon="o-star"
+                                    />
+                                @endif
+                            @endif
+                        @endauth
+                    </div>
+                </x-slot:toolbar>
                 <x-tab name="events" :label="__('ui.event_series.tab_events')" class="p-4 sm:p-6" data-ui="event-series-tab-events" icon="o-calendar-days">
                     @if ($events->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_events') }}</p>
@@ -191,4 +237,11 @@
     </div>
 
     @include('livewire.partials.listing-preview-modals')
+
+    <x-ui.confirm-modal
+        wire:model="confirmModalOpen"
+        :title="$confirmModalTitle"
+        :message="$confirmModalMessage"
+        confirm-action="runConfirmedAction"
+    />
 </div>

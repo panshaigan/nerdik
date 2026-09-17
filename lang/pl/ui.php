@@ -894,6 +894,10 @@ return [
         'stats_activities' => 'Aktywności',
         'stats_participants' => 'Uczestnicy',
         'stats_participants_hint' => '(unikalni / łącznie) Unikalni to różne osoby w całym cyklu; łącznie to wszystkie miejsca zapisów.',
+        'delete_confirm' => 'Na pewno usunąć ten cykl? Edycje nie zostaną usunięte.',
+        'deleted_status' => 'Cykl został usunięty.',
+        'followed_upcoming' => 'Śledzisz teraz nadchodzące edycje.',
+        'unfollowed_upcoming' => 'Przestałeś śledzić nadchodzące edycje.',
     ],
     'editor' => [
         'block_formats' => 'Akapit=p; Nagłówek 2=h2; Nagłówek 3=h3',

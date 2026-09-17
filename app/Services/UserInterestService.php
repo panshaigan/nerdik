@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class UserInterestService
 {
@@ -54,6 +55,33 @@ class UserInterestService
         $this->addEventInterest($user, $event);
 
         return true;
+    }
+
+    /**
+     * Follow every given event when any is missing; otherwise unfollow all of them.
+     *
+     * @param  Collection<int, Event>  $events
+     * @return bool True when interest was added, false when removed.
+     */
+    public function toggleUpcomingEventInterests(User $user, Collection $events): bool
+    {
+        if ($events->isEmpty()) {
+            return false;
+        }
+
+        $ids = $events->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $interestedCount = $user->interestedEvents()->whereIn('events.id', $ids)->count();
+        $shouldAdd = $interestedCount < count($ids);
+
+        foreach ($events as $event) {
+            if ($shouldAdd) {
+                $this->addEventInterest($user, $event);
+            } else {
+                $this->removeEventInterest($user, $event);
+            }
+        }
+
+        return $shouldAdd;
     }
 
     /**

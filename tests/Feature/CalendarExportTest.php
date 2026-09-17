@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,5 +90,70 @@ final class CalendarExportTest extends TestCase
         ]);
 
         $this->get(route('activities.calendar.ics', $activity))->assertNotFound();
+    }
+
+    public function test_guest_can_download_event_series_ics_for_upcoming_editions_only(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Cycle Con',
+        ]);
+        $upcomingA = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Cycle One',
+            'starts_at' => now()->addDays(7)->setTime(10, 0)->utc(),
+            'ends_at' => now()->addDays(7)->setTime(18, 0)->utc(),
+        ]);
+        $upcomingB = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Cycle Two',
+            'starts_at' => now()->addDays(21)->setTime(10, 0)->utc(),
+            'ends_at' => now()->addDays(21)->setTime(18, 0)->utc(),
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Cycle Past',
+            'starts_at' => now()->subMonth(),
+            'ends_at' => now()->subMonth()->addHours(4),
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Cycle Cancelled',
+            'starts_at' => now()->addDays(14),
+            'ends_at' => now()->addDays(14)->addHours(4),
+            'cancelled_at' => now(),
+            'cancelled_by' => $user->id,
+        ]);
+
+        $response = $this->get(route('event-series.calendar.ics', $series));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/calendar; charset=utf-8');
+        $this->assertSame(2, substr_count($response->getContent(), 'BEGIN:VEVENT'));
+        $response->assertSee('SUMMARY:Cycle One', false);
+        $response->assertSee('SUMMARY:Cycle Two', false);
+        $response->assertDontSee('SUMMARY:Cycle Past', false);
+        $response->assertDontSee('SUMMARY:Cycle Cancelled', false);
+        $this->assertNotNull($upcomingA->id);
+        $this->assertNotNull($upcomingB->id);
+    }
+
+    public function test_private_event_series_ics_returns_not_found_for_guests(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        Event::factory()->private()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addHours(4),
+        ]);
+
+        $this->get(route('event-series.calendar.ics', $series))->assertNotFound();
     }
 }
