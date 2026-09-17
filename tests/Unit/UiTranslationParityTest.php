@@ -220,6 +220,7 @@ class UiTranslationParityTest extends TestCase
         return [
             'activities.types.' => 'activities.types.',
             'activities.host_title.' => 'activities.host_title.',
+            'calendar.targets.' => 'calendar.targets.',
             'profile.notifications.keys.' => 'profile.notifications.keys.',
             'share.platforms.' => 'share.platforms.',
             'welcome.' => 'welcome.',
