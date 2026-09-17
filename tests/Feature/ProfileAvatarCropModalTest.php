@@ -89,6 +89,5 @@ final class ProfileAvatarCropModalTest extends TestCase
 
         $this->assertStringContainsString('data-image-crop-source-url="'.e($sourceUrl).'"', $html);
         $this->assertStringContainsString('data-image-crop-recrop-saved', $html);
-        $this->assertStringContainsString('data-image-crop-recrop-saved-hint', $html);
     }
 }

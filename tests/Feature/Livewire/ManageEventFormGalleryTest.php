@@ -216,4 +216,38 @@ final class ManageEventFormGalleryTest extends TestCase
         $this->assertNotNull($event->getFirstMedia('logo'));
         $this->assertSame($logoId, (int) $event->getFirstMedia('logo')?->id);
     }
+
+    #[Test]
+    public function gallery_crop_dropzone_uses_upload_labels_without_saved_hint(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->organizer()->create();
+        $media = app(StoreUserGalleryImage::class)(
+            $user,
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
+            1280,
+            720,
+            UploadedFile::fake()->image('original.jpg', 640, 360),
+        );
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->set('tab', 'image')
+            ->set('logo_source', EventLogoSource::Gallery->value)
+            ->set('gallery_media_id', (int) $media->id)
+            ->html();
+
+        $this->assertStringContainsString('data-label-choose="'.e(__('ui.common.upload_image')).'"', $html);
+        $this->assertStringContainsString(__('ui.events.image_upload'), $html);
+        $this->assertStringContainsString(
+            __('ui.common.cover_image_upload_help', ['max' => '5 MB']),
+            $html,
+        );
+        $this->assertStringContainsString('data-image-crop-recrop-saved', $html);
+        $this->assertStringNotContainsString('data-image-crop-recrop-saved-hint', $html);
+        $this->assertStringNotContainsString(
+            'Crop again to adjust the existing image, or choose a new file.',
+            $html,
+        );
+    }
 }

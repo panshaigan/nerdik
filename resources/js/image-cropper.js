@@ -109,7 +109,6 @@ function updateFileUi(dropzone, { buttonText, showRemove, showRecropHint, showSa
     const buttonTextEl = dropzone.querySelector('[data-image-crop-file-button-text]');
     const removeBtn = dropzone.querySelector('[data-image-crop-remove]');
     const recropHint = dropzone.querySelector('[data-image-crop-recrop-hint]');
-    const recropSavedHint = dropzone.querySelector('[data-image-crop-recrop-saved-hint]');
     const recropSavedBtn = dropzone.querySelector('[data-image-crop-recrop-saved]');
     const savedSourceAvailable = hasSavedSourceUrl(dropzone);
     const showSaved = showSavedSourceControls ?? (savedSourceAvailable && !showRemove && !showRecropHint);
@@ -124,10 +123,6 @@ function updateFileUi(dropzone, { buttonText, showRemove, showRecropHint, showSa
 
     if (recropHint) {
         recropHint.classList.toggle('hidden', !showRecropHint);
-    }
-
-    if (recropSavedHint) {
-        recropSavedHint.classList.toggle('hidden', !showSaved);
     }
 
     if (recropSavedBtn) {

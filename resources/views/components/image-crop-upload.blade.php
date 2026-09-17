@@ -20,7 +20,6 @@
     'cropAgainLabel' => __('ui.common.crop_again'),
     'removeLabel' => __('ui.common.remove_image'),
     'recropHint' => __('ui.common.recrop_hint'),
-    'recropSavedHint' => __('ui.common.recrop_saved_hint'),
     'previewLabel' => __('ui.common.preview'),
     'outputSize' => '512,512',
     'fileName' => 'image.webp',
@@ -98,12 +97,6 @@
             </span>
             <p class="hidden max-w-sm text-sm text-base-content/70" data-image-crop-recrop-hint>
                 {{ $recropHint }}
-            </p>
-            <p
-                class="{{ $hasSavedSource ? '' : 'hidden ' }}max-w-sm text-sm text-base-content/70"
-                data-image-crop-recrop-saved-hint
-            >
-                {{ $recropSavedHint }}
             </p>
         </label>
         <x-button
