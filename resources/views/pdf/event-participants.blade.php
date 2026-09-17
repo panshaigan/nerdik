@@ -35,13 +35,12 @@
             border-collapse: collapse;
         }
         table.activities-grid > tbody > tr > td {
-            width: 50%;
+            width: 33.33%;
             vertical-align: top;
-            padding: 0 8px 16px 0;
+            padding: 0 6px 14px 0;
         }
         table.activities-grid > tbody > tr > td:last-child {
             padding-right: 0;
-            padding-left: 8px;
         }
         .activity-roster {
             page-break-inside: avoid;
@@ -109,16 +108,16 @@
         <p class="no-activities">{{ __('ui.pdf.roster.no_activities') }}</p>
     @else
         <table class="activities-grid">
-            @foreach (array_chunk($roster['activities'], 2) as $pair)
+            @foreach (array_chunk($roster['activities'], 3) as $row)
                 <tr>
-                    @foreach ($pair as $activityRoster)
+                    @foreach ($row as $activityRoster)
                         <td>
                             @include('pdf.partials.activity-roster', ['roster' => $activityRoster, 'showHeading' => true])
                         </td>
                     @endforeach
-                    @if (count($pair) === 1)
+                    @for ($i = count($row); $i < 3; $i++)
                         <td></td>
-                    @endif
+                    @endfor
                 </tr>
             @endforeach
         </table>

@@ -192,7 +192,7 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringContainsString('sign-game', $html);
     }
 
-    public function test_event_roster_includes_where_when_two_column_layout_and_skips_cancelled(): void
+    public function test_event_roster_includes_where_when_three_column_layout_and_skips_cancelled(): void
     {
         $owner = User::factory()->create();
         $venue = Place::factory()->venue()->create(['name' => 'Expo Center']);
