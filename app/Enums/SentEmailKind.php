@@ -47,6 +47,7 @@ enum SentEmailKind: string
     case ScheduledOrganizerLowParticipation = 'scheduled_organizer_low_participation';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
     case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
+    case ScheduledSeriesNextEdition = 'scheduled_series_next_edition';
     case ScheduledDigest = 'scheduled_digest';
     case UserRequests = 'user_requests';
     case FeedbackReply = 'feedback_reply';

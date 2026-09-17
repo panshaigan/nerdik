@@ -4,6 +4,7 @@ namespace App\Services\Notifications\Scheduled;
 
 use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
@@ -48,6 +49,11 @@ class ScheduledNotificationCollector
         if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledHostMarkAbsences)) {
             $items = $items->concat($this->collectHostUpcomingMarkAbsencesReminders($user, $referenceNow));
             $items = $items->concat($this->collectHostMarkAbsencesReminders($user, $referenceNow));
+        }
+
+        if ($this->wantsScheduledCategory($user, NotificationPreferenceKey::ScheduledSeriesNextEdition)) {
+            $items = $items->concat($this->collectHostProposeNextEditionReminders($user, $referenceNow));
+            $items = $items->concat($this->collectParticipantFollowNextEditionReminders($user, $referenceNow));
         }
 
         return $items->values()->all();
@@ -390,6 +396,159 @@ class ScheduledNotificationCollector
                 ];
             })
             ->filter();
+    }
+
+    /**
+     * Day after a series event ends: thank activity hosts and nudge them to propose for the next edition.
+     *
+     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
+     */
+    private function collectHostProposeNextEditionReminders(User $user, CarbonImmutable $referenceNow): Collection
+    {
+        $proposedNextEventIds = ActivityProposal::query()
+            ->where('created_by', $user->id)
+            ->pluck('event_id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->all();
+
+        return Activity::query()
+            ->where('created_by', $user->id)
+            ->whereNull('cancelled_at')
+            ->whereHas('slot.event', function ($query): void {
+                $query
+                    ->whereNull('cancelled_at')
+                    ->whereNotNull('event_series_id');
+            })
+            ->with(['slot.event'])
+            ->get()
+            ->map(function (Activity $activity) use ($user, $referenceNow, $proposedNextEventIds): ?array {
+                $pastEvent = $activity->slot?->event;
+                if ($pastEvent === null) {
+                    return null;
+                }
+
+                $eventEnd = $this->eventEndedAt($pastEvent);
+                if ($eventEnd === null || ! $this->isOnLocalYesterday($referenceNow, $eventEnd, $user)) {
+                    return null;
+                }
+
+                $nextEvent = $this->nextNonCancelledEdition($pastEvent);
+                if ($nextEvent === null || in_array((int) $nextEvent->id, $proposedNextEventIds, true)) {
+                    return null;
+                }
+
+                return [
+                    'category' => 'host_propose_next_edition',
+                    'title' => __('ui.notifications.scheduled.host_propose_next_edition_title', [
+                        'past_event' => (string) $pastEvent->name,
+                    ]),
+                    'lines' => [
+                        __('ui.notifications.scheduled.host_propose_next_edition_line', [
+                            'next_event' => (string) $nextEvent->name,
+                        ]),
+                    ],
+                    'url' => route('events.propose', ['event' => $nextEvent], false),
+                    'dedupe_key' => $this->dedupeKey('host_propose_next_edition', (int) $pastEvent->id, $eventEnd),
+                    '_past_event_id' => (int) $pastEvent->id,
+                ];
+            })
+            ->filter()
+            ->unique('_past_event_id')
+            ->map(function (array $item): array {
+                unset($item['_past_event_id']);
+
+                return $item;
+            })
+            ->values();
+    }
+
+    /**
+     * Day after a series event ends: thank non-absent participants and nudge them to follow the next edition.
+     *
+     * @return Collection<int, array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>
+     */
+    private function collectParticipantFollowNextEditionReminders(User $user, CarbonImmutable $referenceNow): Collection
+    {
+        $followedEventIds = $user->interestedEvents()
+            ->pluck('events.id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->all();
+
+        return Activity::query()
+            ->whereNull('cancelled_at')
+            ->whereHas('participants', function ($query) use ($user): void {
+                $query
+                    ->where('user_id', $user->id)
+                    ->where('is_absent', false);
+            })
+            ->whereHas('slot.event', function ($query): void {
+                $query
+                    ->whereNull('cancelled_at')
+                    ->whereNotNull('event_series_id');
+            })
+            ->with(['slot.event'])
+            ->get()
+            ->map(function (Activity $activity) use ($user, $referenceNow, $followedEventIds): ?array {
+                $pastEvent = $activity->slot?->event;
+                if ($pastEvent === null) {
+                    return null;
+                }
+
+                $eventEnd = $this->eventEndedAt($pastEvent);
+                if ($eventEnd === null || ! $this->isOnLocalYesterday($referenceNow, $eventEnd, $user)) {
+                    return null;
+                }
+
+                $nextEvent = $this->nextNonCancelledEdition($pastEvent);
+                if ($nextEvent === null || in_array((int) $nextEvent->id, $followedEventIds, true)) {
+                    return null;
+                }
+
+                return [
+                    'category' => 'participant_follow_next_edition',
+                    'title' => __('ui.notifications.scheduled.participant_follow_next_edition_title', [
+                        'past_event' => (string) $pastEvent->name,
+                    ]),
+                    'lines' => [
+                        __('ui.notifications.scheduled.participant_follow_next_edition_line', [
+                            'next_event' => (string) $nextEvent->name,
+                        ]),
+                    ],
+                    'url' => route('events.show', ['event' => $nextEvent], false),
+                    'dedupe_key' => $this->dedupeKey('participant_follow_next_edition', (int) $pastEvent->id, $eventEnd),
+                    '_past_event_id' => (int) $pastEvent->id,
+                ];
+            })
+            ->filter()
+            ->unique('_past_event_id')
+            ->map(function (array $item): array {
+                unset($item['_past_event_id']);
+
+                return $item;
+            })
+            ->values();
+    }
+
+    private function eventEndedAt(Event $event): ?CarbonImmutable
+    {
+        $end = $event->ends_at ?? $event->starts_at;
+
+        if ($end === null) {
+            return null;
+        }
+
+        return CarbonImmutable::instance($end);
+    }
+
+    private function nextNonCancelledEdition(Event $event): ?Event
+    {
+        $next = $event->nextInSeries();
+
+        if ($next === null || $next->cancelled_at !== null) {
+            return null;
+        }
+
+        return $next;
     }
 
     private function activityStartedAt(Activity $activity): ?CarbonImmutable

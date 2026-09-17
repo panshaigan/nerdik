@@ -30,6 +30,7 @@ enum NotificationPreferenceKey: string
     case ScheduledOrganizerLowParticipation = 'scheduled_organizer_low_participation';
     case ScheduledHostLowParticipation = 'scheduled_host_low_participation';
     case ScheduledHostMarkAbsences = 'scheduled_host_mark_absences';
+    case ScheduledSeriesNextEdition = 'scheduled_series_next_edition';
     case UserRequests = 'user_requests';
 
     /**
@@ -76,6 +77,8 @@ enum NotificationPreferenceKey: string
             'host_low_participation' => self::ScheduledHostLowParticipation,
             'host_upcoming_mark_absences' => self::ScheduledHostMarkAbsences,
             'host_mark_absences' => self::ScheduledHostMarkAbsences,
+            'host_propose_next_edition' => self::ScheduledSeriesNextEdition,
+            'participant_follow_next_edition' => self::ScheduledSeriesNextEdition,
             default => null,
         };
     }
@@ -125,6 +128,7 @@ enum NotificationPreferenceKey: string
                     self::ScheduledOrganizerLowParticipation,
                     self::ScheduledHostLowParticipation,
                     self::ScheduledHostMarkAbsences,
+                    self::ScheduledSeriesNextEdition,
                 ],
             ],
         ];

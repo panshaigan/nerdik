@@ -83,7 +83,8 @@ class ScheduledPeriodicDigestNotification extends Notification implements Provid
     private function digestLinkLabel(string $category): string
     {
         return match ($category) {
-            'interested_enrollment_window' => __('ui.notifications.view_event'),
+            'interested_enrollment_window', 'participant_follow_next_edition' => __('ui.notifications.view_event'),
+            'host_propose_next_edition' => __('ui.notifications.propose_activity'),
             'dashboard_feed' => __('ui.notifications.view_dashboard'),
             'participant_cancellation_deadline', 'organizer_low_participation', 'host_low_participation', 'host_upcoming_mark_absences', 'host_mark_absences' => __('ui.notifications.view_activity'),
             default => __('ui.notifications.view_activity'),

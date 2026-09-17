@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
+use App\Models\EventSeries;
 use App\Models\Slot;
 use App\Models\User;
 use App\Notifications\Scheduled\ScheduledPeriodicDigestNotification;
@@ -995,6 +996,345 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_host_propose_next_edition_day_after_event_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent, $nextEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $host,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($host, $nextEvent): bool {
+                $payload = $notification->toArray($host);
+                $item = collect($payload['items'] ?? [])
+                    ->first(fn (array $row): bool => ($row['category'] ?? '') === 'host_propose_next_edition');
+
+                return $item !== null
+                    && ($item['url'] ?? '') === route('events.propose', ['event' => $nextEvent], false);
+            }
+        );
+    }
+
+    public function test_participant_follow_next_edition_day_after_event_is_included(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $participant = User::factory()->create();
+        $participant->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $host = User::factory()->create();
+        $organizer = User::factory()->create();
+
+        [$pastEvent, $nextEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer, $participant);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $participant,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($participant, $nextEvent): bool {
+                $payload = $notification->toArray($participant);
+                $item = collect($payload['items'] ?? [])
+                    ->first(fn (array $row): bool => ($row['category'] ?? '') === 'participant_follow_next_edition');
+
+                return $item !== null
+                    && ($item['url'] ?? '') === route('events.show', ['event' => $nextEvent], false);
+            }
+        );
+    }
+
+    public function test_series_next_edition_skipped_when_no_next_event(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $organizer->id]);
+        $pastEvent = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->subDay()->setTime(10, 0),
+            'ends_at' => now()->subDay()->setTime(18, 0),
+        ]);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_series_next_edition_skipped_when_next_event_cancelled(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent] = $this->createSeriesPastAndNextEvents($organizer, nextCancelled: true);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_series_next_edition_skipped_when_past_event_cancelled(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent] = $this->createSeriesPastAndNextEvents($organizer, pastCancelled: true);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_series_next_edition_skipped_on_same_day_event_end(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $organizer->id]);
+        $pastEvent = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->setTime(10, 0),
+            'ends_at' => now()->setTime(18, 0),
+        ]);
+        Event::factory()->create([
+            'created_by' => $organizer->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addMonth()->setTime(10, 0),
+            'ends_at' => now()->addMonth()->setTime(18, 0),
+        ]);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_host_propose_next_edition_skipped_when_already_proposed(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent, $nextEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+        ActivityProposal::factory()->create([
+            'event_id' => $nextEvent->id,
+            'created_by' => $host->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_participant_follow_next_edition_skipped_when_already_following(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $participant = User::factory()->create();
+        $participant->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $host = User::factory()->create();
+        $organizer = User::factory()->create();
+
+        [$pastEvent, $nextEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer, $participant);
+        $participant->interestedEvents()->attach($nextEvent->id);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_series_next_edition_skipped_when_preference_disabled(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledParticipantDeadlinePreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $this->attachHostedActivityOnEvent($host, $pastEvent, $organizer);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_series_next_edition_skipped_when_activity_cancelled(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $participant = User::factory()->create();
+        $participant->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledSeriesNextEditionPreferences(),
+        ]);
+        $organizer = User::factory()->create();
+
+        [$pastEvent] = $this->createSeriesPastAndNextEvents($organizer);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->subDay()->setTime(12, 0),
+            'ends_at' => now()->subDay()->setTime(14, 0),
+            'cancelled_at' => now()->subDays(2),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $pastEvent->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->subDay()->setTime(12, 0),
+            'ends_at' => now()->subDay()->setTime(14, 0),
+            'created_by' => $organizer->id,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * @return array{0: Event, 1: Event}
+     */
+    private function createSeriesPastAndNextEvents(
+        User $organizer,
+        bool $pastCancelled = false,
+        bool $nextCancelled = false,
+    ): array {
+        $series = EventSeries::factory()->create(['created_by' => $organizer->id]);
+        $pastEvent = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->subDay()->setTime(10, 0),
+            'ends_at' => now()->subDay()->setTime(18, 0),
+            'cancelled_at' => $pastCancelled ? now()->subDays(2) : null,
+        ]);
+        $nextEvent = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addMonth()->setTime(10, 0),
+            'ends_at' => now()->addMonth()->setTime(18, 0),
+            'cancelled_at' => $nextCancelled ? now() : null,
+        ]);
+
+        return [$pastEvent, $nextEvent];
+    }
+
+    private function attachHostedActivityOnEvent(
+        User $host,
+        Event $event,
+        User $organizer,
+        ?User $participant = null,
+    ): Activity {
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->subDay()->setTime(12, 0),
+            'ends_at' => now()->subDay()->setTime(14, 0),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->subDay()->setTime(12, 0),
+            'ends_at' => now()->subDay()->setTime(14, 0),
+            'created_by' => $organizer->id,
+        ]);
+
+        if ($participant !== null) {
+            DB::table('activity_user')->insert([
+                'activity_id' => $activity->id,
+                'user_id' => $participant->id,
+                'is_absent' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return $activity;
+    }
+
     /**
      * @return array<string, array{in_app: bool, email: bool}>
      */
@@ -1003,6 +1343,23 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         $preferences = [];
         foreach (NotificationPreferenceKey::cases() as $key) {
             $enabled = $key === NotificationPreferenceKey::ScheduledParticipantCancellationDeadline;
+            $preferences[$key->value] = [
+                'in_app' => $enabled,
+                'email' => $enabled,
+            ];
+        }
+
+        return $preferences;
+    }
+
+    /**
+     * @return array<string, array{in_app: bool, email: bool}>
+     */
+    private function onlyScheduledSeriesNextEditionPreferences(): array
+    {
+        $preferences = [];
+        foreach (NotificationPreferenceKey::cases() as $key) {
+            $enabled = $key === NotificationPreferenceKey::ScheduledSeriesNextEdition;
             $preferences[$key->value] = [
                 'in_app' => $enabled,
                 'email' => $enabled,
