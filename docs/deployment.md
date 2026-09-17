@@ -315,7 +315,7 @@ To recreate Postgres itself (for example after changing `docker/pgsql`), run a f
 ```bash
 make maintenance on
 ./scripts/compose-exec.sh up -d --force-recreate pgsql
-./scripts/compose-exec.sh wait pgsql
+./scripts/compose-exec.sh up -d --no-recreate --wait --wait-timeout 120 pgsql
 make maintenance off
 ```
 

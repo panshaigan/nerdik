@@ -140,7 +140,8 @@ wait_for_pgsql() {
 
     echo "Waiting for pgsql to be healthy (timeout ${timeout_seconds}s)..."
 
-    if "${COMPOSE[@]}" wait --timeout "${timeout_seconds}" pgsql; then
+    # Compose `wait` blocks until containers stop; health readiness uses up --wait.
+    if "${COMPOSE[@]}" up -d --no-recreate --wait --wait-timeout "${timeout_seconds}" pgsql; then
         return 0
     fi
 
@@ -183,7 +184,6 @@ fi
 # Keep a running Postgres container; only create/start it if missing/stopped.
 # Force-recreate pgsql separately during a maintenance window when the image
 # itself must change (docker/pgsql).
-"${COMPOSE[@]}" up -d --no-recreate pgsql
 wait_for_pgsql
 
 # Recreate app-facing services without bouncing Postgres DNS.
