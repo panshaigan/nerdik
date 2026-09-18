@@ -95,6 +95,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sibling environment URLs (admin nav)
+    |--------------------------------------------------------------------------
+    |
+    | Shown in the admin profile menu so you can jump between production,
+    | staging, and local. The URL whose host matches APP_URL is omitted.
+    | Leave empty to hide a link.
+    |
+    */
+
+    'environment_urls' => [
+        'production' => env('ADMIN_PRODUCTION_URL'),
+        'staging' => env('ADMIN_STAGING_URL'),
+        'development' => env('ADMIN_DEVELOPMENT_URL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

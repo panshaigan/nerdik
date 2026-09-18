@@ -127,4 +127,15 @@ return [
 
     'support_mailbox_url' => env('SUPPORT_MAILBOX_URL'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Brevo dashboard (admin nav)
+    |--------------------------------------------------------------------------
+    |
+    | Transactional email logs (or other Brevo UI). Leave empty to hide.
+    |
+    */
+
+    'brevo_dashboard_url' => env('BREVO_DASHBOARD_URL'),
+
 ];

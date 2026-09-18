@@ -219,47 +219,7 @@ new class extends Component
                         @endif
                         <li><a wire:navigate href="{{ url_with_return(route('activities.create')) }}">{{ __('ui.nav.create_activity') }}</a></li>
                         @if (auth()->user()->is_admin)
-                            <li class="mt-1 border-t border-base-300 pt-1 light:border-neutral">
-                                <a
-                                    href="{{ url('/'.trim((string) config('filament.admin_path'), '/')) }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >{{ __('ui.nav.admin_panel') }}</a>
-                            </li>
-                            <li>
-                                <a
-                                    href="{{ url('/'.trim((string) config('pulse.path'), '/')) }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >{{ __('ui.nav.pulse') }}</a>
-                            </li>
-                            @if (filled(config('sentry.dashboard_url')))
-                                <li>
-                                    <a
-                                        href="{{ config('sentry.dashboard_url') }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >{{ __('ui.nav.sentry') }}</a>
-                                </li>
-                            @endif
-                            @if (filled(config('mail.support_mailbox_url')))
-                                <li>
-                                    <a
-                                        href="{{ config('mail.support_mailbox_url') }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >{{ __('ui.nav.support') }}</a>
-                                </li>
-                            @endif
-                            @if (filled(config('services.adminer.url')))
-                                <li>
-                                    <a
-                                        href="{{ config('services.adminer.url') }}/?pgsql=pgsql&username=sail"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >{{ __('ui.nav.adminer') }}</a>
-                                </li>
-                            @endif
+                            @include('livewire.layout.partials.admin-ops-menu-items')
                         @endif
                         <li>
                             <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
@@ -481,62 +441,7 @@ new class extends Component
                                     </a>
                                 </li>
                                 @if (auth()->user()->is_admin)
-                                    <li class="mt-1 border-t border-base-300 pt-1 light:border-neutral">
-                                        <a
-                                            href="{{ url('/'.trim((string) config('filament.admin_path'), '/')) }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            @click="close()"
-                                        >
-                                            {{ __('ui.nav.admin_panel') }}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="{{ url('/'.trim((string) config('pulse.path'), '/')) }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            @click="close()"
-                                        >
-                                            {{ __('ui.nav.pulse') }}
-                                        </a>
-                                    </li>
-                                    @if (filled(config('sentry.dashboard_url')))
-                                        <li>
-                                            <a
-                                                href="{{ config('sentry.dashboard_url') }}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                @click="close()"
-                                            >
-                                                {{ __('ui.nav.sentry') }}
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if (filled(config('mail.support_mailbox_url')))
-                                        <li>
-                                            <a
-                                                href="{{ config('mail.support_mailbox_url') }}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                @click="close()"
-                                            >
-                                                {{ __('ui.nav.support') }}
-                                            </a>
-                                        </li>
-                                    @endif
-                                    @if (filled(config('services.adminer.url')))
-                                        <li>
-                                            <a
-                                                href="{{ config('services.adminer.url') }}/?pgsql=pgsql&username=sail"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                @click="close()"
-                                            >
-                                                {{ __('ui.nav.adminer') }}
-                                            </a>
-                                        </li>
-                                    @endif
+                                    @include('livewire.layout.partials.admin-ops-menu-items', ['closeOnClick' => true])
                                 @endif
                                 <li>
                                     <button type="button" wire:click="logout" @click="close()">

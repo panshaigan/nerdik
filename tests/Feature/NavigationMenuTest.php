@@ -213,8 +213,15 @@ class NavigationMenuTest extends TestCase
 
     public function test_admin_sees_ops_links_in_profile_menu(): void
     {
+        Config::set('app.url', 'http://localhost');
+        Config::set('app.environment_urls.production', 'https://nerdik.app');
+        Config::set('app.environment_urls.staging', 'https://staging.nerdik.app');
+        Config::set('app.environment_urls.development', 'http://localhost');
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
         Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
+        Config::set('umami.dashboard_url', 'https://umami.example/website');
+        Config::set('services.google.search_console_url', 'https://search.google.example/console');
+        Config::set('mail.brevo_dashboard_url', 'https://brevo.example/logs');
         Config::set('services.adminer.url', 'https://adminer.example');
 
         $admin = User::factory()->admin()->create();
@@ -227,20 +234,37 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee(__('ui.nav.admin_panel'), false)
             ->assertSee(__('ui.nav.pulse'), false)
+            ->assertSee(__('ui.nav.production'), false)
+            ->assertSee(__('ui.nav.staging'), false)
+            ->assertDontSee(__('ui.nav.development'), false)
             ->assertSee(__('ui.nav.sentry'), false)
             ->assertSee(__('ui.nav.support'), false)
+            ->assertSee(__('ui.nav.umami'), false)
+            ->assertSee(__('ui.nav.google_search_console'), false)
+            ->assertSee(__('ui.nav.brevo'), false)
             ->assertSee(__('ui.nav.adminer'), false)
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
+            ->assertSee('https://nerdik.app', false)
+            ->assertSee('https://staging.nerdik.app', false)
             ->assertSee('https://sentry.example/org/project', false)
             ->assertSee('https://mail.example/inbox', false)
+            ->assertSee('https://umami.example/website', false)
+            ->assertSee('https://search.google.example/console', false)
+            ->assertSee('https://brevo.example/logs', false)
             ->assertSee('https://adminer.example', false);
     }
 
     public function test_non_admin_does_not_see_ops_links_in_profile_menu(): void
     {
+        Config::set('app.environment_urls.production', 'https://nerdik.app');
+        Config::set('app.environment_urls.staging', 'https://staging.nerdik.app');
+        Config::set('app.environment_urls.development', 'http://localhost');
         Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
         Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
+        Config::set('umami.dashboard_url', 'https://umami.example/website');
+        Config::set('services.google.search_console_url', 'https://search.google.example/console');
+        Config::set('mail.brevo_dashboard_url', 'https://brevo.example/logs');
         Config::set('services.adminer.url', 'https://adminer.example');
 
         $user = User::factory()->organizer()->create([
@@ -255,20 +279,37 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertDontSee(__('ui.nav.admin_panel'), false)
             ->assertDontSee(__('ui.nav.pulse'), false)
+            ->assertDontSee(__('ui.nav.production'), false)
+            ->assertDontSee(__('ui.nav.staging'), false)
+            ->assertDontSee(__('ui.nav.development'), false)
             ->assertDontSee(__('ui.nav.sentry'), false)
             ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee(__('ui.nav.umami'), false)
+            ->assertDontSee(__('ui.nav.google_search_console'), false)
+            ->assertDontSee(__('ui.nav.brevo'), false)
             ->assertDontSee(__('ui.nav.adminer'), false)
             ->assertDontSee($filamentUrl, false)
             ->assertDontSee($pulseUrl, false)
+            ->assertDontSee('https://nerdik.app', false)
+            ->assertDontSee('https://staging.nerdik.app', false)
             ->assertDontSee('https://sentry.example/org/project', false)
             ->assertDontSee('https://mail.example/inbox', false)
+            ->assertDontSee('https://umami.example/website', false)
+            ->assertDontSee('https://search.google.example/console', false)
+            ->assertDontSee('https://brevo.example/logs', false)
             ->assertDontSee('https://adminer.example', false);
     }
 
     public function test_admin_ops_menu_hides_optional_links_when_unconfigured(): void
     {
+        Config::set('app.environment_urls.production', null);
+        Config::set('app.environment_urls.staging', null);
+        Config::set('app.environment_urls.development', null);
         Config::set('sentry.dashboard_url', null);
         Config::set('mail.support_mailbox_url', null);
+        Config::set('umami.dashboard_url', null);
+        Config::set('services.google.search_console_url', null);
+        Config::set('mail.brevo_dashboard_url', null);
         Config::set('services.adminer.url', null);
 
         $admin = User::factory()->admin()->create();
@@ -283,8 +324,14 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.pulse'), false)
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
+            ->assertDontSee(__('ui.nav.production'), false)
+            ->assertDontSee(__('ui.nav.staging'), false)
+            ->assertDontSee(__('ui.nav.development'), false)
             ->assertDontSee(__('ui.nav.sentry'), false)
             ->assertDontSee(__('ui.nav.support'), false)
+            ->assertDontSee(__('ui.nav.umami'), false)
+            ->assertDontSee(__('ui.nav.google_search_console'), false)
+            ->assertDontSee(__('ui.nav.brevo'), false)
             ->assertDontSee(__('ui.nav.adminer'), false);
     }
 }

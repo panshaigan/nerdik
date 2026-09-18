@@ -41,6 +41,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
         // HTML tag verification token from Google Search Console (meta content=…).
         'site_verification' => env('GOOGLE_SITE_VERIFICATION'),
+        // Public Search Console dashboard URL for the admin profile menu.
+        'search_console_url' => env('GOOGLE_SEARCH_CONSOLE_URL'),
     ],
 
     'facebook' => [
