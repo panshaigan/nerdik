@@ -960,6 +960,8 @@ return [
     'requests' => [
         'page_title' => 'Requests',
         'page_subtitle' => 'Pending invitations and requests that need your response appear at the top.',
+        'dropdown_heading' => 'Requests',
+        'view_all' => 'View all requests',
     ],
     'user_requests' => [
         'organizer_flag_subject' => 'Event organizer access',

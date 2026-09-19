@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Actions\Logout;
-use App\Services\UserRequests\PendingIncomingUserRequestCounter;
 use App\Support\Browse\BrowseSearchState;
 use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Support\Facades\Auth;
@@ -65,10 +64,6 @@ new class extends Component
     $mobileNavLink = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
 
     $brandUrl = auth()->check() ? route('dashboard') : url('/');
-
-    $pendingIncomingRequestCount = auth()->check()
-        ? app(PendingIncomingUserRequestCounter::class)->displayCountFor(auth()->user())
-        : null;
 @endphp
 
 <div
@@ -160,20 +155,10 @@ new class extends Component
                     @endif
                 @endguest
                 @auth
-                <a
-                    href="{{ route('requests.index') }}"
-                    wire:navigate
-                    class="relative btn btn-circle btn-ghost"
-                    aria-label="{{ __('ui.nav.requests') }}"
-                    data-ui="nav-requests"
-                >
-                    <x-mary-icon name="o-inbox-arrow-down" class="h-5 w-5" />
-                    @if ($pendingIncomingRequestCount !== null)
-                        <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-content">
-                            {{ $pendingIncomingRequestCount }}
-                        </span>
-                    @endif
-                </a>
+                <livewire:user-requests.user-request-dropdown
+                    variant="desktop"
+                    :key="'nav-requests-desktop-'.auth()->id()"
+                />
                 <livewire:notifications.notification-dropdown
                     variant="desktop"
                     :key="'nav-notifications-desktop-'.auth()->id()"
@@ -241,20 +226,10 @@ new class extends Component
 
             <div class="-me-2 flex items-center gap-1 sm:hidden">
                 @auth
-                    <a
-                        href="{{ route('requests.index') }}"
-                        wire:navigate
-                        class="relative btn btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none"
-                        aria-label="{{ __('ui.nav.requests') }}"
-                        data-ui="nav-requests"
-                    >
-                        <x-mary-icon name="o-inbox-arrow-down" class="h-6 w-6" />
-                        @if ($pendingIncomingRequestCount !== null)
-                            <span class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-content">
-                                {{ $pendingIncomingRequestCount }}
-                            </span>
-                        @endif
-                    </a>
+                    <livewire:user-requests.user-request-dropdown
+                        variant="mobile"
+                        :key="'nav-requests-mobile-'.auth()->id()"
+                    />
                     <livewire:notifications.notification-dropdown
                         variant="mobile"
                         :key="'nav-notifications-mobile-'.auth()->id()"

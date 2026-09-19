@@ -950,6 +950,8 @@ return [
     'requests' => [
         'page_title' => 'Prośby',
         'page_subtitle' => 'Oczekujące zaproszenia i prośby wymagające odpowiedzi znajdują się na górze.',
+        'dropdown_heading' => 'Prośby',
+        'view_all' => 'Zobacz wszystkie prośby',
     ],
     'user_requests' => [
         'organizer_flag_subject' => 'Dostęp organizatora wydarzeń',

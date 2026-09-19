@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\UserRequests;
 
-use App\Enums\UserRequestType;
 use App\Models\UserRequest;
 use App\Services\UserRequests\UserRequestSubjectLabelResolver;
 use Illuminate\Support\Facades\Auth;
@@ -33,19 +32,8 @@ class IncomingUserRequestList extends Component
 
         if ($user !== null) {
             $requests = UserRequest::query()
-                ->pending()
+                ->pendingIncomingFor($user)
                 ->with(['requester', 'subject'])
-                ->where(function ($query) use ($user): void {
-                    $query->where('recipient_id', $user->id);
-
-                    if ($user->is_admin) {
-                        $query->orWhere(function ($adminQuery): void {
-                            $adminQuery
-                                ->where('type', UserRequestType::EventOrganizerFlag)
-                                ->whereNull('recipient_id');
-                        });
-                    }
-                })
                 ->orderByDesc('created_at')
                 ->limit(20)
                 ->get();

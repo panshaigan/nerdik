@@ -162,8 +162,7 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee('id="mobile-nav-drawer"', false)
             ->assertSee(route('notifications.index'), false)
-            ->assertSee(route('requests.index'), false)
-            ->assertSee('data-ui="nav-requests"', false)
+            ->assertDontSee('data-ui="nav-requests"', false)
             ->assertSee('data-ui="nav-account-settings"', false)
             ->assertSee(route('profile'), false)
             ->assertSee(__('ui.nav.account_settings'), false)
@@ -203,19 +202,14 @@ class NavigationMenuTest extends TestCase
         );
     }
 
-    public function test_navigation_hides_requests_badge_when_no_pending_incoming_requests(): void
+    public function test_navigation_hides_requests_icon_when_user_has_no_requests(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('data-ui="nav-requests"', false);
-
-        $this->assertDoesNotMatchRegularExpression(
-            '/data-ui="nav-requests"[\s\S]*?<span[^>]*>\s*\d+\s*<\/span>/',
-            $response->getContent(),
-        );
+            ->assertDontSee('data-ui="nav-requests"', false);
     }
 
     public function test_admin_sees_ops_links_in_profile_menu(): void

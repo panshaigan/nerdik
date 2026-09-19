@@ -80,6 +80,47 @@ class UserRequest extends Model
      * @param  Builder<self>  $query
      * @return Builder<self>
      */
+    public function scopeInvolving(Builder $query, User $user): Builder
+    {
+        return $query->where(function (Builder $inner) use ($user): void {
+            $inner->where('requester_id', $user->id)
+                ->orWhere('recipient_id', $user->id);
+
+            if ($user->is_admin) {
+                $inner->orWhere(function (Builder $adminQuery): void {
+                    $adminQuery
+                        ->where('type', UserRequestType::EventOrganizerFlag)
+                        ->whereNull('recipient_id');
+                });
+            }
+        });
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopePendingIncomingFor(Builder $query, User $user): Builder
+    {
+        return $query
+            ->pending()
+            ->where(function (Builder $inner) use ($user): void {
+                $inner->where('recipient_id', $user->id);
+
+                if ($user->is_admin) {
+                    $inner->orWhere(function (Builder $adminQuery): void {
+                        $adminQuery
+                            ->where('type', UserRequestType::EventOrganizerFlag)
+                            ->whereNull('recipient_id');
+                    });
+                }
+            });
+    }
+
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     public function scopeExpiredBefore(Builder $query, \DateTimeInterface $moment): Builder
     {
         return $query
@@ -91,6 +132,17 @@ class UserRequest extends Model
     public function isPending(): bool
     {
         return $this->status === UserRequestStatus::Pending;
+    }
+
+    public function isIncomingFor(User $user): bool
+    {
+        if ($this->recipient_id === $user->id) {
+            return true;
+        }
+
+        return $user->is_admin
+            && $this->type === UserRequestType::EventOrganizerFlag
+            && $this->recipient_id === null;
     }
 
     public function isExpiredByTime(): bool
