@@ -28,7 +28,7 @@
     >
         <div
             wire:key="event-activity-preview-{{ $previewActivity->id }}-{{ $activityPreviewRefreshTick }}"
-            class="space-y-5"
+            class="flex min-h-0 flex-1 flex-col"
             data-ui="event-activity-preview-modal"
         >
             <x-ui.tabs-with-toolbar
@@ -36,9 +36,9 @@
                 label-div-class="flex gap-5 overflow-x-auto px-1 pt-1"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
-                tabs-class="w-full"
+                tabs-class="relative flex min-h-0 w-full flex-1 flex-col"
                 toolbar-wrapper-class="hidden"
-                data-ui="event-activity-preview-tabs"
+                data-ui="overlay-sticky-tabs"
             >
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="event-activity-preview-tab-info" icon="o-light-bulb">
                     @include('livewire.events.partials.activity-preview-info-tab', [

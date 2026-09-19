@@ -144,7 +144,8 @@ class EventSeriesTest extends TestCase
 
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
-            ->assertSeeHtml('data-ui="event-series-edition-stats"');
+            ->assertSeeHtml('data-ui="event-series-edition-stats"')
+            ->assertSeeHtml('data-preserve-scroll');
     }
 
     public function test_owner_manage_menu_creates_event_by_duplicating_latest_edition(): void

@@ -114,6 +114,7 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->test(ShowEvent::class, ['event' => $event])
             ->set('tab', 'plan')
             ->call('openActivityPreview', $activity->id)
+            ->assertSeeHtml('data-ui="overlay-sticky-tabs"')
             ->assertSeeHtml('wire:target="joinPreviewActivity"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
     }

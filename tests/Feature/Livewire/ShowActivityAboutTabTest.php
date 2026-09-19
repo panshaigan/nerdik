@@ -55,6 +55,7 @@ final class ShowActivityAboutTabTest extends TestCase
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity->fresh(['slot.event.places.city', 'slot.place'])])
             ->html();
 
+        $this->assertStringContainsString('data-preserve-scroll', $html);
         $this->assertStringContainsString('data-ui="activity-show-schedule-overlay"', $html);
         $this->assertStringContainsString('Convention Center', $html);
         $this->assertStringContainsString('1 Main Street', $html);

@@ -145,7 +145,7 @@
         class="ui-event-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl mb-4 md:mb-6"
     >
         <x-ui.tabs-with-toolbar
-            wire:model.live="tab"
+            wire:model.live.preserve-scroll="tab"
             label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
             label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
             active-class="!text-base-content border-b border-primary text-primary"

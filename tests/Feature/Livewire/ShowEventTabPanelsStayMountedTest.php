@@ -33,6 +33,7 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
 
         $this->assertStringNotContainsString('data-ui="event-show-tab-loading"', $html);
         $this->assertStringNotContainsString('wire:target="tab"', $html);
+        $this->assertStringContainsString('data-preserve-scroll', $html);
     }
 
     public function test_plan_tab_panel_remains_in_dom_after_switching_away_and_back(): void

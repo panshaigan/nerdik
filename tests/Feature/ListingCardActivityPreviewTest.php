@@ -154,6 +154,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
             ->assertSee(__('ui.activities.show_details'))
             ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="overlay-sticky-tabs"')
             ->assertSeeHtml('data-ui="event-activity-preview-actions"');
     }
 

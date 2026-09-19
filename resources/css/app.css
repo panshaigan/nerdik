@@ -1696,6 +1696,42 @@
 }
 
 /**
+ * Tabbed overlays: pin the tab label bar; only the tab panels scroll.
+ * Hook: data-ui="overlay-sticky-tabs" on the tablist (tabs-with-toolbar bag).
+ */
+.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']):has([data-ui='overlay-sticky-tabs']) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']):has([data-ui='overlay-sticky-tabs']) > * {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.ui-overlay-shell.modal-box :has(> [data-ui='overlay-sticky-tabs']) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+
+.ui-overlay-shell.modal-box :has(> [data-ui='overlay-sticky-tabs']) > :first-child {
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/**
  * Listing previews: bottom sheet on small screens, right shelf from md up.
  * Pair with DaisyUI `modal-bottom md:modal-end` on the dialog.
  */
