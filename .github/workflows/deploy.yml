@@ -81,7 +81,6 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST_PROD }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stop: true
           script: |
             set -euo pipefail
             cd "${DEPLOY_PATH:-/opt/nerdik}"
