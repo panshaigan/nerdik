@@ -20,8 +20,8 @@
             />
         @endif
         <div class="min-w-0 flex-1">
-            <h3 class="font-display text-lg font-semibold text-base-content group-hover:text-primary">
-                {{ $title }}
+            <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">
+                <span class="ui-link ui-link-title">{{ $title }}</span>
             </h3>
             @if (filled($subtitle))
                 <p class="mt-1 text-sm text-base-content/70">{{ $subtitle }}</p>
