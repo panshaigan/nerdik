@@ -69,4 +69,29 @@ class PageHeaderComponentTest extends TestCase
         $this->assertNotFalse($badgePos);
         $this->assertLessThan($badgePos, $subtitlePos);
     }
+
+    public function test_page_header_renders_info_slot_after_hr(): void
+    {
+        $html = Blade::render('
+            <x-page-header title="Test">
+                <x-slot:info>Header info tiles</x-slot:info>
+            </x-page-header>
+        ');
+
+        $this->assertStringContainsString('data-ui="page-header-hr"', $html);
+        $this->assertStringContainsString('data-ui="page-header-info"', $html);
+        $this->assertStringContainsString('Header info tiles', $html);
+        $this->assertLessThan(
+            strpos($html, 'data-ui="page-header-info"'),
+            strpos($html, 'data-ui="page-header-hr"'),
+        );
+    }
+
+    public function test_page_header_omits_hr_when_info_slot_is_missing(): void
+    {
+        $html = Blade::render('<x-page-header title="Test" />');
+
+        $this->assertStringNotContainsString('data-ui="page-header-hr"', $html);
+        $this->assertStringNotContainsString('data-ui="page-header-info"', $html);
+    }
 }

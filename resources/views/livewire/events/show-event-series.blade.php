@@ -1,6 +1,52 @@
 <div class="relative" data-ui="event-series-show" data-show-event-series-id="{{ $series->id }}">
     <div class="relative z-0 space-y-4 sm:space-y-6">
-        <x-page-header :title="$series->name" />
+        <x-page-header :title="$series->name">
+            <x-slot:info>
+                <div
+                    class="flex flex-col gap-3 sm:flex-row sm:items-stretch"
+                    data-ui="event-series-show-info"
+                >
+                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                        <x-stat
+                            title="{{ __('ui.event_series.stats_editions') }}"
+                            value="{{ $stats['editions_count'] }}"
+                            icon="o-calendar-days"
+                            class="ui-stat-embed ui-activity-show-stat"
+                        />
+                    </div>
+                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                        <x-stat
+                            title="{{ __('ui.event_series.stats_activities') }}"
+                            value="{{ $stats['activities_count'] }}"
+                            icon="o-puzzle-piece"
+                            class="ui-stat-embed ui-activity-show-stat"
+                        />
+                    </div>
+                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
+                        <div class="ui-stat-embed ui-activity-show-stat relative w-full px-5 py-4">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
+                                <x-popover class="shrink-0 transition-none" position="top" offset="8">
+                                    <x-slot:trigger>
+                                        <x-icon
+                                            name="o-information-circle"
+                                            class="h-4 w-4 text-base-content/50"
+                                        />
+                                    </x-slot:trigger>
+                                    <x-slot:content class="!w-72 max-w-[min(18rem,calc(100vw-2rem))] whitespace-normal text-sm text-base-content">
+                                        {{ __('ui.event_series.stats_participants_hint') }}
+                                    </x-slot:content>
+                                </x-popover>
+                            </div>
+                            <div class="mt-1 flex items-center gap-2 text-2xl font-semibold">
+                                <x-icon name="o-users" class="h-6 w-6 shrink-0 opacity-70" />
+                                <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </x-slot:info>
+        </x-page-header>
 
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">
             <x-ui.tabs-with-toolbar

@@ -4,6 +4,7 @@
     'user' => null,
     'organization' => null,
     'hrIcon' => 'o-sparkles',
+    'hrColor' => 'neutral',
     'headerClass' => '',
     'hrClass' => '',
     'userBadgeSize' => 'md',
@@ -52,4 +53,17 @@
             />
         @endif
     </div>
+
+    @isset($info)
+        <x-ui.hr
+            :icon="$hrIcon"
+            :color="$hrColor"
+            :class="$hrClass"
+            wrapper-class="flex items-center gap-4 px-2 mt-4 mb-3"
+            data-ui="page-header-hr"
+        />
+        <div data-ui="page-header-info">
+            {{ $info }}
+        </div>
+    @endisset
 </div>
