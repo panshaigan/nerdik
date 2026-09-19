@@ -6,8 +6,11 @@ namespace Tests\Feature;
 
 use App\Livewire\Events\ManageEventForm;
 use App\Livewire\Events\ShowEventSeries;
+use App\Models\Activity;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\EventSeries;
+use App\Models\Slot;
 use App\Models\User;
 use App\Support\Events\EventEditionDateBumper;
 use App\Support\Ui\BrowseListingCardPresenter;
@@ -363,5 +366,58 @@ class EventSeriesTest extends TestCase
         $component->call('toggleUpcomingInterest');
         $this->assertFalse($follower->interestedEvents()->whereKey($upcomingA->id)->exists());
         $this->assertFalse($follower->interestedEvents()->whereKey($upcomingB->id)->exists());
+    }
+
+    public function test_series_participant_stats_include_hosts_without_double_counting(): void
+    {
+        $owner = User::factory()->create();
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(4),
+        ]);
+
+        $hostedOnly = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $hostedAndJoined = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $hostedOnly->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $hostedAndJoined->id,
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $hostedAndJoined->id,
+            'user_id' => $host->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $hostedAndJoined->id,
+            'user_id' => $participant->id,
+        ]);
+
+        Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertViewHas('stats', function (array $stats): bool {
+                return $stats['participants_unique'] === 2
+                    && $stats['participants_total'] === 2;
+            })
+            ->assertViewHas('eventStatsById', function (array $eventStatsById) use ($event): bool {
+                $edition = $eventStatsById[(int) $event->id] ?? null;
+
+                return is_array($edition)
+                    && $edition['confirmed_participants'] === 2;
+            });
     }
 }

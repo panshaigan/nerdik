@@ -2,7 +2,7 @@
     $about = $previewAbout;
 @endphp
 
-<div class="space-y-4" data-ui="event-activity-preview-info">
+<div class="space-y-4 pt-2" data-ui="event-activity-preview-info">
     <div class="space-y-2">
         @if ($activity->isCancelled())
             <div class="space-y-1">

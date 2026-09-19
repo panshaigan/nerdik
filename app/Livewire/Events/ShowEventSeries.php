@@ -7,11 +7,11 @@ use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
-use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\User;
 use App\Services\ActivityParticipationViewService;
+use App\Services\ActivityPeopleStats;
 use App\Services\EventActivitySignupService;
 use App\Services\EventShowReadCache;
 use App\Services\UserInterestService;
@@ -143,6 +143,7 @@ class ShowEventSeries extends Component
         EventActivitySignupService $signupService,
         BrowseListingCardPresenter $listingCardPresenter,
         EventShowReadCache $eventShowReadCache,
+        ActivityPeopleStats $activityPeopleStats,
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
     ): View {
@@ -158,7 +159,7 @@ class ShowEventSeries extends Component
 
         $activities = $this->seriesActivities($events);
         $hosts = $this->uniqueActivityHosts($activities);
-        $stats = $this->seriesStats($events, $activities);
+        $stats = $this->seriesStats($events, $activities, $activityPeopleStats);
 
         $eventStatsById = [];
         foreach ($events as $event) {
@@ -291,31 +292,16 @@ class ShowEventSeries extends Component
      *   participants_unique: int
      * }
      */
-    private function seriesStats(Collection $events, Collection $activities): array
+    private function seriesStats(Collection $events, Collection $activities, ActivityPeopleStats $activityPeopleStats): array
     {
         $now = now();
         $upcoming = $events->filter(fn (Event $e) => ! $e->isCancelled() && $e->starts_at !== null && $e->starts_at->gte($now))->count();
         $past = $events->filter(fn (Event $e) => ! $e->isCancelled() && $e->ends_at !== null && $e->ends_at->lt($now))->count();
         $cancelled = $events->filter(fn (Event $e) => $e->isCancelled())->count();
 
-        $activityIds = $activities->pluck('id')->all();
-        $participantsTotal = 0;
-        $participantsUnique = 0;
-
-        if ($activityIds !== []) {
-            $participantsTotal = (int) ActivityUser::query()
-                ->whereIn('activity_id', $activityIds)
-                ->whereNull('deleted_at')
-                ->where('is_absent', false)
-                ->count();
-
-            $participantsUnique = (int) ActivityUser::query()
-                ->whereIn('activity_id', $activityIds)
-                ->whereNull('deleted_at')
-                ->where('is_absent', false)
-                ->distinct('user_id')
-                ->count('user_id');
-        }
+        $activityIds = $activities->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $participantsTotal = $activityPeopleStats->totalIncludingHosts($activityIds, excludeAbsent: true);
+        $participantsUnique = $activityPeopleStats->uniqueIncludingHosts($activityIds, excludeAbsent: true);
 
         return [
             'editions_count' => $events->count(),

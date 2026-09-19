@@ -42,12 +42,12 @@ class EventShowReadCacheTest extends TestCase
         $this->assertIsArray($first);
         $this->assertArrayHasKey(0, $first);
 
-        $this->assertTrue(Cache::has('event_show.programme_stats.v2.'.$event->id));
+        $this->assertTrue(Cache::has('event_show.programme_stats.v6.'.$event->id));
 
         $slot = Slot::query()->where('event_id', $event->id)->firstOrFail();
         $slot->update(['name' => 'Renamed slot for cache bust']);
 
-        $this->assertFalse(Cache::has('event_show.programme_stats.v2.'.$event->id));
+        $this->assertFalse(Cache::has('event_show.programme_stats.v6.'.$event->id));
     }
 
     public function test_programme_stats_sums_capacity_when_all_activities_are_capped(): void
@@ -83,12 +83,14 @@ class EventShowReadCacheTest extends TestCase
             'user_id' => $participant->id,
         ]);
 
-        [$activities, $participants, $availablePlaces] = app(EventShowReadCache::class)
-            ->programmeStats((int) $event->id);
+        $cache = app(EventShowReadCache::class);
+        [$activities, $participants, $availablePlaces] = $cache->programmeStats((int) $event->id);
 
         $this->assertSame(2, $activities);
-        $this->assertSame(1, $participants);
-        $this->assertSame(10, $availablePlaces);
+        $this->assertSame(2, $participants);
+        $this->assertSame(1, $cache->programmeSignupCount((int) $event->id));
+        $this->assertSame(10, $cache->programmeSignupCapacity((int) $event->id));
+        $this->assertSame(11, $availablePlaces);
     }
 
     public function test_programme_stats_returns_null_available_places_when_any_activity_is_uncapped(): void
@@ -122,7 +124,7 @@ class EventShowReadCacheTest extends TestCase
             ->programmeStats((int) $event->id);
 
         $this->assertSame(2, $activities);
-        $this->assertSame(0, $participants);
+        $this->assertSame(1, $participants);
         $this->assertNull($availablePlaces);
     }
 

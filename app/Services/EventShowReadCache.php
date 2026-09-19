@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
-use App\Models\ActivityUser;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -23,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  */
 class EventShowReadCache
 {
-    private const STATS_VERSION = 'v2';
+    private const STATS_VERSION = 'v6';
 
     private const INTERESTED_COUNT_VERSION = 'v1';
 
@@ -31,41 +30,42 @@ class EventShowReadCache
 
     private const TTL_SECONDS = 120;
 
+    public function __construct(private ActivityPeopleStats $activityPeopleStats) {}
+
     /**
      * Cached confirmed programme counts for the shell stats row (invalidated via observers + TTL).
      *
      * @return array{0: int, 1: int, 2: int|null} [confirmedActivitiesCount, confirmedParticipantsCount, availablePlaces]
+     *                                            confirmedParticipantsCount includes each distinct host not already signed up.
+     *                                            availablePlaces includes one seat per distinct non-passive host.
      *                                            availablePlaces is null when any programme activity is uncapped (display as ∞).
      */
     public function programmeStats(int $eventId): array
     {
-        $key = $this->statsKey($eventId);
+        $payload = $this->resolvedProgrammeStats($eventId);
+        $availablePlaces = $payload['availablePlaces'];
 
-        /** @var array{confirmedActivities: int, confirmedParticipants: int, availablePlaces: int|null}|null $cached */
-        $cached = Cache::get($key);
-        if (
-            is_array($cached)
-            && isset($cached['confirmedActivities'], $cached['confirmedParticipants'])
-            && array_key_exists('availablePlaces', $cached)
-        ) {
-            $availablePlaces = $cached['availablePlaces'];
+        return [
+            $payload['confirmedActivities'],
+            $payload['confirmedParticipants'],
+            $availablePlaces,
+        ];
+    }
 
-            return [
-                (int) $cached['confirmedActivities'],
-                (int) $cached['confirmedParticipants'],
-                $availablePlaces === null ? null : (int) $availablePlaces,
-            ];
-        }
+    /**
+     * Signup seats only (hosts excluded). Used for remaining-places notifications.
+     */
+    public function programmeSignupCount(int $eventId): int
+    {
+        return $this->resolvedProgrammeStats($eventId)['confirmedSignups'];
+    }
 
-        [$activities, $participants, $availablePlaces] = $this->computeProgrammeStats($eventId);
-
-        Cache::put($key, [
-            'confirmedActivities' => $activities,
-            'confirmedParticipants' => $participants,
-            'availablePlaces' => $availablePlaces,
-        ], now()->addSeconds(self::TTL_SECONDS));
-
-        return [$activities, $participants, $availablePlaces];
+    /**
+     * Participant caps only (host seats excluded). Used for remaining-places notifications.
+     */
+    public function programmeSignupCapacity(int $eventId): ?int
+    {
+        return $this->resolvedProgrammeStats($eventId)['availableSignupPlaces'];
     }
 
     public function forgetProgrammeStats(int $eventId): void
@@ -151,7 +151,41 @@ class EventShowReadCache
     }
 
     /**
-     * @return array{0: int, 1: int, 2: int|null}
+     * @return array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}
+     */
+    private function resolvedProgrammeStats(int $eventId): array
+    {
+        $key = $this->statsKey($eventId);
+
+        /** @var array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}|null $cached */
+        $cached = Cache::get($key);
+        if (
+            is_array($cached)
+            && isset($cached['confirmedActivities'], $cached['confirmedParticipants'], $cached['confirmedSignups'])
+            && array_key_exists('availablePlaces', $cached)
+            && array_key_exists('availableSignupPlaces', $cached)
+        ) {
+            $availablePlaces = $cached['availablePlaces'];
+            $availableSignupPlaces = $cached['availableSignupPlaces'];
+
+            return [
+                'confirmedActivities' => (int) $cached['confirmedActivities'],
+                'confirmedParticipants' => (int) $cached['confirmedParticipants'],
+                'confirmedSignups' => (int) $cached['confirmedSignups'],
+                'availablePlaces' => $availablePlaces === null ? null : (int) $availablePlaces,
+                'availableSignupPlaces' => $availableSignupPlaces === null ? null : (int) $availableSignupPlaces,
+            ];
+        }
+
+        $computed = $this->computeProgrammeStats($eventId);
+
+        Cache::put($key, $computed, now()->addSeconds(self::TTL_SECONDS));
+
+        return $computed;
+    }
+
+    /**
+     * @return array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}
      */
     private function computeProgrammeStats(int $eventId): array
     {
@@ -159,16 +193,18 @@ class EventShowReadCache
             ->whereHas('slot', fn ($q) => $q->where('event_id', $eventId))
             ->whereNull('cancelled_at');
 
-        $confirmedActivitiesCount = (clone $activitiesBase)->count();
+        $activityIds = $activitiesBase->clone()->select('activities.id');
 
-        $confirmedParticipantsCount = (int) ActivityUser::query()
-            ->whereNull('activity_user.deleted_at')
-            ->whereIn('activity_id', $activitiesBase->clone()->select('activities.id'))
-            ->count();
+        $availableSignupPlaces = $this->computeSignupCapacity($activitiesBase->clone());
+        $availablePlaces = $this->computeAvailablePlaces($activitiesBase->clone(), $availableSignupPlaces);
 
-        $availablePlaces = $this->computeAvailablePlaces($activitiesBase->clone());
-
-        return [$confirmedActivitiesCount, $confirmedParticipantsCount, $availablePlaces];
+        return [
+            'confirmedActivities' => (clone $activitiesBase)->count(),
+            'confirmedParticipants' => $this->activityPeopleStats->totalIncludingHosts($activityIds),
+            'confirmedSignups' => $this->activityPeopleStats->signupCount($activityIds),
+            'availablePlaces' => $availablePlaces,
+            'availableSignupPlaces' => $availableSignupPlaces,
+        ];
     }
 
     /**
@@ -176,12 +212,33 @@ class EventShowReadCache
      *
      * @param  Builder<Activity>  $activitiesBase
      */
-    private function computeAvailablePlaces(Builder $activitiesBase): ?int
+    private function computeSignupCapacity(Builder $activitiesBase): ?int
     {
         if ((clone $activitiesBase)->whereNull('max_participants')->exists()) {
             return null;
         }
 
         return (int) (clone $activitiesBase)->sum('max_participants');
+    }
+
+    /**
+     * Participant caps plus one seat per distinct non-passive host.
+     * A host who runs several activities is counted once. Null if any activity is uncapped.
+     *
+     * @param  Builder<Activity>  $activitiesBase
+     */
+    private function computeAvailablePlaces(Builder $activitiesBase, ?int $signupCapacity): ?int
+    {
+        if ($signupCapacity === null) {
+            return null;
+        }
+
+        $hostSeats = (int) (clone $activitiesBase)
+            ->where('is_host_passive', false)
+            ->whereNotNull('created_by')
+            ->distinct()
+            ->count('created_by');
+
+        return $signupCapacity + $hostSeats;
     }
 }

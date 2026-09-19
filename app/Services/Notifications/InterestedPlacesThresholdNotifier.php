@@ -90,18 +90,19 @@ class InterestedPlacesThresholdNotifier
         User $excludeUser,
         array $excludeUserIds,
     ): void {
-        [, $participants, $availablePlaces] = $this->eventShowReadCache->programmeStats((int) $event->id);
+        $signupCapacity = $this->eventShowReadCache->programmeSignupCapacity((int) $event->id);
+        $signups = $this->eventShowReadCache->programmeSignupCount((int) $event->id);
 
-        if ($availablePlaces === null || $availablePlaces <= 0) {
+        if ($signupCapacity === null || $signupCapacity <= 0) {
             return;
         }
 
-        $previousParticipants = max(0, $participants - 1);
-        if (! $this->crossedRemainingThreshold($previousParticipants, $participants, $availablePlaces)) {
+        $previousSignups = max(0, $signups - 1);
+        if (! $this->crossedRemainingThreshold($previousSignups, $signups, $signupCapacity)) {
             return;
         }
 
-        $remaining = max(0, $availablePlaces - $participants);
+        $remaining = max(0, $signupCapacity - $signups);
         $excludeIds = array_values(array_unique(array_merge(
             [(int) $excludeUser->id],
             array_map('intval', $excludeUserIds),
@@ -119,7 +120,7 @@ class InterestedPlacesThresholdNotifier
 
         Notification::send(
             $followers,
-            new EventPlacesLowNotification($event, $remaining, $availablePlaces),
+            new EventPlacesLowNotification($event, $remaining, $signupCapacity),
         );
     }
 
