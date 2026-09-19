@@ -1441,10 +1441,19 @@
 
     /**
      * Participant / waitlist rows: Mary list-item content uses overflow-hidden + truncate.
+     * Host roster controls sit below the badge on small screens.
      */
     .ui-participant-list-item .mary-hideable,
     .ui-participant-list-item .mary-hideable .truncate {
         overflow: visible !important;
+    }
+
+    @media (width < 40rem) {
+        .ui-participant-list-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
     }
 
     /**

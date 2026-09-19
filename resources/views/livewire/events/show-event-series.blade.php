@@ -3,41 +3,41 @@
         <x-page-header :title="$series->name">
             <x-slot:info>
                 <div
-                    class="flex flex-col gap-3 sm:flex-row sm:items-stretch"
+                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:items-stretch"
                     data-ui="event-series-show-info"
                 >
-                        <x-stat
-                            title="{{ __('ui.event_series.stats_editions') }}"
-                            value="{{ $stats['editions_count'] }}"
-                            icon="o-calendar-days"
-                            class="ui-stat-embed ui-activity-show-stat"
-                        />
-                        <x-stat
-                            title="{{ __('ui.event_series.stats_activities') }}"
-                            value="{{ $stats['activities_count'] }}"
-                            icon="o-puzzle-piece"
-                            class="ui-stat-embed ui-activity-show-stat"
-                        />
-                        <div class="ui-stat-embed ui-activity-show-stat relative w-full px-5 py-4">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
-                                <x-popover class="shrink-0 transition-none" position="top" offset="8">
-                                    <x-slot:trigger>
-                                        <x-icon
-                                            name="o-information-circle"
-                                            class="h-4 w-4 text-base-content/50"
-                                        />
-                                    </x-slot:trigger>
-                                    <x-slot:content class="!w-72 max-w-[min(18rem,calc(100vw-2rem))] whitespace-normal text-sm text-base-content">
-                                        {{ __('ui.event_series.stats_participants_hint') }}
-                                    </x-slot:content>
-                                </x-popover>
-                            </div>
-                            <div class="mt-1 flex items-center gap-2 text-2xl font-semibold">
-                                <x-icon name="o-users" class="h-6 w-6 shrink-0 opacity-70" />
-                                <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
-                            </div>
+                    <x-stat
+                        title="{{ __('ui.event_series.stats_editions') }}"
+                        value="{{ $stats['editions_count'] }}"
+                        icon="o-calendar-days"
+                        class="ui-stat-embed ui-activity-show-stat"
+                    />
+                    <x-stat
+                        title="{{ __('ui.event_series.stats_activities') }}"
+                        value="{{ $stats['activities_count'] }}"
+                        icon="o-puzzle-piece"
+                        class="ui-stat-embed ui-activity-show-stat"
+                    />
+                    <div class="ui-stat-embed ui-activity-show-stat relative col-span-2 w-full px-5 py-4 sm:col-span-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
+                            <x-popover class="shrink-0 transition-none" position="top" offset="8">
+                                <x-slot:trigger>
+                                    <x-icon
+                                        name="o-information-circle"
+                                        class="h-4 w-4 text-base-content/50"
+                                    />
+                                </x-slot:trigger>
+                                <x-slot:content class="!w-72 max-w-[min(18rem,calc(100vw-2rem))] whitespace-normal text-sm text-base-content">
+                                    {{ __('ui.event_series.stats_participants_hint') }}
+                                </x-slot:content>
+                            </x-popover>
                         </div>
+                        <div class="mt-1 flex items-center gap-2 text-2xl font-semibold">
+                            <x-icon name="o-users" class="h-6 w-6 shrink-0 opacity-70" />
+                            <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
+                        </div>
+                    </div>
                 </div>
             </x-slot:info>
         </x-page-header>
@@ -143,7 +143,7 @@
                                         />
                                     </div>
                                     <div
-                                        class="grid grid-cols-1 gap-2 self-start sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
+                                        class="grid grid-cols-2 gap-2 self-start sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
                                         data-ui="event-series-edition-stats"
                                     >
                                         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
@@ -156,17 +156,17 @@
                                         </div>
                                         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
                                             <x-stat
-                                                title="{{ __('ui.events.confirmed_participants') }}"
-                                                value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
-                                                icon="o-users"
+                                                title="{{ __('ui.events.interested_people_count') }}"
+                                                value="{{ $editionStats['interested_people_count'] }}"
+                                                icon="o-heart"
                                                 class="ui-stat-embed ui-activity-show-stat"
                                             />
                                         </div>
                                         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
                                             <x-stat
-                                                title="{{ __('ui.events.interested_people_count') }}"
-                                                value="{{ $editionStats['interested_people_count'] }}"
-                                                icon="o-heart"
+                                                title="{{ __('ui.events.confirmed_participants') }}"
+                                                value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
+                                                icon="o-users"
                                                 class="ui-stat-embed ui-activity-show-stat"
                                             />
                                         </div>

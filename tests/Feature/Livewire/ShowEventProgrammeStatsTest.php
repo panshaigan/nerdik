@@ -43,6 +43,8 @@ class ShowEventProgrammeStatsTest extends TestCase
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->assertViewHas('confirmedParticipantsCount', 1)
             ->assertViewHas('availablePlacesLabel', '5')
+            ->assertSeeHtml('data-ui="event-show-info"')
+            ->assertSeeHtml('data-ui="page-header-info"')
             ->assertSee('1/5', false);
     }
 

@@ -39,7 +39,7 @@
                 @endif
             </div>
             @forelse ($activity->participants as $p)
-                <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 ">
+                <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2">
                     <x-slot:value class="truncate text-sm font-medium text-base-content">
                             <div class="flex min-w-0 items-center gap-2">
                                 <x-user-badge
@@ -56,7 +56,7 @@
                             </div>
                     </x-slot:value>
                     @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
-                        <x-slot:actions class="flex items-center gap-1">
+                        <x-slot:actions class="flex flex-wrap items-center gap-1 max-sm:w-full">
                             @if ($p->is_absent)
                                 <x-button
                                     type="button"
