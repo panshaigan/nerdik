@@ -68,16 +68,16 @@
                 :picture="$d->coverPicture"
                 class="ui-card-media-fade absolute inset-0 block size-full object-cover"
             />
-            <div class="pointer-events-auto absolute left-2 top-2 z-20 flex max-w-[calc(100%-3.5rem)] flex-row flex-wrap items-center gap-1">
+            <div class="pointer-events-none absolute left-2 top-2 z-20 flex max-w-[calc(100%-3.5rem)] flex-row flex-wrap items-center gap-1">
                 @if ($d->kindCornerLabel)
                     <span
-                        class="shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
+                        class="pointer-events-none shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
                         data-ui="{{ $d->dataUiPrefix }}-kind-label"
                     >{{ $d->kindCornerLabel }}</span>
                 @endif
                 @if ($d->hasActiveEnrollmentWindow)
                     <span
-                        class="shrink-0 rounded-md border border-accent/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-accent/95"
+                        class="pointer-events-none shrink-0 rounded-md border border-accent/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-accent/95"
                         data-ui="event-card-enrollment-open"
                     >{{ __('ui.events.enrollment_window_active_badge') }}</span>
                 @endif
@@ -86,7 +86,7 @@
                         :user="$d->hostUser"
                         size="sm"
                         nameClass="truncate text-xs font-medium text-amber-50"
-                        class="max-w-full rounded-full bg-black/70 py-0.5 pl-0.5 pr-2"
+                        class="pointer-events-auto w-fit max-w-full rounded-full bg-black/70 py-0.5 pl-0.5 pr-2"
                         :contact-wire-key="'listing-'.$d->kind.'-'.$d->id"
                     />
                 @endif

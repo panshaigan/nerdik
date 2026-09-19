@@ -28,7 +28,7 @@ class ListingCardActivityPreviewTest extends TestCase
 
     public function test_listing_card_badge_area_allows_pointer_events_above_preview_overlay(): void
     {
-        $owner = User::factory()->create();
+        $owner = User::factory()->create(['nickname' => 'Overlay Host']);
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
         $activity = Activity::factory()->scheduled()->create([
             'created_by' => $owner->id,
@@ -52,6 +52,9 @@ class ListingCardActivityPreviewTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(BrowseActivities::class)
+            ->assertSee('Overlay Host')
+            ->assertSeeHtml('pointer-events-none absolute left-2 top-2 z-20')
+            ->assertSeeHtml('pointer-events-auto w-fit max-w-full')
             ->assertSee('Sword & Sorcery')
             ->assertDontSee('Sword &amp; Sorcery');
     }

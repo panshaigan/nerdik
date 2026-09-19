@@ -934,7 +934,7 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
-        $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full', $html);
         $this->assertStringNotContainsString('data-ui="user-badge-contact-modal"', $html);
         $this->assertStringNotContainsString('data-ui="user-contact-popover"', $html);
     }
@@ -1042,7 +1042,7 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="organization-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="organization-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
-        $this->assertStringContainsString('ui-user-badge-contact-trigger', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full', $html);
         $this->assertStringNotContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringNotContainsString('data-ui="organization-badge-contact-modal"', $html);
         $this->assertStringNotContainsString('data-ui="organization-contact-popover"', $html);

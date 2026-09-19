@@ -7,7 +7,7 @@
         tabindex="0"
         wire:click.stop="openModal"
         wire:keydown.enter.stop="openModal"
-        class="ui-user-badge-contact-trigger cursor-pointer overflow-visible text-left min-w-0 w-full"
+        class="ui-user-badge-contact-trigger inline-flex w-fit max-w-full cursor-pointer overflow-visible text-left min-w-0"
         title="{{ $contactTooltip ?? __('ui.common.click_for_details') }}"
         data-ui="user-badge-contact-trigger"
     >
