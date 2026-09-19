@@ -769,6 +769,8 @@ return [
         'page_title' => 'Powiadomienia',
         'page_subtitle' => 'Historia powiadomień.',
         'timeline_heading' => 'Historia powiadomień',
+        'dropdown_heading' => 'Powiadomienia',
+        'view_all' => 'Zobacz wszystkie powiadomienia',
         'mark_all_read' => 'Oznacz wszystkie jako przeczytane',
         'updating' => 'Aktualizowanie...',
         'empty' => 'Brak powiadomień.',
