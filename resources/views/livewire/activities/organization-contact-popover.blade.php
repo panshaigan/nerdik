@@ -58,6 +58,17 @@
         </div>
     </div>
 
+    @if ($targetOrganization !== null)
+        <div class="pt-1" data-ui="organization-contact-popover-see-all">
+            <a
+                href="{{ \App\Support\Browse\BrowseSearchUrl::forOrganization($targetOrganization) }}"
+                wire:navigate
+                class="link link-primary"
+                data-ui="organization-see-all-listings"
+            >{{ __('ui.organizations.see_all_events_and_activities') }}</a>
+        </div>
+    @endif
+
     @if ($targetOrganization !== null && filled(rich_text_excerpt($targetOrganization->description)))
         <div class="space-y-2" data-ui="organization-contact-popover-description">
             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.description_section') }}</p>

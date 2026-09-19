@@ -431,6 +431,7 @@ return [
         'date_range_toggle' => 'Filtruj według zakresu dat',
         'date_range_clear' => 'Wyczyść daty',
         'location_label' => 'Miejsce',
+        'organization' => 'Organizacja',
         'no_activities_found' => 'Nie znaleziono aktywności.',
     ],
     'activities' => [
@@ -891,6 +892,7 @@ return [
         'description_section' => 'Opis',
         'members_section' => 'Członkowie',
         'no_members' => 'Brak członków.',
+        'see_all_events_and_activities' => 'Zobacz wszystkie wydarzenia i aktywności',
     ],
     'event_series' => [
         'tab_events' => 'Wydarzenia',

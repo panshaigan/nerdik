@@ -25,7 +25,14 @@
             <div class="space-y-1">
                 @if ($scheduleVenue)
                     <p class="text-sm">
-                        <span class="font-semibold text-xl">{{ $scheduleVenue->name }}</span>
+                        <span class="font-semibold text-xl">
+                            <a
+                                href="{{ \App\Support\Browse\BrowseSearchUrl::forPlace($scheduleVenue) }}"
+                                wire:navigate
+                                class="link link-hover text-white"
+                                data-ui="browse-place-search-link"
+                            >{{ $scheduleVenue->name }}</a>
+                        </span>
                         @if ($scheduleRoom)
                             <span>({{ $scheduleRoom }})</span>
                         @endif

@@ -125,6 +125,28 @@ class Place extends Model
     }
 
     /**
+     * Venue id for browse filters: parent venue when this place is a room.
+     */
+    public function browseVenueId(): int
+    {
+        return $this->parent_id !== null ? (int) $this->parent_id : (int) $this->id;
+    }
+
+    public static function venueIdForFilter(?int $placeId): ?int
+    {
+        if ($placeId === null || $placeId < 1) {
+            return null;
+        }
+
+        $place = self::query()->select(['id', 'parent_id'])->find($placeId);
+        if ($place === null) {
+            return $placeId;
+        }
+
+        return $place->browseVenueId();
+    }
+
+    /**
      * Compact venue label for listing cards and event headers: "Venue (City)".
      */
     public function compactVenueSummary(?string $locale = null): string

@@ -47,6 +47,7 @@ trait WithEventPreviewModal
      *     previewEventBadgeItems: array<int, mixed>,
      *     previewEventTimeSummary: string,
      *     previewEventLocationSummary: string,
+     *     previewEventLocationPlaces: list<array{url: string, label: string}>,
      *     previewEventCoverPicture: ListingCardPicture,
      * }
      */
@@ -64,6 +65,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
+                'previewEventLocationPlaces' => [],
                 'previewEventCoverPicture' => ListingCardPicture::empty(),
             ];
         }
@@ -74,6 +76,7 @@ trait WithEventPreviewModal
                 'previewEventBadgeItems' => [],
                 'previewEventTimeSummary' => '',
                 'previewEventLocationSummary' => '',
+                'previewEventLocationPlaces' => [],
                 'previewEventCoverPicture' => ListingCardPicture::empty(),
             ];
         }
@@ -85,6 +88,7 @@ trait WithEventPreviewModal
             'previewEventBadgeItems' => $cardViewData->badgeItems,
             'previewEventTimeSummary' => $cardViewData->timeSummary,
             'previewEventLocationSummary' => $cardViewData->locationSummary,
+            'previewEventLocationPlaces' => $cardViewData->locationPlaces,
             'previewEventCoverPicture' => $cardViewData->coverPicture,
         ];
     }

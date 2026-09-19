@@ -32,7 +32,12 @@
     <div class="absolute inset-x-0 bottom-0 z-50 bg-base-100/75 px-4 py-3 text-base-content backdrop-blur-[1px]">
         <div class="flex items-start justify-between gap-3">
             <div>
-                <p class="text-sm font-medium">{{ $eventPlaceSummary }}</p>
+                <p class="text-sm font-medium">
+                    <x-browse.place-search-links
+                        :places="\App\Support\Browse\BrowseSearchUrl::eventPlaceLinks($event)"
+                        :fallback="$eventPlaceSummary"
+                    />
+                </p>
                 <p class="text-xs text-white/90">{{ $eventDateSummary }}</p>
             </div>
             <div class="text-right">

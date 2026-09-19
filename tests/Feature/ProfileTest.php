@@ -17,6 +17,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Slot;
 use App\Models\User;
+use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Blade;
@@ -1233,7 +1234,9 @@ class ProfileTest extends TestCase
                 'targetOrganizationId' => $organization->id,
             ])
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
-            ->assertSee('1', false);
+            ->assertSee('1', false)
+            ->assertSee(__('ui.organizations.see_all_events_and_activities'))
+            ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization));
     }
 
     public function test_organization_badge_with_contact_popover_disabled_does_not_render_trigger(): void

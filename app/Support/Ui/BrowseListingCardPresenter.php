@@ -10,6 +10,7 @@ use App\Domain\ActivityBadges\ActivityBadgeItem;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Services\EventShowReadCache;
+use App\Support\Browse\BrowseSearchUrl;
 
 final class BrowseListingCardPresenter
 {
@@ -72,6 +73,7 @@ final class BrowseListingCardPresenter
             previewWireMethod: 'openListingActivityPreview',
             showDetailsLink: $activity->isPubliclyShowable(),
             confirmedActivitiesCount: null,
+            locationPlaces: BrowseSearchUrl::placeLinks($place),
         );
     }
 
@@ -126,6 +128,7 @@ final class BrowseListingCardPresenter
             hasActiveEnrollmentWindow: $hasActiveEnrollmentWindow,
             seriesName: $series !== null ? (string) $series->name : null,
             seriesUrl: $series !== null ? route('event-series.show', $series) : null,
+            locationPlaces: BrowseSearchUrl::eventPlaceLinks($event),
         );
     }
 

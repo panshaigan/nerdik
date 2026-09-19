@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -269,12 +270,7 @@ class Event extends Model implements HasMedia
 
     public function compactPlaceSummary(): string
     {
-        $this->loadMissing('places.city');
-
-        $venues = $this->places
-            ->filter(fn ($place) => $place !== null && $place->type === Place::TYPE_VENUE && filled($place->name))
-            ->unique('id')
-            ->values();
+        $venues = $this->uniqueVenues();
 
         if ($venues->isEmpty()) {
             return '';
@@ -303,5 +299,20 @@ class Event extends Model implements HasMedia
             ->map(fn (Place $place): string => $place->compactVenueSummary())
             ->filter()
             ->implode(', ');
+    }
+
+    /**
+     * Distinct venue places used for compact location labels and search links.
+     *
+     * @return Collection<int, Place>
+     */
+    public function uniqueVenues(): Collection
+    {
+        $this->loadMissing('places.city');
+
+        return $this->places
+            ->filter(fn ($place) => $place !== null && $place->type === Place::TYPE_VENUE && filled($place->name))
+            ->unique('id')
+            ->values();
     }
 }

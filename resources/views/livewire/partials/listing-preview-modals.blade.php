@@ -17,6 +17,7 @@
         'previewEventBadgeItems' => $previewEventBadgeItems ?? [],
         'previewEventTimeSummary' => $previewEventTimeSummary ?? '',
         'previewEventLocationSummary' => $previewEventLocationSummary ?? '',
+        'previewEventLocationPlaces' => $previewEventLocationPlaces ?? [],
         'previewEventCoverPicture' => $previewEventCoverPicture ?? \App\Support\Ui\ListingCardPicture::empty(),
     ])
 @endif

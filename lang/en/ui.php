@@ -431,6 +431,7 @@ return [
         'date_range_toggle' => 'Filter by date range',
         'date_range_clear' => 'Clear dates',
         'location_label' => 'Location',
+        'organization' => 'Organization',
         'no_activities_found' => 'No activities found.',
     ],
     'activities' => [
@@ -891,6 +892,7 @@ return [
         'description_section' => 'Description',
         'members_section' => 'Members',
         'no_members' => 'No members yet.',
+        'see_all_events_and_activities' => 'See all events and activities',
     ],
     'event_series' => [
         'tab_events' => 'Events',

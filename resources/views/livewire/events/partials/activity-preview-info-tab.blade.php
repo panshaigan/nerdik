@@ -26,10 +26,14 @@
             @endif
         </div>
 
-        @if ($about->locationLabel !== '')
+        @if ($about->locationPlaces !== [] || $about->locationLabel !== '')
             <p class="inline-flex items-center gap-1.5 text-sm text-base-content/60">
                 <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                <span>{{ $about->locationLabel }}</span>
+                <x-browse.place-search-links
+                    :places="$about->locationPlaces"
+                    :fallback="$about->locationLabel"
+                    link-class="link link-hover"
+                />
             </p>
         @endif
     </div>

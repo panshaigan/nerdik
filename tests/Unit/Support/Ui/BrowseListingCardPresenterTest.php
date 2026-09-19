@@ -16,6 +16,7 @@ use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -57,6 +58,12 @@ final class BrowseListingCardPresenterTest extends TestCase
         $viewData = $this->presenter->fromActivity($activity, []);
 
         $this->assertSame('Tavern Hall (Wroclaw)', $viewData->locationSummary);
+        $this->assertSame([
+            [
+                'url' => BrowseSearchUrl::forPlace($place),
+                'label' => 'Tavern Hall (Wroclaw)',
+            ],
+        ], $viewData->locationPlaces);
     }
 
     #[Test]

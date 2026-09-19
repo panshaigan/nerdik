@@ -10,5 +10,7 @@ final readonly class ActivityPreviewAboutViewData
         public ?string $slotName,
         public string $timeLabel,
         public string $locationLabel,
+        /** @var list<array{url: string, label: string}> */
+        public array $locationPlaces = [],
     ) {}
 }

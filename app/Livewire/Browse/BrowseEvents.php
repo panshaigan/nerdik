@@ -10,6 +10,8 @@ use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
+use App\Models\Organization;
+use App\Models\Place;
 use App\Models\Tag;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
@@ -79,8 +81,16 @@ class BrowseEvents extends Component
     #[Url]
     public ?string $to_date = null;
 
+    #[Url]
+    public ?int $place_id = null;
+
+    #[Url]
+    public ?int $organization_id = null;
+
     public function mount(): void
     {
+        $this->place_id = Place::venueIdForFilter($this->place_id);
+
         if (BrowseSearchUrl::isEphemeralPreset(request())) {
             BrowseSearchState::forget();
             $this->js('window.__nerdikClearBrowseSearchState?.()');
@@ -169,6 +179,20 @@ class BrowseEvents extends Component
         $this->resetPage();
     }
 
+    public function updatedPlaceId(): void
+    {
+        $this->place_id = Place::venueIdForFilter($this->place_id);
+        $this->resetPage();
+    }
+
+    public function updatedOrganizationId(): void
+    {
+        if ($this->organization_id !== null && $this->organization_id < 1) {
+            $this->organization_id = null;
+        }
+        $this->resetPage();
+    }
+
     public function clearDateRange(): void
     {
         $this->from_date = null;
@@ -195,7 +219,7 @@ class BrowseEvents extends Component
         $this->js('window.__nerdikClearBrowseSearchState?.()');
 
         $this->resetPage();
-        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'only_free_places', 'map_view', 'from_date', 'to_date']);
+        $this->reset(['q', 'min_lat', 'max_lat', 'min_lng', 'max_lng', 'include_past_events', 'only_events', 'only_activities', 'only_mine', 'only_free_places', 'map_view', 'from_date', 'to_date', 'place_id', 'organization_id']);
         $this->resetTagFilter();
 
         return $this->redirectRoute('search.index');
@@ -240,7 +264,9 @@ class BrowseEvents extends Component
             || $this->only_mine
             || $this->only_free_places
             || filled($this->from_date)
-            || filled($this->to_date);
+            || filled($this->to_date)
+            || $this->place_id !== null
+            || $this->organization_id !== null;
     }
 
     public function hasBBox(): bool
@@ -322,6 +348,8 @@ class BrowseEvents extends Component
             maxLng: $this->max_lng !== null && $this->max_lng !== '' ? (string) $this->max_lng : null,
             fromDate: filled($this->from_date) ? (string) $this->from_date : null,
             toDate: filled($this->to_date) ? (string) $this->to_date : null,
+            placeId: Place::venueIdForFilter($this->place_id),
+            organizationId: $this->organization_id !== null && $this->organization_id > 0 ? $this->organization_id : null,
         );
     }
 
@@ -522,6 +550,14 @@ class BrowseEvents extends Component
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,
             'tags' => Tag::query()->forBrowseSelector($this->tag_ids),
+            'browsePlaceOptions' => Place::query()->venues()->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Place $place): array => ['id' => $place->id, 'name' => $place->name])
+                ->values()
+                ->all(),
+            'browseOrganizationOptions' => Organization::query()->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Organization $organization): array => ['id' => $organization->id, 'name' => $organization->name])
+                ->values()
+                ->all(),
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
             ...$this->resolveEventPreviewViewData($listingCardPresenter),
             'includeEventPreviewModal' => true,

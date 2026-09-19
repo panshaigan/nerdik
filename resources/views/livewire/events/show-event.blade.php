@@ -40,7 +40,14 @@
         </x-slot:titlePrefix>
 
         <x-slot:subtitle>
-            <div class="mb-1"><x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />{{ $eventPlaceSummary }}</div>
+            <div class="mb-1">
+                <x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />
+                <x-browse.place-search-links
+                    :places="\App\Support\Browse\BrowseSearchUrl::eventPlaceLinks($event)"
+                    :fallback="$eventPlaceSummary"
+                    link-class="link link-primary text-glow-base-100"
+                />
+            </div>
             <div class="">
                 <x-icon name="o-calendar" class="inline h-4 w-4 align-text-bottom" />{{ $eventDateSummary }}
                 @if ($event->eventSeries)

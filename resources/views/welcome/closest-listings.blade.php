@@ -11,23 +11,31 @@
     @if (($upcomingListings ?? collect())->isNotEmpty())
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($upcomingListings as $listing)
-                <a
-                    href="{{ $listing->detailsUrl }}"
+                <article
                     class="group rounded-2xl border border-base-300 bg-base-100 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                 >
-                    <div class="relative aspect-video overflow-hidden rounded-xl">
+                    <a href="{{ $listing->detailsUrl }}" class="relative block aspect-video overflow-hidden rounded-xl">
                         <x-listing-card-picture :picture="$listing->coverPicture" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
                         <span class="absolute left-2 top-2 rounded-md bg-base-100/85 px-2 py-1 text-xs font-semibold">
                             {{ $listing->kindCornerLabel }}
                         </span>
-                    </div>
+                    </a>
 
                     <div class="px-1 pb-1 pt-3">
-                        <h3 class="line-clamp-2 text-lg font-semibold leading-snug">{{ $listing->name }}</h3>
+                        <h3 class="line-clamp-2 text-lg font-semibold leading-snug">
+                            <a href="{{ $listing->detailsUrl }}" class="hover:underline">{{ $listing->name }}</a>
+                        </h3>
                         @if ($listing->timeSummary !== '')
                             <p class="mt-2 text-sm opacity-80">{{ $listing->timeSummary }}</p>
                         @endif
-                        @if ($listing->locationSummary !== '')
+                        @if ($listing->locationPlaces !== [])
+                            <p class="mt-1 text-sm opacity-70">
+                                <x-browse.place-search-links
+                                    :places="$listing->locationPlaces"
+                                    link-class="link link-hover"
+                                />
+                            </p>
+                        @elseif ($listing->locationSummary !== '')
                             <p class="mt-1 text-sm opacity-70">{{ $listing->locationSummary }}</p>
                         @endif
                         @if ($listing->badgeItems !== [])
@@ -40,7 +48,7 @@
                             </div>
                         @endif
                     </div>
-                </a>
+                </article>
             @endforeach
         </div>
     @else

@@ -6,6 +6,7 @@ namespace App\Support\Ui;
 
 use App\Models\Activity;
 use App\Models\Place;
+use App\Support\Browse\BrowseSearchUrl;
 use Carbon\CarbonInterface;
 
 final class ActivityPreviewAboutPresenter
@@ -33,10 +34,13 @@ final class ActivityPreviewAboutPresenter
             && ! $selfHosted
             && ($slot->starts_at !== null || $slot->ends_at !== null);
 
+        $locationLabel = $this->locationLabel($schedulePlace, $useListingCardLocation);
+
         return new ActivityPreviewAboutViewData(
             slotName: (! $selfHosted && filled($slot?->name)) ? (string) $slot->name : null,
             timeLabel: $this->formatTimeLabel($startsAt, $endsAt, $useSlotClockFormat),
-            locationLabel: $this->locationLabel($schedulePlace, $useListingCardLocation),
+            locationLabel: $locationLabel,
+            locationPlaces: BrowseSearchUrl::placeLinks($schedulePlace, $locationLabel),
         );
     }
 

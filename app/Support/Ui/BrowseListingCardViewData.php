@@ -46,5 +46,7 @@ final readonly class BrowseListingCardViewData
         public bool $hasActiveEnrollmentWindow = false,
         public ?string $seriesName = null,
         public ?string $seriesUrl = null,
+        /** @var list<array{url: string, label: string}> */
+        public array $locationPlaces = [],
     ) {}
 }

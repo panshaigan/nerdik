@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support\Browse;
 
+use App\Models\Organization;
+use App\Models\Place;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Http\Request;
@@ -190,5 +192,48 @@ final class BrowseSearchUrlTest extends TestCase
         $bag = BrowseListingFilterBag::fromRequest($request);
 
         $this->assertTrue($bag->onlyFreePlaces);
+    }
+
+    public function test_for_organization_and_place_build_search_query_urls(): void
+    {
+        $organization = new Organization;
+        $organization->id = 12;
+
+        $venue = new Place;
+        $venue->id = 8;
+        $venue->parent_id = null;
+
+        $room = new Place;
+        $room->id = 9;
+        $room->parent_id = 8;
+
+        $this->assertSame('/search?organization_id=12', BrowseSearchUrl::forOrganization($organization));
+        $this->assertSame('/search?place_id=8', BrowseSearchUrl::forPlace($venue));
+        $this->assertSame('/search?place_id=8', BrowseSearchUrl::forPlace($room));
+    }
+
+    public function test_return_url_from_filter_bag_includes_place_and_organization(): void
+    {
+        $bag = new BrowseListingFilterBag(
+            q: '',
+            tagIds: [],
+            tagsMatchAll: false,
+            includePastEvents: false,
+            onlyEvents: false,
+            onlyActivities: false,
+            onlyMine: false,
+            onlyFreePlaces: false,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+            placeId: 4,
+            organizationId: 7,
+        );
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag($bag);
+
+        $this->assertStringContainsString('place_id=4', $url);
+        $this->assertStringContainsString('organization_id=7', $url);
     }
 }

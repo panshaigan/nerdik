@@ -108,14 +108,15 @@
                         </dd>
                     </div>
                 @endif
-                @if ($d->locationSummary !== '')
-                    <div class="flex gap-2">
+                @if ($d->locationSummary !== '' || $d->locationPlaces !== [])
+                    <div class="relative z-20 flex gap-2 pointer-events-auto">
                         <dt class="sr-only">{{ __('ui.browse.location_label') }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                            <span class="min-w-0 leading-snug">
-                                {{ $d->locationSummary }}
-                            </span>
+                            <x-browse.place-search-links
+                                :places="$d->locationPlaces"
+                                :fallback="$d->locationSummary"
+                            />
                         </dd>
                     </div>
                 @endif

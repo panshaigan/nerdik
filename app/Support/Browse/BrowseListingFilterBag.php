@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Browse;
 
+use App\Models\Place;
 use Illuminate\Http\Request;
 
 /**
@@ -29,6 +30,8 @@ final class BrowseListingFilterBag
         public readonly ?string $maxLng,
         public readonly ?string $fromDate = null,
         public readonly ?string $toDate = null,
+        public readonly ?int $placeId = null,
+        public readonly ?int $organizationId = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -66,6 +69,8 @@ final class BrowseListingFilterBag
             maxLng: self::nullableString($request->input('max_lng')),
             fromDate: self::nullableDateString($request->input('from_date')),
             toDate: self::nullableDateString($request->input('to_date')),
+            placeId: Place::venueIdForFilter(self::positiveInt($request->input('place_id'))),
+            organizationId: self::positiveInt($request->input('organization_id')),
         );
     }
 
@@ -150,12 +155,25 @@ final class BrowseListingFilterBag
             maxLng: null,
             fromDate: $this->fromDate,
             toDate: $this->toDate,
+            placeId: $this->placeId,
+            organizationId: $this->organizationId,
         );
     }
 
     public function hasDateRange(): bool
     {
         return filled($this->fromDate) || filled($this->toDate);
+    }
+
+    private static function positiveInt(mixed $v): ?int
+    {
+        if ($v === null || $v === '') {
+            return null;
+        }
+
+        $id = (int) $v;
+
+        return $id > 0 ? $id : null;
     }
 
     private static function nullableString(mixed $v): ?string

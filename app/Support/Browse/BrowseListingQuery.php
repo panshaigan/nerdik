@@ -6,6 +6,7 @@ namespace App\Support\Browse;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Place;
 use App\Support\BrowseTagFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -52,6 +53,17 @@ final class BrowseListingQuery
         }
 
         BrowseDateRangeOverlap::applyToEventQuery($query, $filters->fromDate, $filters->toDate);
+
+        if ($filters->organizationId !== null) {
+            $query->where('events.organization_id', $filters->organizationId);
+        }
+
+        if ($filters->placeId !== null) {
+            $placeId = $filters->placeId;
+            $query->whereHas('places', function (Builder $q) use ($placeId): void {
+                self::constrainPlaceToVenueTree($q, $placeId);
+            });
+        }
 
         return $query;
     }
@@ -109,7 +121,44 @@ final class BrowseListingQuery
 
         BrowseDateRangeOverlap::applyToActivityQuery($query, $filters->fromDate, $filters->toDate);
 
+        if ($filters->organizationId !== null) {
+            $organizationId = $filters->organizationId;
+            $query->whereHas('slot.event', function (Builder $q) use ($organizationId): void {
+                $q->where('events.organization_id', $organizationId);
+            });
+        }
+
+        if ($filters->placeId !== null) {
+            $placeId = $filters->placeId;
+            $query->where(function (Builder $outer) use ($placeId): void {
+                $outer->where(function (Builder $selfHosted) use ($placeId): void {
+                    $selfHosted->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+                        ->whereHas('place', function (Builder $q) use ($placeId): void {
+                            self::constrainPlaceToVenueTree($q, $placeId);
+                        });
+                })->orWhere(function (Builder $scheduled) use ($placeId): void {
+                    $scheduled->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+                        ->whereHas('slot.place', function (Builder $q) use ($placeId): void {
+                            self::constrainPlaceToVenueTree($q, $placeId);
+                        });
+                });
+            });
+        }
+
         return $query;
+    }
+
+    /**
+     * Match a venue or any of its rooms (and a room's parent venue when a room id is passed).
+     *
+     * @param  Builder<Place>  $query
+     */
+    private static function constrainPlaceToVenueTree(Builder $query, int $placeId): void
+    {
+        $query->where(function (Builder $q) use ($placeId): void {
+            $q->where($q->qualifyColumn('id'), $placeId)
+                ->orWhere($q->qualifyColumn('parent_id'), $placeId);
+        });
     }
 
     /**

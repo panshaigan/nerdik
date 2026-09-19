@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support\Browse;
 
+use App\Models\Event;
+use App\Models\Organization;
+use App\Models\Place;
 use Illuminate\Http\Request;
 
 /**
@@ -49,6 +52,55 @@ final class BrowseSearchUrl
             ...self::MY_ACTIVITIES,
             'preset' => self::PRESET_MY_ACTIVITIES,
         ]);
+    }
+
+    public static function forOrganization(Organization $organization): string
+    {
+        return self::relativeSearchUrl([
+            'organization_id' => $organization->id,
+        ]);
+    }
+
+    public static function forPlace(Place $place): string
+    {
+        return self::relativeSearchUrl([
+            'place_id' => $place->browseVenueId(),
+        ]);
+    }
+
+    /**
+     * @return list<array{url: string, label: string}>
+     */
+    public static function eventPlaceLinks(Event $event): array
+    {
+        return $event->uniqueVenues()
+            ->map(fn (Place $place): array => [
+                'url' => self::forPlace($place),
+                'label' => $place->compactVenueSummary(),
+            ])
+            ->filter(fn (array $link): bool => $link['label'] !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{url: string, label: string}>
+     */
+    public static function placeLinks(?Place $place, ?string $label = null): array
+    {
+        if ($place === null) {
+            return [];
+        }
+
+        $resolvedLabel = $label ?? $place->compactVenueSummary();
+        if ($resolvedLabel === '') {
+            return [];
+        }
+
+        return [[
+            'url' => self::forPlace($place),
+            'label' => $resolvedLabel,
+        ]];
     }
 
     public static function isEphemeralPreset(Request $request): bool
@@ -152,6 +204,14 @@ final class BrowseSearchUrl
 
         if (filled($bag->toDate)) {
             $params['to_date'] = $bag->toDate;
+        }
+
+        if ($bag->placeId !== null) {
+            $params['place_id'] = $bag->placeId;
+        }
+
+        if ($bag->organizationId !== null) {
+            $params['organization_id'] = $bag->organizationId;
         }
 
         $normalizedSort = in_array($sort, ['name', 'date'], true) ? $sort : 'date';
