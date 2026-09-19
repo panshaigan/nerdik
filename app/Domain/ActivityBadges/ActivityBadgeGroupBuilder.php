@@ -194,14 +194,14 @@ class ActivityBadgeGroupBuilder
         $max = $activity->maximum_age;
 
         if (filled($min) && filled($max)) {
-            return $min.'–'.$max;
+            $range = $min.'–'.$max;
+        } elseif (filled($min)) {
+            $range = $min.'+';
+        } else {
+            $range = '≤'.$max;
         }
 
-        if (filled($min)) {
-            return $min.'+';
-        }
-
-        return '≤'.$max;
+        return __('ui.activities.age_badge', ['range' => $range]);
     }
 
     private function surfaceKey(ActivityBadgePreset $preset): string

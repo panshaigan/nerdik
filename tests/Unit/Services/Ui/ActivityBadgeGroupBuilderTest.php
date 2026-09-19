@@ -54,7 +54,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
 
         $this->assertCount(4, $items);
         $this->assertSame(ActivityBadgeKind::MinimumAge, $items[0]->kind);
-        $this->assertSame('16+', $items[0]->label);
+        $this->assertSame('16+ age', $items[0]->label);
         $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[1]->kind);
         $this->assertSame(ActivityBadgeKind::TaxonomyTag, $items[2]->kind);
         $this->assertSame(ActivityBadgeKind::RequiresApproval, $items[3]->kind);
@@ -80,7 +80,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
 
         $kinds = array_map(fn (ActivityBadgeItem $i) => $i->kind, $items);
         $this->assertSame([ActivityBadgeKind::MinimumAge, ActivityBadgeKind::TaxonomyTag, ActivityBadgeKind::TaxonomyTag], $kinds);
-        $this->assertSame('12+', $items[0]->label);
+        $this->assertSame('12+ age', $items[0]->label);
         $this->assertSame('G', $items[1]->label);
         $this->assertSame('T', $items[2]->label);
     }
@@ -169,7 +169,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
 
         $this->assertNotNull($ageItem);
-        $this->assertSame('12–16', $ageItem->label);
+        $this->assertSame('12–16 age', $ageItem->label);
     }
 
     #[Test]
@@ -187,7 +187,27 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
 
         $this->assertNotNull($ageItem);
-        $this->assertSame('≤16', $ageItem->label);
+        $this->assertSame('≤16 age', $ageItem->label);
+    }
+
+    #[Test]
+    public function age_badge_uses_lat_suffix_in_polish(): void
+    {
+        app()->setLocale('pl');
+
+        $activity = Activity::factory()->create([
+            'minimum_age' => 12,
+            'maximum_age' => 16,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNotNull($ageItem);
+        $this->assertSame('12–16 lat', $ageItem->label);
     }
 
     #[Test]

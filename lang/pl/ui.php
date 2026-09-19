@@ -499,6 +499,7 @@ return [
         'min_participants_lte_max' => 'Minimum uczestników nie może być większe niż maksimum.',
         'max_participants' => 'Maks. liczba uczestników',
         'age' => 'Wiek',
+        'age_badge' => ':range lat',
         'minimum_age' => 'Minimalny wiek',
         'minimum_age_no_limit' => 'Bez limitu',
         'max_age_gte_min' => 'Maksimum wieku nie może być mniejsze niż minimum.',
