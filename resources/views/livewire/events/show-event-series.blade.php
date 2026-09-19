@@ -6,23 +6,18 @@
                     class="flex flex-col gap-3 sm:flex-row sm:items-stretch"
                     data-ui="event-series-show-info"
                 >
-                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
                         <x-stat
                             title="{{ __('ui.event_series.stats_editions') }}"
                             value="{{ $stats['editions_count'] }}"
                             icon="o-calendar-days"
                             class="ui-stat-embed ui-activity-show-stat"
                         />
-                    </div>
-                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
                         <x-stat
                             title="{{ __('ui.event_series.stats_activities') }}"
                             value="{{ $stats['activities_count'] }}"
                             icon="o-puzzle-piece"
                             class="ui-stat-embed ui-activity-show-stat"
                         />
-                    </div>
-                    <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex flex-1 items-center rounded-2xl">
                         <div class="ui-stat-embed ui-activity-show-stat relative w-full px-5 py-4">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
@@ -43,7 +38,6 @@
                                 <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
                             </div>
                         </div>
-                    </div>
                 </div>
             </x-slot:info>
         </x-page-header>

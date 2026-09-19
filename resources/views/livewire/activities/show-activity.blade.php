@@ -74,28 +74,18 @@
         </x-slot:titleSuffix>
 
         <x-slot:info>
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-stretch"
-                data-ui="activity-show-info-section"
-            >
-                <x-ui.activity-badge-group
-                    :items="$badgeItems"
-                    class="ui-activity-show-info-panel ui-activity-show-stat-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
-                    data-ui="activity-show-badge-group"
-                />
-                <div
-                    class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] shrink-0 items-center rounded-2xl sm:min-w-[10rem]"
-                    data-ui="activity-show-participants-stat"
-                >
-                    <x-stat
-                        title="{{ __('ui.activities.show_participation_section') }}"
-                        value="{{ $participantsCounterValue }}"
-                        icon="o-users"
-                        color="text-base-content"
-                        class="ui-stat-embed ui-activity-show-stat"
-                    />
-                </div>
-            </div>
+            <x-ui.activity-badge-group
+                :items="$badgeItems"
+                class="!my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
+                data-ui="activity-show-badge-group"
+            />
+            <x-stat
+                title="{{ __('ui.activities.show_participation_section') }}"
+                value="{{ $participantsCounterValue }}"
+                icon="o-users"
+                color="text-base-content"
+                class="ui-stat-embed ui-activity-show-stat mt-4"
+            />
         </x-slot:info>
     </x-page-header>
 
