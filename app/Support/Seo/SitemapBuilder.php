@@ -50,6 +50,9 @@ final class SitemapBuilder
         return [
             ['loc' => url('/'), 'lastmod' => null],
             ['loc' => route('search.index'), 'lastmod' => null],
+            ['loc' => route('catalog.places'), 'lastmod' => null],
+            ['loc' => route('catalog.organizations'), 'lastmod' => null],
+            ['loc' => route('catalog.series'), 'lastmod' => null],
             ['loc' => route('privacy'), 'lastmod' => null],
             ['loc' => route('terms'), 'lastmod' => null],
             ['loc' => route('contact'), 'lastmod' => null],

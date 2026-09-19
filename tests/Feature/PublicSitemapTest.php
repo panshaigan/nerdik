@@ -61,6 +61,9 @@ class PublicSitemapTest extends TestCase
         $response->assertSee('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', false);
         $response->assertSee('<loc>'.e(url('/')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('search.index')).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('catalog.places')).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('catalog.organizations')).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('catalog.series')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('privacy')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('terms')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('contact')).'</loc>', false);

@@ -41,6 +41,9 @@ Route::get('locale/{locale}', SwitchLocale::class)->name('locale.switch');
 | Organizations are listed only for the signed-in owner (see authenticated `organizations.index`).
 */
 Route::view('search', 'browse.events')->name('search.index');
+Route::view('catalog/places', 'catalog.places')->name('catalog.places');
+Route::view('catalog/organizations', 'catalog.organizations')->name('catalog.organizations');
+Route::view('catalog/series', 'catalog.series')->name('catalog.series');
 
 Route::get('search/map-features', BrowseMapFeaturesController::class)
     ->middleware('throttle:90,1')

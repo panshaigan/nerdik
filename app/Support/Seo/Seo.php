@@ -45,6 +45,33 @@ final class Seo
         ));
     }
 
+    public static function forCatalogPlaces(): SeoMetadata
+    {
+        return self::withDefaultImage(new SeoMetadata(
+            title: self::pageTitle((string) __('ui.catalog.places_title')),
+            description: (string) __('ui.seo.catalog_places_description'),
+            canonical: route('catalog.places'),
+        ));
+    }
+
+    public static function forCatalogOrganizations(): SeoMetadata
+    {
+        return self::withDefaultImage(new SeoMetadata(
+            title: self::pageTitle((string) __('ui.catalog.organizations_title')),
+            description: (string) __('ui.seo.catalog_organizations_description'),
+            canonical: route('catalog.organizations'),
+        ));
+    }
+
+    public static function forCatalogSeries(): SeoMetadata
+    {
+        return self::withDefaultImage(new SeoMetadata(
+            title: self::pageTitle((string) __('ui.catalog.series_title')),
+            description: (string) __('ui.seo.catalog_series_description'),
+            canonical: route('catalog.series'),
+        ));
+    }
+
     public static function forPrivacy(): SeoMetadata
     {
         return self::withDefaultImage(new SeoMetadata(
@@ -120,6 +147,9 @@ final class Seo
     {
         return match (Route::currentRouteName()) {
             'search.index' => self::forSearch(),
+            'catalog.places' => self::forCatalogPlaces(),
+            'catalog.organizations' => self::forCatalogOrganizations(),
+            'catalog.series' => self::forCatalogSeries(),
             'events.show' => self::forEvent(self::routeModel('event', Event::class)),
             'activities.show' => self::forActivity(self::routeModel('activity', Activity::class)),
             default => self::defaults(),

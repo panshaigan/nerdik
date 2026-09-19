@@ -125,6 +125,21 @@ new class extends Component
                         <x-icon name="o-magnifying-glass" class="h-4 w-4 shrink-0" />
                         {{ __('ui.nav.search') }}
                     </a>
+                    <a href="{{ route('catalog.places') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('catalog.places')) }} gap-1.5">
+                        <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
+                        {{ __('ui.nav.places') }}
+                    </a>
+                    <a href="{{ route('catalog.organizations') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('catalog.organizations')) }} gap-1.5">
+                        <x-icon name="o-building-office-2" class="h-4 w-4 shrink-0" />
+                        {{ __('ui.nav.organizations') }}
+                    </a>
+                    <a href="{{ route('catalog.series') }}" wire:navigate
+                       class="{{ $navLink(request()->routeIs('catalog.series')) }} gap-1.5">
+                        <x-icon name="o-rectangle-stack" class="h-4 w-4 shrink-0" />
+                        {{ __('ui.nav.series') }}
+                    </a>
                 </div>
             </div>
         </x-slot:brand>
@@ -198,7 +213,7 @@ new class extends Component
                             </a>
                         </li>
                         @if (auth()->user()->canCreateEvents())
-                            <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.organizations') }}</a></li>
+                            <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.my_organizations') }}</a></li>
                         @endif
                         @if (auth()->user()->canCreateEvents())
                             <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
@@ -344,6 +359,39 @@ new class extends Component
                                 {{ __('ui.nav.search') }}
                             </a>
                         </li>
+                        <li>
+                            <a
+                                href="{{ route('catalog.places') }}"
+                                wire:navigate
+                                @click="close()"
+                                class="{{ $mobileNavLink(request()->routeIs('catalog.places')) }}"
+                            >
+                                <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.nav.places') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href="{{ route('catalog.organizations') }}"
+                                wire:navigate
+                                @click="close()"
+                                class="{{ $mobileNavLink(request()->routeIs('catalog.organizations')) }}"
+                            >
+                                <x-icon name="o-building-office-2" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.nav.organizations') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href="{{ route('catalog.series') }}"
+                                wire:navigate
+                                @click="close()"
+                                class="{{ $mobileNavLink(request()->routeIs('catalog.series')) }}"
+                            >
+                                <x-icon name="o-rectangle-stack" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.nav.series') }}
+                            </a>
+                        </li>
                     </ul>
 
                     <div class="border-t border-base-300 px-4 py-4">
@@ -381,7 +429,7 @@ new class extends Component
                                             @click="close()"
                                             class="{{ $mobileNavLink(request()->routeIs('organizations.index')) }}"
                                         >
-                                            {{ __('ui.nav.organizations') }}
+                                            {{ __('ui.nav.my_organizations') }}
                                         </a>
                                     </li>
                                 @endif

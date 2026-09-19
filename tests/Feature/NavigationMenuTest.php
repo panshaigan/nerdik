@@ -18,6 +18,9 @@ class NavigationMenuTest extends TestCase
     {
         $this->get(route('search.index'))
             ->assertOk()
+            ->assertSee(route('catalog.places'), false)
+            ->assertSee(route('catalog.organizations'), false)
+            ->assertSee(route('catalog.series'), false)
             ->assertDontSee(__('ui.nav.create_event'), false)
             ->assertDontSee(__('ui.nav.create_activity'), false);
     }
@@ -96,6 +99,7 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee(__('ui.nav.create_event'), false)
             ->assertSee(__('ui.me.menu_events'), false)
+            ->assertSee(__('ui.nav.my_organizations'), false)
             ->assertSee(__('ui.nav.create_activity'), false)
             ->assertDontSee(__('ui.user_requests.request_organizer_access'), false)
             ->assertSee(route('events.create'), false)

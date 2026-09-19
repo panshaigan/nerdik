@@ -113,6 +113,36 @@
                                     {{ __('ui.nav.browse_events') }}
                                 </a>
                             </li>
+                            <li>
+                                <a
+                                    href="{{ route('catalog.places') }}"
+                                    wire:navigate
+                                    @click="close()"
+                                    class="font-display"
+                                >
+                                    {{ __('ui.nav.places') }}
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="{{ route('catalog.organizations') }}"
+                                    wire:navigate
+                                    @click="close()"
+                                    class="font-display"
+                                >
+                                    {{ __('ui.nav.organizations') }}
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="{{ route('catalog.series') }}"
+                                    wire:navigate
+                                    @click="close()"
+                                    class="font-display"
+                                >
+                                    {{ __('ui.nav.series') }}
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
