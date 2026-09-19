@@ -108,7 +108,7 @@ class FeedbackModal extends Component
     public function editorConfig(): array
     {
         return [
-            'height' => 220,
+            'height' => 180,
             'z_index' => 100020,
             'menubar' => false,
             'statusbar' => false,

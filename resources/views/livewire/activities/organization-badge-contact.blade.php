@@ -28,7 +28,7 @@
             <x-modal
                 wire:model="modalOpen"
                 :title="$organization->name"
-                box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+                box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
                 class="backdrop-blur"
                 separator
                 data-ui="organization-badge-contact-modal"

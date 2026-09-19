@@ -85,11 +85,12 @@
             wire:model="modalOpen"
             without-trap-focus
             :title="$modalMode === 'create' ? __('ui.organizations.add') : __('ui.organizations.edit')"
-            box-class="max-w-2xl"
+            box-class="max-w-2xl ui-modal-surface ui-overlay-shell"
             data-org-modal
         >
             @if ($modalOpen)
                 <form
+                    id="org-modal-form"
                     wire:submit.prevent="save"
                     wire:key="org-modal-form-{{ $modalRenderKey }}-{{ $modalMode }}-{{ $editingOrganizationId ?? 'new' }}"
                     class="space-y-4"
@@ -182,16 +183,19 @@
                         />
                     @endif
 
-                    <div class="modal-action">
-                        <x-button type="button" class="btn-ghost" wire:click="closeModal">
-                            {{ __('ui.common.cancel') }}
-                        </x-button>
-                        <x-button type="submit" class="btn-primary">
-                            {{ __('ui.common.save') }}
-                        </x-button>
-                    </div>
                 </form>
             @endif
+
+            <x-slot:actions>
+                @if ($modalOpen)
+                    <x-button type="button" class="btn-ghost" wire:click="closeModal">
+                        {{ __('ui.common.cancel') }}
+                    </x-button>
+                    <x-button type="submit" form="org-modal-form" class="btn-primary">
+                        {{ __('ui.common.save') }}
+                    </x-button>
+                @endif
+            </x-slot:actions>
         </x-modal>
 
         <x-image-crop-modal :title="__('ui.organizations.crop_logo')" />

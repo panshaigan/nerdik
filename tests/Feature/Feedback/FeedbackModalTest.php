@@ -49,6 +49,8 @@ class FeedbackModalTest extends TestCase
             ->test(FeedbackModal::class)
             ->call('openModal', 'https://example.test/page')
             ->assertSet('open', true)
+            ->assertSee(__('feedback.modal.cancel'))
+            ->assertSee(__('feedback.modal.submit'))
             ->assertSet('type', FeedbackType::Question->value)
             ->set('type', FeedbackType::Bug->value)
             ->set('subject', 'Broken button')

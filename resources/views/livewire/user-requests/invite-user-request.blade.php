@@ -23,7 +23,7 @@
         <x-modal
             wire:model="modalOpen"
             :title="$this->modalTitle()"
-            box-class="max-w-lg overflow-visible ui-modal-surface ui-invite-user-request-modal"
+            box-class="max-w-lg ui-modal-surface ui-overlay-shell ui-invite-user-request-modal"
             class="backdrop-blur"
             separator
         >

@@ -3,7 +3,7 @@
         <x-modal
             wire:model="open"
             :title="__('ui.user_requests.review_request')"
-            box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+            box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
             class="backdrop-blur"
             separator
         >

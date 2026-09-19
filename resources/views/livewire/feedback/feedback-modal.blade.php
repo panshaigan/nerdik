@@ -51,7 +51,7 @@
                     try {
                         ed.fire('ResizeEditor');
                         const rawH = ed.options?.get?.('height');
-                        const h = typeof rawH === 'number' ? rawH : 220;
+                        const h = typeof rawH === 'number' ? rawH : 180;
                         if (ed.theme && typeof ed.theme.resizeTo === 'function') {
                             ed.theme.resizeTo('100%', h);
                         }
@@ -101,7 +101,7 @@
                 wire:model="open"
                 without-trap-focus
                 :title="__('feedback.modal.title')"
-                box-class="max-w-2xl overflow-x-hidden ui-modal-surface"
+                box-class="max-w-2xl overflow-x-hidden ui-modal-surface ui-overlay-shell"
                 class="backdrop-blur"
                 separator
                 data-feedback-modal

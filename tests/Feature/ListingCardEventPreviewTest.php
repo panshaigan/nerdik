@@ -82,7 +82,9 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSeeHtml('data-ui="listing-event-preview-host"')
             ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-0-0-listing-event-preview-'.$event->id.'"')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
-            ->assertSee(__('ui.events.show_details'));
+            ->assertSee(__('ui.events.show_details'))
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="listing-event-preview-actions"');
     }
 
     public function test_my_events_browse_opens_event_preview_modal(): void
@@ -103,6 +105,8 @@ class ListingCardEventPreviewTest extends TestCase
             ->call('openListingEventPreview', $event->id)
             ->assertSet('eventPreviewModalOpen', true)
             ->assertSee('My events preview description')
-            ->assertSeeHtml('data-ui="listing-event-preview-modal"');
+            ->assertSeeHtml('data-ui="listing-event-preview-modal"')
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="listing-event-preview-actions"');
     }
 }

@@ -2,9 +2,10 @@
     <x-modal
         wire:model="eventPreviewModalOpen"
         :title="$previewEvent->name"
-        box-class="max-w-4xl overflow-visible ui-modal-surface ui-listing-preview-modal"
-        class="backdrop-blur"
+        box-class="ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+        class="backdrop-blur modal-bottom md:modal-end"
         separator
+        data-ui="overlay-sheet"
     >
         <div
             wire:key="listing-event-preview-{{ $previewEvent->id }}"
@@ -71,17 +72,19 @@
                     data-ui="listing-event-preview-badge-group"
                 />
             @endif
+        </div>
 
-            <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="listing-event-preview-actions">
+        <x-slot:actions>
+            <div class="flex flex-wrap items-center justify-end gap-2" data-ui="listing-event-preview-actions">
                 @php
                     $previewEventSharePayload = app(\App\Support\Sharing\ShareLinks::class)->forEvent($previewEvent);
                     $previewEventCalendarPayload = app(\App\Support\Calendar\CalendarLinks::class)->forEvent($previewEvent);
                 @endphp
                 @if ($previewEventSharePayload)
-                    <x-ui.share-menu :payload="$previewEventSharePayload" />
+                    <x-ui.share-menu :payload="$previewEventSharePayload" open-upward />
                 @endif
                 @if ($previewEventCalendarPayload)
-                    <x-ui.calendar-menu :payload="$previewEventCalendarPayload" />
+                    <x-ui.calendar-menu :payload="$previewEventCalendarPayload" open-upward />
                 @endif
                 <x-button
                     :link="route('events.show', $previewEvent)"
@@ -91,6 +94,6 @@
                     {{ __('ui.events.show_details') }}
                 </x-button>
             </div>
-        </div>
+        </x-slot:actions>
     </x-modal>
 @endif

@@ -1,5 +1,6 @@
 @props([
     'payload',
+    'openUpward' => false,
 ])
 
 @php
@@ -54,7 +55,7 @@
         x-cloak
         x-transition.opacity.duration.150ms
         role="menu"
-        class="absolute end-0 top-full z-[9999] mt-2 flex w-56 flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral"
+        class="absolute end-0 z-[9999] flex w-56 flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral {{ $openUpward ? 'bottom-full mb-2' : 'top-full mt-2' }}"
         data-ui="calendar-menu-list"
         style="display: none;"
     >

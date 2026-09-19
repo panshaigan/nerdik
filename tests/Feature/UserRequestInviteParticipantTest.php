@@ -73,6 +73,7 @@ class UserRequestInviteParticipantTest extends TestCase
                 'subjectId' => $activity->id,
             ])
             ->call('openModal')
+            ->assertSee(__('ui.user_requests.send_invite'))
             ->call('search', 'uniqueinv')
             ->assertSet('lastSearchTerm', 'uniqueinv')
             ->assertSet('userOptions', fn (array $options): bool => collect($options)->contains(

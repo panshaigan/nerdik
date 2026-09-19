@@ -21,9 +21,10 @@
     <x-modal
         wire:model="activityPreviewModalOpen"
         :title="$previewActivity->name"
-        box-class="max-w-4xl overflow-visible ui-modal-surface ui-listing-preview-modal"
-        class="backdrop-blur"
+        box-class="ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+        class="backdrop-blur modal-bottom md:modal-end"
         separator
+        data-ui="overlay-sheet"
     >
         <div
             wire:key="event-activity-preview-{{ $previewActivity->id }}-{{ $activityPreviewRefreshTick }}"
@@ -57,16 +58,19 @@
                 @endif
             </x-ui.tabs-with-toolbar>
 
-            <div class="modal-action flex flex-wrap items-center justify-end gap-2 border-t border-base-300 pt-4" data-ui="event-activity-preview-actions">
+        </div>
+
+        <x-slot:actions>
+            <div class="flex flex-wrap items-center justify-end gap-2" data-ui="event-activity-preview-actions">
                 @php
                     $previewActivitySharePayload = app(\App\Support\Sharing\ShareLinks::class)->forActivity($previewActivity);
                     $previewActivityCalendarPayload = app(\App\Support\Calendar\CalendarLinks::class)->forActivity($previewActivity);
                 @endphp
                 @if ($previewActivitySharePayload)
-                    <x-ui.share-menu :payload="$previewActivitySharePayload" />
+                    <x-ui.share-menu :payload="$previewActivitySharePayload" open-upward />
                 @endif
                 @if ($previewActivityCalendarPayload)
-                    <x-ui.calendar-menu :payload="$previewActivityCalendarPayload" />
+                    <x-ui.calendar-menu :payload="$previewActivityCalendarPayload" open-upward />
                 @endif
                 @auth
                     @if ($showPreviewParticipationTab ?? false)
@@ -134,6 +138,6 @@
                     </x-button>
                 @endif
             </div>
-        </div>
+        </x-slot:actions>
     </x-modal>
 @endif

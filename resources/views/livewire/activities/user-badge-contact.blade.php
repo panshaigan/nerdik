@@ -27,7 +27,7 @@
             <x-modal
                 wire:model="modalOpen"
                 :title="$user->displayName()"
-                box-class="max-w-lg overflow-x-hidden ui-modal-surface"
+                box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
                 class="backdrop-blur"
                 separator
                 data-ui="user-badge-contact-modal"

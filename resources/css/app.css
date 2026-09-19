@@ -1661,32 +1661,59 @@
     cursor: pointer;
 }
 
-.ui-invite-user-request-modal.modal-box,
-dialog.modal:has(.ui-invite-user-request-modal) {
-    overflow: visible !important;
-}
-
-.ui-invite-user-request-modal .modal-action {
-    overflow: visible;
-}
-
-.ui-listing-preview-modal.modal-box,
-dialog.modal:has(.ui-listing-preview-modal) {
-    overflow: visible !important;
-}
-
-.ui-listing-preview-modal .modal-action {
-    overflow: visible;
+/**
+ * DaisyUI .modal-box uses max-height: 100vh, which sits under mobile browser chrome.
+ * Cap every dialog to the small viewport plus safe-area (notches / home indicator).
+ */
+.modal-box {
+    max-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.5rem);
 }
 
 /**
- * Activity/event listing preview modals: keep actions above mobile browser chrome.
- * DaisyUI .modal-box uses max-height: 100vh, which sits under the bottom bar on phones.
+ * Tall overlays: pin title/close/actions; only the Mary slot (or equivalent body) scrolls.
  */
-@media (max-width: 767px) {
-    .modal-box.ui-listing-preview-modal {
-        margin-block: 1rem 1.5rem;
-        max-height: calc(100svh - 2.5rem);
+.ui-overlay-shell.modal-box {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.ui-overlay-shell.modal-box > form,
+.ui-overlay-shell.modal-box > header,
+.ui-overlay-shell.modal-box > hr,
+.ui-overlay-shell.modal-box > h3,
+.ui-overlay-shell.modal-box > .modal-action,
+.ui-overlay-shell.modal-box > div[class*='mb-10'] {
+    flex-shrink: 0;
+}
+
+.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/**
+ * Listing previews: bottom sheet on small screens, right shelf from md up.
+ * Pair with DaisyUI `modal-bottom md:modal-end` on the dialog.
+ */
+.modal.modal-bottom .ui-overlay-sheet.modal-box {
+    width: 100%;
+    max-width: none;
+    max-height: min(90svh, calc(100svh - env(safe-area-inset-top, 0px)));
+}
+
+@media (width >= 768px) {
+    .modal.md\:modal-end .ui-overlay-sheet.modal-box {
+        width: min(36rem, 100%);
+        max-width: min(36rem, 100%);
+        height: 100svh;
+        max-height: 100svh;
+        margin-block: 0;
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
     }
 }
 

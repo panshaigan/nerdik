@@ -152,7 +152,9 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertDontSee('Preview Venue · Room B')
             ->assertSee('10:00')
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"')
-            ->assertSee(__('ui.activities.show_details'));
+            ->assertSee(__('ui.activities.show_details'))
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="event-activity-preview-actions"');
     }
 
     public function test_listing_activity_preview_shows_participation_tab_when_enrollment_window_is_open(): void

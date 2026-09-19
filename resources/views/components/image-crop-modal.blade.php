@@ -3,7 +3,7 @@
 ])
 
 <dialog id="ui-image-crop-modal" class="modal backdrop-blur z-[100030]">
-    <div class="modal-box max-w-lg ui-modal-surface">
+    <div class="modal-box max-w-lg ui-modal-surface ui-overlay-shell">
         <h3 class="text-lg font-semibold" data-image-crop-modal-title>{{ $title }}</h3>
         <div class="ui-image-crop-stage mt-4 w-full" wire:ignore>
             <div class="ui-image-crop-canvas" data-image-crop-stage>
