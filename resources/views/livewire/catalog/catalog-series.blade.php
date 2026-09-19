@@ -21,6 +21,7 @@
                             :subtitle="trans_choice('ui.catalog.upcoming_events', (int) $series->upcoming_public_events_count, [
                                 'count' => (int) $series->upcoming_public_events_count,
                             ])"
+                            icon="o-rectangle-stack"
                             data-ui="catalog-series-card"
                         />
                     </div>

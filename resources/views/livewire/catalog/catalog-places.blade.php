@@ -23,6 +23,7 @@
                             :href="BrowseSearchUrl::forPlace($place)"
                             :title="$place->name"
                             :subtitle="$place->locationLabel()"
+                            icon="o-map-pin"
                             data-ui="catalog-place-card"
                         />
                     </div>
