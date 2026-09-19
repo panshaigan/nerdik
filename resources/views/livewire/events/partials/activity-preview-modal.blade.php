@@ -20,10 +20,8 @@
 
     <x-modal
         wire:model="activityPreviewModalOpen"
-        :title="$previewActivity->name"
         box-class="ui-modal-surface ui-overlay-shell ui-overlay-sheet"
         class="backdrop-blur modal-bottom md:modal-end"
-        separator
         data-ui="overlay-sheet"
     >
         <div
@@ -37,9 +35,26 @@
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="relative flex min-h-0 w-full flex-1 flex-col"
-                toolbar-wrapper-class="hidden"
+                toolbar-wrapper-class="flex max-w-[55%] shrink-0 items-center justify-end gap-1 px-1 pb-2 sm:max-w-none"
                 data-ui="overlay-sticky-tabs"
             >
+                <x-slot:heading>
+                    <h2 class="pr-8 text-xl font-extrabold leading-tight text-base-content">
+                        {{ $previewActivity->name }}
+                    </h2>
+                </x-slot:heading>
+                @if ($previewActivity->creator)
+                    <x-slot:toolbar>
+                        <div class="min-w-0" data-ui="event-activity-preview-host">
+                            <x-user-badge
+                                :user="$previewActivity->creator"
+                                size="sm"
+                                :context-activity-id="$previewActivity->id"
+                                name-class="truncate text-xs font-medium text-base-content"
+                            />
+                        </div>
+                    </x-slot:toolbar>
+                @endif
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="event-activity-preview-tab-info" icon="o-light-bulb">
                     @include('livewire.events.partials.activity-preview-info-tab', [
                         'activity' => $previewActivity,

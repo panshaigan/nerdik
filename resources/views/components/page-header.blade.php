@@ -12,10 +12,11 @@
 @php
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
-<div {{ $attributes->class(['px-1 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
+
+<div {{ $attributes->class(['ui-activity-show-info-panel mx-1 my-5 sm:mx-6 lg:mx-8', $headerClass]) }}>
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
-            <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-base-100 sm:text-4xl">
+            <h1 class="font-display text-lg font-medium leading-tight text-glow-base-100 mb-4 sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     @if ($backUrl)
                         <a
@@ -28,13 +29,7 @@
                             <x-icon name="o-chevron-double-left" class="h-8 w-8 shrink-0" />
                         </a>
                     @endif
-                    @isset($titlePrefix)
-                        {{ $titlePrefix }}
-                    @endisset
                     <span>{{ $title }}</span>
-                    @isset($titleSuffix)
-                        {{ $titleSuffix }}
-                    @endisset
                 </span>
             </h1>
 
@@ -52,7 +47,7 @@
                 :size="$userBadgeSize"
                 data-ui="activity-show-host"
                 :title="$resolvedUserBadgeTitle"
-                name-class="font-display text-sm font-normal text-base text-glow-base-100 max-sm:whitespace-normal sm:truncate"
+                name-class="text-sm font-normal text-base text-glow-base-100 max-sm:whitespace-normal sm:truncate"
                 class="w-full sm:w-auto sm:shrink-0 [&_.avatar>div]:border-base/60 [&_.avatar>div]:bg-base-100/80 [&_.avatar>div]:box-glow-base"
             />
         @endif

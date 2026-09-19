@@ -1673,11 +1673,11 @@
 .ui-overlay-shell.modal-box > hr,
 .ui-overlay-shell.modal-box > h3,
 .ui-overlay-shell.modal-box > .modal-action,
-.ui-overlay-shell.modal-box > div:first-of-type {
+.ui-overlay-shell.modal-box > div:first-of-type:not(:has([data-ui='overlay-sticky-tabs'])) {
     flex: 0 0 auto;
 }
 
-.ui-overlay-shell.modal-box > div:first-of-type {
+.ui-overlay-shell.modal-box > div:first-of-type:not(:has([data-ui='overlay-sticky-tabs'])) {
     margin-bottom: 0 !important;
 }
 
@@ -1695,9 +1695,12 @@
 /**
  * Tabbed overlays: pin the tab label bar; only the tab panels scroll.
  * Hook: data-ui="overlay-sticky-tabs" on tabs-with-toolbar.
+ * When Mary has no title header, this slot wrapper is also div:first-of-type.
  */
-.ui-overlay-shell.modal-box > div:not(.modal-action):not(:first-of-type):has([data-ui='overlay-sticky-tabs']) {
+.ui-overlay-shell.modal-box > div:not(.modal-action):has([data-ui='overlay-sticky-tabs']) {
     display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
     flex-direction: column;
     overflow: hidden;
 }

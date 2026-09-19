@@ -4,17 +4,6 @@
 
 <div class="space-y-4" data-ui="event-activity-preview-info">
     <div class="space-y-2">
-        @if ($activity->creator)
-            <div class="pointer-events-auto" data-ui="event-activity-preview-host">
-                <x-user-badge
-                    :user="$activity->creator"
-                    size="sm"
-                    :context-activity-id="$activity->id"
-                    name-class="truncate text-xs font-medium text-base-content"
-                />
-            </div>
-        @endif
-
         @if ($activity->isCancelled())
             <div class="space-y-1">
                 <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>

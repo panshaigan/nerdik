@@ -348,7 +348,13 @@
                                     <div @class(['relative z-[2] flex items-start justify-between gap-2', 'pointer-events-none' => $activity])>
                                         <div class="min-w-0 flex-1 space-y-1.5">
                                             @if ($activity)
-                                                <h4 class="text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
+                                                <div class="flex items-baseline gap-2">
+                                                    <h4 class="min-w-0 flex-1 truncate text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
+                                                    <span class="inline-flex shrink-0 items-center gap-1.5 text-sm tabular-nums text-base-content/75" title="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}" aria-label="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}">
+                                                        <x-icon name="o-users" class="h-4 w-4 shrink-0 text-base-content/50" />
+                                                        <span>{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}</span>
+                                                    </span>
+                                                </div>
                                                 @if ($activity->isCancelled())
                                                     <div class="mt-1">
                                                         <span class="badge badge-warning">{{ __('ui.activities.cancelled_badge') }}</span>
@@ -371,12 +377,7 @@
                                                         </span>
                                                     </span>
                                                 @endif
-                                                @if ($activity)
-                                                    <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/75" title="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}" aria-label="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}">
-                                                        <x-icon name="o-users" class="h-4 w-4 shrink-0 text-base-content/50" />
-                                                        <span>{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}</span>
-                                                    </span>
-                                                @elseif ($participantsCount !== null)
+                                                @if (! $activity && $participantsCount !== null)
                                                     <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums text-base-content/60" title="{{ $participantsCount }}" aria-label="{{ $participantsCount }}">
                                                         <x-icon name="o-users" class="h-4 w-4 shrink-0" />
                                                         <span>{{ $participantsCount }}</span>

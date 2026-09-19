@@ -83,28 +83,17 @@
             class="ui-activity-show-info-panel ui-activity-show-stat-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
             data-ui="activity-show-badge-group"
         />
-        <div class="grid shrink-0 grid-cols-2 gap-3 sm:w-auto">
-            <div
-                class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]"
-                data-ui="activity-show-participants-stat"
-            >
-                <x-stat
-                    title="{{ __('ui.activities.show_participation_section') }}"
-                    value="{{ $participantsCounterValue }}"
-                    icon="o-users"
-                    color="text-base-content"
-                    class="ui-stat-embed ui-activity-show-stat"
-                />
-            </div>
-            <div class="group ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]">
-                <x-ui.interested-stat-card
-                    :title="__('ui.interests.interested_in_short')"
-                    :value="$interestedPeopleCount"
-                    :has-interest="$hasInterest"
-                    class="w-full rounded-2xl"
-                    data-ui="activity-show-interested-stat"
-                />
-            </div>
+        <div
+            class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] shrink-0 items-center rounded-2xl sm:min-w-[10rem]"
+            data-ui="activity-show-participants-stat"
+        >
+            <x-stat
+                title="{{ __('ui.activities.show_participation_section') }}"
+                value="{{ $participantsCounterValue }}"
+                icon="o-users"
+                color="text-base-content"
+                class="ui-stat-embed ui-activity-show-stat"
+            />
         </div>
     </div>
 
@@ -188,26 +177,39 @@
                                 </x-ui.overflow-menu>
                             @endif
                             @if ($hasInterest)
-                                <x-button
-                                    type="button"
-                                    wire:click="removeInterest"
-                                    class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                    :tooltip="__('ui.interests.remove_from_interests')"
-                                    :aria-label="__('ui.interests.remove_from_interests')"
-                                    data-ui="activity-show-interest-remove"
-                                    icon="s-star"
-                                />
+                                <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
+                                    <x-button
+                                        type="button"
+                                        wire:click="removeInterest"
+                                        class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                        :tooltip="__('ui.interests.remove_from_interests')"
+                                        :aria-label="__('ui.interests.remove_from_interests')"
+                                        data-ui="activity-show-interest-remove"
+                                        icon="s-star"
+                                    />
+                                </x-ui.icon-count-badge>
                             @else
-                                <x-button
-                                    type="button"
-                                    wire:click="addInterest"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                    :tooltip="__('ui.interests.add_to_interests')"
-                                    :aria-label="__('ui.interests.add_to_interests')"
-                                    data-ui="activity-show-interest-add"
-                                    icon="o-star"
-                                />
+                                <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
+                                    <x-button
+                                        type="button"
+                                        wire:click="addInterest"
+                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                        :tooltip="__('ui.interests.add_to_interests')"
+                                        :aria-label="__('ui.interests.add_to_interests')"
+                                        data-ui="activity-show-interest-add"
+                                        icon="o-star"
+                                    />
+                                </x-ui.icon-count-badge>
                             @endif
+                        @else
+                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
+                                <span
+                                    class="btn btn-ghost btn-square btn-sm pointer-events-none text-base-content/80"
+                                    aria-hidden="true"
+                                >
+                                    <x-icon name="o-star" class="h-5 w-5" />
+                                </span>
+                            </x-ui.icon-count-badge>
                         @endauth
                     </div>
                 </x-slot:toolbar>

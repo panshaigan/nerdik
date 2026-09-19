@@ -167,64 +167,28 @@ class ShowActivityActionsTest extends TestCase
         $this->assertFalse($user->fresh()->interestedActivities()->whereKey($activity->id)->exists());
     }
 
-    public function test_interested_stat_includes_wire_click_when_authenticated(): void
+    public function test_toolbar_interest_button_includes_wire_click_when_authenticated(): void
     {
         $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
-        $html = Livewire::actingAs($user)
+        Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])
-            ->html();
-
-        $opening = $this->interestedStatOpeningTag($html);
-        $this->assertNotNull($opening);
-        $this->assertStringContainsString('wire:click="addInterest"', $opening);
-        $this->assertStringContainsString('wire:target="addInterest, removeInterest"', $opening);
-        $this->assertStringContainsString('wire:loading.class.delay="pointer-events-none cursor-wait"', $opening);
-        $this->assertStringContainsString('loading loading-spinner loading-sm', $html);
+            ->assertSeeHtml('data-ui="activity-show-interest-add"')
+            ->assertSeeHtml('wire:click="addInterest"');
     }
 
-    public function test_interested_stat_uses_outline_star_when_user_is_not_interested(): void
-    {
-        $user = User::factory()->create();
-        $activity = Activity::factory()->create();
-
-        $html = Livewire::actingAs($user)
-            ->test(ShowActivity::class, ['activity' => $activity])
-            ->html();
-
-        $statHtml = $this->interestedStatHtml($html);
-        $this->assertNotNull($statHtml);
-        $this->assertStringContainsString('text-base-content/80 group-hover:text-warning', $statHtml);
-        $this->assertStringContainsString('fill="none"', $statHtml);
-    }
-
-    public function test_interested_stat_uses_filled_yellow_star_when_user_is_interested(): void
-    {
-        $user = User::factory()->create();
-        $activity = Activity::factory()->create();
-        $user->interestedActivities()->attach($activity->id);
-
-        $html = Livewire::actingAs($user)
-            ->test(ShowActivity::class, ['activity' => $activity])
-            ->html();
-
-        $statHtml = $this->interestedStatHtml($html);
-        $this->assertNotNull($statHtml);
-        $this->assertStringContainsString('class="  text-warning"', $statHtml);
-        $this->assertStringContainsString('fill="currentColor"', $statHtml);
-    }
-
-    public function test_interested_stat_has_no_wire_click_for_guest(): void
+    public function test_guest_sees_follow_count_without_toggle(): void
     {
         $activity = Activity::factory()->create();
 
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
 
-        $opening = $this->interestedStatOpeningTag($html);
-        $this->assertNotNull($opening);
-        $this->assertStringNotContainsString('wire:click', $opening);
-        $this->assertStringNotContainsString('wire:target', $opening);
+        $this->assertStringContainsString('data-ui="activity-show-interest-count"', $html);
+        $this->assertStringNotContainsString('data-ui="activity-show-interest-add"', $html);
+        $this->assertStringNotContainsString('data-ui="activity-show-interest-remove"', $html);
+        $this->assertStringNotContainsString('wire:click="addInterest"', $html);
+        $this->assertStringNotContainsString('wire:click="removeInterest"', $html);
     }
 
     public function test_toolbar_interest_buttons_toggle_for_authenticated_user(): void
@@ -252,24 +216,24 @@ class ShowActivityActionsTest extends TestCase
 
         Livewire::test(ShowActivity::class, ['activity' => $activity])
             ->assertDontSeeHtml('data-ui="activity-show-interest-add"')
-            ->assertDontSeeHtml('data-ui="activity-show-interest-remove"');
+            ->assertDontSeeHtml('data-ui="activity-show-interest-remove"')
+            ->assertSeeHtml('data-ui="activity-show-interest-count"');
     }
 
-    public function test_interested_stat_count_updates_after_interest_toggle(): void
+    public function test_toolbar_follow_count_updates_after_interest_toggle(): void
     {
         $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
         $component = Livewire::actingAs($user)
-            ->test(ShowActivity::class, ['activity' => $activity]);
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSeeHtml('data-count="0"');
 
-        $component->assertSee('0');
+        $component->call('addInterest')
+            ->assertSeeHtml('data-count="1"');
 
-        $component->call('addInterest');
-        $component->assertSee('1');
-
-        $component->call('removeInterest');
-        $component->assertSee('0');
+        $component->call('removeInterest')
+            ->assertSeeHtml('data-count="0"');
     }
 
     public function test_join_leave_buttons_render_with_spinner_attributes(): void
@@ -306,31 +270,5 @@ class ShowActivityActionsTest extends TestCase
             ->set('tab', 'participation')
             ->assertSeeHtml('wire:target="confirmRemoveParticipant('.$participant->id.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
-    }
-
-    /**
-     * @return non-empty-string|null
-     */
-    private function interestedStatOpeningTag(string $html): ?string
-    {
-        if (preg_match('/<div\b[^>]*\bdata-ui="activity-show-interested-stat"[^>]*>/', $html, $matches) !== 1) {
-            return null;
-        }
-
-        /** @var non-falsy-string */
-        return $matches[0];
-    }
-
-    /**
-     * @return non-empty-string|null
-     */
-    private function interestedStatHtml(string $html): ?string
-    {
-        if (preg_match('/<div\b[^>]*\bdata-ui="activity-show-interested-stat"[^>]*>.*?<\/div>\s*<\/div>/s', $html, $matches) !== 1) {
-            return null;
-        }
-
-        /** @var non-falsy-string */
-        return $matches[0];
     }
 }

@@ -37,7 +37,7 @@ final class ShowActivityInfoSectionTest extends TestCase
 
         $this->assertStringContainsString('data-ui="activity-show-info-section"', $html);
         $this->assertStringContainsString('data-ui="activity-show-participants-stat"', $html);
-        $this->assertStringContainsString('data-ui="activity-show-interested-stat"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-interest-count"', $html);
         $this->assertStringContainsString('0/4', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
         $this->assertStringContainsString('Mental Illness', $html);

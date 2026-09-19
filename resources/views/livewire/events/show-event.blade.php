@@ -112,7 +112,7 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 gap-3 px-4 sm:px-6 lg:px-8">
         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_participants') }}"
@@ -127,15 +127,6 @@
                 value="{{ $confirmedActivitiesCount }}"
                 icon="o-puzzle-piece"
                 class="ui-stat-embed ui-activity-show-stat"
-            />
-        </div>
-        <div class="group ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-0 items-center rounded-2xl">
-            <x-ui.interested-stat-card
-                :title="__('ui.events.interested_people_count')"
-                :value="$interestedPeopleCount"
-                :has-interest="$hasInterest"
-                class="w-full rounded-2xl"
-                data-ui="event-show-interested-stat"
             />
         </div>
     </div>
@@ -244,26 +235,39 @@
                             </x-ui.overflow-menu>
                         @endif
                         @if ($hasInterest)
-                            <x-button
-                                type="button"
-                                wire:click="removeInterest"
-                                class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                :tooltip="__('ui.interests.remove_from_interests')"
-                                :aria-label="__('ui.interests.remove_from_interests')"
-                                data-ui="event-show-interest-remove"
-                                icon="s-star"
-                            />
+                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
+                                <x-button
+                                    type="button"
+                                    wire:click="removeInterest"
+                                    class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                    :tooltip="__('ui.interests.remove_from_interests')"
+                                    :aria-label="__('ui.interests.remove_from_interests')"
+                                    data-ui="event-show-interest-remove"
+                                    icon="s-star"
+                                />
+                            </x-ui.icon-count-badge>
                         @else
-                            <x-button
-                                type="button"
-                                wire:click="addInterest"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                :tooltip="__('ui.interests.add_to_interests')"
-                                :aria-label="__('ui.interests.add_to_interests')"
-                                data-ui="event-show-interest-add"
-                                icon="o-star"
-                            />
+                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
+                                <x-button
+                                    type="button"
+                                    wire:click="addInterest"
+                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                    :tooltip="__('ui.interests.add_to_interests')"
+                                    :aria-label="__('ui.interests.add_to_interests')"
+                                    data-ui="event-show-interest-add"
+                                    icon="o-star"
+                                />
+                            </x-ui.icon-count-badge>
                         @endif
+                    @else
+                        <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
+                            <span
+                                class="btn btn-ghost btn-square btn-sm pointer-events-none text-base-content/80"
+                                aria-hidden="true"
+                            >
+                                <x-icon name="o-star" class="h-5 w-5" />
+                            </span>
+                        </x-ui.icon-count-badge>
                     @endauth
                 </div>
             </x-slot:toolbar>
