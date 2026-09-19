@@ -32,6 +32,8 @@ class ActivityForm
                     ->numeric(),
                 TextInput::make('minimum_age')
                     ->numeric(),
+                TextInput::make('maximum_age')
+                    ->numeric(),
                 TextInput::make('cancellation_deadline_in_hours')
                     ->numeric(),
                 TextInput::make('lottery_draw_in_hours')

@@ -155,6 +155,42 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
     }
 
     #[Test]
+    public function activity_hero_shows_age_range_when_both_bounds_are_set(): void
+    {
+        $activity = Activity::factory()->create([
+            'minimum_age' => 12,
+            'maximum_age' => 16,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNotNull($ageItem);
+        $this->assertSame('12–16', $ageItem->label);
+    }
+
+    #[Test]
+    public function activity_hero_shows_max_only_age_badge(): void
+    {
+        $activity = Activity::factory()->create([
+            'minimum_age' => null,
+            'maximum_age' => 16,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNotNull($ageItem);
+        $this->assertSame('≤16', $ageItem->label);
+    }
+
+    #[Test]
     public function build_activity_type_chips_skips_empty_labels(): void
     {
         $items = $this->builder->buildActivityTypeChips([' ', 'RPG', '']);

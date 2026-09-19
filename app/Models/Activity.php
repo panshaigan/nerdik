@@ -53,6 +53,7 @@ class Activity extends Model implements HasMedia
         'min_participants',
         'max_participants',
         'minimum_age',
+        'maximum_age',
         'price',
         'is_host_passive',
         'created_by',

@@ -141,7 +141,7 @@ class ManageActivityFormUiTest extends TestCase
             ->assertHasErrors(['hosting_mode']);
     }
 
-    public function test_minimum_age_zero_saves_as_null(): void
+    public function test_age_range_saves_minimum_and_maximum(): void
     {
         $this->seed(ActivityTypeSeeder::class);
         app()->setLocale('en');
@@ -151,16 +151,53 @@ class ManageActivityFormUiTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class)
-            ->set('name', 'No Age Limit Activity')
+            ->set('name', 'Age Range Activity')
             ->set('activity_type_id', $activityTypeId)
             ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
-            ->set('minimum_age', 0)
+            ->set('minimum_age', 12)
+            ->set('maximum_age', 16)
             ->call('save')
             ->assertHasNoErrors();
 
-        $activity = Activity::query()->where('name', 'No Age Limit Activity')->first();
+        $activity = Activity::query()->where('name', 'Age Range Activity')->first();
         $this->assertNotNull($activity);
-        $this->assertNull($activity->minimum_age);
+        $this->assertSame(12, $activity->minimum_age);
+        $this->assertSame(16, $activity->maximum_age);
+    }
+
+    public function test_age_range_rejects_minimum_greater_than_maximum(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('name', 'Invalid Age Range Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('minimum_age', 16)
+            ->set('maximum_age', 12)
+            ->call('save')
+            ->assertHasErrors(['minimum_age', 'maximum_age']);
+    }
+
+    public function test_edit_form_clamps_legacy_age_below_one(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'minimum_age' => 0,
+            'maximum_age' => 20,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('minimum_age', 1)
+            ->assertSet('maximum_age', 18);
     }
 
     public function test_edit_form_loads_duration_and_cancellation_deadline(): void

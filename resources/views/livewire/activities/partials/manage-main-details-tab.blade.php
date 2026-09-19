@@ -47,24 +47,17 @@
                     range-class="range-xs"
                 />
 
-                <div
-                    x-data="{
-                        value: @entangle('minimum_age'),
-                        noLimitLabel: @js(__('ui.activities.minimum_age_no_limit')),
-                    }"
-                    x-init="$nextTick(() => value = value ?? 0)"
-                    class="min-w-0 space-y-1"
-                >
-                    <label class="text-sm font-medium flex justify-between">
-                        <span>{{ __('ui.activities.minimum_age') }}: <span class="font-semibold" x-text="value == 0 ? noLimitLabel : value"></span></span>
-                    </label>
-                    <x-range
-                        x-model="value"
-                        min="0"
-                        max="18"
-                        class="range-xs w-full"
-                    />
-                </div>
+                <x-range-dual
+                    wire:key="age-range"
+                    class="min-w-0"
+                    :label="__('ui.activities.age')"
+                    min-wire-model="minimum_age"
+                    max-wire-model="maximum_age"
+                    :min-limit="1"
+                    :max-limit="18"
+                    :step="1"
+                    range-class="range-xs"
+                />
 
                 <div
                     x-data="{

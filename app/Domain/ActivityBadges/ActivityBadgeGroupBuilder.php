@@ -117,14 +117,14 @@ class ActivityBadgeGroupBuilder
                 ),
             ];
         }
-        if (($surfaceCfg['minimum_age'] ?? false) && filled($activity->minimum_age)) {
+        if (($surfaceCfg['minimum_age'] ?? false) && (filled($activity->minimum_age) || filled($activity->maximum_age))) {
             $rows[] = [
                 'order' => $orderIndices['meta:minimum_age'] ?? 52,
                 'tie' => 0,
                 'item' => new ActivityBadgeItem(
                     ActivityBadgeKind::MinimumAge,
                     'meta:minimum_age',
-                    $activity->minimum_age.'+',
+                    $this->ageRangeBadgeLabel($activity),
                     $config->semanticFor(ActivityBadgeKind::MinimumAge),
                     $config->iconFor(ActivityBadgeKind::MinimumAge),
                     ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::MinimumAge),
@@ -186,6 +186,22 @@ class ActivityBadgeGroupBuilder
         return $translation?->label
             ?? $translation?->slug
             ?? '#'.$tag->id;
+    }
+
+    private function ageRangeBadgeLabel(Activity $activity): string
+    {
+        $min = $activity->minimum_age;
+        $max = $activity->maximum_age;
+
+        if (filled($min) && filled($max)) {
+            return $min.'–'.$max;
+        }
+
+        if (filled($min)) {
+            return $min.'+';
+        }
+
+        return '≤'.$max;
     }
 
     private function surfaceKey(ActivityBadgePreset $preset): string

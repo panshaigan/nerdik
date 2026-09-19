@@ -43,11 +43,7 @@ final class ActivityFactory extends Factory
 
             'min_participants' => fake()->numberBetween(1, 3),
             'max_participants' => fake()->numberBetween(6, 12),
-            'minimum_age' => fake()->optional(0.3)->randomElement([
-                12,
-                16, 16,
-                18, 18, 18, 18,
-            ]),
+            ...$this->optionalAgeRange(),
             'cancellation_deadline_in_hours' => fake()->optional()->randomElement([
                 12,
                 18, 18,
@@ -71,6 +67,32 @@ final class ActivityFactory extends Factory
             'slug' => Str::slug($name),
             'description' => fake()->text(2000),
             'created_by' => User::factory(),
+        ];
+    }
+
+    /**
+     * @return array{minimum_age: int|null, maximum_age: int|null}
+     */
+    private function optionalAgeRange(): array
+    {
+        $minimumAge = fake()->optional(0.3)->randomElement([
+            12,
+            16, 16,
+            18, 18, 18, 18,
+        ]);
+
+        if ($minimumAge === null) {
+            return [
+                'minimum_age' => null,
+                'maximum_age' => null,
+            ];
+        }
+
+        $maximumAge = fake()->optional(0.5)->numberBetween((int) $minimumAge, 18);
+
+        return [
+            'minimum_age' => (int) $minimumAge,
+            'maximum_age' => $maximumAge === null ? null : (int) $maximumAge,
         ];
     }
 

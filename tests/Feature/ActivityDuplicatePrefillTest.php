@@ -37,6 +37,7 @@ class ActivityDuplicatePrefillTest extends TestCase
             'min_participants' => 2,
             'max_participants' => 5,
             'minimum_age' => 12,
+            'maximum_age' => 16,
             'duration_in_minutes' => 180,
             'cancellation_deadline_in_hours' => 24,
         ]);
@@ -50,6 +51,8 @@ class ActivityDuplicatePrefillTest extends TestCase
             ->assertSet('description', '<p>Hello</p>')
             ->assertSet('activity_type_id', $source->activity_type_id)
             ->assertSet('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->assertSet('minimum_age', 12)
+            ->assertSet('maximum_age', 16)
             ->assertSet('proposal_event_id', null)
             ->assertSet('self_hosted_starts_at', null)
             ->assertSet('place_ids', [])

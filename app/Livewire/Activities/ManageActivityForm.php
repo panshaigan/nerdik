@@ -81,6 +81,8 @@ class ManageActivityForm extends Component
 
     public ?int $minimum_age = null;
 
+    public ?int $maximum_age = null;
+
     public ?int $duration_in_minutes = null;
 
     public ?int $cancellation_deadline_in_hours = null;
@@ -172,6 +174,8 @@ class ManageActivityForm extends Component
             $this->max_participants = $activity->max_participants;
             $this->normalizeParticipantBounds();
             $this->minimum_age = $activity->minimum_age;
+            $this->maximum_age = $activity->maximum_age;
+            $this->normalizeAgeBounds();
             $this->duration_in_minutes = $activity->duration_in_minutes;
             $this->cancellation_deadline_in_hours = $activity->cancellation_deadline_in_hours;
             $this->lottery_draw_in_hours = $activity->lottery_draw_in_hours;
@@ -322,7 +326,7 @@ class ManageActivityForm extends Component
 
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
-            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
+            'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
             'lottery_draw_in_hours', 'participation_mode', 'allows_observers' => 'participation-rules',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
@@ -486,6 +490,8 @@ class ManageActivityForm extends Component
         $this->max_participants = $source->max_participants;
         $this->normalizeParticipantBounds();
         $this->minimum_age = $source->minimum_age;
+        $this->maximum_age = $source->maximum_age;
+        $this->normalizeAgeBounds();
         $this->duration_in_minutes = $source->duration_in_minutes;
         $this->cancellation_deadline_in_hours = $source->cancellation_deadline_in_hours;
         $this->lottery_draw_in_hours = $source->lottery_draw_in_hours;
@@ -746,12 +752,12 @@ class ManageActivityForm extends Component
     #[\Override]
     protected function prepareForValidation($attributes)
     {
-        foreach (['min_participants', 'max_participants', 'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
+        foreach (['min_participants', 'max_participants', 'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
             if ($this->{$key} === '') {
                 $this->{$key} = null;
             }
         }
-        foreach (['minimum_age', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
+        foreach (['cancellation_deadline_in_hours', 'lottery_draw_in_hours'] as $key) {
             if ($this->{$key} !== null) {
                 $value = (int) $this->{$key};
                 $this->{$key} = $value >= 1 ? $value : null;
@@ -895,7 +901,36 @@ class ManageActivityForm extends Component
                     }
                 },
             ],
-            'minimum_age' => ['nullable', 'integer', 'min:0'],
+            'minimum_age' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:18',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $max = $this->maximum_age;
+                    if ($max !== null && $max !== '' && (int) $value > (int) $max) {
+                        $fail(__('ui.activities.min_age_lte_max'));
+                    }
+                },
+            ],
+            'maximum_age' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:18',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $min = $this->minimum_age;
+                    if ($min !== null && $min !== '' && (int) $value < (int) $min) {
+                        $fail(__('ui.activities.max_age_gte_min'));
+                    }
+                },
+            ],
             'duration_in_minutes' => ['nullable', Rule::numeric()->integer()->min(0)->multipleOf(5)],
             'cancellation_deadline_in_hours' => ['nullable', 'integer', 'min:1'],
             'lottery_draw_in_hours' => [
@@ -1358,6 +1393,27 @@ class ManageActivityForm extends Component
         }
         if ($this->min_participants !== null && $this->max_participants !== null && $this->min_participants > $this->max_participants) {
             $this->min_participants = $this->max_participants;
+        }
+    }
+
+    private function normalizeAgeBounds(): void
+    {
+        $limit = 18;
+
+        if ($this->minimum_age !== null && $this->minimum_age < 1) {
+            $this->minimum_age = 1;
+        }
+        if ($this->maximum_age !== null && $this->maximum_age < 1) {
+            $this->maximum_age = 1;
+        }
+        if ($this->minimum_age !== null && $this->minimum_age > $limit) {
+            $this->minimum_age = $limit;
+        }
+        if ($this->maximum_age !== null && $this->maximum_age > $limit) {
+            $this->maximum_age = $limit;
+        }
+        if ($this->minimum_age !== null && $this->maximum_age !== null && $this->minimum_age > $this->maximum_age) {
+            $this->minimum_age = $this->maximum_age;
         }
     }
 

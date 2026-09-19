@@ -46,6 +46,9 @@ class ActivitiesTable
                 TextColumn::make('minimum_age')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('maximum_age')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('cancellation_deadline_in_hours')
                     ->numeric()
                     ->sortable(),
