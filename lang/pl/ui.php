@@ -898,7 +898,7 @@ return [
     ],
     'event_series' => [
         'tab_events' => 'Wydarzenia',
-        'tab_hosts' => 'Gospodarze',
+        'tab_hosts' => 'Prowadzący',
         'tab_activities' => 'Aktywności',
         'tab_stats' => 'Statystyki',
         'empty_events' => 'Brak edycji w tym cyklu.',

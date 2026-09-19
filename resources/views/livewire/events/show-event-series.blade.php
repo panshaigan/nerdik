@@ -18,26 +18,12 @@
                         icon="o-puzzle-piece"
                         class="ui-stat-embed ui-activity-show-stat"
                     />
-                    <div class="ui-stat-embed ui-activity-show-stat relative col-span-2 w-full px-5 py-4 sm:col-span-1">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="text-sm text-base-content/70">{{ __('ui.event_series.stats_participants') }}</div>
-                            <x-popover class="shrink-0 transition-none" position="top" offset="8">
-                                <x-slot:trigger>
-                                    <x-icon
-                                        name="o-information-circle"
-                                        class="h-4 w-4 text-base-content/50"
-                                    />
-                                </x-slot:trigger>
-                                <x-slot:content class="!w-72 max-w-[min(18rem,calc(100vw-2rem))] whitespace-normal text-sm text-base-content">
-                                    {{ __('ui.event_series.stats_participants_hint') }}
-                                </x-slot:content>
-                            </x-popover>
-                        </div>
-                        <div class="mt-1 flex items-center gap-2 text-2xl font-semibold">
-                            <x-icon name="o-users" class="h-6 w-6 shrink-0 opacity-70" />
-                            <span>{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}</span>
-                        </div>
-                    </div>
+                    <x-stat
+                        title="{{ __('ui.event_series.stats_participants') }}"
+                        value="{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}"
+                        icon="o-users"
+                        class="ui-stat-embed ui-activity-show-stat col-span-2 sm:col-span-1"
+                    />
                 </div>
             </x-slot:info>
         </x-page-header>
