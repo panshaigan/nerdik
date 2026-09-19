@@ -589,6 +589,7 @@ return [
         'no_participants' => 'Brak uczestników.',
         'waitlist_empty_hint' => 'Na liście oczekujących nikogo jeszcze nie ma.',
         'tab_main_details' => 'Główne dane',
+        'tab_participation_rules' => 'Zasady udziału',
     ],
     'events' => [
         'host' => 'Organizator',

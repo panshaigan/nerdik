@@ -589,6 +589,7 @@ return [
         'no_participants' => 'No participants yet.',
         'waitlist_empty_hint' => 'No one is on the waitlist yet.',
         'tab_main_details' => 'Main details',
+        'tab_participation_rules' => 'Participation rules',
     ],
     'events' => [
         'host' => 'Host',

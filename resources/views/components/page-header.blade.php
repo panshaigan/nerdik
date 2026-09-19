@@ -13,7 +13,7 @@
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
 <div {{ $attributes->class(['px-1 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
-    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
             <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-base-100 sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -37,6 +37,12 @@
                     @endisset
                 </span>
             </h1>
+
+            @isset($subtitle)
+                <div class="mt-1 text-sm text-base-content/60 pl-1">
+                    {{ $subtitle }}
+                </div>
+            @endisset
         </div>
 
         @if ($user)
@@ -51,12 +57,4 @@
             />
         @endif
     </div>
-
-    @isset($subtitle)
-        <div class="mt-1 text-sm text-base-content/60 pl-1">
-            {{ $subtitle }}
-        </div>
-    @endisset
-
-
 </div>

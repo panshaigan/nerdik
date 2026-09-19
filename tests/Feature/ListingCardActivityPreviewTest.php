@@ -82,6 +82,28 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSeeHtml(route('events.show', $event));
     }
 
+    public function test_listing_card_shows_edit_for_admin_who_is_not_owner(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'name' => 'Admin Edit Activity',
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($admin)
+            ->test(BrowseActivities::class)
+            ->assertSeeHtml('data-ui="activity-card-edit"');
+    }
+
     public function test_listing_card_uses_preview_button_instead_of_navigate_link(): void
     {
         $owner = User::factory()->create();

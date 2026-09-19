@@ -77,7 +77,7 @@
     @endif
 
     @if ($hasEventDescription || $hasEnrollmentWindows)
-        <div class="space-y-4 py-2 sm:py-4" data-ui="event-show-plan-meta">
+        <div class="py-2" data-ui="event-show-plan-meta">
             <x-collapse
                 class="border border-primary/25 bg-base-200/40"
                 separator
@@ -96,13 +96,13 @@
                 </x-slot:heading>
                 <x-slot:content>
                     @if ($hasEventDescription)
-                        <div class="rich-text-content text-justify text-base-content/80 p-2 sm:p-4" data-ui="event-show-plan-info-description">
+                        <div class="rich-text-content text-base-content/80 p-1" data-ui="event-show-plan-info-description">
                             {!! rich_text($event->description) !!}
                         </div>
                     @endif
 
                     @if ($hasEnrollmentWindows)
-                        <div @class(['mt-4' => $hasEventDescription]) data-ui="event-show-plan-enrollment">
+                        <div @class(['mt-2' => $hasEventDescription]) data-ui="event-show-plan-enrollment">
                             @include('livewire.events.partials.show-plan-enrollment-windows', [
                                 'event' => $event,
                                 'activeEnrollmentWindow' => $activeEnrollmentWindow,
@@ -152,7 +152,7 @@
                         :open="$shouldAutoOpen"
                     >
                         <x-slot:heading>
-                            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">
                                 {{ $group['label'] }}
                             </p>
                         </x-slot:heading>
@@ -268,6 +268,17 @@
                                                     </x-ui.overflow-menu>
                                                 @endif
                                                 @if ($activity)
+                                                    @if ($showActivityDetailsLink)
+                                                        <x-button
+                                                            :link="route('activities.show', $activity)"
+                                                            wire:navigate
+                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                            :aria-label="__('ui.activities.show_details').': '.$activity->name"
+                                                            :tooltip="__('ui.activities.show_details')"
+                                                            icon="o-arrow-top-right-on-square"
+                                                            data-ui="event-show-slot-open-details"
+                                                        />
+                                                    @endif
                                                     @php
                                                         $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
                                                     @endphp
@@ -290,17 +301,6 @@
                                                             icon="o-star"
                                                         />
                                                     @endif
-                                                    @if ($showActivityDetailsLink)
-                                                        <x-button
-                                                            :link="route('activities.show', $activity)"
-                                                            wire:navigate
-                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                                            :aria-label="__('ui.activities.show_details').': '.$activity->name"
-                                                            :tooltip="__('ui.activities.show_details')"
-                                                            icon="o-arrow-top-right-on-square"
-                                                            data-ui="event-show-slot-open-details"
-                                                        />
-                                                    @endif
                                                 @endif
                                             </div>
                                         @endif
@@ -320,7 +320,7 @@
                                         @endif
                                     @endauth
                                 </div>
-                                <div class="px-4 pb-3">
+                                <div class="px-3 pb-3 sm:px-4">
                                     @if ($activity)
                                         <button
                                             type="button"
@@ -383,25 +383,7 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            @if ($slot->place)
-                                                @php
-                                                    $slotPlace = $slot->place;
-                                                    $slotPlace->loadMissing('parent');
-                                                    $slotVenueName = $slotPlace->venueName();
-                                                    $slotRoomName = $slotPlace->parent_id && $slotPlace->parent
-                                                        ? (string) $slotPlace->name
-                                                        : null;
-                                                @endphp
-                                                <div class="space-y-0.5 text-sm text-base-content/60 mt-4">
-                                                    <span class="inline-flex items-center gap-1.5">
-                                                        <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
-                                                        <span>{{ $slotVenueName }}</span>
-                                                    </span>
-                                                    @if (filled($slotRoomName))
-                                                        <span class="block pl-5.5">{{ $slotRoomName }}</span>
-                                                    @endif
-                                                </div>
-                                            @endif
+
                                             @if ($activity && isset($activeWindowRemainingByActivityId[(int) $activity->id]))
                                                 <p class="text-xs text-base-content/70">
                                                     {{ __('ui.events.enrollment_window_activity_spots_remaining', [

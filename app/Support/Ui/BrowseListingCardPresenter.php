@@ -27,7 +27,7 @@ final class BrowseListingCardPresenter
     {
         $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
-        $isOwner = $currentUser !== null && (int) ($activity->created_by ?? 0) === (int) $currentUser->id;
+        $canEdit = $currentUser !== null && $currentUser->canModifyEntity($activity);
         $parentEvent = (int) ($activity->hosting_mode ?? 0) === Activity::HOSTING_MODE_SCHEDULED_ON_EVENT
             ? $activity->slot?->event
             : null;
@@ -46,7 +46,7 @@ final class BrowseListingCardPresenter
             coverPicture: $this->activityListingImageResolver->resolve($activity),
             detailsUrl: route('activities.show', $activity),
             editUrl: url_with_return(route('activities.edit', $activity), $return),
-            isOwner: $isOwner,
+            canEdit: $canEdit,
             isInterested: in_array((int) $activity->id, $interestedIds, true),
             interestWireMethod: 'toggleActivityInterest',
             timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
@@ -82,7 +82,7 @@ final class BrowseListingCardPresenter
     {
         $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
-        $isOwner = $currentUser !== null && (int) ($event->created_by ?? 0) === (int) $currentUser->id;
+        $canEdit = $currentUser !== null && $currentUser->canModifyEntity($event);
         [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
         $event->loadMissing(['enrollmentWindows', 'eventSeries']);
         $now = now();
@@ -100,7 +100,7 @@ final class BrowseListingCardPresenter
             coverPicture: $this->eventListingImageResolver->resolve($event),
             detailsUrl: route('events.show', $event),
             editUrl: url_with_return(route('events.edit', $event), $return),
-            isOwner: $isOwner,
+            canEdit: $canEdit,
             isInterested: in_array((int) $event->id, $interestedIds, true),
             interestWireMethod: 'toggleEventInterest',
             timeSummary: format_date_range_compact($event->starts_at, $event->ends_at),

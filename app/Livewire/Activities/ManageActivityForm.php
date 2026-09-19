@@ -44,7 +44,7 @@ class ManageActivityForm extends Component
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
 
     /** @var list<string> */
-    private const FORM_TAB_ORDER = ['main-details', 'tags', 'image', 'hosting-mode'];
+    private const FORM_TAB_ORDER = ['main-details', 'participation-rules', 'tags', 'image', 'hosting-mode'];
 
     public ?int $editingActivityId = null;
 
@@ -322,8 +322,8 @@ class ManageActivityForm extends Component
 
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
-            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours', 'lottery_draw_in_hours',
-            'participation_mode', 'allows_observers' => 'main-details',
+            'minimum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
+            'lottery_draw_in_hours', 'participation_mode', 'allows_observers' => 'participation-rules',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
             default => 'hosting-mode',

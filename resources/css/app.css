@@ -287,19 +287,6 @@
         padding-inline: 1rem;
     }
 
-    .ui-content-card:not(.ui-listing-card__surface) .rich-text-content {
-        border: 1px solid color-mix(in oklab, var(--color-primary) 15%, transparent);
-        background: color-mix(in oklab, black 25%, transparent);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border-radius: 0.75rem;
-        padding: 1rem;
-
-        @media (width >= 40rem) {
-            padding: 1.5rem;
-        }
-    }
-
     .ui-activity-show-hero,
     .ui-event-show-hero {
         margin-top: 1.5rem;
@@ -978,13 +965,12 @@
             position: relative;
             z-index: 3;
             min-height: 2rem;
-            padding: 0.5rem 1rem 0.35rem;
+            padding: 0 0 0.35rem;
 
             &::before {
                 content: "";
                 position: absolute;
-                top: 0.8rem;
-                left: 0;
+                left: -8px;
                 width: 0.6em;
                 height: 0.6em;
                 border-radius: 9999px;
@@ -993,6 +979,10 @@
                     2.8em 0 var(--brand-neutral-dark),
                     4.2em 0 var(--brand-neutral-dark);
                 opacity: 0.45;
+
+                @media (width >= 768px) {
+                    left: 0;
+                }
             }
         }
 
@@ -1668,7 +1658,8 @@
 }
 
 /**
- * Tall overlays: pin title/close/actions; only the Mary slot (or equivalent body) scrolls.
+ * Tall overlays: pin title/close/actions; only the Mary slot body scrolls.
+ * Mary wraps the title in the first div (mb-10 / !mb-5) and the slot in the next div.
  */
 .ui-overlay-shell.modal-box {
     display: flex;
@@ -1682,11 +1673,19 @@
 .ui-overlay-shell.modal-box > hr,
 .ui-overlay-shell.modal-box > h3,
 .ui-overlay-shell.modal-box > .modal-action,
-.ui-overlay-shell.modal-box > div[class*='mb-10'] {
-    flex-shrink: 0;
+.ui-overlay-shell.modal-box > div:first-of-type {
+    flex: 0 0 auto;
 }
 
-.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']) {
+.ui-overlay-shell.modal-box > div:first-of-type {
+    margin-bottom: 0 !important;
+}
+
+.ui-overlay-shell.modal-box > div:first-of-type hr {
+    margin-top: 0.25rem;
+}
+
+.ui-overlay-shell.modal-box > div:not(.modal-action):not(:first-of-type) {
     flex: 1 1 auto;
     min-height: 0;
     overflow-x: hidden;
@@ -1695,34 +1694,26 @@
 
 /**
  * Tabbed overlays: pin the tab label bar; only the tab panels scroll.
- * Hook: data-ui="overlay-sticky-tabs" on the tablist (tabs-with-toolbar bag).
+ * Hook: data-ui="overlay-sticky-tabs" on tabs-with-toolbar.
  */
-.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']):has([data-ui='overlay-sticky-tabs']) {
+.ui-overlay-shell.modal-box > div:not(.modal-action):not(:first-of-type):has([data-ui='overlay-sticky-tabs']) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-.ui-overlay-shell.modal-box > div:not(.modal-action):not([class*='mb-10']):has([data-ui='overlay-sticky-tabs']) > * {
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
 }
 
-.ui-overlay-shell.modal-box :has(> [data-ui='overlay-sticky-tabs']) {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-    flex-direction: column;
-}
-
-.ui-overlay-shell.modal-box :has(> [data-ui='overlay-sticky-tabs']) > :first-child {
-    z-index: 2;
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > :first-child {
     flex-shrink: 0;
 }
 
-.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] {
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > [role='tablist'] {
     flex: 1 1 auto;
     min-height: 0;
     overflow-x: hidden;

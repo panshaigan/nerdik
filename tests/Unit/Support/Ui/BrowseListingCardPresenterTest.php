@@ -355,4 +355,43 @@ final class BrowseListingCardPresenterTest extends TestCase
 
         return $city;
     }
+
+    #[Test]
+    public function from_activity_sets_can_edit_for_owner_and_admin(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $stranger = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner);
+        $this->assertTrue($this->presenter->fromActivity($activity, [])->canEdit);
+
+        $this->actingAs($admin);
+        $this->assertTrue($this->presenter->fromActivity($activity, [])->canEdit);
+
+        $this->actingAs($stranger);
+        $this->assertFalse($this->presenter->fromActivity($activity, [])->canEdit);
+    }
+
+    #[Test]
+    public function from_event_sets_can_edit_for_owner_and_admin(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $stranger = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $owner->id]);
+
+        $this->actingAs($owner);
+        $this->assertTrue($this->presenter->fromEvent($event, [])->canEdit);
+
+        $this->actingAs($admin);
+        $this->assertTrue($this->presenter->fromEvent($event, [])->canEdit);
+
+        $this->actingAs($stranger);
+        $this->assertFalse($this->presenter->fromEvent($event, [])->canEdit);
+    }
 }

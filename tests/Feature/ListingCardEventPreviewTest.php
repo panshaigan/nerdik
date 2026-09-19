@@ -28,6 +28,30 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertDontSeeHtml('data-ui="event-card-link"');
     }
 
+    public function test_listing_event_card_does_not_show_host_badge(): void
+    {
+        $owner = User::factory()->create(['nickname' => 'Event Card Host Only']);
+        $viewer = User::factory()->create();
+        Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseEvents::class)
+            ->assertDontSee('Event Card Host Only');
+    }
+
+    public function test_listing_event_card_shows_edit_for_admin_who_is_not_owner(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        Event::factory()->public()->create(['created_by' => $owner->id]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($admin)
+            ->test(BrowseEvents::class)
+            ->assertSeeHtml('data-ui="event-card-edit"');
+    }
+
     public function test_listing_event_card_shows_enrollment_open_badge_when_window_is_active(): void
     {
         $owner = User::factory()->create();

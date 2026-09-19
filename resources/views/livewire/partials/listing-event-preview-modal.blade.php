@@ -14,6 +14,18 @@
         >
 
             <div class="space-y-3">
+                @if ($previewEvent->creator)
+                    <div data-ui="listing-event-preview-host">
+                        <x-user-badge
+                            :user="$previewEvent->creator"
+                            :organization="$previewEvent->organization"
+                            size="sm"
+                            name-class="truncate text-xs font-medium text-base-content"
+                            :contact-wire-key="'listing-event-preview-'.$previewEvent->id"
+                        />
+                    </div>
+                @endif
+
                 @if ($previewEvent->isCancelled())
                     <span class="badge badge-warning">{{ __('ui.events.cancelled_badge') }}</span>
                 @endif
@@ -42,29 +54,15 @@
                         </div>
                     @endif
                 </dl>
-
-                @if ($previewEvent->creator)
-                    <div data-ui="listing-event-preview-host">
-                        <x-user-badge
-                            :user="$previewEvent->creator"
-                            :organization="$previewEvent->organization"
-                            size="sm"
-                            name-class="truncate text-xs font-medium text-base-content"
-                            :contact-wire-key="'listing-event-preview-'.$previewEvent->id"
-                        />
-                    </div>
-                @endif
             </div>
 
-            <div class="rounded-xl border border-base-300 bg-base-300/70 p-4">
-                @if (filled(rich_text_excerpt($previewEvent->description)))
-                    <div class="rich-text-content text-base-content/90">
-                        {!! rich_text($previewEvent->description) !!}
-                    </div>
-                @else
-                    <p class="text-sm text-base-content/60">{{ __('ui.events.show_no_description') }}</p>
-                @endif
-            </div>
+            @if (filled(rich_text_excerpt($previewEvent->description)))
+                <div class="rich-text-content text-base-content/90">
+                    {!! rich_text($previewEvent->description) !!}
+                </div>
+            @else
+                <p class="text-sm text-base-content/60">{{ __('ui.events.show_no_description') }}</p>
+            @endif
 
             @if ($previewEventBadgeItems !== [])
                 <x-ui.activity-badge-group

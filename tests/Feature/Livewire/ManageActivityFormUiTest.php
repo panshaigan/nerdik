@@ -97,6 +97,33 @@ class ManageActivityFormUiTest extends TestCase
             ->assertHasErrors(['name', 'selected_tag_media_id']);
     }
 
+    public function test_create_form_renders_participation_rules_tab(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->assertSeeHtml('data-ui="activity-manage-tab-participation-rules"');
+    }
+
+    public function test_save_switches_to_participation_rules_tab_when_mode_invalid(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('tab', 'image')
+            ->set('name', 'Participation Tab Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('participation_mode', 'not-a-mode')
+            ->call('save')
+            ->assertSet('tab', 'participation-rules')
+            ->assertHasErrors(['participation_mode']);
+    }
+
     public function test_save_switches_to_hosting_mode_tab_when_self_hosted_place_missing(): void
     {
         $this->seed(ActivityTypeSeeder::class);

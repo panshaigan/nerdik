@@ -20,7 +20,7 @@ final readonly class BrowseListingCardViewData
         public ListingCardPicture $coverPicture,
         public string $detailsUrl,
         public string $editUrl,
-        public bool $isOwner,
+        public bool $canEdit,
         public bool $isInterested,
         public string $interestWireMethod,
         public string $timeSummary,

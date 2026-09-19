@@ -49,4 +49,24 @@ class PageHeaderComponentTest extends TestCase
 
         $this->assertStringContainsString('TTRPG 3H', $html);
     }
+
+    public function test_page_header_renders_subtitle_before_user_badge(): void
+    {
+        $user = User::factory()->create(['nickname' => 'HeaderBadgeNick']);
+
+        $html = Blade::render('
+            <x-page-header title="Test" :user="$user">
+                <x-slot:subtitle>Under the title</x-slot:subtitle>
+            </x-page-header>
+        ', [
+            'user' => $user,
+        ]);
+
+        $subtitlePos = strpos($html, 'Under the title');
+        $badgePos = strpos($html, 'HeaderBadgeNick');
+
+        $this->assertNotFalse($subtitlePos);
+        $this->assertNotFalse($badgePos);
+        $this->assertLessThan($badgePos, $subtitlePos);
+    }
 }

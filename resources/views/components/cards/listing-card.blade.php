@@ -39,7 +39,7 @@
                         data-ui="{{ $d->dataUiPrefix }}-interest-add"
                     />
                 @endif
-                @if ($d->isOwner)
+                @if ($d->canEdit)
                     <x-button
                         :link="$d->editUrl"
                         class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs btn-square rounded-lg"
@@ -68,7 +68,7 @@
                 :picture="$d->coverPicture"
                 class="ui-card-media-fade absolute inset-0 block size-full object-cover"
             />
-            <div class="absolute left-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-row flex-wrap items-center gap-1">
+            <div class="pointer-events-auto absolute left-2 top-2 z-20 flex max-w-[calc(100%-3.5rem)] flex-row flex-wrap items-center gap-1">
                 @if ($d->kindCornerLabel)
                     <span
                         class="shrink-0 rounded-md border border-amber-400/35 bg-black/70 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-100/95"
@@ -81,21 +81,21 @@
                         data-ui="event-card-enrollment-open"
                     >{{ __('ui.events.enrollment_window_active_badge') }}</span>
                 @endif
+                @if ($d->kind === 'activity' && $d->hostUser)
+                    <x-user-badge
+                        :user="$d->hostUser"
+                        size="sm"
+                        nameClass="truncate text-xs font-medium text-amber-50"
+                        class="max-w-full rounded-full bg-black/70 py-0.5 pl-0.5 pr-2"
+                        :contact-wire-key="'listing-'.$d->kind.'-'.$d->id"
+                    />
+                @endif
             </div>
         </div>
         <div class="relative flex min-h-0 flex-1 flex-col px-3 pb-2">
             <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">
                 <span class="ui-link ui-link-title" data-ui="{{ $d->dataUiPrefix }}-title-link">{{ $d->name }}</span>
             </h3>
-            @if ($d->hostUser)
-                <x-user-badge
-                    :user="$d->hostUser"
-                    :organization="$d->hostOrganization"
-                    size="sm"
-                    nameClass="truncate text-xs font-medium text-base-content"
-                    :contact-wire-key="'listing-'.$d->kind.'-'.$d->id"
-                />
-            @endif
             <dl class="mt-3 mb-3 min-h-0 flex-1 space-y-2.5 text-sm">
                 @if ($d->timeSummary !== '')
                     <div class="flex gap-2">
