@@ -524,6 +524,81 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         );
     }
 
+    public function test_dashboard_feed_when_uses_start_time_not_only_end(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledDashboardFeedPreferences(),
+        ]);
+
+        Event::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Weekend Con',
+            'starts_at' => now()->addDay()->setTime(10, 0),
+            'ends_at' => now()->addDay()->setTime(22, 0),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $user,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($user): bool {
+                $payload = $notification->toArray($user);
+                $lines = collect($payload['items'] ?? [])
+                    ->firstWhere('category', 'dashboard_feed')['lines'] ?? [];
+
+                $joined = implode("\n", is_array($lines) ? $lines : []);
+
+                return str_contains($joined, 'Weekend Con')
+                    && str_contains($joined, '2026-06-02 10:00')
+                    && str_contains($joined, '22:00');
+            }
+        );
+    }
+
+    public function test_dashboard_feed_includes_event_that_starts_tomorrow_and_ends_later(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledDashboardFeedPreferences(),
+        ]);
+
+        Event::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Long Con',
+            'starts_at' => now()->addDay()->setTime(10, 0),
+            'ends_at' => now()->addDays(3)->setTime(18, 0),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $user,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($user): bool {
+                $payload = $notification->toArray($user);
+                $lines = collect($payload['items'] ?? [])
+                    ->firstWhere('category', 'dashboard_feed')['lines'] ?? [];
+
+                $joined = implode("\n", is_array($lines) ? $lines : []);
+
+                return str_contains($joined, 'Long Con')
+                    && str_contains($joined, '2026-06-02 10:00');
+            }
+        );
+    }
+
     public function test_dashboard_feed_same_day_is_not_included(): void
     {
         config()->set('scheduled_notifications.daily_send_time', '09:00');

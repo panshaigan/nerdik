@@ -116,50 +116,47 @@ class ScheduledNotificationCollector
 
         $timezone = $this->timezoneForUser($user);
 
-        $dueRows = $rows
-            ->map(function (array $row): array {
-                $sortAt = CarbonImmutable::parse((string) $row['sort_at'], 'UTC');
-
-                return [
-                    'kind' => (string) $row['kind'],
-                    'id' => (int) $row['id'],
-                    'sort_at' => $sortAt,
-                ];
-            })
-            ->filter(fn (array $row): bool => $this->isOnLocalTomorrow($referenceNow, $row['sort_at'], $user))
-            ->values();
-
-        if ($dueRows->isEmpty()) {
-            return collect();
-        }
-
-        $eventIds = $dueRows->where('kind', 'event')->pluck('id')->all();
-        $activityIds = $dueRows->where('kind', 'activity')->pluck('id')->all();
+        $eventIds = $rows->where('kind', 'event')->pluck('id')->all();
+        $activityIds = $rows->where('kind', 'activity')->pluck('id')->all();
 
         $events = Event::query()->whereKey($eventIds)->get()->keyBy('id');
-        $activities = Activity::query()->whereKey($activityIds)->get()->keyBy('id');
+        $activities = Activity::query()->whereKey($activityIds)->with('slot')->get()->keyBy('id');
 
-        $lines = $dueRows->map(function (array $row) use ($events, $activities, $timezone): string {
-            $when = $row['sort_at']->setTimezone($timezone)->format('Y-m-d H:i');
+        $lines = $rows
+            ->map(function (array $row) use ($events, $activities, $timezone, $referenceNow, $user): ?string {
+                if ((string) $row['kind'] === 'event') {
+                    /** @var Event|null $event */
+                    $event = $events->get((int) $row['id']);
+                    $start = $event instanceof Event ? $this->eventStartedAt($event) : null;
+                    if ($start === null || ! $this->isOnLocalTomorrow($referenceNow, $start, $user)) {
+                        return null;
+                    }
 
-            if ($row['kind'] === 'event') {
-                /** @var Event|null $event */
-                $event = $events->get($row['id']);
+                    return __('ui.notifications.scheduled.dashboard_feed_event_line', [
+                        'name' => (string) ($event->name ?? '—'),
+                        'when' => $this->formatOccurrenceWhen($start, $event instanceof Event ? $this->eventEndedAt($event) : null, $timezone),
+                    ]);
+                }
 
-                return __('ui.notifications.scheduled.dashboard_feed_event_line', [
-                    'name' => (string) ($event?->name ?? '—'),
-                    'when' => $when,
+                /** @var Activity|null $activity */
+                $activity = $activities->get((int) $row['id']);
+                $start = $activity instanceof Activity ? $this->activityStartedAt($activity) : null;
+                if ($start === null || ! $this->isOnLocalTomorrow($referenceNow, $start, $user)) {
+                    return null;
+                }
+
+                return __('ui.notifications.scheduled.dashboard_feed_activity_line', [
+                    'name' => (string) ($activity->name ?? '—'),
+                    'when' => $this->formatOccurrenceWhen($start, $activity instanceof Activity ? $this->activityEndedAt($activity) : null, $timezone),
                 ]);
-            }
+            })
+            ->filter()
+            ->values()
+            ->all();
 
-            /** @var Activity|null $activity */
-            $activity = $activities->get($row['id']);
-
-            return __('ui.notifications.scheduled.dashboard_feed_activity_line', [
-                'name' => (string) ($activity?->name ?? '—'),
-                'when' => $when,
-            ]);
-        })->all();
+        if ($lines === []) {
+            return collect();
+        }
 
         $tomorrowStart = $referenceNow->setTimezone($timezone)->addDay()->startOfDay()->utc();
 
@@ -529,6 +526,15 @@ class ScheduledNotificationCollector
             ->values();
     }
 
+    private function eventStartedAt(Event $event): ?CarbonImmutable
+    {
+        if ($event->starts_at === null) {
+            return null;
+        }
+
+        return CarbonImmutable::instance($event->starts_at);
+    }
+
     private function eventEndedAt(Event $event): ?CarbonImmutable
     {
         $end = $event->ends_at ?? $event->starts_at;
@@ -549,6 +555,26 @@ class ScheduledNotificationCollector
         }
 
         return $next;
+    }
+
+    /**
+     * Always include start; append end when it differs from start.
+     */
+    private function formatOccurrenceWhen(CarbonImmutable $start, ?CarbonImmutable $end, DateTimeZone $timezone): string
+    {
+        $startLocal = $start->setTimezone($timezone);
+        $startLabel = $startLocal->format('Y-m-d H:i');
+
+        if ($end === null || $end->equalTo($start)) {
+            return $startLabel;
+        }
+
+        $endLocal = $end->setTimezone($timezone);
+        if ($startLocal->toDateString() === $endLocal->toDateString()) {
+            return $startLabel.' – '.$endLocal->format('H:i');
+        }
+
+        return $startLabel.' – '.$endLocal->format('Y-m-d H:i');
     }
 
     private function activityStartedAt(Activity $activity): ?CarbonImmutable
