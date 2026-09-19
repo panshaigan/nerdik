@@ -64,6 +64,7 @@ return [
         'attention' => 'Zasady zapisów',
         'close' => 'Zamknij',
         'copied' => 'Skopiowano!',
+        'manage' => 'Zarządzaj',
         'copy_failed' => 'Nie udało się skopiować.',
         'name' => 'Nazwa',
         'email' => 'E-mail',
@@ -913,6 +914,7 @@ return [
         'deleted_status' => 'Cykl został usunięty.',
         'followed_upcoming' => 'Śledzisz teraz nadchodzące edycje.',
         'unfollowed_upcoming' => 'Przestałeś śledzić nadchodzące edycje.',
+        'create_new_event' => 'Utwórz nowe wydarzenie',
     ],
     'editor' => [
         'block_formats' => 'Akapit=p; Nagłówek 2=h2; Nagłówek 3=h3',

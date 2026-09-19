@@ -22,15 +22,30 @@
                         @endif
                         @auth
                             @if ($canManageSeries)
-                                <x-button
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                    wire:click="confirmDeleteSeries"
-                                    :tooltip="__('ui.common.delete')"
-                                    :aria-label="__('ui.common.delete').': '.$series->name"
-                                    data-ui="event-series-show-delete"
-                                    icon="o-trash"
-                                />
+                                <x-ui.overflow-menu
+                                    icon="o-cog-6-tooth"
+                                    :label="__('ui.common.manage')"
+                                    panel-class="w-64"
+                                    data-ui="event-series-show-manage"
+                                >
+                                    @if ($latestEvent)
+                                        <x-ui.overflow-menu-item
+                                            icon="o-plus"
+                                            :href="route('events.create', ['duplicate' => $latestEvent->slug])"
+                                            data-ui="event-series-show-create-event"
+                                        >
+                                            {{ __('ui.event_series.create_new_event') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
+                                    <x-ui.overflow-menu-item
+                                        icon="o-trash"
+                                        class="text-error"
+                                        wire:click="confirmDeleteSeries"
+                                        data-ui="event-series-show-delete"
+                                    >
+                                        {{ __('ui.common.delete') }}
+                                    </x-ui.overflow-menu-item>
+                                </x-ui.overflow-menu>
                             @endif
                             @if ($hasUpcomingFollow)
                                 @if ($hasUpcomingInterest)

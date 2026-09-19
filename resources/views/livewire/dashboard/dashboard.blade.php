@@ -1,7 +1,7 @@
 <div class="p-1">
     <x-page-header :title="__('ui.dashboard.title')"/>
     <div class="max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-3 gap-3 px-4 sm:px-0" data-ui="dashboard-activity-stats">
+        <div class="grid grid-cols-1 gap-3 px-4 sm:grid-cols-3 sm:px-0" data-ui="dashboard-activity-stats">
             <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl" data-ui="dashboard-stat-interested-activities">
                 <x-stat
                     :title="__('ui.dashboard.stats_interested_activities')"

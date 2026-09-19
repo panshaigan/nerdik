@@ -206,6 +206,12 @@ class ShowEventSeries extends Component
             'sharePayload' => $shareLinks->forEventSeries($series),
             'calendarPayload' => $calendarLinks->forEventSeries($series, $upcomingEvents),
             'canManageSeries' => $user !== null && $user->canModifyEntity($series),
+            'latestEvent' => $events
+                ->sortBy([
+                    ['starts_at', 'desc'],
+                    ['id', 'desc'],
+                ])
+                ->first(),
             'hasUpcomingFollow' => $hasUpcomingFollow,
             'hasUpcomingInterest' => $hasUpcomingInterest,
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),

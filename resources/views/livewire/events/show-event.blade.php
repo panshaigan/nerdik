@@ -163,89 +163,85 @@
                     @endif
                     @auth
                         @if ($canManageEvent)
-                            <div class="flex shrink-0 items-center gap-1">
-                                <x-button
+                            <x-ui.overflow-menu
+                                icon="o-cog-6-tooth"
+                                :label="__('ui.common.manage')"
+                                panel-class="w-64"
+                                data-ui="event-show-manage"
+                            >
+                                <x-ui.overflow-menu-item
                                     id="ui-event-show-create-slots"
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success ui-action ui-action-create-slots"
+                                    icon="o-plus"
+                                    class="ui-action ui-action-create-slots"
                                     wire:click.stop="openSlotCreateModal"
                                     wire:loading.attr="disabled"
                                     wire:target="openSlotCreateModal"
-                                    :tooltip="__('ui.slots.create_slots')"
-                                    :aria-label="__('ui.slots.create_slots')"
                                     data-ui="event-show-create-slots"
-                                    icon="o-plus"
-                                />
-                            <x-button
-                                :link="route('events.participants.pdf', $event)"
-                                external
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
-                                :tooltip="__('ui.pdf.roster.print_action')"
-                                :aria-label="__('ui.pdf.roster.print_action').': '.$event->name"
-                                data-ui="event-show-print-participants"
-                                icon="o-printer"
-                            />
-                            <x-button
-                                :link="url_with_return(route('events.edit', $event))"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-secondary"
-                                :tooltip="__('ui.common.edit')"
-                                :aria-label="__('ui.common.edit').': '.$event->name"
-                                data-ui="event-show-edit-open"
-                                icon="o-pencil"
-                            />
-                            <x-button
-                                :link="route('events.create', ['duplicate' => $event->slug])"
-                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-accent"
-                                :tooltip="__('ui.events.duplicate_action')"
-                                :aria-label="__('ui.events.duplicate_action').': '.$event->name"
-                                data-ui="event-show-duplicate-open"
-                                icon="o-square-2-stack"
-                            />
-                            @if (! $event->isCancelled())
-                                @if (($eventSignupPressureBlocksDelete ?? false))
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        wire:click="confirmCancelEvent"
-                                        :tooltip="__('ui.events.cancel_action')"
-                                        :aria-label="__('ui.events.cancel_action').': '.$event->name"
-                                        data-ui="event-show-cancel-event"
-                                        icon="o-x-circle"
-                                    />
+                                >
+                                    {{ __('ui.slots.create_slots') }}
+                                </x-ui.overflow-menu-item>
+                                <x-ui.overflow-menu-item
+                                    icon="o-printer"
+                                    :href="route('events.participants.pdf', $event)"
+                                    external
+                                    data-ui="event-show-print-participants"
+                                >
+                                    {{ __('ui.pdf.roster.print_action') }}
+                                </x-ui.overflow-menu-item>
+                                <x-ui.overflow-menu-item
+                                    icon="o-pencil"
+                                    :href="url_with_return(route('events.edit', $event))"
+                                    data-ui="event-show-edit-open"
+                                >
+                                    {{ __('ui.common.edit') }}
+                                </x-ui.overflow-menu-item>
+                                <x-ui.overflow-menu-item
+                                    icon="o-square-2-stack"
+                                    :href="route('events.create', ['duplicate' => $event->slug])"
+                                    data-ui="event-show-duplicate-open"
+                                >
+                                    {{ __('ui.events.duplicate_action') }}
+                                </x-ui.overflow-menu-item>
+                                @if (! $event->isCancelled())
+                                    @if (($eventSignupPressureBlocksDelete ?? false))
+                                        <x-ui.overflow-menu-item
+                                            icon="o-x-circle"
+                                            class="text-error"
+                                            wire:click="confirmCancelEvent"
+                                            data-ui="event-show-cancel-event"
+                                        >
+                                            {{ __('ui.events.cancel_action') }}
+                                        </x-ui.overflow-menu-item>
+                                    @else
+                                        <x-ui.overflow-menu-item
+                                            icon="o-trash"
+                                            class="text-error"
+                                            wire:click="confirmDeleteEvent"
+                                            data-ui="event-show-delete"
+                                        >
+                                            {{ __('ui.common.delete') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
                                 @else
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        wire:click="confirmDeleteEvent"
-                                        :tooltip="__('ui.common.delete')"
-                                        :aria-label="__('ui.common.delete').': '.$event->name"
-                                        data-ui="event-show-delete"
-                                        icon="o-trash"
-                                    />
+                                    <x-ui.overflow-menu-item
+                                        icon="o-arrow-uturn-left"
+                                        wire:click="confirmReopenEvent"
+                                        data-ui="event-show-reopen-event"
+                                    >
+                                        {{ __('ui.events.reopen_action') }}
+                                    </x-ui.overflow-menu-item>
+                                    @if (($eventSignupPressureBlocksDelete ?? false))
+                                        <x-ui.overflow-menu-item
+                                            icon="o-trash"
+                                            class="text-error"
+                                            wire:click="confirmDeleteEvent"
+                                            data-ui="event-show-delete-after-cancel"
+                                        >
+                                            {{ __('ui.common.delete') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
                                 @endif
-                            @else
-                                <x-button
-                                    type="button"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-info"
-                                    wire:click="confirmReopenEvent"
-                                    :tooltip="__('ui.events.reopen_action')"
-                                    :aria-label="__('ui.events.reopen_action')"
-                                    data-ui="event-show-reopen-event"
-                                    icon="o-arrow-uturn-left"
-                                />
-                                @if (($eventSignupPressureBlocksDelete ?? false))
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        wire:click="confirmDeleteEvent"
-                                        :tooltip="__('ui.common.delete')"
-                                        :aria-label="__('ui.common.delete').': '.$event->name"
-                                        data-ui="event-show-delete-after-cancel"
-                                        icon="o-trash"
-                                    />
-                                @endif
-                            @endif
-                            </div>
+                            </x-ui.overflow-menu>
                         @endif
                         @if ($hasInterest)
                             <x-button

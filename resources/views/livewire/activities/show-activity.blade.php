@@ -131,61 +131,61 @@
                         @endif
                         @auth
                             @if ($canManageActivity)
-                                <x-button
-                                    :link="route('activities.participants.pdf', $activity)"
-                                    external
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :tooltip="__('ui.pdf.roster.print_action')"
-                                    :aria-label="__('ui.pdf.roster.print_action').': '.$activity->name"
-                                    data-ui="activity-show-print-participants"
-                                    icon="o-printer"
-                                />
-                                <x-button
-                                    :link="url_with_return(route('activities.edit', $activity))"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :tooltip="__('ui.common.edit')"
-                                    :aria-label="__('ui.common.edit').': '.$activity->name"
-                                    data-ui="activity-show-edit"
-                                    icon="o-pencil"
-                                />
-                                <x-button
-                                    :link="url_with_return(route('activities.create', ['duplicate' => $activity->slug]))"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                                    :tooltip="__('ui.activities.duplicate_action')"
-                                    :aria-label="__('ui.activities.duplicate_action').': '.$activity->name"
-                                    data-ui="activity-show-duplicate"
-                                    icon="o-square-2-stack"
-                                />
-                                @if ($canHardDeleteActivity ?? false)
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                        :tooltip="__('ui.common.delete')"
-                                        :aria-label="__('ui.common.delete').': '.$activity->name"
-                                        wire:click="confirmDeleteActivity"
-                                        data-ui="activity-show-delete"
-                                        icon="o-trash"
-                                    />
-                                @endif
-                                @if ($isCancelled)
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-success"
-                                        :tooltip="__('ui.activities.reopen_action')"
-                                        :aria-label="__('ui.activities.reopen_action')"
-                                        wire:click="confirmReopenActivity"
-                                        icon="o-arrow-uturn-left"
-                                    />
-                                @else
-                                    <x-button
-                                        type="button"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
-                                        :tooltip="__('ui.activities.cancel_action')"
-                                        :aria-label="__('ui.activities.cancel_action')"
-                                        wire:click="confirmCancelActivity"
-                                        icon="o-x-circle"
-                                    />
-                                @endif
+                                <x-ui.overflow-menu
+                                    icon="o-cog-6-tooth"
+                                    :label="__('ui.common.manage')"
+                                    panel-class="w-64"
+                                    data-ui="activity-show-manage"
+                                >
+                                    <x-ui.overflow-menu-item
+                                        icon="o-printer"
+                                        :href="route('activities.participants.pdf', $activity)"
+                                        external
+                                        data-ui="activity-show-print-participants"
+                                    >
+                                        {{ __('ui.pdf.roster.print_action') }}
+                                    </x-ui.overflow-menu-item>
+                                    <x-ui.overflow-menu-item
+                                        icon="o-pencil"
+                                        :href="url_with_return(route('activities.edit', $activity))"
+                                        data-ui="activity-show-edit"
+                                    >
+                                        {{ __('ui.common.edit') }}
+                                    </x-ui.overflow-menu-item>
+                                    <x-ui.overflow-menu-item
+                                        icon="o-square-2-stack"
+                                        :href="url_with_return(route('activities.create', ['duplicate' => $activity->slug]))"
+                                        data-ui="activity-show-duplicate"
+                                    >
+                                        {{ __('ui.activities.duplicate_action') }}
+                                    </x-ui.overflow-menu-item>
+                                    @if ($canHardDeleteActivity ?? false)
+                                        <x-ui.overflow-menu-item
+                                            icon="o-trash"
+                                            class="text-error"
+                                            wire:click="confirmDeleteActivity"
+                                            data-ui="activity-show-delete"
+                                        >
+                                            {{ __('ui.common.delete') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
+                                    @if ($isCancelled)
+                                        <x-ui.overflow-menu-item
+                                            icon="o-arrow-uturn-left"
+                                            wire:click="confirmReopenActivity"
+                                        >
+                                            {{ __('ui.activities.reopen_action') }}
+                                        </x-ui.overflow-menu-item>
+                                    @else
+                                        <x-ui.overflow-menu-item
+                                            icon="o-x-circle"
+                                            class="text-warning"
+                                            wire:click="confirmCancelActivity"
+                                        >
+                                            {{ __('ui.activities.cancel_action') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
+                                </x-ui.overflow-menu>
                             @endif
                             @if ($hasInterest)
                                 <x-button

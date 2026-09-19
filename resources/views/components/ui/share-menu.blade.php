@@ -17,84 +17,45 @@
 @endphp
 
 <div
-    class="relative z-[9999]"
     data-ui="share-menu"
     x-data="{
-        open: false,
         copyUrl: @js($copyUrl),
-        toggle() {
-            this.open = ! this.open;
-        },
-        close() {
-            this.open = false;
-        },
         copyLink() {
             window.copyToClipboard(this.copyUrl, { message: @js(__('ui.common.copied')) });
-            this.close();
         },
         openExternal(url) {
             window.open(url, '_blank', 'noopener,noreferrer');
-            this.close();
         },
     }"
-    x-on:keydown.escape.window="close()"
-    x-on:click.outside="close()"
 >
-    <button
-        type="button"
-        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-        x-on:click="toggle()"
-        :aria-expanded="open"
-        aria-haspopup="menu"
-        :aria-label="@js(__('ui.share.share'))"
-        title="{{ __('ui.share.share') }}"
+    <x-ui.overflow-menu
+        icon="o-share"
+        :label="__('ui.share.share')"
+        :open-upward="$openUpward"
+        panel-class="w-52"
         data-ui="share-menu-trigger"
+        list-data-ui="share-menu-list"
     >
-        <x-icon name="o-share" class="h-5 w-5" />
-    </button>
-
-    <ul
-        x-show="open"
-        x-cloak
-        x-transition.opacity.duration.150ms
-        role="menu"
-        class="absolute end-0 z-[9999] flex w-52 flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral {{ $openUpward ? 'bottom-full mb-2' : 'top-full mt-2' }}"
-        data-ui="share-menu-list"
-        style="display: none;"
-    >
-        <li role="none">
-            <button
-                type="button"
-                role="menuitem"
-                class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200"
-                data-ui="share-copy"
-                x-on:click="copyLink()"
-            >
-                <x-icon name="o-clipboard-document" class="h-4 w-4 shrink-0" />
-                {{ __('ui.share.copy_link') }}
-            </button>
-        </li>
+        <x-ui.overflow-menu-item
+            icon="o-clipboard-document"
+            data-ui="share-copy"
+            x-on:click="$parent.copyLink()"
+        >
+            {{ __('ui.share.copy_link') }}
+        </x-ui.overflow-menu-item>
         @foreach ($externalTargets as $target)
             @php
                 $intentUrl = $shareLinks->intentUrl($payload, $target);
             @endphp
             @if ($intentUrl !== null)
-                <li role="none">
-                    <button
-                        type="button"
-                        role="menuitem"
-                        class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200"
-                        data-ui="share-{{ $target->value }}"
-                        x-on:click="openExternal(@js($intentUrl))"
-                    >
-                        <x-icon
-                            :name="$platformIcon[$target->value]"
-                            class="h-4 w-4 shrink-0"
-                        />
-                        {{ __('ui.share.platforms.'.$target->value) }}
-                    </button>
-                </li>
+                <x-ui.overflow-menu-item
+                    :icon="$platformIcon[$target->value]"
+                    data-ui="share-{{ $target->value }}"
+                    x-on:click="$parent.openExternal(@js($intentUrl))"
+                >
+                    {{ __('ui.share.platforms.'.$target->value) }}
+                </x-ui.overflow-menu-item>
             @endif
         @endforeach
-    </ul>
+    </x-ui.overflow-menu>
 </div>

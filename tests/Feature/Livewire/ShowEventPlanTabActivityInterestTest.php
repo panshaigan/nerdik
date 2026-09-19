@@ -43,6 +43,7 @@ class ShowEventPlanTabActivityInterestTest extends TestCase
             ->assertSeeHtml('data-ui="event-show-slot-interest-add"')
             ->assertDontSeeHtml('data-ui="event-show-slot-interest-remove"')
             ->assertSeeHtml('data-ui="event-show-slot-open-details"')
+            ->assertSeeHtml('data-ui="event-show-slot-edit"')
             ->assertSeeHtml('href="'.route('activities.show', $activity).'"');
 
         $component

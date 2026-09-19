@@ -15,49 +15,23 @@
 @endphp
 
 <div
-    class="relative z-[9999]"
     data-ui="calendar-menu"
     x-data="{
-        open: false,
-        toggle() {
-            this.open = ! this.open;
-        },
-        close() {
-            this.open = false;
-        },
         openExternal(url) {
             window.open(url, '_blank', 'noopener,noreferrer');
-            this.close();
         },
         downloadIcs(url) {
             window.location.href = url;
-            this.close();
         },
     }"
-    x-on:keydown.escape.window="close()"
-    x-on:click.outside="close()"
 >
-    <button
-        type="button"
-        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-        x-on:click="toggle()"
-        :aria-expanded="open"
-        aria-haspopup="menu"
-        :aria-label="@js(__('ui.calendar.add_to_calendar'))"
-        title="{{ __('ui.calendar.add_to_calendar') }}"
+    <x-ui.overflow-menu
+        icon="o-calendar"
+        :label="__('ui.calendar.add_to_calendar')"
+        :open-upward="$openUpward"
+        panel-class="w-56"
         data-ui="calendar-menu-trigger"
-    >
-        <x-icon name="o-calendar" class="h-5 w-5" />
-    </button>
-
-    <ul
-        x-show="open"
-        x-cloak
-        x-transition.opacity.duration.150ms
-        role="menu"
-        class="absolute end-0 z-[9999] flex w-56 flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral {{ $openUpward ? 'bottom-full mb-2' : 'top-full mt-2' }}"
-        data-ui="calendar-menu-list"
-        style="display: none;"
+        list-data-ui="calendar-menu-list"
     >
         @foreach ($targets as $target)
             @php
@@ -66,26 +40,24 @@
                     : $calendarLinks->intentUrl($payload, $target);
             @endphp
             @if ($intentUrl !== null)
-                <li role="none">
-                    <button
-                        type="button"
-                        role="menuitem"
-                        class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200"
+                @if ($target->isExternal())
+                    <x-ui.overflow-menu-item
+                        :icon="$platformIcon[$target->value]"
                         data-ui="calendar-{{ $target->value }}"
-                        @if ($target->isExternal())
-                            x-on:click="openExternal(@js($intentUrl))"
-                        @else
-                            x-on:click="downloadIcs(@js($intentUrl))"
-                        @endif
+                        x-on:click="$parent.openExternal(@js($intentUrl))"
                     >
-                        <x-icon
-                            :name="$platformIcon[$target->value]"
-                            class="h-4 w-4 shrink-0"
-                        />
                         {{ __('ui.calendar.targets.'.$target->value) }}
-                    </button>
-                </li>
+                    </x-ui.overflow-menu-item>
+                @else
+                    <x-ui.overflow-menu-item
+                        :icon="$platformIcon[$target->value]"
+                        data-ui="calendar-{{ $target->value }}"
+                        x-on:click="$parent.downloadIcs(@js($intentUrl))"
+                    >
+                        {{ __('ui.calendar.targets.'.$target->value) }}
+                    </x-ui.overflow-menu-item>
+                @endif
             @endif
         @endforeach
-    </ul>
+    </x-ui.overflow-menu>
 </div>

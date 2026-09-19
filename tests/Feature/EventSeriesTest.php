@@ -147,6 +147,52 @@ class EventSeriesTest extends TestCase
             ->assertSeeHtml('data-ui="event-series-edition-stats"');
     }
 
+    public function test_owner_manage_menu_creates_event_by_duplicating_latest_edition(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        $older = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(4),
+        ]);
+        $latest = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(10),
+            'ends_at' => now()->addDays(10)->addHours(4),
+        ]);
+
+        $html = Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->html();
+
+        $this->assertStringContainsString('data-ui="event-series-show-manage"', $html);
+        $this->assertStringContainsString('data-ui="event-series-show-create-event"', $html);
+        $this->assertStringContainsString('data-ui="event-series-show-delete"', $html);
+        $this->assertStringContainsString(route('events.create', ['duplicate' => $latest->slug]), $html);
+        $this->assertStringNotContainsString(route('events.create', ['duplicate' => $older->slug]), $html);
+    }
+
+    public function test_stranger_does_not_see_series_manage_menu(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($stranger)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertDontSeeHtml('data-ui="event-series-show-manage"')
+            ->assertDontSeeHtml('data-ui="event-series-show-delete"');
+    }
+
     public function test_private_series_is_hidden_from_strangers(): void
     {
         $owner = User::factory()->create();

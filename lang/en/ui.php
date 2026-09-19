@@ -64,6 +64,7 @@ return [
         'attention' => 'Enrollment rules',
         'close' => 'Close',
         'copied' => 'Copied!',
+        'manage' => 'Manage',
         'copy_failed' => 'Could not copy.',
         'name' => 'Name',
         'email' => 'Email',
@@ -913,6 +914,7 @@ return [
         'deleted_status' => 'Event series deleted.',
         'followed_upcoming' => 'You are now following upcoming editions.',
         'unfollowed_upcoming' => 'You stopped following upcoming editions.',
+        'create_new_event' => 'Create new event',
     ],
     'pagination' => [
         'navigation' => 'Pagination Navigation',

@@ -36,8 +36,9 @@ final class ShowHeroToolbarOverflowTest extends TestCase
 
         $this->assertStringContainsString('ui-activity-show-hero', $html);
         $this->assertStringContainsString('data-ui="activity-show-tabs-toolbar"', $html);
-        $this->assertStringContainsString('data-tip="'.__('ui.common.edit').'"', $html);
-        $this->assertStringContainsString('data-tip="'.__('ui.activities.duplicate_action').'"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-manage"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-edit"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-duplicate"', $html);
         $this->assertHeroDoesNotUseInlineOverflowHidden($html, 'ui-activity-show-hero');
         $this->assertTabsRootDoesNotClipOverflow($html, 'activity-show-tabs');
     }
@@ -57,8 +58,9 @@ final class ShowHeroToolbarOverflowTest extends TestCase
 
         $this->assertStringContainsString('ui-event-show-hero', $html);
         $this->assertStringContainsString('data-ui="event-show-tabs-toolbar"', $html);
-        $this->assertStringContainsString('data-tip="'.__('ui.common.edit').'"', $html);
-        $this->assertStringContainsString('data-tip="'.__('ui.events.duplicate_action').'"', $html);
+        $this->assertStringContainsString('data-ui="event-show-manage"', $html);
+        $this->assertStringContainsString('data-ui="event-show-edit-open"', $html);
+        $this->assertStringContainsString('data-ui="event-show-duplicate-open"', $html);
         $this->assertHeroDoesNotUseInlineOverflowHidden($html, 'ui-event-show-hero');
         $this->assertTabsRootDoesNotClipOverflow($html, 'event-show-tabs');
     }
