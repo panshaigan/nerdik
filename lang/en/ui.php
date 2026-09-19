@@ -574,7 +574,7 @@ return [
         'duration_hours_part' => ':n h',
         'duration_minutes_part' => ':n min',
         'join' => 'Join',
-        'join_waitlist' => 'Join waitlist',
+        'join_waitlist' => 'Join',
         'host_title' => [
             'rpg' => 'Game Master',
         ],

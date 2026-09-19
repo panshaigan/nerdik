@@ -1,6 +1,6 @@
 <div
     id="ui-event-show-slots"
-    class="ui-event-show-slots p-4 sm:p-6"
+    class="ui-event-show-slots p-0 sm:p-6"
     data-ui="event-show-slots"
     x-data="{
         selectedProposalSlotIds: $wire.entangle('proposalSlotIds'),
@@ -320,7 +320,7 @@
                                         @endif
                                     @endauth
                                 </div>
-                                <div class="px-4 pb-6">
+                                <div class="px-4 pb-3">
                                     @if ($activity)
                                         <button
                                             type="button"

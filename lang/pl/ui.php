@@ -574,7 +574,7 @@ return [
         'duration_hours_part' => ':n godz.',
         'duration_minutes_part' => ':n min',
         'join' => 'Dołącz',
-        'join_waitlist' => 'Dołącz do listy oczekujących',
+        'join_waitlist' => 'Dołącz',
         'host_title' => [
             'rpg' => 'Mistrz gry',
         ],

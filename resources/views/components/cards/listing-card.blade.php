@@ -9,13 +9,14 @@
 >
     <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-30 flex shrink-0 items-start gap-1">
         @auth
-            @if ($d->isOwner)
+            @if ($d->showDetailsLink)
                 <x-button
-                    :link="$d->editUrl"
-                    class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs btn-square rounded-lg"
-                    :aria-label="$d->editTitle"
-                    icon="o-pencil"
-                    data-ui="{{ $d->dataUiPrefix }}-edit"
+                    :link="$d->detailsUrl"
+                    wire:navigate
+                    class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                    :aria-label="$d->openDetailsAriaLabel"
+                    icon="o-arrow-top-right-on-square"
+                    data-ui="{{ $d->dataUiPrefix }}-open-details"
                 />
             @endif
             <div class="flex flex-col items-center gap-1">
@@ -38,14 +39,13 @@
                         data-ui="{{ $d->dataUiPrefix }}-interest-add"
                     />
                 @endif
-                @if ($d->showDetailsLink)
+                @if ($d->isOwner)
                     <x-button
-                        :link="$d->detailsUrl"
-                        wire:navigate
-                        class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
-                        :aria-label="$d->openDetailsAriaLabel"
-                        icon="o-arrow-top-right-on-square"
-                        data-ui="{{ $d->dataUiPrefix }}-open-details"
+                        :link="$d->editUrl"
+                        class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs btn-square rounded-lg"
+                        :aria-label="$d->editTitle"
+                        icon="o-pencil"
+                        data-ui="{{ $d->dataUiPrefix }}-edit"
                     />
                 @endif
             </div>

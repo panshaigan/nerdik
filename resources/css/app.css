@@ -245,8 +245,6 @@
 
     /** Page-level content cards — nav gutter (listing surfaces stay opaque below). */
     .ui-content-card:not(.ui-listing-card__surface) {
-        margin-inline: 1rem;
-
         @media (width >= 40rem) {
             margin-inline: 1.5rem;
         }

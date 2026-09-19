@@ -75,7 +75,7 @@
     </x-page-header>
 
     <div
-        class="flex flex-col gap-3 px-4 sm:flex-row sm:items-stretch sm:px-6 lg:px-8"
+        class="flex flex-col gap-3 px-1 sm:flex-row sm:items-stretch sm:px-6 lg:px-8"
         data-ui="activity-show-info-section"
     >
         <x-ui.activity-badge-group
@@ -83,7 +83,7 @@
             class="ui-activity-show-info-panel ui-activity-show-stat-panel !my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
             data-ui="activity-show-badge-group"
         />
-        <div class="grid shrink-0 grid-cols-1 gap-3 sm:w-auto sm:grid-cols-2">
+        <div class="grid shrink-0 grid-cols-2 gap-3 sm:w-auto">
             <div
                 class="ui-activity-show-info-panel ui-activity-show-stat-panel flex min-w-[8.75rem] items-center rounded-2xl sm:min-w-[10rem]"
                 data-ui="activity-show-participants-stat"

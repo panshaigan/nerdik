@@ -112,20 +112,20 @@
         </x-slot:titleSuffix>
     </x-page-header>
 
-    <div class="grid grid-cols-1 gap-3 px-4 sm:grid-cols-3 sm:px-6 lg:px-8">
-        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
-            <x-stat
-                title="{{ __('ui.events.confirmed_activities') }}"
-                value="{{ $confirmedActivitiesCount }}"
-                icon="o-puzzle-piece"
-                class="ui-stat-embed ui-activity-show-stat"
-            />
-        </div>
+    <div class="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 sm:px-6 lg:px-8">
         <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
             <x-stat
                 title="{{ __('ui.events.confirmed_participants') }}"
                 value="{{ $confirmedParticipantsCount }}/{{ $availablePlacesLabel }}"
                 icon="o-users"
+                class="ui-stat-embed ui-activity-show-stat"
+            />
+        </div>
+        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
+            <x-stat
+                title="{{ __('ui.events.confirmed_activities') }}"
+                value="{{ $confirmedActivitiesCount }}"
+                icon="o-puzzle-piece"
                 class="ui-stat-embed ui-activity-show-stat"
             />
         </div>

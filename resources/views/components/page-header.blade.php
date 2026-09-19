@@ -12,7 +12,7 @@
 @php
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
-<div {{ $attributes->class(['px-4 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
+<div {{ $attributes->class(['px-1 py-5 sm:px-6 lg:px-8', $headerClass]) }}>
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
             <h1 class="font-display text-3xl font-medium leading-tight text-base text-glow-base-100 sm:text-4xl">
