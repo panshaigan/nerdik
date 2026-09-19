@@ -18,13 +18,17 @@
         openUpward: @js((bool) $openUpward),
         menuStyle: '',
         toggle() {
-            this.open = ! this.open;
             if (this.open) {
-                this.$nextTick(() => {
-                    this.updatePosition();
-                    requestAnimationFrame(() => this.updatePosition());
-                });
+                this.close();
+                return;
             }
+
+            this.$dispatch('ui-overflow-menu-open', { el: this.$el });
+            this.open = true;
+            this.$nextTick(() => {
+                this.updatePosition();
+                requestAnimationFrame(() => this.updatePosition());
+            });
         },
         close() {
             this.open = false;
@@ -58,6 +62,7 @@
             this.close();
         },
     }"
+    x-on:ui-overflow-menu-open.window="if ($event.detail.el !== $el) close()"
     x-on:keydown.escape.window="close()"
     x-on:click.window="onWindowClick($event)"
     x-on:resize.window="open && updatePosition()"
