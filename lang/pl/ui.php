@@ -167,9 +167,6 @@ return [
     'dashboard' => [
         'title' => 'Pulpit',
         'empty' => 'Brak nadchodzących wydarzeń lub aktywności.',
-        'stats_interested_activities' => 'Obserwowane aktywności',
-        'stats_participating_activities' => 'Aktywności, w których uczestniczysz',
-        'stats_created_activities' => 'Aktywności, które prowadzisz',
     ],
     'auth' => [
         'log_in_with_google' => 'Zaloguj się przez Google',
@@ -862,7 +859,6 @@ return [
         'activity_detached_from_slot' => 'Aktywność została odłączona od slotu i ponownie oczekuje na decyzję.',
     ],
     'interests' => [
-        'interested_in_short' => 'Obserwujący',
         'added_event' => 'Obserwujesz wydarzenie',
         'removed_event' => 'Przestałeś obserwować wydarzenie',
         'added_activity' => 'Obserwujesz aktywność',

@@ -167,9 +167,6 @@ return [
     'dashboard' => [
         'title' => 'Dashboard',
         'empty' => 'No upcoming events or activities yet.',
-        'stats_interested_activities' => 'Followed activities',
-        'stats_participating_activities' => 'Activities you participate',
-        'stats_created_activities' => 'Activities you host',
     ],
     'auth' => [
         'log_in_with_google' => 'Log in with Google',
@@ -862,7 +859,6 @@ return [
         'activity_detached_from_slot' => 'The activity was removed from the slot and is pending again.',
     ],
     'interests' => [
-        'interested_in_short' => 'Followers',
         'added_event' => 'Event followed',
         'removed_event' => 'Event unfollowed',
         'added_activity' => 'Activity followed',

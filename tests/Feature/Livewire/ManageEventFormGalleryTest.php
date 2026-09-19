@@ -35,15 +35,17 @@ final class ManageEventFormGalleryTest extends TestCase
             720,
         );
 
+        $schedule = $this->eventFormSchedule();
+
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
             ->set('name', 'Gallery Image Event')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
             ->set('enrollment_windows.0.name', 'Window 1')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
             ->set('logo_source', EventLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
             ->call('save')
@@ -65,16 +67,17 @@ final class ManageEventFormGalleryTest extends TestCase
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
         $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
+        $schedule = $this->eventFormSchedule();
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
             ->set('name', 'Upload To Gallery Event')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
             ->set('enrollment_windows.0.name', 'Window 1')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
             ->set('logo_source', EventLogoSource::Upload->value)
             ->set('croppedLogo', $file)
             ->call('save')
@@ -103,15 +106,17 @@ final class ManageEventFormGalleryTest extends TestCase
             720,
         );
 
+        $schedule = $this->eventFormSchedule();
+
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
             ->set('name', 'Foreign Gallery Event')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
             ->set('enrollment_windows.0.name', 'Window 1')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
             ->set('logo_source', EventLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
             ->call('save')
@@ -136,16 +141,17 @@ final class ManageEventFormGalleryTest extends TestCase
         $galleryFileName = $media->file_name;
 
         $crop = UploadedFile::fake()->image('crop.jpg', 800, 450);
+        $schedule = $this->eventFormSchedule();
 
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
             ->set('name', 'Gallery Crop Event')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
             ->set('enrollment_windows.0.name', 'Window 1')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
             ->set('logo_source', EventLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
             ->set('croppedLogo', $crop)
@@ -186,15 +192,17 @@ final class ManageEventFormGalleryTest extends TestCase
             UploadedFile::fake()->image('original.jpg', 640, 360),
         );
 
+        $schedule = $this->eventFormSchedule();
+
         Livewire::actingAs($user)
             ->test(ManageEventForm::class)
             ->set('name', 'Preserve Crop Event')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
             ->set('enrollment_windows.0.name', 'Window 1')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
             ->set('logo_source', EventLogoSource::Gallery->value)
             ->set('gallery_media_id', (int) $media->id)
             ->set('croppedLogo', UploadedFile::fake()->image('crop.jpg', 800, 450))
@@ -249,5 +257,19 @@ final class ManageEventFormGalleryTest extends TestCase
             'Crop again to adjust the existing image, or choose a new file.',
             $html,
         );
+    }
+
+    /**
+     * @return array{starts_at: string, ends_at: string, window_starts_at: string}
+     */
+    private function eventFormSchedule(): array
+    {
+        $now = now();
+
+        return [
+            'starts_at' => $now->copy()->addDays(7)->format('Y-m-d\\TH:i'),
+            'ends_at' => $now->copy()->addDays(8)->format('Y-m-d\\TH:i'),
+            'window_starts_at' => $now->copy()->addDays(1)->format('Y-m-d\\TH:i'),
+        ];
     }
 }

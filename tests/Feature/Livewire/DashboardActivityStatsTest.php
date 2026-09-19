@@ -163,8 +163,7 @@ class DashboardActivityStatsTest extends TestCase
             ->test(Dashboard::class)
             ->assertViewHas('upcomingInterestedActivitiesCount', 1)
             ->assertViewHas('upcomingParticipatingActivitiesCount', 1)
-            ->assertViewHas('upcomingCreatedActivitiesCount', 1)
-            ->assertSeeHtml('data-ui="dashboard-activity-stats"');
+            ->assertViewHas('upcomingCreatedActivitiesCount', 1);
     }
 
     public function test_dashboard_shows_zero_stats_when_feed_is_empty(): void
