@@ -14,6 +14,7 @@ final class EditorTest extends TestCase
         $this->assertStringContainsString('blocks', $setup);
         $this->assertStringContainsString('bold', $setup);
         $this->assertStringContainsString('italic', $setup);
+        $this->assertStringContainsString("'height':600", $setup);
         $this->assertStringContainsString("'toolbar_mode':'wrap'", $setup);
         $this->assertStringContainsString("'statusbar':false", $setup);
         $this->assertStringContainsString("'quickbars_selection_toolbar':false", $setup);

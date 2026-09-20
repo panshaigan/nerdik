@@ -53,6 +53,7 @@ class Editor extends MaryEditor
     public function setup(): string
     {
         $this->config = array_merge([
+            'height' => 600,
             'toolbar' => 'undo redo | blocks styles | bold italic underline strikethrough | forecolor backcolor | align | bullist numlist | outdent indent | link blockquote removeformat | image table',
             'toolbar_mode' => 'wrap',
             'statusbar' => false,
