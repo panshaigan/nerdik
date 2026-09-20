@@ -83,7 +83,7 @@ class Editor extends MaryEditor
             ],
             'mobile' => [
                 'toolbar' => 'undo redo | blocks | bold italic underline | bullist numlist | link image table',
-                'toolbar_mode' => 'scrolling',
+                'toolbar_mode' => 'wrap',
                 'statusbar' => false,
                 'quickbars_selection_toolbar' => false,
                 'plugins' => 'advlist autolink lists link image table quickbars',

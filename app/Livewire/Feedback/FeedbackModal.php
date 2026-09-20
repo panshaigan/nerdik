@@ -118,7 +118,7 @@ class FeedbackModal extends Component
             'quickbars_selection_toolbar' => false,
             'mobile' => [
                 'toolbar' => 'undo redo | bold italic | bullist numlist | link image | removeformat',
-                'toolbar_mode' => 'scrolling',
+                'toolbar_mode' => 'wrap',
                 'statusbar' => false,
                 'plugins' => 'lists link image autolink',
             ],

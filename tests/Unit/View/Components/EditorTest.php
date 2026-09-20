@@ -48,7 +48,7 @@ final class EditorTest extends TestCase
             "'toolbar':'undo redo | blocks | bold italic underline | bullist numlist | link image table'",
             $setup,
         );
-        $this->assertStringContainsString("'toolbar_mode':'scrolling'", $setup);
+        $this->assertStringContainsString("'toolbar_mode':'wrap'", $setup);
         $this->assertStringContainsString(
             "'plugins':'advlist autolink lists link image table quickbars'",
             $setup,
