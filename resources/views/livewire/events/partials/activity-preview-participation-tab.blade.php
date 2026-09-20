@@ -36,6 +36,9 @@
                                 <span class="badge badge-warning badge-sm shrink-0">{{ __('ui.activities.absent') }}</span>
                             @endif
                         </div>
+                        @if (auth()->user()?->canModifyEntity($activity))
+                            <x-activity.familiarity-summary :familiarity="$participant->familiarity" />
+                        @endif
                     </x-slot:value>
                 </x-list-item>
             @empty
@@ -58,6 +61,9 @@
                                     name-class="truncate text-sm font-medium text-base-content"
                                     class="min-w-0 flex-1"
                                 />
+                                @if (auth()->user()?->canModifyEntity($activity))
+                                    <x-activity.familiarity-summary :familiarity="$entry->familiarity" />
+                                @endif
                             </x-slot:value>
                         </x-list-item>
                     @endforeach

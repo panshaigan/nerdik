@@ -112,4 +112,11 @@
         :hint="__('ui.activities.allows_observers')"
         :disabled="$allowsObserversLockedBySlots ?? false"
     />
+
+    <x-toggle
+        id="collect_familiarity"
+        :label="__('ui.activities.collect_familiarity_badge')"
+        wire:model="collect_familiarity"
+        :hint="__('ui.activities.collect_familiarity')"
+    />
 </div>

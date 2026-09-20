@@ -68,6 +68,7 @@ class Activity extends Model implements HasMedia
         'gallery_media_id',
         'duration_in_minutes',
         'allows_observers',
+        'collect_familiarity',
         'slug',
     ];
 
@@ -80,6 +81,7 @@ class Activity extends Model implements HasMedia
         'participation_mode' => ParticipationMode::class,
         'lottery_resolved_at' => 'datetime',
         'allows_observers' => 'boolean',
+        'collect_familiarity' => 'boolean',
         'is_host_passive' => 'boolean',
         'logo_source' => ActivityLogoSource::class,
     ];

@@ -17,6 +17,8 @@ use Livewire\Attributes\On;
 
 trait WithActivityPreviewModal
 {
+    use WithFamiliarityPrompt;
+
     public bool $activityPreviewModalOpen = false;
 
     public ?int $previewActivityId = null;
@@ -103,9 +105,11 @@ trait WithActivityPreviewModal
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
-        $participation->join($activity, $user);
-        $this->showPreviewParticipationTab();
-        $this->toastPreviewParticipationStatus();
+        $this->beginFamiliarityOrRun($activity, 'join_preview', function (?array $snapshot) use ($participation, $activity, $user): void {
+            $participation->join($activity, $user, $snapshot);
+            $this->showPreviewParticipationTab();
+            $this->toastPreviewParticipationStatus();
+        });
     }
 
     public function leavePreviewActivity(ActivityParticipationService $participation): void
@@ -125,7 +129,32 @@ trait WithActivityPreviewModal
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
-        $participation->joinWaitlist($activity, $user);
+        $this->beginFamiliarityOrRun($activity, 'join_preview_waitlist', function (?array $snapshot) use ($participation, $activity, $user): void {
+            $participation->joinWaitlist($activity, $user, $snapshot);
+            $this->showPreviewParticipationTab();
+            $this->toastPreviewParticipationStatus();
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $familiaritySnapshot
+     */
+    protected function afterFamiliarityCollected(
+        string $pendingAction,
+        Activity $activity,
+        ?array $familiaritySnapshot,
+        ActivityParticipationService $participation,
+        ?int $inviteRequestId = null,
+    ): void {
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        match ($pendingAction) {
+            'join_preview' => $participation->join($activity, $user, $familiaritySnapshot),
+            'join_preview_waitlist' => $participation->joinWaitlist($activity, $user, $familiaritySnapshot),
+            default => null,
+        };
+
         $this->showPreviewParticipationTab();
         $this->toastPreviewParticipationStatus();
     }

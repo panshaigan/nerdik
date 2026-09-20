@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityWaitlistEntries\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Services\ActivityFamiliarityService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -24,6 +25,12 @@ class ActivityWaitlistEntriesTable
                 TextColumn::make('position')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('familiarity')
+                    ->label('Familiarity')
+                    ->formatStateUsing(fn ($state): string => app(ActivityFamiliarityService::class)
+                        ->formatSnapshotSummary(is_array($state) ? $state : null))
+                    ->wrap()
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

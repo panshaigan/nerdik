@@ -54,6 +54,9 @@
                                     <span class="badge badge-warning badge-sm shrink-0">{{ __('ui.activities.absent') }}</span>
                                 @endif
                             </div>
+                            @if ($canManageActivity)
+                                <x-activity.familiarity-summary :familiarity="$p->familiarity" />
+                            @endif
                     </x-slot:value>
                     @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
                         <x-slot:actions class="flex flex-wrap items-center gap-1 max-sm:w-full">
@@ -157,6 +160,9 @@
                                         :context-activity-id="$canManageActivity ? $activity->id : null"
                                     />
                                 </div>
+                                @if ($canManageActivity)
+                                    <x-activity.familiarity-summary :familiarity="$entry->familiarity" />
+                                @endif
                             </x-slot:value>
                         </x-list-item>
                     @endforeach

@@ -9,6 +9,7 @@
         'showPreviewParticipationTab' => $showPreviewParticipationTab ?? false,
         'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
     ])
+    @include('livewire.partials.familiarity-prompt-modal')
 @endif
 
 @if ($includeEventPreviewModal ?? false)

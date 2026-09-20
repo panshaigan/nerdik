@@ -14,7 +14,18 @@ class ActivityWaitlistEntry extends Model
         'activity_id',
         'user_id',
         'position',
+        'familiarity',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'familiarity' => 'array',
+        ];
+    }
 
     public function activity(): BelongsTo
     {

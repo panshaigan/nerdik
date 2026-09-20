@@ -368,11 +368,12 @@ class ActivityLotteryService
         $targetUser = $entry->user;
 
         $pos = $entry->position;
+        $familiarity = app(ActivityFamiliarityService::class)->familiarityFromWaitlistEntry($entry);
         $entry->delete();
         $activity->waitlist()->where('position', '>', $pos)->decrement('position');
-        $participant = $activity->participants()->create([
-            'user_id' => $entry->user_id,
-        ]);
+        $participant = $activity->participants()->create(
+            app(ActivityFamiliarityService::class)->participantCreatePayload((int) $entry->user_id, $familiarity)
+        );
 
         if ($activity->relationLoaded('waitlist')) {
             $activity->setRelation(

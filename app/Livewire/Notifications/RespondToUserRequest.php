@@ -6,7 +6,11 @@ namespace App\Livewire\Notifications;
 
 use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
+use App\Livewire\Concerns\WithFamiliarityPrompt;
+use App\Models\Activity;
 use App\Models\UserRequest;
+use App\Services\ActivityFamiliarityService;
+use App\Services\ActivityParticipationService;
 use App\Services\UserRequests\UserRequestDecisionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +21,7 @@ use Mary\Traits\Toast;
 class RespondToUserRequest extends Component
 {
     use Toast;
+    use WithFamiliarityPrompt;
 
     public bool $open = false;
 
@@ -44,25 +49,82 @@ class RespondToUserRequest extends Component
         $this->dispatch('user-request-modal-closed');
     }
 
-    public function accept(UserRequestDecisionService $decisions): void
+    public function closeFamiliarityPrompt(): void
+    {
+        $reopenRequestId = $this->familiarityPendingAction === 'accept_invite'
+            ? $this->familiarityInviteRequestId
+            : null;
+
+        $this->familiarityModalOpen = false;
+        $this->familiarityActivityId = null;
+        $this->familiarityPendingAction = '';
+        $this->familiarityInviteRequestId = null;
+        $this->familiarityAnswers = [];
+        $this->familiaritySubjects = [];
+
+        if ($reopenRequestId !== null) {
+            $this->requestId = $reopenRequestId;
+            $this->open = true;
+        }
+    }
+
+    public function accept(UserRequestDecisionService $decisions, ActivityFamiliarityService $familiarity): void
     {
         $request = $this->authorizedRequest();
         if ($request === null) {
             return;
         }
 
-        try {
-            $decisions->accept($request, Auth::user());
-        } catch (ValidationException $e) {
-            $this->errorMessage = (string) collect($e->errors())->flatten()->first();
+        if ($request->type === UserRequestType::ActivityInvite) {
+            $activity = $request->subject;
+            if ($activity instanceof Activity
+                && $activity->collect_familiarity
+                && $familiarity->activityHasFamiliaritySubjects($activity)
+            ) {
+                $requestId = (int) $request->id;
+                $this->open = false;
+                $this->beginFamiliarityOrRun(
+                    $activity,
+                    'accept_invite',
+                    function (?array $snapshot) use ($decisions, $familiarity, $requestId): void {
+                        $user = Auth::user();
+                        if ($user !== null && $snapshot !== null) {
+                            $familiarity->stageSnapshot((int) $user->id, $snapshot);
+                        }
+                        $this->requestId = $requestId;
+                        $this->finalizeInviteAccept($decisions);
+                    },
+                    $requestId,
+                );
 
+                return;
+            }
+        }
+
+        $this->finalizeInviteAccept($decisions);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $familiaritySnapshot
+     */
+    protected function afterFamiliarityCollected(
+        string $pendingAction,
+        Activity $activity,
+        ?array $familiaritySnapshot,
+        ActivityParticipationService $participation,
+        ?int $inviteRequestId = null,
+    ): void {
+        if ($pendingAction !== 'accept_invite' || $inviteRequestId === null) {
             return;
         }
 
-        $this->success(__('ui.user_requests.accepted'));
-        $this->closeModal();
-        $this->dispatch('database-notifications-updated', resetPagination: false);
-        $this->dispatch('user-requests-updated');
+        $user = Auth::user();
+        if ($user !== null) {
+            app(ActivityFamiliarityService::class)->stageSnapshot((int) $user->id, $familiaritySnapshot);
+        }
+
+        $this->requestId = $inviteRequestId;
+        $this->finalizeInviteAccept(app(UserRequestDecisionService::class));
     }
 
     public function decline(UserRequestDecisionService $decisions): void
@@ -121,6 +183,28 @@ class RespondToUserRequest extends Component
             'modalState' => $modalState,
             'resolvedMessage' => $resolvedMessage,
         ]);
+    }
+
+    private function finalizeInviteAccept(UserRequestDecisionService $decisions): void
+    {
+        $request = $this->authorizedRequest();
+        if ($request === null) {
+            return;
+        }
+
+        try {
+            $decisions->accept($request, Auth::user());
+        } catch (ValidationException $e) {
+            $this->errorMessage = (string) collect($e->errors())->flatten()->first();
+            $this->open = true;
+
+            return;
+        }
+
+        $this->success(__('ui.user_requests.accepted'));
+        $this->closeModal();
+        $this->dispatch('database-notifications-updated', resetPagination: false);
+        $this->dispatch('user-requests-updated');
     }
 
     private function resolvedMessageFor(UserRequest $request): string

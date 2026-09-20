@@ -93,6 +93,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->hasOne(UserProfile::class);
     }
 
+    public function familiarities(): HasMany
+    {
+        return $this->hasMany(UserFamiliarity::class);
+    }
+
     public function sentEmails(): HasMany
     {
         return $this->hasMany(SentEmail::class, 'recipient_user_id');

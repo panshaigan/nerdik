@@ -44,12 +44,17 @@ class ActivityParticipantRosterService
         $user = $participant->user;
 
         DB::transaction(function () use ($activity, $participant, $userId) {
+            $familiarity = is_array($participant->familiarity) ? $participant->familiarity : null;
             $participant->delete();
             $nextPosition = ((int) $activity->waitlist()->max('position')) + 1;
-            $activity->waitlist()->create([
+            $payload = [
                 'user_id' => $userId,
                 'position' => $nextPosition,
-            ]);
+            ];
+            if ($familiarity !== null) {
+                $payload['familiarity'] = $familiarity;
+            }
+            $activity->waitlist()->create($payload);
         });
 
         if ($user instanceof User && $activity !== null) {

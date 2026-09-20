@@ -29,6 +29,7 @@ return [
         'meta:requires_approval',
         'meta:lottery',
         'meta:allows_observers',
+        'meta:collect_familiarity',
 
     ],
 
@@ -42,6 +43,7 @@ return [
             ],
             'participation_mode' => false,
             'allows_observers' => false,
+            'collect_familiarity' => false,
             'minimum_age' => true,
         ],
         'activity_hero' => [
@@ -58,6 +60,7 @@ return [
             ],
             'participation_mode' => true,
             'allows_observers' => true,
+            'collect_familiarity' => true,
             'minimum_age' => true,
         ],
         'browse_card' => [
@@ -69,6 +72,7 @@ return [
             ],
             'participation_mode' => false,
             'allows_observers' => false,
+            'collect_familiarity' => true,
             'minimum_age' => false,
         ],
         'event_proposal' => [
@@ -83,6 +87,7 @@ return [
             ],
             'participation_mode' => true,
             'allows_observers' => true,
+            'collect_familiarity' => true,
             'minimum_age' => true,
         ],
     ],
@@ -114,6 +119,7 @@ return [
         'requires_approval' => 'neutral',
         'lottery' => 'neutral',
         'allows_observers' => 'neutral',
+        'collect_familiarity' => 'info',
     ],
 
     'icon_by_tag_category' => [
@@ -134,5 +140,6 @@ return [
         'requires_approval' => 'o-shield-check',
         'lottery' => 'o-sparkles',
         'allows_observers' => 'o-eye',
+        'collect_familiarity' => 'o-academic-cap',
     ],
 ];

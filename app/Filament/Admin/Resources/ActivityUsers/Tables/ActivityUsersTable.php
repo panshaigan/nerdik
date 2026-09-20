@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\ActivityUsers\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
 use App\Filament\Tables\Filters\CommonFilters;
+use App\Services\ActivityFamiliarityService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -29,6 +30,12 @@ class ActivityUsersTable
                 BelongsToColumn::user('user_id'),
                 IconColumn::make('is_absent')
                     ->boolean(),
+                TextColumn::make('familiarity')
+                    ->label('Familiarity')
+                    ->formatStateUsing(fn ($state): string => app(ActivityFamiliarityService::class)
+                        ->formatSnapshotSummary(is_array($state) ? $state : null))
+                    ->wrap()
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

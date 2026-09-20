@@ -3,6 +3,8 @@
 namespace App\Filament\Admin\Resources\ActivityUsers\Schemas;
 
 use App\Filament\Forms\Components\BelongsToSelect;
+use App\Services\ActivityFamiliarityService;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
@@ -18,6 +20,11 @@ class ActivityUserForm
                     ->required(),
                 Toggle::make('is_absent')
                     ->required(),
+                Placeholder::make('familiarity_summary')
+                    ->label('Familiarity')
+                    ->content(fn ($record): string => app(ActivityFamiliarityService::class)
+                        ->formatSnapshotSummary(is_array($record?->familiarity) ? $record->familiarity : null)
+                        ?: '—'),
                 BelongsToSelect::user('created_by'),
                 BelongsToSelect::user('updated_by'),
                 BelongsToSelect::user('deleted_by'),

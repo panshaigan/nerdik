@@ -10,6 +10,7 @@ enum ActivityBadgeKind: int
     case RequiresApproval = 4;
     case AllowsObservers = 5;
     case Lottery = 6;
+    case CollectFamiliarity = 7;
 
     /** Key under `config('activity-badges.semantic_by_kind')`. */
     public function semanticConfigKey(): string
@@ -21,6 +22,7 @@ enum ActivityBadgeKind: int
             self::RequiresApproval => 'requires_approval',
             self::AllowsObservers => 'allows_observers',
             self::Lottery => 'lottery',
+            self::CollectFamiliarity => 'collect_familiarity',
         };
     }
 }

@@ -95,6 +95,8 @@ class ManageActivityForm extends Component
 
     public bool $allows_observers = false;
 
+    public bool $collect_familiarity = false;
+
     public bool $participationConstrainedBySlots = false;
 
     /** @var list<string> */
@@ -182,6 +184,7 @@ class ManageActivityForm extends Component
             $this->is_host_passive = (bool) $activity->is_host_passive;
             $this->participation_mode = $activity->participationMode()->value;
             $this->allows_observers = (bool) $activity->allows_observers;
+            $this->collect_familiarity = (bool) $activity->collect_familiarity;
             $this->hosting_mode = (int) ($activity->hosting_mode ?: Activity::HOSTING_MODE_DRAFT);
             $this->initialHostingMode = $this->hosting_mode;
             $this->self_hosted_place_id = $activity->place_id;
@@ -327,7 +330,7 @@ class ManageActivityForm extends Component
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
             'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
-            'lottery_draw_in_hours', 'participation_mode', 'allows_observers' => 'participation-rules',
+            'lottery_draw_in_hours', 'participation_mode', 'allows_observers', 'collect_familiarity' => 'participation-rules',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
             default => 'hosting-mode',
@@ -498,6 +501,7 @@ class ManageActivityForm extends Component
         $this->is_host_passive = (bool) $source->is_host_passive;
         $this->participation_mode = $source->participationMode()->value;
         $this->allows_observers = (bool) $source->allows_observers;
+        $this->collect_familiarity = (bool) $source->collect_familiarity;
         $this->tag_ids = $source->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $this->new_tags = [];
 
@@ -976,6 +980,7 @@ class ManageActivityForm extends Component
                     }
                 },
             ],
+            'collect_familiarity' => ['nullable', 'boolean'],
             'is_host_passive' => ['nullable', 'boolean'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer', 'exists:tags,id'],

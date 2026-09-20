@@ -249,4 +249,6 @@
         :message="$confirmModalMessage"
         confirm-action="runConfirmedAction"
     />
+
+    @include('livewire.partials.familiarity-prompt-modal')
 </div>

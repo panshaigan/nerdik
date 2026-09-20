@@ -52,6 +52,9 @@ class ActivityForm
                     ->numeric(),
                 Toggle::make('allows_observers')
                     ->required(),
+                Toggle::make('collect_familiarity')
+                    ->label('Collect familiarity')
+                    ->helperText('Ask joiners how familiar they are with the activity type, games, mechanics, and settings. Informative only — does not block signup.'),
                 Toggle::make('is_host_passive')
                     ->required(),
                 Select::make('participation_mode')

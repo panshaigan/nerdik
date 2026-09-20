@@ -41,6 +41,7 @@ class ActivityFormService
         $validated['participation_mode'] = ParticipationMode::tryFrom((string) ($validated['participation_mode'] ?? ''))
             ?? ParticipationMode::Open;
         $validated['allows_observers'] = (bool) ($validated['allows_observers'] ?? false);
+        $validated['collect_familiarity'] = (bool) ($validated['collect_familiarity'] ?? false);
         $validated['is_host_passive'] = (bool) ($validated['is_host_passive'] ?? false);
 
         $payload = Arr::except(

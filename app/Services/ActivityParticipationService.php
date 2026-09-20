@@ -18,7 +18,7 @@ class ActivityParticipationService
         private readonly ActivityParticipantRosterService $roster,
     ) {}
 
-    public function join(Activity $activity, User $user): RedirectResponse
+    public function join(Activity $activity, User $user, ?array $familiarity = null): RedirectResponse
     {
         if ($response = $this->participationRateLimitedResponse($activity, $user)) {
             return $response;
@@ -53,7 +53,7 @@ class ActivityParticipationService
             return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
-        $this->signupService->userJoinActivity($activity, $user);
+        $this->signupService->userJoinActivity($activity, $user, $familiarity);
         $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the activity.'));
@@ -80,7 +80,7 @@ class ActivityParticipationService
         return redirect()->back()->with('status', __('You left the activity.'));
     }
 
-    public function joinWaitlist(Activity $activity, User $user): RedirectResponse
+    public function joinWaitlist(Activity $activity, User $user, ?array $familiarity = null): RedirectResponse
     {
         if ($response = $this->participationRateLimitedResponse($activity, $user)) {
             return $response;
@@ -110,7 +110,7 @@ class ActivityParticipationService
             return redirect()->back()->with('status', $this->firstValidationMessage($e));
         }
 
-        $this->signupService->userJoinWaitlist($activity, $user);
+        $this->signupService->userJoinWaitlist($activity, $user, $familiarity);
         $this->recordParticipationMutation($activity, $user);
 
         return redirect()->back()->with('status', __('You joined the waitlist.'));
@@ -250,7 +250,7 @@ class ActivityParticipationService
      *
      * @throws ValidationException when participation is not currently allowed
      */
-    public function participateAsInvitedUser(Activity $activity, User $user): UserRequestResolutionOutcome
+    public function participateAsInvitedUser(Activity $activity, User $user, ?array $familiarity = null): UserRequestResolutionOutcome
     {
         $block = $this->signupStateBlockMessage($activity);
         if ($block !== null) {
@@ -265,19 +265,21 @@ class ActivityParticipationService
             return UserRequestResolutionOutcome::Waitlisted;
         }
 
+        $familiarity ??= app(ActivityFamiliarityService::class)->consumeStagedSnapshot((int) $user->id);
+
         $isFull = $activity->max_participants !== null
             && $activity->participants()->count() >= $activity->max_participants;
 
         if (! $activity->isHostApprovalMode() && ! $activity->isLotteryMode() && ! $isFull) {
             $this->signupService->assertCanSignup($activity, $user);
-            $this->signupService->userJoinActivity($activity, $user);
+            $this->signupService->userJoinActivity($activity, $user, $familiarity);
 
             return UserRequestResolutionOutcome::Joined;
         }
 
         if ($activity->isHostApprovalMode() || $activity->isLotteryMode() || $isFull) {
             $this->signupService->assertCanSignup($activity, $user);
-            $this->signupService->userJoinWaitlist($activity, $user);
+            $this->signupService->userJoinWaitlist($activity, $user, $familiarity);
 
             return UserRequestResolutionOutcome::Waitlisted;
         }

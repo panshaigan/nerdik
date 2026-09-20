@@ -65,4 +65,6 @@
             @endif
         </x-modal>
     @endif
+
+    @include('livewire.partials.familiarity-prompt-modal')
 </div>

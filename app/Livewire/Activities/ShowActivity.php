@@ -4,6 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
+use App\Livewire\Concerns\WithFamiliarityPrompt;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -24,6 +25,7 @@ use Mary\Traits\Toast;
 class ShowActivity extends Component
 {
     use Toast;
+    use WithFamiliarityPrompt;
     use WithUiConfirmModal;
 
     public int $activityId;
@@ -205,8 +207,11 @@ class ShowActivity extends Component
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $participation->join($activity, $user);
-        $this->toastFromSessionStatus();
+
+        $this->beginFamiliarityOrRun($activity, 'join', function (?array $snapshot) use ($participation, $activity, $user): void {
+            $participation->join($activity, $user, $snapshot);
+            $this->toastFromSessionStatus();
+        });
     }
 
     public function leave(ActivityParticipationService $participation): void
@@ -223,7 +228,32 @@ class ShowActivity extends Component
         $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
-        $participation->joinWaitlist($activity, $user);
+
+        $this->beginFamiliarityOrRun($activity, 'join_waitlist', function (?array $snapshot) use ($participation, $activity, $user): void {
+            $participation->joinWaitlist($activity, $user, $snapshot);
+            $this->toastFromSessionStatus();
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $familiaritySnapshot
+     */
+    protected function afterFamiliarityCollected(
+        string $pendingAction,
+        Activity $activity,
+        ?array $familiaritySnapshot,
+        ActivityParticipationService $participation,
+        ?int $inviteRequestId = null,
+    ): void {
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        match ($pendingAction) {
+            'join' => $participation->join($activity, $user, $familiaritySnapshot),
+            'join_waitlist' => $participation->joinWaitlist($activity, $user, $familiaritySnapshot),
+            default => null,
+        };
+
         $this->toastFromSessionStatus();
     }
 

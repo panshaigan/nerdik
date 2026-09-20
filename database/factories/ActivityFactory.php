@@ -56,6 +56,7 @@ final class ActivityFactory extends Factory
                 240, 240, 240, 240,
             ]),
             'allows_observers' => 0,
+            'collect_familiarity' => false,
             'is_host_passive' => 0,
             'participation_mode' => fake()->randomElement([
                 ParticipationMode::Open,

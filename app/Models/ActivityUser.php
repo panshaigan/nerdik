@@ -13,6 +13,7 @@ class ActivityUser extends Model
         'activity_id',
         'user_id',
         'is_absent',
+        'familiarity',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -21,6 +22,7 @@ class ActivityUser extends Model
 
     protected $casts = [
         'is_absent' => 'boolean',
+        'familiarity' => 'array',
         'deleted_at' => 'datetime',
     ];
 

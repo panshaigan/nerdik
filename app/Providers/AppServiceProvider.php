@@ -11,12 +11,14 @@ use App\Models\Feedback;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\UserRequest;
 use App\Observers\ActivityObserver;
 use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
+use App\Services\ActivityFamiliarityService;
 use App\View\Components\Editor;
 use App\View\Components\ThemeToggle;
 use App\View\Composers\SeoComposer;
@@ -55,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ImageManager::class, function (): ImageManager {
             return new ImageManager(new Driver);
         });
+
+        $this->app->singleton(ActivityFamiliarityService::class);
 
         parent::register();
     }
@@ -96,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
             'user' => User::class,
             'activity_type' => ActivityType::class,
             'activity_proposal' => ActivityProposal::class,
+            'tag' => Tag::class,
             'user_request' => UserRequest::class,
             'feedback' => Feedback::class,
         ]);

@@ -117,10 +117,25 @@ class ActivityBadgeGroupBuilder
                 ),
             ];
         }
+        if (($surfaceCfg['collect_familiarity'] ?? false) && $activity->collect_familiarity) {
+            $rows[] = [
+                'order' => $orderIndices['meta:collect_familiarity'] ?? 52,
+                'tie' => 0,
+                'item' => new ActivityBadgeItem(
+                    ActivityBadgeKind::CollectFamiliarity,
+                    'meta:collect_familiarity',
+                    __('ui.familiarity.badge'),
+                    $config->semanticFor(ActivityBadgeKind::CollectFamiliarity),
+                    $config->iconFor(ActivityBadgeKind::CollectFamiliarity),
+                    ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::CollectFamiliarity),
+                    true,
+                ),
+            ];
+        }
         [$minimumAge, $maximumAge] = $this->resolvedAgeBounds($activity);
         if (($surfaceCfg['minimum_age'] ?? false) && ($minimumAge !== null || $maximumAge !== null)) {
             $rows[] = [
-                'order' => $orderIndices['meta:minimum_age'] ?? 52,
+                'order' => $orderIndices['meta:minimum_age'] ?? 53,
                 'tie' => 0,
                 'item' => new ActivityBadgeItem(
                     ActivityBadgeKind::MinimumAge,

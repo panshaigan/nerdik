@@ -19,11 +19,13 @@ use Illuminate\Validation\ValidationException;
 
 class EventActivitySignupService
 {
-    public function userJoinActivity(Activity $activity, User $user): void
+    public function userJoinActivity(Activity $activity, User $user, ?array $familiarity = null): void
     {
-        $activity->participants()->create([
-            'user_id' => $user->id,
-        ]);
+        $familiarity ??= app(ActivityFamiliarityService::class)->consumeStagedSnapshot((int) $user->id);
+
+        $activity->participants()->create(
+            app(ActivityFamiliarityService::class)->participantCreatePayload((int) $user->id, $familiarity)
+        );
 
         $fresh = $activity->fresh();
         if ($fresh === null) {
@@ -104,10 +106,11 @@ class EventActivitySignupService
             }
 
             $promotedUser = $first->user;
+            $familiarity = app(ActivityFamiliarityService::class)->familiarityFromWaitlistEntry($first);
             $first->delete();
-            $activity->participants()->create([
-                'user_id' => $first->user_id,
-            ]);
+            $activity->participants()->create(
+                app(ActivityFamiliarityService::class)->participantCreatePayload((int) $first->user_id, $familiarity)
+            );
             $activity->waitlist()->orderBy('position')->get()->each(function ($entry, $index): void {
                 $entry->update(['position' => $index + 1]);
             });
@@ -116,13 +119,19 @@ class EventActivitySignupService
         return $promotedUser;
     }
 
-    public function userJoinWaitlist(Activity $activity, User $user): void
+    public function userJoinWaitlist(Activity $activity, User $user, ?array $familiarity = null): void
     {
+        $familiarity ??= app(ActivityFamiliarityService::class)->consumeStagedSnapshot((int) $user->id);
+
         $nextPosition = $activity->waitlist()->max('position') + 1;
-        $activity->waitlist()->create([
+        $payload = [
             'user_id' => $user->id,
             'position' => $nextPosition,
-        ]);
+        ];
+        if ($familiarity !== null) {
+            $payload['familiarity'] = $familiarity;
+        }
+        $activity->waitlist()->create($payload);
 
         ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
     }
@@ -142,11 +151,12 @@ class EventActivitySignupService
 
         DB::transaction(function () use ($activity, $waitlistEntry): void {
             $pos = $waitlistEntry->position;
+            $familiarity = app(ActivityFamiliarityService::class)->familiarityFromWaitlistEntry($waitlistEntry);
             $waitlistEntry->delete();
             $activity->waitlist()->where('position', '>', $pos)->decrement('position');
-            $activity->participants()->create([
-                'user_id' => $waitlistEntry->user_id,
-            ]);
+            $activity->participants()->create(
+                app(ActivityFamiliarityService::class)->participantCreatePayload((int) $waitlistEntry->user_id, $familiarity)
+            );
         });
 
         $targetUser->notify(new WaitlistPromotedNotification($activity->fresh()));
