@@ -155,6 +155,29 @@ final class ShareLinksTest extends TestCase
         $this->assertStringStartsWith('https://t.me/share/url?', $telegram);
     }
 
+    public function test_menu_urls_use_first_party_redirect_to_avoid_adblockers(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Menu URL Event',
+        ]);
+        $payload = $this->shareLinks->forEvent($event);
+        $this->assertNotNull($payload);
+
+        $this->assertNull($this->shareLinks->menuUrl($payload, ShareTarget::Copy));
+
+        foreach (ShareTarget::externalCases() as $target) {
+            $menuUrl = $this->shareLinks->menuUrl($payload, $target);
+            $this->assertNotNull($menuUrl);
+            $this->assertStringStartsWith(route('share.redirect', ['target' => $target->value]), $menuUrl);
+            $this->assertStringNotContainsString('facebook.com', $menuUrl);
+            $this->assertStringNotContainsString('wa.me', $menuUrl);
+            $this->assertStringNotContainsString('twitter.com', $menuUrl);
+            $this->assertStringNotContainsString('t.me', $menuUrl);
+        }
+    }
+
     public function test_for_event_series_builds_canonical_payload_without_utms(): void
     {
         $user = User::factory()->create();

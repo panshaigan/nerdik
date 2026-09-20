@@ -132,6 +132,25 @@ final class ShareLinks
         };
     }
 
+    /**
+     * First-party menu href so ad blockers do not hide social items
+     * (they match a[href*="facebook.com"], wa.me, twitter.com, t.me, etc.).
+     */
+    public function menuUrl(SharePayload $payload, ShareTarget $target): ?string
+    {
+        if (! $target->isExternal()) {
+            return null;
+        }
+
+        return route('share.redirect', [
+            'target' => $target->value,
+            'url' => $payload->url,
+            'title' => $payload->title,
+            'text' => $payload->text,
+            'campaign' => $payload->campaign,
+        ]);
+    }
+
     private function shareMessage(SharePayload $payload, string $trackedUrl): string
     {
         return trim($payload->title."\n".$payload->text."\n".$trackedUrl);

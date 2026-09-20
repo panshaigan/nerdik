@@ -1860,6 +1860,17 @@
 }
 
 /**
+ * Tool overflow menus (share / calendar / manage): Tailwind shadow-* uses black
+ * alpha and is nearly invisible on dark base-100. Use content-colored elevation.
+ */
+.ui-overflow-menu-panel {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--color-base-content) 22%, transparent),
+        0 14px 36px color-mix(in oklab, var(--color-base-content) 30%, transparent),
+        0 6px 14px color-mix(in oklab, #000 55%, transparent);
+}
+
+/**
  * Mobile nav dropdowns: DaisyUI anchors the panel to the trigger, so a near-full
  * viewport width clips off the left when the bell sits left of the hamburger.
  * Pin both horizontal edges to the viewport instead.

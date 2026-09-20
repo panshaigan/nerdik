@@ -36,18 +36,18 @@
         <x-ui.overflow-menu-item
             icon="o-clipboard-document"
             data-ui="share-copy"
-            x-on:click="$parent.copyLink()"
+            x-on:click.prevent.stop="copyLink()"
         >
             {{ __('ui.share.copy_link') }}
         </x-ui.overflow-menu-item>
         @foreach ($externalTargets as $target)
             @php
-                $intentUrl = $shareLinks->intentUrl($payload, $target);
+                $menuUrl = $shareLinks->menuUrl($payload, $target);
             @endphp
-            @if ($intentUrl !== null)
+            @if ($menuUrl !== null)
                 <x-ui.overflow-menu-item
                     :icon="$platformIcon[$target->value]"
-                    :href="$intentUrl"
+                    :href="$menuUrl"
                     external
                     data-ui="share-{{ $target->value }}"
                 >

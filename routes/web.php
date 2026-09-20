@@ -17,6 +17,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\RobotsTxtController;
+use App\Http\Controllers\ShareRedirectController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
@@ -66,6 +67,11 @@ Route::get('geocode/search', [GeocodeController::class, 'search'])
 Route::get('privacy', fn () => view('pages.privacy', ['seo' => Seo::forPrivacy()]))->name('privacy');
 Route::get('terms', fn () => view('pages.terms', ['seo' => Seo::forTerms()]))->name('terms');
 Route::get('contact', fn () => view('pages.contact', ['seo' => Seo::forContact()]))->name('contact');
+
+Route::get('share/{target}', ShareRedirectController::class)
+    ->whereIn('target', ['facebook', 'whatsapp', 'x', 'telegram'])
+    ->middleware('throttle:60,1')
+    ->name('share.redirect');
 
 Route::post('feedback/editor-upload', FeedbackEditorUploadController::class)
     ->middleware('throttle:feedback-upload')

@@ -26,8 +26,10 @@
             this.$dispatch('ui-overflow-menu-open', { el: this.$el });
             this.open = true;
             this.$nextTick(() => {
-                this.updatePosition();
-                requestAnimationFrame(() => this.updatePosition());
+                requestAnimationFrame(() => {
+                    this.updatePosition();
+                    requestAnimationFrame(() => this.updatePosition());
+                });
             });
         },
         close() {
@@ -41,15 +43,22 @@
             }
 
             const rect = trigger.getBoundingClientRect();
-            const gap = 8;
+            const gap = 2;
             const panelWidth = panel.offsetWidth || 224;
+            const panelHeight = panel.scrollHeight || panel.offsetHeight || 0;
             const maxLeft = Math.max(gap, window.innerWidth - panelWidth - gap);
             const left = Math.min(Math.max(gap, rect.right - panelWidth), maxLeft);
+            const spaceBelow = window.innerHeight - rect.bottom - gap;
+            const spaceAbove = rect.top - gap;
+            const overflowsBelow = rect.bottom + gap + panelHeight > window.innerHeight;
+            const openUpward = this.openUpward
+                || (overflowsBelow && spaceAbove >= panelHeight)
+                || (overflowsBelow && spaceAbove > spaceBelow);
 
-            if (this.openUpward) {
-                this.menuStyle = `position:fixed;left:${left}px;bottom:${window.innerHeight - rect.top + gap}px;top:auto;`;
+            if (openUpward) {
+                this.menuStyle = `position:fixed;left:${left}px;bottom:${window.innerHeight - rect.top + gap}px;top:auto;max-height:${Math.max(spaceAbove, 120)}px;overflow-y:auto;`;
             } else {
-                this.menuStyle = `position:fixed;left:${left}px;top:${rect.bottom + gap}px;bottom:auto;`;
+                this.menuStyle = `position:fixed;left:${left}px;top:${rect.bottom + gap}px;bottom:auto;max-height:${Math.max(spaceBelow, 120)}px;overflow-y:auto;`;
             }
         },
         onWindowClick(event) {
@@ -90,8 +99,9 @@
             x-bind:class="open ? 'flex' : 'hidden'"
             x-on:click="close()"
             role="menu"
-            class="fixed z-[10000] flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral {{ $panelClass }}"
+            class="ui-overflow-menu-panel fixed z-[10000] flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 light:border-neutral {{ $panelClass }}"
             :style="menuStyle"
+            x-on:scroll.stop
             @if (is_string($listDataUi) && $listDataUi !== '')
                 data-ui="{{ $listDataUi }}"
             @endif
