@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('organizations.index');
 
     Route::resource('organizations', OrganizationController::class)
-        ->except(['show', 'index']);
+        ->except(['show', 'index', 'store', 'update']);
 
     Route::get('events/{event}/propose', function (Event $event) {
         $user = auth()->user();

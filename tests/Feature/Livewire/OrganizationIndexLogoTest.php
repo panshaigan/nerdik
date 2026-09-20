@@ -6,6 +6,7 @@ namespace Tests\Feature\Livewire;
 
 use App\Actions\Organizations\StoreUploadedOrganizationLogo;
 use App\Enums\OrganizationLogoSource;
+use App\Livewire\Organizations\ManageOrganizationForm;
 use App\Livewire\Organizations\OrganizationIndex;
 use App\Models\Organization;
 use App\Models\User;
@@ -26,16 +27,15 @@ final class OrganizationIndexLogoTest extends TestCase
         $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->set('modalOpen', true)
-            ->set('modalMode', 'create')
+            ->test(ManageOrganizationForm::class)
             ->set('name', 'Generated Logo Org')
             ->set('acronym', 'GLO')
             ->set('logo_source', OrganizationLogoSource::Generated->value)
             ->set('logo_bg_color', '#ff0000')
             ->set('logo_text_color', '#00ff00')
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(route('organizations.index'));
 
         $organization = Organization::query()->where('name', 'Generated Logo Org')->first();
         $this->assertNotNull($organization);
@@ -57,15 +57,14 @@ final class OrganizationIndexLogoTest extends TestCase
         $source = UploadedFile::fake()->image('original.jpg', 640, 360);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->set('modalOpen', true)
-            ->set('modalMode', 'create')
+            ->test(ManageOrganizationForm::class)
             ->set('name', 'Uploaded Logo Org')
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->set('croppedLogo', $file)
             ->set('sourceImage', $source)
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(route('organizations.index'));
 
         $organization = Organization::query()->where('name', 'Uploaded Logo Org')->first();
         $this->assertNotNull($organization);
@@ -99,12 +98,12 @@ final class OrganizationIndexLogoTest extends TestCase
         $originalSourceContents = Storage::disk('public')->get($sourcePath);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->call('openEditModal', $organization->id)
+            ->test(ManageOrganizationForm::class, ['organization' => $organization])
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->set('croppedLogo', UploadedFile::fake()->image('recrop.jpg', 512, 512))
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(route('organizations.index'));
 
         Storage::disk('public')->assertExists($sourcePath);
         $this->assertSame($originalSourceContents, Storage::disk('public')->get($sourcePath));
@@ -124,11 +123,11 @@ final class OrganizationIndexLogoTest extends TestCase
         Storage::disk('public')->put('organization-logos/legacy.webp', 'logo');
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->call('openEditModal', $organization->id)
+            ->test(ManageOrganizationForm::class, ['organization' => $organization])
             ->set('logo_source', OrganizationLogoSource::Generated->value)
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(route('organizations.index'));
 
         $organization->refresh();
         $this->assertSame(OrganizationLogoSource::Generated, $organization->logo_source);
@@ -142,9 +141,7 @@ final class OrganizationIndexLogoTest extends TestCase
         $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->set('modalOpen', true)
-            ->set('modalMode', 'create')
+            ->test(ManageOrganizationForm::class)
             ->set('name', 'Missing Crop Org')
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->call('save')
@@ -158,7 +155,7 @@ final class OrganizationIndexLogoTest extends TestCase
         $file = UploadedFile::fake()->image('logo.jpg', 64, 64);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
+            ->test(ManageOrganizationForm::class)
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->set('croppedLogo', $file)
             ->call('clearCroppedLogo')
@@ -173,15 +170,14 @@ final class OrganizationIndexLogoTest extends TestCase
         $file = UploadedFile::fake()->image('logo.jpg', 640, 480);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->set('modalOpen', true)
-            ->set('modalMode', 'create')
+            ->test(ManageOrganizationForm::class)
             ->set('name', 'Uploaded With Acronym Org')
             ->set('acronym', 'uwa')
             ->set('logo_source', OrganizationLogoSource::Upload->value)
             ->set('croppedLogo', $file)
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(route('organizations.index'));
 
         $organization = Organization::query()->where('name', 'Uploaded With Acronym Org')->first();
         $this->assertNotNull($organization);
@@ -194,9 +190,7 @@ final class OrganizationIndexLogoTest extends TestCase
         $user = User::factory()->create(['is_event_organizer' => true]);
 
         Livewire::actingAs($user)
-            ->test(OrganizationIndex::class)
-            ->set('modalOpen', true)
-            ->set('modalMode', 'create')
+            ->test(ManageOrganizationForm::class)
             ->set('name', 'Long Acronym Org')
             ->set('acronym', 'TOOLONG')
             ->set('logo_source', OrganizationLogoSource::Generated->value)

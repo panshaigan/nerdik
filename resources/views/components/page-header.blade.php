@@ -22,7 +22,7 @@
                     @if ($backUrl)
                         <a
                             href="{{ $backUrl }}"
-                            class="btn btn-ghost btn-square shrink-0"
+                            class="btn btn-ghost btn-xs btn-square shrink-0"
                             wire:navigate
                             aria-label="{{ __('ui.common.back') }}"
                             data-ui="page-header-back"

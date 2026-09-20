@@ -8,9 +8,8 @@
 
         <div class="mb-6 flex justify-end">
             <x-button
-                type="button"
+                :link="route('organizations.create')"
                 class="btn-primary btn-circle shadow-sm touch-manipulation"
-                wire:click="openCreateModal"
                 :title="__('ui.organizations.add')"
                 :aria-label="__('ui.organizations.add')"
             >
@@ -53,9 +52,8 @@
                             :key="'invite-org-'.$organization->id"
                         />
                         <x-button
-                            type="button"
+                            :link="route('organizations.edit', $organization)"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                            wire:click="openEditModal({{ $organization->id }})"
                             :title="__('ui.common.edit')"
                             :aria-label="__('ui.common.edit').': '.$organization->name"
                         >
@@ -80,124 +78,5 @@
                 </li>
             @endforelse
         </ul>
-
-        <x-modal
-            wire:model="modalOpen"
-            without-trap-focus
-            :title="$modalMode === 'create' ? __('ui.organizations.add') : __('ui.organizations.edit')"
-            box-class="max-w-2xl ui-modal-surface ui-overlay-shell"
-            data-org-modal
-        >
-            @if ($modalOpen)
-                <form
-                    id="org-modal-form"
-                    wire:submit.prevent="save"
-                    wire:key="org-modal-form-{{ $modalRenderKey }}-{{ $modalMode }}-{{ $editingOrganizationId ?? 'new' }}"
-                    class="space-y-4"
-                    data-org-modal-form
-                >
-                    <x-input
-                        wire:model="name"
-                        label="{{ __('ui.common.name') }}"
-                        placeholder="{{ __('ui.common.name') }}"
-                        type="text"
-                        error-field="name"
-                        required
-                        inline
-                    />
-
-                    <x-input
-                        wire:model.live="acronym"
-                        label="{{ __('ui.organizations.acronym') }}"
-                        type="text"
-                        name="acronym"
-                        error-field="acronym"
-                        maxlength="5"
-                    />
-                    <p class="-mt-2 text-xs text-base-content/70">{{ __('ui.organizations.acronym_hint') }}</p>
-
-                    <div wire:key="org-modal-editor-{{ $modalRenderKey }}">
-                        <x-editor
-                            id="org-description-{{ $modalRenderKey }}"
-                            wire:model="description"
-                            :label="__('ui.organizations.description')"
-                            :gpl-license="true"
-                            :config="['height' => 260, 'z_index' => 100020]"
-                        />
-                        <x-field-error :messages="$errors->get('description')" class="mt-2" />
-                    </div>
-
-                    <fieldset class="fieldset py-0">
-                        <legend class="fieldset-legend mb-2">{{ __('ui.organizations.logo_source') }}</legend>
-                        <div class="grid gap-3 sm:grid-cols-2">
-                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                                <input type="radio" wire:model.live="logo_source" name="logo_source" value="generated" class="radio radio-primary mt-0.5" />
-                                <span>
-                                    <span class="block text-sm font-semibold text-base-content">{{ __('ui.organizations.logo_generated') }}</span>
-                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.initials_source_hint') }}</span>
-                                </span>
-                            </label>
-                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                                <input type="radio" wire:model.live="logo_source" name="logo_source" value="upload" class="radio radio-primary mt-0.5" />
-                                <span>
-                                    <span class="block text-sm font-semibold text-base-content">{{ __('ui.organizations.logo_uploaded') }}</span>
-                                    <span class="mt-0.5 block text-xs text-base-content/70">{{ __('ui.common.uploaded_image_hint') }}</span>
-                                </span>
-                            </label>
-                        </div>
-                        <x-field-error :messages="$errors->get('logo_source')" class="mt-2" />
-                    </fieldset>
-
-                    @if ($logo_source === 'generated')
-                        <div class="grid gap-4 rounded-lg border border-base-200 bg-base-200/40 p-4 md:grid-cols-2 md:items-center">
-                            <div class="flex flex-col gap-3">
-                                <x-colorpicker wire:model.live="logo_bg_color" label="{{ __('ui.common.bg_color') }}" placeholder="{{ __('ui.common.bg_color') }}" name="logo_bg_color" error-field="logo_bg_color" inline required />
-                                <x-colorpicker wire:model.live="logo_text_color" label="{{ __('ui.common.text_color') }}" placeholder="{{ __('ui.common.text_color') }}" name="logo_text_color" error-field="logo_text_color" inline required />
-                            </div>
-                            <div class="flex flex-col items-center justify-center gap-2">
-                                <span class="text-sm font-medium text-base-content/80">{{ __('ui.common.preview') }}</span>
-                                <img
-                                    src="{{ $this->generatedLogoPreviewUrl }}"
-                                    alt=""
-                                    class="h-20 w-20 rounded-full object-cover ring-2 ring-base-300/50"
-                                    loading="lazy"
-                                />
-                            </div>
-                        </div>
-                    @endif
-
-                    @if ($logo_source === 'upload')
-                        <x-image-crop-upload
-                            compact
-                            aspect="square"
-                            wire-property="croppedLogo"
-                            clear-method="clearCroppedLogo"
-                            error-field="croppedLogo"
-                            form-selector="[data-org-modal-form]"
-                            file-input-id="ui-org-logo-file"
-                            :preview-url="$this->logoPreviewUrl"
-                            :source-url="$this->cropSourceImageUrl"
-                            output-size="512,512"
-                            file-name="logo.webp"
-                            :modal-title="__('ui.organizations.crop_logo')"
-                        />
-                    @endif
-
-                </form>
-            @endif
-
-            <x-slot:actions>
-                @if ($modalOpen)
-                    <x-button type="button" class="btn-ghost" wire:click="closeModal">
-                        {{ __('ui.common.cancel') }}
-                    </x-button>
-                    <x-button type="submit" form="org-modal-form" class="btn-primary">
-                        {{ __('ui.common.save') }}
-                    </x-button>
-                @endif
-            </x-slot:actions>
-        </x-modal>
-
-        <x-image-crop-modal :title="__('ui.organizations.crop_logo')" />
     </div>
 </div>

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -89,6 +90,38 @@ class EventOrganizerAccessTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('organizations.index'))
+            ->assertOk();
+    }
+
+    public function test_non_organizer_cannot_open_create_organization_page(): void
+    {
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'is_event_organizer' => false,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('organizations.create'))
+            ->assertForbidden();
+    }
+
+    public function test_event_organizer_can_open_create_and_edit_organization_pages(): void
+    {
+        $user = User::factory()->create([
+            'is_admin' => false,
+            'is_event_organizer' => true,
+        ]);
+        $organization = Organization::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('organizations.create'))
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->get(route('organizations.edit', $organization))
             ->assertOk();
     }
 
