@@ -29,7 +29,7 @@
 
             <div
                 tabindex="0"
-                class="dropdown-content z-[100] mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-lg light:border-neutral"
+                class="dropdown-content z-[100] mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-lg light:border-neutral max-sm:fixed max-sm:!start-3 max-sm:!end-3 max-sm:!w-auto max-sm:translate-x-0"
                 data-ui="nav-requests-panel"
             >
                 <div class="border-b border-base-300 px-4 py-3 light:border-neutral">

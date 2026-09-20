@@ -749,21 +749,6 @@
         z-index: 100;
     }
 
-    /**
-     * Mobile nav dropdowns: keep panels inside the viewport when the trigger sits
-     * left of the far-right edge (bell is beside the hamburger).
-     */
-    @media (width < 640px) {
-        .ui-app-navigation .dropdown-content[data-ui='nav-notifications-panel'],
-        .ui-app-navigation .dropdown-content[data-ui='nav-requests-panel'] {
-            position: fixed;
-            inset-inline-end: 0.75rem;
-            inset-inline-start: auto;
-            width: min(22rem, calc(100vw - 1.5rem));
-            max-width: calc(100vw - 1.5rem);
-        }
-    }
-
     .ui-app-navigation .ui-nav-link {
         position: relative;
         background-color: transparent;
@@ -1872,4 +1857,20 @@
     display: inline-flex;
     align-items: center;
     line-height: 1;
+}
+
+/**
+ * Mobile nav dropdowns: DaisyUI anchors the panel to the trigger, so a near-full
+ * viewport width clips off the left when the bell sits left of the hamburger.
+ * Pin both horizontal edges to the viewport instead.
+ */
+@media (width < 640px) {
+    .ui-app-navigation [data-ui='nav-notifications-panel'],
+    .ui-app-navigation [data-ui='nav-requests-panel'] {
+        position: fixed !important;
+        inset-inline: 0.75rem !important;
+        width: auto !important;
+        max-width: none !important;
+        translate: 0 !important;
+    }
 }
