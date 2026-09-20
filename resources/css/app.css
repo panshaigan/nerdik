@@ -1448,6 +1448,12 @@
         overflow: visible !important;
     }
 
+    .ui-participant-list-item [data-ui="familiarity-summary"] {
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+    }
+
     @media (width < 40rem) {
         .ui-participant-list-item {
             flex-direction: column;
