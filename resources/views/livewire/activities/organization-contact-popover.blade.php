@@ -11,6 +11,9 @@
                     />
                 </div>
             </div>
+            <p class="max-w-full truncate px-2 text-lg font-semibold text-base-content" title="{{ $targetOrganization->name }}">
+                {{ $targetOrganization->name }}
+            </p>
         </div>
     @endif
 

@@ -55,6 +55,8 @@ return [
         'by' => 'przez',
         'unknown_user' => 'Nieznany użytkownik',
         'deleted_user' => 'Usunięty użytkownik',
+        'user' => 'Użytkownik',
+        'organization' => 'Organizacja',
         'language_en' => 'EN',
         'language_pl' => 'PL',
         'switch_language' => 'Zmień język na :language',

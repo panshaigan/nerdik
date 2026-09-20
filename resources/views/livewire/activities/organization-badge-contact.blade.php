@@ -7,7 +7,7 @@
         tabindex="0"
         wire:click.stop="openModal"
         wire:keydown.enter.stop="openModal"
-        class="ui-user-badge-contact-trigger inline-flex w-fit max-w-full cursor-pointer overflow-visible text-left min-w-0"
+        class="ui-user-badge-contact-trigger inline-flex w-fit max-w-full min-w-0 cursor-pointer overflow-hidden text-left"
         title="{{ $contactTooltip ?? __('ui.common.click_for_details') }}"
         data-ui="organization-badge-contact-trigger"
     >
@@ -20,6 +20,7 @@
             :avatar-only="$avatarOnly"
             :track-nav-avatar="$trackNavAvatar"
             :contact-popover="false"
+            class="max-w-full"
         />
     </div>
 
@@ -27,7 +28,7 @@
         @teleport('body')
             <x-modal
                 wire:model="modalOpen"
-                :title="$organization->name"
+                :title="__('ui.common.organization')"
                 box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
                 class="backdrop-blur"
                 separator

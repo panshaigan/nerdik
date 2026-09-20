@@ -1,6 +1,7 @@
 @php
     $embeddedInModal = $embeddedInModal ?? false;
     $editMode = $editMode ?? false;
+    $externalModalChrome = ($externalModalChrome ?? false) && $embeddedInModal && ! $editMode;
     $slot = $slot ?? null;
     $slotVenueRoomDefaults = $slotVenueRoomDefaults ?? ['venue_place_id' => null, 'room_name' => null];
     $defaultVenuePlaceId = old('venue_place_id', $slotVenueRoomDefaults['venue_place_id']);
@@ -71,7 +72,11 @@
 <form
     method="POST"
     action="{{ $formAction }}"
-    class="space-y-0"
+    @if ($externalModalChrome) id="event-slots-mass-create-form" @endif
+    @class([
+        'space-y-0' => ! $externalModalChrome,
+        'flex min-h-0 flex-1 flex-col overflow-hidden' => $externalModalChrome,
+    ])
     data-slot-mass-form
     @if ($editMode) data-slot-edit-form @endif
     @if ($massFormAction) data-event-show-async-mass @endif
@@ -103,16 +108,16 @@
             label-div-class="flex gap-5 overflow-x-auto px-1 pt-1"
             label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
             active-class="!text-base-content border-b border-primary text-primary"
-            tabs-class="w-full"
+            tabs-class="{{ $externalModalChrome ? 'relative flex min-h-0 w-full flex-1 flex-col' : 'w-full' }}"
             toolbar-wrapper-class="hidden"
-            data-ui="slot-mass-form-tabs"
+            data-ui="overlay-sticky-tabs"
         >
             <x-tab name="details" :label="__('ui.slots.tab_details')" class="!p-0 pt-2" data-ui="slot-mass-form-tab-details" icon="o-calendar-days">
                 <div class="space-y-4">
     @else
         <div class="space-y-4">
     @endif
-        @if ($embeddedInModal)
+        @if ($embeddedInModal && ! $externalModalChrome)
             <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <h3
                     class="text-lg font-semibold leading-tight text-base-content"
@@ -132,6 +137,20 @@
                         />
                         <label for="{{ $approvalFieldId }}" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
                     </div>
+                </div>
+            </div>
+        @elseif ($externalModalChrome)
+            <div class="mb-4 flex justify-end">
+                <div class="flex items-center gap-2">
+                    <input
+                        id="{{ $approvalFieldId }}"
+                        name="requires_approval"
+                        type="checkbox"
+                        value="1"
+                        class="checkbox checkbox-sm"
+                        @checked($requiresApprovalChecked)
+                    />
+                    <label for="{{ $approvalFieldId }}" class="label cursor-pointer text-sm text-base-content">{{ __('ui.slots.requires_approval') }}</label>
                 </div>
             </div>
         @endif
@@ -419,7 +438,7 @@
     </div>
     @endif
 
-    <div class="mt-6 flex justify-end gap-3">
+    <div @class(['mt-6 flex justify-end gap-3' => ! $externalModalChrome, 'hidden' => $externalModalChrome])>
         @if ($embeddedInModal)
             <x-button type="button" class="btn-outline" onclick="this.closest('dialog')?.close()">
                 {{ __('ui.common.cancel') }}

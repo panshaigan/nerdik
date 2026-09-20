@@ -25,7 +25,9 @@ class ShowEventCreateSlotsModalTest extends TestCase
             ->assertSeeHtml('id="event-slots-create-modal"')
             ->call('openSlotCreateModal')
             ->assertSet('slotCreateModalReady', true)
-            ->assertSeeHtml('id="event-slots-create-modal"');
+            ->assertSeeHtml('id="event-slots-create-modal"')
+            ->assertSeeHtml('id="event-slots-mass-create-form"')
+            ->assertSee(__('ui.slots.create_slots'), false);
     }
 
     public function test_guest_shell_does_not_render_create_slots_modal(): void

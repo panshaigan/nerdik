@@ -31,11 +31,12 @@
         >
             <x-ui.tabs-with-toolbar
                 wire:model.live="activityPreviewTab"
+                label-bar-class="flex w-full min-w-0 items-center border-b border-base-300 gap-2"
                 label-div-class="flex gap-5 overflow-x-auto px-1"
-                label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
+                label-class="tab tab-lifted tab-md !px-0 !py-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="relative flex min-h-0 w-full flex-1 flex-col"
-                toolbar-wrapper-class="flex max-w-[55%] shrink-0 items-center justify-end gap-1 px-1 sm:max-w-none"
+                toolbar-wrapper-class="flex max-w-[55%] min-w-0 shrink items-center justify-end gap-1 overflow-hidden px-1 sm:max-w-[min(100%,16rem)]"
                 data-ui="overlay-sticky-tabs"
             >
                 <x-slot:heading>
@@ -45,12 +46,13 @@
                 </x-slot:heading>
                 @if ($previewActivity->creator)
                     <x-slot:toolbar>
-                        <div class="min-w-0" data-ui="event-activity-preview-host">
+                        <div class="min-w-0 max-w-full" data-ui="event-activity-preview-host">
                             <x-user-badge
                                 :user="$previewActivity->creator"
                                 size="sm"
                                 :context-activity-id="$previewActivity->id"
                                 name-class="truncate text-xs font-medium text-base-content"
+                                class="max-w-full"
                             />
                         </div>
                     </x-slot:toolbar>

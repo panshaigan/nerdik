@@ -15,12 +15,13 @@
 
             <div class="space-y-3">
                 @if ($previewEvent->creator)
-                    <div data-ui="listing-event-preview-host">
+                    <div class="min-w-0 max-w-full" data-ui="listing-event-preview-host">
                         <x-user-badge
                             :user="$previewEvent->creator"
                             :organization="$previewEvent->organization"
                             size="sm"
                             name-class="truncate text-xs font-medium text-base-content"
+                            class="max-w-full"
                             :contact-wire-key="'listing-event-preview-'.$previewEvent->id"
                         />
                     </div>

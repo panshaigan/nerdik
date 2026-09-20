@@ -58,17 +58,31 @@
     $contactWireKeySuffix = is_string($contactWireKey) && $contactWireKey !== ''
         ? '-'.$contactWireKey
         : '';
+
+    $resolvedNameClass = $nameClass !== ''
+        ? $nameClass
+        : 'truncate text-sm font-semibold text-base-content';
+
+    // Prefer CSS ellipsis when space is tight; only force truncate when the caller
+    // did not opt into wrapping (e.g. page-header on small screens).
+    if (
+        ! str_contains($resolvedNameClass, 'truncate')
+        && ! str_contains($resolvedNameClass, 'whitespace-normal')
+        && ! str_contains($resolvedNameClass, 'line-clamp-')
+    ) {
+        $resolvedNameClass = 'truncate '.$resolvedNameClass;
+    }
 @endphp
 
 @if ($canRenderOrganizationPopover)
     @php
-        $containerClass = trim('inline-flex min-w-0 overflow-visible '.(string) ($attributes->get('class') ?? ''));
+        $containerClass = trim('inline-flex min-w-0 max-w-full overflow-hidden '.(string) ($attributes->get('class') ?? ''));
     @endphp
     <livewire:activities.organization-badge-contact
         :organization="$organization"
         :user="$user"
         :size="$size"
-        :name-class="$nameClass"
+        :name-class="$resolvedNameClass"
         :subline="$subline"
         :avatar-only="$avatarOnly"
         :track-nav-avatar="$trackNavAvatar"
@@ -78,12 +92,12 @@
     />
 @elseif ($canRenderContactPopover)
     @php
-        $containerClass = trim('inline-flex min-w-0 overflow-visible '.(string) ($attributes->get('class') ?? ''));
+        $containerClass = trim('inline-flex min-w-0 max-w-full overflow-hidden '.(string) ($attributes->get('class') ?? ''));
     @endphp
     <livewire:activities.user-badge-contact
         :user="$user"
         :size="$size"
-        :name-class="$nameClass"
+        :name-class="$resolvedNameClass"
         :subline="$subline"
         :avatar-only="$avatarOnly"
         :track-nav-avatar="$trackNavAvatar"
@@ -106,7 +120,7 @@
         </div>
     </div>
 @else
-    <div {{ $attributes->class('flex items-center gap-2 min-w-0 overflow-visible') }}>
+    <div {{ $attributes->class('flex max-w-full min-w-0 items-center gap-2 overflow-hidden') }}>
         <div class="avatar">
             <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
                 <img
@@ -118,10 +132,10 @@
                 />
             </div>
         </div>
-        <div class="min-w-0">
-            <p class="{{ $nameClass !== '' ? $nameClass : 'truncate text-sm font-semibold text-base-content' }}">{{ $resolvedName }}</p>
+        <div class="min-w-0 flex-1 overflow-hidden">
+            <p class="{{ $resolvedNameClass }}" title="{{ $resolvedName }}">{{ $resolvedName }}</p>
             @if ($subline)
-                <p class="truncate text-xs text-base-content/65">{{ $subline }}</p>
+                <p class="truncate text-xs text-base-content/65" title="{{ $subline }}">{{ $subline }}</p>
             @endif
         </div>
     </div>

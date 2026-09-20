@@ -935,7 +935,7 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="user-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
-        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full min-w-0', $html);
         $this->assertStringNotContainsString('data-ui="user-badge-contact-modal"', $html);
         $this->assertStringNotContainsString('data-ui="user-contact-popover"', $html);
     }
@@ -994,6 +994,7 @@ class ProfileTest extends TestCase
             ->assertSet('modalOpen', false)
             ->call('openModal')
             ->assertSet('modalOpen', true)
+            ->assertSee(__('ui.common.user'), false)
             ->assertSee('mailto:participant@example.test');
     }
 
@@ -1043,7 +1044,7 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('data-ui="organization-badge-contact"', $html);
         $this->assertStringContainsString('data-ui="organization-badge-contact-trigger"', $html);
         $this->assertStringContainsString('wire:click.stop="openModal"', $html);
-        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full', $html);
+        $this->assertStringContainsString('ui-user-badge-contact-trigger inline-flex w-fit max-w-full min-w-0', $html);
         $this->assertStringNotContainsString('data-ui="user-badge-contact"', $html);
         $this->assertStringNotContainsString('data-ui="organization-badge-contact-modal"', $html);
         $this->assertStringNotContainsString('data-ui="organization-contact-popover"', $html);
@@ -1146,6 +1147,8 @@ class ProfileTest extends TestCase
             ->assertSet('modalOpen', false)
             ->call('openModal')
             ->assertSet('modalOpen', true)
+            ->assertSee(__('ui.common.organization'), false)
+            ->assertSee('Guild of Nerds', false)
             ->assertSee('We run tabletop events.')
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.board')]))
