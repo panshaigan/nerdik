@@ -49,7 +49,17 @@ class ShowActivity extends Component
 
     public function updatedTab(string $value): void
     {
-        $this->tab = $this->normalizeTab($value);
+        $normalized = $this->normalizeTab($value);
+
+        if ($normalized !== $value) {
+            $this->tab = $normalized;
+
+            return;
+        }
+
+        // Both panels stay in the DOM (Alpine x-show). Remorphing the shell on every
+        // tab change causes a visible scroll jump; sync query string without re-render.
+        $this->skipRender();
     }
 
     #[On('activity-participation-updated')]

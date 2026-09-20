@@ -94,7 +94,8 @@
     </x-page-header>
 
     <div
-            class="ui-activity-show-hero rounded-xl ui-content-card mb-4 md:mb-6"
+            id="ui-activity-show-hero"
+            class="ui-activity-show-hero ui-content-card relative min-h-[min(32rem,70dvh)] rounded-2xl mb-4 md:mb-6"
             data-ui="activity-show-hero"
         >
             <x-ui.tabs-with-toolbar
