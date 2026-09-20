@@ -35,7 +35,9 @@ final class SocialShareVisibilityTest extends TestCase
             ->assertSeeHtml('data-ui="share-facebook"')
             ->assertSeeHtml('data-ui="share-whatsapp"')
             ->assertSeeHtml('data-ui="share-x"')
-            ->assertSeeHtml('data-ui="share-telegram"');
+            ->assertSeeHtml('data-ui="share-telegram"')
+            ->assertDontSee('@js($intentUrl)', false)
+            ->assertSee('https://www.facebook.com/sharer', false);
     }
 
     public function test_guest_event_show_hides_share_menu_when_cancelled(): void

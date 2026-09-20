@@ -14,17 +14,7 @@
     ];
 @endphp
 
-<div
-    data-ui="calendar-menu"
-    x-data="{
-        openExternal(url) {
-            window.open(url, '_blank', 'noopener,noreferrer');
-        },
-        downloadIcs(url) {
-            window.location.href = url;
-        },
-    }"
->
+<div data-ui="calendar-menu">
     <x-ui.overflow-menu
         icon="o-calendar"
         :label="__('ui.calendar.add_to_calendar')"
@@ -40,23 +30,14 @@
                     : $calendarLinks->intentUrl($payload, $target);
             @endphp
             @if ($intentUrl !== null)
-                @if ($target->isExternal())
-                    <x-ui.overflow-menu-item
-                        :icon="$platformIcon[$target->value]"
-                        data-ui="calendar-{{ $target->value }}"
-                        x-on:click="$parent.openExternal(@js($intentUrl))"
-                    >
-                        {{ __('ui.calendar.targets.'.$target->value) }}
-                    </x-ui.overflow-menu-item>
-                @else
-                    <x-ui.overflow-menu-item
-                        :icon="$platformIcon[$target->value]"
-                        data-ui="calendar-{{ $target->value }}"
-                        x-on:click="$parent.downloadIcs(@js($intentUrl))"
-                    >
-                        {{ __('ui.calendar.targets.'.$target->value) }}
-                    </x-ui.overflow-menu-item>
-                @endif
+                <x-ui.overflow-menu-item
+                    :icon="$platformIcon[$target->value]"
+                    :href="$intentUrl"
+                    :external="$target->isExternal()"
+                    data-ui="calendar-{{ $target->value }}"
+                >
+                    {{ __('ui.calendar.targets.'.$target->value) }}
+                </x-ui.overflow-menu-item>
             @endif
         @endforeach
     </x-ui.overflow-menu>

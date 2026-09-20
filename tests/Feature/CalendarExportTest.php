@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 final class CalendarExportTest extends TestCase
@@ -155,5 +157,19 @@ final class CalendarExportTest extends TestCase
         ]);
 
         $this->get(route('event-series.calendar.ics', $series))->assertNotFound();
+    }
+
+    public function test_event_show_calendar_menu_uses_native_intent_links(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Calendar Menu Event',
+        ]);
+
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->assertDontSee('@js($intentUrl)', false)
+            ->assertSee(route('events.calendar.ics', $event), false)
+            ->assertSee('https://calendar.google.com', false);
     }
 }

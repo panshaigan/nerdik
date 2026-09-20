@@ -23,9 +23,6 @@
         copyLink() {
             window.copyToClipboard(this.copyUrl, { message: @js(__('ui.common.copied')) });
         },
-        openExternal(url) {
-            window.open(url, '_blank', 'noopener,noreferrer');
-        },
     }"
 >
     <x-ui.overflow-menu
@@ -50,8 +47,9 @@
             @if ($intentUrl !== null)
                 <x-ui.overflow-menu-item
                     :icon="$platformIcon[$target->value]"
+                    :href="$intentUrl"
+                    external
                     data-ui="share-{{ $target->value }}"
-                    x-on:click="$parent.openExternal(@js($intentUrl))"
                 >
                     {{ __('ui.share.platforms.'.$target->value) }}
                 </x-ui.overflow-menu-item>
