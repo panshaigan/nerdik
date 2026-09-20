@@ -47,7 +47,7 @@ class UiTranslationParityTest extends TestCase
 
         foreach ($this->publicBladeFiles() as $file) {
             $contents = file_get_contents($file);
-            preg_match_all("/__\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches);
+            preg_match_all("/(?:__|trans|trans_choice)\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches);
 
             foreach ($matches[1] as $key) {
                 if (str_ends_with($key, '.')) {
@@ -150,7 +150,7 @@ class UiTranslationParityTest extends TestCase
 
                 $contents = file_get_contents($file->getPathname());
 
-                if (preg_match_all("/__\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches)) {
+                if (preg_match_all("/(?:__|trans|trans_choice)\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches)) {
                     foreach ($matches[1] as $key) {
                         if (str_ends_with($key, '.')) {
                             continue;

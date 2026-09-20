@@ -46,6 +46,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
             'participation_mode' => ParticipationMode::HostApproval,
             'allows_observers' => false,
             'minimum_age' => 16,
+            'maximum_age' => null,
         ]);
         $activity->tags()->attach([$tagA->id, $tagB->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
@@ -72,7 +73,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $tagTopic = Tag::factory()->create(['tag_category_id' => $topic->id]);
         TagTranslation::factory()->create(['tag_id' => $tagTopic->id, 'locale' => 'en', 'label' => 'T']);
 
-        $activity = Activity::factory()->create(['minimum_age' => 12, 'activity_type_id' => null]);
+        $activity = Activity::factory()->create(['minimum_age' => 12, 'maximum_age' => null, 'activity_type_id' => null]);
         $activity->tags()->attach([$tagGame->id, $tagTopic->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
@@ -95,7 +96,7 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $tagTopic = Tag::factory()->create(['tag_category_id' => $topic->id]);
         TagTranslation::factory()->create(['tag_id' => $tagTopic->id, 'locale' => 'en', 'label' => 'T']);
 
-        $activity = Activity::factory()->create(['minimum_age' => 12, 'activity_type_id' => null]);
+        $activity = Activity::factory()->create(['minimum_age' => 12, 'maximum_age' => null, 'activity_type_id' => null]);
         $activity->tags()->attach([$tagGame->id, $tagTopic->id]);
         $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
 
