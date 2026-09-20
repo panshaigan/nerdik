@@ -661,7 +661,7 @@ return [
         'pending_proposals' => 'Pending proposals',
         'preferred_slots' => 'Preferred slots',
         'preferred_time' => 'Preferred time',
-        'choose_slot_or_auto' => 'Choose slot (random assign if empty)',
+        'choose_slot_or_auto' => 'Choose slot',
         'accept' => 'Accept',
         'no_free_slots' => 'No free slots',
         'no_compatible_slots' => 'No free slots match this activity type, duration, and room capacity.',

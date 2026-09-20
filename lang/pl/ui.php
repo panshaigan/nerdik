@@ -661,7 +661,7 @@ return [
         'pending_proposals' => 'Oczekujące propozycje',
         'preferred_slots' => 'Preferowane sloty',
         'preferred_time' => 'Preferowany czas',
-        'choose_slot_or_auto' => 'Wybierz slot (losowe przypisanie, jeśli pusty)',
+        'choose_slot_or_auto' => 'Wybierz slot',
         'accept' => 'Akceptuj',
         'no_free_slots' => 'Brak wolnych slotów',
         'no_compatible_slots' => 'Brak wolnych slotów pasujących do typu, czasu trwania i pojemności tej aktywności.',

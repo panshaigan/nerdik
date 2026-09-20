@@ -74,7 +74,10 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')
             ->assertSeeHtml('loading loading-spinner loading-lg')
-            ->assertSeeHtml('data-ui="event-show-proposal-open-activity-preview"');
+            ->assertSeeHtml('data-ui="event-show-proposal-open-activity-preview"')
+            ->assertSeeHtml('data-ui="event-show-proposal-actions"')
+            ->assertSeeHtml('data-ui="event-show-proposal-reject"')
+            ->assertSeeHtml('wire:click="rejectPendingProposal(');
     }
 
     public function test_activity_preview_modal_join_leave_buttons_have_loading_indicator(): void

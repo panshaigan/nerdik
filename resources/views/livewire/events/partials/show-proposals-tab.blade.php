@@ -12,12 +12,12 @@
                 $durationLabel = format_activity_duration_compact($pa->duration_in_minutes);
                 $proposalBadgeItems = $proposalBadgeItemsByProposalId[(int) $proposal->id] ?? [];
             @endphp
-            <li class="mb-3 space-y-3 rounded-xl border border-primary/25 bg-base-200/40 p-6">
+            <li class="mb-3 space-y-3 rounded-xl border border-primary/25 bg-base-200/40 p-4 sm:p-6">
                 @php
                     $freeSlots = $freeSlotsAllForProposals->filter(fn ($s) => $s->fitsProposalActivity($pa))->values();
                 @endphp
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="min-w-0">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                    <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                             <span class="relative inline-block min-w-0 max-w-full">
                                 <button
@@ -46,11 +46,14 @@
                             <span class="text-sm text-base-content/70"> · {{ __('ui.common.by') }} {{ $proposal->creator?->displayName() }}</span>
                         </div>
                     </div>
-                    <div class="flex flex-wrap justify-end gap-2">
+                    <div
+                        class="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:max-w-md sm:shrink-0 sm:justify-end"
+                        data-ui="event-show-proposal-actions"
+                    >
                         @if ($freeSlotsAllForProposals->isEmpty())
-                            <span class="text-sm text-base-content/55">{{ __('ui.events.no_free_slots') }}</span>
+                            <span class="min-w-0 flex-1 text-sm text-base-content/55 sm:flex-none">{{ __('ui.events.no_free_slots') }}</span>
                         @elseif ($freeSlots->isEmpty())
-                            <span class="text-sm text-base-content/55">{{ __('ui.events.no_compatible_slots') }}</span>
+                            <span class="min-w-0 flex-1 text-sm text-base-content/55 sm:flex-none">{{ __('ui.events.no_compatible_slots') }}</span>
                         @else
                             @php
                                 $acceptSlotSelectOptions = $freeSlots->map(fn ($s) => [
@@ -58,26 +61,27 @@
                                     'name' => $s->proposalAcceptOptionLabel(),
                                 ])->values()->all();
                             @endphp
-                            <div class="inline-flex max-w-full flex-wrap items-center gap-1" wire:key="proposal-accept-{{ $proposal->id }}">
+                            <div class="min-w-0 flex-1" wire:key="proposal-accept-{{ $proposal->id }}">
                                 <x-select
                                     wire:model="proposalAcceptSlotId.{{ $proposal->id }}"
                                     :options="$acceptSlotSelectOptions"
                                     :placeholder="__('ui.events.choose_slot_or_auto')"
                                     placeholder-value=""
-                                    class="select-sm max-w-md min-w-[12rem] flex-1"
+                                    class="select-sm w-full min-w-0"
                                     :error-field="'proposalAcceptSlot.'.$proposal->id"
                                 />
-                                <x-button
-                                    type="button"
-                                    class="btn-success btn-square btn-sm shrink-0"
-                                    :title="__('ui.events.accept')"
-                                    wire:click="acceptPendingProposal({{ $proposal->id }})"
-                                    wire:loading.attr="disabled"
-                                >
-                                    <span class="sr-only">{{ __('ui.events.accept') }}</span>
-                                    <x-icon name="o-check" class="h-5 w-5" />
-                                </x-button>
                             </div>
+                            <x-button
+                                type="button"
+                                class="btn-success btn-square btn-sm shrink-0"
+                                :title="__('ui.events.accept')"
+                                wire:click="acceptPendingProposal({{ $proposal->id }})"
+                                wire:loading.attr="disabled"
+                                data-ui="event-show-proposal-accept"
+                            >
+                                <span class="sr-only">{{ __('ui.events.accept') }}</span>
+                                <x-icon name="o-check" class="h-5 w-5" />
+                            </x-button>
                         @endif
                         <x-button
                             type="button"
@@ -85,6 +89,7 @@
                             :title="__('ui.events.reject')"
                             wire:click="rejectPendingProposal({{ $proposal->id }})"
                             wire:loading.attr="disabled"
+                            data-ui="event-show-proposal-reject"
                         >
                             <span class="sr-only">{{ __('ui.events.reject') }}</span>
                             <x-icon name="o-x-mark" class="h-5 w-5" />
