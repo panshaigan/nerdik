@@ -59,6 +59,27 @@ class ActivityDuplicatePrefillTest extends TestCase
             ->assertSet('tag_ids', [(int) $tag->id]);
     }
 
+    public function test_manage_activity_form_prefills_open_age_and_participant_bounds(): void
+    {
+        $user = User::factory()->create();
+        $source = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'min_participants' => null,
+            'max_participants' => null,
+            'minimum_age' => null,
+            'maximum_age' => null,
+        ]);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('min_participants', null)
+            ->assertSet('max_participants', null)
+            ->assertSet('minimum_age', null)
+            ->assertSet('maximum_age', null);
+    }
+
     public function test_manage_activity_form_prefills_proposal_values_and_filters_activity_types_by_slot_intersection(): void
     {
         $user = User::factory()->create();

@@ -117,14 +117,15 @@ class ActivityBadgeGroupBuilder
                 ),
             ];
         }
-        if (($surfaceCfg['minimum_age'] ?? false) && (filled($activity->minimum_age) || filled($activity->maximum_age))) {
+        [$minimumAge, $maximumAge] = $this->resolvedAgeBounds($activity);
+        if (($surfaceCfg['minimum_age'] ?? false) && ($minimumAge !== null || $maximumAge !== null)) {
             $rows[] = [
                 'order' => $orderIndices['meta:minimum_age'] ?? 52,
                 'tie' => 0,
                 'item' => new ActivityBadgeItem(
                     ActivityBadgeKind::MinimumAge,
                     'meta:minimum_age',
-                    $this->ageRangeBadgeLabel($activity),
+                    $this->ageRangeBadgeLabel($minimumAge, $maximumAge),
                     $config->semanticFor(ActivityBadgeKind::MinimumAge),
                     $config->iconFor(ActivityBadgeKind::MinimumAge),
                     ActivityBadgeDefaults::outlineForKind(ActivityBadgeKind::MinimumAge),
@@ -188,16 +189,35 @@ class ActivityBadgeGroupBuilder
             ?? '#'.$tag->id;
     }
 
-    private function ageRangeBadgeLabel(Activity $activity): string
+    /**
+     * @return array{0: int|null, 1: int|null}
+     */
+    private function resolvedAgeBounds(Activity $activity): array
     {
-        $min = $activity->minimum_age;
-        $max = $activity->maximum_age;
+        return [
+            $this->positiveAgeOrNull($activity->minimum_age),
+            $this->positiveAgeOrNull($activity->maximum_age),
+        ];
+    }
 
-        if (filled($min) && filled($max)) {
+    private function positiveAgeOrNull(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $age = (int) $value;
+
+        return $age >= 1 ? $age : null;
+    }
+
+    private function ageRangeBadgeLabel(?int $min, ?int $max): string
+    {
+        if ($min !== null && $max !== null) {
             return __('ui.activities.age_badge', ['range' => $min.'–'.$max]);
         }
 
-        if (filled($min)) {
+        if ($min !== null) {
             return __('ui.activities.age_badge', ['range' => $min.'+']);
         }
 

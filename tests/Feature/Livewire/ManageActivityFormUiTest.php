@@ -237,6 +237,54 @@ class ManageActivityFormUiTest extends TestCase
         $this->assertSame(16, $activity->maximum_age);
     }
 
+    public function test_participant_range_saves_minimum_only(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('name', 'Min Participants Only Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('min_participants', 3)
+            ->set('max_participants', null)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity = Activity::query()->where('name', 'Min Participants Only Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertSame(3, $activity->min_participants);
+        $this->assertNull($activity->max_participants);
+    }
+
+    public function test_participant_range_saves_maximum_only(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        app()->setLocale('en');
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('name', 'Max Participants Only Activity')
+            ->set('activity_type_id', $activityTypeId)
+            ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->set('min_participants', null)
+            ->set('max_participants', 8)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity = Activity::query()->where('name', 'Max Participants Only Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertNull($activity->min_participants);
+        $this->assertSame(8, $activity->max_participants);
+    }
+
     public function test_age_range_rejects_minimum_greater_than_maximum(): void
     {
         $this->seed(ActivityTypeSeeder::class);

@@ -27,13 +27,23 @@ class ActivityForm
                     ->default(Activity::HOSTING_MODE_DRAFT),
                 BelongsToSelect::place(),
                 TextInput::make('min_participants')
-                    ->numeric(),
+                    ->numeric()
+                    ->nullable()
+                    ->minValue(1),
                 TextInput::make('max_participants')
-                    ->numeric(),
+                    ->numeric()
+                    ->nullable()
+                    ->minValue(1),
                 TextInput::make('minimum_age')
-                    ->numeric(),
+                    ->numeric()
+                    ->nullable()
+                    ->minValue(1)
+                    ->maxValue(18),
                 TextInput::make('maximum_age')
-                    ->numeric(),
+                    ->numeric()
+                    ->nullable()
+                    ->minValue(1)
+                    ->maxValue(18),
                 TextInput::make('cancellation_deadline_in_hours')
                     ->numeric(),
                 TextInput::make('lottery_draw_in_hours')
