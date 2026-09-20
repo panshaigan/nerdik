@@ -14,10 +14,10 @@
     $resolvedUserBadgeTitle = $userBadgeTitle ?? __('ui.events.host');
 @endphp
 
-<div {{ $attributes->class(['ui-activity-show-info-panel mx-1 my-5 sm:mx-6 lg:mx-8', $headerClass]) }}>
-    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+<div {{ $attributes->class(['ui-activity-show-info-panel my-5 sm:mx-6 lg:mx-8', $headerClass]) }}>
+    <div class="flex flex-col items-start gap-3 mb-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
-            <h1 class="font-display text-lg font-medium leading-tight text-glow-base-100 mb-4 sm:text-4xl">
+            <h1 class="font-display text-lg font-medium leading-tight text-glow-base-100 mb-2 sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     @if ($backUrl)
                         <a
@@ -55,13 +55,6 @@
     </div>
 
     @isset($info)
-        <x-ui.hr
-            :icon="$hrIcon"
-            :color="$hrColor"
-            :class="$hrClass"
-            wrapper-class="relative flex items-center gap-4 px-2 mt-4 mb-4"
-            data-ui="page-header-hr"
-        />
         <div data-ui="page-header-info">
             {{ $info }}
         </div>

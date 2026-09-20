@@ -86,7 +86,7 @@
                         value="{{ $participantsCounterValue }}"
                         icon="o-users"
                         color="text-base-content"
-                        class="ui-stat-embed ui-activity-show-stat mt-4"
+                        class="ui-stat-embed ui-activity-show-stat mt-2"
                     />
                 </div>
             </div>
