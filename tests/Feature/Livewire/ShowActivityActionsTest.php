@@ -83,8 +83,8 @@ class ShowActivityActionsTest extends TestCase
         $returnPath = route('activities.show', ['activity' => $activity, 'tab' => 'participation'], false);
         $loginHref = login_url($returnPath);
 
+        // Both tab panels stay mounted (Alpine x-show); tab switches skipRender.
         Livewire::test(ShowActivity::class, ['activity' => $activity])
-            ->set('tab', 'participation')
             ->assertViewHas('canPromptGuestJoin', true)
             ->assertSeeHtml('data-ui="activity-show-guest-join"')
             ->assertSee($loginHref, false)
@@ -108,8 +108,8 @@ class ShowActivityActionsTest extends TestCase
             'user_id' => $filler->id,
         ]);
 
+        // Both tab panels stay mounted (Alpine x-show); tab switches skipRender.
         Livewire::test(ShowActivity::class, ['activity' => $activity])
-            ->set('tab', 'participation')
             ->assertViewHas('canPromptGuestJoin', true)
             ->assertSeeHtml('data-ui="activity-show-guest-join-waitlist"')
             ->assertDontSeeHtml('data-ui="activity-show-guest-join"')

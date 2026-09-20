@@ -81,7 +81,7 @@ final class ActivityTagImageCatalog
         return Media::query()
             ->whereKey($mediaId)
             ->where('collection_name', 'images')
-            ->where('model_type', Tag::class)
+            ->where('model_type', (new Tag)->getMorphClass())
             ->whereIn('model_id', $ids)
             ->exists();
     }

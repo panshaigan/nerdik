@@ -149,7 +149,7 @@ class EventSeriesTest extends TestCase
             ->assertSet('tab', 'events')
             ->assertSeeHtml('data-ui="event-series-edition-stats"')
             ->assertSeeHtml('data-ui="event-series-show-info"')
-            ->assertSeeHtml('data-ui="page-header-hr"')
+            ->assertSeeHtml('data-ui="page-header-info"')
             ->assertSee(__('ui.event_series.stats_editions'), false)
             ->assertSee(__('ui.event_series.stats_activities'), false)
             ->assertSee(__('ui.event_series.stats_participants'), false)

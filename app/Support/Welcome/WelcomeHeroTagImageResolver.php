@@ -20,7 +20,7 @@ final class WelcomeHeroTagImageResolver
         /** @var int|null $mediaId */
         $mediaId = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function (): ?int {
             $media = Media::query()
-                ->where('model_type', Tag::class)
+                ->where('model_type', (new Tag)->getMorphClass())
                 ->where('collection_name', 'images')
                 ->inRandomOrder()
                 ->first();

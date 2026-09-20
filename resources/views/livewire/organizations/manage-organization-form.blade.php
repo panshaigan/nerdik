@@ -10,7 +10,7 @@
 <div>
     <x-page-header :title="$title" :user="$creator" :back-url="$backUrl" class="mb-4" />
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="mb-10" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="mb-10" />
 
     <div class="ui-content-card relative min-w-0 rounded-2xl mb-4 md:mb-6">
         <x-form wire:submit.prevent="save" novalidate class="" data-org-form>
