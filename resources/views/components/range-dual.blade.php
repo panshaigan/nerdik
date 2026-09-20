@@ -8,6 +8,14 @@
     'rangeClass' => 'range-xs',
 ])
 
+@php
+    $minLimit = (int) $minLimit;
+    $maxLimit = (int) $maxLimit;
+    $step = (int) $step;
+    $sliderMin = $minLimit - 1;
+    $sliderMax = $maxLimit + 1;
+@endphp
+
 @pushOnce('head')
     <style>
         /* Re-enable pointer events on thumbs only.
@@ -75,74 +83,114 @@
     x-data="{
         min: @entangle($minWireModel),
         max: @entangle($maxWireModel),
-        minLimit: {{ (int) $minLimit }},
-        maxLimit: {{ (int) $maxLimit }},
-        step: {{ (int) $step }},
+        minLimit: {{ $minLimit }},
+        maxLimit: {{ $maxLimit }},
+        sliderMin: {{ $sliderMin }},
+        sliderMax: {{ $sliderMax }},
+        step: {{ $step }},
+        sliderMinValue: {{ $sliderMin }},
+        sliderMaxValue: {{ $sliderMax }},
+        rangeOpenMax: @js(__('ui.activities.range_open_max')),
+        rangeOpenMin: @js(__('ui.activities.range_open_min')),
+        rangeBounded: @js(__('ui.activities.range_bounded')),
+        syncingFromWire: false,
 
         clamp(value, lo, hi) {
             return Math.min(hi, Math.max(lo, value));
         },
 
-        clampToLimits(value, fallback) {
-            const n = Number(value);
-            if (!Number.isFinite(n)) {
-                return fallback;
-            }
-
-            return this.clamp(n, this.minLimit, this.maxLimit);
+        boundIsOpen(value) {
+            return value === null || value === '';
         },
 
-        percentForValue(value, fallback) {
-            const val = this.clampToLimits(value, fallback);
-            const lo = this.minLimit;
-            const hi = this.maxLimit;
+        sliderFromMin() {
+            return this.boundIsOpen(this.min) ? this.sliderMin : Number(this.min);
+        },
+
+        sliderFromMax() {
+            return this.boundIsOpen(this.max) ? this.sliderMax : Number(this.max);
+        },
+
+        percentForSlider(value) {
+            const lo = this.sliderMin;
+            const hi = this.sliderMax;
             if (hi === lo) {
-                return fallback === this.maxLimit ? 100 : 0;
+                return 0;
             }
 
-            return this.clamp(((val - lo) / (hi - lo)) * 100, 0, 100);
+            return this.clamp(((value - lo) / (hi - lo)) * 100, 0, 100);
         },
 
         get minPercent() {
-            return this.percentForValue(this.min, this.minLimit);
+            return this.percentForSlider(this.sliderMinValue);
         },
         get maxPercent() {
-            return this.percentForValue(this.max, this.maxLimit);
+            return this.percentForSlider(this.sliderMaxValue);
         },
 
-        syncBounds() {
-            this.min = this.clampToLimits(this.min ?? this.minLimit, this.minLimit);
-            this.max = this.clampToLimits(this.max ?? this.maxLimit, this.maxLimit);
-            if (this.min > this.max) {
-                this.min = this.max;
+        get formattedRange() {
+            const minOpen = this.boundIsOpen(this.min);
+            const maxOpen = this.boundIsOpen(this.max);
+            if (minOpen && maxOpen) {
+                return '';
             }
+            if (! minOpen && maxOpen) {
+                return this.rangeOpenMax.replace(':min', String(this.min));
+            }
+            if (minOpen && ! maxOpen) {
+                return this.rangeOpenMin.replace(':max', String(this.max));
+            }
+
+            return this.rangeBounded
+                .replace(':min', String(this.min))
+                .replace(':max', String(this.max));
+        },
+
+        applySliderToWire() {
+            this.syncingFromWire = true;
+            this.min = this.sliderMinValue === this.sliderMin ? null : this.sliderMinValue;
+            this.max = this.sliderMaxValue === this.sliderMax ? null : this.sliderMaxValue;
+            this.$nextTick(() => {
+                this.syncingFromWire = false;
+            });
+        },
+
+        onMinSliderInput() {
+            if (this.sliderMinValue > this.sliderMaxValue) {
+                this.sliderMinValue = this.sliderMaxValue;
+            }
+            if (this.sliderMinValue === this.sliderMax) {
+                this.sliderMinValue = this.maxLimit;
+            }
+            this.applySliderToWire();
+        },
+
+        onMaxSliderInput() {
+            if (this.sliderMaxValue < this.sliderMinValue) {
+                this.sliderMaxValue = this.sliderMinValue;
+            }
+            if (this.sliderMaxValue === this.sliderMin) {
+                this.sliderMaxValue = this.minLimit;
+            }
+            this.applySliderToWire();
         },
 
         init() {
-            this.min = this.min ?? this.minLimit;
-            this.max = this.max ?? this.maxLimit;
-            this.syncBounds();
+            this.sliderMinValue = this.sliderFromMin();
+            this.sliderMaxValue = this.sliderFromMax();
 
-            this.$watch('min', (value) => {
-                let minValue = this.clampToLimits(value, this.minLimit);
-                const maxValue = this.clampToLimits(this.max, this.maxLimit);
-                if (minValue > maxValue) {
-                    minValue = maxValue;
+            this.$watch('min', () => {
+                if (this.syncingFromWire) {
+                    return;
                 }
-                if (minValue !== Number(value)) {
-                    this.min = minValue;
-                }
+                this.sliderMinValue = this.sliderFromMin();
             });
 
-            this.$watch('max', (value) => {
-                let maxValue = this.clampToLimits(value, this.maxLimit);
-                const minValue = this.clampToLimits(this.min, this.minLimit);
-                if (maxValue < minValue) {
-                    maxValue = minValue;
+            this.$watch('max', () => {
+                if (this.syncingFromWire) {
+                    return;
                 }
-                if (maxValue !== Number(value)) {
-                    this.max = maxValue;
-                }
+                this.sliderMaxValue = this.sliderFromMax();
             });
         },
     }"
@@ -150,7 +198,7 @@
 >
     <label class="text-sm font-medium flex justify-between">
         <span>{{ $label }}</span>
-        <span class="font-semibold" x-text="`${min}–${max}`"></span>
+        <span class="font-semibold" x-text="formattedRange"></span>
     </label>
 
     <div class="range-dual text-base-content">
@@ -163,21 +211,23 @@
 
         <input
             type="range"
-            x-model.number="min"
-            :min="minLimit"
-            :max="maxLimit"
+            x-model.number="sliderMinValue"
+            @input="onMinSliderInput()"
+            :min="sliderMin"
+            :max="sliderMax"
             :step="step"
             class="range-dual-thumb-only range absolute top-1/2 left-0 z-20 w-full -translate-y-1/2 {{ $rangeClass }}"
-            :class="min > (maxLimit / 2) ? 'z-30' : 'z-20'"
+            :class="sliderMinValue > ((sliderMin + sliderMax) / 2) ? 'z-30' : 'z-20'"
         >
         <input
             type="range"
-            x-model.number="max"
-            :min="minLimit"
-            :max="maxLimit"
+            x-model.number="sliderMaxValue"
+            @input="onMaxSliderInput()"
+            :min="sliderMin"
+            :max="sliderMax"
             :step="step"
             class="range-dual-thumb-only range absolute top-1/2 left-0 z-10 w-full -translate-y-1/2 {{ $rangeClass }}"
-            :class="max <= (maxLimit / 2) ? 'z-30' : 'z-10'"
+            :class="sliderMaxValue <= ((sliderMin + sliderMax) / 2) ? 'z-30' : 'z-10'"
         >
     </div>
 </div>

@@ -188,7 +188,24 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
         $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
 
         $this->assertNotNull($ageItem);
-        $this->assertSame('≤16 age', $ageItem->label);
+        $this->assertSame('up to 16', $ageItem->label);
+    }
+
+    #[Test]
+    public function activity_hero_omits_age_badge_when_both_bounds_are_open(): void
+    {
+        $activity = Activity::factory()->create([
+            'minimum_age' => null,
+            'maximum_age' => null,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNull($ageItem);
     }
 
     #[Test]
@@ -209,6 +226,26 @@ final class ActivityBadgeGroupBuilderTest extends TestCase
 
         $this->assertNotNull($ageItem);
         $this->assertSame('12–16 lat', $ageItem->label);
+    }
+
+    #[Test]
+    public function age_badge_max_only_uses_do_prefix_in_polish(): void
+    {
+        app()->setLocale('pl');
+
+        $activity = Activity::factory()->create([
+            'minimum_age' => null,
+            'maximum_age' => 16,
+            'participation_mode' => ParticipationMode::Open,
+            'allows_observers' => false,
+        ]);
+        $activity->load(['tags.translations', 'tags.tagCategory', 'activityType']);
+
+        $items = $this->builder->build($activity, ActivityBadgeGroupConfig::activityHero());
+        $ageItem = collect($items)->first(fn (ActivityBadgeItem $i) => $i->kind === ActivityBadgeKind::MinimumAge);
+
+        $this->assertNotNull($ageItem);
+        $this->assertSame('do 16 lat', $ageItem->label);
     }
 
     #[Test]
