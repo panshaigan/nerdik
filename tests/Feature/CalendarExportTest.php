@@ -167,9 +167,13 @@ final class CalendarExportTest extends TestCase
             'name' => 'Calendar Menu Event',
         ]);
 
+        $icsPath = parse_url(route('events.calendar.ics', $event), PHP_URL_PATH);
+        $this->assertIsString($icsPath);
+
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->assertDontSee('@js($intentUrl)', false)
-            ->assertSee(route('events.calendar.ics', $event), false)
+            ->assertSee('webcal://', false)
+            ->assertSee($icsPath, false)
             ->assertSee('https://calendar.google.com', false);
     }
 }

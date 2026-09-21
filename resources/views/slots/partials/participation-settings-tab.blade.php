@@ -35,7 +35,6 @@
     x-data="{
         forcesParticipation: @js($forcesParticipationChecked),
         participationMode: @js($participationModeValue),
-        lotteryDrawInHours: {{ $lotteryDrawInHoursValue }},
         localLotteryValue: {{ $lotteryDrawInHoursValue }},
         allowsObservers: @js($allowsObserversChecked),
         dayLabel: @js(__('ui.activities.duration_day')),
@@ -76,19 +75,23 @@
         </div>
     </div>
 
-    <fieldset class="ui-tile-empty min-w-0 space-y-6 rounded-2xl p-4 sm:p-6" :disabled="!forcesParticipation">
-        <legend class="sr-only">{{ __('ui.slots.tab_participation') }}</legend>
-
+    {{-- Avoid Alpine :disabled on <fieldset>: it leaves DaisyUI ranges looking like a dead hairline. --}}
+    <div
+        class="ui-tile-empty min-w-0 space-y-6 rounded-2xl p-4 sm:p-6"
+        :class="{ 'opacity-60': !forcesParticipation }"
+        data-ui="slot-participation-fields"
+    >
         <div class="space-y-3">
             <p class="text-sm font-medium text-base-content">{{ __('ui.activities.participation_mode') }}</p>
             @foreach ($participationOptions as $option)
-                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 transition-colors hover:bg-base-200/40" :class="{ 'opacity-50 pointer-events-none': !forcesParticipation }">
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 transition-colors hover:bg-base-200/40" :class="{ 'pointer-events-none': !forcesParticipation }">
                     <input
                         type="radio"
                         name="participation_mode"
-                        value="{{ $option['id'] }}"
+                        value="{{ $option['id'] }"
                         class="radio radio-sm mt-0.5"
                         x-model="participationMode"
+                        :disabled="!forcesParticipation"
                         @checked($participationModeValue === $option['id'])
                     />
                     <span class="min-w-0">
@@ -116,16 +119,13 @@
                 </x-popover>
             </label>
             <input type="hidden" name="lottery_draw_in_hours" :value="localLotteryValue" :disabled="!forcesParticipation">
-            {{-- Plain range: Mary x-range wraps another fieldset, and nested fieldsets break Alpine-disabled parents. --}}
-            <input
-                type="range"
+            <x-range
                 x-model.number="localLotteryValue"
-                @input="lotteryDrawInHours = Number(localLotteryValue)"
                 min="1"
                 max="48"
                 step="1"
-                class="range range-xs w-full"
-                :disabled="!forcesParticipation"
+                class="range-xs w-full"
+                ::disabled="!forcesParticipation"
             />
             <x-field-error :messages="$errors->get('lottery_draw_in_hours')" class="mt-1" />
         </div>
@@ -141,6 +141,7 @@
                 value="1"
                 class="toggle toggle-sm"
                 x-model="allowsObservers"
+                :disabled="!forcesParticipation"
                 @checked($allowsObserversChecked)
             />
             <label for="{{ $fieldIdPrefix }}_allows_observers" class="label cursor-pointer text-sm text-base-content">
@@ -149,5 +150,5 @@
         </div>
         <p class="text-sm text-base-content/60">{{ __('ui.activities.allows_observers') }}</p>
         <x-field-error :messages="$errors->get('allows_observers')" class="mt-1" />
-    </fieldset>
+    </div>
 </div>

@@ -104,18 +104,27 @@ final class CalendarLinks
         return match ($target) {
             CalendarTarget::Google => $this->googleUrl($payload),
             CalendarTarget::Outlook => $this->outlookUrl($payload),
-            CalendarTarget::Download => $payload->icsDownloadUrl,
+            // webcal:// hands the feed to the OS calendar app instead of forcing a file download.
+            CalendarTarget::Download => $this->webcalUrl($payload->icsDownloadUrl),
         };
     }
 
     public function seriesIntentUrl(CalendarSeriesPayload $payload, CalendarTarget $target): ?string
     {
         return match ($target) {
-            CalendarTarget::Download => $payload->icsDownloadUrl,
+            CalendarTarget::Download => $this->webcalUrl($payload->icsDownloadUrl),
             CalendarTarget::Google, CalendarTarget::Outlook => ($single = $payload->singleEvent()) !== null
                 ? $this->intentUrl($single, $target)
                 : $this->seriesSubscribeUrl($payload, $target),
         };
+    }
+
+    /**
+     * Convert an https ICS URL to webcal so browsers open the default calendar app.
+     */
+    public function webcalUrl(string $icsUrl): string
+    {
+        return (string) preg_replace('#^https?://#i', 'webcal://', $icsUrl);
     }
 
     private function buildEventPayload(Event $event, IcsMethod $method, int $sequence): ?CalendarPayload

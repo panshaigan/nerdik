@@ -303,7 +303,7 @@ final class CalendarLinksTest extends TestCase
         $this->assertNotEmpty($query['enddt']);
     }
 
-    public function test_download_intent_url_points_at_ics_route(): void
+    public function test_download_intent_url_uses_webcal_scheme(): void
     {
         $user = User::factory()->create();
         $event = Event::factory()->public()->create([
@@ -313,10 +313,14 @@ final class CalendarLinksTest extends TestCase
         $payload = $this->calendarLinks->forEvent($event);
         $this->assertNotNull($payload);
 
+        $intent = $this->calendarLinks->intentUrl($payload, CalendarTarget::Download);
+        $this->assertNotNull($intent);
+        $this->assertStringStartsWith('webcal://', $intent);
         $this->assertSame(
-            $payload->icsDownloadUrl,
-            $this->calendarLinks->intentUrl($payload, CalendarTarget::Download),
+            $this->calendarLinks->webcalUrl($payload->icsDownloadUrl),
+            $intent,
         );
+        $this->assertStringStartsWith('http', $payload->icsDownloadUrl);
     }
 
     public function test_ics_content_contains_vevent_block(): void
@@ -429,7 +433,10 @@ final class CalendarLinksTest extends TestCase
         $this->assertCount(2, $payload->events);
         $this->assertSame(route('event-series.calendar.ics', $series), $payload->icsDownloadUrl);
         $this->assertNull($payload->singleEvent());
-        $this->assertSame($payload->icsDownloadUrl, $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Download));
+        $this->assertSame(
+            $this->calendarLinks->webcalUrl($payload->icsDownloadUrl),
+            $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Download),
+        );
 
         $google = $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Google);
         $this->assertNotNull($google);
