@@ -1,6 +1,4 @@
 <div class="" data-ui="event-enrollment-windows-section">
-    <p class="mb-6 text-sm text-base-content/80">{{ __('ui.events.enrollment_windows_help') }}</p>
-
     <div class="space-y-3">
         @foreach ($enrollment_windows as $index => $row)
             <div wire:key="enrollment-window-{{ $index }}" class="relative rounded-xl ui-tile-empty p-4 sm:p-6">

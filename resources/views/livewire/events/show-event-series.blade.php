@@ -144,7 +144,7 @@
                                             <x-stat
                                                 title="{{ __('ui.events.interested_people_count') }}"
                                                 value="{{ $editionStats['interested_people_count'] }}"
-                                                icon="o-heart"
+                                                icon="o-star"
                                                 class="ui-stat-embed ui-activity-show-stat"
                                             />
                                         </div>

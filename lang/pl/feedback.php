@@ -17,8 +17,8 @@ return [
     ],
 
     'modal' => [
-        'title' => 'Pomoc/zgłoszenie',
-        'trigger' => 'Pomoc/zgłoszenie',
+        'title' => 'Kontaktu',
+        'trigger' => 'Formularz kontaktu',
         'type' => 'Typ',
         'subject' => 'Temat',
         'body' => 'Wiadomość',
