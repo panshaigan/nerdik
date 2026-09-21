@@ -22,7 +22,7 @@ final class DownloadActivityCalendarController extends Controller
 
         return response($calendarLinks->icsContent($payload), 200, [
             'Content-Type' => 'text/calendar; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="'.$payload->downloadFilename.'"',
+            'Content-Disposition' => 'inline; filename="'.$payload->downloadFilename.'"',
         ]);
     }
 }

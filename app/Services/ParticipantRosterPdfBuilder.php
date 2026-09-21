@@ -50,6 +50,16 @@ class ParticipantRosterPdfBuilder
      *         when: string|null,
      *         where: string|null,
      *         participants: list<array{name: string, is_absent: bool}>
+     *     }>,
+     *     tableSigns: list<array{
+     *         name: string,
+     *         documentTitle: string,
+     *         host: string|null,
+     *         gameNames: list<string>,
+     *         slotName: string|null,
+     *         when: string|null,
+     *         where: string|null,
+     *         participants: list<array{name: string, is_absent: bool}>
      *     }>
      * }
      */
@@ -76,16 +86,46 @@ class ParticipantRosterPdfBuilder
         $eventName = (string) $event->name;
         $whereSummary = trim($event->compactPlaceSummary());
         $whenSummary = trim(format_datetime_range_compact($event->starts_at, $event->ends_at));
+        $activityRosters = $activities
+            ->map(fn (Activity $activity): array => $this->mapActivityRoster($activity))
+            ->all();
 
         return [
             'eventName' => $eventName,
             'documentTitle' => $this->namedTitle($eventName),
             'where' => $whereSummary !== '' ? $whereSummary : null,
             'when' => $whenSummary !== '' ? $whenSummary : null,
-            'activities' => $activities
-                ->map(fn (Activity $activity): array => $this->mapActivityRoster($activity))
-                ->all(),
+            'activities' => $activityRosters,
+            'tableSigns' => $this->uniqueTableSignRosters($activityRosters),
         ];
+    }
+
+    /**
+     * One table sign per unique activity name + slot + game combination.
+     *
+     * @param  list<array{name: string, slotName: string|null, gameNames: list<string>}>  $rosters
+     * @return list<array{name: string, slotName: string|null, gameNames: list<string>}>
+     */
+    private function uniqueTableSignRosters(array $rosters): array
+    {
+        $unique = [];
+        $seen = [];
+
+        foreach ($rosters as $roster) {
+            $gameKey = implode("\0", $roster['gameNames']);
+            $key = Str::lower(trim((string) $roster['name']))."\0"
+                .Str::lower(trim((string) ($roster['slotName'] ?? '')))."\0"
+                .Str::lower($gameKey);
+
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $unique[] = $roster;
+        }
+
+        return $unique;
     }
 
     public function streamForActivity(Activity $activity, ?CarbonInterface $generatedAt = null): Response

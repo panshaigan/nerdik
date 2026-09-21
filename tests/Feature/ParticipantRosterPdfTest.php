@@ -199,9 +199,7 @@ final class ParticipantRosterPdfTest extends TestCase
         ])->render();
         $this->assertStringContainsString('Midnight Heist - Participant roster', $html);
         $this->assertStringContainsString($brandLogos['header'], $html);
-        $this->assertStringContainsString($brandLogos['footer'], $html);
         $this->assertStringContainsString($brandLogos['sign'], $html);
-        $this->assertStringContainsString('roster-footer-logo', $html);
         $this->assertStringContainsString(__('ui.pdf.roster.game').':', $html);
         $this->assertStringContainsString('Blades in the Dark', $html);
         $this->assertStringContainsString('Slot Alpha · Room 12', $html);
@@ -213,11 +211,13 @@ final class ParticipantRosterPdfTest extends TestCase
             $html,
         );
         $this->assertStringContainsString('activity-table-sign', $html);
+        $this->assertStringContainsString('table-sign-page', $html);
         $this->assertStringContainsString('sign-slot', $html);
         $this->assertStringContainsString('Slot Alpha', $html);
         $this->assertStringContainsString('sign-session', $html);
         $this->assertStringContainsString('Midnight Heist', $html);
         $this->assertStringContainsString('sign-game', $html);
+        $this->assertStringNotContainsString('roster-footer-logo', $html);
     }
 
     public function test_event_roster_includes_where_when_three_column_layout_and_skips_cancelled(): void
@@ -301,6 +301,81 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringContainsString('Alpha Slot', $html);
         $this->assertStringContainsString('Zebra Slot', $html);
         $this->assertStringNotContainsString('Middle Slot', $html);
+        $this->assertCount(2, $roster['tableSigns']);
+    }
+
+    public function test_event_table_signs_dedupe_identical_activity_slot_and_game(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'name' => 'Con Dupes',
+            'created_by' => $owner->id,
+        ]);
+
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $gameTag = Tag::factory()->for($gameCategory, 'tagCategory')->create();
+        TagTranslation::factory()->create([
+            'tag_id' => $gameTag->id,
+            'locale' => 'en',
+            'label' => 'Same Game',
+        ]);
+
+        $first = Activity::factory()->scheduled()->create([
+            'name' => 'Shared Table',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $second = Activity::factory()->scheduled()->create([
+            'name' => 'Shared Table',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $first->tags()->attach($gameTag->id);
+        $second->tags()->attach($gameTag->id);
+
+        Slot::factory()->create([
+            'name' => 'Morning',
+            'event_id' => $event->id,
+            'activity_id' => $first->id,
+            'starts_at' => now()->addWeek()->setTime(10, 0),
+        ]);
+        Slot::factory()->create([
+            'name' => 'Morning',
+            'event_id' => $event->id,
+            'activity_id' => $second->id,
+            'starts_at' => now()->addWeek()->setTime(10, 0),
+        ]);
+
+        $roster = app(ParticipantRosterPdfBuilder::class)->eventRoster($event->fresh(['places.city']));
+
+        $this->assertCount(2, $roster['activities']);
+        $this->assertCount(1, $roster['tableSigns']);
+
+        $html = view('pdf.event-participants', [
+            'roster' => $roster,
+            'brandLogos' => $this->pdfBrandLogos(),
+        ])->render();
+
+        $this->assertSame(1, substr_count($html, 'class="activity-table-sign"'));
+    }
+
+    public function test_table_sign_prefers_activity_name_when_labels_duplicate(): void
+    {
+        $roster = [
+            'name' => 'One Shot Night',
+            'slotName' => 'One Shot Night',
+            'gameNames' => ['One Shot Night'],
+        ];
+
+        $html = view('pdf.partials.activity-table-sign', [
+            'roster' => $roster,
+            'brandLogos' => $this->pdfBrandLogos(),
+        ])->render();
+
+        $this->assertSame(1, substr_count($html, 'One Shot Night'));
+        $this->assertStringContainsString('sign-session', $html);
+        $this->assertStringNotContainsString('sign-slot', $html);
+        $this->assertStringNotContainsString('sign-game', $html);
     }
 
     public function test_admin_can_download_activity_participants_pdf(): void

@@ -6,6 +6,7 @@ const DEBOUNCE_MS = 320;
 const DEFAULT_CENTER = [52.0, 19.0];
 const DEFAULT_ZOOM = 5;
 const BBOX_ZOOM = 6;
+const PLACE_FOCUS_ZOOM = 14;
 
 /**
  * Push bbox hidden field values into the wrapping Livewire component (browse events).
@@ -399,6 +400,44 @@ function attachClearToolbar(map, root, markersLayer) {
     map.addControl(new Toolbar());
 }
 
+function readPlaceFocusFromRoot(root) {
+    const lat = Number.parseFloat(root?.dataset?.focusLat ?? '');
+    const lng = Number.parseFloat(root?.dataset?.focusLng ?? '');
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return null;
+    }
+    const zoomRaw = Number.parseInt(root?.dataset?.focusZoom ?? '', 10);
+    const zoom = Number.isFinite(zoomRaw) ? zoomRaw : PLACE_FOCUS_ZOOM;
+
+    return { lat, lng, zoom };
+}
+
+function focusMapOnPlace(map, root, detail = null) {
+    if (!map) {
+        return false;
+    }
+
+    const fromDetail =
+        detail &&
+        Number.isFinite(Number(detail.lat)) &&
+        Number.isFinite(Number(detail.lng))
+            ? {
+                  lat: Number(detail.lat),
+                  lng: Number(detail.lng),
+                  zoom: Number.isFinite(Number(detail.zoom)) ? Number(detail.zoom) : PLACE_FOCUS_ZOOM,
+              }
+            : null;
+    const focus = fromDetail ?? readPlaceFocusFromRoot(root);
+    if (!focus) {
+        return false;
+    }
+
+    map.setView([focus.lat, focus.lng], focus.zoom, { animate: true });
+    applyBoundsToInputs(map.getBounds(), root);
+
+    return true;
+}
+
 function startBrowseEventsMap(root) {
     if (root.dataset.leafletBrowseMapInit === '1') {
         return;
@@ -406,9 +445,14 @@ function startBrowseEventsMap(root) {
     root.dataset.leafletBrowseMapInit = '1';
 
     try {
-        const bbox = readBBoxFromInputs(root);
-        const center = bbox ? [(bbox.south + bbox.north) / 2, (bbox.west + bbox.east) / 2] : DEFAULT_CENTER;
-        const zoom = bbox ? BBOX_ZOOM : DEFAULT_ZOOM;
+        const placeFocus = readPlaceFocusFromRoot(root);
+        const bbox = placeFocus ? null : readBBoxFromInputs(root);
+        const center = placeFocus
+            ? [placeFocus.lat, placeFocus.lng]
+            : bbox
+              ? [(bbox.south + bbox.north) / 2, (bbox.west + bbox.east) / 2]
+              : DEFAULT_CENTER;
+        const zoom = placeFocus ? placeFocus.zoom : bbox ? BBOX_ZOOM : DEFAULT_ZOOM;
 
         const map = L.map(root, { scrollWheelZoom: true }).setView(center, zoom);
 
@@ -548,5 +592,36 @@ export function initBrowseEventsMap() {
     if (root.dataset.browseEventsMapVisibleListener !== '1') {
         root.dataset.browseEventsMapVisibleListener = '1';
         window.addEventListener('browse-events-map:visible', kickStart);
+    }
+
+    if (root.dataset.browseEventsMapFocusListener !== '1') {
+        root.dataset.browseEventsMapFocusListener = '1';
+        window.addEventListener('browse-events-map:focus-place', (event) => {
+            const mapRoot = document.querySelector('[data-browse-events-map]');
+            if (!mapRoot) {
+                return;
+            }
+            const map = mapRoot._leafletBrowseMap;
+            if (!map) {
+                // Map not ready yet — stash on the root for startBrowseEventsMap.
+                const detail = event.detail || {};
+                if (Number.isFinite(Number(detail.lat)) && Number.isFinite(Number(detail.lng))) {
+                    mapRoot.dataset.focusLat = String(detail.lat);
+                    mapRoot.dataset.focusLng = String(detail.lng);
+                    mapRoot.dataset.focusZoom = String(
+                        Number.isFinite(Number(detail.zoom)) ? detail.zoom : PLACE_FOCUS_ZOOM,
+                    );
+                }
+                kickStart();
+
+                return;
+            }
+            if (focusMapOnPlace(map, mapRoot, event.detail)) {
+                const lyr = mapRoot._browseMarkersLayer;
+                if (lyr) {
+                    loadMapFeatures(map, lyr, mapRoot);
+                }
+            }
+        });
     }
 }

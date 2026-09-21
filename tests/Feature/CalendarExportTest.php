@@ -35,7 +35,7 @@ final class CalendarExportTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'text/calendar; charset=utf-8');
         $response->assertHeader('content-disposition');
-        $this->assertStringContainsString('attachment; filename="', (string) $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('inline; filename="', (string) $response->headers->get('content-disposition'));
         $response->assertSee('BEGIN:VEVENT', false);
         $response->assertSee('SUMMARY:Public Festival', false);
         $response->assertSee('DTSTART:'.$startsAt->format('Ymd\THis\Z'), false);

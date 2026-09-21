@@ -183,7 +183,7 @@
                             <x-slot:trigger>
                                 <x-icon name="o-information-circle" class="" :popover="__('ui.activities.cancellation_deadline_description')"/>
                             </x-slot:trigger>
-                            <x-slot:content>
+                            <x-slot:content class="!z-[100]">
                                 {{ __('ui.activities.cancellation_deadline_description') }}
                             </x-slot:content>
                         </x-popover>

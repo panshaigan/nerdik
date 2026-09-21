@@ -116,14 +116,16 @@
                 </x-popover>
             </label>
             <input type="hidden" name="lottery_draw_in_hours" :value="localLotteryValue" :disabled="!forcesParticipation">
-            <x-range
+            {{-- Plain range: Mary x-range wraps another fieldset, and nested fieldsets break Alpine-disabled parents. --}}
+            <input
+                type="range"
                 x-model.number="localLotteryValue"
                 @input="lotteryDrawInHours = Number(localLotteryValue)"
                 min="1"
                 max="48"
                 step="1"
-                class="range-xs w-full"
-                ::disabled="!forcesParticipation"
+                class="range range-xs w-full"
+                :disabled="!forcesParticipation"
             />
             <x-field-error :messages="$errors->get('lottery_draw_in_hours')" class="mt-1" />
         </div>

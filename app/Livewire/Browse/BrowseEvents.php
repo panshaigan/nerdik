@@ -183,6 +183,7 @@ class BrowseEvents extends Component
     {
         $this->place_id = Place::venueIdForFilter($this->place_id);
         $this->resetPage();
+        $this->dispatchMapFocusForSelectedPlace();
     }
 
     public function updatedOrganizationId(): void
@@ -205,7 +206,31 @@ class BrowseEvents extends Component
         $this->resetPage();
         if ($this->map_view) {
             $this->js('window.dispatchEvent(new CustomEvent("browse-events-map:visible"))');
+            $this->dispatchMapFocusForSelectedPlace();
         }
+    }
+
+    /**
+     * Zoom the browse map to the selected venue when coordinates are available.
+     */
+    private function dispatchMapFocusForSelectedPlace(): void
+    {
+        if ($this->place_id === null) {
+            return;
+        }
+
+        $place = Place::query()->find($this->place_id);
+        $coords = $place?->venueCoordinates();
+        if ($coords === null) {
+            return;
+        }
+
+        [$lat, $lng] = $coords;
+        $this->js(
+            'window.dispatchEvent(new CustomEvent("browse-events-map:focus-place", { detail: '
+            .json_encode(['lat' => $lat, 'lng' => $lng, 'zoom' => 14], JSON_THROW_ON_ERROR)
+            .'}))'
+        );
     }
 
     public function toggleMapView(): void

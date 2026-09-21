@@ -48,6 +48,12 @@
         </div>
 
         @if ($map_view)
+            @php
+                $mapFocusPlace = $place_id !== null
+                    ? \App\Models\Place::query()->find($place_id)
+                    : null;
+                $mapFocusCoords = $mapFocusPlace?->venueCoordinates();
+            @endphp
             <div
                 id="ui-browse-events-map"
                 data-browse-events-map
@@ -59,6 +65,11 @@
                 data-bbox-max-lat="{{ $max_lat ?? '' }}"
                 data-bbox-min-lng="{{ $min_lng ?? '' }}"
                 data-bbox-max-lng="{{ $max_lng ?? '' }}"
+                @if ($mapFocusCoords !== null)
+                    data-focus-lat="{{ $mapFocusCoords[0] }}"
+                    data-focus-lng="{{ $mapFocusCoords[1] }}"
+                    data-focus-zoom="14"
+                @endif
                 wire:ignore
                 wire:key="browse-events-map-root"
                 x-init="$nextTick(() => window.dispatchEvent(new CustomEvent('browse-events-map:visible')))"

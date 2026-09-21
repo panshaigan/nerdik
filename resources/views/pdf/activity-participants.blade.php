@@ -32,10 +32,6 @@
             font-size: 18px;
             margin: 0;
         }
-        .roster-footer-logo {
-            margin-top: 24px;
-            text-align: center;
-        }
         .header-schedule {
             font-weight: normal;
             color: #333;
@@ -84,6 +80,41 @@
             color: #666;
             font-style: italic;
         }
+        .table-sign-page {
+            page-break-before: always;
+        }
+        table.activity-table-sign {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: DejaVu Sans, sans-serif;
+            color: #111;
+        }
+        table.activity-table-sign td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 48px 36px;
+        }
+        .activity-table-sign .sign-slot {
+            font-size: 50pt;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 0 0 32px;
+        }
+        .activity-table-sign .sign-session {
+            font-size: 72pt;
+            font-weight: bold;
+            line-height: 1.15;
+            margin: 0 0 32px;
+        }
+        .activity-table-sign .sign-game {
+            font-size: 54pt;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 0 0 24px;
+        }
+        .activity-table-sign .sign-brand {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -102,12 +133,11 @@
         'brandLogos' => $brandLogos,
     ])
     @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
-    <div class="roster-footer-logo">
-        @include('pdf.partials.brand-logo', ['path' => $brandLogos['footer'], 'height' => 72])
+    <div class="table-sign-page">
+        @include('pdf.partials.activity-table-sign', [
+            'roster' => $roster,
+            'brandLogos' => $brandLogos,
+        ])
     </div>
-    @include('pdf.partials.activity-table-sign', [
-        'roster' => $roster,
-        'brandLogos' => $brandLogos,
-    ])
 </body>
 </html>

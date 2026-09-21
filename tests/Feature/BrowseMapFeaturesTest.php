@@ -196,6 +196,22 @@ class BrowseMapFeaturesTest extends TestCase
             ->assertSee('data-browse-events-map', false);
     }
 
+    public function test_browse_events_map_includes_place_focus_when_place_selected(): void
+    {
+        $place = Place::factory()->venue()->create([
+            'latitude' => 51.109,
+            'longitude' => 17.032,
+        ]);
+
+        Livewire::test(BrowseEvents::class, [
+            'map_view' => true,
+            'place_id' => $place->id,
+        ])
+            ->assertSee('data-focus-lat="51.109"', false)
+            ->assertSee('data-focus-lng="17.032"', false)
+            ->assertSee('data-focus-zoom="14"', false);
+    }
+
     public function test_browse_events_toggle_map_view_action_flips_state(): void
     {
         Livewire::test(BrowseEvents::class)
