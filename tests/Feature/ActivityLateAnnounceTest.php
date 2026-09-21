@@ -265,7 +265,10 @@ class ActivityLateAnnounceTest extends TestCase
         $this->assertStringContainsString('data-ui="activity-show-late-announce"', $html);
         $this->assertStringContainsString('data-ui="activity-show-participant-late-'.$participant->id.'"', $html);
         $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
-        $this->assertStringContainsString('this.$wire.announceLate(value)', $html);
+        $this->assertStringContainsString('this.livewire = this.$wire', $html);
+        $this->assertStringContainsString('data-ui="late-announce-preset"', $html);
+        $this->assertStringContainsString('selectPreset(20)', $html);
+        $this->assertStringNotContainsString('type="number"', $html);
         $this->assertStringNotContainsString('\$wire.', $html);
     }
 
