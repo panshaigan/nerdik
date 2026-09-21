@@ -375,6 +375,7 @@ class ShowActivity extends Component
             'hasInterest' => $vm->hasInterest,
             'interestedPeopleCount' => $interestedPeopleCount,
             'canManageActivity' => $vm->canManageActivity,
+            'canMarkParticipantsAbsent' => $vm->canMarkParticipantsAbsent,
             'signupBlockedMessage' => $vm->signupBlockedMessage,
             'stateBlockedMessage' => $vm->stateBlockedMessage,
             'activeWindowPerActivityMax' => $vm->activeWindowPerActivityMax,

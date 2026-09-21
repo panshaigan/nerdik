@@ -74,6 +74,7 @@ class ActivityParticipationViewService
         }
 
         $canManageActivity = $user?->canModifyEntity($activity) ?? false;
+        $canMarkParticipantsAbsent = $user?->canManageActivityParticipation($activity) ?? false;
         $isHost = $user !== null
             && (int) ($activity->created_by ?? 0) === (int) $user->id;
         $canJoin = $user !== null
@@ -95,6 +96,7 @@ class ActivityParticipationViewService
             isFull: $isFull,
             hasInterest: $hasInterest,
             canManageActivity: $canManageActivity,
+            canMarkParticipantsAbsent: $canMarkParticipantsAbsent,
             signupBlockedMessage: $signupBlockedMessage,
             stateBlockedMessage: $stateBlockedMessage,
             activeWindowPerActivityMax: $activeWindowPerActivityMax,

@@ -14,6 +14,7 @@ final class ActivityParticipationViewData
         public readonly bool $isFull,
         public readonly bool $hasInterest,
         public readonly bool $canManageActivity,
+        public readonly bool $canMarkParticipantsAbsent,
         public readonly ?string $signupBlockedMessage,
         public readonly ?string $stateBlockedMessage,
         public readonly ?int $activeWindowPerActivityMax,

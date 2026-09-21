@@ -310,6 +310,21 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $ownerId !== null && (int) $ownerId === (int) $this->id;
     }
 
+    /**
+     * Activity host, admin, or owner of the parent event (for scheduled-on-event activities).
+     */
+    public function canManageActivityParticipation(Activity $activity): bool
+    {
+        if ($this->canModifyEntity($activity)) {
+            return true;
+        }
+
+        $activity->loadMissing('slot.event');
+        $event = $activity->slot?->event;
+
+        return $event instanceof Event && $this->canModifyEntity($event);
+    }
+
     public function interestedEvents(): MorphToMany
     {
         return $this->morphedByMany(Event::class, 'interest', 'user_interests');

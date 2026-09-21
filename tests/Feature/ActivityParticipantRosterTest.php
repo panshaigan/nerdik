@@ -6,6 +6,8 @@ use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
+use App\Models\Event;
+use App\Models\Slot;
 use App\Models\User;
 use App\Services\ActivityParticipationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,6 +39,38 @@ class ActivityParticipantRosterTest extends TestCase
         $this->assertFalse($participant->fresh()->is_absent);
     }
 
+    public function test_event_organizer_can_mark_and_unmark_absent(): void
+    {
+        $organizer = User::factory()->organizer()->create();
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+        ]);
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+            'is_absent' => false,
+        ]);
+
+        $this->actingAs($organizer);
+        $this->post(route('activity-participants.mark-absent', $participant))->assertRedirect();
+        $this->assertTrue($participant->fresh()->is_absent);
+
+        $this->post(route('activity-participants.unmark-absent', $participant))->assertRedirect();
+        $this->assertFalse($participant->fresh()->is_absent);
+    }
+
     public function test_non_host_cannot_unmark_absent(): void
     {
         $host = User::factory()->create();
@@ -56,6 +90,36 @@ class ActivityParticipantRosterTest extends TestCase
         $this->actingAs($other);
         $this->post(route('activity-participants.unmark-absent', $participant))->assertForbidden();
         $this->assertTrue($participant->fresh()->is_absent);
+    }
+
+    public function test_unrelated_organizer_cannot_mark_absent_on_others_event(): void
+    {
+        $eventOwner = User::factory()->organizer()->create();
+        $otherOrganizer = User::factory()->organizer()->create();
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $eventOwner->id,
+            'updated_by' => $eventOwner->id,
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $eventOwner->id,
+        ]);
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+            'is_absent' => false,
+        ]);
+
+        $this->actingAs($otherOrganizer);
+        $this->post(route('activity-participants.mark-absent', $participant))->assertForbidden();
+        $this->assertFalse($participant->fresh()->is_absent);
     }
 
     public function test_host_can_move_participant_to_waitlist_without_auto_promoting_others(): void

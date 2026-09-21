@@ -230,6 +230,7 @@
                         'canPromptGuestJoin' => $canPromptGuestJoin,
                         'isFull' => $isFull,
                         'canManageActivity' => $canManageActivity,
+                        'canMarkParticipantsAbsent' => $canMarkParticipantsAbsent,
                         'stateBlockedMessage' => $stateBlockedMessage,
                         'signupBlockedMessage' => $signupBlockedMessage,
                         'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,

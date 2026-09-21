@@ -181,7 +181,11 @@ class ActivityParticipationService
     {
         $activity = $participant->activity;
 
-        abort_unless($user->canModifyEntity($activity), 403, __('Only the activity host can mark participants absent.'));
+        abort_unless(
+            $user->canManageActivityParticipation($activity),
+            403,
+            __('ui.activities.only_host_or_organizer_can_mark_absent'),
+        );
 
         $this->roster->markParticipantAbsent($participant);
 
@@ -192,7 +196,11 @@ class ActivityParticipationService
     {
         $activity = $participant->activity;
 
-        abort_unless($user->canModifyEntity($activity), 403, __('ui.activities.only_host_can_unmark_absent'));
+        abort_unless(
+            $user->canManageActivityParticipation($activity),
+            403,
+            __('ui.activities.only_host_or_organizer_can_unmark_absent'),
+        );
 
         if (! $participant->is_absent) {
             return redirect()->back()->with('status', __('ui.activities.participant_not_absent'));

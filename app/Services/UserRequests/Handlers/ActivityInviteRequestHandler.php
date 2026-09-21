@@ -8,7 +8,6 @@ use App\Contracts\UserRequests\UserRequestHandler;
 use App\Enums\UserRequestResolutionOutcome;
 use App\Enums\UserRequestType;
 use App\Models\Activity;
-use App\Models\Event;
 use App\Models\User;
 use App\Models\UserRequest;
 use App\Services\ActivityParticipationService;
@@ -113,13 +112,6 @@ class ActivityInviteRequestHandler implements UserRequestHandler
 
     private function canInviteToActivity(User $requester, Activity $activity): bool
     {
-        if ($requester->canModifyEntity($activity)) {
-            return true;
-        }
-
-        $activity->loadMissing('slot.event');
-        $event = $activity->slot?->event;
-
-        return $event instanceof Event && $requester->canModifyEntity($event);
+        return $requester->canManageActivityParticipation($activity);
     }
 }

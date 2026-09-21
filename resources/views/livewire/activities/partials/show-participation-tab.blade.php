@@ -5,6 +5,7 @@
     $canMarkAbsentNow = $activityStartsAtGmt !== null
         && $activityStartsAtGmt->clone()->utc()->lte(now('UTC'));
     $usesWaitlistSignup = $activity->isHostApprovalMode() || $activity->isLotteryMode();
+    $canMarkParticipantsAbsent = $canMarkParticipantsAbsent ?? false;
 @endphp
 <div data-ui="activity-show-participation">
     <div class="mb-6 max-w-xl mx-auto w-full">
@@ -58,48 +59,52 @@
                                 <x-activity.familiarity-summary :familiarity="$p->familiarity" />
                             @endif
                     </x-slot:value>
-                    @if ($canManageActivity && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
+                    @if (($canManageActivity || $canMarkParticipantsAbsent) && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
                         <x-slot:actions class="flex flex-wrap items-center gap-1 max-sm:w-full">
-                            @if ($p->is_absent)
-                                <x-button
-                                    type="button"
-                                    class="btn btn-sm text-success"
-                                    :title="__('ui.activities.unmark_absent')"
-                                    :aria-label="__('ui.activities.unmark_absent')"
-                                    wire:click="unmarkParticipantAbsent({{ $p->id }})"
-                                    :spinner="'unmarkParticipantAbsent('.$p->id.')'"
-                                >{{ __('ui.activities.unmark_absent') }}</x-button>
-                            @else
-                                @if ($canMarkAbsentNow)
+                            @if ($canMarkParticipantsAbsent)
+                                @if ($p->is_absent)
                                     <x-button
                                         type="button"
-                                        class="btn btn-sm text-warning"
-                                        :title="__('ui.activities.mark_absent')"
-                                        :aria-label="__('ui.activities.mark_absent')"
-                                        wire:click="markParticipantAbsent({{ $p->id }})"
-                                        :spinner="'markParticipantAbsent('.$p->id.')'"
-                                    >{{ __('ui.activities.mark_absent') }}</x-button>
+                                        class="btn btn-sm text-success"
+                                        :title="__('ui.activities.unmark_absent')"
+                                        :aria-label="__('ui.activities.unmark_absent')"
+                                        wire:click="unmarkParticipantAbsent({{ $p->id }})"
+                                        :spinner="'unmarkParticipantAbsent('.$p->id.')'"
+                                    >{{ __('ui.activities.unmark_absent') }}</x-button>
+                                @else
+                                    @if ($canMarkAbsentNow)
+                                        <x-button
+                                            type="button"
+                                            class="btn btn-sm text-warning"
+                                            :title="__('ui.activities.mark_absent')"
+                                            :aria-label="__('ui.activities.mark_absent')"
+                                            wire:click="markParticipantAbsent({{ $p->id }})"
+                                            :spinner="'markParticipantAbsent('.$p->id.')'"
+                                        >{{ __('ui.activities.mark_absent') }}</x-button>
+                                    @endif
                                 @endif
                             @endif
-                            <x-button
-                                type="button"
-                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
-                                :title="__('ui.activities.remove_participant')"
-                                :aria-label="__('ui.activities.remove_participant')"
-                                wire:click="confirmRemoveParticipant({{ $p->id }})"
-                                :spinner="'confirmRemoveParticipant('.$p->id.')'"
-                                icon="o-trash"
-                            />
-                            @if ($activity->isHostApprovalMode())
-                            <x-button
-                                type="button"
-                                class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
-                                icon="o-arrow-right"
-                                :title="__('ui.activities.move_to_waitlist')"
-                                :aria-label="__('ui.activities.move_to_waitlist')"
-                                wire:click="confirmMoveParticipantToWaitlist({{ $p->id }})"
-                                :spinner="'confirmMoveParticipantToWaitlist('.$p->id.')'"
-                            />
+                            @if ($canManageActivity)
+                                <x-button
+                                    type="button"
+                                    class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                                    :title="__('ui.activities.remove_participant')"
+                                    :aria-label="__('ui.activities.remove_participant')"
+                                    wire:click="confirmRemoveParticipant({{ $p->id }})"
+                                    :spinner="'confirmRemoveParticipant('.$p->id.')'"
+                                    icon="o-trash"
+                                />
+                                @if ($activity->isHostApprovalMode())
+                                <x-button
+                                    type="button"
+                                    class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning"
+                                    icon="o-arrow-right"
+                                    :title="__('ui.activities.move_to_waitlist')"
+                                    :aria-label="__('ui.activities.move_to_waitlist')"
+                                    wire:click="confirmMoveParticipantToWaitlist({{ $p->id }})"
+                                    :spinner="'confirmMoveParticipantToWaitlist('.$p->id.')'"
+                                />
+                                @endif
                             @endif
                         </x-slot:actions>
                     @endif

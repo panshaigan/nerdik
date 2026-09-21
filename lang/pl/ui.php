@@ -484,6 +484,8 @@ return [
         'user_already_participant' => 'Ten użytkownik jest już zapisany.',
         'user_already_on_waitlist' => 'Ten użytkownik jest już na liście oczekujących.',
         'only_host_can_unmark_absent' => 'Tylko prowadzący może cofnąć oznaczenie nieobecności.',
+        'only_host_or_organizer_can_mark_absent' => 'Tylko prowadzący lub organizator wydarzenia może oznaczyć uczestników jako nieobecnych.',
+        'only_host_or_organizer_can_unmark_absent' => 'Tylko prowadzący lub organizator wydarzenia może cofnąć oznaczenie nieobecności.',
         'participant_not_absent' => 'Ten uczestnik nie jest oznaczony jako nieobecny.',
         'participant_unmarked_absent' => 'Uczestnik nie jest już oznaczony jako nieobecny.',
         'only_host_can_move_to_waitlist' => 'Tylko prowadzący może przenieść uczestnika z powrotem na listę oczekujących.',

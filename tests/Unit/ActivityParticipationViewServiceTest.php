@@ -33,6 +33,7 @@ class ActivityParticipationViewServiceTest extends TestCase
         $this->assertTrue($vm->canPromptGuestJoin);
         $this->assertFalse($vm->hasInterest);
         $this->assertFalse($vm->canManageActivity);
+        $this->assertFalse($vm->canMarkParticipantsAbsent);
     }
 
     #[Test]
@@ -133,6 +134,7 @@ class ActivityParticipationViewServiceTest extends TestCase
 
         $this->assertFalse($vm->canJoin);
         $this->assertTrue($vm->canManageActivity);
+        $this->assertTrue($vm->canMarkParticipantsAbsent);
     }
 
     #[Test]
@@ -151,6 +153,32 @@ class ActivityParticipationViewServiceTest extends TestCase
 
         $this->assertTrue($vm->canJoin);
         $this->assertTrue($vm->canManageActivity);
+        $this->assertTrue($vm->canMarkParticipantsAbsent);
+    }
+
+    #[Test]
+    public function event_organizer_can_mark_participants_absent_without_managing_activity(): void
+    {
+        $organizer = User::factory()->organizer()->create();
+        $host = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+        ]);
+
+        $vm = app(ActivityParticipationViewService::class)->forShow($activity->fresh(), $organizer);
+
+        $this->assertFalse($vm->canManageActivity);
+        $this->assertTrue($vm->canMarkParticipantsAbsent);
     }
 
     #[Test]
