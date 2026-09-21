@@ -88,7 +88,7 @@
                     <input
                         type="radio"
                         name="participation_mode"
-                        value="{{ $option['id'] }"
+                        value="{{ $option['id'] }}"
                         class="radio radio-sm mt-0.5"
                         x-model="participationMode"
                         :disabled="!forcesParticipation"
