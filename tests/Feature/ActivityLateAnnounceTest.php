@@ -236,6 +236,39 @@ class ActivityLateAnnounceTest extends TestCase
             ->value('late_minutes'));
     }
 
+    public function test_admin_sees_toolbar_and_participant_late_controls(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $admin->id,
+        ]);
+        $participant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        $html = Livewire::actingAs($admin)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringContainsString('data-ui="activity-show-late-announce"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-participant-late-'.$participant->id.'"', $html);
+        $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
+        $this->assertStringContainsString('this.$wire.announceLate(value)', $html);
+        $this->assertStringNotContainsString('\$wire.', $html);
+    }
+
     public function test_user_badge_renders_late_overlay(): void
     {
         $user = User::factory()->create();

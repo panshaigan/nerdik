@@ -12,10 +12,16 @@
     $label = $hasLate
         ? __('ui.activities.late_announce_update')
         : __('ui.activities.late_announce');
+    $wireCallSet = $targetUserId !== null
+        ? 'this.$wire.'.$wireMethod.'('.(int) $targetUserId.', value)'
+        : 'this.$wire.'.$wireMethod.'(value)';
+    $wireCallClear = $targetUserId !== null
+        ? 'this.$wire.'.$wireMethod.'('.(int) $targetUserId.', null)'
+        : 'this.$wire.'.$wireMethod.'(null)';
 @endphp
 
 <div
-    {{ $attributes->except('data-ui')->class('relative') }}
+    {{ $attributes->except('data-ui')->class('relative inline-flex') }}
     x-data="{
         open: false,
         openUpward: @js((bool) $openUpward),
@@ -79,19 +85,11 @@
             if (! Number.isFinite(value) || value < 1 || value > 240) {
                 return;
             }
-            @if ($targetUserId !== null)
-                \$wire.{{ $wireMethod }}({{ (int) $targetUserId }}, value);
-            @else
-                \$wire.{{ $wireMethod }}(value);
-            @endif
+            {{ $wireCallSet }};
             this.close();
         },
         clearLate() {
-            @if ($targetUserId !== null)
-                \$wire.{{ $wireMethod }}({{ (int) $targetUserId }}, null);
-            @else
-                \$wire.{{ $wireMethod }}(null);
-            @endif
+            {{ $wireCallClear }};
             this.close();
         },
     }"
@@ -123,10 +121,11 @@
     <template x-teleport="body">
         <div
             x-ref="panel"
-            x-bind:class="open ? 'flex' : 'hidden'"
+            x-show="open"
+            x-cloak
             role="dialog"
             aria-label="{{ $label }}"
-            class="ui-late-announce-panel fixed z-[10000] w-[min(18rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-box border border-base-300 bg-base-100 p-3 shadow-lg light:border-neutral"
+            class="ui-late-announce-panel fixed z-[10000] flex w-[min(18rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-box border border-base-300 bg-base-100 p-3 shadow-lg light:border-neutral"
             :style="menuStyle"
             x-on:scroll.stop
             @if (is_string($triggerDataUi) && $triggerDataUi !== '')
