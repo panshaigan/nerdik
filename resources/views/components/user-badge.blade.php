@@ -99,7 +99,7 @@
         :contact-tooltip="$resolvedOrganizationTooltip"
         :container-class="$containerClass"
         :late-minutes="$resolvedLateMinutes"
-        :key="'organization-badge-contact-'.$organization->id.$contactWireKeySuffix"
+        :key="'organization-badge-contact-'.$organization->id.'-late-'.($resolvedLateMinutes ?? '0').$contactWireKeySuffix"
     />
 @elseif ($canRenderContactPopover)
     @php
@@ -117,7 +117,7 @@
         :context-activity-id="$contextActivityId"
         :context-organization-id="$contextOrganizationId"
         :late-minutes="$resolvedLateMinutes"
-        :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0').$contactWireKeySuffix"
+        :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0').'-late-'.($resolvedLateMinutes ?? '0').$contactWireKeySuffix"
     />
 @elseif ($avatarOnly)
     <div {{ $attributes->class('avatar relative inline-flex') }}>

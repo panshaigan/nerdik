@@ -269,6 +269,70 @@ class ActivityLateAnnounceTest extends TestCase
         $this->assertStringNotContainsString('\$wire.', $html);
     }
 
+    public function test_late_badge_updates_on_show_page_after_announce(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertDontSeeHtml('data-ui="user-badge-late"')
+            ->call('announceLate', 18)
+            ->assertSeeHtml('data-ui="user-badge-late"')
+            ->assertSeeHtml('>+18</span>')
+            ->call('announceLate', null)
+            ->assertDontSeeHtml('data-ui="user-badge-late"');
+    }
+
+    public function test_late_badge_updates_for_viewer_after_participation_broadcast(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $viewer = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $viewer->id,
+        ]);
+
+        $component = Livewire::actingAs($viewer)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->assertDontSeeHtml('data-ui="user-badge-late"');
+
+        ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $member->id)
+            ->update(['late_minutes' => 22]);
+
+        $component
+            ->call('refreshParticipationFromBroadcast', $activity->id)
+            ->assertSeeHtml('data-ui="user-badge-late"')
+            ->assertSeeHtml('>+22</span>');
+    }
+
     public function test_user_badge_renders_late_overlay(): void
     {
         $user = User::factory()->create();

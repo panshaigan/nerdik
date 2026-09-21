@@ -229,26 +229,28 @@
                 </x-tab>
 
                 <x-tab name="participation" :label="$participationSlotsLabel" class="p-6 pt-4 sm:p-8 sm:pt-5" data-ui="activity-show-tab-participation" icon="o-users">
-                    @include('livewire.activities.partials.show-participation-tab', [
-                        'activity' => $activity,
-                        'isParticipant' => $isParticipant,
-                        'onWaitlist' => $onWaitlist,
-                        'canJoin' => $canJoin,
-                        'canPromptGuestJoin' => $canPromptGuestJoin,
-                        'isFull' => $isFull,
-                        'canManageActivity' => $canManageActivity,
-                        'canMarkParticipantsAbsent' => $canMarkParticipantsAbsent,
-                        'canSetOthersLate' => $canSetOthersLate ?? false,
-                        'hostLateMinutes' => $hostLateMinutes ?? null,
-                        'stateBlockedMessage' => $stateBlockedMessage,
-                        'signupBlockedMessage' => $signupBlockedMessage,
-                        'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,
-                        'activeWindowPerActivityMax' => $activeWindowPerActivityMax,
-                        'activeWindowUserRemaining' => $activeWindowUserRemaining,
-                        'isLotteryPending' => $isLotteryPending,
-                        'isLotteryResolved' => $isLotteryResolved,
-                        'lotteryDrawNotices' => $lotteryDrawNotices ?? [],
-                    ])
+                    <div wire:key="activity-show-participation-{{ $activity->id }}-{{ $participationBroadcastRefreshTick }}">
+                        @include('livewire.activities.partials.show-participation-tab', [
+                            'activity' => $activity,
+                            'isParticipant' => $isParticipant,
+                            'onWaitlist' => $onWaitlist,
+                            'canJoin' => $canJoin,
+                            'canPromptGuestJoin' => $canPromptGuestJoin,
+                            'isFull' => $isFull,
+                            'canManageActivity' => $canManageActivity,
+                            'canMarkParticipantsAbsent' => $canMarkParticipantsAbsent,
+                            'canSetOthersLate' => $canSetOthersLate ?? false,
+                            'hostLateMinutes' => $hostLateMinutes ?? null,
+                            'stateBlockedMessage' => $stateBlockedMessage,
+                            'signupBlockedMessage' => $signupBlockedMessage,
+                            'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,
+                            'activeWindowPerActivityMax' => $activeWindowPerActivityMax,
+                            'activeWindowUserRemaining' => $activeWindowUserRemaining,
+                            'isLotteryPending' => $isLotteryPending,
+                            'isLotteryResolved' => $isLotteryResolved,
+                            'lotteryDrawNotices' => $lotteryDrawNotices ?? [],
+                        ])
+                    </div>
                 </x-tab>
             </x-ui.tabs-with-toolbar>
         </div>

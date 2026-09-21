@@ -4,6 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Models\Organization;
 use App\Models\User;
+use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class OrganizationBadgeContact extends Component
@@ -26,6 +27,7 @@ class OrganizationBadgeContact extends Component
 
     public string $containerClass = 'inline-flex min-w-0';
 
+    #[Reactive]
     public ?int $lateMinutes = null;
 
     public bool $modalOpen = false;

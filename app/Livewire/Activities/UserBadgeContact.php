@@ -3,6 +3,7 @@
 namespace App\Livewire\Activities;
 
 use App\Models\User;
+use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class UserBadgeContact extends Component
@@ -27,6 +28,7 @@ class UserBadgeContact extends Component
 
     public ?int $contextOrganizationId = null;
 
+    #[Reactive]
     public ?int $lateMinutes = null;
 
     public bool $modalOpen = false;
