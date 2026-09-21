@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ActivityProposalStatus;
+use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Slot;
@@ -74,7 +75,10 @@ class ActivityProposalDecisionService
         $this->hostingModes->markScheduledOnEvent($proposal->activity);
         $this->participationConstraints->applyForcedSettingsToActivity($slot, $proposal->activity);
 
-        $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+        // Organizers do not need a notification about accepting their own proposal.
+        if ((int) $proposal->created_by !== (int) $event->created_by) {
+            $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+        }
     }
 
     /** Caller must ensure the proposal is still pending. */

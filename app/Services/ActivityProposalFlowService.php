@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Slot;
 use App\Notifications\ProposalSubmittedNotification;
+use Illuminate\Validation\ValidationException;
 
 class ActivityProposalFlowService
 {
@@ -32,7 +34,8 @@ class ActivityProposalFlowService
     }
 
     /**
-     * Sync chosen free slots to the proposal and auto-accept when a matching no-approval slot fits the activity.
+     * Sync chosen free slots to the proposal and auto-accept when appropriate:
+     * preferred no-approval slots first, then organizer self-proposals (any fitting free slot).
      *
      * @param  list<int>  $requestedSlotIds
      */
@@ -42,37 +45,58 @@ class ActivityProposalFlowService
         Activity $activity,
         array $requestedSlotIds
     ): void {
-        if ($requestedSlotIds === []) {
-            $this->hostingModes->markProposedToEvent($activity);
+        $validIds = [];
 
-            return;
+        if ($requestedSlotIds !== []) {
+            $validIds = Slot::query()
+                ->where('event_id', $event->id)
+                ->whereNull('activity_id')
+                ->whereIn('id', $requestedSlotIds)
+                ->pluck('id')
+                ->all();
+
+            $proposal->proposedSlots()->sync($validIds);
         }
 
-        $validIds = Slot::query()
-            ->where('event_id', $event->id)
-            ->whereNull('activity_id')
-            ->whereIn('id', $requestedSlotIds)
-            ->pluck('id')
-            ->all();
-
-        $proposal->proposedSlots()->sync($validIds);
         $this->hostingModes->markProposedToEvent($activity);
 
-        $slots = Slot::whereIn('id', $validIds)->get();
-        $autoSlot = $slots->firstWhere('requires_approval', false);
-        if (! $autoSlot) {
+        if ($validIds !== []) {
+            $slots = Slot::whereIn('id', $validIds)->get();
+            $autoSlot = $slots->firstWhere('requires_approval', false);
+            if ($autoSlot) {
+                $autoSlot->loadMissing('activityTypes');
+                if (
+                    $autoSlot->fitsProposalActivity($activity)
+                    && $this->decisions->activityMatchesSlotForAccept($activity, $autoSlot)
+                ) {
+                    $this->decisions->accept($proposal, $autoSlot->id);
+
+                    return;
+                }
+            }
+        }
+
+        $this->tryAutoAcceptOrganizerSelfProposal($proposal, $event);
+    }
+
+    /**
+     * Event owners do not need to approve their own proposals: auto-pick a fitting free slot.
+     */
+    private function tryAutoAcceptOrganizerSelfProposal(ActivityProposal $proposal, Event $event): void
+    {
+        $proposal->refresh();
+        if ($proposal->status !== ActivityProposalStatus::Pending) {
             return;
         }
 
-        $autoSlot->loadMissing('activityTypes');
-        if (! $autoSlot->fitsProposalActivity($activity)) {
+        if ((int) $event->created_by !== (int) $proposal->created_by) {
             return;
         }
 
-        if (! $this->decisions->activityMatchesSlotForAccept($activity, $autoSlot)) {
-            return;
+        try {
+            $this->decisions->accept($proposal, null);
+        } catch (ValidationException) {
+            // No fitting free slot — leave pending for the organizer to resolve later.
         }
-
-        $this->decisions->accept($proposal, $autoSlot->id);
     }
 }
