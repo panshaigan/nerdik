@@ -161,8 +161,9 @@ return [
     | Brand logo (static public assets)
     |--------------------------------------------------------------------------
     |
-    | Regenerate variants after changing the source WebP:
+    | Regenerate variants + browser icons after changing the source WebP:
     | php artisan app:generate-brand-logo
+    | make regenerate-brand-logo
     |
     | Variants are trimmed to the bright mark plus dark stroke padding so tips
     | and wings are not clipped on light backgrounds, while soft outer glow
@@ -186,6 +187,18 @@ return [
             'max_gd_alpha' => 100,
             // Source pixels around the bright fill that include the dark outline.
             'padding' => 96,
+        ],
+        'icons' => [
+            'enabled' => true,
+            // Paths are relative to public/
+            'favicon_ico' => 'favicon.ico',
+            'favicon_svg' => 'favicon.svg',
+            'apple_touch_icon' => 'apple-touch-icon.png',
+            'favicon_ico_sizes' => [16, 32],
+            'apple_touch_size' => 180,
+            'favicon_svg_size' => 512,
+            // Transparent margin around the mark inside the square canvas.
+            'padding_ratio' => 0.08,
         ],
         'presets' => [
             'nav' => [

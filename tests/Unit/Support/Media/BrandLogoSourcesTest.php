@@ -29,7 +29,7 @@ final class BrandLogoSourcesTest extends TestCase
         $this->assertStringContainsString('images/app/brand/40w.webp 1x', $logo['srcset']);
         $this->assertStringContainsString('images/app/brand/80w.webp 2x', $logo['srcset']);
         $this->assertSame(39, $logo['width']);
-        $this->assertSame(36, $logo['height']);
+        $this->assertSame(35, $logo['height']);
         $this->assertSame(18, $logo['wordmark_font_size']);
         $this->assertEqualsWithDelta(0.5, $logo['wordmark_ratio'], 0.001);
     }
@@ -42,7 +42,7 @@ final class BrandLogoSourcesTest extends TestCase
         $this->assertStringContainsString('images/app/brand/40w.webp', $logo['src']);
         $this->assertStringContainsString('images/app/brand/64w.webp 2x', $logo['srcset']);
         $this->assertSame(34, $logo['width']);
-        $this->assertSame(31, $logo['height']);
+        $this->assertSame(30, $logo['height']);
     }
 
     #[Test]
@@ -54,7 +54,7 @@ final class BrandLogoSourcesTest extends TestCase
         $this->assertStringContainsString('images/app/brand/128w.webp 1x', $logo['srcset']);
         $this->assertStringContainsString('images/app/brand/192w.webp 2x', $logo['srcset']);
         $this->assertSame(128, $logo['width']);
-        $this->assertSame(118, $logo['height']);
+        $this->assertSame(114, $logo['height']);
     }
 
     #[Test]
@@ -66,8 +66,8 @@ final class BrandLogoSourcesTest extends TestCase
         $this->assertStringContainsString('images/app/brand/192w.webp 1x', $logo['srcset']);
         $this->assertStringContainsString('images/app/brand/192w.webp 2x', $logo['srcset']);
         $this->assertSame(172, $logo['width']);
-        $this->assertSame(159, $logo['height']);
-        $this->assertSame(80, $logo['wordmark_font_size']);
+        $this->assertSame(154, $logo['height']);
+        $this->assertSame(77, $logo['wordmark_font_size']);
         $this->assertEqualsWithDelta(0.5, $logo['wordmark_ratio'], 0.001);
     }
 
@@ -87,9 +87,9 @@ final class BrandLogoSourcesTest extends TestCase
         $fromPreset = BrandLogoSources::fromManifest()->forPreset('xl');
         $fromOverride = BrandLogoSources::fromManifest()->forPreset('xl', 0.6);
 
-        $this->assertSame(80, $fromPreset['wordmark_font_size']);
+        $this->assertSame(77, $fromPreset['wordmark_font_size']);
         $this->assertEqualsWithDelta(0.5, $fromPreset['wordmark_ratio'], 0.001);
-        $this->assertSame(95, $fromOverride['wordmark_font_size']);
+        $this->assertSame(92, $fromOverride['wordmark_font_size']);
         $this->assertEqualsWithDelta(0.6, $fromOverride['wordmark_ratio'], 0.001);
         $this->assertSame(80, BrandLogoSources::wordmarkFontSizeForHeight(160, 0.5));
     }

@@ -1,49 +1,60 @@
 {
-    "width": 1251,
-    "height": 1156,
+    "width": 1036,
+    "height": 926,
     "trimmed": true,
     "variants": {
         "webp": [
             {
                 "width": 40,
                 "path": "images/app/brand/40w.webp",
-                "bytes": 908
+                "bytes": 1276
             },
             {
                 "width": 48,
                 "path": "images/app/brand/48w.webp",
-                "bytes": 1126
+                "bytes": 1676
             },
             {
                 "width": 64,
                 "path": "images/app/brand/64w.webp",
-                "bytes": 1528
+                "bytes": 2336
             },
             {
                 "width": 80,
                 "path": "images/app/brand/80w.webp",
-                "bytes": 1922
+                "bytes": 3028
             },
             {
                 "width": 96,
                 "path": "images/app/brand/96w.webp",
-                "bytes": 2224
+                "bytes": 3758
             },
             {
                 "width": 128,
                 "path": "images/app/brand/128w.webp",
-                "bytes": 3012
+                "bytes": 5142
             },
             {
                 "width": 160,
                 "path": "images/app/brand/160w.webp",
-                "bytes": 3798
+                "bytes": 6660
             },
             {
                 "width": 192,
                 "path": "images/app/brand/192w.webp",
-                "bytes": 4584
+                "bytes": 8038
             }
+        ]
+    },
+    "icons": {
+        "favicon_ico": "favicon.ico",
+        "favicon_svg": "favicon.svg",
+        "apple_touch_icon": "apple-touch-icon.png",
+        "sizes": [
+            16,
+            32,
+            180,
+            512
         ]
     }
 }

@@ -11,6 +11,10 @@ use Spatie\Image\Image;
 
 final class GenerateBrandLogoVariants
 {
+    public function __construct(
+        private readonly GenerateBrandIcons $generateIcons,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -106,11 +110,14 @@ final class GenerateBrandLogoVariants
 
             usort($variants['webp'], fn (array $a, array $b): int => $a['width'] <=> $b['width']);
 
+            $icons = ($this->generateIcons)($workingSource);
+
             $manifest = [
                 'width' => $sourceWidth,
                 'height' => $sourceHeight,
                 'trimmed' => $trimEnabled,
                 'variants' => $variants,
+                'icons' => $icons,
             ];
 
             File::put(
