@@ -265,11 +265,11 @@ class ActivityLateAnnounceTest extends TestCase
         $this->assertStringContainsString('data-ui="activity-show-late-announce"', $html);
         $this->assertStringContainsString('data-ui="activity-show-participant-late-'.$participant->id.'"', $html);
         $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
-        $this->assertStringContainsString('this.livewire = this.$wire', $html);
         $this->assertStringContainsString('data-ui="late-announce-preset"', $html);
-        $this->assertStringContainsString('selectPreset(20)', $html);
+        $this->assertStringContainsString('wire:click="announceLate(20)"', $html);
+        $this->assertStringContainsString('fixed z-[10000]', $html);
+        $this->assertStringNotContainsString('late-announce-minutes-input', $html);
         $this->assertStringNotContainsString('type="number"', $html);
-        $this->assertStringNotContainsString('\$wire.', $html);
     }
 
     public function test_late_badge_updates_on_show_page_after_announce(): void
