@@ -14,6 +14,7 @@
     'contextActivityId' => null,
     'contextOrganizationId' => null,
     'contactWireKey' => null,
+    'lateMinutes' => null,
 ])
 
 @php
@@ -72,6 +73,15 @@
     ) {
         $resolvedNameClass = 'truncate '.$resolvedNameClass;
     }
+
+    $resolvedLateMinutes = $lateMinutes !== null ? (int) $lateMinutes : null;
+    $showLateBadge = $resolvedLateMinutes !== null && $resolvedLateMinutes > 0;
+    $lateBadgeLabel = $showLateBadge
+        ? ($resolvedLateMinutes > 99 ? '99+' : '+'.$resolvedLateMinutes)
+        : null;
+    $lateBadgeTip = $showLateBadge
+        ? __('ui.activities.late_badge_tooltip', ['minutes' => $resolvedLateMinutes])
+        : null;
 @endphp
 
 @if ($canRenderOrganizationPopover)
@@ -88,6 +98,7 @@
         :track-nav-avatar="$trackNavAvatar"
         :contact-tooltip="$resolvedOrganizationTooltip"
         :container-class="$containerClass"
+        :late-minutes="$resolvedLateMinutes"
         :key="'organization-badge-contact-'.$organization->id.$contactWireKeySuffix"
     />
 @elseif ($canRenderContactPopover)
@@ -105,11 +116,12 @@
         :container-class="$containerClass"
         :context-activity-id="$contextActivityId"
         :context-organization-id="$contextOrganizationId"
+        :late-minutes="$resolvedLateMinutes"
         :key="'user-badge-contact-'.$user->id.'-'.($contextActivityId ?? '0').'-'.($contextOrganizationId ?? '0').$contactWireKeySuffix"
     />
 @elseif ($avatarOnly)
-    <div {{ $attributes->class('avatar') }}>
-        <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
+    <div {{ $attributes->class('avatar relative inline-flex') }}>
+        <div class="{{ $avatarSizeClass }} relative shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
             <img
                 src="{{ $resolvedAvatarUrl }}"
                 alt="{{ $resolvedName }}"
@@ -118,10 +130,17 @@
                 @if ($trackNavAvatar) data-nav-user-avatar @endif
             />
         </div>
+        @if ($showLateBadge)
+            <span
+                class="pointer-events-none absolute -right-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-0.5 text-[9px] font-semibold leading-none text-warning-content tooltip tooltip-top"
+                data-tip="{{ $lateBadgeTip }}"
+                data-ui="user-badge-late"
+            >{{ $lateBadgeLabel }}</span>
+        @endif
     </div>
 @else
     <div {{ $attributes->class('flex max-w-full min-w-0 items-center gap-2 overflow-hidden') }}>
-        <div class="avatar">
+        <div class="avatar relative shrink-0">
             <div class="{{ $avatarSizeClass }} shrink-0 overflow-hidden rounded-full border border-base-300 bg-base-300 text-base-content/80 light:border-neutral light:bg-neutral">
                 <img
                     src="{{ $resolvedAvatarUrl }}"
@@ -131,6 +150,13 @@
                     @if ($trackNavAvatar) data-nav-user-avatar @endif
                 />
             </div>
+            @if ($showLateBadge)
+                <span
+                    class="pointer-events-none absolute -right-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-0.5 text-[9px] font-semibold leading-none text-warning-content tooltip tooltip-top"
+                    data-tip="{{ $lateBadgeTip }}"
+                    data-ui="user-badge-late"
+                >{{ $lateBadgeLabel }}</span>
+            @endif
         </div>
         <div class="min-w-0 flex-1 overflow-hidden">
             <p class="{{ $resolvedNameClass }}" title="{{ $resolvedName }}">{{ $resolvedName }}</p>

@@ -19,6 +19,7 @@
             :avatar-only="$avatarOnly"
             :track-nav-avatar="$trackNavAvatar"
             :contact-popover="false"
+            :late-minutes="$lateMinutes"
             class="max-w-full"
         />
     </div>

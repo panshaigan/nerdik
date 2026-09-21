@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\User;
 use App\Notifications\ActivityRemovedByHostNotification;
@@ -81,5 +82,24 @@ class ActivityParticipantRosterService
         $participant->update(['is_absent' => true]);
 
         ActivityParticipationBroadcaster::rosterChanged((int) $participant->activity_id);
+    }
+
+    public function setLateMinutes(Activity $activity, int $userId, ?int $lateMinutes): ActivityUser
+    {
+        $participant = ActivityUser::query()->firstOrCreate(
+            [
+                'activity_id' => $activity->id,
+                'user_id' => $userId,
+            ],
+            [
+                'is_absent' => false,
+            ],
+        );
+
+        $participant->update(['late_minutes' => $lateMinutes]);
+
+        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+
+        return $participant->fresh();
     }
 }

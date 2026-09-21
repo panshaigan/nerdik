@@ -51,6 +51,7 @@
                                 :user="$previewActivity->creator"
                                 size="sm"
                                 :context-activity-id="$previewActivity->id"
+                                :late-minutes="$previewActivityParticipation?->hostLateMinutes"
                                 name-class="truncate text-xs font-medium text-base-content"
                                 class="max-w-full"
                             />
@@ -88,6 +89,14 @@
                 @endif
                 @if ($previewActivityCalendarPayload)
                     <x-ui.calendar-menu :payload="$previewActivityCalendarPayload" open-upward />
+                @endif
+                @if ($previewActivityParticipation?->canAnnounceLate)
+                    <x-ui.late-announce-menu
+                        :current-minutes="$previewActivityParticipation->viewerLateMinutes"
+                        wire-method="announcePreviewLate"
+                        open-upward
+                        data-ui="event-activity-preview-late-announce"
+                    />
                 @endif
                 @if ($previewActivityShowDetailsLink ?? false)
                     <x-button

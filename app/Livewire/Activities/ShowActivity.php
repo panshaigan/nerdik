@@ -326,6 +326,24 @@ class ShowActivity extends Component
         $this->toastFromSessionStatus();
     }
 
+    public function announceLate(?int $minutes, ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->setParticipantLateMinutes($activity, $user, (int) $user->id, $minutes);
+        $this->toastFromSessionStatus();
+    }
+
+    public function setParticipantLate(int $userId, ?int $minutes, ActivityParticipationService $participation): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+        $participation->setParticipantLateMinutes($activity, $user, $userId, $minutes);
+        $this->toastFromSessionStatus();
+    }
+
     public function render(
         ActivityParticipationViewService $participationView,
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
@@ -376,6 +394,10 @@ class ShowActivity extends Component
             'interestedPeopleCount' => $interestedPeopleCount,
             'canManageActivity' => $vm->canManageActivity,
             'canMarkParticipantsAbsent' => $vm->canMarkParticipantsAbsent,
+            'canAnnounceLate' => $vm->canAnnounceLate,
+            'canSetOthersLate' => $vm->canSetOthersLate,
+            'viewerLateMinutes' => $vm->viewerLateMinutes,
+            'hostLateMinutes' => $vm->hostLateMinutes,
             'signupBlockedMessage' => $vm->signupBlockedMessage,
             'stateBlockedMessage' => $vm->stateBlockedMessage,
             'activeWindowPerActivityMax' => $vm->activeWindowPerActivityMax,

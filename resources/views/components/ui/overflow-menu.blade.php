@@ -80,12 +80,12 @@
     <button
         type="button"
         x-ref="trigger"
-        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+        class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary tooltip tooltip-bottom"
         x-on:click.stop="toggle()"
         :aria-expanded="open"
         aria-haspopup="menu"
         aria-label="{{ $label }}"
-        title="{{ $label }}"
+        data-tip="{{ $label }}"
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
             data-ui="{{ $triggerDataUi }}"
         @endif

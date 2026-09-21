@@ -27,6 +27,8 @@ class UserBadgeContact extends Component
 
     public ?int $contextOrganizationId = null;
 
+    public ?int $lateMinutes = null;
+
     public bool $modalOpen = false;
 
     public function openModal(): void

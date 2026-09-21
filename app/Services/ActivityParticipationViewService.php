@@ -89,6 +89,30 @@ class ActivityParticipationViewService
         $hasInterest = $user !== null
             && $user->interestedActivities()->where('activities.id', $activity->id)->exists();
 
+        $lateWindowOpen = $activity->isLateAnnounceWindowOpen();
+        $canAnnounceLate = $user !== null
+            && $lateWindowOpen
+            && ($isParticipant || $isHost);
+        $canSetOthersLate = $canMarkParticipantsAbsent && $lateWindowOpen;
+
+        $viewerLateMinutes = null;
+        $hostLateMinutes = null;
+        if ($user !== null || $activity->created_by !== null) {
+            $lateRows = $activity->participants()
+                ->whereIn('user_id', array_values(array_filter([
+                    $user?->id,
+                    $activity->created_by,
+                ])))
+                ->get(['user_id', 'late_minutes']);
+
+            if ($user !== null) {
+                $viewerLateMinutes = $lateRows->firstWhere('user_id', $user->id)?->late_minutes;
+            }
+            if ($activity->created_by !== null) {
+                $hostLateMinutes = $lateRows->firstWhere('user_id', (int) $activity->created_by)?->late_minutes;
+            }
+        }
+
         return new ActivityParticipationViewData(
             isParticipant: $isParticipant,
             onWaitlist: $onWaitlist,
@@ -106,6 +130,10 @@ class ActivityParticipationViewService
             isLotteryResolved: $activity->isLotteryResolved(),
             lotteryDrawNotices: $this->lotteryService->upcomingDrawNotices($activity),
             canPromptGuestJoin: $canPromptGuestJoin,
+            canAnnounceLate: $canAnnounceLate,
+            canSetOthersLate: $canSetOthersLate,
+            viewerLateMinutes: $viewerLateMinutes !== null ? (int) $viewerLateMinutes : null,
+            hostLateMinutes: $hostLateMinutes !== null ? (int) $hostLateMinutes : null,
         );
     }
 }

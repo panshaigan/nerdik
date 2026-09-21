@@ -373,6 +373,39 @@ class Activity extends Model implements HasMedia
         return $n;
     }
 
+    /**
+     * End of the activity occurrence (slot or self-hosted), used for late-announce window.
+     */
+    public function occurrenceEndsAt(): ?Carbon
+    {
+        $this->loadMissing('slot');
+
+        $endsAt = $this->slot?->ends_at ?? $this->ends_at;
+        if ($endsAt !== null) {
+            return Carbon::parse($endsAt);
+        }
+
+        $startsAt = $this->slot?->starts_at ?? $this->starts_at;
+        if ($startsAt === null) {
+            return null;
+        }
+
+        $duration = max(0, (int) ($this->duration_in_minutes ?? 0));
+
+        return Carbon::parse($startsAt)->addMinutes($duration);
+    }
+
+    public function isLateAnnounceWindowOpen(): bool
+    {
+        $endsAt = $this->occurrenceEndsAt();
+
+        if ($endsAt === null) {
+            return false;
+        }
+
+        return $endsAt->clone()->utc()->gt(now('UTC'));
+    }
+
     public function getDurationForHumansAttribute(): string
     {
         $hours = intdiv($this->duration_in_minutes, 60);

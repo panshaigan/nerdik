@@ -254,6 +254,56 @@ class ActivityParticipationService
     }
 
     /**
+     * Announce or clear lateness for a participant or host (upserts the host roster row when needed).
+     */
+    public function setParticipantLateMinutes(Activity $activity, User $actor, int $targetUserId, ?int $lateMinutes): RedirectResponse
+    {
+        abort_unless(
+            $activity->isLateAnnounceWindowOpen(),
+            403,
+            __('ui.activities.late_announce_window_closed'),
+        );
+
+        if ($lateMinutes !== null && ($lateMinutes < 1 || $lateMinutes > 240)) {
+            throw ValidationException::withMessages([
+                'late_minutes' => [__('ui.activities.late_minutes_invalid')],
+            ]);
+        }
+
+        $isSelf = (int) $actor->id === $targetUserId;
+        $isHostTarget = (int) ($activity->created_by ?? 0) === $targetUserId;
+        $targetIsParticipant = $activity->participants()->where('user_id', $targetUserId)->exists();
+
+        if ($isSelf) {
+            $actorIsHost = (int) ($activity->created_by ?? 0) === (int) $actor->id;
+            abort_unless(
+                $targetIsParticipant || $actorIsHost,
+                403,
+                __('ui.activities.late_announce_forbidden'),
+            );
+        } else {
+            abort_unless(
+                $actor->canManageActivityParticipation($activity),
+                403,
+                __('ui.activities.only_host_or_organizer_can_set_late'),
+            );
+            abort_unless(
+                $targetIsParticipant || $isHostTarget,
+                403,
+                __('ui.activities.late_announce_target_invalid'),
+            );
+        }
+
+        $this->roster->setLateMinutes($activity, $targetUserId, $lateMinutes);
+
+        if ($lateMinutes === null) {
+            return redirect()->back()->with('status', __('ui.activities.late_cleared'));
+        }
+
+        return redirect()->back()->with('status', __('ui.activities.late_announced', ['minutes' => $lateMinutes]));
+    }
+
+    /**
      * Apply the same join / waitlist rules as the public participation UI when accepting an activity invite.
      *
      * @throws ValidationException when participation is not currently allowed

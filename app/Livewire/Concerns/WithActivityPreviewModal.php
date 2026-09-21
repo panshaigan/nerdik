@@ -170,6 +170,17 @@ trait WithActivityPreviewModal
         $this->toastPreviewParticipationStatus();
     }
 
+    public function announcePreviewLate(?int $minutes, ActivityParticipationService $participation): void
+    {
+        $activity = $this->selectedPreviewActivityOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $participation->setParticipantLateMinutes($activity, $user, (int) $user->id, $minutes);
+        $this->activityPreviewRefreshTick++;
+        $this->toastPreviewParticipationStatus();
+    }
+
     /**
      * @return array{
      *     previewActivity: ?Activity,

@@ -6,6 +6,10 @@
         && $activityStartsAtGmt->clone()->utc()->lte(now('UTC'));
     $usesWaitlistSignup = $activity->isHostApprovalMode() || $activity->isLotteryMode();
     $canMarkParticipantsAbsent = $canMarkParticipantsAbsent ?? false;
+    $canSetOthersLate = $canSetOthersLate ?? false;
+    $hostUserId = (int) ($activity->created_by ?? 0);
+    $hostInParticipants = $hostUserId > 0
+        && $activity->participants->contains(fn ($p) => (int) $p->user_id === $hostUserId);
 @endphp
 <div data-ui="activity-show-participation">
     <div class="mb-6 max-w-xl mx-auto w-full">
@@ -39,6 +43,29 @@
                     />
                 @endif
             </div>
+            @if ($canSetOthersLate && $activity->creator && ! $hostInParticipants)
+                <div class="ui-participant-list-item flex items-center justify-between gap-2 px-3 py-3 max-sm:flex-col max-sm:items-stretch" data-ui="activity-show-host-late-row">
+                    <div class="min-w-0 flex-1">
+                        <x-user-badge
+                            :user="$activity->creator"
+                            size="sm"
+                            :subline="__('ui.activities.host')"
+                            :late-minutes="$hostLateMinutes ?? null"
+                            name-class="truncate text-sm font-medium text-base-content"
+                            class="min-w-0"
+                            :context-activity-id="$canManageActivity ? $activity->id : null"
+                        />
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1">
+                        <x-ui.late-announce-menu
+                            :current-minutes="$hostLateMinutes ?? null"
+                            :target-user-id="$hostUserId"
+                            wire-method="setParticipantLate"
+                            data-ui="activity-show-host-late"
+                        />
+                    </div>
+                </div>
+            @endif
             @forelse ($activity->participants as $p)
                 <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2">
                     <x-slot:value class="min-w-0 text-sm text-base-content">
@@ -46,7 +73,8 @@
                                 <x-user-badge
                                     :user="$p->user"
                                     size="sm"
-                                    :subline="((int) $p->user_id === (int) ($activity->created_by ?? 0) ? __('ui.activities.host') : null)"
+                                    :subline="((int) $p->user_id === $hostUserId ? __('ui.activities.host') : null)"
+                                    :late-minutes="$p->late_minutes"
                                     name-class="truncate text-sm font-medium text-base-content"
                                     class="min-w-0 flex-1"
                                     :context-activity-id="$canManageActivity ? $activity->id : null"
@@ -59,9 +87,17 @@
                                 <x-activity.familiarity-summary :familiarity="$p->familiarity" />
                             @endif
                     </x-slot:value>
-                    @if (($canManageActivity || $canMarkParticipantsAbsent) && (int) $p->user_id !== (int) ($activity->created_by ?? 0))
+                    @if (($canManageActivity || $canMarkParticipantsAbsent || $canSetOthersLate) && ((int) $p->user_id !== $hostUserId || $canSetOthersLate))
                         <x-slot:actions class="flex flex-wrap items-center gap-1 max-sm:w-full">
-                            @if ($canMarkParticipantsAbsent)
+                            @if ($canSetOthersLate)
+                                <x-ui.late-announce-menu
+                                    :current-minutes="$p->late_minutes"
+                                    :target-user-id="$p->user_id"
+                                    wire-method="setParticipantLate"
+                                    data-ui="activity-show-participant-late-{{ $p->id }}"
+                                />
+                            @endif
+                            @if ($canMarkParticipantsAbsent && (int) $p->user_id !== $hostUserId)
                                 @if ($p->is_absent)
                                     <x-button
                                         type="button"
@@ -84,7 +120,7 @@
                                     @endif
                                 @endif
                             @endif
-                            @if ($canManageActivity)
+                            @if ($canManageActivity && (int) $p->user_id !== $hostUserId)
                                 <x-button
                                     type="button"
                                     class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
@@ -110,7 +146,9 @@
                     @endif
                 </x-list-item>
             @empty
-                <p class="text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
+                @if (! ($canSetOthersLate && $activity->creator && ! $hostInParticipants))
+                    <p class="text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
+                @endif
             @endforelse
             @auth
                 @if (($isParticipant || $canJoin) && ! filled($stateBlockedMessage ?? null))

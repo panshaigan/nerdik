@@ -25,5 +25,9 @@ final class ActivityParticipationViewData
         /** @var list<array{message: string, dataUi: string}> */
         public readonly array $lotteryDrawNotices = [],
         public readonly bool $canPromptGuestJoin = false,
+        public readonly bool $canAnnounceLate = false,
+        public readonly bool $canSetOthersLate = false,
+        public readonly ?int $viewerLateMinutes = null,
+        public readonly ?int $hostLateMinutes = null,
     ) {}
 }

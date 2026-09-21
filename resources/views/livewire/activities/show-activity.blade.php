@@ -20,7 +20,7 @@
         data-ui="activity-show-page-background"
     />
     <div class="relative z-0 space-y-4 sm:space-y-6">
-    <x-page-header :title="$activity->name" :user="$activity->creator">
+    <x-page-header :title="$activity->name" :user="$activity->creator" :late-minutes="$hostLateMinutes ?? null">
         @if ($showHeroHost)
             <x-slot:subtitle>
                 <span class="text-glow-base-100">{{ $activityTypeLabel }}</span>
@@ -116,6 +116,13 @@
                             <x-ui.calendar-menu :payload="$calendarPayload" />
                         @endif
                         @auth
+                            @if ($canAnnounceLate ?? false)
+                                <x-ui.late-announce-menu
+                                    :current-minutes="$viewerLateMinutes ?? null"
+                                    wire-method="announceLate"
+                                    data-ui="activity-show-late-announce"
+                                />
+                            @endif
                             @if ($canManageActivity)
                                 <x-ui.overflow-menu
                                     icon="o-cog-6-tooth"
@@ -231,6 +238,8 @@
                         'isFull' => $isFull,
                         'canManageActivity' => $canManageActivity,
                         'canMarkParticipantsAbsent' => $canMarkParticipantsAbsent,
+                        'canSetOthersLate' => $canSetOthersLate ?? false,
+                        'hostLateMinutes' => $hostLateMinutes ?? null,
                         'stateBlockedMessage' => $stateBlockedMessage,
                         'signupBlockedMessage' => $signupBlockedMessage,
                         'activeWindowRemainingForActivity' => $activeWindowRemainingForActivity,

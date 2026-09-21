@@ -524,6 +524,42 @@ class ScheduledPeriodicNotificationsCommandTest extends TestCase
         );
     }
 
+    public function test_dashboard_feed_activity_line_mentions_late_announce(): void
+    {
+        config()->set('scheduled_notifications.daily_send_time', '09:00');
+        $this->travelTo('2026-06-01 09:00:00');
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledDashboardFeedPreferences(),
+        ]);
+
+        Activity::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Late Tip Activity',
+            'starts_at' => now()->addDay()->setTime(14, 0),
+            'ends_at' => now()->addDay()->setTime(16, 0),
+        ]);
+
+        Notification::fake();
+        $this->artisan('notifications:scheduled-digest')->assertExitCode(0);
+
+        Notification::assertSentTo(
+            $user,
+            ScheduledPeriodicDigestNotification::class,
+            function (ScheduledPeriodicDigestNotification $notification) use ($user): bool {
+                $payload = $notification->toArray($user);
+                $lines = collect($payload['items'] ?? [])
+                    ->firstWhere('category', 'dashboard_feed')['lines'] ?? [];
+                $joined = implode("\n", is_array($lines) ? $lines : []);
+
+                return str_contains($joined, 'Late Tip Activity')
+                    && str_contains($joined, 'clock button');
+            }
+        );
+    }
+
     public function test_dashboard_feed_when_uses_start_time_not_only_end(): void
     {
         config()->set('scheduled_notifications.daily_send_time', '09:00');
