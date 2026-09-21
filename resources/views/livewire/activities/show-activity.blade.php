@@ -80,14 +80,23 @@
                     class="!my-0 min-h-[4.5rem] flex-1 items-center gap-2 rounded-2xl"
                     data-ui="activity-show-badge-group"
                 />
-                <div data-ui="activity-show-participants-stat">
-                    <x-stat
-                        title="{{ __('ui.activities.show_participation_section') }}"
-                        value="{{ $participantsCounterValue }}"
-                        icon="o-users"
-                        color="text-base-content"
-                        class="ui-stat-embed ui-activity-show-stat mt-2"
-                    />
+                <div class="mt-2 flex items-end gap-3">
+                    <div class="min-w-0 flex-1" data-ui="activity-show-participants-stat">
+                        <x-stat
+                            title="{{ __('ui.activities.show_participation_section') }}"
+                            value="{{ $participantsCounterValue }}"
+                            icon="o-users"
+                            color="text-base-content"
+                            class="ui-stat-embed ui-activity-show-stat"
+                        />
+                    </div>
+                    <div class="ml-auto shrink-0 self-end" data-ui="activity-show-follow">
+                        <x-ui.follow-interest-button
+                            :has-interest="$hasInterest"
+                            :count="$interestedPeopleCount"
+                            data-ui-prefix="activity-show"
+                        />
+                    </div>
                 </div>
             </div>
         </x-slot:info>
@@ -180,40 +189,6 @@
                                     @endif
                                 </x-ui.overflow-menu>
                             @endif
-                            @if ($hasInterest)
-                                <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
-                                    <x-button
-                                        type="button"
-                                        wire:click="removeInterest"
-                                        class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                        :tooltip="__('ui.interests.remove_from_interests')"
-                                        :aria-label="__('ui.interests.remove_from_interests')"
-                                        data-ui="activity-show-interest-remove"
-                                        icon="s-star"
-                                    />
-                                </x-ui.icon-count-badge>
-                            @else
-                                <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
-                                    <x-button
-                                        type="button"
-                                        wire:click="addInterest"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                        :tooltip="__('ui.interests.add_to_interests')"
-                                        :aria-label="__('ui.interests.add_to_interests')"
-                                        data-ui="activity-show-interest-add"
-                                        icon="o-star"
-                                    />
-                                </x-ui.icon-count-badge>
-                            @endif
-                        @else
-                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="activity-show-interest-count">
-                                <span
-                                    class="btn btn-ghost btn-square btn-sm pointer-events-none text-base-content/80"
-                                    aria-hidden="true"
-                                >
-                                    <x-icon name="o-star" class="h-5 w-5" />
-                                </span>
-                            </x-ui.icon-count-badge>
                         @endauth
                     </div>
                 </x-slot:toolbar>

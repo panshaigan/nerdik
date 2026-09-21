@@ -120,21 +120,30 @@
 
         <x-slot:info>
             <div
-                class="grid grid-cols-2 gap-3"
+                class="flex items-end gap-3"
                 data-ui="event-show-info"
             >
-                <x-stat
-                    title="{{ __('ui.events.confirmed_participants') }}"
-                    value="{{ $confirmedParticipantsCount }}/{{ $availablePlacesLabel }}"
-                    icon="o-users"
-                    class="ui-stat-embed ui-activity-show-stat"
-                />
-                <x-stat
-                    title="{{ __('ui.events.confirmed_activities') }}"
-                    value="{{ $confirmedActivitiesCount }}"
-                    icon="o-puzzle-piece"
-                    class="ui-stat-embed ui-activity-show-stat"
-                />
+                <div class="grid min-w-0 flex-1 grid-cols-2 gap-3">
+                    <x-stat
+                        title="{{ __('ui.events.confirmed_participants') }}"
+                        value="{{ $confirmedParticipantsCount }}/{{ $availablePlacesLabel }}"
+                        icon="o-users"
+                        class="ui-stat-embed ui-activity-show-stat"
+                    />
+                    <x-stat
+                        title="{{ __('ui.events.confirmed_activities') }}"
+                        value="{{ $confirmedActivitiesCount }}"
+                        icon="o-puzzle-piece"
+                        class="ui-stat-embed ui-activity-show-stat"
+                    />
+                </div>
+                <div class="ml-auto shrink-0 self-end" data-ui="event-show-follow">
+                    <x-ui.follow-interest-button
+                        :has-interest="$hasInterest"
+                        :count="$interestedPeopleCount"
+                        data-ui-prefix="event-show"
+                    />
+                </div>
             </div>
         </x-slot:info>
     </x-page-header>
@@ -242,40 +251,6 @@
                                 @endif
                             </x-ui.overflow-menu>
                         @endif
-                        @if ($hasInterest)
-                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
-                                <x-button
-                                    type="button"
-                                    wire:click="removeInterest"
-                                    class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                    :tooltip="__('ui.interests.remove_from_interests')"
-                                    :aria-label="__('ui.interests.remove_from_interests')"
-                                    data-ui="event-show-interest-remove"
-                                    icon="s-star"
-                                />
-                            </x-ui.icon-count-badge>
-                        @else
-                            <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
-                                <x-button
-                                    type="button"
-                                    wire:click="addInterest"
-                                    class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                    :tooltip="__('ui.interests.add_to_interests')"
-                                    :aria-label="__('ui.interests.add_to_interests')"
-                                    data-ui="event-show-interest-add"
-                                    icon="o-star"
-                                />
-                            </x-ui.icon-count-badge>
-                        @endif
-                    @else
-                        <x-ui.icon-count-badge :count="$interestedPeopleCount" data-ui="event-show-interest-count">
-                            <span
-                                class="btn btn-ghost btn-square btn-sm pointer-events-none text-base-content/80"
-                                aria-hidden="true"
-                            >
-                                <x-icon name="o-star" class="h-5 w-5" />
-                            </span>
-                        </x-ui.icon-count-badge>
                     @endauth
                 </div>
             </x-slot:toolbar>
