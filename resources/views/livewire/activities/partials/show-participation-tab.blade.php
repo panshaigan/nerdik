@@ -8,8 +8,10 @@
     $canMarkParticipantsAbsent = $canMarkParticipantsAbsent ?? false;
     $canSetOthersLate = $canSetOthersLate ?? false;
     $hostUserId = (int) ($activity->created_by ?? 0);
-    $hostInParticipants = $hostUserId > 0
-        && $activity->participants->contains(fn ($p) => (int) $p->user_id === $hostUserId);
+    $showManagerHostLateRow = $canSetOthersLate && $activity->creator !== null && $hostUserId > 0;
+    $nonHostParticipants = $showManagerHostLateRow
+        ? $activity->participants->where('user_id', '!=', $hostUserId)->values()
+        : $activity->participants;
 @endphp
 <div data-ui="activity-show-participation">
     <div class="mb-6 max-w-xl mx-auto w-full">
@@ -43,7 +45,7 @@
                     />
                 @endif
             </div>
-            @if ($canSetOthersLate && $activity->creator && ! $hostInParticipants)
+            @if ($showManagerHostLateRow)
                 <div class="ui-participant-list-item flex items-center justify-between gap-2 px-3 py-3 max-sm:flex-col max-sm:items-stretch" data-ui="activity-show-host-late-row">
                     <div class="min-w-0 flex-1">
                         <x-user-badge
@@ -66,7 +68,7 @@
                     </div>
                 </div>
             @endif
-            @forelse ($activity->participants as $p)
+            @forelse ($nonHostParticipants as $p)
                 <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2">
                     <x-slot:value class="min-w-0 text-sm text-base-content">
                             <div class="flex min-w-0 items-center gap-2">
@@ -87,7 +89,7 @@
                                 <x-activity.familiarity-summary :familiarity="$p->familiarity" />
                             @endif
                     </x-slot:value>
-                    @if (($canManageActivity || $canMarkParticipantsAbsent || $canSetOthersLate) && ((int) $p->user_id !== $hostUserId || $canSetOthersLate))
+                    @if (($canManageActivity || $canMarkParticipantsAbsent || $canSetOthersLate) && (int) $p->user_id !== $hostUserId)
                         <x-slot:actions class="flex flex-wrap items-center gap-1 max-sm:w-full">
                             @if ($canSetOthersLate)
                                 <x-ui.late-announce-menu
@@ -97,7 +99,7 @@
                                     data-ui="activity-show-participant-late-{{ $p->id }}"
                                 />
                             @endif
-                            @if ($canMarkParticipantsAbsent && (int) $p->user_id !== $hostUserId)
+                            @if ($canMarkParticipantsAbsent)
                                 @if ($p->is_absent)
                                     <x-button
                                         type="button"
@@ -120,7 +122,7 @@
                                     @endif
                                 @endif
                             @endif
-                            @if ($canManageActivity && (int) $p->user_id !== $hostUserId)
+                            @if ($canManageActivity)
                                 <x-button
                                     type="button"
                                     class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
@@ -146,7 +148,7 @@
                     @endif
                 </x-list-item>
             @empty
-                @if (! ($canSetOthersLate && $activity->creator && ! $hostInParticipants))
+                @if (! $showManagerHostLateRow)
                     <p class="text-sm text-base-content/60">{{ __('ui.activities.no_participants') }}</p>
                 @endif
             @endforelse

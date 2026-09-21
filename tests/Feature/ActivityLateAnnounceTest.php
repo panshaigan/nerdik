@@ -272,6 +272,127 @@ class ActivityLateAnnounceTest extends TestCase
         $this->assertStringNotContainsString('type="number"', $html);
     }
 
+    public function test_admin_sees_host_late_control_when_host_has_no_participant_row(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+
+        $component = Livewire::actingAs($admin)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation');
+
+        $html = $component->html();
+        $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
+        $this->assertSame(1, substr_count($html, 'data-ui="activity-show-host-late"'));
+
+        $component->call('setParticipantLate', $host->id, 20)->assertSuccessful();
+
+        $row = ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $host->id)
+            ->first();
+
+        $this->assertNotNull($row);
+        $this->assertSame(20, $row->late_minutes);
+    }
+
+    public function test_event_organizer_sees_host_late_control_when_host_has_no_participant_row(): void
+    {
+        $organizer = User::factory()->organizer()->create();
+        $host = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+
+        $component = Livewire::actingAs($organizer)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation');
+
+        $html = $component->html();
+        $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
+        $this->assertSame(1, substr_count($html, 'data-ui="activity-show-host-late"'));
+
+        $component->call('setParticipantLate', $host->id, 20)->assertSuccessful();
+
+        $row = ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $host->id)
+            ->first();
+
+        $this->assertNotNull($row);
+        $this->assertSame(20, $row->late_minutes);
+    }
+
+    public function test_admin_host_late_row_not_duplicated_when_host_is_participant(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(3),
+        ]);
+        $hostParticipant = ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $host->id,
+            'late_minutes' => 10,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $member->id,
+        ]);
+
+        $html = Livewire::actingAs($admin)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringContainsString('data-ui="activity-show-host-late"', $html);
+        $this->assertSame(1, substr_count($html, 'data-ui="activity-show-host-late"'));
+        $this->assertStringNotContainsString(
+            'data-ui="activity-show-participant-late-'.$hostParticipant->id.'"',
+            $html
+        );
+    }
+
     public function test_late_badge_updates_on_show_page_after_announce(): void
     {
         $host = User::factory()->create();
