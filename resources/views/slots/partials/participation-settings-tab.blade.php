@@ -103,8 +103,13 @@
             <x-field-error :messages="$errors->get('participation_mode')" class="mt-1" />
         </div>
 
-        <div x-show="participationMode === 'lottery'" x-cloak class="min-w-0 space-y-1">
-            <label class="flex min-w-0 justify-between gap-2 text-sm font-medium">
+        <div
+            x-show="participationMode === 'lottery'"
+            x-cloak
+            class="w-full space-y-1"
+            data-ui="slot-lottery-draw-settings"
+        >
+            <label class="flex w-full min-w-0 justify-between gap-2 text-sm font-medium">
                 <span class="min-w-0">
                     {{ __('ui.activities.lottery_draw_in_hours') }}:
                     <span class="font-semibold" x-text="formatDeadline()"></span>
@@ -119,13 +124,16 @@
                 </x-popover>
             </label>
             <input type="hidden" name="lottery_draw_in_hours" :value="localLotteryValue" :disabled="!forcesParticipation">
-            <x-range
+            {{-- Plain range with fixed size: Mary/DaisyUI x-range collapses to 0×0 in this Alpine modal layout. --}}
+            <input
+                type="range"
                 x-model.number="localLotteryValue"
                 min="1"
                 max="48"
                 step="1"
-                class="range-xs w-full"
-                ::disabled="!forcesParticipation"
+                class="block h-8 w-full max-w-full cursor-pointer accent-primary"
+                :disabled="!forcesParticipation"
+                data-ui="slot-lottery-draw-range"
             />
             <x-field-error :messages="$errors->get('lottery_draw_in_hours')" class="mt-1" />
         </div>

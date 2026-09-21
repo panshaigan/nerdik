@@ -75,9 +75,10 @@
                     });
                 },
             }"
-            class="min-w-0 space-y-1"
+            class="w-full space-y-1"
+            data-ui="activity-lottery-draw-settings"
         >
-            <label class="flex min-w-0 justify-between gap-2 text-sm font-medium">
+            <label class="flex w-full min-w-0 justify-between gap-2 text-sm font-medium">
                 <span class="min-w-0">
                     {{ __('ui.activities.lottery_draw_in_hours') }}:
                     <span class="font-semibold" x-text="formatDeadline()"></span>
@@ -91,14 +92,17 @@
                     </x-slot:content>
                 </x-popover>
             </label>
-            <x-range
+            {{-- Plain range with fixed size: Mary/DaisyUI x-range collapses to 0×0 in this tile layout. --}}
+            <input
+                type="range"
                 x-model.number="localValue"
                 @input="onSliderInput()"
                 min="1"
                 max="48"
                 step="1"
-                class="range-xs w-full"
+                class="block h-8 w-full max-w-full cursor-pointer accent-primary"
                 @disabled($lotteryDrawHoursLockedBySlots ?? false)
+                data-ui="activity-lottery-draw-range"
             />
             <x-field-error :messages="$errors->get('lottery_draw_in_hours')" class="mt-1" />
         </div>
