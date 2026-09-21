@@ -2,6 +2,7 @@
     'href',
     'title',
     'subtitle' => null,
+    'detail' => null,
     'imageUrl' => null,
     'icon' => null,
     'dataUi' => 'catalog-card',
@@ -33,6 +34,9 @@
             </h3>
             @if (filled($subtitle))
                 <p class="mt-1 text-sm text-base-content/70">{{ $subtitle }}</p>
+            @endif
+            @if (filled($detail))
+                <p class="mt-0.5 text-sm text-base-content/60">{{ $detail }}</p>
             @endif
         </div>
     </div>

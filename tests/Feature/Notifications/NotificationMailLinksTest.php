@@ -14,6 +14,7 @@ use App\Notifications\ProposalRejectedNotification;
 use App\Notifications\Scheduled\ScheduledPeriodicDigestNotification;
 use App\Notifications\UserRequestResolvedNotification;
 use App\Notifications\WaitlistPromotedNotification;
+use App\Support\Media\BrandLogoSources;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Markdown;
 use Tests\TestCase;
@@ -39,6 +40,28 @@ class NotificationMailLinksTest extends TestCase
 
         $this->assertStringContainsString('tab=notifications', $html);
         $this->assertStringNotContainsString('ui-profile-notifications-section', $html);
+    }
+
+    public function test_mail_header_includes_brand_logo(): void
+    {
+        $user = User::factory()->create();
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+
+        $mail = (new WaitlistPromotedNotification($activity))->toMail($user);
+        $html = (string) app(Markdown::class)->render(
+            $mail->markdown,
+            $mail->data()
+        );
+
+        $logo = BrandLogoSources::fromManifest()->forPreset('md');
+
+        $this->assertStringContainsString($logo['src'], $html);
+        $this->assertStringContainsString('alt="'.config('app.name').'"', $html);
+        $this->assertStringNotContainsString('laravel.com/img/notification-logo', $html);
     }
 
     public function test_digest_mail_renders_clickable_links_not_raw_paths(): void

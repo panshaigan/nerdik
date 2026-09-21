@@ -1,12 +1,12 @@
 @props(['url'])
+@php
+    $logo = \App\Support\Media\BrandLogoSources::fromManifest()->forPreset('md');
+    $appName = (string) config('app.name');
+@endphp
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-@if (trim($slot) === 'Laravel')
-<img src="https://laravel.com/img/notification-logo-v2.1.png" class="logo" alt="Laravel Logo">
-@else
-{!! $slot !!}
-@endif
+<img src="{{ $logo['src'] }}" width="{{ $logo['width'] }}" height="{{ $logo['height'] }}" class="logo" alt="{{ $appName }}">
 </a>
 </td>
 </tr>

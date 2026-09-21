@@ -24,12 +24,16 @@ class CatalogPagesTest extends TestCase
 
     public function test_guest_can_view_places_catalog_and_rooms_are_hidden(): void
     {
-        $venue = Place::factory()->venue()->create(['name' => 'Catalog Visible Venue Marker']);
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Catalog Visible Venue Marker',
+            'address' => 'ul. Katalogowa 12',
+        ]);
         $room = Place::factory()->room($venue)->create(['name' => 'Catalog Hidden Room Marker']);
 
         $this->get(route('catalog.places'))
             ->assertOk()
             ->assertSee('Catalog Visible Venue Marker', false)
+            ->assertSee('ul. Katalogowa 12', false)
             ->assertDontSee('Catalog Hidden Room Marker', false)
             ->assertSee(BrowseSearchUrl::forPlace($venue), false)
             ->assertSee('<title>'.Seo::pageTitle((string) __('ui.catalog.places_title')).'</title>', false);

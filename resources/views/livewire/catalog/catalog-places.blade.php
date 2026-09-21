@@ -18,11 +18,16 @@
                 data-ui="catalog-places-listings"
             >
                 @forelse ($places as $place)
+                    @php
+                        $address = filled($place->address) ? trim((string) $place->address) : null;
+                        $location = $place->locationLabel();
+                    @endphp
                     <div wire:key="catalog-place-{{ $place->id }}" class="contents">
                         <x-catalog.catalog-card
                             :href="BrowseSearchUrl::forPlace($place)"
                             :title="$place->name"
-                            :subtitle="$place->locationLabel()"
+                            :subtitle="$address ?? (filled($location) ? $location : null)"
+                            :detail="$address !== null && filled($location) ? $location : null"
                             icon="o-map-pin"
                             data-ui="catalog-place-card"
                         />
