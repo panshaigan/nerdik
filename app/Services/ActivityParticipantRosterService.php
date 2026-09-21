@@ -84,22 +84,37 @@ class ActivityParticipantRosterService
         ActivityParticipationBroadcaster::rosterChanged((int) $participant->activity_id);
     }
 
-    public function setLateMinutes(Activity $activity, int $userId, ?int $lateMinutes): ActivityUser
+    /**
+     * Persist lateness for a roster participant, or for the host without enrolling them.
+     */
+    public function setLateMinutes(Activity $activity, int $userId, ?int $lateMinutes): void
     {
-        $participant = ActivityUser::query()->firstOrCreate(
-            [
-                'activity_id' => $activity->id,
-                'user_id' => $userId,
-            ],
-            [
-                'is_absent' => false,
-            ],
-        );
+        $isHost = (int) ($activity->created_by ?? 0) === $userId;
+        $participant = ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $userId)
+            ->first();
 
-        $participant->update(['late_minutes' => $lateMinutes]);
+        if ($participant !== null) {
+            $participant->update(['late_minutes' => $lateMinutes]);
 
-        ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+            if ($isHost && $activity->host_late_minutes !== null) {
+                $activity->update(['host_late_minutes' => null]);
+            }
 
-        return $participant->fresh();
+            ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+
+            return;
+        }
+
+        if ($isHost) {
+            $activity->update(['host_late_minutes' => $lateMinutes]);
+            ActivityParticipationBroadcaster::rosterChanged((int) $activity->id);
+
+            return;
+        }
+
+        // Non-host targets must already be enrolled (enforced by the participation service).
+        abort(403, __('ui.activities.late_announce_target_invalid'));
     }
 }

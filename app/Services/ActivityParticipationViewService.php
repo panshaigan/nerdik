@@ -107,9 +107,13 @@ class ActivityParticipationViewService
 
             if ($user !== null) {
                 $viewerLateMinutes = $lateRows->firstWhere('user_id', $user->id)?->late_minutes;
+                if ($viewerLateMinutes === null && $isHost) {
+                    $viewerLateMinutes = $activity->host_late_minutes;
+                }
             }
             if ($activity->created_by !== null) {
-                $hostLateMinutes = $lateRows->firstWhere('user_id', (int) $activity->created_by)?->late_minutes;
+                $hostLateMinutes = $lateRows->firstWhere('user_id', (int) $activity->created_by)?->late_minutes
+                    ?? $activity->host_late_minutes;
             }
         }
 

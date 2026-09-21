@@ -67,13 +67,14 @@ class ActivityLateAnnounceTest extends TestCase
         app(ActivityParticipationService::class)
             ->setParticipantLateMinutes($activity, $host, (int) $host->id, 15);
 
-        $row = ActivityUser::query()
-            ->where('activity_id', $activity->id)
-            ->where('user_id', $host->id)
-            ->first();
-
-        $this->assertNotNull($row);
-        $this->assertSame(15, $row->late_minutes);
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+        $this->assertSame(15, $activity->fresh()->host_late_minutes);
+        $this->assertSame(0, $activity->participants()->count());
     }
 
     public function test_non_participant_cannot_announce_late(): void
@@ -130,10 +131,14 @@ class ActivityLateAnnounceTest extends TestCase
             ->value('late_minutes'));
 
         $service->setParticipantLateMinutes($activity->fresh(), $organizer, (int) $host->id, 30);
-        $this->assertSame(30, ActivityUser::query()
-            ->where('activity_id', $activity->id)
-            ->where('user_id', $host->id)
-            ->value('late_minutes'));
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+        $this->assertSame(30, $activity->fresh()->host_late_minutes);
+        $this->assertSame(1, $activity->participants()->count());
     }
 
     public function test_admin_can_set_late_for_anyone(): void
@@ -301,13 +306,14 @@ class ActivityLateAnnounceTest extends TestCase
 
         $component->call('setParticipantLate', $host->id, 20)->assertSuccessful();
 
-        $row = ActivityUser::query()
-            ->where('activity_id', $activity->id)
-            ->where('user_id', $host->id)
-            ->first();
-
-        $this->assertNotNull($row);
-        $this->assertSame(20, $row->late_minutes);
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+        $this->assertSame(20, $activity->fresh()->host_late_minutes);
+        $this->assertSame(0, $activity->participants()->count());
     }
 
     public function test_event_organizer_sees_host_late_control_when_host_has_no_participant_row(): void
@@ -349,13 +355,14 @@ class ActivityLateAnnounceTest extends TestCase
 
         $component->call('setParticipantLate', $host->id, 20)->assertSuccessful();
 
-        $row = ActivityUser::query()
-            ->where('activity_id', $activity->id)
-            ->where('user_id', $host->id)
-            ->first();
-
-        $this->assertNotNull($row);
-        $this->assertSame(20, $row->late_minutes);
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $host->id)
+                ->exists()
+        );
+        $this->assertSame(20, $activity->fresh()->host_late_minutes);
+        $this->assertSame(0, $activity->participants()->count());
     }
 
     public function test_admin_host_late_row_not_duplicated_when_host_is_participant(): void

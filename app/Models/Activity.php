@@ -69,6 +69,7 @@ class Activity extends Model implements HasMedia
         'duration_in_minutes',
         'allows_observers',
         'collect_familiarity',
+        'host_late_minutes',
         'slug',
     ];
 
@@ -83,6 +84,7 @@ class Activity extends Model implements HasMedia
         'allows_observers' => 'boolean',
         'collect_familiarity' => 'boolean',
         'is_host_passive' => 'boolean',
+        'host_late_minutes' => 'integer',
         'logo_source' => ActivityLogoSource::class,
     ];
 

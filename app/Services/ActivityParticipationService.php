@@ -254,7 +254,8 @@ class ActivityParticipationService
     }
 
     /**
-     * Announce or clear lateness for a participant or host (upserts the host roster row when needed).
+     * Announce or clear lateness for a participant or host.
+     * Host lateness without a roster row is stored on the activity so it does not count as a signup.
      */
     public function setParticipantLateMinutes(Activity $activity, User $actor, int $targetUserId, ?int $lateMinutes): RedirectResponse
     {
