@@ -483,7 +483,6 @@ return [
         'waitlist_entry_invalid' => 'That waitlist entry is no longer valid.',
         'user_already_participant' => 'That user is already a participant.',
         'user_already_on_waitlist' => 'That user is already on the waitlist.',
-        'only_host_can_unmark_absent' => 'Only the activity host can clear the absent flag.',
         'only_host_or_organizer_can_mark_absent' => 'Only the activity host or event organizer can mark participants absent.',
         'only_host_or_organizer_can_unmark_absent' => 'Only the activity host or event organizer can clear the absent flag.',
         'participant_not_absent' => 'That participant is not marked absent.',
