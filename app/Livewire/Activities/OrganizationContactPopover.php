@@ -3,7 +3,6 @@
 namespace App\Livewire\Activities;
 
 use App\Models\Activity;
-use App\Models\ActivityUser;
 use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
@@ -18,20 +17,46 @@ class OrganizationContactPopover extends Component
     public int $targetOrganizationId;
 
     /**
+     * @param  'upcoming'|'past'|null  $timeframe
      * @return Builder<Activity>
      */
-    private function organizationActivitiesQuery(int $organizationId): Builder
+    private function organizationActivitiesQuery(int $organizationId, ?string $timeframe = null): Builder
     {
         return Activity::query()
             ->whereNull('activities.cancelled_at')
             ->whereNull('activities.deleted_at')
-            ->whereHas('slot', fn (Builder $query) => $query
-                ->whereNull('slots.deleted_at')
-                ->whereHas('event', fn (Builder $eventQuery) => $eventQuery
-                    ->where('organization_id', $organizationId)
-                    ->whereNull('events.deleted_at')
-                )
-            );
+            ->whereHas('slot', function (Builder $query) use ($organizationId, $timeframe): void {
+                $query
+                    ->whereNull('slots.deleted_at')
+                    ->whereHas('event', fn (Builder $eventQuery) => $eventQuery
+                        ->where('organization_id', $organizationId)
+                        ->whereNull('events.deleted_at')
+                    );
+
+                if ($timeframe === 'upcoming') {
+                    $query->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
+                } elseif ($timeframe === 'past') {
+                    $query->whereRaw('COALESCE(slots.ends_at, slots.starts_at) < ?', [now()]);
+                }
+            });
+    }
+
+    /**
+     * @return array<int, array{label: string, count: int}>
+     */
+    private function activityStatsByType(Builder $query): array
+    {
+        return $query
+            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
+            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
+            ->groupBy('activity_types.slug')
+            ->orderByRaw('count(*) desc')
+            ->get()
+            ->map(fn ($row): array => [
+                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
+                'count' => (int) $row->total,
+            ])
+            ->all();
     }
 
     /**
@@ -39,44 +64,19 @@ class OrganizationContactPopover extends Component
      */
     private function scheduledStatsByType(int $organizationId): array
     {
-        return $this->organizationActivitiesQuery($organizationId)
-            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
-            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
-            ->groupBy('activity_types.slug')
-            ->orderByRaw('count(*) desc')
-            ->get()
-            ->map(fn ($row): array => [
-                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
-                'count' => (int) $row->total,
-            ])
-            ->all();
+        return $this->activityStatsByType(
+            $this->organizationActivitiesQuery($organizationId, 'upcoming')
+        );
     }
 
     /**
      * @return array<int, array{label: string, count: int}>
      */
-    private function participantStatsByType(int $organizationId): array
+    private function pastStatsByType(int $organizationId): array
     {
-        return ActivityUser::query()
-            ->selectRaw('activity_types.slug as type_slug, count(*) as total')
-            ->join('activities', 'activities.id', '=', 'activity_user.activity_id')
-            ->join('slots', 'slots.activity_id', '=', 'activities.id')
-            ->join('events', 'events.id', '=', 'slots.event_id')
-            ->leftJoin('activity_types', 'activity_types.id', '=', 'activities.activity_type_id')
-            ->where('events.organization_id', $organizationId)
-            ->whereNull('activity_user.deleted_at')
-            ->whereNull('activities.deleted_at')
-            ->whereNull('activities.cancelled_at')
-            ->whereNull('slots.deleted_at')
-            ->whereNull('events.deleted_at')
-            ->groupBy('activity_types.slug')
-            ->orderByRaw('count(*) desc')
-            ->get()
-            ->map(fn ($row): array => [
-                'label' => $row->type_slug ? __('ui.activities.types.'.$row->type_slug) : __('ui.common.none'),
-                'count' => (int) $row->total,
-            ])
-            ->all();
+        return $this->activityStatsByType(
+            $this->organizationActivitiesQuery($organizationId, 'past')
+        );
     }
 
     /**
@@ -139,7 +139,7 @@ class OrganizationContactPopover extends Component
      * @return array{
      *     targetOrganization: ?Organization,
      *     scheduledStatsByType: array<int, array{label: string, count: int}>,
-     *     participantStatsByType: array<int, array{label: string, count: int}>,
+     *     pastStatsByType: array<int, array{label: string, count: int}>,
      *     members: Collection<int, User>,
      *     eventSeries: Collection<int, EventSeries>,
      *     placeLinks: list<array{url: string, label: string}>,
@@ -163,7 +163,7 @@ class OrganizationContactPopover extends Component
         return [
             'targetOrganization' => $targetOrganization,
             'scheduledStatsByType' => $this->scheduledStatsByType($targetOrganization->id),
-            'participantStatsByType' => $this->participantStatsByType($targetOrganization->id),
+            'pastStatsByType' => $this->pastStatsByType($targetOrganization->id),
             'members' => $this->organizationMembers($targetOrganization->id),
             'eventSeries' => $this->organizationEventSeries($targetOrganization->id),
             'placeLinks' => $this->organizationPlaceLinks($targetOrganization->id),
@@ -174,7 +174,7 @@ class OrganizationContactPopover extends Component
      * @return array{
      *     targetOrganization: ?Organization,
      *     scheduledStatsByType: array<int, array{label: string, count: int}>,
-     *     participantStatsByType: array<int, array{label: string, count: int}>,
+     *     pastStatsByType: array<int, array{label: string, count: int}>,
      *     members: Collection<int, User>,
      *     eventSeries: Collection<int, EventSeries>,
      *     placeLinks: list<array{url: string, label: string}>,
@@ -185,7 +185,7 @@ class OrganizationContactPopover extends Component
         return [
             'targetOrganization' => null,
             'scheduledStatsByType' => [],
-            'participantStatsByType' => [],
+            'pastStatsByType' => [],
             'members' => collect(),
             'eventSeries' => collect(),
             'placeLinks' => [],

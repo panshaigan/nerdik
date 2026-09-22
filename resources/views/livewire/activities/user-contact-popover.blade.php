@@ -65,9 +65,10 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.common.activity_stats_title') }}</p>
 
             <div class="space-y-2" data-ui="user-contact-popover-hosted-stats">
+                <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_hosted_section') }}</p>
                 @forelse ($hostedStatsByType as $stat)
                     <div class="flex items-center justify-between text-base-content/80">
-                        <span>{{ __('ui.profile.contact_hosted_type', ['type' => $stat['label']]) }}</span>
+                        <span>{{ $stat['label'] }}</span>
                         <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
                     </div>
                 @empty
@@ -76,9 +77,10 @@
             </div>
 
             <div class="space-y-2" data-ui="user-contact-popover-participation-stats">
+                <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_participation_section') }}</p>
                 @forelse ($participationStatsByType as $stat)
                     <div class="flex items-center justify-between text-base-content/80">
-                        <span>{{ __('ui.profile.contact_participation_type', ['type' => $stat['label']]) }}</span>
+                        <span>{{ $stat['label'] }}</span>
                         <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
                     </div>
                 @empty

@@ -80,7 +80,7 @@
                             <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.scheduled_section') }}</p>
                             @forelse ($scheduledStatsByType as $stat)
                                 <div class="flex items-center justify-between text-base-content/80">
-                                    <span>{{ __('ui.organizations.scheduled_type', ['type' => $stat['label']]) }}</span>
+                                    <span>{{ $stat['label'] }}</span>
                                     <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
                                 </div>
                             @empty
@@ -88,15 +88,15 @@
                             @endforelse
                         </div>
 
-                        <div class="space-y-2" data-ui="organization-contact-popover-participant-stats">
-                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.participants_section') }}</p>
-                            @forelse ($participantStatsByType as $stat)
+                        <div class="space-y-2" data-ui="organization-contact-popover-past-stats">
+                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.past_section') }}</p>
+                            @forelse ($pastStatsByType as $stat)
                                 <div class="flex items-center justify-between text-base-content/80">
-                                    <span>{{ __('ui.organizations.participants_type', ['type' => $stat['label']]) }}</span>
+                                    <span>{{ $stat['label'] }}</span>
                                     <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
                                 </div>
                             @empty
-                                <p class="text-base-content/60">{{ __('ui.organizations.no_participants') }}</p>
+                                <p class="text-base-content/60">{{ __('ui.organizations.no_past_activities') }}</p>
                             @endforelse
                         </div>
                     </div>

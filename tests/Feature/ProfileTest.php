@@ -1093,12 +1093,11 @@ class ProfileTest extends TestCase
     {
         $viewer = User::factory()->create();
         $host = User::factory()->create();
-        $participant = User::factory()->create();
         $organization = Organization::factory()->create([
             'name' => 'Guild of Nerds',
             'description' => '<p>We run tabletop events.</p>',
         ]);
-        $member = User::factory()->create([
+        User::factory()->create([
             'nickname' => 'guild_member',
             'organization_id' => $organization->id,
         ]);
@@ -1109,39 +1108,44 @@ class ProfileTest extends TestCase
             'created_by' => $host->id,
             'updated_by' => $host->id,
         ]);
-        $rpgActivity = Activity::factory()->create([
+        $upcomingRpg = Activity::factory()->create([
             'created_by' => $host->id,
             'activity_type_id' => $rpgType->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
         ]);
-        $boardActivity = Activity::factory()->create([
+        $upcomingBoard = Activity::factory()->create([
             'created_by' => $host->id,
             'activity_type_id' => $boardType->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
         ]);
+        $pastRpg = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $rpgType->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
         Slot::factory()->create([
             'event_id' => $event->id,
-            'activity_id' => $rpgActivity->id,
+            'activity_id' => $upcomingRpg->id,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(4),
             'created_by' => $host->id,
             'updated_by' => $host->id,
         ]);
         Slot::factory()->create([
             'event_id' => $event->id,
-            'activity_id' => $boardActivity->id,
+            'activity_id' => $upcomingBoard->id,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(4),
             'created_by' => $host->id,
             'updated_by' => $host->id,
         ]);
-        ActivityUser::query()->create([
-            'activity_id' => $rpgActivity->id,
-            'user_id' => $participant->id,
-            'is_absent' => false,
-            'deleted_at' => null,
-        ]);
-        ActivityUser::query()->create([
-            'activity_id' => $boardActivity->id,
-            'user_id' => $participant->id,
-            'is_absent' => false,
-            'deleted_at' => null,
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $pastRpg->id,
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDays(3)->addHours(4),
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
         ]);
 
         Livewire::actingAs($viewer)
@@ -1159,10 +1163,10 @@ class ProfileTest extends TestCase
             ->assertSeeHtml('data-ui="overlay-sticky-tabs"')
             ->assertSee('Guild of Nerds', false)
             ->assertSee('We run tabletop events.')
-            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
-            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.board')]))
-            ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.rpg')]))
-            ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.board')]))
+            ->assertSee(__('ui.organizations.scheduled_section'))
+            ->assertSee(__('ui.activities.types.rpg'))
+            ->assertSee(__('ui.activities.types.board'))
+            ->assertSee(__('ui.organizations.past_section'))
             ->assertSee('guild_member')
             ->assertSee(__('ui.organizations.events'))
             ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization));
@@ -1217,38 +1221,49 @@ class ProfileTest extends TestCase
     {
         $viewer = User::factory()->create();
         $host = User::factory()->create();
-        $participant = User::factory()->create();
         $organization = Organization::factory()->create();
         $rpgType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $boardType = ActivityType::factory()->create(['slug' => ActivityType::SLUG_BOARD]);
         $event = Event::factory()->create([
             'organization_id' => $organization->id,
             'created_by' => $host->id,
             'updated_by' => $host->id,
         ]);
-        $activity = Activity::factory()->create([
+        $upcoming = Activity::factory()->create([
             'created_by' => $host->id,
             'activity_type_id' => $rpgType->id,
             'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
         ]);
+        $past = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $boardType->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
         Slot::factory()->create([
             'event_id' => $event->id,
-            'activity_id' => $activity->id,
+            'activity_id' => $upcoming->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHours(3),
             'created_by' => $host->id,
             'updated_by' => $host->id,
         ]);
-        ActivityUser::query()->create([
-            'activity_id' => $activity->id,
-            'user_id' => $participant->id,
-            'is_absent' => false,
-            'deleted_at' => null,
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $past->id,
+            'starts_at' => now()->subDays(2),
+            'ends_at' => now()->subDays(2)->addHours(3),
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
         ]);
 
         Livewire::actingAs($viewer)
             ->test(OrganizationContactPopover::class, [
                 'targetOrganizationId' => $organization->id,
             ])
-            ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
-            ->assertSee('1', false)
+            ->assertSee(__('ui.organizations.scheduled_section'))
+            ->assertSee(__('ui.activities.types.rpg'))
+            ->assertSee(__('ui.organizations.past_section'))
+            ->assertSee(__('ui.activities.types.board'))
             ->assertSee(__('ui.organizations.events'))
             ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization));
     }
@@ -1359,10 +1374,8 @@ class ProfileTest extends TestCase
         $this->assertStringNotContainsString(__('ui.profile.contact_section_facebook'), $html);
         $this->assertStringContainsString(__('ui.profile.contact_section_discord'), $html);
         $this->assertStringNotContainsString('participant-google@example.test', $html);
-        $this->assertStringContainsString(
-            __('ui.profile.contact_participation_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_RPG)]),
-            $html,
-        );
+        $this->assertStringContainsString(__('ui.profile.contact_participation_section'), $html);
+        $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_RPG), $html);
         $this->assertStringContainsString('window.copyToClipboard', $html);
         $this->assertStringNotContainsString('navigator.clipboard?.writeText', $html);
     }
@@ -1470,14 +1483,9 @@ class ProfileTest extends TestCase
             ->html();
 
         $this->assertStringContainsString(__('ui.common.activity_stats_title'), $html);
-        $this->assertStringContainsString(
-            __('ui.profile.contact_hosted_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_RPG)]),
-            $html,
-        );
-        $this->assertStringContainsString(
-            __('ui.profile.contact_hosted_type', ['type' => __('ui.activities.types.'.ActivityType::SLUG_BOARD)]),
-            $html,
-        );
+        $this->assertStringContainsString(__('ui.profile.contact_hosted_section'), $html);
+        $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_RPG), $html);
+        $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_BOARD), $html);
     }
 
     public function test_user_contact_popover_shows_hero_with_organization(): void
