@@ -10,7 +10,7 @@
                 data-ui="catalog-series-loading"
             />
             <div
-                class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6"
+                class="ui-browse-events-listings grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3"
                 data-ui="catalog-series-listings"
             >
                 @forelse ($seriesList as $series)
@@ -22,6 +22,7 @@
                                 'count' => (int) $series->upcoming_public_events_count,
                             ])"
                             icon="o-rectangle-stack"
+                            :cover-picture="$seriesCoverPicturesById[(int) $series->id] ?? null"
                             data-ui="catalog-series-card"
                         />
                     </div>

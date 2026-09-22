@@ -29,6 +29,7 @@
                             :subtitle="$address ?? (filled($location) ? $location : null)"
                             :detail="$address !== null && filled($location) ? $location : null"
                             icon="o-map-pin"
+                            stacked
                             data-ui="catalog-place-card"
                         />
                         <x-ui.entity-links

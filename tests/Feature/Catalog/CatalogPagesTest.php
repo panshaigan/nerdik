@@ -46,8 +46,25 @@ class CatalogPagesTest extends TestCase
         $this->get(route('catalog.organizations'))
             ->assertOk()
             ->assertSee('Catalog Visible Org Marker', false)
-            ->assertSee(BrowseSearchUrl::forOrganization($organization), false)
+            ->assertDontSee(BrowseSearchUrl::forOrganization($organization), false)
+            ->assertSeeHtml('data-ui="catalog-organization-card"')
             ->assertSee('<title>'.Seo::pageTitle((string) __('ui.catalog.organizations_title')).'</title>', false);
+    }
+
+    public function test_organization_catalog_card_opens_preview_popup(): void
+    {
+        $organization = Organization::factory()->create([
+            'name' => 'Catalog Preview Org Marker',
+            'description' => '<p>Org preview body copy.</p>',
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(CatalogOrganizations::class)
+            ->call('openOrganizationPreview', $organization->id)
+            ->assertSet('organizationPreviewModalOpen', true)
+            ->assertSet('previewOrganizationId', $organization->id)
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="organization-contact-popover"');
     }
 
     public function test_guest_can_view_series_catalog_and_non_public_series_are_hidden(): void
@@ -94,6 +111,7 @@ class CatalogPagesTest extends TestCase
             ->assertSee(route('event-series.show', $visible), false)
             ->assertDontSee('Catalog Private Series Marker', false)
             ->assertDontSee('Catalog Cancelled Series Marker', false)
+            ->assertSeeHtml('data-ui="catalog-series-card"')
             ->assertSee('<title>'.Seo::pageTitle((string) __('ui.catalog.series_title')).'</title>', false);
     }
 

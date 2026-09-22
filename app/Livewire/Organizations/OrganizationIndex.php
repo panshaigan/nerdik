@@ -11,9 +11,37 @@ class OrganizationIndex extends Component
 {
     use AuthorizesOwnership;
 
+    public bool $organizationPreviewModalOpen = false;
+
+    public ?int $previewOrganizationId = null;
+
     public function mount(): void
     {
         $this->assertCanManageOrganizations();
+    }
+
+    public function openOrganizationPreview(int $organizationId): void
+    {
+        $organization = Organization::query()
+            ->whereKey($organizationId)
+            ->where('created_by', auth()->id())
+            ->firstOrFail();
+
+        $this->previewOrganizationId = (int) $organization->id;
+        $this->organizationPreviewModalOpen = true;
+    }
+
+    public function closeOrganizationPreview(): void
+    {
+        $this->organizationPreviewModalOpen = false;
+        $this->previewOrganizationId = null;
+    }
+
+    public function updatedOrganizationPreviewModalOpen(bool $value): void
+    {
+        if (! $value) {
+            $this->closeOrganizationPreview();
+        }
     }
 
     public function deleteOrganization(int $id): void
@@ -37,8 +65,17 @@ class OrganizationIndex extends Component
             ->orderBy('name')
             ->get();
 
+        $previewOrganization = $this->organizationPreviewModalOpen && $this->previewOrganizationId !== null
+            ? $organizations->firstWhere('id', $this->previewOrganizationId)
+            : null;
+
+        if ($previewOrganization === null && $this->organizationPreviewModalOpen) {
+            $this->closeOrganizationPreview();
+        }
+
         return view('livewire.organizations.organization-index', [
             'organizations' => $organizations,
+            'previewOrganization' => $previewOrganization,
         ]);
     }
 }

@@ -16,9 +16,11 @@ use App\Services\ActivityPeopleStats;
 use App\Services\EventActivitySignupService;
 use App\Services\EventShowReadCache;
 use App\Services\UserInterestService;
+use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Calendar\CalendarLinks;
 use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\BrowseListingCardPresenter;
+use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -159,6 +161,7 @@ class ShowEventSeries extends Component
         ActivityPeopleStats $activityPeopleStats,
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
+        EventListingImageResolver $eventListingImageResolver,
     ): View {
         $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
         abort_unless($series->isVisibleTo(auth()->user()), 404);
@@ -176,13 +179,28 @@ class ShowEventSeries extends Component
         $stats = $this->seriesStats($events, $activities, $activityPeopleStats);
 
         $eventStatsById = [];
+        $eventCoverPicturesById = [];
+        $eventTileMetaById = [];
         foreach ($events as $event) {
-            [$confirmedActivities, $confirmedParticipants, $availablePlaces] = $eventShowReadCache->programmeStats((int) $event->id);
-            $eventStatsById[(int) $event->id] = [
+            $eventId = (int) $event->id;
+            [$confirmedActivities, $confirmedParticipants, $availablePlaces] = $eventShowReadCache->programmeStats($eventId);
+            $eventStatsById[$eventId] = [
                 'confirmed_activities' => $confirmedActivities,
                 'confirmed_participants' => $confirmedParticipants,
                 'available_places_label' => $availablePlaces === null ? '∞' : (string) $availablePlaces,
-                'interested_people_count' => $eventShowReadCache->eventInterestedCount((int) $event->id),
+                'interested_people_count' => $eventShowReadCache->eventInterestedCount($eventId),
+            ];
+            $coverPicture = $eventListingImageResolver->resolve($event);
+            if ($coverPicture->hasDisplayableImage()) {
+                $eventCoverPicturesById[$eventId] = $coverPicture;
+            }
+            $eventTileMetaById[$eventId] = [
+                'time_summary' => format_date_range_compact($event->starts_at, $event->ends_at),
+                'location_summary' => $event->compactPlaceSummary(),
+                'location_places' => BrowseSearchUrl::eventPlaceLinks($event),
+                'details_url' => route('events.show', $event),
+                'edit_url' => url_with_return(route('events.edit', $event), route('event-series.show', $series)),
+                'can_edit' => auth()->user()?->canModifyEntity($event) ?? false,
             ];
         }
 
@@ -217,6 +235,8 @@ class ShowEventSeries extends Component
             'activities' => $activities,
             'stats' => $stats,
             'eventStatsById' => $eventStatsById,
+            'eventCoverPicturesById' => $eventCoverPicturesById,
+            'eventTileMetaById' => $eventTileMetaById,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'browsingReturnUrl' => route('event-series.show', $series),

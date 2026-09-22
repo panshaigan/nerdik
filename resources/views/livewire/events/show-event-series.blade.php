@@ -90,64 +90,179 @@
                     @if ($events->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_events') }}</p>
                     @else
-                        <div class="space-y-2" data-ui="event-series-editions-list">
+                        <div
+                            class="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6"
+                            data-ui="event-series-editions-list"
+                        >
                             @foreach ($events as $edition)
                                 @php
-                                    $editionStats = $eventStatsById[(int) $edition->id] ?? [
+                                    $editionId = (int) $edition->id;
+                                    $editionStats = $eventStatsById[$editionId] ?? [
                                         'confirmed_activities' => 0,
                                         'confirmed_participants' => 0,
                                         'available_places_label' => '∞',
                                         'interested_people_count' => 0,
                                     ];
+                                    $editionMeta = $eventTileMetaById[$editionId] ?? [
+                                        'time_summary' => '',
+                                        'location_summary' => '',
+                                        'location_places' => [],
+                                        'details_url' => route('events.show', $edition),
+                                        'edit_url' => route('events.edit', $edition),
+                                        'can_edit' => false,
+                                    ];
+                                    $editionCoverPicture = $eventCoverPicturesById[$editionId] ?? null;
+                                    $isInterestedInEdition = in_array($editionId, $interestedEventIds ?? [], true);
                                 @endphp
                                 <div
                                     wire:key="series-edition-{{ $edition->id }}"
                                     @class([
-                                        'grid grid-cols-1 gap-4 lg:grid-cols-4 lg:items-start',
+                                        'ui-tile-active status-dots group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                        'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0',
                                         'opacity-50' => $edition->isCancelled(),
                                     ])
                                     data-ui="event-series-edition"
                                 >
-                                    <div class="min-w-0 lg:col-span-1">
-                                        <x-cards.listing-card
-                                            :listing="$edition"
-                                            :interested-ids="$interestedEventIds"
-                                            :return-url="$browsingReturnUrl"
-                                        />
+                                    @if ($editionCoverPicture?->hasDisplayableImage())
+                                        <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl" aria-hidden="true">
+                                            <div class="absolute inset-0 scale-105">
+                                                <x-listing-card-picture
+                                                    :picture="$editionCoverPicture"
+                                                    class="h-full w-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                            <div class="absolute inset-0 bg-base-100/85"></div>
+                                            <div class="absolute inset-0 bg-gradient-to-t from-base-100/80 via-base-100/40 to-base-100/25"></div>
+                                        </div>
+                                    @endif
+
+                                    <div class="status-dots-toolbar relative z-[3] flex items-center px-3 pt-2 sm:px-4">
+                                        <div class="flex-1"></div>
+                                        <div class="flex items-center justify-end gap-1 pointer-events-auto">
+                                            <x-button
+                                                :link="$editionMeta['details_url']"
+                                                wire:navigate
+                                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                :aria-label="__('ui.events.show_details').': '.$edition->name"
+                                                :tooltip="__('ui.events.show_details')"
+                                                icon="o-arrow-top-right-on-square"
+                                                data-ui="event-card-open-details"
+                                            />
+                                            @auth
+                                                @if ($isInterestedInEdition)
+                                                    <x-button
+                                                        type="button"
+                                                        wire:click="toggleEventInterest({{ $editionId }})"
+                                                        class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                                        :tooltip="__('ui.interests.remove_from_interests')"
+                                                        data-ui="event-card-interest-remove"
+                                                        icon="s-star"
+                                                    />
+                                                @else
+                                                    <x-button
+                                                        type="button"
+                                                        wire:click="toggleEventInterest({{ $editionId }})"
+                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                                        :tooltip="__('ui.interests.add_to_interests')"
+                                                        data-ui="event-card-interest-add"
+                                                        icon="o-star"
+                                                    />
+                                                @endif
+                                                @if ($editionMeta['can_edit'])
+                                                    <x-button
+                                                        :link="$editionMeta['edit_url']"
+                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
+                                                        :aria-label="__('ui.events.edit_event').': '.$edition->name"
+                                                        :tooltip="__('ui.events.edit_event')"
+                                                        icon="o-pencil"
+                                                        data-ui="event-card-edit"
+                                                    />
+                                                @endif
+                                            @endauth
+                                        </div>
                                     </div>
-                                    <div
-                                        class="grid grid-cols-2 gap-2 self-start sm:grid-cols-3 lg:col-span-3 lg:grid-cols-3"
-                                        data-ui="event-series-edition-stats"
-                                    >
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
-                                            <x-stat
-                                                title="{{ __('ui.events.confirmed_activities') }}"
-                                                value="{{ $editionStats['confirmed_activities'] }}"
-                                                icon="o-puzzle-piece"
-                                                class="ui-stat-embed ui-activity-show-stat"
-                                            />
+
+                                    <div class="relative px-3 pb-4 sm:px-4 sm:pb-5" data-ui="event-card">
+                                        <button
+                                            type="button"
+                                            wire:click="openListingEventPreview({{ $editionId }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="openListingEventPreview({{ $editionId }})"
+                                            wire:loading.class.delay="cursor-wait"
+                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40 motion-reduce:transition-none"
+                                            aria-label="{{ $edition->name }}"
+                                            data-ui="event-card-open-preview"
+                                        ></button>
+                                        <div
+                                            wire:loading.delay
+                                            wire:target="openListingEventPreview({{ $editionId }})"
+                                            class="pointer-events-auto absolute inset-0 z-[15] flex items-center justify-center rounded-xl bg-base-100/60 backdrop-blur-[1px]"
+                                            aria-live="polite"
+                                            role="status"
+                                            data-ui="event-card-preview-loading"
+                                        >
+                                            <span class="sr-only">{{ __('ui.common.loading') }}</span>
+                                            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
                                         </div>
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
-                                            <x-stat
-                                                title="{{ __('ui.events.interested_people_count') }}"
-                                                value="{{ $editionStats['interested_people_count'] }}"
-                                                icon="o-star"
-                                                class="ui-stat-embed ui-activity-show-stat"
-                                            />
-                                        </div>
-                                        <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
-                                            <x-stat
-                                                title="{{ __('ui.events.confirmed_participants') }}"
-                                                value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
-                                                icon="o-users"
-                                                class="ui-stat-embed ui-activity-show-stat"
-                                            />
+
+                                        <div class="relative z-[2] pointer-events-none space-y-3">
+                                            <div class="space-y-1.5">
+                                                <h3 class="truncate text-lg font-semibold leading-snug text-base-content sm:text-xl">
+                                                    {{ $edition->name }}
+                                                </h3>
+                                                @if ($edition->isCancelled())
+                                                    <span class="badge badge-warning">{{ __('ui.events.cancelled_badge') }}</span>
+                                                @endif
+                                                @if ($editionMeta['time_summary'] !== '')
+                                                    <p class="flex items-start gap-2 text-sm text-base-content/85">
+                                                        <x-icon name="o-calendar" class="mt-0.5 h-4 w-4 shrink-0 text-base-content/50" />
+                                                        <span>{{ $editionMeta['time_summary'] }}</span>
+                                                    </p>
+                                                @endif
+                                                @if ($editionMeta['location_summary'] !== '' || $editionMeta['location_places'] !== [])
+                                                    <div class="relative z-[3] flex items-start gap-2 pointer-events-auto text-sm text-base-content/85">
+                                                        <x-icon name="o-map-pin" class="mt-0.5 h-4 w-4 shrink-0 text-base-content/50" />
+                                                        <x-browse.place-search-links
+                                                            :places="$editionMeta['location_places']"
+                                                            :fallback="$editionMeta['location_summary']"
+                                                        />
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div
+                                                class="grid grid-cols-3 gap-2"
+                                                data-ui="event-series-edition-stats"
+                                            >
+                                                <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
+                                                    <x-stat
+                                                        title="{{ __('ui.events.confirmed_activities') }}"
+                                                        value="{{ $editionStats['confirmed_activities'] }}"
+                                                        icon="o-puzzle-piece"
+                                                        class="ui-stat-embed ui-activity-show-stat"
+                                                    />
+                                                </div>
+                                                <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
+                                                    <x-stat
+                                                        title="{{ __('ui.events.interested_people_count') }}"
+                                                        value="{{ $editionStats['interested_people_count'] }}"
+                                                        icon="o-star"
+                                                        class="ui-stat-embed ui-activity-show-stat"
+                                                    />
+                                                </div>
+                                                <div class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl">
+                                                    <x-stat
+                                                        title="{{ __('ui.events.confirmed_participants') }}"
+                                                        value="{{ $editionStats['confirmed_participants'] }}/{{ $editionStats['available_places_label'] }}"
+                                                        icon="o-users"
+                                                        class="ui-stat-embed ui-activity-show-stat"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                @if (! $loop->last)
-                                    <x-ui.hr class="mt-6 mb-6" data-ui="event-series-edition-hr" icon="o-sparkles" color="neutral" />
-                                @endif
                             @endforeach
                         </div>
                     @endif

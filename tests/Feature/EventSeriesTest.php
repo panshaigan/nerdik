@@ -148,6 +148,7 @@ class EventSeriesTest extends TestCase
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
             ->assertSeeHtml('data-ui="event-series-edition-stats"')
+            ->assertSeeHtml('data-ui="event-card-open-preview"')
             ->assertSeeHtml('data-ui="event-series-show-follow"')
             ->assertSee(__('ui.event_series.stats_editions'), false)
             ->assertSee(__('ui.event_series.stats_activities'), false)

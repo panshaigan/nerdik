@@ -23,26 +23,33 @@
             @forelse ($organizations as $organization)
                 <li
                     wire:key="org-{{ $organization->id }}"
-                    class="flex items-start gap-3 rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm"
+                    class="flex items-center gap-3 rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm"
                 >
-                    <div class="avatar shrink-0">
-                        <div class="h-10 w-10 overflow-hidden rounded-full border border-base-300 bg-base-300">
-                            <img
-                                src="{{ $organization->logoUrl() }}"
-                                alt="{{ $organization->name }}"
-                                class="h-full w-full object-cover"
-                                loading="lazy"
-                            />
-                        </div>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="font-medium text-base-content">{{ $organization->name }}</p>
-                        @if (filled(rich_text_excerpt($organization->description)))
-                            <div class="rich-text-content mt-2 text-base-content/80">
-                                {!! rich_text($organization->description) !!}
+                    <button
+                        type="button"
+                        wire:click="openOrganizationPreview({{ (int) $organization->id }})"
+                        class="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition hover:bg-base-200/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        data-ui="organization-index-open-preview"
+                    >
+                        <div class="avatar shrink-0">
+                            <div class="h-10 w-10 overflow-hidden rounded-full border border-base-300 bg-base-300">
+                                <img
+                                    src="{{ $organization->logoUrl() }}"
+                                    alt="{{ $organization->name }}"
+                                    class="h-full w-full object-cover"
+                                    loading="lazy"
+                                />
                             </div>
-                        @endif
-                    </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-medium text-base-content">{{ $organization->name }}</p>
+                            @if (filled(rich_text_excerpt($organization->description)))
+                                <div class="rich-text-content mt-2 text-base-content/80">
+                                    {!! rich_text($organization->description) !!}
+                                </div>
+                            @endif
+                        </div>
+                    </button>
                     @canModifyEntity($organization)
                     <div class="flex shrink-0 items-center gap-1">
                         <livewire:user-requests.invite-user-request
@@ -79,4 +86,22 @@
             @endforelse
         </ul>
     </div>
+
+    @if ($organizationPreviewModalOpen && $previewOrganization !== null)
+        @teleport('body')
+            <x-modal
+                wire:model="organizationPreviewModalOpen"
+                :title="__('ui.common.organization')"
+                box-class="overflow-x-hidden ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+                class="backdrop-blur modal-bottom md:modal-end"
+                separator
+                data-ui="overlay-sheet"
+            >
+                <livewire:activities.organization-contact-popover
+                    :target-organization-id="$previewOrganization->id"
+                    :key="'organization-index-contact-popover-'.$previewOrganization->id"
+                />
+            </x-modal>
+        @endteleport
+    @endif
 </div>

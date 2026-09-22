@@ -216,4 +216,24 @@ final class OrganizationIndexLogoTest extends TestCase
             ->assertSeeHtml('ui-avatars.com/api/')
             ->assertSeeHtml('name=LO');
     }
+
+    #[Test]
+    public function organization_row_opens_preview_popup(): void
+    {
+        $user = User::factory()->create(['is_event_organizer' => true]);
+        $organization = Organization::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Preview Listed Org',
+            'description' => '<p>Index preview description.</p>',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(OrganizationIndex::class)
+            ->assertSeeHtml('data-ui="organization-index-open-preview"')
+            ->call('openOrganizationPreview', $organization->id)
+            ->assertSet('organizationPreviewModalOpen', true)
+            ->assertSet('previewOrganizationId', $organization->id)
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-ui="organization-contact-popover"');
+    }
 }
