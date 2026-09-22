@@ -995,6 +995,9 @@ class ProfileTest extends TestCase
             ->call('openModal')
             ->assertSet('modalOpen', true)
             ->assertSee(__('ui.common.user'), false)
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-overlay-sticky-footer')
+            ->assertSeeHtml('data-ui="user-contact-popover-body"')
             ->assertSee('mailto:participant@example.test');
     }
 
@@ -1148,6 +1151,9 @@ class ProfileTest extends TestCase
             ->call('openModal')
             ->assertSet('modalOpen', true)
             ->assertSee(__('ui.common.organization'), false)
+            ->assertSeeHtml('data-ui="overlay-sheet"')
+            ->assertSeeHtml('data-overlay-sticky-footer')
+            ->assertSeeHtml('data-ui="organization-contact-popover-body"')
             ->assertSee('Guild of Nerds', false)
             ->assertSee('We run tabletop events.')
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))

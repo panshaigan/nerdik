@@ -1,108 +1,119 @@
-<div class="min-w-0 space-y-5 overflow-x-hidden p-4 text-sm" data-ui="organization-contact-popover">
-    @if ($targetOrganization !== null)
-        <div class="flex flex-col items-center gap-3 text-center" data-ui="organization-contact-popover-hero">
-            <div class="avatar">
-                <div class="h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-base-300 bg-base-300 shadow-[0_0_24px_color-mix(in_oklch,var(--color-primary)_28%,transparent)]">
-                    <img
-                        src="{{ $targetOrganization->logoUrl() }}"
-                        alt="{{ $targetOrganization->name }}"
-                        class="h-full w-full object-cover"
-                        loading="lazy"
+@php
+    $canRequestJoin = $targetOrganization !== null
+        && ! auth()->user()?->canModifyEntity($targetOrganization)
+        && (int) auth()->id() !== (int) $targetOrganization->created_by
+        && (int) auth()->user()?->organization_id !== (int) $targetOrganization->id;
+@endphp
+
+<div
+    class="flex min-h-0 flex-1 flex-col"
+    data-ui="organization-contact-popover"
+    data-overlay-sticky-footer
+>
+    <div class="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto p-4 text-sm" data-ui="organization-contact-popover-body">
+        @if ($targetOrganization !== null)
+            <div class="flex flex-col items-center gap-3 text-center" data-ui="organization-contact-popover-hero">
+                <div class="avatar">
+                    <div class="h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-base-300 bg-base-300 shadow-[0_0_24px_color-mix(in_oklch,var(--color-primary)_28%,transparent)]">
+                        <img
+                            src="{{ $targetOrganization->logoUrl() }}"
+                            alt="{{ $targetOrganization->name }}"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                        />
+                    </div>
+                </div>
+                <p class="max-w-full truncate px-2 text-lg font-semibold text-base-content" title="{{ $targetOrganization->name }}">
+                    {{ $targetOrganization->name }}
+                </p>
+            </div>
+        @endif
+
+        <div class="space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.common.activity_stats_title') }}</p>
+
+            <div class="space-y-2" data-ui="organization-contact-popover-scheduled-stats">
+                <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.scheduled_section') }}</p>
+                @forelse ($scheduledStatsByType as $stat)
+                    <div class="flex items-center justify-between text-base-content/80">
+                        <span>{{ __('ui.organizations.scheduled_type', ['type' => $stat['label']]) }}</span>
+                        <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
+                    </div>
+                @empty
+                    <p class="text-base-content/60">{{ __('ui.organizations.no_scheduled_activities') }}</p>
+                @endforelse
+            </div>
+
+            <div class="space-y-2" data-ui="organization-contact-popover-participant-stats">
+                <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.participants_section') }}</p>
+                @forelse ($participantStatsByType as $stat)
+                    <div class="flex items-center justify-between text-base-content/80">
+                        <span>{{ __('ui.organizations.participants_type', ['type' => $stat['label']]) }}</span>
+                        <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
+                    </div>
+                @empty
+                    <p class="text-base-content/60">{{ __('ui.organizations.no_participants') }}</p>
+                @endforelse
+            </div>
+        </div>
+
+        <div class="space-y-2" data-ui="organization-contact-popover-members">
+            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.members_section') }}</p>
+            <div class="space-y-2">
+                @forelse ($members as $member)
+                    <x-user-badge
+                        :user="$member"
+                        size="sm"
+                        name-class="truncate text-sm font-medium text-base-content"
+                        class="min-w-0"
                     />
+                @empty
+                    <p class="text-base-content/60">{{ __('ui.organizations.no_members') }}</p>
+                @endforelse
+            </div>
+        </div>
+
+        @if ($targetOrganization !== null)
+            <div class="pt-1" data-ui="organization-contact-popover-see-all">
+                <a
+                    href="{{ \App\Support\Browse\BrowseSearchUrl::forOrganization($targetOrganization) }}"
+                    wire:navigate
+                    class="link link-primary"
+                    data-ui="organization-see-all-listings"
+                >{{ __('ui.organizations.see_all_events_and_activities') }}</a>
+            </div>
+        @endif
+
+        @if ($targetOrganization !== null && filled(rich_text_excerpt($targetOrganization->description)))
+            <div class="space-y-2" data-ui="organization-contact-popover-description">
+                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.description_section') }}</p>
+                <div class="rich-text-content text-base-content/80">
+                    {!! rich_text($targetOrganization->description) !!}
                 </div>
             </div>
-            <p class="max-w-full truncate px-2 text-lg font-semibold text-base-content" title="{{ $targetOrganization->name }}">
-                {{ $targetOrganization->name }}
-            </p>
-        </div>
-    @endif
+        @endif
 
-    <div class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.common.activity_stats_title') }}</p>
-
-        <div class="space-y-2" data-ui="organization-contact-popover-scheduled-stats">
-            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.scheduled_section') }}</p>
-            @forelse ($scheduledStatsByType as $stat)
-                <div class="flex items-center justify-between text-base-content/80">
-                    <span>{{ __('ui.organizations.scheduled_type', ['type' => $stat['label']]) }}</span>
-                    <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
-                </div>
-            @empty
-                <p class="text-base-content/60">{{ __('ui.organizations.no_scheduled_activities') }}</p>
-            @endforelse
-        </div>
-
-        <div class="space-y-2" data-ui="organization-contact-popover-participant-stats">
-            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.participants_section') }}</p>
-            @forelse ($participantStatsByType as $stat)
-                <div class="flex items-center justify-between text-base-content/80">
-                    <span>{{ __('ui.organizations.participants_type', ['type' => $stat['label']]) }}</span>
-                    <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
-                </div>
-            @empty
-                <p class="text-base-content/60">{{ __('ui.organizations.no_participants') }}</p>
-            @endforelse
-        </div>
-    </div>
-
-    <div class="space-y-2" data-ui="organization-contact-popover-members">
-        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.members_section') }}</p>
-        <div class="space-y-2">
-            @forelse ($members as $member)
-                <x-user-badge
-                    :user="$member"
-                    size="sm"
-                    name-class="truncate text-sm font-medium text-base-content"
-                    class="min-w-0"
+        @if ($targetOrganization !== null && $targetOrganization->links->isNotEmpty())
+            <div class="space-y-2" data-ui="organization-contact-popover-links">
+                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.entity_links.section') }}</p>
+                <x-ui.entity-links
+                    :links="$targetOrganization->links"
+                    appearance="compact"
+                    data-ui="organization-contact-popover-entity-links"
                 />
-            @empty
-                <p class="text-base-content/60">{{ __('ui.organizations.no_members') }}</p>
-            @endforelse
-        </div>
+            </div>
+        @endif
     </div>
 
-    @if ($targetOrganization !== null)
-        <div class="pt-1" data-ui="organization-contact-popover-see-all">
-            <a
-                href="{{ \App\Support\Browse\BrowseSearchUrl::forOrganization($targetOrganization) }}"
-                wire:navigate
-                class="link link-primary"
-                data-ui="organization-see-all-listings"
-            >{{ __('ui.organizations.see_all_events_and_activities') }}</a>
-        </div>
-    @endif
-
-    @if ($targetOrganization !== null && filled(rich_text_excerpt($targetOrganization->description)))
-        <div class="space-y-2" data-ui="organization-contact-popover-description">
-            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.organizations.description_section') }}</p>
-            <div class="rich-text-content text-base-content/80">
-                {!! rich_text($targetOrganization->description) !!}
-            </div>
-        </div>
-    @endif
-
-    @if ($targetOrganization !== null && $targetOrganization->links->isNotEmpty())
-        <div class="space-y-2" data-ui="organization-contact-popover-links">
-            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.entity_links.section') }}</p>
-            <x-ui.entity-links
-                :links="$targetOrganization->links"
-                appearance="compact"
-                data-ui="organization-contact-popover-entity-links"
+    @if ($canRequestJoin)
+        <div class="shrink-0 border-t border-base-300 px-4 py-3" data-ui="organization-contact-popover-requests">
+            <livewire:user-requests.send-user-request
+                type="organization_join_request"
+                subject-type="organization"
+                :subject-id="$targetOrganization->id"
+                :recipient-id="$targetOrganization->created_by"
+                :key="'organization-join-'.$targetOrganization->id"
             />
-        </div>
-    @endif
-
-    @if ($targetOrganization !== null)
-        <div class="border-t border-base-300 pt-4" data-ui="organization-contact-popover-requests">
-            @if (! auth()->user()?->canModifyEntity($targetOrganization) && (int) auth()->id() !== (int) $targetOrganization->created_by && (int) auth()->user()?->organization_id !== (int) $targetOrganization->id)
-                <livewire:user-requests.send-user-request
-                    type="organization_join_request"
-                    subject-type="organization"
-                    :subject-id="$targetOrganization->id"
-                    :recipient-id="$targetOrganization->created_by"
-                    :key="'organization-join-'.$targetOrganization->id"
-                />
-            @endif
         </div>
     @endif
 </div>

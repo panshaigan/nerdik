@@ -30,10 +30,10 @@
             <x-modal
                 wire:model="modalOpen"
                 :title="__('ui.common.organization')"
-                box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
-                class="backdrop-blur"
+                box-class="overflow-x-hidden ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+                class="backdrop-blur modal-bottom md:modal-end"
                 separator
-                data-ui="organization-badge-contact-modal"
+                data-ui="overlay-sheet"
             >
                 <livewire:activities.organization-contact-popover
                     :target-organization-id="$organization->id"

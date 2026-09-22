@@ -1739,8 +1739,28 @@
 }
 
 /**
- * Listing previews: bottom sheet on small screens, right shelf from md up.
+ * Contact popovers: pin request/action footer; only the body (stats/contact) scrolls.
+ * Hook: data-overlay-sticky-footer on the Livewire popover root.
+ */
+.ui-overlay-shell.modal-box > div:not(.modal-action):has([data-overlay-sticky-footer]) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ui-overlay-shell.modal-box [data-overlay-sticky-footer] {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+
+/**
+ * Overlay sheets: bottom sheet on small screens, right shelf from md up.
  * Pair with DaisyUI `modal-bottom md:modal-end` on the dialog.
+ * Used by listing previews, feedback, and user/organization contact popups.
  */
 .modal.modal-bottom .ui-overlay-sheet.modal-box {
     width: 100%;

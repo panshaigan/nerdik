@@ -29,10 +29,10 @@
             <x-modal
                 wire:model="modalOpen"
                 :title="__('ui.common.user')"
-                box-class="max-w-lg overflow-x-hidden ui-modal-surface ui-overlay-shell"
-                class="backdrop-blur"
+                box-class="overflow-x-hidden ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+                class="backdrop-blur modal-bottom md:modal-end"
                 separator
-                data-ui="user-badge-contact-modal"
+                data-ui="overlay-sheet"
             >
                 <livewire:activities.user-contact-popover
                     :target-user-id="$user->id"
