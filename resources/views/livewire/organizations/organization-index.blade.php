@@ -23,12 +23,12 @@
             @forelse ($organizations as $organization)
                 <li
                     wire:key="org-{{ $organization->id }}"
-                    class="flex items-center gap-3 rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm"
+                    class="group flex items-center gap-3 rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0"
                 >
                     <button
                         type="button"
                         wire:click="openOrganizationPreview({{ (int) $organization->id }})"
-                        class="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition hover:bg-base-200/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg text-left transition hover:bg-base-200/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         data-ui="organization-index-open-preview"
                     >
                         <div class="avatar shrink-0">

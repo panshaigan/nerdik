@@ -15,6 +15,12 @@ use App\Models\TagCategory;
  */
 return [
 
+    /*
+    | Visible badge count before "Show more" on full activity badge collections.
+    | Set to 0 to always show every badge (no collapse control).
+    */
+    'collapse_after' => 5,
+
     'chip_order' => [
         'meta:minimum_age',
         'activity_type',

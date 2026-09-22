@@ -117,7 +117,7 @@
                                 <div
                                     wire:key="series-edition-{{ $edition->id }}"
                                     @class([
-                                        'ui-tile-active status-dots group relative w-full overflow-hidden rounded-xl border border-transparent',
+                                        'ui-tile-active status-dots group relative w-full overflow-visible rounded-xl border border-transparent',
                                         'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0',
                                         'opacity-50' => $edition->isCancelled(),
                                     ])
@@ -145,40 +145,40 @@
                                                 wire:navigate
                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                                 :aria-label="__('ui.events.show_details').': '.$edition->name"
-                                                :tooltip="__('ui.events.show_details')"
+                                                :tooltip-bottom="__('ui.events.show_details')"
                                                 icon="o-arrow-top-right-on-square"
                                                 data-ui="event-card-open-details"
                                             />
                                             @auth
-                                                @if ($isInterestedInEdition)
-                                                    <x-button
-                                                        type="button"
-                                                        wire:click="toggleEventInterest({{ $editionId }})"
-                                                        class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                        :tooltip="__('ui.interests.remove_from_interests')"
-                                                        data-ui="event-card-interest-remove"
-                                                        icon="s-star"
-                                                    />
-                                                @else
-                                                    <x-button
-                                                        type="button"
-                                                        wire:click="toggleEventInterest({{ $editionId }})"
-                                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                        :tooltip="__('ui.interests.add_to_interests')"
-                                                        data-ui="event-card-interest-add"
-                                                        icon="o-star"
-                                                    />
-                                                @endif
                                                 @if ($editionMeta['can_edit'])
                                                     <x-button
                                                         :link="$editionMeta['edit_url']"
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                                         :aria-label="__('ui.events.edit_event').': '.$edition->name"
-                                                        :tooltip="__('ui.events.edit_event')"
+                                                        :tooltip-bottom="__('ui.events.edit_event')"
                                                         icon="o-pencil"
                                                         data-ui="event-card-edit"
                                                     />
                                                 @endif
+                                                    @if ($isInterestedInEdition)
+                                                        <x-button
+                                                            type="button"
+                                                            wire:click="toggleEventInterest({{ $editionId }})"
+                                                            class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                                            :tooltip-bottom="__('ui.interests.remove_from_interests')"
+                                                            data-ui="event-card-interest-remove"
+                                                            icon="s-star"
+                                                        />
+                                                    @else
+                                                        <x-button
+                                                            type="button"
+                                                            wire:click="toggleEventInterest({{ $editionId }})"
+                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                                            :tooltip-bottom="__('ui.interests.add_to_interests')"
+                                                            data-ui="event-card-interest-add"
+                                                            icon="o-star"
+                                                        />
+                                                    @endif
                                             @endauth
                                         </div>
                                     </div>
@@ -190,7 +190,7 @@
                                             wire:loading.attr="disabled"
                                             wire:target="openListingEventPreview({{ $editionId }})"
                                             wire:loading.class.delay="cursor-wait"
-                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40 motion-reduce:transition-none"
+                                            class="absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 motion-reduce:transition-none"
                                             aria-label="{{ $edition->name }}"
                                             data-ui="event-card-open-preview"
                                         ></button>

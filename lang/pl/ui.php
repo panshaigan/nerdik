@@ -71,6 +71,8 @@ return [
         'close' => 'Zamknij',
         'copied' => 'Skopiowano!',
         'manage' => 'Zarządzaj',
+        'show_more' => 'Pokaż więcej',
+        'show_less' => 'Pokaż mniej',
         'copy_failed' => 'Nie udało się skopiować.',
         'name' => 'Nazwa',
         'email' => 'E-mail',

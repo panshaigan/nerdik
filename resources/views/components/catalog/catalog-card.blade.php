@@ -28,7 +28,7 @@
         type="button"
     @endif
     {{ $attributes->class([
-        'ui-card ui-catalog-card card group relative flex h-full min-h-36 flex-col overflow-hidden p-5 no-underline sm:min-h-40 sm:p-6',
+        'ui-card ui-catalog-card card group relative flex h-full min-h-36 cursor-pointer flex-col overflow-hidden p-5 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0 sm:min-h-40 sm:p-6',
         'ui-content-card' => ! $transparent,
         'ui-tile-active' => $transparent,
         'text-left' => ! filled($href) && ! $stacked,

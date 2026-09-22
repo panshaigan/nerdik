@@ -71,6 +71,8 @@ return [
         'close' => 'Close',
         'copied' => 'Copied!',
         'manage' => 'Manage',
+        'show_more' => 'Show more',
+        'show_less' => 'Show less',
         'copy_failed' => 'Could not copy.',
         'name' => 'Name',
         'email' => 'Email',
