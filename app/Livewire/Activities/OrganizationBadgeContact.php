@@ -13,6 +13,8 @@ class OrganizationBadgeContact extends Component
 
     public ?User $user = null;
 
+    public ?string $name = null;
+
     public string $size = 'md';
 
     public string $nameClass = '';

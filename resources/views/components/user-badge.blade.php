@@ -91,6 +91,7 @@
     <livewire:activities.organization-badge-contact
         :organization="$organization"
         :user="$user"
+        :name="$name"
         :size="$size"
         :name-class="$resolvedNameClass"
         :subline="$subline"

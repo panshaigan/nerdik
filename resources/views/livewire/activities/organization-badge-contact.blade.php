@@ -14,6 +14,7 @@
         <x-user-badge
             :user="$user"
             :organization="$organization"
+            :name="$name"
             :size="$size"
             :name-class="$nameClass"
             :subline="$subline"

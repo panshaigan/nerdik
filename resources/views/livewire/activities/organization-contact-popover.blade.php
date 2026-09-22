@@ -75,28 +75,28 @@
                     data-ui="organization-contact-popover-tab-statistics"
                     icon="o-chart-bar"
                 >
-                    <div class="space-y-3 p-4 text-sm">
+                    <div class="space-y-5 p-4 text-sm">
                         <div class="space-y-2" data-ui="organization-contact-popover-scheduled-stats">
-                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.scheduled_section') }}</p>
+                            <p class="text-sm font-semibold text-base-content">{{ __('ui.organizations.scheduled_section') }}</p>
                             @forelse ($scheduledStatsByType as $stat)
-                                <div class="flex items-center justify-between text-base-content/80">
+                                <div class="flex items-center justify-between gap-3 text-sm text-base-content/65">
                                     <span>{{ $stat['label'] }}</span>
-                                    <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
+                                    <span class="font-semibold tabular-nums text-base-content">{{ $stat['count'] }}</span>
                                 </div>
                             @empty
-                                <p class="text-base-content/60">{{ __('ui.organizations.no_scheduled_activities') }}</p>
+                                <p class="text-sm text-base-content/50">{{ __('ui.organizations.no_scheduled_activities') }}</p>
                             @endforelse
                         </div>
 
                         <div class="space-y-2" data-ui="organization-contact-popover-past-stats">
-                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.organizations.past_section') }}</p>
+                            <p class="text-sm font-semibold text-base-content">{{ __('ui.organizations.past_section') }}</p>
                             @forelse ($pastStatsByType as $stat)
-                                <div class="flex items-center justify-between text-base-content/80">
+                                <div class="flex items-center justify-between gap-3 text-sm text-base-content/65">
                                     <span>{{ $stat['label'] }}</span>
-                                    <span class="font-semibold text-base-content">{{ $stat['count'] }}</span>
+                                    <span class="font-semibold tabular-nums text-base-content">{{ $stat['count'] }}</span>
                                 </div>
                             @empty
-                                <p class="text-base-content/60">{{ __('ui.organizations.no_past_activities') }}</p>
+                                <p class="text-sm text-base-content/50">{{ __('ui.organizations.no_past_activities') }}</p>
                             @endforelse
                         </div>
                     </div>

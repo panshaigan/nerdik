@@ -1482,7 +1482,7 @@ class ProfileTest extends TestCase
             ])
             ->html();
 
-        $this->assertStringContainsString(__('ui.common.activity_stats_title'), $html);
+        $this->assertStringContainsString('data-ui="user-contact-popover-tab-statistics"', $html);
         $this->assertStringContainsString(__('ui.profile.contact_hosted_section'), $html);
         $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_RPG), $html);
         $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_BOARD), $html);
@@ -1510,8 +1510,11 @@ class ProfileTest extends TestCase
         $this->assertStringContainsString('h-28 w-28', $html);
         $this->assertStringContainsString('pixel_mage', $html);
         $this->assertStringContainsString('data-ui="user-contact-popover-organization"', $html);
+        $this->assertStringContainsString('data-ui="organization-badge-contact-trigger"', $html);
         $this->assertStringContainsString('CGN', $html);
         $this->assertStringNotContainsString('pixel_mage [CGN]', $html);
+        $this->assertStringContainsString('data-ui="user-contact-popover-tab-contact"', $html);
+        $this->assertStringContainsString('data-ui="user-contact-popover-tab-statistics"', $html);
     }
 
     public function test_user_contact_popover_uses_google_email_when_main_email_hidden(): void

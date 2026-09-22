@@ -263,6 +263,10 @@ class UserContactPopover extends Component
                 'facebook' => null,
                 'discord' => null,
             ],
+            'activityInviteSubjectId' => null,
+            'organizationInviteSubjectId' => null,
+            'organizationJoinSubjectId' => null,
+            'organizationJoinRecipientId' => null,
         ];
     }
 
