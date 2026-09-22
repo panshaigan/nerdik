@@ -18,7 +18,6 @@ return [
 
     'modal' => [
         'title' => 'Send feedback',
-        'trigger' => 'Feedback',
         'type' => 'Type',
         'subject' => 'Subject',
         'body' => 'Message',

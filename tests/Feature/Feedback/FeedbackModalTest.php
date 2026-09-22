@@ -51,6 +51,7 @@ class FeedbackModalTest extends TestCase
             ->assertSet('open', true)
             ->assertSee(__('feedback.modal.cancel'))
             ->assertSee(__('feedback.modal.submit'))
+            ->assertSeeHtml('data-ui="overlay-sheet"')
             ->assertSet('type', FeedbackType::Question->value)
             ->set('type', FeedbackType::Bug->value)
             ->set('subject', 'Broken button')

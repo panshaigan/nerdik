@@ -23,6 +23,7 @@ return [
         'account' => 'Konto',
         'account_settings' => 'Ustawienia konta',
         'admin_panel' => 'Panel admina',
+        'admin_section' => 'Sekcja admina',
         'pulse' => 'Pulse',
         'production' => 'Produkcja',
         'staging' => 'Staging',

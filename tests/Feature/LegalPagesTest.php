@@ -33,17 +33,6 @@ class LegalPagesTest extends TestCase
         $response->assertSee('<title>'.Seo::pageTitle((string) __('legal.terms.title')).'</title>', false);
     }
 
-    public function test_contact_page_renders_in_english(): void
-    {
-        app()->setLocale('en');
-
-        $response = $this->get(route('contact'));
-
-        $response->assertOk();
-        $response->assertSee(legal_replace(__('legal.contact.title')), false);
-        $response->assertSee('mailto:'.e(legal_placeholders()['email']), false);
-    }
-
     public function test_privacy_page_renders_in_polish_when_locale_is_set(): void
     {
         $response = $this->withSession(['locale' => 'pl'])->get(route('privacy'));
@@ -62,22 +51,14 @@ class LegalPagesTest extends TestCase
         $response->assertSee(legal_replace(__('legal.terms.title')), false);
     }
 
-    public function test_contact_page_renders_in_polish_when_locale_is_set(): void
-    {
-        $response = $this->withSession(['locale' => 'pl'])->get(route('contact'));
-
-        $response->assertOk();
-        app()->setLocale('pl');
-        $response->assertSee(legal_replace(__('legal.contact.title')), false);
-    }
-
-    public function test_app_layout_footer_links_point_to_legal_routes(): void
+    public function test_app_layout_footer_links_point_to_legal_routes_and_opens_contact_form(): void
     {
         $response = $this->get(route('privacy'));
 
         $response->assertOk();
         $response->assertSee('href="'.e(route('privacy')).'"', false);
         $response->assertSee('href="'.e(route('terms')).'"', false);
-        $response->assertSee('href="'.e(route('contact')).'"', false);
+        $response->assertSee('open-feedback-modal', false);
+        $response->assertSee(__('ui.footer.contact'), false);
     }
 }

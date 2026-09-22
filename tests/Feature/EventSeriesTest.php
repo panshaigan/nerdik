@@ -148,7 +148,7 @@ class EventSeriesTest extends TestCase
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
             ->assertSeeHtml('data-ui="event-series-edition-stats"')
-            ->assertDontSeeHtml('data-ui="event-series-show-info"')
+            ->assertSeeHtml('data-ui="event-series-show-follow"')
             ->assertSee(__('ui.event_series.stats_editions'), false)
             ->assertSee(__('ui.event_series.stats_activities'), false)
             ->assertSee(__('ui.event_series.stats_participants'), false)
@@ -355,7 +355,8 @@ class EventSeriesTest extends TestCase
         ]);
 
         $component = Livewire::actingAs($follower)
-            ->test(ShowEventSeries::class, ['eventSeries' => $series]);
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertSeeHtml('data-ui="event-series-show-follow"');
 
         $component->call('toggleUpcomingInterest');
         $this->assertTrue($follower->interestedEvents()->whereKey($upcomingA->id)->exists());

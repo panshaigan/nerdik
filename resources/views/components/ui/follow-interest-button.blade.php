@@ -2,6 +2,8 @@
     'hasInterest' => false,
     'count' => 0,
     'dataUiPrefix',
+    'addAction' => 'addInterest',
+    'removeAction' => 'removeInterest',
 ])
 
 @php
@@ -16,7 +18,7 @@
         <x-ui.icon-count-badge :count="$count" data-ui="{{ $countDataUi }}">
             <x-button
                 type="button"
-                wire:click="removeInterest"
+                wire:click="{{ $removeAction }}"
                 @class([$buttonClass, 'text-warning ui-action ui-action-interest-remove'])
                 :tooltip="__('ui.interests.remove_from_interests')"
                 :aria-label="__('ui.interests.remove_from_interests')"
@@ -28,7 +30,7 @@
         <x-ui.icon-count-badge :count="$count" data-ui="{{ $countDataUi }}">
             <x-button
                 type="button"
-                wire:click="addInterest"
+                wire:click="{{ $addAction }}"
                 @class([$buttonClass, 'text-base-content/80 hover:text-warning ui-action ui-action-interest-add'])
                 :tooltip="__('ui.interests.add_to_interests')"
                 :aria-label="__('ui.interests.add_to_interests')"

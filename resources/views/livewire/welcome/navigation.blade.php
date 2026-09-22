@@ -98,6 +98,13 @@
                 class="absolute inset-y-0 end-0 flex w-[min(20rem,calc(100vw-3rem))] flex-col border-s border-base-300 bg-base-100 shadow-2xl"
             >
                 <div class="flex-1 overflow-y-auto">
+                    <div class="border-b border-base-300 bg-base-200/40 px-4 py-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <x-locale-toggle @click="close()" />
+                            <x-theme-toggle class="btn btn-ghost btn-sm" />
+                        </div>
+                    </div>
+
                     <div class="border-b border-base-300 px-4 py-4">
                         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
                             {{ __('ui.nav.navigation') }}
@@ -110,6 +117,7 @@
                                     @click="close()"
                                     class="font-display"
                                 >
+                                    <x-icon name="o-magnifying-glass" class="h-4 w-4 shrink-0" />
                                     {{ __('ui.nav.browse_events') }}
                                 </a>
                             </li>
@@ -120,6 +128,7 @@
                                     @click="close()"
                                     class="font-display"
                                 >
+                                    <x-icon name="o-map-pin" class="h-4 w-4 shrink-0" />
                                     {{ __('ui.nav.places') }}
                                 </a>
                             </li>
@@ -130,6 +139,7 @@
                                     @click="close()"
                                     class="font-display"
                                 >
+                                    <x-icon name="o-building-office-2" class="h-4 w-4 shrink-0" />
                                     {{ __('ui.nav.organizations') }}
                                 </a>
                             </li>
@@ -140,20 +150,11 @@
                                     @click="close()"
                                     class="font-display"
                                 >
+                                    <x-icon name="o-rectangle-stack" class="h-4 w-4 shrink-0" />
                                     {{ __('ui.nav.series') }}
                                 </a>
                             </li>
                         </ul>
-                    </div>
-
-                    <div class="border-b border-base-300 px-4 py-4">
-                        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            {{ __('ui.nav.preferences') }}
-                        </p>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <x-locale-toggle @click="close()" />
-                            <x-theme-toggle class="btn btn-ghost btn-sm" />
-                        </div>
                     </div>
 
                     <div class="px-4 py-4">
@@ -164,18 +165,21 @@
                             @auth
                                 <li>
                                     <a href="{{ url('/dashboard') }}" wire:navigate @click="close()" class="font-display">
+                                        <x-icon name="o-home" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.dashboard') }}
                                     </a>
                                 </li>
                             @else
                                 <li>
                                     <a href="{{ route('login') }}" wire:navigate @click="close()" class="font-display">
+                                        <x-icon name="o-arrow-left-on-rectangle" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.log_in') }}
                                     </a>
                                 </li>
                                 @if (Route::has('register'))
                                     <li>
                                         <a href="{{ route('register') }}" wire:navigate @click="close()" class="font-display">
+                                            <x-icon name="o-user-plus" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.nav.register') }}
                                         </a>
                                     </li>

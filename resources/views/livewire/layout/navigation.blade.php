@@ -188,14 +188,25 @@ new class extends Component
                                 href="{{ route('profile') }}"
                                 data-ui="nav-account-settings"
                             >
+                                <x-icon name="o-cog-6-tooth" class="h-4 w-4 shrink-0" />
                                 {{ __('ui.nav.account_settings') }}
                             </a>
                         </li>
                         @if (auth()->user()->canCreateEvents())
-                            <li><a wire:navigate href="{{ route('organizations.index') }}">{{ __('ui.nav.my_organizations') }}</a></li>
+                            <li>
+                                <a wire:navigate href="{{ route('organizations.index') }}">
+                                    <x-icon name="o-building-office-2" class="h-4 w-4 shrink-0" />
+                                    {{ __('ui.nav.my_organizations') }}
+                                </a>
+                            </li>
                         @endif
                         @if (auth()->user()->canCreateEvents())
-                            <li><a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">{{ __('ui.me.menu_events') }}</a></li>
+                            <li>
+                                <a wire:navigate href="{{ BrowseSearchUrl::myEvents() }}">
+                                    <x-icon name="o-calendar-days" class="h-4 w-4 shrink-0" />
+                                    {{ __('ui.me.menu_events') }}
+                                </a>
+                            </li>
                         @else
                             <li>
                                 <button
@@ -204,20 +215,44 @@ new class extends Component
                                     class="w-full cursor-pointer text-left"
                                     data-ui="nav-request-organizer"
                                 >
+                                    <x-icon name="o-hand-raised" class="h-4 w-4 shrink-0" />
                                     {{ __('ui.user_requests.request_organizer_access') }}
                                 </button>
                             </li>
                         @endif
-                        <li><a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">{{ __('ui.me.menu_activities') }}</a></li>
+                        <li>
+                            <a wire:navigate href="{{ BrowseSearchUrl::myActivities() }}">
+                                <x-icon name="o-puzzle-piece" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.me.menu_activities') }}
+                            </a>
+                        </li>
                         @if (auth()->user()->canCreateEvents())
-                            <li><a wire:navigate href="{{ url_with_return(route('events.create')) }}">{{ __('ui.nav.create_event') }}</a></li>
+                            <li>
+                                <a wire:navigate href="{{ url_with_return(route('events.create')) }}">
+                                    <x-icon name="o-plus-circle" class="h-4 w-4 shrink-0" />
+                                    {{ __('ui.nav.create_event') }}
+                                </a>
+                            </li>
                         @endif
-                        <li><a wire:navigate href="{{ url_with_return(route('activities.create')) }}">{{ __('ui.nav.create_activity') }}</a></li>
+                        <li>
+                            <a wire:navigate href="{{ url_with_return(route('activities.create')) }}">
+                                <x-icon name="o-plus" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.nav.create_activity') }}
+                            </a>
+                        </li>
                         @if (auth()->user()->is_admin)
+                            <li class="menu-title mt-1 border-t border-base-300 pt-2 light:border-neutral">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                    {{ __('ui.nav.admin_section') }}
+                                </span>
+                            </li>
                             @include('livewire.layout.partials.admin-ops-menu-items')
                         @endif
                         <li>
-                            <button type="button" wire:click="logout">{{ __('ui.nav.log_out') }}</button>
+                            <button type="button" wire:click="logout">
+                                <x-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.nav.log_out') }}
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -298,6 +333,17 @@ new class extends Component
                             track-nav-avatar
                             :contact-popover="false"
                         />
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                            <x-locale-toggle @click="close()" />
+                            <x-theme-toggle class="btn btn-ghost btn-sm" />
+                        </div>
+                    </div>
+                @else
+                    <div class="border-b border-base-300 bg-base-200/40 px-4 py-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <x-locale-toggle @click="close()" />
+                            <x-theme-toggle class="btn btn-ghost btn-sm" />
+                        </div>
                     </div>
                 @endauth
 
@@ -352,16 +398,6 @@ new class extends Component
                         </li>
                     </ul>
 
-                    <div class="border-t border-base-300 px-4 py-4">
-                        <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                            {{ __('ui.nav.preferences') }}
-                        </p>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <x-locale-toggle @click="close()" />
-                            <x-theme-toggle class="btn btn-ghost btn-sm" />
-                        </div>
-                    </div>
-
                     @auth
                         <div class="border-t border-base-300 px-4 pb-4 pt-2">
                             <p class="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
@@ -376,6 +412,7 @@ new class extends Component
                                         class="{{ $mobileNavLink(request()->routeIs('profile')) }}"
                                         data-ui="nav-account-settings"
                                     >
+                                        <x-icon name="o-cog-6-tooth" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.account_settings') }}
                                     </a>
                                 </li>
@@ -387,6 +424,7 @@ new class extends Component
                                             @click="close()"
                                             class="{{ $mobileNavLink(request()->routeIs('organizations.index')) }}"
                                         >
+                                            <x-icon name="o-building-office-2" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.nav.my_organizations') }}
                                         </a>
                                     </li>
@@ -399,6 +437,7 @@ new class extends Component
                                             @click="close()"
                                             class="{{ $mobileNavLink(BrowseSearchUrl::isMyEvents(request())) }}"
                                         >
+                                            <x-icon name="o-calendar-days" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.me.menu_events') }}
                                         </a>
                                     </li>
@@ -411,6 +450,7 @@ new class extends Component
                                             class="w-full cursor-pointer text-left"
                                             data-ui="nav-request-organizer"
                                         >
+                                            <x-icon name="o-hand-raised" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.user_requests.request_organizer_access') }}
                                         </button>
                                     </li>
@@ -422,6 +462,7 @@ new class extends Component
                                         @click="close()"
                                         class="{{ $mobileNavLink(BrowseSearchUrl::isMyActivities(request())) }}"
                                     >
+                                        <x-icon name="o-puzzle-piece" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.me.menu_activities') }}
                                     </a>
                                 </li>
@@ -433,6 +474,7 @@ new class extends Component
                                             @click="close()"
                                             class="{{ $mobileNavLink(request()->routeIs('events.create')) }}"
                                         >
+                                            <x-icon name="o-plus-circle" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.nav.create_event') }}
                                         </a>
                                     </li>
@@ -444,14 +486,21 @@ new class extends Component
                                         @click="close()"
                                         class="{{ $mobileNavLink(request()->routeIs('activities.create')) }}"
                                     >
+                                        <x-icon name="o-plus" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.create_activity') }}
                                     </a>
                                 </li>
                                 @if (auth()->user()->is_admin)
+                                    <li class="menu-title mt-1 border-t border-base-300 pt-2 light:border-neutral">
+                                        <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                            {{ __('ui.nav.admin_section') }}
+                                        </span>
+                                    </li>
                                     @include('livewire.layout.partials.admin-ops-menu-items', ['closeOnClick' => true])
                                 @endif
                                 <li>
                                     <button type="button" wire:click="logout" @click="close()">
+                                        <x-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
                                         {{ __('Log Out') }}
                                     </button>
                                 </li>
@@ -471,6 +520,7 @@ new class extends Component
                                         @click="close()"
                                         class="font-display"
                                     >
+                                        <x-icon name="o-arrow-left-on-rectangle" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.log_in') }}
                                     </a>
                                 </li>
@@ -481,6 +531,7 @@ new class extends Component
                                             @click="close()"
                                             class="font-display"
                                         >
+                                            <x-icon name="o-user-plus" class="h-4 w-4 shrink-0" />
                                             {{ __('ui.nav.register') }}
                                         </a>
                                     </li>

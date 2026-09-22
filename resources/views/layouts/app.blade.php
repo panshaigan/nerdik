@@ -59,13 +59,12 @@
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.terms') }}</a>
-                        <a href="{{ route('contact') }}" class="link link-hover opacity-80" wire:navigate>{{ __('ui.footer.contact') }}</a>
                         <button
                             type="button"
                             class="link link-hover opacity-80"
                             x-data
                             x-on:click="$dispatch('open-feedback-modal')"
-                        >{{ __('feedback.modal.trigger') }}</button>
+                        >{{ __('ui.footer.contact') }}</button>
                     </div>
                 </div>
             </footer>

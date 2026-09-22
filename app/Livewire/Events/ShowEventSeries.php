@@ -207,6 +207,8 @@ class ShowEventSeries extends Component
         $hasUpcomingFollow = $upcomingEventIds !== [];
         $hasUpcomingInterest = $hasUpcomingFollow
             && array_diff($upcomingEventIds, $interestedEventIds) === [];
+        $upcomingInterestedPeopleCount = collect($upcomingEventIds)
+            ->sum(fn (int $eventId): int => (int) ($eventStatsById[$eventId]['interested_people_count'] ?? 0));
 
         return view('livewire.events.show-event-series', [
             'series' => $series,
@@ -229,6 +231,7 @@ class ShowEventSeries extends Component
                 ->first(),
             'hasUpcomingFollow' => $hasUpcomingFollow,
             'hasUpcomingInterest' => $hasUpcomingInterest,
+            'upcomingInterestedPeopleCount' => $upcomingInterestedPeopleCount,
             ...$this->resolveActivityPreviewViewData($participationView, $badgeGroupBuilder, $signupService),
             ...$this->resolveEventPreviewViewData($listingCardPresenter),
             'includeEventPreviewModal' => true,

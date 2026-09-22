@@ -233,6 +233,7 @@ class NavigationMenuTest extends TestCase
         $this->actingAs($admin)
             ->get(route('dashboard'))
             ->assertOk()
+            ->assertSee(__('ui.nav.admin_section'), false)
             ->assertSee(__('ui.nav.admin_panel'), false)
             ->assertSee(__('ui.nav.pulse'), false)
             ->assertSee(__('ui.nav.production'), false)

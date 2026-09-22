@@ -51,7 +51,7 @@
                     try {
                         ed.fire('ResizeEditor');
                         const rawH = ed.options?.get?.('height');
-                        const h = typeof rawH === 'number' ? rawH : 180;
+                        const h = typeof rawH === 'number' ? rawH : 360;
                         if (ed.theme && typeof ed.theme.resizeTo === 'function') {
                             ed.theme.resizeTo('100%', h);
                         }
@@ -101,10 +101,11 @@
                 wire:model="open"
                 without-trap-focus
                 :title="__('feedback.modal.title')"
-                box-class="max-w-2xl overflow-x-hidden ui-modal-surface ui-overlay-shell"
-                class="backdrop-blur"
+                box-class="overflow-x-hidden ui-modal-surface ui-overlay-shell ui-overlay-sheet"
+                class="backdrop-blur modal-bottom md:modal-end"
                 separator
                 data-feedback-modal
+                data-ui="overlay-sheet"
             >
                 <div
                     wire:key="feedback-modal-body-{{ $modalRenderKey }}"
@@ -128,7 +129,7 @@
                             window.destroyNerdikFeedbackModalTinyMCE?.();
                         };
                     "
-                    class="space-y-4 pt-2"
+                    class="min-h-0 space-y-4 pt-2"
                     data-ui="feedback-form"
                     id="ui-feedback-form"
                 >

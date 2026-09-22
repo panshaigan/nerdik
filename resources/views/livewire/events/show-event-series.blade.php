@@ -14,6 +14,21 @@
                     />
                 </x-slot:subtitle>
             @endif
+            @if ($hasUpcomingFollow)
+                <x-slot:info>
+                    <div class="flex items-end justify-end" data-ui="event-series-show-info">
+                        <div class="ml-auto shrink-0 self-end" data-ui="event-series-show-follow">
+                            <x-ui.follow-interest-button
+                                :has-interest="$hasUpcomingInterest"
+                                :count="$upcomingInterestedPeopleCount"
+                                add-action="toggleUpcomingInterest"
+                                remove-action="toggleUpcomingInterest"
+                                data-ui-prefix="event-series-show"
+                            />
+                        </div>
+                    </div>
+                </x-slot:info>
+            @endif
         </x-page-header>
 
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">
@@ -67,29 +82,6 @@
                                         {{ __('ui.common.delete') }}
                                     </x-ui.overflow-menu-item>
                                 </x-ui.overflow-menu>
-                            @endif
-                            @if ($hasUpcomingFollow)
-                                @if ($hasUpcomingInterest)
-                                    <x-button
-                                        type="button"
-                                        wire:click="toggleUpcomingInterest"
-                                        class="btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                        :tooltip="__('ui.interests.remove_from_interests')"
-                                        :aria-label="__('ui.interests.remove_from_interests')"
-                                        data-ui="event-series-show-interest-remove"
-                                        icon="s-star"
-                                    />
-                                @else
-                                    <x-button
-                                        type="button"
-                                        wire:click="toggleUpcomingInterest"
-                                        class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                        :tooltip="__('ui.interests.add_to_interests')"
-                                        :aria-label="__('ui.interests.add_to_interests')"
-                                        data-ui="event-series-show-interest-add"
-                                        icon="o-star"
-                                    />
-                                @endif
                             @endif
                         @endauth
                     </div>

@@ -90,15 +90,6 @@ final class Seo
         ));
     }
 
-    public static function forContact(): SeoMetadata
-    {
-        return self::withDefaultImage(new SeoMetadata(
-            title: self::pageTitle((string) __('legal.contact.title')),
-            description: (string) __('ui.seo.contact_description'),
-            canonical: route('contact'),
-        ));
-    }
-
     public static function forEvent(Event $event): SeoMetadata
     {
         $description = rich_text_excerpt($event->description, 160);

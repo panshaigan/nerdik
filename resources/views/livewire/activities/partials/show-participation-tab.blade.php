@@ -69,7 +69,18 @@
                 </div>
             @endif
             @forelse ($nonHostParticipants as $p)
-                <x-list-item :item="$p" :avatar="false" value="id" class="ui-participant-list-item px-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2">
+                @php
+                    $participantRowIndex = $showManagerHostLateRow ? $loop->iteration : $loop->index;
+                @endphp
+                <x-list-item
+                    :item="$p"
+                    :avatar="false"
+                    value="id"
+                    @class([
+                        'ui-participant-list-item px-3 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2',
+                        'bg-base-200/40' => $participantRowIndex % 2 === 1,
+                    ])
+                >
                     <x-slot:value class="min-w-0 text-sm text-base-content">
                             <div class="flex min-w-0 items-center gap-2">
                                 <x-user-badge
@@ -182,7 +193,15 @@
             @else
                 <div class="">
                     @foreach ($activity->waitlist as $entry)
-                        <x-list-item :item="$entry" :avatar="false" value="position" class="ui-participant-list-item px-3 py-3">
+                        <x-list-item
+                            :item="$entry"
+                            :avatar="false"
+                            value="position"
+                            @class([
+                                'ui-participant-list-item px-3 py-3',
+                                'bg-base-200/40' => $loop->even,
+                            ])
+                        >
                             <x-slot:value class="min-w-0 text-sm text-base-content">
                                 <div class="flex min-w-0 items-center gap-2">
                                     @if ($canManageActivity && $activity->isHostApprovalMode())

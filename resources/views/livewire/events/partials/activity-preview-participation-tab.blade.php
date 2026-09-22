@@ -22,7 +22,14 @@
         <div class="min-w-0" data-ui="event-activity-preview-participants">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.activities.show_participants') }}</h3>
             @forelse ($activity->participants as $participant)
-                <x-list-item :item="$participant" :avatar="false" class="ui-participant-list-item px-3 py-3">
+                <x-list-item
+                    :item="$participant"
+                    :avatar="false"
+                    @class([
+                        'ui-participant-list-item px-3 py-3',
+                        'bg-base-200/40' => $loop->even,
+                    ])
+                >
                     <x-slot:value class="min-w-0 text-sm text-base-content">
                         <div class="flex min-w-0 items-center gap-2">
                             <x-user-badge
@@ -54,7 +61,15 @@
             @else
                 <div>
                     @foreach ($activity->waitlist as $entry)
-                        <x-list-item :item="$entry" :avatar="false" value="position" class="ui-participant-list-item px-3 py-3">
+                        <x-list-item
+                            :item="$entry"
+                            :avatar="false"
+                            value="position"
+                            @class([
+                                'ui-participant-list-item px-3 py-3',
+                                'bg-base-200/40' => $loop->even,
+                            ])
+                        >
                             <x-slot:value class="min-w-0 text-sm text-base-content">
                                 <x-user-badge
                                     :user="$entry->user"

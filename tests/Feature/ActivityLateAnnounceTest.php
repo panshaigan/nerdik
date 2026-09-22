@@ -478,14 +478,15 @@ class ActivityLateAnnounceTest extends TestCase
         $this->assertStringContainsString('+15', $html);
     }
 
-    public function test_overflow_menu_uses_daisyui_tooltip_not_title(): void
+    public function test_overflow_menu_dropdown_trigger_has_aria_label_without_tooltip(): void
     {
         $html = Blade::render(
             '<x-ui.overflow-menu icon="o-share" label="Share"><span>item</span></x-ui.overflow-menu>'
         );
 
-        $this->assertStringContainsString('data-tip="Share"', $html);
-        $this->assertStringContainsString('tooltip tooltip-bottom', $html);
+        $this->assertStringContainsString('aria-label="Share"', $html);
+        $this->assertStringNotContainsString('data-tip="Share"', $html);
+        $this->assertStringNotContainsString('tooltip tooltip-bottom', $html);
         $this->assertStringNotContainsString('title="Share"', $html);
     }
 }

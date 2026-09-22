@@ -18,7 +18,6 @@ return [
 
     'modal' => [
         'title' => 'Kontakt',
-        'trigger' => 'Formularz kontaktu',
         'type' => 'Typ',
         'subject' => 'Temat',
         'body' => 'Wiadomość',
