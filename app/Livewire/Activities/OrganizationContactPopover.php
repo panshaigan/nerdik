@@ -4,8 +4,11 @@ namespace App\Livewire\Activities;
 
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Models\EventSeries;
 use App\Models\Organization;
+use App\Models\Place;
 use App\Models\User;
+use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Livewire\Component;
@@ -90,11 +93,56 @@ class OrganizationContactPopover extends Component
     }
 
     /**
+     * @return Collection<int, EventSeries>
+     */
+    private function organizationEventSeries(int $organizationId): Collection
+    {
+        $viewer = auth()->user();
+
+        return EventSeries::query()
+            ->whereHas('events', fn (Builder $query) => $query
+                ->where('organization_id', $organizationId)
+                ->whereNull('deleted_at')
+            )
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (EventSeries $series): bool => $series->isVisibleTo($viewer))
+            ->values();
+    }
+
+    /**
+     * @return list<array{url: string, label: string}>
+     */
+    private function organizationPlaceLinks(int $organizationId): array
+    {
+        return Place::query()
+            ->venues()
+            ->with(['city.translations', 'country.translations'])
+            ->whereHas('events', fn (Builder $query) => $query
+                ->where('organization_id', $organizationId)
+                ->whereNull('deleted_at')
+            )
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Place $place): array => [
+                'url' => BrowseSearchUrl::forPlace($place),
+                'label' => $place->compactVenueSummary(),
+            ])
+            ->filter(fn (array $link): bool => $link['label'] !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return array{
      *     targetOrganization: ?Organization,
      *     scheduledStatsByType: array<int, array{label: string, count: int}>,
      *     participantStatsByType: array<int, array{label: string, count: int}>,
      *     members: Collection<int, User>,
+     *     eventSeries: Collection<int, EventSeries>,
+     *     placeLinks: list<array{url: string, label: string}>,
      * }
      */
     private function resolveViewData(): array
@@ -117,6 +165,8 @@ class OrganizationContactPopover extends Component
             'scheduledStatsByType' => $this->scheduledStatsByType($targetOrganization->id),
             'participantStatsByType' => $this->participantStatsByType($targetOrganization->id),
             'members' => $this->organizationMembers($targetOrganization->id),
+            'eventSeries' => $this->organizationEventSeries($targetOrganization->id),
+            'placeLinks' => $this->organizationPlaceLinks($targetOrganization->id),
         ];
     }
 
@@ -126,6 +176,8 @@ class OrganizationContactPopover extends Component
      *     scheduledStatsByType: array<int, array{label: string, count: int}>,
      *     participantStatsByType: array<int, array{label: string, count: int}>,
      *     members: Collection<int, User>,
+     *     eventSeries: Collection<int, EventSeries>,
+     *     placeLinks: list<array{url: string, label: string}>,
      * }
      */
     private function emptyState(): array
@@ -135,6 +187,8 @@ class OrganizationContactPopover extends Component
             'scheduledStatsByType' => [],
             'participantStatsByType' => [],
             'members' => collect(),
+            'eventSeries' => collect(),
+            'placeLinks' => [],
         ];
     }
 

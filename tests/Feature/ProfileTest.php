@@ -14,7 +14,9 @@ use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Organization;
+use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
 use App\Support\Browse\BrowseSearchUrl;
@@ -1154,13 +1156,16 @@ class ProfileTest extends TestCase
             ->assertSeeHtml('data-ui="overlay-sheet"')
             ->assertSeeHtml('data-overlay-sticky-footer')
             ->assertSeeHtml('data-ui="organization-contact-popover-body"')
+            ->assertSeeHtml('data-ui="overlay-sticky-tabs"')
             ->assertSee('Guild of Nerds', false)
             ->assertSee('We run tabletop events.')
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.board')]))
             ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.rpg')]))
             ->assertSee(__('ui.organizations.participants_type', ['type' => __('ui.activities.types.board')]))
-            ->assertSee('guild_member');
+            ->assertSee('guild_member')
+            ->assertSee(__('ui.organizations.events'))
+            ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization));
     }
 
     public function test_organization_contact_popover_lists_members_with_organization_id(): void
@@ -1244,8 +1249,53 @@ class ProfileTest extends TestCase
             ])
             ->assertSee(__('ui.organizations.scheduled_type', ['type' => __('ui.activities.types.rpg')]))
             ->assertSee('1', false)
-            ->assertSee(__('ui.organizations.see_all_events_and_activities'))
+            ->assertSee(__('ui.organizations.events'))
             ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization));
+    }
+
+    public function test_organization_contact_popover_lists_event_series_and_places(): void
+    {
+        $viewer = User::factory()->create();
+        $host = User::factory()->create();
+        $organization = Organization::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Monthly Guild Night',
+            'created_by' => $host->id,
+        ]);
+        $venue = Place::factory()->create([
+            'name' => 'Guild Hall Venue',
+            'type' => Place::TYPE_VENUE,
+        ]);
+        $event = Event::factory()->create([
+            'organization_id' => $organization->id,
+            'event_series_id' => $series->id,
+            'is_public' => true,
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+        ]);
+        $event->places()->attach($venue->id);
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationContactPopover::class, [
+                'targetOrganizationId' => $organization->id,
+            ])
+            ->assertSee('Monthly Guild Night')
+            ->assertSee('Guild Hall Venue')
+            ->assertSeeHtml(route('event-series.show', $series))
+            ->assertSeeHtml(BrowseSearchUrl::forPlace($venue));
+    }
+
+    public function test_organization_contact_popover_shows_empty_series_and_places_messages(): void
+    {
+        $viewer = User::factory()->create();
+        $organization = Organization::factory()->create();
+
+        Livewire::actingAs($viewer)
+            ->test(OrganizationContactPopover::class, [
+                'targetOrganizationId' => $organization->id,
+            ])
+            ->assertSee(__('ui.organizations.no_event_series'))
+            ->assertSee(__('ui.organizations.no_places'));
     }
 
     public function test_organization_badge_with_contact_popover_disabled_does_not_render_trigger(): void
