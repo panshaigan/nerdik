@@ -19,7 +19,7 @@ final class CatalogQuery
     {
         $query = Place::query()
             ->venues()
-            ->with(['city', 'country'])
+            ->with(['city', 'country', 'links'])
             ->orderBy('places.name')
             ->orderBy('places.id');
 

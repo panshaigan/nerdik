@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasAutoSlug;
+use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
 use Database\Factories\EventSeriesFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Support\Collection;
 class EventSeries extends Model
 {
     /** @use HasFactory<EventSeriesFactory> */
-    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string

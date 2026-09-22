@@ -1,5 +1,5 @@
 <div class="flex flex-col" data-ui="activity-show-info">
-    <div class="px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:px-8">
+    <div class="space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pt-5 lg:px-8">
         @if (filled(rich_text_excerpt($activity->description)))
             <div class="rich-text-content text-justify text-base-content/80">
                 {!! rich_text($activity->description) !!}
@@ -7,6 +7,16 @@
         @else
             <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>
         @endif
+
+        <livewire:entity-links.manage-entity-links
+            :linkable="$activity"
+            :show-list="true"
+            :listen-for-open-add="false"
+            instance-suffix="about"
+            appearance="default"
+            data-ui="activity-show-entity-links"
+            :key="'activity-entity-links-about-'.$activity->id"
+        />
     </div>
 
     <div
@@ -42,6 +52,13 @@
                             <span>{{ $scheduleVenue->city->name(app()->getLocale()) }}</span>
                         @endif
                     </p>
+                    @if ($scheduleVenue->relationLoaded('links') && $scheduleVenue->links->isNotEmpty())
+                        <x-ui.entity-links
+                            :links="$scheduleVenue->links"
+                            appearance="overlay"
+                            data-ui="activity-show-place-links"
+                        />
+                    @endif
                 @elseif (filled($schedulePlaceSummary ?? null))
                     <p class="text-sm font-medium">{{ $schedulePlaceSummary }}</p>
                 @endif

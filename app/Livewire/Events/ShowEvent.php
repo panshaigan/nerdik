@@ -6,6 +6,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithUiConfirmModal;
+use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
@@ -164,6 +165,21 @@ class ShowEvent extends Component
         abort_unless($user !== null, 403);
         $interests->removeEventInterest($user, $event);
         $this->warning(__('ui.interests.removed_event'));
+    }
+
+    /**
+     * Opens the entity-links modal (organizers / admins).
+     */
+    public function openAddEntityLink(): void
+    {
+        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null && $user->canManageEntityLinks($event), 403);
+
+        $this->dispatch(
+            'open-add-entity-link',
+            key: $event->getMorphClass().'-'.$event->id,
+        )->to(ManageEntityLinks::class);
     }
 
     /**

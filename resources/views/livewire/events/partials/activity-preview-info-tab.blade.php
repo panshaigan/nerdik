@@ -46,6 +46,12 @@
         <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>
     @endif
 
+    <x-ui.entity-links
+        :links="$activity->links"
+        appearance="default"
+        data-ui="event-activity-preview-entity-links"
+    />
+
     <x-ui.activity-badge-group
         :items="$badgeItems"
         data-ui="event-activity-preview-badge-group"

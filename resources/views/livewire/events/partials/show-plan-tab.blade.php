@@ -76,6 +76,20 @@
         </div>
     @endif
 
+    @if ($canManageEvent || $event->links->isNotEmpty())
+        <div class="mb-4 px-0 sm:px-0" data-ui="event-show-plan-links">
+            <livewire:entity-links.manage-entity-links
+                :linkable="$event"
+                :show-list="true"
+                :listen-for-open-add="false"
+                instance-suffix="plan"
+                appearance="default"
+                data-ui="event-show-entity-links"
+                :key="'event-entity-links-plan-'.$event->id"
+            />
+        </div>
+    @endif
+
     @if ($hasEventDescription || $hasEnrollmentWindows)
         <div class="py-2" data-ui="event-show-plan-meta">
             <x-collapse

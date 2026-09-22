@@ -37,8 +37,6 @@ class PlacesTable
                 BelongsToColumn::record('city', searchable: true),
                 TextColumn::make('address')
                     ->searchable(),
-                TextColumn::make('links')
-                    ->searchable(),
                 IconColumn::make('is_online')
                     ->boolean(),
                 TextColumn::make('latitude')

@@ -81,6 +81,17 @@
         </div>
     @endif
 
+    @if ($targetOrganization !== null && $targetOrganization->links->isNotEmpty())
+        <div class="space-y-2" data-ui="organization-contact-popover-links">
+            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">{{ __('ui.entity_links.section') }}</p>
+            <x-ui.entity-links
+                :links="$targetOrganization->links"
+                appearance="compact"
+                data-ui="organization-contact-popover-entity-links"
+            />
+        </div>
+    @endif
+
     @if ($targetOrganization !== null)
         <div class="border-t border-base-300 pt-4" data-ui="organization-contact-popover-requests">
             @if (! auth()->user()?->canModifyEntity($targetOrganization) && (int) auth()->id() !== (int) $targetOrganization->created_by && (int) auth()->user()?->organization_id !== (int) $targetOrganization->id)

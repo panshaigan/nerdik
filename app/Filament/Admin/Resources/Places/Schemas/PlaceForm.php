@@ -29,7 +29,6 @@ class PlaceForm
                 ),
                 BelongsToSelect::place('parent_id', 'parent'),
                 TextInput::make('address'),
-                TextInput::make('links'),
                 Toggle::make('is_online')
                     ->required(),
                 TextInput::make('latitude')

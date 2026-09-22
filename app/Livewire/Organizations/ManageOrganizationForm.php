@@ -160,6 +160,13 @@ class ManageOrganizationForm extends Component
         return $organization?->cropSourceImageUrl();
     }
 
+    public function editingOrganization(): Organization
+    {
+        abort_unless($this->editingOrganizationId !== null, 404);
+
+        return Organization::query()->whereKey($this->editingOrganizationId)->firstOrFail();
+    }
+
     public function getGeneratedLogoPreviewUrlProperty(): string
     {
         $previewOrganization = new Organization([

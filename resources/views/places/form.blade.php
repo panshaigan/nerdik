@@ -65,18 +65,22 @@
     </div>
 
     <div>
-        <x-input
-            label="{{ __('Links (optional)') }}"
-            name="links"
-            type="text"
-            value="{{ old('links', $place->links ?? '') }}"
-            error-field="links"
-        />
-    </div>
-
-    <div>
         <x-textarea label="{{ __('Description (optional)') }}" name="description" error-field="description" rows="3">{{ old('description', $place->description ?? '') }}</x-textarea>
     </div>
+
+    @if ($place->exists)
+        <div class="space-y-2" data-ui="place-form-entity-links">
+            <p class="text-sm font-semibold text-base-content">{{ __('ui.entity_links.section') }}</p>
+            <livewire:entity-links.manage-entity-links
+                :linkable="$place"
+                :show-list="true"
+                :show-add-button="true"
+                appearance="default"
+                data-ui="place-form-entity-links"
+                :key="'place-entity-links-'.$place->id"
+            />
+        </div>
+    @endif
 
     <x-checkbox
         id="is_online"

@@ -446,6 +446,7 @@ class EventShowPlanTab extends Component
         $event->load([
             'places',
             'enrollmentWindows',
+            'links',
         ]);
 
         $enrollment = $slotPresentation->enrollmentPresentation($event, now());

@@ -1,6 +1,19 @@
 <div class="relative" data-ui="event-series-show" data-show-event-series-id="{{ $series->id }}">
     <div class="relative z-0 space-y-4 sm:space-y-6">
         <x-page-header :title="$series->name">
+            @if ($series->links->isNotEmpty())
+                <x-slot:subtitle>
+                    <livewire:entity-links.manage-entity-links
+                        :linkable="$series"
+                        :show-list="true"
+                        :listen-for-open-add="false"
+                        instance-suffix="subtitle"
+                        appearance="subtitle"
+                        data-ui="event-series-show-entity-links"
+                        :key="'event-series-entity-links-subtitle-'.$series->id"
+                    />
+                </x-slot:subtitle>
+            @endif
             <x-slot:info>
                 <div
                     class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:items-stretch"
@@ -70,6 +83,13 @@
                                         data-ui="event-series-show-delete"
                                     >
                                         {{ __('ui.common.delete') }}
+                                    </x-ui.overflow-menu-item>
+                                    <x-ui.overflow-menu-item
+                                        icon="o-link"
+                                        wire:click="openAddEntityLink"
+                                        data-ui="event-series-show-add-link"
+                                    >
+                                        {{ __('ui.entity_links.add_action') }}
                                     </x-ui.overflow-menu-item>
                                 </x-ui.overflow-menu>
                             @endif
@@ -285,4 +305,15 @@
         :message="$confirmModalMessage"
         confirm-action="runConfirmedAction"
     />
+
+    @if ($canManageSeries ?? false)
+        <livewire:entity-links.manage-entity-links
+            :linkable="$series"
+            :show-list="false"
+            :listen-for-open-add="true"
+            instance-suffix="shell"
+            data-ui="event-series-show-entity-links-shell"
+            :key="'event-series-entity-links-shell-'.$series->id"
+        />
+    @endif
 </div>

@@ -132,59 +132,70 @@
                                     data-ui="activity-show-late-announce"
                                 />
                             @endif
-                            @if ($canManageActivity)
+                            @if ($canManageActivity || ($canManageEntityLinks ?? false))
                                 <x-ui.overflow-menu
                                     icon="o-cog-6-tooth"
                                     :label="__('ui.common.manage')"
                                     panel-class="w-64"
                                     data-ui="activity-show-manage"
                                 >
-                                    <x-ui.overflow-menu-item
-                                        icon="o-printer"
-                                        :href="route('activities.participants.pdf', $activity)"
-                                        external
-                                        data-ui="activity-show-print-participants"
-                                    >
-                                        {{ __('ui.pdf.roster.print_action') }}
-                                    </x-ui.overflow-menu-item>
-                                    <x-ui.overflow-menu-item
-                                        icon="o-pencil"
-                                        :href="url_with_return(route('activities.edit', $activity))"
-                                        data-ui="activity-show-edit"
-                                    >
-                                        {{ __('ui.common.edit') }}
-                                    </x-ui.overflow-menu-item>
-                                    <x-ui.overflow-menu-item
-                                        icon="o-square-2-stack"
-                                        :href="url_with_return(route('activities.create', ['duplicate' => $activity->slug]))"
-                                        data-ui="activity-show-duplicate"
-                                    >
-                                        {{ __('ui.activities.duplicate_action') }}
-                                    </x-ui.overflow-menu-item>
-                                    @if ($canHardDeleteActivity ?? false)
+                                    @if ($canManageActivity)
                                         <x-ui.overflow-menu-item
-                                            icon="o-trash"
-                                            class="text-error"
-                                            wire:click="confirmDeleteActivity"
-                                            data-ui="activity-show-delete"
+                                            icon="o-printer"
+                                            :href="route('activities.participants.pdf', $activity)"
+                                            external
+                                            data-ui="activity-show-print-participants"
                                         >
-                                            {{ __('ui.common.delete') }}
+                                            {{ __('ui.pdf.roster.print_action') }}
                                         </x-ui.overflow-menu-item>
+                                        <x-ui.overflow-menu-item
+                                            icon="o-pencil"
+                                            :href="url_with_return(route('activities.edit', $activity))"
+                                            data-ui="activity-show-edit"
+                                        >
+                                            {{ __('ui.common.edit') }}
+                                        </x-ui.overflow-menu-item>
+                                        <x-ui.overflow-menu-item
+                                            icon="o-square-2-stack"
+                                            :href="url_with_return(route('activities.create', ['duplicate' => $activity->slug]))"
+                                            data-ui="activity-show-duplicate"
+                                        >
+                                            {{ __('ui.activities.duplicate_action') }}
+                                        </x-ui.overflow-menu-item>
+                                        @if ($canHardDeleteActivity ?? false)
+                                            <x-ui.overflow-menu-item
+                                                icon="o-trash"
+                                                class="text-error"
+                                                wire:click="confirmDeleteActivity"
+                                                data-ui="activity-show-delete"
+                                            >
+                                                {{ __('ui.common.delete') }}
+                                            </x-ui.overflow-menu-item>
+                                        @endif
+                                        @if ($isCancelled)
+                                            <x-ui.overflow-menu-item
+                                                icon="o-arrow-uturn-left"
+                                                wire:click="confirmReopenActivity"
+                                            >
+                                                {{ __('ui.activities.reopen_action') }}
+                                            </x-ui.overflow-menu-item>
+                                        @else
+                                            <x-ui.overflow-menu-item
+                                                icon="o-x-circle"
+                                                class="text-warning"
+                                                wire:click="confirmCancelActivity"
+                                            >
+                                                {{ __('ui.activities.cancel_action') }}
+                                            </x-ui.overflow-menu-item>
+                                        @endif
                                     @endif
-                                    @if ($isCancelled)
+                                    @if ($canManageEntityLinks ?? false)
                                         <x-ui.overflow-menu-item
-                                            icon="o-arrow-uturn-left"
-                                            wire:click="confirmReopenActivity"
+                                            icon="o-link"
+                                            wire:click="openAddEntityLink"
+                                            data-ui="activity-show-add-link"
                                         >
-                                            {{ __('ui.activities.reopen_action') }}
-                                        </x-ui.overflow-menu-item>
-                                    @else
-                                        <x-ui.overflow-menu-item
-                                            icon="o-x-circle"
-                                            class="text-warning"
-                                            wire:click="confirmCancelActivity"
-                                        >
-                                            {{ __('ui.activities.cancel_action') }}
+                                            {{ __('ui.entity_links.add_action') }}
                                         </x-ui.overflow-menu-item>
                                     @endif
                                 </x-ui.overflow-menu>
@@ -237,6 +248,17 @@
         :message="$confirmModalMessage"
         confirm-action="runConfirmedAction"
     />
+
+    @if ($canManageEntityLinks ?? false)
+        <livewire:entity-links.manage-entity-links
+            :linkable="$activity"
+            :show-list="false"
+            :listen-for-open-add="true"
+            instance-suffix="shell"
+            data-ui="activity-show-entity-links-shell"
+            :key="'activity-entity-links-shell-'.$activity->id"
+        />
+    @endif
 
     @include('livewire.partials.familiarity-prompt-modal')
 </div>

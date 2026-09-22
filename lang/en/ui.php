@@ -96,6 +96,18 @@ return [
         'click_for_details' => 'Click here for more details',
         'activity_stats_title' => 'Activity stats',
     ],
+    'entity_links' => [
+        'add_action' => 'Add link',
+        'edit_action' => 'Edit link',
+        'remove_action' => 'Remove link',
+        'remove_confirm' => 'Remove this link?',
+        'name' => 'Name',
+        'url' => 'URL',
+        'created' => 'Link added.',
+        'updated' => 'Link updated.',
+        'deleted' => 'Link removed.',
+        'section' => 'Links',
+    ],
     'footer' => [
         'copyright' => ':year Piotr Kurpiewski',
         'privacy' => 'Privacy',

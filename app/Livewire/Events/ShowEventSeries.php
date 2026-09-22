@@ -6,6 +6,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Livewire\Concerns\WithUiConfirmModal;
+use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\EventSeries;
@@ -108,6 +109,18 @@ class ShowEventSeries extends Component
         );
     }
 
+    public function openAddEntityLink(): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        $user = Auth::user();
+        abort_unless($user !== null && $user->canManageEntityLinks($series), 403);
+
+        $this->dispatch(
+            'open-add-entity-link',
+            key: $series->getMorphClass().'-'.$series->id,
+        )->to(ManageEntityLinks::class);
+    }
+
     public function runConfirmedAction(): void
     {
         $action = $this->pendingAction;
@@ -149,6 +162,7 @@ class ShowEventSeries extends Component
     ): View {
         $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
         abort_unless($series->isVisibleTo(auth()->user()), 404);
+        $series->load('links');
 
         /** @var Collection<int, Event> $events */
         $events = $this->seriesEventsQuery()

@@ -277,7 +277,7 @@ trait WithActivityPreviewModal
     {
         return Activity::query()
             ->whereKey($activityId)
-            ->with(['slot.place.parent', 'place.parent']);
+            ->with(['slot.place.parent', 'place.parent', 'links']);
     }
 
     protected function showPreviewParticipationActions(?Activity $activity): bool

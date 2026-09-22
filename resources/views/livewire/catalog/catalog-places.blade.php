@@ -22,7 +22,7 @@
                         $address = filled($place->address) ? trim((string) $place->address) : null;
                         $location = $place->locationLabel();
                     @endphp
-                    <div wire:key="catalog-place-{{ $place->id }}" class="contents">
+                    <div wire:key="catalog-place-{{ $place->id }}" class="flex h-full flex-col gap-2">
                         <x-catalog.catalog-card
                             :href="BrowseSearchUrl::forPlace($place)"
                             :title="$place->name"
@@ -30,6 +30,12 @@
                             :detail="$address !== null && filled($location) ? $location : null"
                             icon="o-map-pin"
                             data-ui="catalog-place-card"
+                        />
+                        <x-ui.entity-links
+                            :links="$place->links"
+                            appearance="compact"
+                            data-ui="catalog-place-entity-links"
+                            class="px-1"
                         />
                     </div>
                 @empty

@@ -96,6 +96,18 @@ return [
         'click_for_details' => 'Kliknij, aby zobaczyć więcej',
         'activity_stats_title' => 'Statystyki aktywności',
     ],
+    'entity_links' => [
+        'add_action' => 'Dodaj link',
+        'edit_action' => 'Edytuj link',
+        'remove_action' => 'Usuń link',
+        'remove_confirm' => 'Usunąć ten link?',
+        'name' => 'Nazwa',
+        'url' => 'URL',
+        'created' => 'Dodano link.',
+        'updated' => 'Zaktualizowano link.',
+        'deleted' => 'Usunięto link.',
+        'section' => 'Linki',
+    ],
     'footer' => [
         'copyright' => ':year Piotr Kurpiewski',
         'privacy' => 'Prywatność',

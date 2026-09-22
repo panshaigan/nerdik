@@ -46,6 +46,20 @@
                     <x-field-error :messages="$errors->get('description')" class="mt-2" />
                 </div>
 
+                @if ($editingOrganizationId)
+                    <div class="space-y-2" data-ui="organization-form-entity-links">
+                        <p class="text-sm font-semibold text-base-content">{{ __('ui.entity_links.section') }}</p>
+                        <livewire:entity-links.manage-entity-links
+                            :linkable="$this->editingOrganization()"
+                            :show-list="true"
+                            :show-add-button="true"
+                            appearance="default"
+                            data-ui="organization-form-entity-links"
+                            :key="'organization-entity-links-'.$editingOrganizationId"
+                        />
+                    </div>
+                @endif
+
                 <fieldset class="fieldset py-0">
                     <legend class="fieldset-legend mb-2">{{ __('ui.organizations.logo_source') }}</legend>
                     <div class="grid gap-3 sm:grid-cols-2">

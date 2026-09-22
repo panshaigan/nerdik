@@ -6,6 +6,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Livewire\Concerns\WithFamiliarityPrompt;
 use App\Livewire\Concerns\WithUiConfirmModal;
+use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
@@ -89,6 +90,18 @@ class ShowActivity extends Component
     public function confirmReopenActivity(): void
     {
         $this->openConfirm('reopen_activity', __('ui.activities.reopen_action'), __('ui.activities.reopen_confirm'));
+    }
+
+    public function openAddEntityLink(): void
+    {
+        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user instanceof User && $user->canManageEntityLinks($activity), 403);
+
+        $this->dispatch(
+            'open-add-entity-link',
+            key: $activity->getMorphClass().'-'.$activity->id,
+        )->to(ManageEntityLinks::class);
     }
 
     public function confirmMoveParticipantToWaitlist(int $participantId): void
@@ -363,12 +376,17 @@ class ShowActivity extends Component
             'tags.tagCategory',
             'participants.user.organization',
             'waitlist.user.organization',
+            'links',
             'slot.event.enrollmentWindows',
             'slot.event.places.city',
             'slot.place.parent.city',
+            'slot.place.parent.links',
             'slot.place.city',
+            'slot.place.links',
             'place.parent.city',
+            'place.parent.links',
             'place.city',
+            'place.links',
         ]);
 
         $vm = $participationView->forShow($activity, auth()->user());
@@ -393,6 +411,7 @@ class ShowActivity extends Component
             'hasInterest' => $vm->hasInterest,
             'interestedPeopleCount' => $interestedPeopleCount,
             'canManageActivity' => $vm->canManageActivity,
+            'canManageEntityLinks' => $vm->canMarkParticipantsAbsent,
             'canMarkParticipantsAbsent' => $vm->canMarkParticipantsAbsent,
             'canAnnounceLate' => $vm->canAnnounceLate,
             'canSetOthersLate' => $vm->canSetOthersLate,

@@ -16,9 +16,13 @@ final class ActivityShowSchedulePresenter
         $activity->loadMissing([
             'slot.event.places.city',
             'slot.place.parent.city',
+            'slot.place.parent.links',
             'slot.place.city',
+            'slot.place.links',
             'place.parent.city',
+            'place.parent.links',
             'place.city',
+            'place.links',
         ]);
 
         $selfHosted = (int) $activity->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED;

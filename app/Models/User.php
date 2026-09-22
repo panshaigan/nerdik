@@ -325,6 +325,19 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $event instanceof Event && $this->canModifyEntity($event);
     }
 
+    /**
+     * Who may add/edit/remove external entity links.
+     * Activities: host, parent-event organizer, or admin. All other linkables: owner or admin.
+     */
+    public function canManageEntityLinks(Model $entity): bool
+    {
+        if ($entity instanceof Activity) {
+            return $this->canManageActivityParticipation($entity);
+        }
+
+        return $this->canModifyEntity($entity);
+    }
+
     public function interestedEvents(): MorphToMany
     {
         return $this->morphedByMany(Event::class, 'interest', 'user_interests');

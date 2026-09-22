@@ -210,6 +210,13 @@
                                 >
                                     {{ __('ui.events.duplicate_action') }}
                                 </x-ui.overflow-menu-item>
+                                <x-ui.overflow-menu-item
+                                    icon="o-link"
+                                    wire:click.stop="openAddEntityLink"
+                                    data-ui="event-show-add-link"
+                                >
+                                    {{ __('ui.entity_links.add_action') }}
+                                </x-ui.overflow-menu-item>
                                 @if (! $event->isCancelled())
                                     @if (($eventSignupPressureBlocksDelete ?? false))
                                         <x-ui.overflow-menu-item
@@ -297,6 +304,14 @@
     </div>
 
     @if ($canManageEvent ?? false)
+        <livewire:entity-links.manage-entity-links
+            :linkable="$event"
+            :show-list="false"
+            :listen-for-open-add="true"
+            instance-suffix="shell"
+            data-ui="event-show-entity-links-shell"
+            :key="'event-entity-links-shell-'.$event->id"
+        />
         @include('slots.partials.create-modal-shell', [
             'event' => $event,
             'slotMassVenues' => $slotMassVenues,

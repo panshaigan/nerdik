@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasAutoSlug;
+use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Place extends Model
 {
-    use HasAutoSlug, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, SoftDeletes;
 
     public const TYPE_ROOM = 'room';
 
@@ -33,7 +34,6 @@ class Place extends Model
         'country_id',
         'parent_id',
         'type',
-        'links',
         'description',
         'is_online',
         'latitude',

@@ -103,7 +103,10 @@ class OrganizationContactPopover extends Component
             return $this->emptyState();
         }
 
-        $targetOrganization = Organization::query()->whereKey($this->targetOrganizationId)->first();
+        $targetOrganization = Organization::query()
+            ->whereKey($this->targetOrganizationId)
+            ->with('links')
+            ->first();
 
         if (! $targetOrganization instanceof Organization) {
             return $this->emptyState();

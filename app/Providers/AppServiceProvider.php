@@ -6,7 +6,9 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
+use App\Models\EntityLink;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Feedback;
 use App\Models\Organization;
 use App\Models\Place;
@@ -95,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'activity' => Activity::class,
             'event' => Event::class,
+            'event_series' => EventSeries::class,
             'organization' => Organization::class,
             'place' => Place::class,
             'user' => User::class,
@@ -103,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
             'tag' => Tag::class,
             'user_request' => UserRequest::class,
             'feedback' => Feedback::class,
+            'entity_link' => EntityLink::class,
         ]);
 
         // Ensure Carbon uses the current app locale for translated month/day names.
