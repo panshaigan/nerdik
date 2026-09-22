@@ -7,6 +7,7 @@
     'icon' => null,
     'coverPicture' => null,
     'stacked' => false,
+    'transparent' => false,
     'dataUi' => 'catalog-card',
 ])
 
@@ -16,6 +17,7 @@
         && $coverPicture->hasDisplayableImage();
     $tag = filled($href) ? 'a' : 'button';
     $stacked = (bool) $stacked;
+    $transparent = (bool) $transparent;
 @endphp
 
 <{{ $tag }}
@@ -26,7 +28,9 @@
         type="button"
     @endif
     {{ $attributes->class([
-        'ui-card ui-catalog-card ui-content-card card group relative flex h-full min-h-36 flex-col overflow-hidden p-5 no-underline sm:min-h-40 sm:p-6',
+        'ui-card ui-catalog-card card group relative flex h-full min-h-36 flex-col overflow-hidden p-5 no-underline sm:min-h-40 sm:p-6',
+        'ui-content-card' => ! $transparent,
+        'ui-tile-active' => $transparent,
         'text-left' => ! filled($href) && ! $stacked,
         'text-center' => $stacked,
     ])->merge(['data-ui' => $dataUi]) }}
@@ -63,7 +67,11 @@
             />
         @elseif (filled($icon))
             <span
-                class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-base-200/90 text-primary sm:size-[4.5rem]"
+                @class([
+                    'flex size-16 shrink-0 items-center justify-center rounded-xl text-primary sm:size-[4.5rem]',
+                    'bg-base-200/40' => $transparent,
+                    'bg-base-200/90' => ! $transparent,
+                ])
                 aria-hidden="true"
             >
                 <x-icon :name="$icon" class="h-8 w-8" />

@@ -30,6 +30,7 @@
                             :detail="$address !== null && filled($location) ? $location : null"
                             icon="o-map-pin"
                             stacked
+                            transparent
                             data-ui="catalog-place-card"
                         />
                         <x-ui.entity-links
