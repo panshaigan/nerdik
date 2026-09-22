@@ -106,7 +106,7 @@ return [
         'created' => 'Link added.',
         'updated' => 'Link updated.',
         'deleted' => 'Link removed.',
-        'section' => 'Links',
+        'section' => 'External links',
     ],
     'footer' => [
         'copyright' => ':year Piotr Kurpiewski',

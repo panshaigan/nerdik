@@ -1,70 +1,92 @@
 @php
     /** @var \Illuminate\Support\Collection<int, \App\Models\EntityLink> $links */
-    $listClass = match ($appearance) {
-        'compact' => 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm',
-        'subtitle' => 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/80',
-        'overlay' => 'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm',
-        default => 'flex flex-wrap items-center gap-x-4 gap-y-2 text-sm',
-    };
-    $linkClass = match ($appearance) {
-        'overlay' => 'link link-hover text-white/90',
-        default => 'link link-primary link-hover',
-    };
+    $isOverlay = $appearance === 'overlay';
+    $isCompact = in_array($appearance, ['compact', 'subtitle'], true);
+    $useTile = ! $isOverlay && ! $isCompact;
+    $linkClass = $isOverlay
+        ? 'link link-hover text-white/90'
+        : 'link link-secondary link-hover';
+    $iconClass = $isOverlay
+        ? 'h-4 w-4 shrink-0 text-white/70'
+        : 'h-4 w-4 shrink-0 text-secondary';
+    $showListBlock = $showList && ($links->isNotEmpty() || ($canManage && $showAddButton));
 @endphp
 
 <div
-    wire:key="manage-entity-links-{{ $listenerKey }}"
+    wire:key="manage-entity-links-{{ $listenerKey }}-{{ $instanceSuffix }}"
     data-ui="{{ $dataUi }}"
     data-entity-links-key="{{ $listenerKey }}"
 >
-    @if ($showList && ($links->isNotEmpty() || ($canManage && $showAddButton)))
-        <div class="{{ $listClass }}" data-ui="{{ $dataUi }}-list">
-            @foreach ($links as $link)
-                <span
-                    wire:key="entity-link-{{ $link->id }}"
-                    class="inline-flex items-center gap-1.5"
-                    data-ui="{{ $dataUi }}-item"
-                >
-                    <a
-                        href="{{ $link->url }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="{{ $linkClass }}"
-                        data-ui="{{ $dataUi }}-anchor"
-                    >{{ $link->name }}</a>
-                    @if ($canManage)
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs px-1"
-                            wire:click="openEditLinkModal({{ $link->id }})"
-                            aria-label="{{ __('ui.entity_links.edit_action') }}"
-                            data-ui="{{ $dataUi }}-edit"
-                        >
-                            <x-icon name="o-pencil" class="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs px-1 text-error"
-                            wire:click="confirmDeleteLink({{ $link->id }})"
-                            aria-label="{{ __('ui.entity_links.remove_action') }}"
-                            data-ui="{{ $dataUi }}-remove"
-                        >
-                            <x-icon name="o-trash" class="h-3.5 w-3.5" />
-                        </button>
-                    @endif
-                </span>
-            @endforeach
+    @if ($showListBlock)
+        <div
+            @class([
+                'rounded-xl border border-secondary/25 bg-secondary/5 px-4 py-3' => $useTile,
+            ])
+            data-ui="{{ $dataUi }}-list-wrap"
+        >
+            @if ($useTile)
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/60" data-ui="{{ $dataUi }}-heading">
+                    {{ __('ui.entity_links.section') }}
+                </p>
+            @endif
+
+            <ul
+                @class([
+                    'flex flex-col gap-2 text-sm' => $useTile || $appearance === 'default',
+                    'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm' => $isCompact || $isOverlay,
+                ])
+                data-ui="{{ $dataUi }}-list"
+            >
+                @foreach ($links as $link)
+                    <li
+                        wire:key="entity-link-{{ $link->id }}"
+                        class="inline-flex min-w-0 items-center gap-1.5"
+                        data-ui="{{ $dataUi }}-item"
+                    >
+                        <x-icon name="o-link" class="{{ $iconClass }}" />
+                        <a
+                            href="{{ $link->url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="{{ $linkClass }} min-w-0 truncate"
+                            data-ui="{{ $dataUi }}-anchor"
+                        >{{ $link->name }}</a>
+                        @if ($canManage)
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-xs px-1"
+                                wire:click="openEditLinkModal({{ $link->id }})"
+                                aria-label="{{ __('ui.entity_links.edit_action') }}"
+                                data-ui="{{ $dataUi }}-edit"
+                            >
+                                <x-icon name="o-pencil" class="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-xs px-1 text-error"
+                                wire:click="confirmDeleteLink({{ $link->id }})"
+                                aria-label="{{ __('ui.entity_links.remove_action') }}"
+                                data-ui="{{ $dataUi }}-remove"
+                            >
+                                <x-icon name="o-trash" class="h-3.5 w-3.5" />
+                            </button>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
 
             @if ($canManage && $showAddButton)
-                <button
-                    type="button"
-                    class="btn btn-outline btn-xs"
-                    wire:click="openAddLinkModal"
-                    data-ui="{{ $dataUi }}-add"
-                >
-                    <x-icon name="o-plus" class="h-3.5 w-3.5" />
-                    {{ __('ui.entity_links.add_action') }}
-                </button>
+                <div @class(['mt-3' => $links->isNotEmpty()])>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-secondary btn-xs"
+                        wire:click="openAddLinkModal"
+                        data-ui="{{ $dataUi }}-add"
+                    >
+                        <x-icon name="o-plus" class="h-3.5 w-3.5" />
+                        {{ __('ui.entity_links.add_action') }}
+                    </button>
+                </div>
             @endif
         </div>
     @endif
@@ -98,6 +120,7 @@
                             <x-input
                                 wire:model="linkName"
                                 :label="__('ui.entity_links.name')"
+                                omit-error
                                 data-ui="entity-links-name"
                             />
                             <x-field-error :messages="$errors->get('linkName')" class="mt-1" />
@@ -105,9 +128,11 @@
                         <div>
                             <x-input
                                 wire:model="linkUrl"
-                                type="url"
+                                type="text"
+                                inputmode="url"
                                 :label="__('ui.entity_links.url')"
-                                placeholder="https://"
+                                placeholder="https://example.com"
+                                omit-error
                                 data-ui="entity-links-url"
                             />
                             <x-field-error :messages="$errors->get('linkUrl')" class="mt-1" />

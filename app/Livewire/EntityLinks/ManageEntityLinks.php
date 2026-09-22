@@ -117,6 +117,8 @@ class ManageEntityLinks extends Component
     {
         $this->authorizeManage();
 
+        $this->linkUrl = $this->normalizeLinkUrl($this->linkUrl);
+
         $validated = $this->validate([
             'linkName' => ['required', 'string', 'max:100'],
             'linkUrl' => ['required', 'url:http,https', 'max:2048'],
@@ -199,6 +201,20 @@ class ManageEntityLinks extends Component
     private function modalId(): string
     {
         return 'entity-links-modal-'.$this->listenerKey().'-'.$this->instanceSuffix;
+    }
+
+    private function normalizeLinkUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return $url;
+        }
+
+        if (! preg_match('#^[a-z][a-z0-9+.-]*://#i', $url)) {
+            return 'https://'.$url;
+        }
+
+        return $url;
     }
 
     private function openModal(): void

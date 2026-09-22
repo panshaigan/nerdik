@@ -14,31 +14,6 @@
                     />
                 </x-slot:subtitle>
             @endif
-            <x-slot:info>
-                <div
-                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:items-stretch"
-                    data-ui="event-series-show-info"
-                >
-                    <x-stat
-                        title="{{ __('ui.event_series.stats_editions') }}"
-                        value="{{ $stats['editions_count'] }}"
-                        icon="o-calendar-days"
-                        class="ui-stat-embed ui-activity-show-stat"
-                    />
-                    <x-stat
-                        title="{{ __('ui.event_series.stats_activities') }}"
-                        value="{{ $stats['activities_count'] }}"
-                        icon="o-puzzle-piece"
-                        class="ui-stat-embed ui-activity-show-stat"
-                    />
-                    <x-stat
-                        title="{{ __('ui.event_series.stats_participants') }}"
-                        value="{{ $stats['participants_unique'] }}/{{ $stats['participants_total'] }}"
-                        icon="o-users"
-                        class="ui-stat-embed ui-activity-show-stat col-span-2 sm:col-span-1"
-                    />
-                </div>
-            </x-slot:info>
         </x-page-header>
 
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">

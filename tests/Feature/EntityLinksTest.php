@@ -190,6 +190,20 @@ final class EntityLinksTest extends TestCase
             ->call('saveLink')
             ->assertHasErrors(['linkUrl']);
 
+        Livewire::actingAs($owner)
+            ->test(ManageEntityLinks::class, ['linkable' => $event])
+            ->set('linkName', 'Bare domain')
+            ->set('linkUrl', 'example.com/path')
+            ->call('saveLink')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('entity_links', [
+            'linkable_type' => 'event',
+            'linkable_id' => $event->id,
+            'name' => 'Bare domain',
+            'url' => 'https://example.com/path',
+        ]);
+
         $link = EntityLink::factory()->create([
             'linkable_type' => 'event',
             'linkable_id' => $event->id,
