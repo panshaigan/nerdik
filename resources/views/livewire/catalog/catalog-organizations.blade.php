@@ -19,6 +19,7 @@
                             :title="$organization->name"
                             :subtitle="$organization->acronym"
                             :image-url="$organization->logoUrl()"
+                            stacked
                             wire:click="openOrganizationPreview({{ (int) $organization->id }})"
                             data-ui="catalog-organization-card"
                         />

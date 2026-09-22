@@ -48,14 +48,18 @@
         @class([
             'relative z-[1] flex min-w-0 flex-1 gap-4',
             'flex-col items-center' => $stacked,
-            'items-start' => ! $stacked,
+            'items-center' => ! $stacked,
         ])
     >
         @if (filled($imageUrl))
             <img
                 src="{{ $imageUrl }}"
                 alt=""
-                class="size-16 shrink-0 rounded-xl object-cover sm:size-[4.5rem]"
+                @class([
+                    'size-16 shrink-0 object-cover sm:size-[4.5rem]',
+                    'rounded-full' => $stacked,
+                    'rounded-xl' => ! $stacked,
+                ])
             />
         @elseif (filled($icon))
             <span
@@ -65,7 +69,7 @@
                 <x-icon :name="$icon" class="h-8 w-8" />
             </span>
         @endif
-        <div @class(['min-w-0', 'w-full' => $stacked, 'flex-1 self-center' => ! $stacked])>
+        <div @class(['min-w-0', 'w-full' => $stacked, 'flex-1' => ! $stacked])>
             <h3 class="text-lg font-bold leading-snug text-neutral sm:text-xl">
                 <span class="ui-link ui-link-title">{{ $title }}</span>
             </h3>
