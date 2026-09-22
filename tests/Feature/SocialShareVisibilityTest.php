@@ -34,10 +34,12 @@ final class SocialShareVisibilityTest extends TestCase
             ->assertSeeHtml('data-ui="share-copy"')
             ->assertSeeHtml('data-ui="share-facebook"')
             ->assertSeeHtml('data-ui="share-whatsapp"')
+            ->assertSeeHtml('data-ui="share-instagram"')
             ->assertSeeHtml('data-ui="share-x"')
             ->assertSeeHtml('data-ui="share-telegram"')
             ->assertDontSee('@js($intentUrl)', false)
             ->assertDontSee('href="https://www.facebook.com/sharer', false)
+            ->assertDontSee('instagram.com', false)
             ->assertSee('/share/facebook?', false);
     }
 

@@ -135,6 +135,9 @@ final class ShareLinksTest extends TestCase
         $this->assertNotNull($payload);
 
         $this->assertNull($this->shareLinks->intentUrl($payload, ShareTarget::Copy));
+        $this->assertNull($this->shareLinks->intentUrl($payload, ShareTarget::Instagram));
+        $this->assertTrue(ShareTarget::Instagram->usesClipboard());
+        $this->assertContains(ShareTarget::Instagram, ShareTarget::menuPlatformCases());
 
         $facebook = $this->shareLinks->intentUrl($payload, ShareTarget::Facebook);
         $this->assertNotNull($facebook);

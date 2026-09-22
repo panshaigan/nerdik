@@ -227,9 +227,11 @@ return [
     'share' => [
         'share' => 'Udostępnij',
         'copy_link' => 'Kopiuj link',
+        'instagram_copied' => 'Skopiowano link — wklej go na Instagramie',
         'platforms' => [
             'facebook' => 'Facebook',
             'whatsapp' => 'WhatsApp',
+            'instagram' => 'Instagram',
             'x' => 'X',
             'telegram' => 'Telegram',
         ],
