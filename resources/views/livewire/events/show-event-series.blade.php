@@ -42,6 +42,13 @@
                                     panel-class="w-64"
                                     data-ui="event-series-show-manage"
                                 >
+                                    <x-ui.overflow-menu-item
+                                        icon="o-link"
+                                        wire:click="openAddEntityLink"
+                                        data-ui="event-series-show-add-link"
+                                    >
+                                        {{ __('ui.entity_links.add_action') }}
+                                    </x-ui.overflow-menu-item>
                                     @if ($latestEvent)
                                         <x-ui.overflow-menu-item
                                             icon="o-plus"
@@ -58,13 +65,6 @@
                                         data-ui="event-series-show-delete"
                                     >
                                         {{ __('ui.common.delete') }}
-                                    </x-ui.overflow-menu-item>
-                                    <x-ui.overflow-menu-item
-                                        icon="o-link"
-                                        wire:click="openAddEntityLink"
-                                        data-ui="event-series-show-add-link"
-                                    >
-                                        {{ __('ui.entity_links.add_action') }}
                                     </x-ui.overflow-menu-item>
                                 </x-ui.overflow-menu>
                             @endif

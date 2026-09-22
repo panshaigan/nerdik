@@ -139,6 +139,15 @@
                                     panel-class="w-64"
                                     data-ui="activity-show-manage"
                                 >
+                                    @if ($canManageEntityLinks ?? false)
+                                        <x-ui.overflow-menu-item
+                                            icon="o-link"
+                                            wire:click="openAddEntityLink"
+                                            data-ui="activity-show-add-link"
+                                        >
+                                            {{ __('ui.entity_links.add_action') }}
+                                        </x-ui.overflow-menu-item>
+                                    @endif
                                     @if ($canManageActivity)
                                         <x-ui.overflow-menu-item
                                             icon="o-printer"
@@ -188,15 +197,6 @@
                                                 {{ __('ui.activities.cancel_action') }}
                                             </x-ui.overflow-menu-item>
                                         @endif
-                                    @endif
-                                    @if ($canManageEntityLinks ?? false)
-                                        <x-ui.overflow-menu-item
-                                            icon="o-link"
-                                            wire:click="openAddEntityLink"
-                                            data-ui="activity-show-add-link"
-                                        >
-                                            {{ __('ui.entity_links.add_action') }}
-                                        </x-ui.overflow-menu-item>
                                     @endif
                                 </x-ui.overflow-menu>
                             @endif

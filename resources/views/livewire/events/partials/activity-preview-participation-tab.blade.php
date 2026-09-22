@@ -1,5 +1,5 @@
 <div class="space-y-6" data-ui="event-activity-preview-participation">
-    <div class="mx-auto w-full max-w-xl">
+    <div class="mx-auto w-full max-w-xl mt-2">
         @include('livewire.activities.partials.participation-notices', [
             'activity' => $activity,
             'noticesContainerDataUi' => 'event-activity-preview-participation-notices',

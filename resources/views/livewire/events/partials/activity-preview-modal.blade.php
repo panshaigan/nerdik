@@ -40,7 +40,7 @@
                 data-ui="overlay-sticky-tabs"
             >
                 <x-slot:heading>
-                    <h2 class="pr-8 text-xl font-extrabold leading-tight text-base-content">
+                    <h2 class="pr-8 text-xl font-extrabold leading-tight text-base-content mb-4">
                         {{ $previewActivity->name }}
                     </h2>
                 </x-slot:heading>

@@ -52,10 +52,10 @@ enum ShareTarget: string
     {
         return [
             self::Facebook,
-            self::WhatsApp,
             self::Instagram,
-            self::X,
             self::Telegram,
+            self::WhatsApp,
+            self::X,
         ];
     }
 }

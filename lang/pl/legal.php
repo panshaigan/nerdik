@@ -220,7 +220,7 @@ return [
 
     'contact' => [
         'title' => 'Kontakt',
-        'intro' => 'Masz pytanie dotyczące :app? Chętnie pomożemy.',
+        'intro' => 'Masz pytanie dotyczące :appa? Chętnie pomożemy.',
         'email_heading' => 'E-mail',
         'email_body' => 'W sprawach ogólnych, wsparcia lub opinii napisz do nas na adres',
         'response_heading' => 'Czas odpowiedzi',

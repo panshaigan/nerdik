@@ -128,29 +128,32 @@
                             window.destroyNerdikFeedbackModalTinyMCE?.();
                         };
                     "
-                    class="space-y-4"
+                    class="space-y-4 pt-2"
                     data-ui="feedback-form"
                     id="ui-feedback-form"
                 >
                     <x-select
                         wire:model="type"
                         :label="__('feedback.modal.type')"
+                        :placeholder="__('feedback.modal.type')"
                         :options="$this->typeOptions()"
                         required
+                        inline
                     />
 
                     <x-input
                         wire:model="subject"
                         :label="__('feedback.modal.subject')"
+                        :placeholder="__('feedback.modal.subject')"
                         type="text"
                         maxlength="200"
+                        inline
                     />
 
                     <div wire:key="feedback-editor-{{ $modalRenderKey }}">
                         <x-editor
                             :id="'feedback-body-'.$modalRenderKey"
                             wire:model="body"
-                            :label="__('feedback.modal.body')"
                             :gpl-license="true"
                             :config="$this->editorConfig()"
                             folder="feedback/editor"

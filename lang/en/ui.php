@@ -241,7 +241,7 @@ return [
         'targets' => [
             'google' => 'Google Calendar',
             'outlook' => 'Outlook',
-            'download' => 'Other',
+            'download' => 'ICS (Apple & others)',
         ],
     ],
     'profile' => [
@@ -630,7 +630,7 @@ return [
         'late_announce' => 'I will be late',
         'late_announce_update' => 'Update lateness',
         'late_minutes_label' => 'Minutes late',
-        'late_minutes_hint' => 'How many minutes late?',
+        'late_minutes_hint' => 'How many minutes?',
         'late_minutes_presets' => 'Common delays',
         'late_minutes_unit_short' => 'm',
         'late_clear' => 'On time',

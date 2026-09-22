@@ -24,7 +24,7 @@
 @if ($collection->isNotEmpty())
     <div
         @if ($useTile)
-            {{ $attributes->class('rounded-xl border border-secondary/25 bg-secondary/5 px-4 py-3')->merge(['data-ui' => $dataUi]) }}
+            {{ $attributes->class('rounded-xl border border-secondary/25 bg-secondary/5 px-4 py-3 mb-6')->merge(['data-ui' => $dataUi]) }}
         @else
             {{ $attributes->merge(['data-ui' => $dataUi]) }}
         @endif

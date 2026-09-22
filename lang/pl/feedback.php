@@ -17,7 +17,7 @@ return [
     ],
 
     'modal' => [
-        'title' => 'Kontaktu',
+        'title' => 'Kontakt',
         'trigger' => 'Formularz kontaktu',
         'type' => 'Typ',
         'subject' => 'Temat',

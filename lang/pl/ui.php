@@ -241,7 +241,7 @@ return [
         'targets' => [
             'google' => 'Kalendarz Google',
             'outlook' => 'Outlook',
-            'download' => 'Inny',
+            'download' => 'ICS (Apple i inne)',
         ],
     ],
     'profile' => [
@@ -630,7 +630,7 @@ return [
         'late_announce' => 'Spóźnię się',
         'late_announce_update' => 'Zmień spóźnienie',
         'late_minutes_label' => 'Minuty spóźnienia',
-        'late_minutes_hint' => 'O ile minut się spóźnisz?',
+        'late_minutes_hint' => 'O ile się spóźnisz?',
         'late_minutes_presets' => 'Typowe spóźnienia',
         'late_minutes_unit_short' => 'min',
         'late_clear' => 'Na czas',

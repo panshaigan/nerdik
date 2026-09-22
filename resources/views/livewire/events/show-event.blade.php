@@ -189,6 +189,13 @@
                                     {{ __('ui.slots.create_slots') }}
                                 </x-ui.overflow-menu-item>
                                 <x-ui.overflow-menu-item
+                                    icon="o-link"
+                                    wire:click.stop="openAddEntityLink"
+                                    data-ui="event-show-add-link"
+                                >
+                                    {{ __('ui.entity_links.add_action') }}
+                                </x-ui.overflow-menu-item>
+                                <x-ui.overflow-menu-item
                                     icon="o-printer"
                                     :href="route('events.participants.pdf', $event)"
                                     external
@@ -209,13 +216,6 @@
                                     data-ui="event-show-duplicate-open"
                                 >
                                     {{ __('ui.events.duplicate_action') }}
-                                </x-ui.overflow-menu-item>
-                                <x-ui.overflow-menu-item
-                                    icon="o-link"
-                                    wire:click.stop="openAddEntityLink"
-                                    data-ui="event-show-add-link"
-                                >
-                                    {{ __('ui.entity_links.add_action') }}
                                 </x-ui.overflow-menu-item>
                                 @if (! $event->isCancelled())
                                     @if (($eventSignupPressureBlocksDelete ?? false))
