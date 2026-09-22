@@ -68,8 +68,8 @@ class DashboardUserInterestsFeedTest extends TestCase
 
         $eventId = (int) $event->id;
         $hostId = (int) $host->id;
-        $listingKey = 'user-badge-contact-'.$hostId.'-0-0-listing-event-'.$eventId;
-        $previewKey = 'user-badge-contact-'.$hostId.'-0-0-listing-event-preview-'.$eventId;
+        $listingKey = 'user-badge-contact-'.$hostId.'-0-0-late-0-listing-event-'.$eventId;
+        $previewKey = 'user-badge-contact-'.$hostId.'-0-0-late-0-listing-event-preview-'.$eventId;
 
         Livewire::withoutLazyLoading()
             ->actingAs($viewer)

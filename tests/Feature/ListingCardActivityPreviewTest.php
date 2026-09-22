@@ -171,7 +171,7 @@ class ListingCardActivityPreviewTest extends TestCase
             ->assertSee('Unique preview body for listing modal')
             ->assertSee('Preview Host Nick')
             ->assertSeeHtml('data-ui="event-activity-preview-host"')
-            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0-late-0"')
             ->assertSee('Slot Alpha')
             ->assertSee('Preview Venue (Wroclaw)')
             ->assertDontSee('Preview Venue · Room B')

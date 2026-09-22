@@ -104,7 +104,7 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSet('previewEventId', $event->id)
             ->assertSee('Unique event preview body for listing modal')
             ->assertSeeHtml('data-ui="listing-event-preview-host"')
-            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-0-0-listing-event-preview-'.$event->id.'"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-0-0-late-0-listing-event-preview-'.$event->id.'"')
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'))
             ->assertSeeHtml('data-ui="overlay-sheet"')

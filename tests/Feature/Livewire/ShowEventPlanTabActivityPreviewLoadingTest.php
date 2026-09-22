@@ -41,7 +41,7 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSee('Plan Tab Host')
             ->assertSeeHtml('data-ui="event-show-slot-host"')
             ->assertSeeHtml('inline-flex w-fit max-w-full pointer-events-auto')
-            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0"')
+            ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0-late-0"')
             ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
             ->assertSeeHtml('wire:loading.attr="disabled"')
             ->assertSeeHtml('wire:loading.delay')

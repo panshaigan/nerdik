@@ -19,7 +19,6 @@ return [
         'log_in' => 'Log in',
         'register' => 'Register',
         'navigation' => 'Navigation',
-        'preferences' => 'Preferences',
         'account' => 'Account',
         'account_settings' => 'Account settings',
         'admin_panel' => 'Admin panel',
@@ -97,7 +96,6 @@ return [
         'bg_color' => 'Background color',
         'text_color' => 'Text color',
         'click_for_details' => 'Click here for more details',
-        'activity_stats_title' => 'Activity stats',
     ],
     'entity_links' => [
         'add_action' => 'Add link',
@@ -224,7 +222,6 @@ return [
         'catalog_series_description' => 'Browse public event series on nerdik.',
         'privacy_description' => 'Learn how nerdik collects, uses, and protects your personal data.',
         'terms_description' => 'Read the terms and conditions for using nerdik.',
-        'contact_description' => 'Get in touch with the nerdik team for support and inquiries.',
         'entity_fallback_description' => 'View details for :name on nerdik.',
     ],
     'share' => [
@@ -632,7 +629,6 @@ return [
         'mark_absent' => 'Mark absent',
         'late_announce' => 'I will be late',
         'late_announce_update' => 'Update lateness',
-        'late_minutes_label' => 'Minutes late',
         'late_minutes_hint' => 'How many minutes?',
         'late_minutes_presets' => 'Common delays',
         'late_minutes_unit_short' => 'm',

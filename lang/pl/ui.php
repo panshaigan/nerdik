@@ -19,7 +19,6 @@ return [
         'log_in' => 'Zaloguj się',
         'register' => 'Zarejestruj się',
         'navigation' => 'Nawigacja',
-        'preferences' => 'Preferencje',
         'account' => 'Konto',
         'account_settings' => 'Ustawienia konta',
         'admin_panel' => 'Panel admina',
@@ -97,7 +96,6 @@ return [
         'bg_color' => 'Kolor tła',
         'text_color' => 'Kolor tekstu',
         'click_for_details' => 'Kliknij, aby zobaczyć więcej',
-        'activity_stats_title' => 'Statystyki aktywności',
     ],
     'entity_links' => [
         'add_action' => 'Dodaj link',
@@ -224,7 +222,6 @@ return [
         'catalog_series_description' => 'Przeglądaj publiczne cykle wydarzeń w nerdik.',
         'privacy_description' => 'Dowiedz się, jak nerdik zbiera, wykorzystuje i chroni Twoje dane osobowe.',
         'terms_description' => 'Przeczytaj warunki korzystania z nerdik.',
-        'contact_description' => 'Skontaktuj się z zespołem nerdik w sprawie wsparcia i zapytań.',
         'entity_fallback_description' => 'Zobacz szczegóły wydarzenia :name w nerdik.',
     ],
     'share' => [
@@ -632,7 +629,6 @@ return [
         'mark_absent' => 'Oznacz nieobecność',
         'late_announce' => 'Spóźnię się',
         'late_announce_update' => 'Zmień spóźnienie',
-        'late_minutes_label' => 'Minuty spóźnienia',
         'late_minutes_hint' => 'O ile się spóźnisz?',
         'late_minutes_presets' => 'Typowe spóźnienia',
         'late_minutes_unit_short' => 'min',
