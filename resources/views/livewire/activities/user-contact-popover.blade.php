@@ -79,13 +79,13 @@
                                 <div class="space-y-4">
                                     @if ($contacts['email'] !== null)
                                         <div class="space-y-2" data-ui="user-contact-popover-section-email">
-                                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_section_email') }}</p>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <a class="btn btn-xs btn-primary" href="{{ $contacts['email']['mailto'] }}">{{ __('ui.profile.contact_email_compose') }}</a>
-                                                <a class="btn btn-xs btn-outline" href="{{ $contacts['email']['gmail'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_email_gmail') }}</a>
+                                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.contact_section_email') }}</p>
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                                                <a class="btn btn-sm btn-primary w-full sm:w-auto" href="{{ $contacts['email']['mailto'] }}">{{ __('ui.profile.contact_email_compose') }}</a>
+                                                <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['email']['gmail'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_email_gmail') }}</a>
                                                 <button
                                                     type="button"
-                                                    class="btn btn-xs btn-ghost"
+                                                    class="btn btn-sm btn-ghost w-full sm:w-auto"
                                                     x-on:click="window.copyToClipboard(@js($contacts['email']['address']), { message: @js(__('ui.common.copied')) })"
                                                 >{{ __('ui.profile.contact_email_copy') }}</button>
                                             </div>
@@ -94,14 +94,14 @@
 
                                     @if ($contacts['facebook'] !== null)
                                         <div class="space-y-2" data-ui="user-contact-popover-section-facebook">
-                                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_section_facebook') }}</p>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['profileUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_profile') }}</a>
+                                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.contact_section_facebook') }}</p>
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                                                <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['facebook']['profileUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_profile') }}</a>
                                                 @if (filled($contacts['facebook']['messagesUrl'] ?? null))
-                                                    <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messagesUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_message') }}</a>
+                                                    <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['facebook']['messagesUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_facebook_message') }}</a>
                                                 @endif
                                                 @if (filled($contacts['facebook']['messengerUrl'] ?? null))
-                                                    <a class="btn btn-xs btn-outline" href="{{ $contacts['facebook']['messengerUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_messenger_message') }}</a>
+                                                    <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['facebook']['messengerUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_messenger_message') }}</a>
                                                 @endif
                                             </div>
                                         </div>
@@ -109,10 +109,10 @@
 
                                     @if ($contacts['discord'] !== null)
                                         <div class="space-y-2" data-ui="user-contact-popover-section-discord">
-                                            <p class="text-xs font-medium text-base-content/70">{{ __('ui.profile.contact_section_discord') }}</p>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <a class="btn btn-xs btn-outline" href="{{ $contacts['discord']['webUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_discord_web') }}</a>
-                                                <a class="btn btn-xs btn-outline" href="{{ $contacts['discord']['appUrl'] }}">{{ __('ui.profile.contact_discord_app') }}</a>
+                                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.contact_section_discord') }}</p>
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                                                <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['discord']['webUrl'] }}" target="_blank" rel="noopener">{{ __('ui.profile.contact_discord_web') }}</a>
+                                                <a class="btn btn-sm btn-outline w-full sm:w-auto" href="{{ $contacts['discord']['appUrl'] }}">{{ __('ui.profile.contact_discord_app') }}</a>
                                             </div>
                                         </div>
                                     @endif
