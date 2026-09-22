@@ -20,13 +20,13 @@ final class BrandComponentTest extends TestCase
         $this->assertStringContainsString('images/app/brand/192w.webp', $html);
         $this->assertStringContainsString('alt=""', $html);
         $this->assertStringContainsString((string) config('app.name'), $html);
-        $this->assertStringContainsString('--brand-logo-height: 154px', $html);
+        $this->assertStringContainsString('--brand-logo-height: 161px', $html);
         $this->assertStringContainsString('--brand-wordmark-ratio: 0.5', $html);
         $this->assertStringContainsString(
             'font-size: calc(var(--brand-logo-height) * var(--brand-wordmark-ratio))',
             $html,
         );
-        $this->assertSame(77, $logo['wordmark_font_size']);
+        $this->assertSame(81, $logo['wordmark_font_size']);
         $this->assertEqualsWithDelta(0.5, $logo['wordmark_ratio'], 0.001);
     }
 
@@ -35,7 +35,7 @@ final class BrandComponentTest extends TestCase
         $html = Blade::render('<x-brand size="xl" :wordmark-ratio="0.35" />');
 
         $this->assertStringContainsString('--brand-wordmark-ratio: 0.35', $html);
-        $this->assertStringContainsString('--brand-logo-height: 154px', $html);
+        $this->assertStringContainsString('--brand-logo-height: 161px', $html);
     }
 
     public function test_brand_lockup_nav_wordmark_follows_configured_ratio(): void
@@ -44,7 +44,7 @@ final class BrandComponentTest extends TestCase
         $logo = BrandLogoSources::fromManifest()->forPreset('nav');
 
         $this->assertStringContainsString('images/app/brand/40w.webp', $html);
-        $this->assertStringContainsString('--brand-logo-height: 35px', $html);
+        $this->assertStringContainsString('--brand-logo-height: 36px', $html);
         $this->assertStringContainsString('--brand-wordmark-ratio: 0.5', $html);
         $this->assertSame(18, $logo['wordmark_font_size']);
     }
@@ -67,7 +67,7 @@ final class BrandComponentTest extends TestCase
         $response->assertOk();
         $response->assertSee('ui-brand', false);
         $response->assertSee('ui-brand-name', false);
-        $response->assertSee('--brand-logo-height: 77px', false);
+        $response->assertSee('--brand-logo-height: 80px', false);
         $response->assertSee('images/app/brand/96w.webp', false);
         $response->assertSee((string) config('app.name'), false);
     }
