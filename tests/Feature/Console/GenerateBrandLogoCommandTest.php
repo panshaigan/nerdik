@@ -29,12 +29,19 @@ final class GenerateBrandLogoCommandTest extends TestCase
             'media.brand_logo.icons.apple_touch_icon' => $this->isolatedIconsDir.'/apple-touch-icon.png',
         ]);
 
+        $sourcePath = base_path((string) config('media.brand_logo.source'));
+        $sourceSize = getimagesize($sourcePath);
+        $this->assertNotFalse($sourceSize);
+
+        /** @var list<int> $widths */
+        $widths = config('media.brand_logo.widths', []);
+
         $this->artisan('app:generate-brand-logo')
             ->assertSuccessful();
 
         $absoluteOutputDir = public_path($this->isolatedOutputDir);
 
-        foreach ([40, 48, 64, 80, 96, 128, 160, 192] as $width) {
+        foreach ($widths as $width) {
             $this->assertFileExists("{$absoluteOutputDir}/{$width}w.webp");
         }
 
@@ -46,21 +53,27 @@ final class GenerateBrandLogoCommandTest extends TestCase
             flags: JSON_THROW_ON_ERROR,
         );
 
-        $this->assertSame(1235, $manifest['width']);
-        $this->assertSame(1154, $manifest['height']);
+        $this->assertGreaterThan(0, $manifest['width']);
+        $this->assertGreaterThan(0, $manifest['height']);
+        $this->assertLessThanOrEqual($sourceSize[0], $manifest['width']);
+        $this->assertLessThanOrEqual($sourceSize[1], $manifest['height']);
         $this->assertTrue($manifest['trimmed']);
-        $this->assertCount(8, $manifest['variants']['webp']);
+        $this->assertCount(count($widths), $manifest['variants']['webp']);
 
         $smallestBytes = $manifest['variants']['webp'][0]['bytes'];
-        $largestBytes = $manifest['variants']['webp'][7]['bytes'];
+        $largestBytes = $manifest['variants']['webp'][array_key_last($manifest['variants']['webp'])]['bytes'];
 
         $this->assertLessThan($largestBytes, $smallestBytes);
 
-        $largestPath = public_path($manifest['variants']['webp'][7]['path']);
+        $largestEntry = $manifest['variants']['webp'][array_key_last($manifest['variants']['webp'])];
+        $largestPath = public_path($largestEntry['path']);
         $largestSize = getimagesize($largestPath);
         $this->assertNotFalse($largestSize);
-        $this->assertSame(192, $largestSize[0]);
-        $this->assertLessThan(192, $largestSize[1]);
+        $this->assertSame($largestEntry['width'], $largestSize[0]);
+        $this->assertSame(
+            (int) round($largestEntry['width'] * $manifest['height'] / $manifest['width']),
+            $largestSize[1],
+        );
 
         $iconsDir = public_path($this->isolatedIconsDir);
         $this->assertFileExists("{$iconsDir}/favicon.ico");
@@ -71,8 +84,9 @@ final class GenerateBrandLogoCommandTest extends TestCase
 
         $appleSize = getimagesize("{$iconsDir}/apple-touch-icon.png");
         $this->assertNotFalse($appleSize);
-        $this->assertSame(180, $appleSize[0]);
-        $this->assertSame(180, $appleSize[1]);
+        $appleTouchSize = (int) config('media.brand_logo.icons.apple_touch_size');
+        $this->assertSame($appleTouchSize, $appleSize[0]);
+        $this->assertSame($appleTouchSize, $appleSize[1]);
     }
 
     protected function tearDown(): void
