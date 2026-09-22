@@ -18,7 +18,7 @@
 <div {{ $attributes->class(['ui-activity-show-info-panel my-5 sm:mx-6 lg:mx-8', $headerClass]) }}>
     <div class="flex flex-col items-start gap-3 mb-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div class="min-w-0 w-full">
-            <h1 class="font-display text-lg font-medium leading-tight text-glow-base-100 mb-2 sm:text-4xl">
+            <h1 class="font-display text-xl font-medium leading-tight text-glow-base-100 mb-2 sm:text-4xl">
                 <span class="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
                     @if ($backUrl)
                         <a
