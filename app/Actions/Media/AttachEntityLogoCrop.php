@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Media;
 
 use App\Actions\Images\StoreCroppedPublicImage;
+use App\Support\Performance\PersistenceTiming;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -21,6 +22,7 @@ final class AttachEntityLogoCrop
         TemporaryUploadedFile|UploadedFile $file,
         int $width,
         int $height,
+        ?PersistenceTiming $timing = null,
     ): void {
         $tempRelativePath = 'media/temp/entity-logos/temp-'.uniqid('', true).'.webp';
 
@@ -30,6 +32,7 @@ final class AttachEntityLogoCrop
             $width,
             $height,
         );
+        $timing?->checkpoint('image_crop_encode');
 
         $absolutePath = Storage::disk('public')->path($tempRelativePath);
 
@@ -42,5 +45,6 @@ final class AttachEntityLogoCrop
             ->toMediaCollection('logo');
 
         Storage::disk('public')->delete($tempRelativePath);
+        $timing?->checkpoint('media_attachment');
     }
 }

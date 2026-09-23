@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Actions\Media;
 
 use App\Actions\Images\StoreCroppedPublicImage;
-use App\Actions\Images\StoreSourcePublicImage;
 use App\Models\User;
 use App\Support\Media\UserGalleryCatalog;
+use App\Support\Performance\PersistenceTiming;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -17,8 +17,8 @@ final class StoreUserGalleryImage
 {
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
-        private StoreSourcePublicImage $storeSourcePublicImage,
         private AttachOptimizedImage $attachOptimizedImage,
+        private StageUserGallerySourceImage $stageUserGallerySourceImage,
     ) {}
 
     public function __invoke(
@@ -27,6 +27,7 @@ final class StoreUserGalleryImage
         int $width,
         int $height,
         TemporaryUploadedFile|UploadedFile|null $sourceFile = null,
+        ?PersistenceTiming $timing = null,
     ): Media {
         $tempRelativePath = 'media/temp/gallery/temp-'.$user->id.'-'.uniqid('', true).'.webp';
 
@@ -36,6 +37,7 @@ final class StoreUserGalleryImage
             $width,
             $height,
         );
+        $timing?->checkpoint('image_crop_encode');
 
         $absolutePath = Storage::disk('public')->path($tempRelativePath);
 
@@ -51,14 +53,11 @@ final class StoreUserGalleryImage
         );
 
         Storage::disk('public')->delete($tempRelativePath);
+        $timing?->checkpoint('media_attachment');
 
         if ($sourceFile !== null) {
-            $sourceRelativePath = UserGalleryCatalog::sourceRelativePath((int) $media->id);
-
-            ($this->storeSourcePublicImage)($sourceRelativePath, $sourceFile);
-
-            $media->setCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY, $sourceRelativePath);
-            $media->save();
+            ($this->stageUserGallerySourceImage)($media, $sourceFile);
+            $timing?->checkpoint('source_staging');
         }
 
         return $media;

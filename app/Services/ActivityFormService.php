@@ -40,6 +40,7 @@ class ActivityFormService
         PersistenceTiming $timing,
     ): mixed {
         $validated['description'] = RichText::sanitize($validated['description'] ?? null);
+        $timing->checkpoint('rich_text_sanitization');
         $validated['participation_mode'] = ParticipationMode::tryFrom((string) ($validated['participation_mode'] ?? ''))
             ?? ParticipationMode::Open;
         $validated['allows_observers'] = (bool) ($validated['allows_observers'] ?? false);
@@ -97,8 +98,7 @@ class ActivityFormService
             $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
             $timing->checkpoint('tags');
-            $this->applyActivityLogoFromForm($form, $activity);
-            $timing->checkpoint('image');
+            $this->applyActivityLogoFromForm($form, $activity, $timing);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
             $message = $proposalCreated
@@ -112,8 +112,7 @@ class ActivityFormService
             $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
             $timing->checkpoint('tags');
-            $this->applyActivityLogoFromForm($form, $activity);
-            $timing->checkpoint('image');
+            $this->applyActivityLogoFromForm($form, $activity, $timing);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
             $message = $proposalCreated
@@ -127,15 +126,14 @@ class ActivityFormService
 
         session()->flash('status', $message);
 
-        if ($proposalCreated !== null) {
-            return redirect()->route('events.show', $proposalCreated->event);
-        }
+        $response = match (true) {
+            $proposalCreated !== null => redirect()->route('events.show', $proposalCreated->event),
+            $form->editingActivityId !== null => redirect()->route('activities.show', $activity),
+            default => redirect()->route('search.index'),
+        };
+        $timing->checkpoint('redirect');
 
-        if ($form->editingActivityId !== null) {
-            return redirect()->route('activities.show', $activity);
-        }
-
-        return redirect()->route('search.index');
+        return $response;
     }
 
     private function syncSlotScheduleAfterActivityChange(Activity $activity): void
@@ -321,8 +319,11 @@ class ActivityFormService
         $form->self_hosted_place_id = $venue->id;
     }
 
-    private function applyActivityLogoFromForm(ManageActivityForm $form, Activity $activity): void
-    {
+    private function applyActivityLogoFromForm(
+        ManageActivityForm $form,
+        Activity $activity,
+        PersistenceTiming $timing,
+    ): void {
         $source = ActivityLogoSource::tryFrom((string) ($form->logo_source ?? ''));
         $user = Auth::user();
 
@@ -347,7 +348,7 @@ class ActivityFormService
 
             if ($form->croppedLogo !== null) {
                 app(DeleteUploadedActivityLogo::class)($activity);
-                app(AttachEntityLogoCrop::class)($activity, $form->croppedLogo, 1280, 720);
+                app(AttachEntityLogoCrop::class)($activity, $form->croppedLogo, 1280, 720, $timing);
             } elseif ($selectedGalleryMediaId !== $previousGalleryMediaId) {
                 app(DeleteUploadedActivityLogo::class)($activity);
             }
@@ -360,6 +361,7 @@ class ActivityFormService
                     1280,
                     720,
                     $form->sourceImage,
+                    $timing,
                 );
                 $activity->logo_source = ActivityLogoSource::Gallery;
                 $activity->tag_media_id = null;
@@ -379,6 +381,7 @@ class ActivityFormService
         }
 
         $activity->save();
+        $timing->checkpoint('image_state');
         $form->reset('croppedLogo', 'sourceImage');
     }
 }

@@ -586,6 +586,7 @@ class ManageEventForm extends Component
             $timing->checkpoint('validation');
 
             $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
+            $timing->checkpoint('rich_text_sanitization');
             $validated['is_public'] = (bool) ($validated['is_public'] ?? true);
             $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
             $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
@@ -621,11 +622,13 @@ class ManageEventForm extends Component
                 $event->refresh();
                 $this->syncEnrollmentWindows($event, $signupService);
                 $timing->checkpoint('enrollment_windows');
-                $this->applyEventLogoFromForm($event);
-                $timing->checkpoint('image');
+                $this->applyEventLogoFromForm($event, $timing);
                 session()->flash('status', __('Event updated.'));
 
-                return redirect()->route('events.show', $event);
+                $response = redirect()->route('events.show', $event);
+                $timing->checkpoint('redirect');
+
+                return $response;
             }
 
             abort_unless(Auth::user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
@@ -640,8 +643,7 @@ class ManageEventForm extends Component
             $event->refresh();
             $this->syncEnrollmentWindows($event, $signupService);
             $timing->checkpoint('enrollment_windows');
-            $this->applyEventLogoFromForm($event);
-            $timing->checkpoint('image');
+            $this->applyEventLogoFromForm($event, $timing);
 
             if ($duplicateSlotsFrom !== null) {
                 $source = Event::query()->find($duplicateSlotsFrom);
@@ -655,7 +657,10 @@ class ManageEventForm extends Component
 
             session()->flash('status', __('Event created.'));
 
-            return redirect()->route('search.index');
+            $response = redirect()->route('search.index');
+            $timing->checkpoint('redirect');
+
+            return $response;
         } catch (ValidationException $exception) {
             $this->focusTabForValidationErrors($exception);
 
@@ -764,7 +769,7 @@ class ManageEventForm extends Component
         ];
     }
 
-    private function applyEventLogoFromForm(Event $event): void
+    private function applyEventLogoFromForm(Event $event, PersistenceTiming $timing): void
     {
         $source = EventLogoSource::tryFrom((string) ($this->logo_source ?? ''));
         $user = Auth::user();
@@ -790,7 +795,7 @@ class ManageEventForm extends Component
 
             if ($this->croppedLogo !== null) {
                 app(DeleteUploadedEventLogo::class)($event);
-                app(AttachEntityLogoCrop::class)($event, $this->croppedLogo, 1280, 720);
+                app(AttachEntityLogoCrop::class)($event, $this->croppedLogo, 1280, 720, $timing);
             } elseif ($selectedGalleryMediaId !== $previousGalleryMediaId) {
                 app(DeleteUploadedEventLogo::class)($event);
             }
@@ -803,6 +808,7 @@ class ManageEventForm extends Component
                     1280,
                     720,
                     $this->sourceImage,
+                    $timing,
                 );
                 $event->logo_source = EventLogoSource::Gallery;
                 $event->listing_media_id = null;
@@ -823,6 +829,7 @@ class ManageEventForm extends Component
         }
 
         $event->save();
+        $timing->checkpoint('image_state');
         $this->reset('croppedLogo', 'sourceImage');
     }
 

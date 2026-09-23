@@ -7,6 +7,7 @@ namespace Tests\Feature\Livewire;
 use App\Actions\Activities\StoreUploadedActivityLogo;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\ActivityLogoSource;
+use App\Jobs\ProcessUserGallerySourceImageJob;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityType;
@@ -16,6 +17,7 @@ use App\Support\Media\UserGalleryCatalog;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -110,6 +112,8 @@ final class ManageActivityFormImageTest extends TestCase
     #[Test]
     public function save_persists_uploaded_logo(): void
     {
+        Queue::fake([ProcessUserGallerySourceImageJob::class]);
+        Storage::fake('local');
         Storage::fake('public');
         $this->seed(ActivityTypeSeeder::class);
         $user = User::factory()->create();
@@ -136,7 +140,11 @@ final class ManageActivityFormImageTest extends TestCase
         $this->assertNull($activity->getFirstMedia('logo'));
         $this->assertCount(1, $user->fresh()->getMedia('gallery'));
         $galleryMedia = $user->fresh()->getMedia('gallery')->first();
-        $this->assertNotNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
+        $this->assertNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
+        Queue::assertPushed(
+            ProcessUserGallerySourceImageJob::class,
+            fn (ProcessUserGallerySourceImageJob $job): bool => $job->mediaId === (int) $galleryMedia?->id,
+        );
     }
 
     #[Test]

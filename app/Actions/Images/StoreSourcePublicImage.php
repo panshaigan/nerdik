@@ -24,9 +24,15 @@ final class StoreSourcePublicImage
      */
     public function __invoke(
         string $relativePath,
-        TemporaryUploadedFile|UploadedFile $file,
+        TemporaryUploadedFile|UploadedFile|string $file,
     ): string {
-        $image = $this->manager->read($file->getRealPath());
+        $sourcePath = is_string($file) ? $file : $file->getRealPath();
+
+        if ($sourcePath === false) {
+            throw new \RuntimeException('Unable to resolve the source image path.');
+        }
+
+        $image = $this->manager->read($sourcePath);
         $image->scaleDown(self::MAX_EDGE, self::MAX_EDGE);
         $encoded = $image->toWebp(self::WEBP_QUALITY);
 

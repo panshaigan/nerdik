@@ -6,6 +6,7 @@ namespace Tests\Feature\Livewire;
 
 use App\Actions\Events\StoreUploadedEventLogo;
 use App\Enums\EventLogoSource;
+use App\Jobs\ProcessUserGallerySourceImageJob;
 use App\Livewire\Events\ManageEventForm;
 use App\Models\Event;
 use App\Models\User;
@@ -13,6 +14,7 @@ use App\Support\Events\EventDefaultImageCatalog;
 use App\Support\Media\UserGalleryCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -70,6 +72,8 @@ final class ManageEventFormImageTest extends TestCase
     #[Test]
     public function save_persists_uploaded_logo(): void
     {
+        Queue::fake([ProcessUserGallerySourceImageJob::class]);
+        Storage::fake('local');
         Storage::fake('public');
         $user = User::factory()->organizer()->create();
         $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
@@ -98,7 +102,11 @@ final class ManageEventFormImageTest extends TestCase
         $this->assertNull($event->getFirstMedia('logo'));
         $this->assertCount(1, $user->fresh()->getMedia('gallery'));
         $galleryMedia = $user->fresh()->getMedia('gallery')->first();
-        $this->assertNotNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
+        $this->assertNull($galleryMedia?->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
+        Queue::assertPushed(
+            ProcessUserGallerySourceImageJob::class,
+            fn (ProcessUserGallerySourceImageJob $job): bool => $job->mediaId === (int) $galleryMedia?->id,
+        );
     }
 
     #[Test]
