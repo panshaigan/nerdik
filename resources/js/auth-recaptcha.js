@@ -86,6 +86,7 @@ export function resetAuthRecaptchas() {
 }
 
 let resetListenerRegistered = false;
+let morphHookRegistered = false;
 
 function registerResetListener() {
     if (resetListenerRegistered || typeof window.Livewire?.on !== 'function') {
@@ -96,6 +97,15 @@ function registerResetListener() {
     window.Livewire.on('reset-recaptcha', resetAuthRecaptchas);
 }
 
+function registerMorphHook() {
+    if (morphHookRegistered || typeof window.Livewire?.hook !== 'function') {
+        return;
+    }
+
+    morphHookRegistered = true;
+    window.Livewire.hook('morphed', mountAuthRecaptchas);
+}
+
 /**
  * Google api.js onload (explicit render). Also used after wire:navigate when the script is skipped.
  */
@@ -103,9 +113,13 @@ window.nerdikRecaptchaOnload = () => {
     mountAuthRecaptchas();
 };
 
-document.addEventListener('livewire:init', registerResetListener);
+document.addEventListener('livewire:init', () => {
+    registerResetListener();
+    registerMorphHook();
+});
 document.addEventListener('livewire:navigated', () => {
     registerResetListener();
+    registerMorphHook();
     mountAuthRecaptchas();
 });
 

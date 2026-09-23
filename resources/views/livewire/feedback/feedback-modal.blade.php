@@ -151,19 +151,30 @@
                         inline
                     />
 
-                    <div wire:key="feedback-editor-{{ $modalRenderKey }}">
-                        <x-editor
-                            :id="'feedback-body-'.$modalRenderKey"
+                    @guest
+                        <x-textarea
                             wire:model="body"
-                            :gpl-license="true"
-                            :config="$this->editorConfig()"
-                            folder="feedback/editor"
-                            :upload-url="route('feedback.editor-upload', absolute: false)"
-                            :omit-error="true"
+                            :label="__('feedback.modal.body')"
+                            rows="8"
                             required
+                            data-ui="feedback-body"
                         />
-                        <x-field-error :messages="$errors->get('body')" class="mt-2" />
-                    </div>
+                    @else
+                        <div wire:key="feedback-editor-{{ $modalRenderKey }}" data-ui="feedback-body">
+                            <x-editor
+                                :id="'feedback-body-'.$modalRenderKey"
+                                :label="__('feedback.modal.body')"
+                                wire:model="body"
+                                :gpl-license="true"
+                                :config="$this->editorConfig()"
+                                folder="feedback/editor"
+                                :upload-url="route('feedback.editor-upload', absolute: false)"
+                                :omit-error="true"
+                                required
+                            />
+                            <x-field-error :messages="$errors->get('body')" class="mt-2" />
+                        </div>
+                    @endguest
 
                     @guest
                         <x-input

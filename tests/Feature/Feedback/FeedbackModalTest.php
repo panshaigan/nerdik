@@ -151,12 +151,30 @@ class FeedbackModalTest extends TestCase
 
         Livewire::test(FeedbackModal::class)
             ->call('openModal')
+            ->assertSeeHtml('data-ui="feedback-body"')
+            ->assertSeeHtml('<textarea')
+            ->assertSeeHtml('data-ui="feedback-recaptcha"')
+            ->assertSeeHtml('data-nerdik-recaptcha')
+            ->assertSeeHtml('data-sitekey="test-site-key"')
             ->set('type', FeedbackType::Bug->value)
             ->set('subject', 'Captcha required')
             ->set('body', '<p>Guest body</p>')
             ->set('email', 'guest@example.com')
             ->call('submit')
             ->assertHasErrors(['gRecaptchaResponse']);
+    }
+
+    public function test_authenticated_feedback_uses_editor_without_captcha(): void
+    {
+        $this->enableRecaptcha();
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(FeedbackModal::class)
+            ->call('openModal')
+            ->assertSeeHtml('data-ui="feedback-body"')
+            ->assertSeeHtml('type="textarea"')
+            ->assertDontSeeHtml('data-ui="feedback-recaptcha"')
+            ->assertDontSeeHtml('data-nerdik-recaptcha');
     }
 
     public function test_submit_is_rate_limited(): void
