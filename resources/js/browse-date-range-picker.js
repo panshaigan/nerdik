@@ -1,4 +1,5 @@
 import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 import { Polish } from 'flatpickr/dist/l10n/pl.js';
 
 /** @type {WeakMap<HTMLElement, import('flatpickr').Instance>} */

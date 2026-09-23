@@ -8,7 +8,7 @@ function bootEventPlacesUnified() {
     });
 }
 
-function bootMaps() {
+export function bootMaps() {
     bootEventPlacesUnified();
     document.querySelectorAll('[data-event-show-map-root]').forEach((root) => {
         if (root.dataset.eventShowMapLoadStarted) return;

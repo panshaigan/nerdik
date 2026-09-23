@@ -35,7 +35,7 @@ function parseActivityIds(rawIds) {
     }
 }
 
-function subscribeEventPlanCounterChannels() {
+export function subscribeEventPlanCounterChannels() {
     if (typeof window.Livewire === 'undefined' || !window.Echo) {
         return;
     }

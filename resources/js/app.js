@@ -7,73 +7,191 @@ import './auth-login-form';
 import './auth-recaptcha';
 import './copy-to-clipboard';
 import './tinymce-field-chrome';
-import './image-cropper';
-import './notifications-echo';
-import './activities-echo';
-import './events-plan-counters-echo';
-import './maps-init';
-import './tags-init';
-import './browse-search-state';
-import './session-invalidated-echo';
-import './avatar-ready-echo';
-import { bootActivityTagPickers } from './activity-tag-picker';
-import { bootDateTimePickers } from './datetime-picker';
-import { initEventShowSlotForms } from './event-show-slot-forms';
-import { bootProposalEventAutocomplete } from './activities/proposal-event-autocomplete';
 import './invite-user-search';
-import { initSlotEditForm } from './slot-form-modal';
-import { initSlotMassForm } from './slot-mass-form';
-import { bootBrowseDateRangePickers } from './browse-date-range-picker';
-import 'flatpickr/dist/flatpickr.min.css';
 
 bootSentry();
 
-window.initSlotEditForm = initSlotEditForm;
-window.initSlotMassForm = initSlotMassForm;
+const moduleLoads = new Map();
 
-initEventShowSlotForms();
-bootDateTimePickers();
-bootBrowseDateRangePickers();
+function loadOnce(key, shouldLoad, loader) {
+    if (! shouldLoad || moduleLoads.has(key)) {
+        return moduleLoads.get(key) ?? Promise.resolve();
+    }
 
-function bootSlotMassForms() {
-    document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
-        if (form.closest('#slot-edit-modal-body')) {
-            return;
-        }
-        if (form.hasAttribute('data-slot-edit-form')) {
-            initSlotEditForm(form);
-        } else {
-            initSlotMassForm(form);
-        }
+    const load = loader().catch((error) => {
+        moduleLoads.delete(key);
+        console.error(`Failed to load frontend module: ${key}`, error);
     });
+
+    moduleLoads.set(key, load);
+
+    return load;
+}
+
+function bootSlotForms() {
+    const shouldLoad = document.querySelector('[data-slot-mass-form], #slot-edit-modal') !== null;
+
+    loadOnce('slot-forms', shouldLoad, async () => {
+        const [{ initSlotEditForm }, { initSlotMassForm }] = await Promise.all([
+            import('./slot-form-modal'),
+            import('./slot-mass-form'),
+        ]);
+
+        window.initSlotEditForm = initSlotEditForm;
+        window.initSlotMassForm = initSlotMassForm;
+
+        document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
+            if (form.closest('#slot-edit-modal-body')) {
+                return;
+            }
+
+            if (form.hasAttribute('data-slot-edit-form')) {
+                initSlotEditForm(form);
+            } else {
+                initSlotMassForm(form);
+            }
+        });
+    });
+}
+
+function bootFeatureModules() {
+    loadOnce(
+        'image-cropper',
+        document.querySelector('[data-image-crop-dropzone]') !== null,
+        () => import('./image-cropper').then(({ bootImageCropper }) => bootImageCropper()),
+    );
+    loadOnce(
+        'maps',
+        document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map]') !== null,
+        () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
+    );
+    loadOnce(
+        'tag-selectors',
+        document.querySelector('[data-tag-selector]') !== null,
+        () => import('./tags-init').then(({ bootTagSelectors }) => bootTagSelectors()),
+    );
+    loadOnce(
+        'activity-tag-pickers',
+        document.querySelector('[data-activity-tag-picker]') !== null,
+        () => import('./activity-tag-picker').then(({ bootActivityTagPickers }) => bootActivityTagPickers()),
+    );
+    loadOnce(
+        'datetime-pickers',
+        document.querySelector('input[type="datetime-local"]') !== null,
+        () => import('./datetime-picker').then(({ bootDateTimePickers }) => bootDateTimePickers()),
+    );
+    loadOnce(
+        'event-show-slot-forms',
+        document.querySelector('[data-event-show-async-mass]') !== null,
+        () => import('./event-show-slot-forms').then(({ initEventShowSlotForms }) => initEventShowSlotForms()),
+    );
+    loadOnce(
+        'proposal-event-autocomplete',
+        document.querySelector('[data-proposal-event-autocomplete]') !== null,
+        () => import('./activities/proposal-event-autocomplete').then(
+            ({ bootProposalEventAutocomplete }) => bootProposalEventAutocomplete(),
+        ),
+    );
+    loadOnce(
+        'browse-date-range-picker',
+        document.querySelector('[data-browse-date-range]') !== null,
+        () => import('./browse-date-range-picker').then(({ bootBrowseDateRangePickers }) => bootBrowseDateRangePickers()),
+    );
+    loadOnce(
+        'browse-search-state',
+        window.location.pathname === '/search',
+        () => import('./browse-search-state').then(({ initBrowseSearchState }) => initBrowseSearchState()),
+    );
+
+    bootSlotForms();
+    bootScopedRealtimeModules();
+}
+
+let realtimeReady = null;
+
+function echoIsConfigured() {
+    return Boolean(window.__nerdikEchoConfig?.key || import.meta.env.VITE_REVERB_APP_KEY);
+}
+
+function bootRealtimeModules() {
+    if (! document.body?.dataset?.userId || ! echoIsConfigured()) {
+        return Promise.resolve();
+    }
+
+    if (realtimeReady !== null) {
+        return realtimeReady;
+    }
+
+    realtimeReady = import('./echo')
+        .then(() => Promise.all([
+            import('./notifications-echo').then(({ subscribeToUserNotifications }) => subscribeToUserNotifications()),
+            import('./session-invalidated-echo').then(({ subscribeToSessionInvalidated }) => subscribeToSessionInvalidated()),
+            import('./avatar-ready-echo').then(({ subscribeToAvatarReady }) => subscribeToAvatarReady()),
+        ]))
+        .catch((error) => {
+            realtimeReady = null;
+            console.error('Failed to load realtime modules', error);
+        });
+
+    return realtimeReady;
+}
+
+function bootScopedRealtimeModules() {
+    if (! document.body?.dataset?.userId || ! echoIsConfigured()) {
+        return;
+    }
+
+    bootRealtimeModules().then(() => {
+        loadOnce(
+            'activity-realtime',
+            document.querySelector('[data-show-activity-id]') !== null,
+            () => import('./activities-echo').then(
+                ({ subscribeActivityParticipationEchoChannel }) => subscribeActivityParticipationEchoChannel(),
+            ),
+        );
+        loadOnce(
+            'event-plan-realtime',
+            document.querySelector('[data-show-event-id]') !== null,
+            () => import('./events-plan-counters-echo').then(
+                ({ subscribeEventPlanCounterChannels }) => subscribeEventPlanCounterChannels(),
+            ),
+        );
+    });
+}
+
+let featureBootQueued = false;
+
+function queueFeatureBoot() {
+    if (featureBootQueued) {
+        return;
+    }
+
+    featureBootQueued = true;
+    queueMicrotask(() => {
+        featureBootQueued = false;
+        bootFeatureModules();
+    });
+}
+
+function observeFeatureMarkup() {
+    queueFeatureBoot();
+    bootRealtimeModules();
+
+    if (! document.body || window.__nerdikFeatureObserver) {
+        return;
+    }
+
+    window.__nerdikFeatureObserver = new MutationObserver(queueFeatureBoot);
+    window.__nerdikFeatureObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootSlotMassForms);
+    document.addEventListener('DOMContentLoaded', observeFeatureMarkup, { once: true });
 } else {
-    bootSlotMassForms();
-}
-bootProposalEventAutocomplete();
-
-document.addEventListener('livewire:navigated', bootSlotMassForms);
-document.addEventListener('livewire:navigated', () => bootProposalEventAutocomplete());
-document.addEventListener('livewire:navigated', () => bootBrowseDateRangePickers());
-
-function registerActivityTagPickerMorphHook() {
-    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
-        return;
-    }
-    window.Livewire.hook('morph.updated', () => {
-        queueMicrotask(() => bootActivityTagPickers());
-    });
+    observeFeatureMarkup();
 }
 
-document.addEventListener('DOMContentLoaded', () => bootActivityTagPickers());
-document.addEventListener('DOMContentLoaded', () => bootProposalEventAutocomplete());
-document.addEventListener('livewire:navigated', () => bootActivityTagPickers());
-document.addEventListener('livewire:init', registerActivityTagPickerMorphHook);
-document.addEventListener('livewire:initialized', registerActivityTagPickerMorphHook);
-
+document.addEventListener('livewire:navigated', queueFeatureBoot);
 function handleLivewireAuthFailure(preventDefault) {
     if (window.__nerdikSessionExpiredHandled) {
         preventDefault();

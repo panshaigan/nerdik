@@ -1,6 +1,6 @@
 let subscribedToAvatarReady = false;
 
-function subscribeToAvatarReady() {
+export function subscribeToAvatarReady() {
     if (
         subscribedToAvatarReady
         || typeof window.Echo === 'undefined'

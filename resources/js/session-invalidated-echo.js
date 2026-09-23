@@ -1,6 +1,6 @@
 let subscribedToSessionInvalidated = false;
 
-function subscribeToSessionInvalidated() {
+export function subscribeToSessionInvalidated() {
     if (
         subscribedToSessionInvalidated
         || typeof window.Echo === 'undefined'

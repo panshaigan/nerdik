@@ -2,7 +2,7 @@ import { initTagSelector } from './tags-selector';
 
 window.initTagSelector = initTagSelector;
 
-function bootTagSelectors() {
+export function bootTagSelectors() {
     document.querySelectorAll('[data-tag-selector]').forEach((el) => initTagSelector(el));
 }
 

@@ -7,7 +7,7 @@ function teardownActivityParticipationEchoChannel() {
     activityParticipationSubscribedId = null;
 }
 
-function subscribeActivityParticipationEchoChannel() {
+export function subscribeActivityParticipationEchoChannel() {
     if (typeof window.Livewire === 'undefined' || !window.Echo) {
         return;
     }

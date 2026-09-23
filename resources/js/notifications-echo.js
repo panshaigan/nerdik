@@ -31,7 +31,7 @@ function parseEchoNotificationPayload(notification) {
     return payload && typeof payload === 'object' ? payload : null;
 }
 
-function subscribeToUserNotifications() {
+export function subscribeToUserNotifications() {
     if (subscribedToUserNotifications || typeof window.Livewire === 'undefined' || !window.Echo) {
         return;
     }

@@ -13,6 +13,9 @@ class ProfileTabs extends Component
     public string $tab = 'identity';
 
     /** @var array<string, true> */
+    public array $loadedTabs = [];
+
+    /** @var array<string, true> */
     public array $tabsWithErrors = [];
 
     protected array $queryString = [
@@ -22,11 +25,13 @@ class ProfileTabs extends Component
     public function mount(): void
     {
         $this->tab = $this->normalizeTab($this->tab);
+        $this->loadedTabs[$this->tab] = true;
     }
 
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+        $this->loadedTabs[$this->tab] = true;
     }
 
     #[On('profile-tab-validation-failed')]
@@ -38,6 +43,7 @@ class ProfileTabs extends Component
 
         $this->tabsWithErrors[$tab] = true;
         $this->tab = $tab;
+        $this->loadedTabs[$tab] = true;
     }
 
     #[On('profile-tab-validation-cleared')]

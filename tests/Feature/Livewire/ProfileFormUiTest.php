@@ -116,4 +116,50 @@ class ProfileFormUiTest extends TestCase
             ->assertHasNoErrors()
             ->assertDispatched('profile-tab-validation-cleared', tab: 'identity');
     }
+
+    public function test_profile_initially_mounts_only_the_identity_tab(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ProfileTabs::class)
+            ->assertSet('loadedTabs', ['identity' => true])
+            ->assertSeeHtml('data-ui="profile-identity-form"')
+            ->assertDontSeeHtml('data-ui="profile-contact-form"')
+            ->assertDontSeeHtml('data-ui="profile-avatar-form"')
+            ->assertDontSeeHtml('data-ui="profile-gallery-upload-form"')
+            ->assertDontSeeHtml('data-ui="profile-notifications-form"')
+            ->assertDontSeeHtml('data-ui="profile-email-form"');
+    }
+
+    public function test_profile_mounts_tabs_on_demand_and_preserves_visited_tabs(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ProfileTabs::class)
+            ->set('tab', 'avatar')
+            ->assertSet('loadedTabs.avatar', true)
+            ->assertSeeHtml('data-ui="profile-avatar-form"')
+            ->assertSeeHtml('id="ui-image-crop-modal"')
+            ->set('tab', 'contact')
+            ->assertSet('loadedTabs.identity', true)
+            ->assertSet('loadedTabs.avatar', true)
+            ->assertSet('loadedTabs.contact', true)
+            ->assertSeeHtml('data-ui="profile-contact-form"');
+    }
+
+    public function test_profile_deep_link_mounts_only_the_requested_tab(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::withQueryParams(['tab' => 'images'])
+            ->actingAs($user)
+            ->test(ProfileTabs::class)
+            ->assertSet('tab', 'images')
+            ->assertSet('loadedTabs', ['images' => true])
+            ->assertSeeHtml('data-ui="profile-gallery-upload-form"')
+            ->assertDontSeeHtml('data-ui="profile-identity-form"')
+            ->assertDontSeeHtml('data-ui="profile-avatar-form"');
+    }
 }

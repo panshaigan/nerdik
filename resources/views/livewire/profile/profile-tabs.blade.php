@@ -12,37 +12,51 @@
             data-ui="profile-tabs"
         >
             <x-tab name="identity" :label="$this->tabLabel('identity', __('ui.profile.tab_identity'))" class="px-6 py-6" data-ui="profile-tab-identity" icon="o-identification">
-                <livewire:profile.update-identity-information-form />
+                @if (isset($loadedTabs['identity']))
+                    <livewire:profile.update-identity-information-form :key="'profile-identity-'.auth()->id()" />
+                @endif
             </x-tab>
 
             <x-tab name="contact" :label="$this->tabLabel('contact', __('ui.profile.tab_contact'))" class="px-6 py-6" data-ui="profile-tab-contact" icon="o-envelope">
-                <livewire:profile.update-contact-information-form />
+                @if (isset($loadedTabs['contact']))
+                    <livewire:profile.update-contact-information-form :key="'profile-contact-'.auth()->id()" />
+                @endif
             </x-tab>
 
             <x-tab name="avatar" :label="$this->tabLabel('avatar', __('ui.profile.tab_avatar'))" class="px-6 py-6" data-ui="profile-tab-avatar" icon="o-user-circle">
-                <livewire:profile.update-avatar-form />
+                @if (isset($loadedTabs['avatar']))
+                    <livewire:profile.update-avatar-form :key="'profile-avatar-'.auth()->id()" />
+                @endif
             </x-tab>
 
             <x-tab name="images" :label="$this->tabLabel('images', __('ui.profile.tab_images'))" class="px-6 py-6" data-ui="profile-tab-images" icon="o-photo">
-                <livewire:profile.manage-gallery-form />
+                @if (isset($loadedTabs['images']))
+                    <livewire:profile.manage-gallery-form :key="'profile-images-'.auth()->id()" />
+                @endif
             </x-tab>
 
             <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
-                <livewire:profile.notification-settings-form />
+                @if (isset($loadedTabs['notifications']))
+                    <livewire:profile.notification-settings-form :key="'profile-notifications-'.auth()->id()" />
+                @endif
             </x-tab>
 
             <x-tab name="advanced" :label="$this->tabLabel('advanced', __('ui.profile.tab_advanced'))" class="px-6 py-6" data-ui="profile-tab-advanced" icon="o-cog-6-tooth">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <livewire:profile.update-email-form />
-                    <livewire:profile.update-password-form />
-                </div>
-                <div class="space-y-8">
-                    <livewire:profile.delete-user-form />
-                </div>
+                @if (isset($loadedTabs['advanced']))
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <livewire:profile.update-email-form :key="'profile-email-'.auth()->id()" />
+                        <livewire:profile.update-password-form :key="'profile-password-'.auth()->id()" />
+                    </div>
+                    <div class="space-y-8">
+                        <livewire:profile.delete-user-form :key="'profile-delete-'.auth()->id()" />
+                    </div>
+                @endif
             </x-tab>
         </x-ui.tabs-with-toolbar>
 
-        <x-image-crop-modal :title="__('ui.profile.crop_avatar')" />
+        @if (isset($loadedTabs['avatar']))
+            <x-image-crop-modal :title="__('ui.profile.crop_avatar')" />
+        @endif
     </div>
 </div>
 

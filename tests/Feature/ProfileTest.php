@@ -42,12 +42,11 @@ class ProfileTest extends TestCase
             ->assertOk()
             ->assertSeeVolt('profile.profile-tabs')
             ->assertSeeVolt('profile.update-identity-information-form')
-            ->assertSeeVolt('profile.update-contact-information-form')
-            ->assertSeeVolt('profile.update-avatar-form')
-            ->assertSeeVolt('profile.update-password-form')
-            ->assertSeeVolt('profile.update-email-form')
-            ->assertSeeVolt('profile.notification-settings-form')
-            ->assertSeeVolt('profile.delete-user-form');
+            ->assertSee('data-ui="profile-identity-form"', false)
+            ->assertDontSee('data-ui="profile-contact-form"', false)
+            ->assertDontSee('data-ui="profile-avatar-form"', false)
+            ->assertDontSee('data-ui="profile-notifications-form"', false)
+            ->assertDontSee('data-ui="profile-email-form"', false);
     }
 
     public function test_non_organizer_sees_organizer_request_on_identity_tab(): void
