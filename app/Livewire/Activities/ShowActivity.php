@@ -19,6 +19,7 @@ use App\Support\Calendar\CalendarLinks;
 use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Support\Ui\ActivityShowSchedulePresenter;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -29,6 +30,7 @@ class ShowActivity extends Component
     use WithFamiliarityPrompt;
     use WithUiConfirmModal;
 
+    #[Locked]
     public int $activityId;
 
     public ?string $cancelReason = null;
@@ -42,8 +44,15 @@ class ShowActivity extends Component
         'tab' => ['except' => 'info'],
     ];
 
+    public function hydrate(): void
+    {
+        Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
+    }
+
     public function mount(Activity $activity): void
     {
+        abort_unless($activity->isVisibleTo(auth()->user()), 404);
+
         $this->activityId = $activity->id;
         $this->tab = $this->normalizeTab($this->tab);
     }
@@ -94,7 +103,7 @@ class ShowActivity extends Component
 
     public function openAddEntityLink(): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user instanceof User && $user->canManageEntityLinks($activity), 403);
 
@@ -146,7 +155,7 @@ class ShowActivity extends Component
 
     public function cancel(ActivityHostingModeService $hostingModes): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($activity), 403);
 
         $reason = $this->cancelReason !== null ? trim($this->cancelReason) : null;
@@ -176,7 +185,7 @@ class ShowActivity extends Component
 
     public function reopen(ActivityHostingModeService $hostingModes): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user instanceof User && $user->canModifyEntity($activity), 403);
 
@@ -193,7 +202,7 @@ class ShowActivity extends Component
 
     public function deleteActivity(): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($activity), 403);
 
         if (! $activity->allowsHardDeletion()) {
@@ -209,7 +218,7 @@ class ShowActivity extends Component
 
     public function addInterest(UserInterestService $interests): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $interests->addActivityInterest($user, $activity);
@@ -218,7 +227,7 @@ class ShowActivity extends Component
 
     public function removeInterest(UserInterestService $interests): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $interests->removeActivityInterest($user, $activity);
@@ -227,7 +236,7 @@ class ShowActivity extends Component
 
     public function join(ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
@@ -239,7 +248,7 @@ class ShowActivity extends Component
 
     public function leave(ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $participation->leave($activity, $user);
@@ -248,7 +257,7 @@ class ShowActivity extends Component
 
     public function joinWaitlist(ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
 
@@ -282,7 +291,7 @@ class ShowActivity extends Component
 
     public function leaveWaitlist(ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $participation->leaveWaitlist($activity, $user);
@@ -291,7 +300,7 @@ class ShowActivity extends Component
 
     public function approveWaitlist(int $entryId, ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $entry = ActivityWaitlistEntry::query()->whereKey($entryId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
@@ -341,7 +350,7 @@ class ShowActivity extends Component
 
     public function announceLate(?int $minutes, ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $participation->setParticipantLateMinutes($activity, $user, (int) $user->id, $minutes);
@@ -350,7 +359,7 @@ class ShowActivity extends Component
 
     public function setParticipantLate(int $userId, ?int $minutes, ActivityParticipationService $participation): void
     {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $participation->setParticipantLateMinutes($activity, $user, $userId, $minutes);
@@ -365,7 +374,7 @@ class ShowActivity extends Component
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
     ) {
-        $activity = Activity::query()->whereKey($this->activityId)->firstOrFail();
+        $activity = Activity::query()->visibleTo(auth()->user())->whereKey($this->activityId)->firstOrFail();
 
         $activity->load([
             'creator',

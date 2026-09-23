@@ -26,7 +26,7 @@ final class ShowEventPageBackgroundTest extends TestCase
 
         $mediaId = (int) app(EventDefaultImageCatalog::class)->availableMediaIds()[0];
 
-        $event = Event::factory()->create([
+        $event = Event::factory()->public()->create([
             'logo_source' => EventLogoSource::Default,
             'listing_media_id' => $mediaId,
             'logo_path' => null,

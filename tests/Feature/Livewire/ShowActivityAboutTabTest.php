@@ -36,7 +36,7 @@ final class ShowActivityAboutTabTest extends TestCase
             'city_id' => $city->id,
         ]);
 
-        $event = Event::factory()->create(['created_by' => $user->id]);
+        $event = Event::factory()->public()->create(['created_by' => $user->id]);
         $event->places()->attach($venue->id);
 
         $activity = Activity::factory()->scheduled()->create([

@@ -10,6 +10,7 @@ use App\Models\Feedback;
 use App\Models\User;
 use App\Notifications\FeedbackReceivedNotification;
 use App\Support\RichText;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
@@ -44,17 +45,23 @@ final class FeedbackSubmissionService
             ]);
         }
 
-        $feedback = Feedback::query()->create([
-            'type' => $type,
-            'subject' => trim((string) ($data['subject'] ?? '')),
-            'body' => $body,
-            'email' => $email,
-            'user_id' => $user?->id,
-            'status' => FeedbackStatus::Open,
-            'page_url' => $this->nullableTrim($data['page_url'] ?? null),
-            'locale' => app()->getLocale(),
-            'user_agent' => $this->nullableTrim($data['user_agent'] ?? null),
-        ]);
+        $feedback = DB::transaction(function () use ($type, $data, $body, $email, $user): Feedback {
+            $feedback = Feedback::query()->create([
+                'type' => $type,
+                'subject' => trim((string) ($data['subject'] ?? '')),
+                'body' => $body,
+                'email' => $email,
+                'user_id' => $user?->id,
+                'status' => FeedbackStatus::Open,
+                'page_url' => $this->nullableTrim($data['page_url'] ?? null),
+                'locale' => app()->getLocale(),
+                'user_agent' => $this->nullableTrim($data['user_agent'] ?? null),
+            ]);
+
+            app(FeedbackUploadService::class)->attach($feedback, request());
+
+            return $feedback;
+        });
 
         $admins = User::query()->where('is_admin', true)->get();
 

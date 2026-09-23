@@ -209,6 +209,8 @@ return [
         'confirm_password_intro' => 'This is a secure area of the application. Please confirm your password before continuing.',
         'session_expired' => 'Session expired',
         'session_expired_redirect' => 'Your session is no longer valid. Redirecting to login...',
+        'oauth_existing_email' => 'An account already uses this email. Sign in with your existing method, then connect this provider in your profile.',
+        'oauth_verified_email_required' => 'Verify your email with this provider before signing up, or use another sign-in method.',
         'oauth_state_invalid' => 'Your social login session expired or was invalid. Please try again.',
         'oauth_denied' => 'Social login was cancelled or denied. Please try again.',
     ],

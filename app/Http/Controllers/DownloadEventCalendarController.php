@@ -12,6 +12,8 @@ final class DownloadEventCalendarController extends Controller
 {
     public function __invoke(Event $event, CalendarLinks $calendarLinks): Response
     {
+        abort_unless($event->isVisibleTo(auth()->user()), 404);
+
         $payload = $calendarLinks->forEvent($event);
         abort_if($payload === null, 404);
 

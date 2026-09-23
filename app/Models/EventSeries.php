@@ -38,17 +38,17 @@ class EventSeries extends Model
     }
 
     /**
-     * True when at least one non-deleted public event belongs to this series,
-     * or the given user created the series.
+     * True when at least one non-deleted event is visible to the given user,
+     * or the user can manage the series.
      */
     public function isVisibleTo(?User $user): bool
     {
-        if ($user !== null && (int) $user->id === (int) $this->created_by) {
+        if ($user?->canModifyEntity($this)) {
             return true;
         }
 
         return $this->events()
-            ->where('is_public', true)
+            ->visibleTo($user)
             ->exists();
     }
 
@@ -64,9 +64,7 @@ class EventSeries extends Model
             ->where('starts_at', '>=', now())
             ->whereNull('cancelled_at');
 
-        if ($user === null || (int) $user->id !== (int) $this->created_by) {
-            $query->where('is_public', true);
-        }
+        $query->visibleTo($user);
 
         return $query
             ->with(['places.city'])

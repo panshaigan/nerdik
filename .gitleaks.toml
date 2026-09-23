@@ -1,18 +1,25 @@
 title = "nerdik"
 
-[allowlist]
-description = "Runtime artifacts, env templates, CI fixtures, and documentation examples"
-paths = [
-  '''(?i)storage/logs/''',
-  '''(?i)storage/framework/''',
-  '''(?i)storage/media-library/temp/''',
-  '''(?i)storage/pail/''',
-  '''(?i)\.env\.example$''',
-  '''(?i)\.env\.production\.example$''',
-  '''(?i)\.env\.staging\.example$''',
-  '''(?i)\.github/workflows/ci\.yml$''',
-  '''(?i)(^|/)\.cursor/skills/''',
-  '''(?i)(^|/)\.claude/skills/''',
-  '''(?i)(^|/)\.junie/skills/''',
-  '''(?i)(^|/)docs/''',
-]
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic Discord IDs used by OAuth controller tests"
+condition = "AND"
+paths = ['''^tests/Feature/Auth/DiscordAuthControllerTest\.php$''']
+regexTarget = "secret"
+regexes = ['''^(777888999000111222|111222333444555666)$''']
+
+[[allowlists]]
+description = "Fixed CSRF token fixture used only by redaction tests"
+condition = "AND"
+paths = ['''^tests/Unit/Support/Logging/RedactsSensitiveDataTest\.php$''']
+regexTarget = "secret"
+regexes = ['''^51OzIWMXtwYvLreAWm1uZ06Jgb6OSd129NplObct$''']
+
+[[allowlists]]
+description = "Truncated example Stripe key in configuration guidelines"
+condition = "AND"
+paths = ['''^\.(cursor|claude|junie)/skills/laravel-best-practices/rules/config\.md$''']
+regexTarget = "secret"
+regexes = ['''^sk_live_abc123$''']

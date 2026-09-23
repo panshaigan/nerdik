@@ -32,6 +32,8 @@ return [
     'already_replied' => 'This feedback already has a reply.',
 
     'upload' => [
+        'quota' => 'The image upload limit has been reached. Please try again tomorrow.',
+        'unavailable' => 'An attached image has expired or belongs to another session. Please upload it again.',
         'invalid' => 'Please upload a valid image.',
         'failed' => 'Image upload failed. Please try again.',
     ],

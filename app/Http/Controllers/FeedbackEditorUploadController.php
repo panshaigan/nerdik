@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Feedback\FeedbackUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 final class FeedbackEditorUploadController extends Controller
@@ -23,7 +23,7 @@ final class FeedbackEditorUploadController extends Controller
         'image/webp',
     ];
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, FeedbackUploadService $uploads): JsonResponse
     {
         $file = $request->file('file');
 
@@ -43,16 +43,10 @@ final class FeedbackEditorUploadController extends Controller
             ],
         ]);
 
-        $path = Storage::disk('public')->putFile('feedback/editor', $file, 'public');
-
-        if ($path === false) {
-            throw ValidationException::withMessages([
-                'file' => [__('feedback.upload.failed')],
-            ]);
-        }
+        $upload = $uploads->store($request, $file);
 
         return response()->json([
-            'location' => Storage::disk('public')->url($path),
+            'location' => route('feedback.editor-images.show', $upload),
         ]);
     }
 }

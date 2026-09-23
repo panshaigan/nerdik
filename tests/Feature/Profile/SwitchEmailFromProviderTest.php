@@ -136,6 +136,7 @@ class SwitchEmailFromProviderTest extends TestCase
             'facebook_email' => 'shared@example.com',
             'discord_id' => 'discord-1',
             'discord_email' => 'unique@example.com',
+            'discord_data' => ['verified_email' => 'unique@example.com'],
         ]);
 
         $options = ProviderEmailOptions::for($user);
@@ -197,6 +198,7 @@ class SwitchEmailFromProviderTest extends TestCase
         $user->profile()->update([
             'discord_id' => 'discord-1',
             'discord_email' => 'taken@example.com',
+            'discord_data' => ['verified_email' => 'taken@example.com'],
         ]);
 
         $this->actingAs($user);
@@ -353,5 +355,25 @@ class SwitchEmailFromProviderTest extends TestCase
         $options = ProviderEmailOptions::for($user);
 
         $this->assertSame([], $options);
+    }
+
+    public function test_legacy_or_unverified_discord_email_cannot_be_used_to_switch_account_email(): void
+    {
+        $user = User::factory()->create(['email' => 'local@example.com']);
+        $user->profile()->update([
+            'discord_id' => 'discord-legacy',
+            'discord_email' => 'unverified@example.com',
+            'discord_data' => ['verified_email' => null],
+        ]);
+
+        $this->assertSame([], ProviderEmailOptions::for($user));
+        $this->actingAs($user);
+
+        Volt::test('profile.update-contact-information-form')
+            ->set('selected_provider_email', 'unverified@example.com')
+            ->call('switchEmailFromProvider')
+            ->assertHasErrors(['selected_provider_email']);
+
+        $this->assertSame('local@example.com', $user->fresh()->email);
     }
 }

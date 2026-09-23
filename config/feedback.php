@@ -28,6 +28,10 @@ return [
     'submit_max_attempts' => 5,
     'submit_decay_seconds' => 3600,
 
-    'upload_max_attempts' => 30,
+    'upload_max_attempts' => 10,
     'upload_decay_minutes' => 1,
+
+    'upload_session_bytes' => 10 * 1024 * 1024,
+    'upload_daily_ip_bytes' => 20 * 1024 * 1024,
+    'upload_pending_bytes' => 256 * 1024 * 1024,
 ];

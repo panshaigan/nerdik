@@ -81,3 +81,14 @@ nerdik is free software licensed under the [GNU General Public License v3.0 or l
 - Datetimes are stored in UTC; UI renders in the user profile timezone.
 - After pulling dependency or frontend changes, run `make npm install` and `make npm run build`.
 - Polish full-text search catalog setup lives in `docker/pgsql/init-polish-fts.sql`.
+
+## Passing Artisan options through Make
+
+Use a double-dash separator before Artisan options so Make does not parse them itself:
+
+```bash
+make artisan feedback:migrate-uploads -- --apply
+```
+
+Without the separator, Make exits with `make: unrecognized option '--apply'` before the Makefile can forward the option to Artisan.
+

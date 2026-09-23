@@ -11,9 +11,9 @@ Broadcast::channel('App.Models.User.{id}', function (User $user, int|string $id)
 /**
  * Live participation updates (roster/capacity counters) for activity and event plan UIs.
  *
- * Intentionally open to any authenticated user when the activity exists, so visitors see
+ * Open to authenticated users who may view the activity, so visitors see
  * current state before joining. Payload is activityId only; roster details load via HTTP.
  */
 Broadcast::channel('activity.{activityId}', function (User $user, int|string $activityId): bool {
-    return Activity::query()->whereKey((int) $activityId)->exists();
+    return Activity::query()->visibleTo($user)->whereKey((int) $activityId)->exists();
 });

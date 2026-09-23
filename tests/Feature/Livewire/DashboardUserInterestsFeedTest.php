@@ -56,7 +56,7 @@ class DashboardUserInterestsFeedTest extends TestCase
     {
         $viewer = User::factory()->create();
         $host = User::factory()->create(['nickname' => 'Rynek58']);
-        $event = Event::factory()->create([
+        $event = Event::factory()->public()->create([
             'name' => 'Porzucane I',
             'created_by' => $host->id,
             'organization_id' => null,

@@ -25,6 +25,7 @@ use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -45,6 +46,7 @@ class ShowEvent extends Component
     use WithActivityPreviewModal;
     use WithUiConfirmModal;
 
+    #[Locked]
     public int $eventId;
 
     /**
@@ -85,8 +87,15 @@ class ShowEvent extends Component
      */
     public array $slotModalRoomsByVenueId = [];
 
+    public function hydrate(): void
+    {
+        Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+    }
+
     public function mount(Event $event): void
     {
+        abort_unless($event->isVisibleTo(auth()->user()), 404);
+
         $event->loadMissing('enrollmentWindows');
         $this->eventId = $event->id;
 
@@ -131,7 +140,7 @@ class ShowEvent extends Component
             return;
         }
 
-        $event = Event::query()->whereKey($this->eventId)->first();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->first();
         if ($event === null) {
             return;
         }
@@ -146,7 +155,7 @@ class ShowEvent extends Component
 
     public function addInterest(UserInterestService $interests): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         if ($event->isCancelled()) {
             $this->warning(__('ui.events.signup_blocked_cancelled'));
 
@@ -160,7 +169,7 @@ class ShowEvent extends Component
 
     public function removeInterest(UserInterestService $interests): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null, 403);
         $interests->removeEventInterest($user, $event);
@@ -172,7 +181,7 @@ class ShowEvent extends Component
      */
     public function openAddEntityLink(): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null && $user->canManageEntityLinks($event), 403);
 
@@ -187,7 +196,7 @@ class ShowEvent extends Component
      */
     public function openSlotCreateModal(): void
     {
-        $event = Event::query()->whereKey($this->eventId)->with('places')->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->with('places')->firstOrFail();
         $user = auth()->user();
         abort_unless($user !== null && $user->canModifyEntity($event), 403);
 
@@ -228,7 +237,7 @@ class ShowEvent extends Component
 
     public function deleteEvent(): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
         if ($event->organiserHardDeleteBlockedWhileActive()) {
             $this->warning(__('ui.events.delete_forbidden_use_cancel'));
@@ -247,7 +256,7 @@ class ShowEvent extends Component
 
     public function cancelEvent(LifecycleMutationRateLimiter $lifecycleRateLimiter): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
         if ($event->isCancelled()) {
             return;
@@ -304,7 +313,7 @@ class ShowEvent extends Component
 
     public function reopenEvent(LifecycleMutationRateLimiter $lifecycleRateLimiter): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
 
         if (! $event->isCancelled()) {
@@ -390,7 +399,7 @@ class ShowEvent extends Component
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
     ): View {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
 
         $event->load([
             'creator',

@@ -33,6 +33,8 @@ Schedule::job(new SendWorkerMonitoringHeartbeatJob)
     ->when(fn (): bool => filled(config('monitoring.worker_heartbeat_url')))
     ->withoutOverlapping();
 
+Schedule::command('feedback:prune-uploads')->hourly()->withoutOverlapping();
+
 Schedule::command('auth:clear-resets')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('queue:prune-failed', [
     '--hours' => config('housekeeping.failed_jobs_hours'),

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -36,6 +37,7 @@ class EventShowPlanTab extends Component
     use Toast;
     use WithUiConfirmModal;
 
+    #[Locked]
     public int $eventId;
 
     /**
@@ -87,13 +89,18 @@ class EventShowPlanTab extends Component
         HTML;
     }
 
+    public function hydrate(): void
+    {
+        Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+    }
+
     public function mount(int $eventId): void
     {
         $this->eventId = $eventId;
-        $event = Event::query()->whereKey($this->eventId)->with('enrollmentWindows')->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->with('enrollmentWindows')->firstOrFail();
         $this->applyShowEmptySlotsPolicy($event, auth()->user());
 
-        $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $syncEvent = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $syncEvent->load(['slots.activity']);
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
 
@@ -142,7 +149,7 @@ class EventShowPlanTab extends Component
 
     public function addActivityInterest(int $activityId, UserInterestService $interests): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         if ($event->isCancelled()) {
             $this->warning(__('ui.events.signup_blocked_cancelled'));
 
@@ -166,7 +173,7 @@ class EventShowPlanTab extends Component
 
     public function removeActivityInterest(int $activityId, UserInterestService $interests): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $activity = Activity::query()
             ->whereKey($activityId)
             ->whereHas('slot', fn ($q) => $q->where('event_id', $event->id))
@@ -187,7 +194,7 @@ class EventShowPlanTab extends Component
     public function refreshAfterSlotMutation(): void
     {
         $this->slotListVersion++;
-        $event = Event::query()->whereKey($this->eventId)->first();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->first();
         if ($event !== null) {
             $event->loadMissing(['slots.activity']);
             app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($event);
@@ -287,7 +294,7 @@ class EventShowPlanTab extends Component
 
     public function deleteSlot(int $slotId): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $slot = Slot::query()->whereKey($slotId)->firstOrFail();
 
         if ((int) $slot->event_id !== (int) $event->id) {
@@ -306,7 +313,7 @@ class EventShowPlanTab extends Component
 
     public function detachActivityFromSlot(int $slotId, ActivityProposalDecisionService $decisions): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $this->authorizeCreatedBy($event);
 
         $slot = Slot::query()
@@ -343,7 +350,7 @@ class EventShowPlanTab extends Component
 
     public function cancelSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $slot = Slot::query()
             ->with('activity')
             ->whereKey($slotId)
@@ -396,7 +403,7 @@ class EventShowPlanTab extends Component
 
     public function reopenSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $slot = Slot::query()
             ->with('activity')
             ->whereKey($slotId)
@@ -428,7 +435,7 @@ class EventShowPlanTab extends Component
 
     protected function syncSlotEndsForThisEvent(): void
     {
-        $event = Event::query()->whereKey($this->eventId)->first();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->first();
         if ($event === null) {
             return;
         }
@@ -441,7 +448,7 @@ class EventShowPlanTab extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         ActivityListingImageResolver $activityListingImageResolver,
     ): View {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
 
         $event->load([
             'places',

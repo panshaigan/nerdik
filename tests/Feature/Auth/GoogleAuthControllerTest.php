@@ -12,6 +12,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -80,6 +81,7 @@ class GoogleAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'contact',
@@ -125,6 +127,7 @@ class GoogleAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -150,6 +153,7 @@ class GoogleAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -183,6 +187,7 @@ class GoogleAuthControllerTest extends TestCase
         $this->mockSocialiteWith($googleUser);
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'contact',
@@ -195,7 +200,7 @@ class GoogleAuthControllerTest extends TestCase
     }
 
     #[Test]
-    public function callback_links_google_using_cookie_when_session_link_user_id_is_missing(): void
+    public function callback_rejects_google_cookie_without_session_link_intent(): void
     {
         $user = User::factory()->create([
             'email' => 'local@example.com',
@@ -210,9 +215,9 @@ class GoogleAuthControllerTest extends TestCase
             ->withCookie('oauth_link_user_id', (string) $user->id)
             ->get(route('google.callback'));
 
-        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
-        $this->assertAuthenticatedAs($user);
-        $this->assertSame('google-cookie-link', $user->fresh()->profile?->google_id);
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertNull($user->fresh()->profile?->google_id);
     }
 
     #[Test]
@@ -231,6 +236,7 @@ class GoogleAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -290,5 +296,99 @@ class GoogleAuthControllerTest extends TestCase
         $response->assertRedirect(route('login'));
         $response->assertSessionHas('status', __('ui.auth.oauth_denied'));
         $this->assertGuest();
+    }
+
+    /**
+     * @return array<string, array{bool|string|null}>
+     */
+    public static function untrustedEmailVerification(): array
+    {
+        return [
+            'unverified' => [false],
+            'missing' => [null],
+            'non-boolean' => ['false'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('untrustedEmailVerification')]
+    public function callback_rejects_unverified_or_missing_email_verification_for_registration(bool|string|null $verified): void
+    {
+        $providerUser = $this->fakeGoogleUser();
+        $providerUser->user = $verified === null ? [] : ['verified_email' => $verified];
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('google.callback'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('ui.auth.oauth_verified_email_required'));
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => $providerUser->getEmail()]);
+    }
+
+    #[Test]
+    public function callback_does_not_link_existing_email_even_when_verified(): void
+    {
+        $existing = User::factory()->create(['email' => 'jane@example.com']);
+        $this->mockSocialiteWith($this->fakeGoogleUser());
+
+        $this->get(route('google.callback'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('ui.auth.oauth_existing_email'));
+
+        $this->assertGuest();
+        $this->assertNull($existing->fresh()->profile?->google_id);
+    }
+
+    #[Test]
+    public function existing_provider_id_can_login_without_verified_provider_email(): void
+    {
+        $existing = User::factory()->create();
+        $providerUser = $this->fakeGoogleUser();
+        $providerUser->user = ['verified_email' => false];
+        $existing->profile()->update(['google_id' => $providerUser->getId()]);
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('google.callback'))->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertAuthenticatedAs($existing);
+        $this->assertNull($existing->fresh()->profile?->google_email);
+    }
+
+    #[Test]
+    public function session_link_intent_cannot_link_after_logout_or_to_a_different_user(): void
+    {
+        $target = User::factory()->create();
+        $this->mockSocialiteWith($this->fakeGoogleUser());
+
+        $this->withSession(['socialite.link_user_id' => $target->id])
+            ->get(route('google.callback'))->assertRedirect(route('login'));
+
+        $this->assertGuest();
+        $this->assertNull($target->fresh()->profile?->google_id);
+
+        $other = User::factory()->create();
+        $this->actingAs($other)
+            ->withSession(['socialite.link_user_id' => $target->id])
+            ->get(route('google.callback'))->assertRedirect(route('login'));
+
+        $this->assertAuthenticatedAs($other);
+        $this->assertNull($target->fresh()->profile?->google_id);
+        $this->assertNull($other->fresh()->profile?->google_id);
+    }
+
+    #[Test]
+    public function unverified_provider_email_cannot_take_over_an_existing_account(): void
+    {
+        $existing = User::factory()->unverified()->create(['email' => 'jane@example.com']);
+        $providerUser = $this->fakeGoogleUser();
+        $providerUser->user = ['verified_email' => false];
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('google.callback'))->assertRedirect(route('login'));
+
+        $this->assertGuest();
+        $this->assertNull($existing->fresh()->profile?->google_id);
+        $this->assertFalse($existing->fresh()->hasVerifiedEmail());
     }
 }

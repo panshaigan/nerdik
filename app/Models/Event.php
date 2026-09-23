@@ -7,6 +7,7 @@ use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,6 +56,26 @@ class Event extends Model implements HasMedia
         'cancelled_at' => 'datetime',
         'logo_source' => EventLogoSource::class,
     ];
+
+    public function isVisibleTo(?User $user): bool
+    {
+        return $this->is_public || ($user?->canModifyEntity($this) ?? false);
+    }
+
+    /** @param Builder<Event> $query */
+    public function scopeVisibleTo(Builder $query, ?User $user): void
+    {
+        if ($user?->is_admin) {
+            return;
+        }
+
+        $query->where(function (Builder $visibility) use ($user): void {
+            $visibility->where('events.is_public', true);
+            if ($user !== null) {
+                $visibility->orWhere('events.created_by', $user->id);
+            }
+        });
+    }
 
     public function listingMedia(): BelongsTo
     {

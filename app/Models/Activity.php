@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ActivityLogoSource;
+use App\Enums\ActivityProposalStatus;
 use App\Enums\ParticipationMode;
 use App\Models\Concerns\InteractsWithUploadedLogo;
 use App\Traits\HasAutoSlug;
@@ -37,6 +38,31 @@ class Activity extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function isVisibleTo(?User $user): bool
+    {
+        return static::query()->whereKey($this->getKey())->visibleTo($user)->exists();
+    }
+
+    /** @param Builder<Activity> $query */
+    public function scopeVisibleTo(Builder $query, ?User $user): void
+    {
+        if ($user?->is_admin) {
+            return;
+        }
+
+        $query->where(function (Builder $visibility) use ($user): void {
+            $visibility->where(fn (Builder $public) => $public->attachedToPublicEvent());
+
+            if ($user !== null) {
+                $visibility->orWhere('activities.created_by', $user->id)
+                    ->orWhereHas('slot.event', fn (Builder $event) => $event->where('events.created_by', $user->id))
+                    ->orWhereHas('proposals', fn (Builder $proposal) => $proposal
+                        ->where('status', ActivityProposalStatus::Pending)
+                        ->whereHas('event', fn (Builder $event) => $event->where('events.created_by', $user->id)));
+            }
+        });
     }
 
     protected $fillable = [

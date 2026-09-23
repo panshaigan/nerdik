@@ -209,6 +209,8 @@ return [
         'confirm_password_intro' => 'To chroniony obszar aplikacji. Potwierdź hasło, aby kontynuować.',
         'session_expired' => 'Sesja wygasła',
         'session_expired_redirect' => 'Twoja sesja nie jest już ważna. Przekierowujemy do logowania...',
+        'oauth_existing_email' => 'Konto z tym adresem e-mail już istnieje. Zaloguj się dotychczasową metodą, a następnie połącz konto w swoim profilu.',
+        'oauth_verified_email_required' => 'Przed rejestracją potwierdź adres e-mail u tego dostawcy lub wybierz inną metodę logowania.',
         'oauth_state_invalid' => 'Sesja logowania społecznościowego wygasła lub była nieprawidłowa. Spróbuj ponownie.',
         'oauth_denied' => 'Logowanie społecznościowe zostało anulowane lub odrzucone. Spróbuj ponownie.',
     ],

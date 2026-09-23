@@ -26,6 +26,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -37,6 +38,7 @@ class ShowEventSeries extends Component
     use WithEventPreviewModal;
     use WithUiConfirmModal;
 
+    #[Locked]
     public int $eventSeriesId;
 
     public string $tab = 'events';
@@ -44,6 +46,12 @@ class ShowEventSeries extends Component
     protected array $queryString = [
         'tab' => ['except' => 'events'],
     ];
+
+    public function hydrate(): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        abort_unless($series->isVisibleTo(auth()->user()), 404);
+    }
 
     public function mount(EventSeries $eventSeries): void
     {
@@ -263,16 +271,9 @@ class ShowEventSeries extends Component
      */
     private function seriesEventsQuery(): Builder
     {
-        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
-        $viewer = auth()->user();
-
-        $query = Event::query()->where('event_series_id', $this->eventSeriesId);
-
-        if ($viewer === null || (int) $viewer->id !== (int) $series->created_by) {
-            $query->where('is_public', true);
-        }
-
-        return $query;
+        return Event::query()
+            ->where('event_series_id', $this->eventSeriesId)
+            ->visibleTo(auth()->user());
     }
 
     /**

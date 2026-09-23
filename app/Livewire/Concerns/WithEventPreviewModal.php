@@ -8,11 +8,13 @@ use App\Models\Event;
 use App\Support\Ui\BrowseListingCardPresenter;
 use App\Support\Ui\ListingCardPicture;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Locked;
 
 trait WithEventPreviewModal
 {
     public bool $eventPreviewModalOpen = false;
 
+    #[Locked]
     public ?int $previewEventId = null;
 
     public function openListingEventPreview(int $eventId): void
@@ -22,7 +24,7 @@ trait WithEventPreviewModal
 
     public function openEventPreview(int $eventId): void
     {
-        $event = $this->previewEventQuery($eventId)->firstOrFail();
+        $event = $this->previewEventQuery($eventId)->visibleTo(auth()->user())->firstOrFail();
 
         $this->previewEventId = (int) $event->id;
         $this->eventPreviewModalOpen = true;
@@ -54,7 +56,7 @@ trait WithEventPreviewModal
     protected function resolveEventPreviewViewData(BrowseListingCardPresenter $presenter): array
     {
         $previewEvent = $this->eventPreviewModalOpen && $this->previewEventId !== null
-            ? $this->previewEventQuery($this->previewEventId)->first()
+            ? $this->previewEventQuery($this->previewEventId)->visibleTo(auth()->user())->first()
             : null;
 
         if ($previewEvent === null && $this->eventPreviewModalOpen) {

@@ -13,7 +13,7 @@ final class DownloadActivityCalendarController extends Controller
     public function __invoke(Activity $activity, CalendarLinks $calendarLinks): Response
     {
         abort_unless(
-            Activity::query()->whereKey($activity->getKey())->attachedToPublicEvent()->exists(),
+            $activity->isVisibleTo(auth()->user()),
             404
         );
 

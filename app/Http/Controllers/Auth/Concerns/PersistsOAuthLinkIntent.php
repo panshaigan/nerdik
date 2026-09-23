@@ -27,6 +27,9 @@ trait PersistsOAuthLinkIntent
 
     private function captureOAuthLinkIntent(): void
     {
+        session()->forget(['socialite.link_user_id', 'socialite.return_tab']);
+        Cookie::queue(Cookie::forget(self::OAUTH_LINK_USER_COOKIE));
+
         $returnTab = request()->query('return_tab');
         if (! is_string($returnTab) || ! in_array($returnTab, self::OAUTH_RETURN_TABS, true)) {
             return;
@@ -54,11 +57,11 @@ trait PersistsOAuthLinkIntent
      */
     private function resolveLinkContext(): ?array
     {
-        $linkUserId = session()->pull('socialite.link_user_id') ?? request()->cookie(self::OAUTH_LINK_USER_COOKIE);
+        $linkUserId = session()->pull('socialite.link_user_id');
         $returnTab = session()->pull('socialite.return_tab');
         Cookie::queue(Cookie::forget(self::OAUTH_LINK_USER_COOKIE));
 
-        if ($linkUserId === null || $linkUserId === '') {
+        if ($linkUserId === null || ! Auth::check() || (int) Auth::id() !== (int) $linkUserId) {
             return null;
         }
 

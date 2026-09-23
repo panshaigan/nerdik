@@ -17,6 +17,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -57,6 +58,10 @@ class GoogleAuthController extends Controller
             return $this->oauthInvalidStateRedirect();
         }
 
+        if (! filled($googleUser->getId())) {
+            return $this->oauthInvalidStateRedirect();
+        }
+
         if ($this->shouldCompleteAccountLinking()) {
             return $this->completeAccountLinking($googleUser);
         }
@@ -69,25 +74,18 @@ class GoogleAuthController extends Controller
         })->first();
 
         if (! $user) {
-            $user = User::where('email', $googleUser->getEmail())->first();
-            if ($user) {
-                $profile = $user->profile()->firstOrCreate();
-                $profile->google_id = $googleUser->getId();
-                $this->syncGoogleAvatarUrl($profile, $this->resolveGoogleAvatarUrl($googleUser));
-                $this->syncGoogleProviderEmail($profile, $googleUser);
-                $this->syncGoogleOAuthData($profile, $googleUser);
-                if ($profile->timezone === null) {
-                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
-                }
-                $profile->save();
-                $user->setRelation('profile', $profile);
-                $this->verifyUserFromGoogleIfApplicable($user, $googleEmailVerified);
+            if (! $googleEmailVerified || ! filter_var($googleUser->getEmail(), FILTER_VALIDATE_EMAIL)) {
+                return redirect()->route('login')->with('status', __('ui.auth.oauth_verified_email_required'));
+            }
+
+            if (User::where('email', $googleUser->getEmail())->exists()) {
+                return redirect()->route('login')->with('status', __('ui.auth.oauth_existing_email'));
             } else {
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'nickname' => User::generateUniqueNicknameFromEmail((string) $googleUser->getEmail()),
                     'email' => $googleUser->getEmail(),
-                    'password' => Hash::make(uniqid('', true)),
+                    'password' => Hash::make(Str::random(64)),
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->google_id = $googleUser->getId();
@@ -131,10 +129,9 @@ class GoogleAuthController extends Controller
     {
         $linkContext = $this->resolveLinkContext();
         $returnTab = $linkContext['returnTab'] ?? 'avatar';
-        $profileUrl = $this->profileUrlForTab($returnTab);
 
         if ($linkContext === null) {
-            return redirect()->to($profileUrl);
+            return redirect()->route('login')->with('status', __('ui.profile.oauth_link_session_expired'));
         }
 
         $linkUserId = $linkContext['userId'];

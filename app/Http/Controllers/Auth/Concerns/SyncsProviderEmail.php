@@ -42,7 +42,7 @@ trait SyncsProviderEmail
 
     protected function syncDiscordProviderEmail(UserProfile $profile, AbstractUser $discordUser): void
     {
-        $email = $discordUser->getEmail();
+        $email = $this->isDiscordEmailMarkedVerified($discordUser) ? $discordUser->getEmail() : null;
         if (! is_string($email) || $email === '') {
             $profile->discord_email = null;
 
@@ -60,6 +60,11 @@ trait SyncsProviderEmail
             return false;
         }
 
-        return (bool) Arr::get($user, 'verified_email', false);
+        return Arr::get($user, 'verified_email') === true;
+    }
+
+    protected function isDiscordEmailMarkedVerified(AbstractUser $discordUser): bool
+    {
+        return is_array($discordUser->user) && Arr::get($discordUser->user, 'verified') === true;
     }
 }

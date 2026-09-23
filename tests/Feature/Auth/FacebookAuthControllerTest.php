@@ -99,6 +99,7 @@ class FacebookAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'contact',
@@ -143,6 +144,7 @@ class FacebookAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -168,6 +170,7 @@ class FacebookAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -186,7 +189,7 @@ class FacebookAuthControllerTest extends TestCase
     }
 
     #[Test]
-    public function callback_links_facebook_using_cookie_when_session_link_user_id_is_missing(): void
+    public function callback_rejects_facebook_cookie_without_session_link_intent(): void
     {
         $user = User::factory()->create([
             'email' => 'local@example.com',
@@ -201,9 +204,9 @@ class FacebookAuthControllerTest extends TestCase
             ->withCookie('oauth_link_user_id', (string) $user->id)
             ->get(route('facebook.callback'));
 
-        $response->assertRedirect(route('profile', absolute: false).'?tab=avatar');
-        $this->assertAuthenticatedAs($user);
-        $this->assertSame('fb-cookie-link', $user->fresh()->profile?->facebook_id);
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->assertNull($user->fresh()->profile?->facebook_id);
     }
 
     #[Test]
@@ -219,6 +222,7 @@ class FacebookAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -245,6 +249,7 @@ class FacebookAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -346,7 +351,7 @@ class FacebookAuthControllerTest extends TestCase
     }
 
     #[Test]
-    public function callback_links_facebook_id_to_existing_user_matched_by_email(): void
+    public function callback_rejects_automatic_facebook_linking_by_email(): void
     {
         Event::fake([Verified::class]);
 
@@ -361,13 +366,13 @@ class FacebookAuthControllerTest extends TestCase
 
         $response = $this->get(route('facebook.callback'));
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('login'));
 
         $existing->refresh();
-        $this->assertSame('555444333', $existing->profile?->facebook_id);
-        $this->assertNotNull($existing->email_verified_at);
-        $this->assertAuthenticatedAs($existing);
-        Event::assertDispatched(Verified::class);
+        $this->assertNull($existing->profile?->facebook_id);
+        $this->assertNull($existing->email_verified_at);
+        $this->assertGuest();
+        Event::assertNotDispatched(Verified::class);
     }
 
     #[Test]

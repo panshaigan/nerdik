@@ -32,6 +32,8 @@ return [
     'already_replied' => 'Na tę opinię już odpowiedziano.',
 
     'upload' => [
+        'quota' => 'Osiągnięto limit przesyłania obrazów. Spróbuj ponownie jutro.',
+        'unavailable' => 'Załączony obraz wygasł lub należy do innej sesji. Prześlij go ponownie.',
         'invalid' => 'Prześlij poprawny obraz.',
         'failed' => 'Przesyłanie obrazu nie powiodło się. Spróbuj ponownie.',
     ],

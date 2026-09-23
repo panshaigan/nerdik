@@ -17,7 +17,7 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
 
     public function test_mounted_tabs_track_visited_panels_without_unmounting_prior_tabs(): void
     {
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->assertSet('mountedTabs', ['plan'])
@@ -27,7 +27,7 @@ class ShowEventTabPanelsStayMountedTest extends TestCase
 
     public function test_shell_does_not_render_tab_switch_loading_overlay(): void
     {
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         $html = Livewire::test(ShowEvent::class, ['event' => $event])->html();
 

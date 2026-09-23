@@ -25,7 +25,7 @@ final class ShowActivityPageBackgroundTest extends TestCase
         $tag = Tag::factory()->create();
         $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/activity-show-background.jpg');
 
-        $activity = Activity::factory()->create([
+        $activity = Activity::factory()->selfHosted()->create([
             'logo_source' => ActivityLogoSource::Tag,
             'tag_media_id' => $media->id,
         ]);

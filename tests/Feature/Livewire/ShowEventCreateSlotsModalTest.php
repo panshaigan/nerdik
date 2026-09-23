@@ -33,7 +33,7 @@ class ShowEventCreateSlotsModalTest extends TestCase
 
     public function test_guest_shell_does_not_render_create_slots_modal(): void
     {
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         Livewire::test(ShowEvent::class, ['event' => $event])
             ->assertDontSeeHtml('id="event-slots-create-modal"');

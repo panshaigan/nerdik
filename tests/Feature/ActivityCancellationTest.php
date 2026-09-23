@@ -99,6 +99,7 @@ class ActivityCancellationTest extends TestCase
         $intruder = User::factory()->create();
 
         $event = Event::factory()->create([
+            'is_public' => true,
             'created_by' => $organizer->id,
             'updated_by' => $organizer->id,
         ]);

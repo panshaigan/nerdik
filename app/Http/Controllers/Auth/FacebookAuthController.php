@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -59,6 +60,10 @@ class FacebookAuthController extends Controller
 
         $facebookEmail = $facebookUser->getEmail();
 
+        if (! filled($facebookUser->getId())) {
+            return $this->oauthInvalidStateRedirect();
+        }
+
         if ($this->shouldCompleteAccountLinking()) {
             return $this->completeAccountLinking($facebookUser);
         }
@@ -77,25 +82,14 @@ class FacebookAuthController extends Controller
         })->first();
 
         if (! $user) {
-            $user = User::where('email', $facebookEmail)->first();
-            if ($user) {
-                $profile = $user->profile()->firstOrCreate();
-                $profile->facebook_id = $facebookUser->getId();
-                $this->syncFacebookAvatarUrl($profile, $facebookUser->getAvatar());
-                $this->syncFacebookProviderEmail($profile, $facebookUser);
-                $this->syncFacebookOAuthData($profile, $facebookUser);
-                if ($profile->timezone === null) {
-                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
-                }
-                $profile->save();
-                $user->setRelation('profile', $profile);
-                $this->verifyUserFromFacebookIfApplicable($user);
+            if (User::where('email', $facebookEmail)->exists()) {
+                return redirect()->route('login')->with('status', __('ui.auth.oauth_existing_email'));
             } else {
                 $user = User::create([
                     'name' => $facebookUser->getName(),
                     'nickname' => User::generateUniqueNicknameFromEmail($facebookEmail),
                     'email' => $facebookEmail,
-                    'password' => Hash::make(uniqid('', true)),
+                    'password' => Hash::make(Str::random(64)),
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->facebook_id = $facebookUser->getId();
@@ -139,10 +133,9 @@ class FacebookAuthController extends Controller
     {
         $linkContext = $this->resolveLinkContext();
         $returnTab = $linkContext['returnTab'] ?? 'avatar';
-        $profileUrl = $this->profileUrlForTab($returnTab);
 
         if ($linkContext === null) {
-            return redirect()->to($profileUrl);
+            return redirect()->route('login')->with('status', __('ui.profile.oauth_link_session_expired'));
         }
 
         $linkUserId = $linkContext['userId'];

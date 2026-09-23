@@ -22,7 +22,7 @@ class ShowActivityParticipationNoticesTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
 
         $user = User::factory()->create();
-        $event = Event::factory()->create([
+        $event = Event::factory()->public()->create([
             'starts_at' => now()->subDay(),
             'ends_at' => now()->addWeek(),
         ]);
@@ -73,6 +73,7 @@ class ShowActivityParticipationNoticesTest extends TestCase
         $user = User::factory()->create();
         $activity = Activity::factory()->create([
             'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'created_by' => $user->id,
         ]);
 
         $html = Livewire::actingAs($user)

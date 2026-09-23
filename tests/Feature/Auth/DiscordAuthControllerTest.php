@@ -11,6 +11,7 @@ use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -32,6 +33,7 @@ class DiscordAuthControllerTest extends TestCase
         $discordUser->nickname = $nickname;
         $discordUser->avatar = $avatar;
         $discordUser->token = 'fake-token';
+        $discordUser->user = ['verified' => true];
 
         return $discordUser;
     }
@@ -85,6 +87,7 @@ class DiscordAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'contact',
@@ -130,6 +133,7 @@ class DiscordAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -158,6 +162,7 @@ class DiscordAuthControllerTest extends TestCase
         ));
 
         $response = $this
+            ->actingAs($user)
             ->withSession([
                 'socialite.link_user_id' => $user->id,
                 'socialite.return_tab' => 'avatar',
@@ -196,7 +201,7 @@ class DiscordAuthControllerTest extends TestCase
     }
 
     #[Test]
-    public function callback_links_discord_id_to_existing_user_matched_by_email(): void
+    public function callback_rejects_automatic_discord_linking_by_email(): void
     {
         Event::fake([Verified::class]);
 
@@ -211,13 +216,13 @@ class DiscordAuthControllerTest extends TestCase
 
         $response = $this->get(route('discord.callback'));
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('login'));
 
         $existing->refresh();
-        $this->assertSame('555444333222111000', $existing->profile?->discord_id);
-        $this->assertNotNull($existing->email_verified_at);
-        $this->assertAuthenticatedAs($existing);
-        Event::assertDispatched(Verified::class);
+        $this->assertNull($existing->profile?->discord_id);
+        $this->assertNull($existing->email_verified_at);
+        $this->assertGuest();
+        Event::assertNotDispatched(Verified::class);
     }
 
     #[Test]
@@ -257,5 +262,99 @@ class DiscordAuthControllerTest extends TestCase
         $response->assertSessionHas('status');
         $this->assertGuest();
         $this->assertSame(0, User::whereHas('profile', fn ($query) => $query->where('discord_id', '111222333444555666'))->count());
+    }
+
+    /**
+     * @return array<string, array{bool|string|null}>
+     */
+    public static function untrustedEmailVerification(): array
+    {
+        return [
+            'unverified' => [false],
+            'missing' => [null],
+            'non-boolean' => ['false'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('untrustedEmailVerification')]
+    public function callback_rejects_unverified_or_missing_email_verification_for_registration(bool|string|null $verified): void
+    {
+        $providerUser = $this->fakeDiscordUser();
+        $providerUser->user = $verified === null ? [] : ['verified' => $verified];
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('discord.callback'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('ui.auth.oauth_verified_email_required'));
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => $providerUser->getEmail()]);
+    }
+
+    #[Test]
+    public function callback_does_not_link_existing_email_even_when_verified(): void
+    {
+        $existing = User::factory()->create(['email' => 'jane@example.com']);
+        $this->mockSocialiteWith($this->fakeDiscordUser());
+
+        $this->get(route('discord.callback'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', __('ui.auth.oauth_existing_email'));
+
+        $this->assertGuest();
+        $this->assertNull($existing->fresh()->profile?->discord_id);
+    }
+
+    #[Test]
+    public function existing_provider_id_can_login_without_verified_provider_email(): void
+    {
+        $existing = User::factory()->create();
+        $providerUser = $this->fakeDiscordUser();
+        $providerUser->user = ['verified' => false];
+        $existing->profile()->update(['discord_id' => $providerUser->getId()]);
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('discord.callback'))->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertAuthenticatedAs($existing);
+        $this->assertNull($existing->fresh()->profile?->discord_email);
+    }
+
+    #[Test]
+    public function session_link_intent_cannot_link_after_logout_or_to_a_different_user(): void
+    {
+        $target = User::factory()->create();
+        $this->mockSocialiteWith($this->fakeDiscordUser());
+
+        $this->withSession(['socialite.link_user_id' => $target->id])
+            ->get(route('discord.callback'))->assertRedirect(route('login'));
+
+        $this->assertGuest();
+        $this->assertNull($target->fresh()->profile?->discord_id);
+
+        $other = User::factory()->create();
+        $this->actingAs($other)
+            ->withSession(['socialite.link_user_id' => $target->id])
+            ->get(route('discord.callback'))->assertRedirect(route('login'));
+
+        $this->assertAuthenticatedAs($other);
+        $this->assertNull($target->fresh()->profile?->discord_id);
+        $this->assertNull($other->fresh()->profile?->discord_id);
+    }
+
+    #[Test]
+    public function unverified_provider_email_cannot_take_over_an_existing_account(): void
+    {
+        $existing = User::factory()->unverified()->create(['email' => 'jane@example.com']);
+        $providerUser = $this->fakeDiscordUser();
+        $providerUser->user = ['verified' => false];
+        $this->mockSocialiteWith($providerUser);
+
+        $this->get(route('discord.callback'))->assertRedirect(route('login'));
+
+        $this->assertGuest();
+        $this->assertNull($existing->fresh()->profile?->discord_id);
+        $this->assertFalse($existing->fresh()->hasVerifiedEmail());
     }
 }

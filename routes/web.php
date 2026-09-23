@@ -10,6 +10,7 @@ use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\DownloadEventSeriesCalendarController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\FeedbackEditorImageController;
 use App\Http\Controllers\FeedbackEditorUploadController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\InterestController;
@@ -72,8 +73,13 @@ Route::get('share/{target}', ShareRedirectController::class)
     ->middleware('throttle:60,1')
     ->name('share.redirect');
 
+Route::get('feedback/editor-images/{upload}', FeedbackEditorImageController::class)
+    ->whereUuid('upload')
+    ->name('feedback.editor-images.show');
+
 Route::post('feedback/editor-upload', FeedbackEditorUploadController::class)
     ->middleware('throttle:feedback-upload')
+    ->block()
     ->name('feedback.editor-upload');
 
 Route::view('dashboard', 'dashboard')
@@ -167,6 +173,8 @@ Route::get('events/{event}/calendar.ics', DownloadEventCalendarController::class
     ->name('events.calendar.ics');
 
 Route::get('events/{event}', function (Event $event) {
+    abort_unless($event->isVisibleTo(auth()->user()), 404);
+
     return view('events.show', compact('event'));
 })->name('events.show');
 
@@ -186,7 +194,7 @@ Route::get('activities/{activity}/calendar.ics', DownloadActivityCalendarControl
 
 Route::get('activities/{activity}', function (Activity $activity) {
     abort_unless(
-        Activity::query()->whereKey($activity->getKey())->attachedToPublicEvent()->exists(),
+        $activity->isVisibleTo(auth()->user()),
         404
     );
 

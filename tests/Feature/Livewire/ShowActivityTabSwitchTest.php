@@ -16,7 +16,7 @@ class ShowActivityTabSwitchTest extends TestCase
 
     public function test_tab_panels_stay_in_dom_when_switching_tabs(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         $component = Livewire::test(ShowActivity::class, ['activity' => $activity])
             ->assertSet('tab', 'info');
@@ -36,7 +36,7 @@ class ShowActivityTabSwitchTest extends TestCase
 
     public function test_invalid_tab_normalizes_to_info(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         Livewire::test(ShowActivity::class, ['activity' => $activity])
             ->set('tab', 'not-a-real-tab')

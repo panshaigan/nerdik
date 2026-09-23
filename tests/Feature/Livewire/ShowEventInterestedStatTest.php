@@ -21,7 +21,7 @@ class ShowEventInterestedStatTest extends TestCase
     public function test_add_and_remove_interest_update_event_interest_relation(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
@@ -43,7 +43,7 @@ class ShowEventInterestedStatTest extends TestCase
     public function test_toolbar_interest_button_includes_wire_click_when_authenticated(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
@@ -53,7 +53,7 @@ class ShowEventInterestedStatTest extends TestCase
 
     public function test_guest_sees_follow_count_without_toggle(): void
     {
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         $html = Livewire::test(ShowEvent::class, ['event' => $event])->html();
 
@@ -67,7 +67,7 @@ class ShowEventInterestedStatTest extends TestCase
     public function test_toolbar_interest_buttons_toggle_for_authenticated_user(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         $component = Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])
@@ -86,7 +86,7 @@ class ShowEventInterestedStatTest extends TestCase
     public function test_toolbar_follow_count_updates_after_interest_toggle(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->create();
+        $event = Event::factory()->public()->create();
 
         $component = Livewire::actingAs($user)
             ->test(ShowEvent::class, ['event' => $event])

@@ -25,7 +25,7 @@ final class ProviderEmailOptions
         $providerEmails = [
             ['linked' => filled($profile->google_id), 'email' => $profile->google_email],
             ['linked' => filled($profile->facebook_id), 'email' => $profile->facebook_email],
-            ['linked' => filled($profile->discord_id), 'email' => $profile->discord_email],
+            ['linked' => filled($profile->discord_id) && data_get($profile->discord_data, 'verified_email') === $profile->discord_email, 'email' => $profile->discord_email],
         ];
 
         foreach ($providerEmails as $provider) {

@@ -28,7 +28,7 @@ final class ShowActivityInfoSectionTest extends TestCase
         TagTranslation::factory()->create(['tag_id' => $gameTag->id, 'locale' => 'en', 'label' => 'Blades in the Dark']);
         TagTranslation::factory()->create(['tag_id' => $triggerTag->id, 'locale' => 'en', 'label' => 'Mental Illness']);
 
-        $activity = Activity::factory()->create([
+        $activity = Activity::factory()->selfHosted()->create([
             'max_participants' => 4,
         ]);
         $activity->tags()->attach([$gameTag->id, $triggerTag->id]);

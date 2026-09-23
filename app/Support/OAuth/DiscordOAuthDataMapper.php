@@ -12,6 +12,7 @@ final class DiscordOAuthDataMapper
     /**
      * @return array{
      *     synced_at: string,
+     *     verified_email: ?string,
      *     username: ?string,
      *     global_name: ?string,
      *     display_name: ?string,
@@ -34,6 +35,7 @@ final class DiscordOAuthDataMapper
 
         return [
             'synced_at' => now()->toIso8601String(),
+            'verified_email' => Arr::get($raw, 'verified') === true ? strtolower((string) $socialiteUser->getEmail()) : null,
             'username' => $username,
             'global_name' => $globalName,
             'display_name' => $displayName,

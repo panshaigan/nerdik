@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Lazy;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -30,6 +31,7 @@ class EventShowProposalsTab extends Component
     use AuthorizesOwnership;
     use Toast;
 
+    #[Locked]
     public int $eventId;
 
     /**
@@ -56,6 +58,11 @@ class EventShowProposalsTab extends Component
         HTML;
     }
 
+    public function hydrate(): void
+    {
+        Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+    }
+
     public function mount(int $eventId): void
     {
         $this->eventId = $eventId;
@@ -76,7 +83,7 @@ class EventShowProposalsTab extends Component
             return;
         }
 
-        $event = Event::query()->whereKey($this->eventId)->first();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->first();
         if ($event === null) {
             return;
         }
@@ -91,7 +98,7 @@ class EventShowProposalsTab extends Component
 
     public function acceptPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($event), 403);
 
         $proposal = ActivityProposal::query()
@@ -146,7 +153,7 @@ class EventShowProposalsTab extends Component
 
         unset($this->proposalAcceptSlotId[$proposalId], $this->proposalAcceptSlotId[(string) $proposalId]);
 
-        $syncEvent = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $syncEvent = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         $syncEvent->load(['slots.activity']);
         app(SlotScheduleSyncService::class)->syncSlotEndsForEvent($syncEvent);
 
@@ -157,7 +164,7 @@ class EventShowProposalsTab extends Component
 
     public function rejectPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($event), 403);
 
         $proposal = ActivityProposal::query()
@@ -178,7 +185,7 @@ class EventShowProposalsTab extends Component
 
     public function render(ActivityBadgeGroupBuilder $badgeGroupBuilder): View
     {
-        $event = Event::query()->whereKey($this->eventId)->firstOrFail();
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
 
         $event->load([
             'slots' => fn ($q) => $q->with([

@@ -13,6 +13,7 @@ use App\Services\EventActivitySignupService;
 use App\Support\Ui\ActivityPreviewAboutPresenter;
 use App\Support\Ui\ActivityPreviewAboutViewData;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 
 trait WithActivityPreviewModal
@@ -21,6 +22,7 @@ trait WithActivityPreviewModal
 
     public bool $activityPreviewModalOpen = false;
 
+    #[Locked]
     public ?int $previewActivityId = null;
 
     public string $activityPreviewTab = 'info';
@@ -34,7 +36,7 @@ trait WithActivityPreviewModal
 
     public function openActivityPreview(int $activityId): void
     {
-        $activity = $this->previewActivityQuery($activityId)->first();
+        $activity = $this->previewActivityQuery($activityId)->visibleTo(auth()->user())->first();
 
         if ($activity === null) {
             $this->closeActivityPreview();
@@ -62,7 +64,7 @@ trait WithActivityPreviewModal
             return;
         }
 
-        $activity = Activity::query()
+        $activity = Activity::query()->visibleTo(auth()->user())
             ->with('slot.event.enrollmentWindows')
             ->whereKey($this->previewActivityId)
             ->first();
@@ -202,7 +204,7 @@ trait WithActivityPreviewModal
     ): array {
         $aboutPresenter = app(ActivityPreviewAboutPresenter::class);
         $previewActivity = $this->activityPreviewModalOpen && $this->previewActivityId !== null
-            ? $this->previewActivityQuery($this->previewActivityId)
+            ? $this->previewActivityQuery($this->previewActivityId)->visibleTo(auth()->user())
                 ->withCount(['participants', 'waitlist'])
                 ->first()
             : null;
@@ -332,7 +334,7 @@ trait WithActivityPreviewModal
     {
         abort_unless($this->previewActivityId !== null, 404);
 
-        return $this->previewActivityQuery($this->previewActivityId)->firstOrFail();
+        return $this->previewActivityQuery($this->previewActivityId)->visibleTo(auth()->user())->firstOrFail();
     }
 
     private function showPreviewParticipationTab(): void

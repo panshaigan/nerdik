@@ -33,9 +33,9 @@ class ActivityParticipationChannelTest extends TestCase
         require base_path('routes/channels.php');
     }
 
-    public function test_any_logged_in_user_can_authorize_activity_channel(): void
+    public function test_any_logged_in_user_can_authorize_public_activity_channel(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->create(['hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED]);
         $firstUser = User::factory()->create();
         $secondUser = User::factory()->create();
 
@@ -54,6 +54,17 @@ class ActivityParticipationChannelTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_hidden_activity_channel_requires_owner_or_admin(): void
+    {
+        $owner = User::factory()->create();
+        $activity = Activity::factory()->create(['created_by' => $owner->id]);
+        $payload = ['socket_id' => '1234.5678', 'channel_name' => 'private-activity.'.$activity->id];
+
+        $this->actingAs(User::factory()->create())->postJson('/broadcasting/auth', $payload)->assertForbidden();
+        $this->actingAs($owner)->postJson('/broadcasting/auth', $payload)->assertSuccessful();
+        $this->actingAs(User::factory()->admin()->create())->postJson('/broadcasting/auth', $payload)->assertSuccessful();
+    }
+
     public function test_activity_channel_denied_when_activity_does_not_exist(): void
     {
         $user = User::factory()->create();
@@ -68,7 +79,7 @@ class ActivityParticipationChannelTest extends TestCase
 
     public function test_guest_cannot_authorize_activity_channel(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->create(['hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED]);
 
         $this->postJson('/broadcasting/auth', [
             'socket_id' => '1234.5678',

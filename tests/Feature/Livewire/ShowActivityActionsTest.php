@@ -152,7 +152,7 @@ class ShowActivityActionsTest extends TestCase
     public function test_interest_toggle_actions_update_interest_relations(): void
     {
         $user = User::factory()->create();
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])
@@ -170,7 +170,7 @@ class ShowActivityActionsTest extends TestCase
     public function test_toolbar_interest_button_includes_wire_click_when_authenticated(): void
     {
         $user = User::factory()->create();
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])
@@ -180,7 +180,7 @@ class ShowActivityActionsTest extends TestCase
 
     public function test_guest_sees_follow_count_without_toggle(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
 
@@ -194,7 +194,7 @@ class ShowActivityActionsTest extends TestCase
     public function test_toolbar_interest_buttons_toggle_for_authenticated_user(): void
     {
         $user = User::factory()->create();
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         $component = Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])
@@ -212,7 +212,7 @@ class ShowActivityActionsTest extends TestCase
 
     public function test_toolbar_interest_buttons_are_hidden_for_guests(): void
     {
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         Livewire::test(ShowActivity::class, ['activity' => $activity])
             ->assertDontSeeHtml('data-ui="activity-show-interest-add"')
@@ -223,7 +223,7 @@ class ShowActivityActionsTest extends TestCase
     public function test_toolbar_follow_count_updates_after_interest_toggle(): void
     {
         $user = User::factory()->create();
-        $activity = Activity::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create();
 
         $component = Livewire::actingAs($user)
             ->test(ShowActivity::class, ['activity' => $activity])

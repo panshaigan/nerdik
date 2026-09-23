@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -56,6 +57,10 @@ class DiscordAuthController extends Controller
 
         $discordEmail = $discordUser->getEmail();
 
+        if (! filled($discordUser->getId())) {
+            return $this->oauthInvalidStateRedirect();
+        }
+
         if ($this->shouldCompleteAccountLinking()) {
             return $this->completeAccountLinking($discordUser);
         }
@@ -74,26 +79,18 @@ class DiscordAuthController extends Controller
         })->first();
 
         if (! $user) {
-            $user = User::where('email', $discordEmail)->first();
-            if ($user) {
-                $profile = $user->profile()->firstOrCreate();
-                $profile->discord_id = $discordUser->getId();
-                $this->syncDiscordAvatarUrl($profile, $discordUser->getAvatar());
-                $this->syncDiscordHandle($profile, $discordUser->getNickname());
-                $this->syncDiscordProviderEmail($profile, $discordUser);
-                $this->syncDiscordOAuthData($profile, $discordUser);
-                if ($profile->timezone === null) {
-                    $profile->timezone = $browserTimezone ?? default_profile_timezone();
-                }
-                $profile->save();
-                $user->setRelation('profile', $profile);
-                $this->verifyUserFromDiscordIfApplicable($user);
+            if (! $this->isDiscordEmailMarkedVerified($discordUser) || ! filter_var($discordEmail, FILTER_VALIDATE_EMAIL)) {
+                return redirect()->route('login')->with('status', __('ui.auth.oauth_verified_email_required'));
+            }
+
+            if (User::where('email', $discordEmail)->exists()) {
+                return redirect()->route('login')->with('status', __('ui.auth.oauth_existing_email'));
             } else {
                 $user = User::create([
                     'name' => $discordUser->getName(),
                     'nickname' => User::generateUniqueNicknameFromEmail($discordEmail),
                     'email' => $discordEmail,
-                    'password' => Hash::make(uniqid('', true)),
+                    'password' => Hash::make(Str::random(64)),
                 ]);
                 $profile = $user->profile()->firstOrCreate();
                 $profile->discord_id = $discordUser->getId();
@@ -139,10 +136,9 @@ class DiscordAuthController extends Controller
     {
         $linkContext = $this->resolveLinkContext();
         $returnTab = $linkContext['returnTab'] ?? 'avatar';
-        $profileUrl = $this->profileUrlForTab($returnTab);
 
         if ($linkContext === null) {
-            return redirect()->to($profileUrl);
+            return redirect()->route('login')->with('status', __('ui.profile.oauth_link_session_expired'));
         }
 
         $linkUserId = $linkContext['userId'];
@@ -227,8 +223,7 @@ class DiscordAuthController extends Controller
     }
 
     /**
-     * Discord only returns an email when the user has confirmed it on Discord,
-     * so any non-null email from the OAuth response can be treated as verified.
+     * Only called after validating Discord email verification for a new account.
      */
     private function verifyUserFromDiscordIfApplicable(User $user): void
     {
