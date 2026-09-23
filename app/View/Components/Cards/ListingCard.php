@@ -25,6 +25,8 @@ class ListingCard extends Component
         public ?string $returnUrl = null,
         public ?bool $publiclyShowable = null,
         public ?int $confirmedActivitiesCount = null,
+        public string $imageLoading = 'lazy',
+        public ?string $imageFetchPriority = null,
     ) {
         $presenter = app(BrowseListingCardPresenter::class);
         $this->viewData = $listing instanceof Event

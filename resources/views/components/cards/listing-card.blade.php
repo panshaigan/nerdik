@@ -67,6 +67,8 @@
             <x-listing-card-picture
                 :picture="$d->coverPicture"
                 class="ui-card-media-fade absolute inset-0 block size-full object-cover"
+                :loading="$imageLoading"
+                :fetchpriority="$imageFetchPriority"
             />
             <div class="pointer-events-none absolute left-2 top-2 z-20 flex max-w-[calc(100%-3.5rem)] flex-row flex-wrap items-center gap-1">
                 @if ($d->kindCornerLabel)

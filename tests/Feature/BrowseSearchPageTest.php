@@ -40,6 +40,7 @@ class BrowseSearchPageTest extends TestCase
         $response->assertSee('data-browse-date-range', false);
         $response->assertSee('data-locale="en"', false);
         $response->assertSee('ui-app-navigation', false);
+        $response->assertDontSee('fonts.bunny.net', false);
     }
 
     public function test_search_page_lists_public_event_and_self_hosted_activity_cards(): void
@@ -78,6 +79,17 @@ class BrowseSearchPageTest extends TestCase
         $response->assertDontSee('from-black/55', false);
         $response->assertSee($event->name, false);
         $response->assertSee($activity->name, false);
+        preg_match_all(
+            '/<img[^>]*class="[^"]*ui-card-media-fade[^"]*"[^>]*>/',
+            $response->getContent(),
+            $listingImages,
+        );
+
+        $this->assertGreaterThanOrEqual(2, count($listingImages[0]));
+        $this->assertStringContainsString('loading="eager"', $listingImages[0][0]);
+        $this->assertStringContainsString('fetchpriority="high"', $listingImages[0][0]);
+        $this->assertStringContainsString('loading="lazy"', $listingImages[0][1]);
+        $this->assertStringNotContainsString('fetchpriority="high"', $listingImages[0][1]);
         $this->assertSame(1, substr_count($response->getContent(), 'data-ui="browse-card-participants"'));
     }
 }

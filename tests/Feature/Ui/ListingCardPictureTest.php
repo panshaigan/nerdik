@@ -44,6 +44,29 @@ final class ListingCardPictureTest extends TestCase
     }
 
     #[Test]
+    public function listing_card_can_prioritize_its_cover_picture(): void
+    {
+        $tag = Tag::factory()->create();
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/listing-card-feature.jpg');
+
+        $activity = Activity::factory()->create([
+            'logo_source' => ActivityLogoSource::Tag,
+            'tag_media_id' => $media->id,
+        ]);
+        $activity->setRelation('tagMedia', $media);
+
+        $component = new ListingCard(
+            listing: $activity,
+            imageLoading: 'eager',
+            imageFetchPriority: 'high',
+        );
+        $html = $component->render()->with($component->data())->render();
+
+        $this->assertStringContainsString('loading="eager"', $html);
+        $this->assertStringContainsString('fetchpriority="high"', $html);
+    }
+
+    #[Test]
     public function listing_card_media_fills_aspect_video_box_for_non_sixteen_by_nine_cover(): void
     {
         $tag = Tag::factory()->create();

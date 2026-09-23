@@ -98,6 +98,8 @@
                             :return-url="$browsingReturnUrl"
                             :publicly-showable="$row['kind'] === 'activity' ? true : null"
                             :confirmed-activities-count="$row['kind'] === 'event' ? ($eventProgrammeActivityCounts[$listing->id] ?? 0) : null"
+                            :image-loading="$loop->first ? 'eager' : 'lazy'"
+                            :image-fetch-priority="$loop->first ? 'high' : null"
                         />
                     </div>
                 @empty
