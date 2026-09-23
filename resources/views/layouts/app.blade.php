@@ -117,5 +117,9 @@
         </dialog>
 
         @stack('scripts')
+
+        @if (auth()->guest() && auth_recaptcha_enforced())
+            {!! auth_recaptcha_api_script() !!}
+        @endif
     </body>
 </html>

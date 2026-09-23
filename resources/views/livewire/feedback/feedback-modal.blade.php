@@ -1,23 +1,4 @@
 <div>
-    @if (auth()->guest() && auth_recaptcha_enforced())
-        @push('scripts')
-            {!! auth_recaptcha_api_script() !!}
-            <script data-navigate-once>
-                function nerdikFeedbackRecaptcha(token) {
-                    const root = document.querySelector('[data-ui="feedback-modal-root"]');
-                    if (!root || typeof window.Livewire === 'undefined') {
-                        return;
-                    }
-
-                    const id = root.getAttribute('wire:id');
-                    if (id !== null && id !== '') {
-                        window.Livewire.find(id).set('gRecaptchaResponse', token);
-                    }
-                }
-            </script>
-        @endpush
-    @endif
-
     @push('scripts')
         <script data-navigate-once>
             window.refreshNerdikFeedbackModalTinyMCE = function () {

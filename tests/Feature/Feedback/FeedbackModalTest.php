@@ -145,6 +145,18 @@ class FeedbackModalTest extends TestCase
             ->assertHasErrors(['email']);
     }
 
+    public function test_guest_layout_loads_captcha_api_when_enabled(): void
+    {
+        $this->enableRecaptcha();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSeeInOrder([
+                'window.nerdikRecaptchaOnload',
+                'https://www.google.com/recaptcha/api.js?',
+            ], false);
+    }
+
     public function test_guest_submit_requires_captcha_when_enabled(): void
     {
         $this->enableRecaptcha();
@@ -156,6 +168,7 @@ class FeedbackModalTest extends TestCase
             ->assertSeeHtml('data-ui="feedback-recaptcha"')
             ->assertSeeHtml('data-nerdik-recaptcha')
             ->assertSeeHtml('data-sitekey="test-site-key"')
+            ->assertSeeHtml('data-callback="nerdikFeedbackRecaptcha"')
             ->set('type', FeedbackType::Bug->value)
             ->set('subject', 'Captcha required')
             ->set('body', '<p>Guest body</p>')

@@ -70,5 +70,9 @@
 
         <livewire:feedback.feedback-modal />
         <x-toast />
+
+        @if (auth()->guest() && auth_recaptcha_enforced())
+            {!! auth_recaptcha_api_script() !!}
+        @endif
     </body>
 </html>

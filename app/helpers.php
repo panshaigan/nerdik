@@ -32,8 +32,16 @@ if (! function_exists('auth_recaptcha_api_script')) {
             'onload' => 'nerdikRecaptchaOnload',
         ]);
 
+        $onloadCallback = <<<'HTML'
+<script data-navigate-once>
+    window.nerdikRecaptchaOnload = window.nerdikRecaptchaOnload || function () {
+        window.dispatchEvent(new Event('nerdik:recaptcha-loaded'));
+    };
+</script>
+HTML;
+
         return new HtmlString(
-            '<script src="'.e($src).'" async defer data-navigate-once></script>'
+            $onloadCallback.'<script src="'.e($src).'" async defer data-navigate-once></script>'
         );
     }
 }

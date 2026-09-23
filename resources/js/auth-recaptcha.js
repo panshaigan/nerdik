@@ -106,12 +106,24 @@ function registerMorphHook() {
     window.Livewire.hook('morphed', mountAuthRecaptchas);
 }
 
+window.nerdikFeedbackRecaptcha = (token) => {
+    if (typeof window.Livewire?.getByName !== 'function') {
+        return;
+    }
+
+    const [feedbackModal] = window.Livewire.getByName('feedback.feedback-modal');
+
+    feedbackModal?.$set('gRecaptchaResponse', token);
+};
+
 /**
  * Google api.js onload (explicit render). Also used after wire:navigate when the script is skipped.
  */
 window.nerdikRecaptchaOnload = () => {
     mountAuthRecaptchas();
 };
+
+window.addEventListener('nerdik:recaptcha-loaded', mountAuthRecaptchas);
 
 document.addEventListener('livewire:init', () => {
     registerResetListener();
