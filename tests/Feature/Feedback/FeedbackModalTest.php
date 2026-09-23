@@ -145,16 +145,25 @@ class FeedbackModalTest extends TestCase
             ->assertHasErrors(['email']);
     }
 
-    public function test_guest_layout_loads_captcha_api_when_enabled(): void
+    public function test_guest_layout_defers_captcha_api_until_feedback_is_opened(): void
     {
         $this->enableRecaptcha();
 
-        $this->get('/')
+        $this->get('/search')
             ->assertOk()
-            ->assertSeeInOrder([
-                'window.nerdikRecaptchaOnload',
-                'https://www.google.com/recaptcha/api.js?',
-            ], false);
+            ->assertSee('window.prepareNerdikFeedbackModal', false)
+            ->assertSee('window.nerdikRecaptchaOnload', false)
+            ->assertDontSee('<script src="https://www.google.com/recaptcha/api.js?', false);
+    }
+
+    public function test_authenticated_layout_defers_tinymce_until_feedback_is_opened(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get('/search')
+            ->assertOk()
+            ->assertSee('window.prepareNerdikFeedbackModal', false)
+            ->assertSee('https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js', false)
+            ->assertDontSee('<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js', false);
     }
 
     public function test_guest_submit_requires_captcha_when_enabled(): void

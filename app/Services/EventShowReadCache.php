@@ -33,6 +33,41 @@ class EventShowReadCache
     public function __construct(private ActivityPeopleStats $activityPeopleStats) {}
 
     /**
+     * Confirmed programme activity counts for a set of event cards.
+     *
+     * This deliberately uses one grouped query instead of reading the per-event
+     * detail cache, which would still require one cache-store query per card.
+     *
+     * @param  list<int>  $eventIds
+     * @return array<int, int>
+     */
+    public function programmeActivityCounts(array $eventIds): array
+    {
+        $normalizedEventIds = array_values(array_unique(array_filter(
+            array_map('intval', $eventIds),
+            static fn (int $eventId): bool => $eventId > 0,
+        )));
+
+        if ($normalizedEventIds === []) {
+            return [];
+        }
+
+        $counts = Activity::query()
+            ->join('slots', 'slots.activity_id', '=', 'activities.id')
+            ->whereIn('slots.event_id', $normalizedEventIds)
+            ->whereNull('activities.cancelled_at')
+            ->groupBy('slots.event_id')
+            ->selectRaw('slots.event_id, COUNT(DISTINCT activities.id) AS confirmed_activities')
+            ->pluck('confirmed_activities', 'slots.event_id')
+            ->mapWithKeys(static fn (mixed $count, mixed $eventId): array => [(int) $eventId => (int) $count])
+            ->all();
+
+        return collect($normalizedEventIds)
+            ->mapWithKeys(static fn (int $eventId): array => [$eventId => $counts[$eventId] ?? 0])
+            ->all();
+    }
+
+    /**
      * Cached confirmed programme counts for the shell stats row (invalidated via observers + TTL).
      *
      * @return array{0: int, 1: int, 2: int|null} [confirmedActivitiesCount, confirmedParticipantsCount, availablePlaces]

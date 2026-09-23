@@ -24,8 +24,12 @@ final class BrowseListingCardPresenter
     /**
      * @param  list<int>  $interestedIds
      */
-    public function fromActivity(Activity $activity, array $interestedIds, ?string $returnUrl = null): BrowseListingCardViewData
-    {
+    public function fromActivity(
+        Activity $activity,
+        array $interestedIds,
+        ?string $returnUrl = null,
+        ?bool $showDetailsLink = null,
+    ): BrowseListingCardViewData {
         $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
         $canEdit = $currentUser !== null && $currentUser->canModifyEntity($activity);
@@ -71,7 +75,7 @@ final class BrowseListingCardPresenter
             openAriaLabel: __('Open activity').': '.$activity->name,
             openDetailsAriaLabel: __('ui.activities.show_details').': '.$activity->name,
             previewWireMethod: 'openListingActivityPreview',
-            showDetailsLink: $activity->isPubliclyShowable(),
+            showDetailsLink: $showDetailsLink ?? $activity->isPubliclyShowable(),
             confirmedActivitiesCount: null,
             locationPlaces: BrowseSearchUrl::placeLinks($place),
         );
@@ -80,12 +84,18 @@ final class BrowseListingCardPresenter
     /**
      * @param  list<int>  $interestedIds
      */
-    public function fromEvent(Event $event, array $interestedIds, ?string $returnUrl = null): BrowseListingCardViewData
-    {
+    public function fromEvent(
+        Event $event,
+        array $interestedIds,
+        ?string $returnUrl = null,
+        ?int $confirmedActivitiesCount = null,
+    ): BrowseListingCardViewData {
         $return = safe_return_url($returnUrl) ?? browsing_return_url();
         $currentUser = auth()->user();
         $canEdit = $currentUser !== null && $currentUser->canModifyEntity($event);
-        [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
+        if ($confirmedActivitiesCount === null) {
+            [$confirmedActivitiesCount] = $this->eventShowReadCache->programmeStats((int) $event->id);
+        }
         $event->loadMissing(['enrollmentWindows', 'eventSeries']);
         $now = now();
         $hasActiveEnrollmentWindow = $event->enrollmentWindows->contains(function ($window) use ($now): bool {

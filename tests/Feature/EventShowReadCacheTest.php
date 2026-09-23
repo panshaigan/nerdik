@@ -14,11 +14,56 @@ use App\Models\User;
 use App\Services\EventShowReadCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class EventShowReadCacheTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_programme_activity_counts_load_multiple_event_cards_in_one_query(): void
+    {
+        $user = User::factory()->create();
+        $firstEvent = Event::factory()->public()->create(['created_by' => $user->id]);
+        $secondEvent = Event::factory()->public()->create(['created_by' => $user->id]);
+        $emptyEvent = Event::factory()->public()->create(['created_by' => $user->id]);
+
+        $firstActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancelled_at' => null,
+        ]);
+        $secondActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancelled_at' => null,
+        ]);
+        $cancelledActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancelled_at' => now(),
+        ]);
+
+        Slot::factory()->create(['event_id' => $firstEvent->id, 'activity_id' => $firstActivity->id]);
+        Slot::factory()->create(['event_id' => $firstEvent->id, 'activity_id' => $secondActivity->id]);
+        Slot::factory()->create(['event_id' => $secondEvent->id, 'activity_id' => $cancelledActivity->id]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $counts = app(EventShowReadCache::class)->programmeActivityCounts([
+            (int) $firstEvent->id,
+            (int) $secondEvent->id,
+            (int) $emptyEvent->id,
+        ]);
+
+        $this->assertSame([
+            (int) $firstEvent->id => 2,
+            (int) $secondEvent->id => 0,
+            (int) $emptyEvent->id => 0,
+        ], $counts);
+        $this->assertCount(1, DB::getQueryLog());
+    }
 
     public function test_programme_stats_cache_is_invalidated_when_slot_is_updated(): void
     {

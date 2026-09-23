@@ -48,12 +48,6 @@
         </div>
 
         @if ($map_view)
-            @php
-                $mapFocusPlace = $place_id !== null
-                    ? \App\Models\Place::query()->find($place_id)
-                    : null;
-                $mapFocusCoords = $mapFocusPlace?->venueCoordinates();
-            @endphp
             <div
                 id="ui-browse-events-map"
                 data-browse-events-map
@@ -102,6 +96,8 @@
                             :listing="$listing"
                             :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
                             :return-url="$browsingReturnUrl"
+                            :publicly-showable="$row['kind'] === 'activity' ? true : null"
+                            :confirmed-activities-count="$row['kind'] === 'event' ? ($eventProgrammeActivityCounts[$listing->id] ?? 0) : null"
                         />
                     </div>
                 @empty

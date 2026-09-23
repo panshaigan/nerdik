@@ -23,9 +23,6 @@
 
         @stack('head')
 
-        {{-- Global feedback modal uses Mary <x-editor>; must load before Livewire mounts it. --}}
-        <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
-
         <x-echo-config />
         <x-sentry-config />
         <x-umami-analytics />
@@ -62,8 +59,16 @@
                         <button
                             type="button"
                             class="link link-hover opacity-80"
-                            x-data
-                            x-on:click="$dispatch('open-feedback-modal')"
+                            x-data="{ loadingFeedback: false }"
+                            x-bind:disabled="loadingFeedback"
+                            x-on:click="
+                                if (loadingFeedback) return;
+                                loadingFeedback = true;
+                                Promise.resolve(window.prepareNerdikFeedbackModal?.())
+                                    .catch((error) => console.error('Feedback dependency load failed', error))
+                                    .then(() => $dispatch('open-feedback-modal'))
+                                    .finally(() => loadingFeedback = false);
+                            "
                         >{{ __('ui.footer.contact') }}</button>
                     </div>
                 </div>
@@ -117,9 +122,5 @@
         </dialog>
 
         @stack('scripts')
-
-        @if (auth()->guest() && auth_recaptcha_enforced())
-            {!! auth_recaptcha_api_script() !!}
-        @endif
     </body>
 </html>

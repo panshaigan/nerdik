@@ -15,6 +15,7 @@ use App\Models\Place;
 use App\Models\Tag;
 use App\Services\ActivityParticipationViewService;
 use App\Services\EventActivitySignupService;
+use App\Services\EventShowReadCache;
 use App\Services\UserInterestService;
 use App\Support\Browse\BrowseListingFilterBag;
 use App\Support\Browse\BrowseListingQuery;
@@ -525,38 +526,51 @@ class BrowseEvents extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         EventActivitySignupService $signupService,
         BrowseListingCardPresenter $listingCardPresenter,
+        EventShowReadCache $eventShowReadCache,
     ) {
         $paginator = $this->map_view
             ? $this->emptyBrowsePaginator()
             : $this->paginateBrowseListings();
 
-        $interestedEventIds = auth()->check()
-            ? auth()->user()->interestedEvents()->pluck('events.id')->toArray()
-            : [];
+        [$visibleEventIds, $visibleActivityIds] = $this->visibleListingIds($paginator);
+        $user = auth()->user();
 
-        $interestedActivityIds = auth()->check()
-            ? auth()->user()->interestedActivities()->pluck('activities.id')->toArray()
+        $interestedEventIds = $user !== null && $visibleEventIds !== []
+            ? $user->interestedEvents()
+                ->whereIn('events.id', $visibleEventIds)
+                ->pluck('events.id')
+                ->map(static fn (mixed $id): int => (int) $id)
+                ->all()
             : [];
-        $participatingActivityIds = auth()->check()
+        $interestedActivityIds = $user !== null && $visibleActivityIds !== []
+            ? $user->interestedActivities()
+                ->whereIn('activities.id', $visibleActivityIds)
+                ->pluck('activities.id')
+                ->map(static fn (mixed $id): int => (int) $id)
+                ->all()
+            : [];
+        $participatingActivityIds = $user !== null && $visibleActivityIds !== []
             ? ActivityUser::query()
-                ->where('user_id', auth()->id())
+                ->where('user_id', $user->id)
+                ->whereIn('activity_id', $visibleActivityIds)
                 ->where('is_absent', false)
                 ->distinct('activity_id')
                 ->pluck('activity_id')
-                ->map(fn ($id) => (int) $id)
+                ->map(static fn (mixed $id): int => (int) $id)
                 ->all()
             : [];
-        $participatingEventIds = auth()->check()
+        $participatingEventIds = $user !== null && $visibleEventIds !== []
             ? DB::table('activity_user')
                 ->join('slots', 'slots.activity_id', '=', 'activity_user.activity_id')
-                ->whereNotNull('slots.event_id')
-                ->where('activity_user.user_id', auth()->id())
+                ->whereIn('slots.event_id', $visibleEventIds)
+                ->where('activity_user.user_id', $user->id)
                 ->where('activity_user.is_absent', false)
                 ->distinct()
                 ->pluck('slots.event_id')
-                ->map(fn ($id) => (int) $id)
+                ->map(static fn (mixed $id): int => (int) $id)
                 ->all()
             : [];
+        $eventProgrammeActivityCounts = $eventShowReadCache->programmeActivityCounts($visibleEventIds);
 
         $browsingReturnUrl = BrowseSearchUrl::returnUrlFromFilterBag(
             $this->browseFilterBag(),
@@ -570,6 +584,8 @@ class BrowseEvents extends Component
             'browsingReturnUrl' => $browsingReturnUrl,
             'browseListings' => $paginator,
             'mapFeaturesUrl' => route('search.map-features'),
+            'mapFocusCoords' => $this->mapFocusCoordinates(),
+            'eventProgrammeActivityCounts' => $eventProgrammeActivityCounts,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
@@ -587,6 +603,39 @@ class BrowseEvents extends Component
             ...$this->resolveEventPreviewViewData($listingCardPresenter),
             'includeEventPreviewModal' => true,
         ]);
+    }
+
+    /**
+     * @return array{0: list<int>, 1: list<int>}
+     */
+    private function visibleListingIds(LengthAwarePaginator $paginator): array
+    {
+        $eventIds = [];
+        $activityIds = [];
+
+        foreach ($paginator->items() as $row) {
+            if (($row['kind'] ?? null) === 'event' && isset($row['event'])) {
+                $eventIds[] = (int) $row['event']->id;
+            }
+
+            if (($row['kind'] ?? null) === 'activity' && isset($row['activity'])) {
+                $activityIds[] = (int) $row['activity']->id;
+            }
+        }
+
+        return [array_values(array_unique($eventIds)), array_values(array_unique($activityIds))];
+    }
+
+    /**
+     * @return array{0: float, 1: float}|null
+     */
+    private function mapFocusCoordinates(): ?array
+    {
+        if (! $this->map_view || $this->place_id === null) {
+            return null;
+        }
+
+        return Place::query()->find($this->place_id)?->venueCoordinates();
     }
 
     protected function useListingCardLocationInActivityPreview(): bool

@@ -23,11 +23,13 @@ class ListingCard extends Component
         public Activity|Event $listing,
         public array $interestedIds = [],
         public ?string $returnUrl = null,
+        public ?bool $publiclyShowable = null,
+        public ?int $confirmedActivitiesCount = null,
     ) {
         $presenter = app(BrowseListingCardPresenter::class);
         $this->viewData = $listing instanceof Event
-            ? $presenter->fromEvent($listing, $interestedIds, $returnUrl)
-            : $presenter->fromActivity($listing, $interestedIds, $returnUrl);
+            ? $presenter->fromEvent($listing, $interestedIds, $returnUrl, $confirmedActivitiesCount)
+            : $presenter->fromActivity($listing, $interestedIds, $returnUrl, $publiclyShowable);
     }
 
     #[\Override]

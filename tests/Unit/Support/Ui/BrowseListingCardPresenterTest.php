@@ -139,6 +139,21 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
+    public function precomputed_listing_values_avoid_rechecking_card_visibility_and_stats(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+        $event = Event::factory()->create();
+
+        $activityViewData = $this->presenter->fromActivity($activity, [], null, true);
+        $eventViewData = $this->presenter->fromEvent($event, [], null, 7);
+
+        $this->assertTrue($activityViewData->showDetailsLink);
+        $this->assertSame(7, $eventViewData->confirmedActivitiesCount);
+    }
+
+    #[Test]
     public function from_activity_uses_venue_name_when_slot_place_is_a_room(): void
     {
         $user = User::factory()->create();

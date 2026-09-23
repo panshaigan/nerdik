@@ -116,36 +116,49 @@ class TagBuilder extends Builder
         array $excludeCategoryKeys = [],
         array $categoryOrder = [],
     ): Collection {
+        if ($perCategory < 1) {
+            return collect();
+        }
+
         if ($categoryOrder === []) {
             $categoryOrder = config('browse.tag_suggestions.category_order', []);
         }
 
-        $eager = ['translations', 'aliases', 'tagCategory.translations'];
-        $tags = collect();
+        $categoryIds = collect($categoryOrder)
+            ->reject(static fn (string $categoryKey): bool => in_array($categoryKey, $excludeCategoryKeys, true))
+            ->map(static fn (string $categoryKey): ?int => TagCategory::idByKey($categoryKey))
+            ->filter(static fn (?int $categoryId): bool => $categoryId !== null)
+            ->map(static fn (int $categoryId): int => $categoryId)
+            ->unique()
+            ->values()
+            ->all();
 
-        foreach ($categoryOrder as $categoryKey) {
-            if (in_array($categoryKey, $excludeCategoryKeys, true)) {
-                continue;
-            }
-
-            $categoryId = TagCategory::idByKey($categoryKey);
-            if ($categoryId === null) {
-                continue;
-            }
-
-            $chunk = $this->getModel()->newQuery()
-                ->with($eager)
-                ->usedOnBrowseVisibleActivities(true)
-                ->where('popularity_score', '>', 0)
-                ->where('tag_category_id', $categoryId)
-                ->orderedByPopularity()
-                ->limit($perCategory)
-                ->get();
-
-            $tags = $tags->merge($chunk);
+        if ($categoryIds === []) {
+            return collect();
         }
 
-        return $tags->unique('id')->values();
+        $rankedTags = $this->getModel()->newQuery()
+            ->select('tags.*')
+            ->selectRaw(
+                'ROW_NUMBER() OVER (PARTITION BY tags.tag_category_id ORDER BY tags.popularity_score DESC, tags.id ASC) AS browse_category_rank'
+            )
+            ->usedOnBrowseVisibleActivities(true)
+            ->where('popularity_score', '>', 0)
+            ->whereIn('tag_category_id', $categoryIds);
+
+        $categoryOrderSql = collect($categoryIds)
+            ->map(static fn (int $categoryId, int $index): string => "WHEN {$categoryId} THEN {$index}")
+            ->implode(' ');
+
+        return $this->getModel()->newQuery()
+            ->fromSub($rankedTags->toBase(), 'tags')
+            ->with(['translations', 'aliases', 'tagCategory.translations'])
+            ->where('browse_category_rank', '<=', $perCategory)
+            ->orderByRaw("CASE tags.tag_category_id {$categoryOrderSql} ELSE ".count($categoryIds).' END')
+            ->orderBy('browse_category_rank')
+            ->orderBy('tags.id')
+            ->get()
+            ->values();
     }
 
     /**

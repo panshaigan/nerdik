@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Cache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 use function now;
 
@@ -87,7 +87,7 @@ class TagCategory extends Model
 
     public static function idByKey(string $key): ?int
     {
-        $map = Cache::remember('tag_categories.key_to_id', now()->addHours(12), static function () {
+        $map = Cache::memo()->remember('tag_categories.key_to_id', now()->addHours(12), static function () {
             return self::query()->pluck('id', 'key');
         });
 

@@ -14,12 +14,44 @@ use App\Models\TagTranslation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class BrowseTagSuggestionsTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_browse_preload_uses_a_bounded_query_count_across_categories(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $otherCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_OTHER]);
+
+        foreach ([$gameCategory, $otherCategory] as $category) {
+            for ($i = 0; $i < 3; $i++) {
+                $tag = Tag::factory()->create(['tag_category_id' => $category->id]);
+                $this->attachTagToBrowseVisibleActivity($tag, 100 - $i);
+            }
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $tags = Tag::query()->forBrowsePreloadSuggestions(
+            2,
+            [],
+            [TagCategory::KEY_GAME, TagCategory::KEY_OTHER],
+        );
+
+        $this->assertCount(4, $tags);
+        $this->assertSame(
+            [(int) $gameCategory->id, (int) $gameCategory->id, (int) $otherCategory->id, (int) $otherCategory->id],
+            $tags->pluck('tag_category_id')->map(static fn (mixed $id): int => (int) $id)->all(),
+        );
+        $this->assertLessThanOrEqual(6, count(DB::getQueryLog()));
+    }
 
     public function test_browse_preload_excludes_trigger_category_even_when_most_popular(): void
     {

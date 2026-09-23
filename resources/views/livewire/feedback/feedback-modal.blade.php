@@ -1,6 +1,55 @@
 <div>
     @push('scripts')
         <script data-navigate-once>
+            window.loadNerdikFeedbackDependency = window.loadNerdikFeedbackDependency || function (src, isReady, attributes = {}) {
+                if (isReady()) {
+                    return Promise.resolve();
+                }
+
+                const existing = [...document.scripts].find((script) => script.dataset.feedbackDependency === src || script.src === src);
+                if (existing) {
+                    return new Promise((resolve, reject) => {
+                        existing.addEventListener('load', resolve, { once: true });
+                        existing.addEventListener('error', reject, { once: true });
+                    });
+                }
+
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.dataset.feedbackDependency = src;
+                    Object.entries(attributes).forEach(([key, value]) => script.setAttribute(key, value));
+                    script.addEventListener('load', resolve, { once: true });
+                    script.addEventListener('error', reject, { once: true });
+                    document.head.appendChild(script);
+                });
+            };
+
+            window.prepareNerdikFeedbackModal = function () {
+                @auth
+                    return window.loadNerdikFeedbackDependency(
+                        'https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js',
+                        () => typeof window.tinymce !== 'undefined',
+                        { referrerpolicy: 'origin' },
+                    );
+                @elseif (auth_recaptcha_enforced())
+                    window.nerdikRecaptchaOnload = window.nerdikRecaptchaOnload || function () {
+                        window.dispatchEvent(new Event('nerdik:recaptcha-loaded'));
+                    };
+
+                    return window.loadNerdikFeedbackDependency(
+                        @json('https://www.google.com/recaptcha/api.js?'.http_build_query([
+                            'render' => 'explicit',
+                            'onload' => 'nerdikRecaptchaOnload',
+                        ])),
+                        () => typeof window.grecaptcha !== 'undefined',
+                        { async: '', defer: '' },
+                    );
+                @else
+                    return Promise.resolve();
+                @endauth
+            };
+
             window.refreshNerdikFeedbackModalTinyMCE = function () {
                 if (typeof tinymce === 'undefined') {
                     return;

@@ -182,10 +182,12 @@ class Activity extends Model implements HasMedia
             'activityType.media',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),
             'tags' => fn ($query) => $query
-                ->with(['translations', 'tagCategory', 'media'])
+                ->with(['translations', 'tagCategory.translations', 'media'])
                 ->orderBy('taggables.id'),
             'slot.event',
+            'slot.place.city.translations',
             'slot.place.parent',
+            'place.city.translations',
             'place.parent',
         ];
     }
