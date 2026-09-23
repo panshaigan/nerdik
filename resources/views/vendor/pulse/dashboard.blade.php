@@ -13,6 +13,10 @@
 
     <livewire:pulse.slow-requests cols="6" />
 
+    <livewire:pulse.slow-livewire-actions cols="6" />
+
+    <livewire:pulse.persistence-phases cols="6" />
+
     <livewire:pulse.slow-jobs cols="6" />
 
     <livewire:pulse.slow-outgoing-requests cols="6" />

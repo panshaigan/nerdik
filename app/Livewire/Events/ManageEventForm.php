@@ -18,6 +18,7 @@ use App\Support\Events\EventEditionDateBumper;
 use App\Support\Events\EventEditionNameSuggester;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Media\UserGalleryCatalog;
+use App\Support\Performance\PersistenceTiming;
 use App\Support\RichText;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
@@ -565,8 +566,15 @@ class ManageEventForm extends Component
         return $attributes;
     }
 
-    public function save(LocationResolver $locationResolver, EventActivitySignupService $signupService, EventEmptySlotCloneService $slotCloneService)
-    {
+    public function save(
+        LocationResolver $locationResolver,
+        EventActivitySignupService $signupService,
+        EventEmptySlotCloneService $slotCloneService,
+        PersistenceTiming $timing,
+    ): mixed {
+        $operation = $this->editingEventId === null ? 'event.create' : 'event.update';
+        $timing->start($operation);
+
         try {
             $validated = $this->withValidator(function ($validator): void {
                 $validator->after(function ($validator): void {
@@ -575,12 +583,13 @@ class ManageEventForm extends Component
                     }
                 });
             })->validate($this->rules());
+            $timing->checkpoint('validation');
 
             $validated['description'] = $this->normalizeDesc($validated['description'] ?? null);
             $validated['is_public'] = (bool) ($validated['is_public'] ?? true);
-
             $validated['starts_at'] = parse_datetime_to_utc($validated['starts_at'])?->toDateTimeString();
             $validated['ends_at'] = parse_datetime_to_utc($validated['ends_at'])?->toDateTimeString();
+            $timing->checkpoint('normalization');
 
             $orgName = isset($validated['organization_name']) ? trim((string) $validated['organization_name']) : '';
             $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
@@ -595,6 +604,7 @@ class ManageEventForm extends Component
                 $seriesName !== '' ? $seriesName : null
             );
             unset($validated['event_series_name']);
+            $timing->checkpoint('relations');
 
             $placeIds = $this->place_ids;
             unset($validated['place_ids'], $validated['new_places']);
@@ -605,10 +615,14 @@ class ManageEventForm extends Component
                 $event = Event::query()->findOrFail($this->editingEventId);
                 $this->authorizeCreatedBy($event);
                 $event->update($validated);
+                $timing->checkpoint('model');
                 $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+                $timing->checkpoint('places');
                 $event->refresh();
                 $this->syncEnrollmentWindows($event, $signupService);
+                $timing->checkpoint('enrollment_windows');
                 $this->applyEventLogoFromForm($event);
+                $timing->checkpoint('image');
                 session()->flash('status', __('Event updated.'));
 
                 return redirect()->route('events.show', $event);
@@ -620,10 +634,14 @@ class ManageEventForm extends Component
             $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
 
             $event = Event::create($validated);
+            $timing->checkpoint('model');
             $this->syncEventPlaces($event, $placeIds, $this->new_places, $locationResolver);
+            $timing->checkpoint('places');
             $event->refresh();
             $this->syncEnrollmentWindows($event, $signupService);
+            $timing->checkpoint('enrollment_windows');
             $this->applyEventLogoFromForm($event);
+            $timing->checkpoint('image');
 
             if ($duplicateSlotsFrom !== null) {
                 $source = Event::query()->find($duplicateSlotsFrom);
@@ -631,6 +649,7 @@ class ManageEventForm extends Component
                     $slotCloneService->cloneEmptySlots($source, $event);
                 }
             }
+            $timing->checkpoint('slots');
 
             $this->duplicateSlotsFromEventId = null;
 
@@ -641,6 +660,8 @@ class ManageEventForm extends Component
             $this->focusTabForValidationErrors($exception);
 
             throw $exception;
+        } finally {
+            $timing->recordIfSlow();
         }
     }
 

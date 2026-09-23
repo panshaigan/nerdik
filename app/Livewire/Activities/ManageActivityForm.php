@@ -22,6 +22,7 @@ use App\Services\TagSelectionService;
 use App\Support\Activities\ActivityTagImageCatalog;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Media\UserGalleryCatalog;
+use App\Support\Performance\PersistenceTiming;
 use App\Support\Ui\ManageFormBackUrl;
 use App\Traits\AuthorizesOwnership;
 use Carbon\Carbon;
@@ -836,7 +837,11 @@ class ManageActivityForm extends Component
         ActivityHostingModeService $hostingModes,
         LocationResolver $locationResolver,
         ActivityFormService $activityForm,
-    ) {
+        PersistenceTiming $timing,
+    ): mixed {
+        $operation = $this->editingActivityId === null ? 'activity.create' : 'activity.update';
+        $timing->start($operation);
+
         try {
             $validated = $this->withValidator(function ($validator): void {
                 $validator->after(function ($validator): void {
@@ -845,17 +850,28 @@ class ManageActivityForm extends Component
                     }
                 });
             })->validate($this->rules());
+            $timing->checkpoint('validation');
 
             if ($this->editingActivityId !== null) {
                 $activity = Activity::query()->findOrFail($this->editingActivityId);
                 $this->authorizeCreatedBy($activity);
             }
+            $timing->checkpoint('authorization');
 
-            return $activityForm->persist($this, $validated, $tagSelectionService, $hostingModes, $locationResolver);
+            return $activityForm->persist(
+                $this,
+                $validated,
+                $tagSelectionService,
+                $hostingModes,
+                $locationResolver,
+                $timing,
+            );
         } catch (ValidationException $exception) {
             $this->focusTabForValidationErrors($exception);
 
             throw $exception;
+        } finally {
+            $timing->recordIfSlow();
         }
     }
 

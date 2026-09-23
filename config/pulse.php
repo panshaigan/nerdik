@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthorizePulseDashboard;
+use App\Pulse\Recorders\SlowLivewireActions;
 use Laravel\Pulse\Pulse;
 use Laravel\Pulse\Recorders;
 
@@ -139,12 +140,16 @@ return [
     'recorders' => [
         Recorders\CacheInteractions::class => [
             'enabled' => env('PULSE_CACHE_INTERACTIONS_ENABLED', true),
-            'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 1),
+            'sample_rate' => env('PULSE_CACHE_INTERACTIONS_SAMPLE_RATE', 0.1),
             'ignore' => [
                 ...Pulse::defaultVendorCacheKeys(),
+                '/^livewire-checksum-failures:.*/',
             ],
             'groups' => [
                 '/^job-exceptions:.*/' => 'job-exceptions:*',
+                '/^event_show\\.programme_stats\\.v\\d+\\.\\d+$/' => 'event_show.programme_stats.*.*',
+                '/^event_show\\.interested_count\\.v\\d+\\.\\d+$/' => 'event_show.interested_count.*.*',
+                '/^event_show\\.pending_proposals\\.v\\d+\\.\\d+$/' => 'event_show.pending_proposals.*.*',
                 // '/:\d+/' => ':*',
             ],
         ],
@@ -216,6 +221,11 @@ return [
             ],
         ],
 
+        SlowLivewireActions::class => [
+            'enabled' => env('PULSE_SLOW_LIVEWIRE_ACTIONS_ENABLED', true),
+            'sample_rate' => env('PULSE_SLOW_LIVEWIRE_ACTIONS_SAMPLE_RATE', 1),
+            'threshold' => env('PULSE_SLOW_LIVEWIRE_ACTIONS_THRESHOLD', 1000),
+        ],
         Recorders\UserJobs::class => [
             'enabled' => env('PULSE_USER_JOBS_ENABLED', true),
             'sample_rate' => env('PULSE_USER_JOBS_SAMPLE_RATE', 1),
@@ -226,7 +236,7 @@ return [
 
         Recorders\UserRequests::class => [
             'enabled' => env('PULSE_USER_REQUESTS_ENABLED', true),
-            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 1),
+            'sample_rate' => env('PULSE_USER_REQUESTS_SAMPLE_RATE', 0.1),
             'ignore' => [
                 '#^/'.env('PULSE_PATH', 'pulse').'$#', // Pulse dashboard...
                 '#^/telescope#', // Telescope dashboard...

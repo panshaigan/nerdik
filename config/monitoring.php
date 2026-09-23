@@ -19,4 +19,9 @@ return [
 
     'worker_heartbeat_url' => env('MONITORING_WORKER_HEARTBEAT_URL'),
 
+    'persistence_timing' => [
+        'enabled' => env('MONITORING_PERSISTENCE_TIMING_ENABLED', true),
+        'slow_threshold_ms' => env('MONITORING_PERSISTENCE_SLOW_THRESHOLD_MS', 1000),
+    ],
+
 ];

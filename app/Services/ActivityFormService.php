@@ -15,6 +15,7 @@ use App\Models\ActivityLotteryDraw;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Place;
+use App\Support\Performance\PersistenceTiming;
 use App\Support\RichText;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,7 @@ class ActivityFormService
         TagSelectionService $tagSelectionService,
         ActivityHostingModeService $hostingModes,
         LocationResolver $locationResolver,
+        PersistenceTiming $timing,
     ): mixed {
         $validated['description'] = RichText::sanitize($validated['description'] ?? null);
         $validated['participation_mode'] = ParticipationMode::tryFrom((string) ($validated['participation_mode'] ?? ''))
@@ -64,6 +66,7 @@ class ActivityFormService
             $form->tag_ids,
             $form->new_tags
         );
+        $timing->checkpoint('preparation');
 
         if ($form->editingActivityId !== null) {
             $activity = Activity::query()->findOrFail($form->editingActivityId);
@@ -88,21 +91,31 @@ class ActivityFormService
             if ($participationModeChanged || $lotteryDrawHoursChanged) {
                 ActivityLotteryDraw::query()->where('activity_id', $activity->id)->delete();
             }
+            $timing->checkpoint('model');
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
+            $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
+            $timing->checkpoint('tags');
             $this->applyActivityLogoFromForm($form, $activity);
+            $timing->checkpoint('image');
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
+            $timing->checkpoint('proposal');
             $message = $proposalCreated
                 ? __('ui.status.activity_updated_with_proposal', ['event' => $proposalCreated->event->name])
                 : __('Activity updated.');
         } else {
             $activity = Activity::create($payload);
+            $timing->checkpoint('model');
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
             $this->applyHostingModeFromForm($form, $activity, $hostingModes);
+            $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
+            $timing->checkpoint('tags');
             $this->applyActivityLogoFromForm($form, $activity);
+            $timing->checkpoint('image');
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
+            $timing->checkpoint('proposal');
             $message = $proposalCreated
                 ? __('ui.status.activity_saved_with_proposal', ['event' => $proposalCreated->event->name])
                 : __('Activity created.');
@@ -110,6 +123,7 @@ class ActivityFormService
 
         $activity->refresh();
         $this->syncSlotScheduleAfterActivityChange($activity);
+        $timing->checkpoint('schedule');
 
         session()->flash('status', $message);
 
