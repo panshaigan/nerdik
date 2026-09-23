@@ -419,7 +419,7 @@ return [
         'empty_places' => 'Nie znaleziono pasujących miejsc.',
         'empty_organizations' => 'Nie znaleziono pasujących organizacji.',
         'empty_series' => 'Nie znaleziono pasujących cykli.',
-        'upcoming_events' => '{0} Brak nadchodzących edycji|{1} 1 nadchodząca edycja|[2,*] :count nadchodzących edycji',
+        'upcoming_events' => '{0} Brak nadchodzących edycji|{1} 1 nadchodząca edycja|[2,*] :count nadchodzące edycji',
     ],
     'browse' => [
         'search_page_title' => 'Szukaj',
