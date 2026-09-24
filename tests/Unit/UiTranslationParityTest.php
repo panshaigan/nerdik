@@ -150,7 +150,9 @@ class UiTranslationParityTest extends TestCase
 
                 $contents = file_get_contents($file->getPathname());
 
-                if (preg_match_all("/(?:__|trans|trans_choice)\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches)) {
+                // Match keys passed to __()/trans()/trans_choice(), and also bare
+                // quoted literals assigned to variables then translated (e.g. __($key)).
+                if (preg_match_all("/['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches)) {
                     foreach ($matches[1] as $key) {
                         if (str_ends_with($key, '.')) {
                             continue;
