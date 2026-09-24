@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Slot;
 use App\Models\User;
 use App\Services\EventEmptySlotCloneService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -57,5 +58,80 @@ class EventEmptySlotCloneServiceTest extends TestCase
         $this->assertTrue($cloned->requires_approval);
         $this->assertSame(6, (int) $cloned->max_capacity);
         $this->assertSame([$typeId], $cloned->activity_types_ids);
+    }
+
+    public function test_shifts_slot_datetimes_by_event_starts_at_delta(): void
+    {
+        $user = User::factory()->create();
+        $sourceStartsAt = Carbon::parse('2026-01-10 10:00:00', 'UTC');
+        $targetStartsAt = Carbon::parse('2026-02-10 10:00:00', 'UTC');
+
+        $source = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'organization_id' => null,
+            'starts_at' => $sourceStartsAt,
+            'ends_at' => $sourceStartsAt->copy()->addDay(),
+        ]);
+        $target = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'organization_id' => null,
+            'starts_at' => $targetStartsAt,
+            'ends_at' => $targetStartsAt->copy()->addDay(),
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $source->id,
+            'activity_id' => null,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'starts_at' => $sourceStartsAt->copy()->addHours(2),
+            'ends_at' => $sourceStartsAt->copy()->addHours(4),
+        ]);
+
+        app(EventEmptySlotCloneService::class)->cloneEmptySlots($source, $target);
+
+        $cloned = Slot::query()->where('event_id', $target->id)->firstOrFail();
+        $this->assertTrue($cloned->starts_at->equalTo($targetStartsAt->copy()->addHours(2)));
+        $this->assertTrue($cloned->ends_at->equalTo($targetStartsAt->copy()->addHours(4)));
+    }
+
+    public function test_keeps_slot_datetimes_when_event_starts_at_unchanged(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = Carbon::parse('2026-01-10 10:00:00', 'UTC');
+        $slotStartsAt = $startsAt->copy()->addHours(2);
+        $slotEndsAt = $startsAt->copy()->addHours(4);
+
+        $source = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'organization_id' => null,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addDay(),
+        ]);
+        $target = Event::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'organization_id' => null,
+            'starts_at' => $startsAt->copy(),
+            'ends_at' => $startsAt->copy()->addDay(),
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $source->id,
+            'activity_id' => null,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'starts_at' => $slotStartsAt,
+            'ends_at' => $slotEndsAt,
+        ]);
+
+        app(EventEmptySlotCloneService::class)->cloneEmptySlots($source, $target);
+
+        $cloned = Slot::query()->where('event_id', $target->id)->firstOrFail();
+        $this->assertTrue($cloned->starts_at->equalTo($slotStartsAt));
+        $this->assertTrue($cloned->ends_at->equalTo($slotEndsAt));
     }
 }
