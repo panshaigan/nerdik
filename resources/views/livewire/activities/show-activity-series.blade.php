@@ -14,28 +14,30 @@
                     />
                 </x-slot:subtitle>
             @endif
-            @if ($hasUpcomingFollow)
+            @if (filled($series->description) || $hasUpcomingFollow)
                 <x-slot:info>
-                    <div class="flex items-end justify-end" data-ui="activity-series-show-info">
-                        <div class="ml-auto shrink-0 self-end" data-ui="activity-series-show-follow">
-                            <x-ui.follow-interest-button
-                                :has-interest="$hasUpcomingInterest"
-                                :count="$upcomingInterestedPeopleCount"
-                                add-action="toggleUpcomingInterest"
-                                remove-action="toggleUpcomingInterest"
-                                data-ui-prefix="activity-series-show"
-                            />
-                        </div>
+                    <div class="flex items-end gap-3" data-ui="activity-series-show-info">
+                        @if (filled($series->description))
+                            <p
+                                class="min-w-0 flex-1 whitespace-pre-line text-sm text-base-content/80 sm:text-base"
+                                data-ui="activity-series-show-description"
+                            >{{ $series->description }}</p>
+                        @endif
+                        @if ($hasUpcomingFollow)
+                            <div class="ml-auto shrink-0 self-end" data-ui="activity-series-show-follow">
+                                <x-ui.follow-interest-button
+                                    :has-interest="$hasUpcomingInterest"
+                                    :count="$upcomingInterestedPeopleCount"
+                                    add-action="toggleUpcomingInterest"
+                                    remove-action="toggleUpcomingInterest"
+                                    data-ui-prefix="activity-series-show"
+                                />
+                            </div>
+                        @endif
                     </div>
                 </x-slot:info>
             @endif
         </x-page-header>
-
-        @if (filled($series->description))
-            <div class="sm:mx-6 lg:mx-8" data-ui="activity-series-show-description">
-                <p class="whitespace-pre-line text-sm text-base-content/80 sm:text-base">{{ $series->description }}</p>
-            </div>
-        @endif
 
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">
             <x-ui.tabs-with-toolbar
