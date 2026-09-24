@@ -177,10 +177,128 @@ class ActivitySeriesTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('data-ui="activity-series-show-manage"', $html);
+        $this->assertStringContainsString('data-ui="activity-series-show-edit"', $html);
         $this->assertStringContainsString('data-ui="activity-series-show-create-activity"', $html);
         $this->assertStringContainsString('data-ui="activity-series-show-delete"', $html);
         $this->assertStringContainsString(route('activities.create', ['duplicate' => $latest->slug]), $html);
         $this->assertStringNotContainsString(route('activities.create', ['duplicate' => $older->slug]), $html);
+    }
+
+    public function test_owner_can_edit_series_name_and_description(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Weekly RPG',
+            'description' => null,
+            'created_by' => $owner->id,
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $owner->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->call('openEditSeries')
+            ->assertSet('editSeriesModalOpen', true)
+            ->assertSet('editSeriesName', 'Weekly RPG')
+            ->set('editSeriesName', 'Weekly RPG')
+            ->set('editSeriesDescription', 'Every Friday night.')
+            ->call('saveSeries')
+            ->assertHasNoErrors()
+            ->assertSet('editSeriesModalOpen', false)
+            ->assertSee('Every Friday night.', false);
+
+        $series->refresh();
+        $this->assertSame('Weekly RPG', $series->name);
+        $this->assertSame('Every Friday night.', $series->description);
+    }
+
+    public function test_owner_rename_redirects_to_new_series_slug(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Old Series Name',
+            'created_by' => $owner->id,
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $owner->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+        $oldSlug = $series->slug;
+
+        $component = Livewire::actingAs($owner)
+            ->test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->call('openEditSeries')
+            ->set('editSeriesName', 'Brand New Series')
+            ->call('saveSeries')
+            ->assertHasNoErrors();
+
+        $series->refresh();
+        $this->assertNotSame($oldSlug, $series->slug);
+        $this->assertSame('Brand New Series', $series->name);
+        $component->assertRedirect(route('activity-series.show', $series));
+    }
+
+    public function test_edit_series_requires_name(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Weekly RPG',
+            'created_by' => $owner->id,
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $owner->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->call('openEditSeries')
+            ->set('editSeriesName', '')
+            ->call('saveSeries')
+            ->assertHasErrors(['editSeriesName' => 'required']);
+
+        $this->assertSame('Weekly RPG', $series->fresh()->name);
+    }
+
+    public function test_stranger_cannot_edit_series(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Weekly RPG',
+            'created_by' => $owner->id,
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $owner->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        Livewire::actingAs($stranger)
+            ->test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->call('openEditSeries')
+            ->assertForbidden();
+
+        Livewire::actingAs($stranger)
+            ->test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->set('editSeriesName', 'Hijacked')
+            ->call('saveSeries')
+            ->assertForbidden();
+
+        $this->assertSame('Weekly RPG', $series->fresh()->name);
     }
 
     public function test_stranger_does_not_see_series_manage_menu(): void

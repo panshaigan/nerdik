@@ -180,10 +180,116 @@ class EventSeriesTest extends TestCase
             ->html();
 
         $this->assertStringContainsString('data-ui="event-series-show-manage"', $html);
+        $this->assertStringContainsString('data-ui="event-series-show-edit"', $html);
         $this->assertStringContainsString('data-ui="event-series-show-create-event"', $html);
         $this->assertStringContainsString('data-ui="event-series-show-delete"', $html);
         $this->assertStringContainsString(route('events.create', ['duplicate' => $latest->slug]), $html);
         $this->assertStringNotContainsString(route('events.create', ['duplicate' => $older->slug]), $html);
+    }
+
+    public function test_owner_can_edit_series_name_and_description(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Porzucane',
+            'description' => null,
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('openEditSeries')
+            ->assertSet('editSeriesModalOpen', true)
+            ->assertSet('editSeriesName', 'Porzucane')
+            ->set('editSeriesName', 'Porzucane')
+            ->set('editSeriesDescription', 'Annual meetup.')
+            ->call('saveSeries')
+            ->assertHasNoErrors()
+            ->assertSet('editSeriesModalOpen', false)
+            ->assertSee('Annual meetup.', false);
+
+        $series->refresh();
+        $this->assertSame('Porzucane', $series->name);
+        $this->assertSame('Annual meetup.', $series->description);
+    }
+
+    public function test_owner_rename_redirects_to_new_series_slug(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Old Event Series',
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+        $oldSlug = $series->slug;
+
+        $component = Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('openEditSeries')
+            ->set('editSeriesName', 'Brand New Event Series')
+            ->call('saveSeries')
+            ->assertHasNoErrors();
+
+        $series->refresh();
+        $this->assertNotSame($oldSlug, $series->slug);
+        $this->assertSame('Brand New Event Series', $series->name);
+        $component->assertRedirect(route('event-series.show', $series));
+    }
+
+    public function test_edit_series_requires_name(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Porzucane',
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('openEditSeries')
+            ->set('editSeriesName', '')
+            ->call('saveSeries')
+            ->assertHasErrors(['editSeriesName' => 'required']);
+
+        $this->assertSame('Porzucane', $series->fresh()->name);
+    }
+
+    public function test_stranger_cannot_edit_series(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Porzucane',
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+        ]);
+
+        Livewire::actingAs($stranger)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('openEditSeries')
+            ->assertForbidden();
+
+        Livewire::actingAs($stranger)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->set('editSeriesName', 'Hijacked')
+            ->call('saveSeries')
+            ->assertForbidden();
+
+        $this->assertSame('Porzucane', $series->fresh()->name);
     }
 
     public function test_stranger_does_not_see_series_manage_menu(): void

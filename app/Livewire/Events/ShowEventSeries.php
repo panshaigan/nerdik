@@ -43,6 +43,12 @@ class ShowEventSeries extends Component
 
     public string $tab = 'events';
 
+    public bool $editSeriesModalOpen = false;
+
+    public string $editSeriesName = '';
+
+    public ?string $editSeriesDescription = null;
+
     protected array $queryString = [
         'tab' => ['except' => 'events'],
     ];
@@ -129,6 +135,48 @@ class ShowEventSeries extends Component
             'open-add-entity-link',
             key: $series->getMorphClass().'-'.$series->id,
         )->to(ManageEntityLinks::class);
+    }
+
+    public function openEditSeries(): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        $this->authorizeCreatedBy($series);
+
+        $this->editSeriesName = (string) $series->name;
+        $this->editSeriesDescription = $series->description;
+        $this->resetValidation();
+        $this->editSeriesModalOpen = true;
+    }
+
+    public function saveSeries(): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+        $this->authorizeCreatedBy($series);
+
+        $validated = $this->validate([
+            'editSeriesName' => ['required', 'string', 'max:255'],
+            'editSeriesDescription' => ['nullable', 'string'],
+        ], [], [
+            'editSeriesName' => __('ui.event_series.name'),
+            'editSeriesDescription' => __('ui.event_series.description'),
+        ]);
+
+        $previousSlug = $series->slug;
+
+        $series->update([
+            'name' => $validated['editSeriesName'],
+            'description' => $validated['editSeriesDescription'] !== null && trim($validated['editSeriesDescription']) !== ''
+                ? $validated['editSeriesDescription']
+                : null,
+        ]);
+
+        $series->refresh();
+        $this->editSeriesModalOpen = false;
+        $this->success(__('ui.event_series.updated_status'));
+
+        if ($series->slug !== $previousSlug) {
+            $this->redirect(route('event-series.show', $series), navigate: true);
+        }
     }
 
     public function runConfirmedAction(): void

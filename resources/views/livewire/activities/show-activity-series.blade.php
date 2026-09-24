@@ -31,6 +31,12 @@
             @endif
         </x-page-header>
 
+        @if (filled($series->description))
+            <div class="sm:mx-6 lg:mx-8" data-ui="activity-series-show-description">
+                <p class="whitespace-pre-line text-sm text-base-content/80 sm:text-base">{{ $series->description }}</p>
+            </div>
+        @endif
+
         <div class="ui-content-card relative rounded-2xl mb-4 md:mb-6">
             <x-ui.tabs-with-toolbar
                 wire:model.live.preserve-scroll="tab"
@@ -63,6 +69,13 @@
                                         data-ui="activity-series-show-add-link"
                                     >
                                         {{ __('ui.entity_links.add_action') }}
+                                    </x-ui.overflow-menu-item>
+                                    <x-ui.overflow-menu-item
+                                        icon="o-pencil"
+                                        wire:click="openEditSeries"
+                                        data-ui="activity-series-show-edit"
+                                    >
+                                        {{ __('ui.common.edit') }}
                                     </x-ui.overflow-menu-item>
                                     @if ($latestActivity)
                                         <x-ui.overflow-menu-item
@@ -200,6 +213,12 @@
     />
 
     @if ($canManageSeries ?? false)
+        @include('livewire.partials.edit-series-modal', [
+            'title' => __('ui.activity_series.edit_title'),
+            'nameLabel' => __('ui.activity_series.name'),
+            'descriptionLabel' => __('ui.activity_series.description'),
+        ])
+
         <livewire:entity-links.manage-entity-links
             :linkable="$series"
             :show-list="false"

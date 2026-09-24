@@ -36,6 +36,12 @@ class ShowActivitySeries extends Component
 
     public string $tab = 'activities';
 
+    public bool $editSeriesModalOpen = false;
+
+    public string $editSeriesName = '';
+
+    public ?string $editSeriesDescription = null;
+
     protected array $queryString = [
         'tab' => ['except' => 'activities'],
     ];
@@ -108,6 +114,48 @@ class ShowActivitySeries extends Component
             'open-add-entity-link',
             key: $series->getMorphClass().'-'.$series->id,
         )->to(ManageEntityLinks::class);
+    }
+
+    public function openEditSeries(): void
+    {
+        $series = ActivitySeries::query()->whereKey($this->activitySeriesId)->firstOrFail();
+        $this->authorizeCreatedBy($series);
+
+        $this->editSeriesName = (string) $series->name;
+        $this->editSeriesDescription = $series->description;
+        $this->resetValidation();
+        $this->editSeriesModalOpen = true;
+    }
+
+    public function saveSeries(): void
+    {
+        $series = ActivitySeries::query()->whereKey($this->activitySeriesId)->firstOrFail();
+        $this->authorizeCreatedBy($series);
+
+        $validated = $this->validate([
+            'editSeriesName' => ['required', 'string', 'max:255'],
+            'editSeriesDescription' => ['nullable', 'string'],
+        ], [], [
+            'editSeriesName' => __('ui.activity_series.name'),
+            'editSeriesDescription' => __('ui.activity_series.description'),
+        ]);
+
+        $previousSlug = $series->slug;
+
+        $series->update([
+            'name' => $validated['editSeriesName'],
+            'description' => $validated['editSeriesDescription'] !== null && trim($validated['editSeriesDescription']) !== ''
+                ? $validated['editSeriesDescription']
+                : null,
+        ]);
+
+        $series->refresh();
+        $this->editSeriesModalOpen = false;
+        $this->success(__('ui.activity_series.updated_status'));
+
+        if ($series->slug !== $previousSlug) {
+            $this->redirect(route('activity-series.show', $series), navigate: true);
+        }
     }
 
     public function runConfirmedAction(): void
