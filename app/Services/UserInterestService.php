@@ -101,6 +101,33 @@ class UserInterestService
         return true;
     }
 
+    /**
+     * Follow every given activity when any is missing; otherwise unfollow all of them.
+     *
+     * @param  Collection<int, Activity>  $activities
+     * @return bool True when interest was added, false when removed.
+     */
+    public function toggleUpcomingActivityInterests(User $user, Collection $activities): bool
+    {
+        if ($activities->isEmpty()) {
+            return false;
+        }
+
+        $ids = $activities->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $interestedCount = $user->interestedActivities()->whereIn('activities.id', $ids)->count();
+        $shouldAdd = $interestedCount < count($ids);
+
+        foreach ($activities as $activity) {
+            if ($shouldAdd) {
+                $this->addActivityInterest($user, $activity);
+            } else {
+                $this->removeActivityInterest($user, $activity);
+            }
+        }
+
+        return $shouldAdd;
+    }
+
     private function hostedEventId(Activity $activity): ?int
     {
         $eventId = $activity->slot?->event_id;

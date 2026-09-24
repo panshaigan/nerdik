@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Sharing;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Support\Ui\ActivityShowSchedulePresenter;
@@ -59,6 +60,23 @@ final class ShareLinks
             title: $title,
             text: $excerpt,
             campaign: 'event-series',
+        );
+    }
+
+    public function forActivitySeries(ActivitySeries $series): SharePayload
+    {
+        $title = (string) $series->name;
+        $excerpt = rich_text_excerpt($series->description, 160);
+
+        if ($excerpt === '') {
+            $excerpt = (string) __('ui.seo.entity_fallback_description', ['name' => $title]);
+        }
+
+        return new SharePayload(
+            url: route('activity-series.show', $series),
+            title: $title,
+            text: $excerpt,
+            campaign: 'activity-series',
         );
     }
 

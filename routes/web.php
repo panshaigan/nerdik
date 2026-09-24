@@ -6,6 +6,7 @@ use App\Http\Controllers\ActivityProposalController;
 use App\Http\Controllers\Browse\BrowseMapFeaturesController;
 use App\Http\Controllers\DownloadActivityCalendarController;
 use App\Http\Controllers\DownloadActivityParticipantsPdfController;
+use App\Http\Controllers\DownloadActivitySeriesCalendarController;
 use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\DownloadEventSeriesCalendarController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SlotController;
 use App\Http\Controllers\TagController;
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Services\Welcome\WelcomePageDataService;
@@ -185,6 +187,14 @@ Route::get('event-series/{eventSeries}/calendar.ics', DownloadEventSeriesCalenda
 Route::get('event-series/{eventSeries}', function (EventSeries $eventSeries) {
     return view('event-series.show', compact('eventSeries'));
 })->name('event-series.show');
+
+Route::get('activity-series/{activitySeries}/calendar.ics', DownloadActivitySeriesCalendarController::class)
+    ->middleware('throttle:60,1')
+    ->name('activity-series.calendar.ics');
+
+Route::get('activity-series/{activitySeries}', function (ActivitySeries $activitySeries) {
+    return view('activity-series.show', compact('activitySeries'));
+})->name('activity-series.show');
 
 // Public activity detail route.
 // Must be declared after more specific routes like `activities/create` and `activities/*/edit`.

@@ -43,6 +43,8 @@ final class BrowseListingCardPresenter
         $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
         $place = $activity->slot?->place ?? $activity->place;
         $place?->loadMissing(['city', 'parent']);
+        $activity->loadMissing('activitySeries');
+        $series = $activity->activitySeries;
 
         return new BrowseListingCardViewData(
             kind: 'activity',
@@ -77,6 +79,8 @@ final class BrowseListingCardPresenter
             previewWireMethod: 'openListingActivityPreview',
             showDetailsLink: $showDetailsLink ?? $activity->isPubliclyShowable(),
             confirmedActivitiesCount: null,
+            seriesName: $series !== null ? (string) $series->name : null,
+            seriesUrl: $series !== null ? route('activity-series.show', $series) : null,
             locationPlaces: BrowseSearchUrl::placeLinks($place),
         );
     }

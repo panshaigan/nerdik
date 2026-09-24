@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivitySeries;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
 use App\Models\EntityLink;
@@ -98,6 +99,7 @@ class AppServiceProvider extends ServiceProvider
             'activity' => Activity::class,
             'event' => Event::class,
             'event_series' => EventSeries::class,
+            'activity_series' => ActivitySeries::class,
             'organization' => Organization::class,
             'place' => Place::class,
             'user' => User::class,

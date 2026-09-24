@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Calendar;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Place;
@@ -56,6 +57,38 @@ final class CalendarLinks
         return new CalendarSeriesPayload(
             events: $payloads,
             icsDownloadUrl: route('event-series.calendar.ics', $series),
+            downloadFilename: $slug.'.ics',
+            title: $title,
+        );
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $upcomingActivities
+     */
+    public function forActivitySeries(ActivitySeries $series, Collection $upcomingActivities): ?CalendarSeriesPayload
+    {
+        $payloads = [];
+
+        foreach ($upcomingActivities as $activity) {
+            $payload = $this->forActivity($activity);
+            if ($payload !== null) {
+                $payloads[] = $payload;
+            }
+        }
+
+        if ($payloads === []) {
+            return null;
+        }
+
+        $title = (string) $series->name;
+        $slug = Str::slug($title);
+        if ($slug === '') {
+            $slug = 'calendar';
+        }
+
+        return new CalendarSeriesPayload(
+            events: $payloads,
+            icsDownloadUrl: route('activity-series.calendar.ics', $series),
             downloadFilename: $slug.'.ics',
             title: $title,
         );

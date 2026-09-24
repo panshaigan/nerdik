@@ -69,6 +69,7 @@ class Activity extends Model implements HasMedia
         'name',
         'description',
         'activity_type_id',
+        'activity_series_id',
         'hosting_mode',
         'place_id',
         'starts_at',
@@ -180,6 +181,7 @@ class Activity extends Model implements HasMedia
             'galleryMedia',
             'creator',
             'activityType.media',
+            'activitySeries',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),
             'tags' => fn ($query) => $query
                 ->with(['translations', 'tagCategory.translations', 'media'])
@@ -190,6 +192,89 @@ class Activity extends Model implements HasMedia
             'place.city.translations',
             'place.parent',
         ];
+    }
+
+    public function activitySeries(): BelongsTo
+    {
+        return $this->belongsTo(ActivitySeries::class);
+    }
+
+    /**
+     * SQL expression for the wall-clock start used when ordering series sessions
+     * (slot start when scheduled on an event, otherwise self-hosted starts_at).
+     */
+    public static function scheduleStartsAtSql(): string
+    {
+        return 'COALESCE((SELECT slots.starts_at FROM slots WHERE slots.activity_id = activities.id AND slots.deleted_at IS NULL LIMIT 1), activities.starts_at)';
+    }
+
+    public function scheduleStartsAt(): ?Carbon
+    {
+        $this->loadMissing('slot');
+
+        $startsAt = $this->slot?->starts_at ?? $this->starts_at;
+
+        return $startsAt !== null ? Carbon::parse($startsAt) : null;
+    }
+
+    /**
+     * Previous session in the same series by schedule start (then id), including cancelled.
+     */
+    public function previousInSeries(): ?self
+    {
+        if ($this->activity_series_id === null) {
+            return null;
+        }
+
+        $currentStart = $this->scheduleStartsAt();
+        if ($currentStart === null) {
+            return null;
+        }
+
+        $startsAtSql = self::scheduleStartsAtSql();
+
+        return self::query()
+            ->where('activity_series_id', $this->activity_series_id)
+            ->where(function ($query) use ($startsAtSql, $currentStart): void {
+                $query->whereRaw("{$startsAtSql} < ?", [$currentStart])
+                    ->orWhere(function ($q) use ($startsAtSql, $currentStart): void {
+                        $q->whereRaw("{$startsAtSql} = ?", [$currentStart])
+                            ->where('activities.id', '<', $this->id);
+                    });
+            })
+            ->orderByRaw("{$startsAtSql} DESC")
+            ->orderByDesc('activities.id')
+            ->first();
+    }
+
+    /**
+     * Next session in the same series by schedule start (then id), including cancelled.
+     */
+    public function nextInSeries(): ?self
+    {
+        if ($this->activity_series_id === null) {
+            return null;
+        }
+
+        $currentStart = $this->scheduleStartsAt();
+        if ($currentStart === null) {
+            return null;
+        }
+
+        $startsAtSql = self::scheduleStartsAtSql();
+
+        return self::query()
+            ->where('activity_series_id', $this->activity_series_id)
+            ->where(function ($query) use ($startsAtSql, $currentStart): void {
+                $query->whereRaw("{$startsAtSql} > ?", [$currentStart])
+                    ->orWhere(function ($q) use ($startsAtSql, $currentStart): void {
+                        $q->whereRaw("{$startsAtSql} = ?", [$currentStart])
+                            ->where('activities.id', '>', $this->id);
+                    });
+            })
+            ->orderByRaw("{$startsAtSql} ASC")
+            ->orderBy('activities.id')
+            ->first();
     }
 
     public function place(): BelongsTo

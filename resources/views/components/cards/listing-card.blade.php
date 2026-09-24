@@ -154,8 +154,16 @@
                     </div>
                 @endif
                 @if ($d->seriesName !== null && $d->seriesUrl !== null)
-                    <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="event-card-series">
-                        <dt class="sr-only">{{ __('ui.browse.event_series') }}</dt>
+                    @php
+                        $seriesLabelKey = $d->kind === 'activity'
+                            ? 'ui.browse.activity_series'
+                            : 'ui.browse.event_series';
+                        $seriesNameKey = $d->kind === 'activity'
+                            ? 'ui.browse.activity_series_label'
+                            : 'ui.browse.event_series_label';
+                    @endphp
+                    <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="{{ $d->dataUiPrefix }}-series">
+                        <dt class="sr-only">{{ __($seriesLabelKey) }}</dt>
                         <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
                             <x-icon name="o-rectangle-stack" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                             <span class="min-w-0 leading-snug">
@@ -163,8 +171,8 @@
                                     href="{{ $d->seriesUrl }}"
                                     wire:navigate
                                     class="link link-primary break-words"
-                                    data-ui="event-card-series-link"
-                                >{{ __('ui.browse.event_series_label', ['name' => $d->seriesName]) }}</a>
+                                    data-ui="{{ $d->dataUiPrefix }}-series-link"
+                                >{{ __($seriesNameKey, ['name' => $d->seriesName]) }}</a>
                             </span>
                         </dd>
                     </div>

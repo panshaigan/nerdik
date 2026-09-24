@@ -21,6 +21,7 @@ class ActivityForm
                 TextInput::make('name')
                     ->required(),
                 BelongsToSelect::activityType('activity_type_id'),
+                BelongsToSelect::make('activity_series_id', 'activitySeries'),
                 Select::make('hosting_mode')
                     ->options(Activity::hostingModeOptions())
                     ->required()

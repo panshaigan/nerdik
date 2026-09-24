@@ -8,6 +8,7 @@ use App\Enums\ParticipationMode;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
+use App\Models\ActivitySeries;
 use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Place;
@@ -20,6 +21,7 @@ use App\Services\LocationResolver;
 use App\Services\SlotParticipationConstraintService;
 use App\Services\TagSelectionService;
 use App\Support\Activities\ActivityTagImageCatalog;
+use App\Support\Events\EventEditionDateBumper;
 use App\Support\Media\MediaPictureSources;
 use App\Support\Media\UserGalleryCatalog;
 use App\Support\Performance\PersistenceTiming;
@@ -43,6 +45,8 @@ class ManageActivityForm extends Component
     }
 
     private const PROPOSAL_EVENT_SUGGESTIONS_LIMIT = 8;
+
+    private const ACTIVITY_SERIES_SUGGESTIONS_LIMIT = 500;
 
     /** @var list<string> */
     private const FORM_TAB_ORDER = ['main-details', 'participation-rules', 'tags', 'image', 'hosting-mode'];
@@ -75,6 +79,10 @@ class ManageActivityForm extends Component
     public string $slug = '';
 
     public ?int $activity_type_id = null;
+
+    public ?int $activity_series_id = null;
+
+    public string $activity_series_name = '';
 
     public ?int $min_participants = null;
 
@@ -168,11 +176,13 @@ class ManageActivityForm extends Component
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load(['tags', 'place.parent', 'slot.event']);
+            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries']);
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
             $this->activity_type_id = $activity->activity_type_id;
+            $this->activity_series_id = $activity->activity_series_id;
+            $this->activity_series_name = (string) (optional($activity->activitySeries)->name ?? '');
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
             $this->normalizeParticipantBounds();
@@ -223,7 +233,7 @@ class ManageActivityForm extends Component
             }
         } elseif (($dupSlug = $this->duplicateQuerySlug()) !== null) {
             $source = Activity::query()
-                ->with('tags')
+                ->with(['tags', 'activitySeries', 'place.parent'])
                 ->where('slug', $dupSlug)
                 ->where('created_by', auth()->id())
                 ->first();
@@ -480,7 +490,8 @@ class ManageActivityForm extends Component
     }
 
     /**
-     * Copy content/options fields only; hosting and proposal fields stay at create defaults.
+     * Copy content/options fields; keep series linkage. Self-hosted duplicates keep
+     * hosting and bump dates from the latest session in the series; slotted stay draft.
      */
     private function applyDuplicatePrefillFromActivity(Activity $source): void
     {
@@ -490,6 +501,8 @@ class ManageActivityForm extends Component
         $this->name = mb_substr($base, 0, $maxBase).$suffix;
         $this->description = (string) ($source->description ?? '');
         $this->activity_type_id = $source->activity_type_id;
+        $this->activity_series_id = $source->activity_series_id;
+        $this->activity_series_name = (string) (optional($source->activitySeries)->name ?? '');
         $this->min_participants = $source->min_participants;
         $this->max_participants = $source->max_participants;
         $this->normalizeParticipantBounds();
@@ -506,16 +519,64 @@ class ManageActivityForm extends Component
         $this->tag_ids = $source->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $this->new_tags = [];
 
-        $this->hosting_mode = Activity::HOSTING_MODE_DRAFT;
         $this->proposal_event_id = null;
         $this->proposal_preferred_start_time = null;
         $this->proposal_slot_ids = [];
-        $this->self_hosted_starts_at = null;
-        $this->self_hosted_venue_place_id = null;
-        $this->self_hosted_room_name = null;
-        $this->self_hosted_place_id = null;
-        $this->place_ids = [];
-        $this->new_places = [];
+
+        if ((int) $source->hosting_mode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+            $this->self_hosted_place_id = $source->place_id;
+            $selfHostedPlace = $source->place;
+            if ($selfHostedPlace?->type === 'room') {
+                $this->self_hosted_venue_place_id = $selfHostedPlace->parent_id;
+                $this->self_hosted_room_name = $selfHostedPlace->name;
+            } elseif ($selfHostedPlace?->type === 'venue') {
+                $this->self_hosted_venue_place_id = $selfHostedPlace->id;
+                $this->self_hosted_room_name = null;
+            } else {
+                $this->self_hosted_venue_place_id = null;
+                $this->self_hosted_room_name = null;
+            }
+            if ($this->self_hosted_venue_place_id !== null) {
+                $this->place_ids = [$this->self_hosted_venue_place_id];
+            } else {
+                $this->place_ids = [];
+            }
+            $this->new_places = [];
+
+            $dateSource = $this->latestSeriesActivityForDuplicateDates($source);
+            $startsAt = $dateSource->starts_at ?? $dateSource->scheduleStartsAt();
+            $this->self_hosted_starts_at = $startsAt !== null
+                ? app(EventEditionDateBumper::class)->formatForDatetimeLocal($startsAt)
+                : null;
+        } else {
+            $this->hosting_mode = Activity::HOSTING_MODE_DRAFT;
+            $this->self_hosted_starts_at = null;
+            $this->self_hosted_venue_place_id = null;
+            $this->self_hosted_room_name = null;
+            $this->self_hosted_place_id = null;
+            $this->place_ids = [];
+            $this->new_places = [];
+        }
+    }
+
+    /**
+     * Date source for duplicate: latest session in the series when linked, else the source activity.
+     */
+    private function latestSeriesActivityForDuplicateDates(Activity $activity): Activity
+    {
+        if ($activity->activity_series_id === null) {
+            return $activity;
+        }
+
+        $startsAtSql = Activity::scheduleStartsAtSql();
+        $latest = Activity::query()
+            ->where('activity_series_id', $activity->activity_series_id)
+            ->orderByRaw("{$startsAtSql} DESC")
+            ->orderByDesc('activities.id')
+            ->first();
+
+        return $latest ?? $activity;
     }
 
     public function updatedProposalEventId(mixed $value): void
@@ -775,6 +836,12 @@ class ManageActivityForm extends Component
             $this->proposal_event_id = (int) $this->proposal_event_id;
         }
 
+        if ($this->activity_series_id === '' || $this->activity_series_id === 0) {
+            $this->activity_series_id = null;
+        } elseif ($this->activity_series_id !== null) {
+            $this->activity_series_id = (int) $this->activity_series_id;
+        }
+
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
         }
@@ -852,6 +919,13 @@ class ManageActivityForm extends Component
             })->validate($this->rules());
             $timing->checkpoint('validation');
 
+            $seriesName = isset($validated['activity_series_name']) ? trim((string) $validated['activity_series_name']) : '';
+            $validated['activity_series_id'] = $this->resolveActivitySeriesIdFromRequest(
+                $validated['activity_series_id'] ?? null,
+                $seriesName !== '' ? $seriesName : null
+            );
+            unset($validated['activity_series_name']);
+
             if ($this->editingActivityId !== null) {
                 $activity = Activity::query()->findOrFail($this->editingActivityId);
                 $this->authorizeCreatedBy($activity);
@@ -891,6 +965,8 @@ class ManageActivityForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'activity_type_id' => $activityTypeRules,
+            'activity_series_id' => ['nullable', 'integer', Rule::exists(ActivitySeries::class, 'id')->withoutTrashed()],
+            'activity_series_name' => ['nullable', 'string', 'max:255'],
             'min_participants' => [
                 'nullable',
                 'integer',
@@ -1627,6 +1703,75 @@ class ManageActivityForm extends Component
             'allowsObserversLockedBySlots' => $this->allowsObserversLockedBySlots,
             'editingActivity' => $editingActivity,
             'creator' => $editingActivity?->creator,
+            'activitySeriesSuggestions' => $this->activitySeriesSuggestionsForCurrentUser(),
         ]);
+    }
+
+    protected function resolveActivitySeriesIdFromRequest(mixed $activitySeriesId, ?string $activitySeriesName): ?int
+    {
+        $id = $activitySeriesId;
+        if ($id === null || $id === '') {
+            $id = null;
+        } else {
+            $id = (int) $id;
+        }
+
+        $userId = Auth::id();
+        if ($id !== null && $userId !== null) {
+            $owned = ActivitySeries::query()
+                ->whereKey($id)
+                ->where('created_by', $userId)
+                ->exists();
+            if ($owned) {
+                return $id;
+            }
+        }
+
+        $name = trim((string) $activitySeriesName);
+        if ($name === '' || $userId === null) {
+            return null;
+        }
+
+        return $this->findOrCreateActivitySeriesForUser($name)->id;
+    }
+
+    protected function findOrCreateActivitySeriesForUser(string $name): ActivitySeries
+    {
+        $userId = Auth::id();
+        $existing = ActivitySeries::query()
+            ->where('created_by', $userId)
+            ->whereRaw('LOWER(name) = LOWER(?)', [$name])
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return ActivitySeries::create([
+            'name' => $name,
+            'created_by' => $userId,
+        ]);
+    }
+
+    /**
+     * Creator-scoped activity series suggestions for autocomplete.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    protected function activitySeriesSuggestionsForCurrentUser(): array
+    {
+        $userId = Auth::id();
+        if ($userId === null) {
+            return [];
+        }
+
+        return ActivitySeries::query()
+            ->where('created_by', $userId)
+            ->orderBy('name')
+            ->limit(self::ACTIVITY_SERIES_SUGGESTIONS_LIMIT)
+            ->get(['id', 'name'])
+            ->map(fn (ActivitySeries $series) => ['id' => $series->id, 'name' => $series->name])
+            ->values()
+            ->all();
     }
 }

@@ -7,6 +7,8 @@ namespace Tests\Feature\Catalog;
 use App\Livewire\Catalog\CatalogOrganizations;
 use App\Livewire\Catalog\CatalogPlaces;
 use App\Livewire\Catalog\CatalogSeries;
+use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Organization;
@@ -14,6 +16,7 @@ use App\Models\Place;
 use App\Models\User;
 use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Seo\Seo;
+use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -116,7 +119,47 @@ class CatalogPagesTest extends TestCase
             ->assertDontSee('Catalog Private Series Marker', false)
             ->assertDontSee('Catalog Cancelled Series Marker', false)
             ->assertSeeHtml('data-ui="catalog-series-card"')
+            ->assertSeeHtml('data-ui="catalog-series-tab-events"')
+            ->assertSeeHtml('data-ui="catalog-series-tab-activities"')
             ->assertSee('<title>'.Seo::pageTitle((string) __('ui.catalog.series_title')).'</title>', false);
+    }
+
+    public function test_guest_can_view_activity_series_catalog_tab(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+
+        $visible = ActivitySeries::factory()->create([
+            'name' => 'Catalog Visible Activity Series Marker',
+            'created_by' => $owner->id,
+        ]);
+        $visibleActivity = Activity::factory()->selfHosted()->create([
+            'created_by' => $owner->id,
+            'activity_series_id' => $visible->id,
+            'name' => 'Visible Activity Session',
+        ]);
+        $visibleActivity->update([
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        $draftOnly = ActivitySeries::factory()->create([
+            'name' => 'Catalog Draft Activity Series Marker',
+            'created_by' => $owner->id,
+        ]);
+        Activity::factory()->create([
+            'created_by' => $owner->id,
+            'activity_series_id' => $draftOnly->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'name' => 'Draft Activity Session',
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(CatalogSeries::class)
+            ->set('kind', 'activities')
+            ->assertSee('Catalog Visible Activity Series Marker')
+            ->assertSee(route('activity-series.show', $visible), false)
+            ->assertDontSee('Catalog Draft Activity Series Marker');
     }
 
     public function test_place_catalog_text_query_filters_by_name(): void

@@ -33,6 +33,31 @@
             />
         </div>
 
+        <div class="relative min-w-0 sm:col-span-2">
+            <input type="hidden" wire:model="activity_series_id" data-activity-series-id />
+            <x-input
+                wire:model.live.debounce.300ms="activity_series_name"
+                label="{{ __('ui.activities.form_activity_series') }}"
+                placeholder="{{ __('ui.activities.form_activity_series_optional') }}"
+                type="text"
+                error-field="activity_series_name"
+                autocomplete="off"
+                data-activity-series-input
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="activity-series-suggestions-popup"
+                icon="o-rectangle-stack"
+                inline
+            />
+            <div id="activity-series-suggestions-popup"
+                 class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                 data-activity-series-popup
+                 wire:ignore
+                 role="listbox"></div>
+            <x-field-error :messages="$errors->get('activity_series_id')" class="mt-2" />
+            <x-field-error :messages="$errors->get('activity_series_name')" class="mt-2" />
+        </div>
+
         <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-8 sm:col-span-2">
             <div class="grid min-w-0 grid-cols-1 gap-4 space-y-4 md:grid-cols-1">
                 <x-range-dual

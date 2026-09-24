@@ -60,6 +60,7 @@ class ActivityFormService
                 'gallery_media_id',
                 'croppedLogo',
                 'sourceImage',
+                'activity_series_name',
             ]
         );
 

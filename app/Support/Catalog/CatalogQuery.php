@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Catalog;
 
+use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
@@ -64,6 +66,32 @@ final class CatalogQuery
             ->orderBy('event_series.id');
 
         self::applyUnaccentSearch($query, $q, ['event_series.name']);
+
+        return $query;
+    }
+
+    /**
+     * @return Builder<ActivitySeries>
+     */
+    public static function activitySeries(string $q = ''): Builder
+    {
+        $startsAtSql = Activity::scheduleStartsAtSql();
+
+        $query = ActivitySeries::query()
+            ->whereHas('activities', function (Builder $activities): void {
+                $activities->attachedToPublicEvent();
+            })
+            ->withCount([
+                'activities as upcoming_public_activities_count' => function (Builder $activities) use ($startsAtSql): void {
+                    $activities->attachedToPublicEvent()
+                        ->whereRaw("{$startsAtSql} IS NOT NULL")
+                        ->whereRaw("{$startsAtSql} >= ?", [now()]);
+                },
+            ])
+            ->orderBy('activity_series.name')
+            ->orderBy('activity_series.id');
+
+        self::applyUnaccentSearch($query, $q, ['activity_series.name']);
 
         return $query;
     }

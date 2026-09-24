@@ -99,6 +99,7 @@
                 if (t.tagName === 'INPUT' && (t.type === 'checkbox' || t.type === 'radio' || t.type === 'submit' || t.type === 'button')) return;
                 if (t.hasAttribute('data-ts-input')) return;
                 if (t.hasAttribute('data-activity-name-input')) return;
+                if (t.hasAttribute('data-activity-series-input')) return;
                 if (t.hasAttribute('data-proposal-event-input')) return;
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
@@ -126,6 +127,134 @@
                 [0, 120, 320, 700].forEach((ms) => {
                     setTimeout(refreshSelfHostedMaps, ms);
                 });
+            }, { signal });
+        }
+
+        const seriesInput = document.querySelector('[data-activity-series-input]');
+        const seriesPopup = document.querySelector('[data-activity-series-popup]');
+        const seriesIdInput = document.querySelector('[data-activity-series-id]');
+        if (seriesInput && seriesPopup && seriesIdInput) {
+            const seriesScope = seriesPopup.parentElement;
+            const seriesSuggestions = @json($activitySeriesSuggestions ?? []);
+            let seriesShown = [];
+            let seriesActive = -1;
+            let selectedSeries = null;
+            const sid = seriesIdInput.value.trim();
+            const sname = seriesInput.value.trim();
+            if (sid !== '' && sname !== '') {
+                selectedSeries = { id: parseInt(sid, 10), name: sname };
+            }
+
+            function syncSeriesSelectionFromInput() {
+                const t = seriesInput.value.trim();
+                if (selectedSeries && t.toLowerCase() !== selectedSeries.name.toLowerCase()) {
+                    seriesIdInput.value = '';
+                    seriesIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    selectedSeries = null;
+                }
+            }
+
+            function closeSeriesPopup() {
+                seriesPopup.classList.add('hidden');
+                seriesPopup.innerHTML = '';
+                seriesActive = -1;
+                seriesInput.setAttribute('aria-expanded', 'false');
+            }
+
+            function openSeriesPopup() {
+                if (seriesShown.length === 0) {
+                    closeSeriesPopup();
+                    return;
+                }
+                seriesPopup.classList.remove('hidden');
+                seriesInput.setAttribute('aria-expanded', 'true');
+            }
+
+            function applySeriesActive() {
+                [...seriesPopup.querySelectorAll('[data-series-suggestion-idx]')].forEach((el, idx) => {
+                    const isActive = idx === seriesActive;
+                    el.classList.toggle('bg-base-200', isActive);
+                    el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            }
+
+            function chooseSeries(item) {
+                seriesInput.value = item.name;
+                seriesInput.dispatchEvent(new Event('input', { bubbles: true }));
+                seriesIdInput.value = String(item.id);
+                seriesIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                selectedSeries = { id: item.id, name: item.name };
+                closeSeriesPopup();
+            }
+
+            function renderSeries(items) {
+                seriesShown = items.slice(0, 8);
+                seriesPopup.innerHTML = '';
+                seriesActive = -1;
+
+                if (seriesShown.length === 0) {
+                    closeSeriesPopup();
+                    return;
+                }
+
+                const frag = document.createDocumentFragment();
+                seriesShown.forEach((item, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.textContent = item.name;
+                    btn.dataset.seriesSuggestionIdx = String(idx);
+                    btn.setAttribute('role', 'option');
+                    btn.setAttribute('aria-selected', 'false');
+                    btn.addEventListener('mousedown', (e) => e.preventDefault());
+                    btn.addEventListener('click', () => chooseSeries(item));
+                    frag.appendChild(btn);
+                });
+                seriesPopup.appendChild(frag);
+                openSeriesPopup();
+            }
+
+            function updateSeriesFromInput() {
+                syncSeriesSelectionFromInput();
+                const q = seriesInput.value.trim().toLowerCase();
+                if (q.length < 1) {
+                    renderSeries(seriesSuggestions.slice(0, 8));
+                    return;
+                }
+
+                const items = seriesSuggestions.filter(
+                    (o) => o.name.toLowerCase().includes(q) && o.name.toLowerCase() !== q
+                );
+                renderSeries(items);
+            }
+
+            seriesInput.addEventListener('input', updateSeriesFromInput, { signal });
+            seriesInput.addEventListener('focus', updateSeriesFromInput, { signal });
+            seriesInput.addEventListener('keydown', (e) => {
+                if (seriesPopup.classList.contains('hidden') || seriesShown.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    seriesActive = (seriesActive + 1) % seriesShown.length;
+                    applySeriesActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    seriesActive = seriesActive <= 0 ? seriesShown.length - 1 : seriesActive - 1;
+                    applySeriesActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (seriesActive >= 0 && seriesShown[seriesActive]) {
+                        chooseSeries(seriesShown[seriesActive]);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeSeriesPopup();
+                }
+            }, { signal });
+
+            document.addEventListener('click', (e) => {
+                if (seriesScope && !seriesScope.contains(e.target)) {
+                    closeSeriesPopup();
+                }
             }, { signal });
         }
 

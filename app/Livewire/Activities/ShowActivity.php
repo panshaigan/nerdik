@@ -380,6 +380,7 @@ class ShowActivity extends Component
             'creator',
             'canceller',
             'activityType',
+            'activitySeries',
             'tagMedia',
             'tags.translations',
             'tags.tagCategory',
@@ -398,6 +399,9 @@ class ShowActivity extends Component
             'place.links',
         ]);
 
+        $previousInSeries = $activity->previousInSeries();
+        $nextInSeries = $activity->nextInSeries();
+
         $vm = $participationView->forShow($activity, auth()->user());
         $interestedPeopleCount = (int) $activity->interestedUsers()->count();
 
@@ -406,6 +410,8 @@ class ShowActivity extends Component
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
+            'previousInSeries' => $previousInSeries,
+            'nextInSeries' => $nextInSeries,
             'schedule' => $schedule,
             'coverPicture' => $activityListingImageResolver->resolve($activity, 'listing_hero'),
             'sharePayload' => $shareLinks->forActivity($activity),

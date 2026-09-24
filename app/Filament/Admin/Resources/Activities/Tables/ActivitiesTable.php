@@ -24,6 +24,7 @@ class ActivitiesTable
     {
         return BelongsToColumn::withEagerLoads($table, [
             'activityType',
+            'activitySeries',
             'place.parent',
             'cancelledWithEvent',
             ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
@@ -32,6 +33,10 @@ class ActivitiesTable
                 TextColumn::make('name')
                     ->searchable(),
                 BelongsToColumn::record('activityType', searchable: true),
+                TextColumn::make('activitySeries.name')
+                    ->label('Activity series')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('hosting_mode')
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => Activity::hostingModeLabel($state))
