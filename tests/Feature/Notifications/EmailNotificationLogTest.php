@@ -10,8 +10,11 @@ use App\Models\SentEmail;
 use App\Models\User;
 use App\Notifications\WaitlistPromotedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Mime\Address;
 use Tests\TestCase;
 
 class EmailNotificationLogTest extends TestCase
@@ -115,6 +118,43 @@ class EmailNotificationLogTest extends TestCase
         $this->assertSame('Nerdik backup failed', $row->subject);
         $this->assertNotNull($row->text_path);
         Storage::disk('email_logs')->assertExists($row->text_path);
+    }
+
+    public function test_mail_notification_sets_reply_to_from_legal_contact_email(): void
+    {
+        config([
+            'mail.reply_to' => [
+                'address' => 'support@example.com',
+                'name' => 'Nerdik Support',
+            ],
+        ]);
+        Mail::purge();
+
+        /** @var list<Address>|null $capturedReplyTo */
+        $capturedReplyTo = null;
+        Event::listen(MessageSending::class, function (MessageSending $event) use (&$capturedReplyTo): void {
+            $capturedReplyTo = $event->message->getReplyTo();
+        });
+
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create();
+
+        $user->notify(new WaitlistPromotedNotification($activity));
+
+        $this->assertNotNull($capturedReplyTo);
+        $this->assertNotEmpty($capturedReplyTo);
+
+        $addresses = array_map(
+            static fn ($address): string => $address->getAddress(),
+            $capturedReplyTo,
+        );
+        $this->assertContains('support@example.com', $addresses);
+
+        $match = collect($capturedReplyTo)->first(
+            static fn ($address): bool => $address->getAddress() === 'support@example.com',
+        );
+        $this->assertNotNull($match);
+        $this->assertSame('Nerdik Support', $match->getName());
     }
 
     public function test_mail_fake_does_not_create_email_log_entry(): void

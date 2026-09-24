@@ -117,6 +117,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Global "Reply-To" Address
+    |--------------------------------------------------------------------------
+    |
+    | When set, outbound mail includes a Reply-To header so clients reply to
+    | the legal/support contact instead of the no-reply From address.
+    | Uses LEGAL_CONTACT_EMAIL; left empty when that env is unset.
+    |
+    */
+
+    'reply_to' => [
+        'address' => env('LEGAL_CONTACT_EMAIL'),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Support Mailbox Web App
     |--------------------------------------------------------------------------
     |
