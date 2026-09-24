@@ -60,7 +60,7 @@ final class BrowseListingCardPresenter
             locationSummary: $place?->compactVenueSummary() ?? '',
             kindCornerLabel: '',
             hostUser: $activity->creator,
-            hostOrganization: null,
+            hostOrganization: $activity->organization,
             parentEventName: $parentEvent !== null ? (string) $parentEvent->name : null,
             parentEventUrl: $parentEvent !== null ? route('events.show', $parentEvent) : null,
             showParticipants: true,

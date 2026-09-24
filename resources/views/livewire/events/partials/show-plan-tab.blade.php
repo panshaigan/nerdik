@@ -428,6 +428,7 @@
                                                     <div class="relative z-[3] mt-1 inline-flex w-fit max-w-full pointer-events-auto" data-ui="event-show-slot-host">
                                                         <x-user-badge
                                                             :user="$activity->creator"
+                                                            :organization="$activity->organization"
                                                             size="sm"
                                                             :context-activity-id="$activity->id"
                                                             name-class="truncate text-xs font-medium text-base-content"

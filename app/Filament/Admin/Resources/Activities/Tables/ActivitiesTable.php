@@ -25,6 +25,7 @@ class ActivitiesTable
         return BelongsToColumn::withEagerLoads($table, [
             'activityType',
             'activitySeries',
+            'organization',
             'place.parent',
             'cancelledWithEvent',
             ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
@@ -35,6 +36,9 @@ class ActivitiesTable
                 BelongsToColumn::record('activityType', searchable: true),
                 TextColumn::make('activitySeries.name')
                     ->label('Activity series')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('organization.name')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('hosting_mode')

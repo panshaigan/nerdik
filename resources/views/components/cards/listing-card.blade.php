@@ -86,6 +86,7 @@
                 @if ($d->kind === 'activity' && $d->hostUser)
                     <x-user-badge
                         :user="$d->hostUser"
+                        :organization="$d->hostOrganization"
                         size="sm"
                         nameClass="truncate text-xs font-medium text-amber-50"
                         class="pointer-events-auto w-fit max-w-full rounded-full bg-black/70 py-0.5 pl-0.5 pr-2"

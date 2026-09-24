@@ -7,6 +7,7 @@ use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
@@ -23,12 +24,14 @@ class ActivityDuplicatePrefillTest extends TestCase
         app()->setLocale('en');
 
         $user = User::factory()->create();
+        $organization = Organization::factory()->create(['name' => 'Duplicate Guild']);
         $source = Activity::factory()->create([
             'created_by' => $user->id,
             'updated_by' => $user->id,
             'name' => 'RPG Night',
             'description' => '<p>Hello</p>',
-            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+            'organization_id' => $organization->id,
             'place_id' => null,
             'starts_at' => now()->addDay(),
             'participation_mode' => ParticipationMode::HostApproval,
@@ -51,6 +54,8 @@ class ActivityDuplicatePrefillTest extends TestCase
             ->assertSet('description', '<p>Hello</p>')
             ->assertSet('activity_type_id', $source->activity_type_id)
             ->assertSet('hosting_mode', Activity::HOSTING_MODE_DRAFT)
+            ->assertSet('organization_id', $organization->id)
+            ->assertSet('organization_name', 'Duplicate Guild')
             ->assertSet('minimum_age', 12)
             ->assertSet('maximum_age', 16)
             ->assertSet('proposal_event_id', null)

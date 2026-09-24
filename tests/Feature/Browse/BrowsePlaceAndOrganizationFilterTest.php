@@ -191,6 +191,25 @@ final class BrowsePlaceAndOrganizationFilterTest extends TestCase
             'name' => 'Org Filter Self Hosted',
         ]);
 
+        $plainEvent = $this->publicEvent(
+            $ctx['owner'],
+            $venue,
+            $ctx['startsAt'],
+            $ctx['endsAt'],
+            'Org Filter Event Plain',
+        );
+        $this->scheduledActivity(
+            $ctx['owner'],
+            $plainEvent,
+            $venue,
+            $ctx['startsAt'],
+            $ctx['endsAt'],
+            'Org Filter Activity Own Org',
+        );
+        Activity::query()->where('name', 'Org Filter Activity Own Org')->update([
+            'organization_id' => $org->id,
+        ]);
+
         $component = Livewire::withoutLazyLoading()
             ->test(BrowseEvents::class)
             ->set('organization_id', $org->id);
@@ -199,8 +218,10 @@ final class BrowsePlaceAndOrganizationFilterTest extends TestCase
 
         $this->assertContains('Org Filter Event Alpha', $names);
         $this->assertContains('Org Filter Scheduled Activity', $names);
+        $this->assertContains('Org Filter Activity Own Org', $names);
         $this->assertNotContains('Org Filter Event Other', $names);
         $this->assertNotContains('Org Filter Self Hosted', $names);
+        $this->assertNotContains('Org Filter Event Plain', $names);
     }
 
     public function test_filter_bag_from_request_parses_place_and_organization_ids(): void

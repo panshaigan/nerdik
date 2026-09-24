@@ -100,6 +100,7 @@
                 if (t.hasAttribute('data-ts-input')) return;
                 if (t.hasAttribute('data-activity-name-input')) return;
                 if (t.hasAttribute('data-activity-series-input')) return;
+                if (t.hasAttribute('data-activity-org-input')) return;
                 if (t.hasAttribute('data-proposal-event-input')) return;
                 if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
                     e.preventDefault();
@@ -254,6 +255,134 @@
             document.addEventListener('click', (e) => {
                 if (seriesScope && !seriesScope.contains(e.target)) {
                     closeSeriesPopup();
+                }
+            }, { signal });
+        }
+
+        const orgInput = document.querySelector('[data-activity-org-input]');
+        const orgPopup = document.querySelector('[data-activity-org-popup]');
+        const orgIdInput = document.querySelector('[data-activity-org-id]');
+        if (orgInput && orgPopup && orgIdInput) {
+            const orgScope = orgPopup.parentElement;
+            const orgSuggestions = @json($organizationSuggestions ?? []);
+            let orgShown = [];
+            let orgActive = -1;
+            let selectedOrg = null;
+            const oid = orgIdInput.value.trim();
+            const oname = orgInput.value.trim();
+            if (oid !== '' && oname !== '') {
+                selectedOrg = { id: parseInt(oid, 10), name: oname };
+            }
+
+            function syncOrgSelectionFromInput() {
+                const t = orgInput.value.trim();
+                if (selectedOrg && t.toLowerCase() !== selectedOrg.name.toLowerCase()) {
+                    orgIdInput.value = '';
+                    orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    selectedOrg = null;
+                }
+            }
+
+            function closeOrgPopup() {
+                orgPopup.classList.add('hidden');
+                orgPopup.innerHTML = '';
+                orgActive = -1;
+                orgInput.setAttribute('aria-expanded', 'false');
+            }
+
+            function openOrgPopup() {
+                if (orgShown.length === 0) {
+                    closeOrgPopup();
+                    return;
+                }
+                orgPopup.classList.remove('hidden');
+                orgInput.setAttribute('aria-expanded', 'true');
+            }
+
+            function applyOrgActive() {
+                [...orgPopup.querySelectorAll('[data-org-suggestion-idx]')].forEach((el, idx) => {
+                    const isActive = idx === orgActive;
+                    el.classList.toggle('bg-base-200', isActive);
+                    el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+            }
+
+            function chooseOrg(item) {
+                orgInput.value = item.name;
+                orgInput.dispatchEvent(new Event('input', { bubbles: true }));
+                orgIdInput.value = String(item.id);
+                orgIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                selectedOrg = { id: item.id, name: item.name };
+                closeOrgPopup();
+            }
+
+            function renderOrg(items) {
+                orgShown = items.slice(0, 8);
+                orgPopup.innerHTML = '';
+                orgActive = -1;
+
+                if (orgShown.length === 0) {
+                    closeOrgPopup();
+                    return;
+                }
+
+                const frag = document.createDocumentFragment();
+                orgShown.forEach((item, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'block w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-base-200';
+                    btn.textContent = item.name;
+                    btn.dataset.orgSuggestionIdx = String(idx);
+                    btn.setAttribute('role', 'option');
+                    btn.setAttribute('aria-selected', 'false');
+                    btn.addEventListener('mousedown', (e) => e.preventDefault());
+                    btn.addEventListener('click', () => chooseOrg(item));
+                    frag.appendChild(btn);
+                });
+                orgPopup.appendChild(frag);
+                openOrgPopup();
+            }
+
+            function updateOrgFromInput() {
+                syncOrgSelectionFromInput();
+                const q = orgInput.value.trim().toLowerCase();
+                if (q.length < 1) {
+                    renderOrg(orgSuggestions.slice(0, 8));
+                    return;
+                }
+
+                const items = orgSuggestions.filter(
+                    (o) => o.name.toLowerCase().includes(q) && o.name.toLowerCase() !== q
+                );
+                renderOrg(items);
+            }
+
+            orgInput.addEventListener('input', updateOrgFromInput, { signal });
+            orgInput.addEventListener('focus', updateOrgFromInput, { signal });
+            orgInput.addEventListener('keydown', (e) => {
+                if (orgPopup.classList.contains('hidden') || orgShown.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    orgActive = (orgActive + 1) % orgShown.length;
+                    applyOrgActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    orgActive = orgActive <= 0 ? orgShown.length - 1 : orgActive - 1;
+                    applyOrgActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (orgActive >= 0 && orgShown[orgActive]) {
+                        chooseOrg(orgShown[orgActive]);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeOrgPopup();
+                }
+            }, { signal });
+
+            document.addEventListener('click', (e) => {
+                if (orgScope && !orgScope.contains(e.target)) {
+                    closeOrgPopup();
                 }
             }, { signal });
         }

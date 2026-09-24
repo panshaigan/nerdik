@@ -123,8 +123,12 @@ final class BrowseListingQuery
 
         if ($filters->organizationId !== null) {
             $organizationId = $filters->organizationId;
-            $query->whereHas('slot.event', function (Builder $q) use ($organizationId): void {
-                $q->where('events.organization_id', $organizationId);
+            $query->where(function (Builder $orgScope) use ($organizationId): void {
+                $orgScope
+                    ->where('activities.organization_id', $organizationId)
+                    ->orWhereHas('slot.event', function (Builder $q) use ($organizationId): void {
+                        $q->where('events.organization_id', $organizationId);
+                    });
             });
         }
 

@@ -70,6 +70,7 @@ class Activity extends Model implements HasMedia
         'description',
         'activity_type_id',
         'activity_series_id',
+        'organization_id',
         'hosting_mode',
         'place_id',
         'starts_at',
@@ -180,6 +181,7 @@ class Activity extends Model implements HasMedia
             'tagMedia',
             'galleryMedia',
             'creator',
+            'organization',
             'activityType.media',
             'activitySeries',
             'media' => fn ($query) => $query->where('collection_name', 'logo'),
@@ -197,6 +199,29 @@ class Activity extends Model implements HasMedia
     public function activitySeries(): BelongsTo
     {
         return $this->belongsTo(ActivitySeries::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Human-friendly owner/host label:
+     * - if an organization is attached, show organization name
+     * - otherwise show the creator user's canonical display name (nickname)
+     */
+    public function hostDisplayName(): string
+    {
+        if ($this->organization) {
+            return $this->organization->name;
+        }
+
+        if ($this->creator) {
+            return $this->creator->displayName();
+        }
+
+        return '';
     }
 
     /**

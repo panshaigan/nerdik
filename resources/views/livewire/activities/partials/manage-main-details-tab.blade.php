@@ -33,7 +33,32 @@
             />
         </div>
 
-        <div class="relative min-w-0 sm:col-span-2">
+        <div class="relative min-w-0">
+            <input type="hidden" wire:model="organization_id" data-activity-org-id />
+            <x-input
+                wire:model.live.debounce.300ms="organization_name"
+                label="{{ __('ui.events.form_organization') }}"
+                placeholder="{{ __('ui.events.form_organization_optional') }}"
+                type="text"
+                error-field="organization_name"
+                autocomplete="off"
+                data-activity-org-input
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="activity-org-suggestions-popup"
+                icon="o-building-office-2"
+                inline
+            />
+            <div id="activity-org-suggestions-popup"
+                 class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 w-full min-w-0 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                 data-activity-org-popup
+                 wire:ignore
+                 role="listbox"></div>
+            <x-field-error :messages="$errors->get('organization_id')" class="mt-2" />
+            <x-field-error :messages="$errors->get('organization_name')" class="mt-2" />
+        </div>
+
+        <div class="relative min-w-0">
             <input type="hidden" wire:model="activity_series_id" data-activity-series-id />
             <x-input
                 wire:model.live.debounce.300ms="activity_series_name"

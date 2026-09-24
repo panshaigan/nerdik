@@ -51,6 +51,11 @@ class Organization extends Model
         return $this->hasMany(Event::class);
     }
 
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

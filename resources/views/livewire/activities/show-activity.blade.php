@@ -20,7 +20,7 @@
         data-ui="activity-show-page-background"
     />
     <div class="relative z-0 space-y-4 sm:space-y-6">
-    <x-page-header :title="$activity->name" :user="$activity->creator" :late-minutes="$hostLateMinutes ?? null">
+    <x-page-header :title="$activity->name" :user="$activity->creator" :organization="$activity->organization" :late-minutes="$hostLateMinutes ?? null">
         <x-slot:titlePrefix>
             @if ($previousInSeries)
                 <x-popover class="inline-flex transition-none" position="bottom" offset="8">

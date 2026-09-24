@@ -22,6 +22,7 @@ class ActivityForm
                     ->required(),
                 BelongsToSelect::activityType('activity_type_id'),
                 BelongsToSelect::make('activity_series_id', 'activitySeries'),
+                BelongsToSelect::make('organization_id', 'organization'),
                 Select::make('hosting_mode')
                     ->options(Activity::hostingModeOptions())
                     ->required()

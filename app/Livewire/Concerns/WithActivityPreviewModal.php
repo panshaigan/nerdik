@@ -226,6 +226,7 @@ trait WithActivityPreviewModal
                 'place.parent.city',
                 'place.city',
                 'creator',
+                'organization',
                 'canceller',
                 'activityType',
                 'tags.translations',

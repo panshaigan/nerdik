@@ -61,6 +61,7 @@ class ActivityFormService
                 'croppedLogo',
                 'sourceImage',
                 'activity_series_name',
+                'organization_name',
             ]
         );
 

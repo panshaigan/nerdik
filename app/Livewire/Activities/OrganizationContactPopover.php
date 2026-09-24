@@ -22,22 +22,32 @@ class OrganizationContactPopover extends Component
      */
     private function organizationActivitiesQuery(int $organizationId, ?string $timeframe = null): Builder
     {
+        $endsAtExpression = 'COALESCE('
+            .'(SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.deleted_at IS NULL LIMIT 1), '
+            .'activities.ends_at, '
+            .'activities.starts_at'
+            .')';
+
         return Activity::query()
             ->whereNull('activities.cancelled_at')
             ->whereNull('activities.deleted_at')
-            ->whereHas('slot', function (Builder $query) use ($organizationId, $timeframe): void {
-                $query
-                    ->whereNull('slots.deleted_at')
-                    ->whereHas('event', fn (Builder $eventQuery) => $eventQuery
-                        ->where('organization_id', $organizationId)
-                        ->whereNull('events.deleted_at')
-                    );
-
-                if ($timeframe === 'upcoming') {
-                    $query->whereRaw('COALESCE(slots.ends_at, slots.starts_at) >= ?', [now()]);
-                } elseif ($timeframe === 'past') {
-                    $query->whereRaw('COALESCE(slots.ends_at, slots.starts_at) < ?', [now()]);
-                }
+            ->where(function (Builder $scope) use ($organizationId): void {
+                $scope
+                    ->where('activities.organization_id', $organizationId)
+                    ->orWhereHas('slot', function (Builder $query) use ($organizationId): void {
+                        $query
+                            ->whereNull('slots.deleted_at')
+                            ->whereHas('event', fn (Builder $eventQuery) => $eventQuery
+                                ->where('organization_id', $organizationId)
+                                ->whereNull('events.deleted_at')
+                            );
+                    });
+            })
+            ->when($timeframe === 'upcoming', function (Builder $query) use ($endsAtExpression): void {
+                $query->whereRaw($endsAtExpression.' >= ?', [now()]);
+            })
+            ->when($timeframe === 'past', function (Builder $query) use ($endsAtExpression): void {
+                $query->whereRaw($endsAtExpression.' < ?', [now()]);
             });
     }
 

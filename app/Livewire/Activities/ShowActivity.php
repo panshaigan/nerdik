@@ -378,6 +378,7 @@ class ShowActivity extends Component
 
         $activity->load([
             'creator',
+            'organization',
             'canceller',
             'activityType',
             'activitySeries',

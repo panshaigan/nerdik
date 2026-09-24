@@ -282,6 +282,24 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
+    public function from_activity_exposes_host_organization_when_set(): void
+    {
+        $user = User::factory()->create();
+        $organization = Organization::factory()->create(['name' => 'Activity Guild']);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'organization_id' => $organization->id,
+        ]);
+        $activity->setRelation('creator', $user);
+        $activity->setRelation('organization', $organization);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertSame($organization->id, $viewData->hostOrganization?->id);
+        $this->assertSame($user->id, $viewData->hostUser?->id);
+    }
+
+    #[Test]
     public function from_event_exposes_host_organization_when_set(): void
     {
         $user = User::factory()->create();

@@ -49,6 +49,7 @@
                         <div class="min-w-0 max-w-full" data-ui="event-activity-preview-host">
                             <x-user-badge
                                 :user="$previewActivity->creator"
+                                :organization="$previewActivity->organization"
                                 size="sm"
                                 :context-activity-id="$previewActivity->id"
                                 :late-minutes="$previewActivityParticipation?->hostLateMinutes"

@@ -50,6 +50,7 @@
                     <div class="min-w-0 flex-1">
                         <x-user-badge
                             :user="$activity->creator"
+                            :organization="$activity->organization"
                             size="sm"
                             :subline="__('ui.activities.host')"
                             :late-minutes="$hostLateMinutes ?? null"

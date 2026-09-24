@@ -11,6 +11,7 @@ use App\Models\ActivityProposal;
 use App\Models\ActivitySeries;
 use App\Models\ActivityType;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\Tag;
@@ -48,6 +49,8 @@ class ManageActivityForm extends Component
 
     private const ACTIVITY_SERIES_SUGGESTIONS_LIMIT = 500;
 
+    private const ORGANIZATION_SUGGESTIONS_LIMIT = 500;
+
     /** @var list<string> */
     private const FORM_TAB_ORDER = ['main-details', 'participation-rules', 'tags', 'image', 'hosting-mode'];
 
@@ -83,6 +86,10 @@ class ManageActivityForm extends Component
     public ?int $activity_series_id = null;
 
     public string $activity_series_name = '';
+
+    public ?int $organization_id = null;
+
+    public string $organization_name = '';
 
     public ?int $min_participants = null;
 
@@ -176,13 +183,15 @@ class ManageActivityForm extends Component
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries']);
+            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries', 'organization']);
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
             $this->activity_type_id = $activity->activity_type_id;
             $this->activity_series_id = $activity->activity_series_id;
             $this->activity_series_name = (string) (optional($activity->activitySeries)->name ?? '');
+            $this->organization_id = $activity->organization_id;
+            $this->organization_name = (string) (optional($activity->organization)->name ?? '');
             $this->min_participants = $activity->min_participants;
             $this->max_participants = $activity->max_participants;
             $this->normalizeParticipantBounds();
@@ -233,7 +242,7 @@ class ManageActivityForm extends Component
             }
         } elseif (($dupSlug = $this->duplicateQuerySlug()) !== null) {
             $source = Activity::query()
-                ->with(['tags', 'activitySeries', 'place.parent'])
+                ->with(['tags', 'activitySeries', 'organization', 'place.parent'])
                 ->where('slug', $dupSlug)
                 ->where('created_by', auth()->id())
                 ->first();
@@ -503,6 +512,8 @@ class ManageActivityForm extends Component
         $this->activity_type_id = $source->activity_type_id;
         $this->activity_series_id = $source->activity_series_id;
         $this->activity_series_name = (string) (optional($source->activitySeries)->name ?? '');
+        $this->organization_id = $source->organization_id;
+        $this->organization_name = (string) (optional($source->organization)->name ?? '');
         $this->min_participants = $source->min_participants;
         $this->max_participants = $source->max_participants;
         $this->normalizeParticipantBounds();
@@ -842,6 +853,12 @@ class ManageActivityForm extends Component
             $this->activity_series_id = (int) $this->activity_series_id;
         }
 
+        if ($this->organization_id === '' || $this->organization_id === 0) {
+            $this->organization_id = null;
+        } elseif ($this->organization_id !== null) {
+            $this->organization_id = (int) $this->organization_id;
+        }
+
         if ($this->proposal_preferred_start_time === '') {
             $this->proposal_preferred_start_time = null;
         }
@@ -926,6 +943,13 @@ class ManageActivityForm extends Component
             );
             unset($validated['activity_series_name']);
 
+            $orgName = isset($validated['organization_name']) ? trim((string) $validated['organization_name']) : '';
+            $validated['organization_id'] = $this->resolveOrganizationIdFromRequest(
+                $validated['organization_id'] ?? null,
+                $orgName !== '' ? $orgName : null
+            );
+            unset($validated['organization_name']);
+
             if ($this->editingActivityId !== null) {
                 $activity = Activity::query()->findOrFail($this->editingActivityId);
                 $this->authorizeCreatedBy($activity);
@@ -967,6 +991,8 @@ class ManageActivityForm extends Component
             'activity_type_id' => $activityTypeRules,
             'activity_series_id' => ['nullable', 'integer', Rule::exists(ActivitySeries::class, 'id')->withoutTrashed()],
             'activity_series_name' => ['nullable', 'string', 'max:255'],
+            'organization_id' => ['nullable', 'integer', Rule::exists(Organization::class, 'id')->withoutTrashed()],
+            'organization_name' => ['nullable', 'string', 'max:255'],
             'min_participants' => [
                 'nullable',
                 'integer',
@@ -1704,7 +1730,68 @@ class ManageActivityForm extends Component
             'editingActivity' => $editingActivity,
             'creator' => $editingActivity?->creator,
             'activitySeriesSuggestions' => $this->activitySeriesSuggestionsForCurrentUser(),
+            'organizationSuggestions' => $this->organizationSuggestionsForCurrentUser(),
         ]);
+    }
+
+    protected function resolveOrganizationIdFromRequest(mixed $organizationId, ?string $organizationName): ?int
+    {
+        $id = $organizationId;
+        if ($id === null || $id === '') {
+            $id = null;
+        } else {
+            $id = (int) $id;
+        }
+
+        if ($id !== null) {
+            if (Organization::query()->whereKey($id)->exists()) {
+                return $id;
+            }
+        }
+
+        $name = trim((string) $organizationName);
+        if ($name === '') {
+            return null;
+        }
+
+        return $this->findOrCreateOrganizationForUser($name)->id;
+    }
+
+    protected function findOrCreateOrganizationForUser(string $name): Organization
+    {
+        $existing = Organization::query()
+            ->whereRaw('LOWER(name) = LOWER(?)', [$name])
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return Organization::create([
+            'name' => $name,
+        ]);
+    }
+
+    /**
+     * Creator-scoped organization suggestions for autocomplete.
+     *
+     * @return list<array{id: int, name: string}>
+     */
+    protected function organizationSuggestionsForCurrentUser(): array
+    {
+        $userId = Auth::id();
+        if ($userId === null) {
+            return [];
+        }
+
+        return Organization::query()
+            ->where('created_by', $userId)
+            ->orderBy('name')
+            ->limit(self::ORGANIZATION_SUGGESTIONS_LIMIT)
+            ->get(['id', 'name'])
+            ->map(fn (Organization $org) => ['id' => $org->id, 'name' => $org->name])
+            ->values()
+            ->all();
     }
 
     protected function resolveActivitySeriesIdFromRequest(mixed $activitySeriesId, ?string $activitySeriesName): ?int
