@@ -32,7 +32,7 @@
             <x-ui.tabs-with-toolbar
                 wire:model.live="activityPreviewTab"
                 label-bar-class="flex w-full min-w-0 items-center border-b border-base-300 gap-2"
-                label-div-class="flex gap-5 overflow-x-auto px-1"
+                label-div-class="flex gap-5 px-1"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="relative flex min-h-0 w-full flex-1 flex-col"

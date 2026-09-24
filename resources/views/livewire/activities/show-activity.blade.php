@@ -109,7 +109,7 @@
         >
             <x-ui.tabs-with-toolbar
                 wire:model.live.preserve-scroll="tab"
-                label-div-class="flex gap-5 overflow-x-auto px-3 pt-1"
+                label-div-class="flex gap-5 px-3 pt-1"
                 label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                 active-class="!text-base-content border-b border-primary text-primary"
                 tabs-class="w-full"

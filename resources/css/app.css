@@ -1727,6 +1727,14 @@
 
 .ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > :first-child {
     flex-shrink: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] .tab:is(.tooltip, .lg\:tooltip)::before,
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] .tab:is(.tooltip, .lg\:tooltip)::after {
+    z-index: 50;
 }
 
 .ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > [role='tablist'] {

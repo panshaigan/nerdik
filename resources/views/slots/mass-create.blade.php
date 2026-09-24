@@ -105,7 +105,7 @@
     @if ($embeddedInModal)
         <x-ui.tabs-with-toolbar
             selected="details"
-            label-div-class="flex gap-5 overflow-x-auto px-1 pt-1"
+            label-div-class="flex gap-5 px-1 pt-1"
             label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
             active-class="!text-base-content border-b border-primary text-primary"
             tabs-class="{{ $externalModalChrome ? 'relative flex min-h-0 w-full flex-1 flex-col' : 'w-full' }}"

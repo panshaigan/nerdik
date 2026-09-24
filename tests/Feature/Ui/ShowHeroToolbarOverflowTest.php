@@ -78,6 +78,25 @@ final class ShowHeroToolbarOverflowTest extends TestCase
         $this->assertStringNotContainsString('overflow-x-auto', $this->tabsRootClassAttribute($html));
     }
 
+    #[Test]
+    public function tabs_with_toolbar_uses_container_queries_and_app_tooltips_for_compact_labels(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.tabs-with-toolbar selected="description" label-div-class="flex gap-5 px-1">
+                <x-tab name="description" label="Description" icon="o-document-text" />
+            </x-ui.tabs-with-toolbar>
+        BLADE);
+
+        $this->assertStringContainsString('@container', $html);
+        $this->assertStringContainsString('@2xl:[&_.inline-flex>div:last-child]:inline', $html);
+        $this->assertStringContainsString('@max-2xl:tooltip', $html);
+        $this->assertStringContainsString('@max-2xl:tooltip-top', $html);
+        $this->assertStringContainsString('plainTabLabel(tab)', $html);
+        $this->assertStringContainsString(':data-tip="plainTabLabel(tab)"', $html);
+        $this->assertStringNotContainsString('overflow-x-auto', $html);
+        $this->assertStringNotContainsString('[&_.inline-flex>div:last-child]:sm:inline', $html);
+    }
+
     /**
      * @param  non-empty-string  $html
      * @param  non-empty-string  $heroClass
