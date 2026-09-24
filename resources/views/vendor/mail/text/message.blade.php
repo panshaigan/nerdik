@@ -24,9 +24,14 @@
             © {{ date('Y') }} {{ config('app.name') }}. @lang('All rights reserved.')
 
 @php
+    $legalContactEmail = config('legal.contact_email');
     $notificationsSettingsHref = route('profile', ['tab' => 'notifications'], true);
 @endphp
 
+@if (filled($legalContactEmail))
+{{ __('ui.notifications.mail_do_not_reply', ['email' => $legalContactEmail]) }}
+
+@endif
 {{ __('ui.notifications.mail_manage_notification_settings') }}: {{ $notificationsSettingsHref }}
         </x-mail::footer>
     </x-slot:footer>

@@ -7,6 +7,7 @@ namespace Tests\Feature\Feedback;
 use Anhskohbo\NoCaptcha\NoCaptcha;
 use App\Enums\FeedbackStatus;
 use App\Enums\FeedbackType;
+use App\Filament\Admin\Resources\Feedback\FeedbackResource;
 use App\Livewire\Feedback\FeedbackModal;
 use App\Models\Feedback;
 use App\Models\User;
@@ -68,7 +69,22 @@ class FeedbackModalTest extends TestCase
             'status' => FeedbackStatus::Open->value,
         ]);
 
-        Notification::assertSentTo($admin, FeedbackReceivedNotification::class);
+        Notification::assertSentTo($admin, FeedbackReceivedNotification::class, function (FeedbackReceivedNotification $notification) use ($admin): bool {
+            $payload = $notification->toArray($admin);
+            $feedback = Feedback::query()->where('subject', 'Broken button')->firstOrFail();
+            $expected = FeedbackResource::getUrl(
+                'view',
+                ['record' => $feedback],
+                isAbsolute: false,
+                panel: 'admin',
+            );
+
+            $this->assertSame($expected, $payload['url']);
+            $this->assertStringStartsWith('/', $payload['url']);
+            $this->assertStringNotContainsString('://', $payload['url']);
+
+            return true;
+        });
     }
 
     public function test_authenticated_submit_does_not_require_captcha_when_enabled(): void

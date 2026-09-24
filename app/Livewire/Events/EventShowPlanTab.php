@@ -546,6 +546,7 @@ class EventShowPlanTab extends Component
             'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
             'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
             'activityCoverPicturesById' => $activityCoverPicturesById,
+            'eventHasMultipleVenues' => $event->uniqueVenues()->count() > 1,
         ]);
     }
 

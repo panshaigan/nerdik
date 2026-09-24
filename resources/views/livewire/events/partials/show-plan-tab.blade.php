@@ -379,6 +379,9 @@
                                                     </div>
                                                 @endif
                                             @endif
+                                            @php
+                                                $slotPlaceLabel = $slot->place?->planLabel($eventHasMultipleVenues ?? false);
+                                            @endphp
                                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
                                                 <span @class(['font-medium text-base-content' => ! $activity, 'font-medium text-base-content/85' => $activity])>{{ $slot->name }}</span>
                                                 @if ($slot->starts_at || $slot->ends_at)
@@ -393,6 +396,12 @@
                                                                 {{ format_in_user_tz($slot->ends_at, 'H:i') }}
                                                             @endif
                                                         </span>
+                                                    </span>
+                                                @endif
+                                                @if ($slotPlaceLabel)
+                                                    <span class="inline-flex min-w-0 items-center gap-1.5 text-base-content/75" data-ui="event-show-slot-place">
+                                                        <x-icon name="o-map-pin" class="h-4 w-4 shrink-0 text-base-content/50" />
+                                                        <span class="min-w-0 truncate">{{ $slotPlaceLabel }}</span>
                                                     </span>
                                                 @endif
                                                 @if (! $activity && $participantsCount !== null)

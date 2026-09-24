@@ -832,6 +832,7 @@ return [
         'waitlist_promoted_subject' => 'You got a place on :activity',
         'waitlist_promoted_line_1' => 'You have been moved from the waitlist and are now a participant in the activity:',
         'view_activity' => 'View activity',
+        'mail_do_not_reply' => 'Do not reply to this email. Reply to :email.',
         'mail_manage_notification_settings' => 'Manage notification settings',
         'cancel_reason_email_label' => 'Reason provided: :reason',
         'activity_cancelled_email_subject' => 'Activity cancelled: :activity',

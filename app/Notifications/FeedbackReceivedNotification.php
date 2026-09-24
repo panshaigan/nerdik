@@ -34,7 +34,12 @@ class FeedbackReceivedNotification extends Notification implements ShouldQueue, 
      */
     public function toArray(object $notifiable): array
     {
-        $url = FeedbackResource::getUrl('view', ['record' => $this->feedback], panel: 'admin');
+        $url = FeedbackResource::getUrl(
+            'view',
+            ['record' => $this->feedback],
+            isAbsolute: false,
+            panel: 'admin',
+        );
 
         return [
             'type' => 'feedback_received',

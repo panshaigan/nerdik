@@ -868,6 +868,7 @@ return [
         'event_places_low_toast' => 'Na ":event" zostało :remaining z :max miejsc w programie',
         'event_places_low_line_1' => 'Na wydarzeniu ":event" kończą się miejsca w programie.',
         'event_places_low_line_2' => 'Pozostałe miejsca: :remaining/:max.',
+        'mail_do_not_reply' => 'Nie odpowiadaj na tę wiadomość. Odpowiedz na adres :email.',
         'mail_manage_notification_settings' => 'Ustawienia powiadomien',
         'cancel_reason_email_label' => 'Podany powód: :reason',
         'activity_cancelled_email_subject' => 'Aktywność anulowana: :activity',

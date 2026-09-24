@@ -230,4 +230,28 @@ class Place extends Model
 
         return (string) $this->name;
     }
+
+    /**
+     * Label for event plan tiles: room-only when the event has a single venue;
+     * venue (and room) when multiple venues. Empty when there is nothing useful to show.
+     */
+    public function planLabel(bool $includeVenue): ?string
+    {
+        $this->loadMissing('parent');
+
+        $isRoom = $this->parent_id && $this->parent !== null;
+        $roomName = $isRoom ? (string) $this->name : null;
+
+        if (! $includeVenue) {
+            return filled($roomName) ? $roomName : null;
+        }
+
+        if ($isRoom) {
+            return $this->venueRoomLabel();
+        }
+
+        $name = (string) $this->name;
+
+        return filled($name) ? $name : null;
+    }
 }

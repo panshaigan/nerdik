@@ -37,14 +37,44 @@
                 </div>
             </div>
 
-            <div
-                x-show="!!$data.filtersOpen"
-                x-cloak
-                class="ui-tile-empty mt-3 w-full rounded-2xl p-6 shadow-sm"
+            <dialog
+                class="modal backdrop-blur modal-bottom md:modal-end"
+                x-bind:class="{ 'modal-open !animate-none': !!$data.filtersOpen }"
+                x-bind:open="!!$data.filtersOpen"
+                x-bind:inert="!$data.filtersOpen"
+                x-on:keydown.escape.window="$data.filtersOpen = false"
                 data-ui="browse-events-filters-panel"
             >
-                @include('livewire.browse.partials.listing-type-filter')
-            </div>
+                <div class="modal-box ui-modal-surface ui-overlay-shell ui-overlay-sheet">
+                    <form method="dialog" tabindex="-1">
+                        <button
+                            type="button"
+                            class="btn btn-circle btn-sm btn-ghost absolute end-2 top-2 z-[999]"
+                            x-on:click="$data.filtersOpen = false"
+                            aria-label="{{ __('ui.common.close') }}"
+                            tabindex="-1"
+                        >
+                            <x-icon name="o-x-mark" class="h-4 w-4" />
+                        </button>
+                    </form>
+
+                    <div class="!mb-0 pr-10">
+                        <h3 class="text-xl font-semibold leading-tight text-base-content">
+                            {{ __('ui.browse.filters') }}
+                        </h3>
+                        <hr class="mt-3 border-t-[length:var(--border)] border-base-content/10" />
+                    </div>
+
+                    <div class="min-h-0 flex-1 overflow-y-auto">
+                        @include('livewire.browse.partials.listing-type-filter')
+                    </div>
+                </div>
+                <form class="modal-backdrop" method="dialog">
+                    <button type="button" x-on:click="$data.filtersOpen = false">
+                        {{ __('ui.common.close') }}
+                    </button>
+                </form>
+            </dialog>
         </div>
 
         @if ($map_view)

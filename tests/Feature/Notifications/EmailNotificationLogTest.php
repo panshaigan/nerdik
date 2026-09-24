@@ -27,6 +27,10 @@ class EmailNotificationLogTest extends TestCase
 
     public function test_mail_notification_creates_email_log_entry(): void
     {
+        config([
+            'legal.contact_email' => 'ops@example.com',
+        ]);
+
         $user = User::factory()->create();
         $activity = Activity::factory()->create();
 
@@ -51,6 +55,10 @@ class EmailNotificationLogTest extends TestCase
         Storage::disk('email_logs')->assertExists($row->text_path);
         $this->assertNotSame('', (string) $row->htmlBody());
         $this->assertNotSame('', (string) $row->textBody());
+        $this->assertStringContainsString(
+            __('ui.notifications.mail_do_not_reply', ['email' => 'ops@example.com']),
+            (string) $row->textBody(),
+        );
     }
 
     public function test_verify_email_notification_creates_single_email_log_entry(): void

@@ -82,7 +82,9 @@ class LocaleSwitchTest extends TestCase
             ->assertDontSee(
                 "window.location.href = '".route('locale.switch', ['locale' => 'en'])."'",
                 false,
-            );
+            )
+            ->assertSee(__('ui.common.language_pl'), false)
+            ->assertDontSee('>'.__('ui.common.language_en').'<', false);
     }
 
     public function test_navigation_locale_toggle_targets_english_when_polish_is_active(): void
@@ -91,6 +93,8 @@ class LocaleSwitchTest extends TestCase
 
         Volt::test('layout.navigation')
             ->assertSee(route('locale.switch', ['locale' => 'en']), false)
-            ->assertDontSee(route('locale.switch', ['locale' => 'pl']), false);
+            ->assertDontSee(route('locale.switch', ['locale' => 'pl']), false)
+            ->assertSee(__('ui.common.language_en'), false)
+            ->assertDontSee('>'.__('ui.common.language_pl').'<', false);
     }
 }

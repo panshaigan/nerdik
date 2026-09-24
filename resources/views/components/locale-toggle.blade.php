@@ -3,9 +3,6 @@
 
     $current = AppLocale::coerce(app()->getLocale());
     $next = $current->other();
-    $currentLabel = $current === AppLocale::En
-        ? __('ui.common.language_en')
-        : __('ui.common.language_pl');
     $nextLabel = $next === AppLocale::En
         ? __('ui.common.language_en')
         : __('ui.common.language_pl');
@@ -17,5 +14,5 @@
     x-bind:href="localeSwitchUrl('{{ route('locale.switch', ['locale' => $next->value]) }}')"
     aria-label="{{ __('ui.common.switch_language', ['language' => $nextLabel]) }}"
 >
-    {{ $currentLabel }}
+    {{ $nextLabel }}
 </a>
