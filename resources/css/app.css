@@ -1673,12 +1673,20 @@
 /**
  * Tall overlays: pin title/close/actions; only the Mary slot body scrolls.
  * Mary wraps the title in the first div (mb-10 / !mb-5) and the slot in the next div.
+ *
+ * Do not put overflow:hidden on ancestors of DaisyUI tooltip hosts — ::before/::after tips
+ * clip. Scroll only dedicated panels (see overlay-sticky-tabs [role=tablist] below).
  */
 .ui-overlay-shell.modal-box {
     display: flex;
     flex-direction: column;
     overflow: hidden;
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.ui-overlay-shell.modal-box:has([data-ui='overlay-sticky-tabs']) {
+    /* Tab chrome hosts DaisyUI tips; keep sheet height via flex + panel scroll instead. */
+    overflow: visible;
 }
 
 .ui-overlay-shell.modal-box > form,
@@ -1709,13 +1717,14 @@
  * Tabbed overlays: pin the tab label bar; only the tab panels scroll.
  * Hook: data-ui="overlay-sticky-tabs" on tabs-with-toolbar.
  * When Mary has no title header, this slot wrapper is also div:first-of-type.
+ * Overflow stays visible on chrome so DaisyUI tab tooltips are not clipped.
  */
 .ui-overlay-shell.modal-box > div:not(.modal-action):has([data-ui='overlay-sticky-tabs']) {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] {
@@ -1723,6 +1732,7 @@
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
+    overflow: visible;
 }
 
 .ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > :first-child {
@@ -1747,13 +1757,14 @@
 /**
  * Contact popovers: pin request/action footer; only the body (stats/contact) scrolls.
  * Hook: data-overlay-sticky-footer on the Livewire popover root.
+ * Keep overflow visible so tab/action DaisyUI tips are not clipped; panels scroll inside.
  */
 .ui-overlay-shell.modal-box > div:not(.modal-action):has([data-overlay-sticky-footer]) {
     display: flex;
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .ui-overlay-shell.modal-box [data-overlay-sticky-footer] {
@@ -1761,6 +1772,15 @@
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box [data-overlay-sticky-footer] > [data-ui$='-body'] {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
 }
 
 /**

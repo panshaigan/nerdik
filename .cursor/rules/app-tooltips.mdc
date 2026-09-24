@@ -1,0 +1,40 @@
+---
+description: Use DaisyUI/Mary app tooltips (not title=); keep them unclipped
+alwaysApply: true
+---
+
+# App tooltips (DaisyUI / Mary)
+
+When the user asks for a **tooltip**, they mean this app’s DaisyUI tooltip — **never** the browser `title` attribute (or `title=` as a stand-in).
+
+## Prefer
+
+- Mary buttons: `:tooltip`, `:tooltip-top`, `:tooltip-bottom`, `:tooltip-left`, `:tooltip-right` (sets `data-tip` + `lg:tooltip…`)
+- Raw / non-Mary hosts: DaisyUI classes `tooltip` / `tooltip-top|bottom|left|right` plus `data-tip="…"`
+- Pair with `:aria-label` (or visible text) for accessibility when the control is icon-only
+
+## Do not
+
+- `title="…"` / `title="{{ … }}"` for user-facing tips
+- Native browser tooltips as a substitute when DaisyUI/Mary can be used
+
+## Always unclipped
+
+DaisyUI tips use `::before` / `::after` and **are clipped** by any ancestor with `overflow: hidden|auto|scroll|clip`.
+
+When adding a tooltip:
+
+1. Put scroll on a **dedicated panel** (e.g. tab body), not on the tip host’s ancestors.
+2. Keep tooltip hosts and their chrome wrappers at `overflow: visible`.
+3. Overlay sheets already follow this for `[data-ui='overlay-sticky-tabs']` / `[data-overlay-sticky-footer]` in `resources/css/app.css` — do not reintroduce `overflow: hidden` on those chrome wrappers.
+4. If a new layout clips tips, fix overflow on the clipping ancestor (or raise tip `z-index`); do not fall back to `title=`.
+
+```blade
+{{-- GOOD --}}
+<x-button icon="o-star" :tooltip="__('ui.interests.add_to_interests')" :aria-label="__('ui.interests.add_to_interests')" />
+
+<button type="button" class="btn tooltip tooltip-top" data-tip="{{ __('ui.common.edit') }}" aria-label="{{ __('ui.common.edit') }}">…</button>
+
+{{-- BAD --}}
+<button type="button" title="{{ __('ui.common.edit') }}">…</button>
+```
