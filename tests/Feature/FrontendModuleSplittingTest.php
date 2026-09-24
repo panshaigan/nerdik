@@ -15,15 +15,19 @@ final class FrontendModuleSplittingTest extends TestCase
         foreach ([
             './image-cropper',
             './maps-init',
-            './tags-init',
+            './tags-selector',
             './activity-tag-picker',
             './datetime-picker',
             './browse-date-range-picker',
             './echo',
+            './sentry',
         ] as $module) {
             $this->assertStringContainsString("import('{$module}')", $source);
             $this->assertStringNotContainsString("import '{$module}';", $source);
         }
+
+        $this->assertStringNotContainsString("import './bootstrap';", $source);
+        $this->assertStringNotContainsString("from './sentry'", $source);
     }
 
     public function test_realtime_and_feature_modules_are_guarded_by_page_markers(): void
@@ -33,6 +37,8 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('document.body?.dataset?.userId', $source);
         $this->assertStringContainsString('[data-image-crop-dropzone]', $source);
         $this->assertStringContainsString('[data-browse-date-range]', $source);
+        $this->assertStringContainsString('dateRangeLoaderBound', $source);
+        $this->assertStringContainsString("event.stopImmediatePropagation();", $source);
         $this->assertStringContainsString('[data-activity-tag-picker]', $source);
         $this->assertStringContainsString('new MutationObserver(queueFeatureBoot)', $source);
     }

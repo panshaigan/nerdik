@@ -1,6 +1,4 @@
 import '../css/app.css';
-import './bootstrap';
-import { bootSentry, captureLivewireFailure } from './sentry';
 import './close-modals-on-navigate';
 import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
@@ -9,9 +7,60 @@ import './copy-to-clipboard';
 import './tinymce-field-chrome';
 import './invite-user-search';
 
-bootSentry();
-
 const moduleLoads = new Map();
+
+let sentryModuleLoad = null;
+
+function loadSentry() {
+    if (! window.__nerdikSentry?.dsn) {
+        return Promise.resolve(null);
+    }
+
+    if (sentryModuleLoad === null) {
+        sentryModuleLoad = import('./sentry')
+            .then((sentry) => {
+                sentry.bootSentry();
+
+                return sentry;
+            })
+            .catch((error) => {
+                sentryModuleLoad = null;
+                console.error('Failed to load browser monitoring', error);
+
+                return null;
+            });
+    }
+
+    return sentryModuleLoad;
+}
+
+function scheduleSentryBoot() {
+    if (! window.__nerdikSentry?.dsn) {
+        return;
+    }
+
+    const boot = () => {
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => loadSentry(), { timeout: 3000 });
+
+            return;
+        }
+
+        window.setTimeout(() => loadSentry(), 0);
+    };
+
+    if (document.readyState === 'complete') {
+        boot();
+    } else {
+        window.addEventListener('load', boot, { once: true });
+    }
+}
+
+function captureLivewireFailure(status, body) {
+    loadSentry().then((sentry) => sentry?.captureLivewireFailure(status, body));
+}
+
+scheduleSentryBoot();
 
 function loadOnce(key, shouldLoad, loader) {
     if (! shouldLoad || moduleLoads.has(key)) {
@@ -54,6 +103,57 @@ function bootSlotForms() {
     });
 }
 
+function bootTagSelectors() {
+    const shouldLoad = document.querySelector('[data-tag-selector]') !== null;
+
+    loadOnce('tag-selectors', shouldLoad, () => import('./tags-selector').then(({ initTagSelector }) => {
+        window.initTagSelector = initTagSelector;
+        document.querySelectorAll('[data-tag-selector]').forEach((element) => initTagSelector(element));
+    }));
+}
+
+function bootBrowseDateRangePickersOnDemand() {
+    document.querySelectorAll('[data-browse-date-range]').forEach((root) => {
+        if (!(root instanceof HTMLElement) || root.dataset.dateRangeLoaderBound === '1') {
+            return;
+        }
+
+        root.dataset.dateRangeLoaderBound = '1';
+        let ready = false;
+
+        const ensureReady = () => loadOnce(
+            'browse-date-range-picker',
+            true,
+            () => import('./browse-date-range-picker').then(({ bootBrowseDateRangePickers }) => {
+                bootBrowseDateRangePickers();
+            }),
+        ).then(() => {
+            ready = true;
+        });
+
+        root.addEventListener('pointerenter', ensureReady, { once: true });
+        root.addEventListener('focusin', ensureReady, { once: true });
+        root.addEventListener('click', async (event) => {
+            if (ready) {
+                return;
+            }
+
+            const trigger = event.target instanceof Element
+                ? event.target.closest('[data-browse-date-range-trigger]')
+                : null;
+
+            if (!(trigger instanceof HTMLElement)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            await ensureReady();
+            trigger.click();
+        }, { capture: true });
+    });
+}
+
 function bootFeatureModules() {
     loadOnce(
         'image-cropper',
@@ -65,11 +165,7 @@ function bootFeatureModules() {
         document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map]') !== null,
         () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
     );
-    loadOnce(
-        'tag-selectors',
-        document.querySelector('[data-tag-selector]') !== null,
-        () => import('./tags-init').then(({ bootTagSelectors }) => bootTagSelectors()),
-    );
+    bootTagSelectors();
     loadOnce(
         'activity-tag-pickers',
         document.querySelector('[data-activity-tag-picker]') !== null,
@@ -92,11 +188,7 @@ function bootFeatureModules() {
             ({ bootProposalEventAutocomplete }) => bootProposalEventAutocomplete(),
         ),
     );
-    loadOnce(
-        'browse-date-range-picker',
-        document.querySelector('[data-browse-date-range]') !== null,
-        () => import('./browse-date-range-picker').then(({ bootBrowseDateRangePickers }) => bootBrowseDateRangePickers()),
-    );
+    bootBrowseDateRangePickersOnDemand();
     loadOnce(
         'browse-search-state',
         window.location.pathname === '/search',

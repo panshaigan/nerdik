@@ -117,9 +117,9 @@ return [
             'max_srcset_width' => 1536,
         ],
         'listing_card' => [
-            'sizes' => '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
-            'display_width' => 286,
-            'max_srcset_width' => 768,
+            'sizes' => '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 767px) calc(100vw - 3.5rem), (max-width: 1023px) calc((100vw - 6.5rem) / 3), (max-width: 1279px) calc((100vw - 7.5rem) / 3), 389px',
+            'display_width' => 256,
+            'max_srcset_width' => 512,
         ],
         'listing_hero' => [
             'sizes' => '100vw',

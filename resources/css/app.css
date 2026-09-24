@@ -13,10 +13,7 @@
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
 @source '../../vendor/robsontenorio/mary/src/View/Components/**/*.php';
-/* Filament: include vendor Blade so any shared utility classes in panel views are not purged from this bundle if referenced. */
-@source '../../vendor/filament/**/*.blade.php';
 
 /* Disable built-in themes so our custom one takes over */
 @plugin "daisyui" {
