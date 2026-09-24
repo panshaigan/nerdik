@@ -202,6 +202,7 @@ class WelcomePageTest extends TestCase
         $response->assertOk();
         $response->assertSee('aria-controls="mobile-welcome-nav-drawer"', false);
         $response->assertSee('id="mobile-welcome-nav-drawer"', false);
+        $response->assertDontSee('<aside', false);
         $response->assertSee(route('login'), false);
         $response->assertSee(route('register'), false);
         $response->assertSee(__('ui.nav.browse_events'), false);

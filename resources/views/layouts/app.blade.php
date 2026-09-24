@@ -40,11 +40,9 @@
             <livewire:layout.navigation />
 
             <div class="flex min-h-0 min-w-0 flex-1 flex-col [&>main]:flex [&>main]:min-h-0 [&>main]:flex-1 [&>main]:flex-col">
-                <x-main full-width with-nav>
-                    <x-slot:content class="!p-0 flex-1 min-h-0 min-w-0 max-w-7xl mx-auto mb-4 sm:mb-6">
-                        {{ $slot }}
-                    </x-slot:content>
-                </x-main>
+                <main class="mx-auto mb-4 min-h-0 min-w-0 w-full max-w-7xl flex-1 sm:mb-6">
+                    {{ $slot }}
+                </main>
             </div>
 
             <footer class="border-t border-white/10 backdrop-blur-xs">

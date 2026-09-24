@@ -88,17 +88,18 @@
             ])
         >
             <div data-ts-chips class="flex w-fit max-w-full min-w-0 flex-wrap content-start items-start gap-1"></div>
-            <x-input
+            <x-icon name="o-magnifying-glass" class="pointer-events-none h-4 w-4 self-center opacity-40" />
+            <input
                 type="text"
                 inputmode="search"
                 enterkeyhint="search"
                 data-ts-input
                 data-ts-placeholder="{{ $tagInputPlaceholder }}"
+                aria-label="{{ $tagInputPlaceholder }}"
                 class="min-w-[8rem] flex-1 basis-[8rem] self-center border-0 bg-transparent p-0 text-base shadow-none outline-none ring-0 placeholder:text-base-content/40 focus:border-0 focus:ring-0 focus:outline-none"
                 placeholder="{{ $tagInputPlaceholder }}"
                 autocomplete="off"
-                icon="o-magnifying-glass"
-            />
+            >
         </div>
         <div
             data-ts-results

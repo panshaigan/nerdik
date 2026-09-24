@@ -38,7 +38,7 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('[data-image-crop-dropzone]', $source);
         $this->assertStringContainsString('[data-browse-date-range]', $source);
         $this->assertStringContainsString('dateRangeLoaderBound', $source);
-        $this->assertStringContainsString("event.stopImmediatePropagation();", $source);
+        $this->assertStringContainsString('event.stopImmediatePropagation();', $source);
         $this->assertStringContainsString('[data-activity-tag-picker]', $source);
         $this->assertStringContainsString('new MutationObserver(queueFeatureBoot)', $source);
     }

@@ -4,6 +4,7 @@ namespace App\View\Components;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 use Illuminate\View\Component;
 
 class ThemeToggle extends Component
@@ -21,7 +22,7 @@ class ThemeToggle extends Component
         public ?string $darkClass = 'dark',
         public ?bool $withLabel = false,
     ) {
-        $this->uuid = 'mary'.md5(serialize($this)).$id;
+        $this->uuid = $id ?? 'theme-toggle-'.Str::uuid();
     }
 
     public function render(): View|Closure|string

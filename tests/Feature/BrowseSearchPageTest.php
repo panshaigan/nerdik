@@ -29,6 +29,7 @@ class BrowseSearchPageTest extends TestCase
         $response->assertSee('data-ui="browse-events-filters-panel"', false);
         $response->assertSee('data-ts-field', false);
         $response->assertSee('data-ts-placeholder', false);
+        $response->assertSee('aria-label="'.__('ui.browse.tags_and_text_placeholder').'"', false);
         $response->assertSee('ui-browse-events-search-shell', false);
         $response->assertSee('ui-gradient-frame-brand-bold', false);
         $response->assertSee('data-ui="browse-events-listings"', false);
@@ -40,7 +41,14 @@ class BrowseSearchPageTest extends TestCase
         $response->assertSee('data-browse-date-range', false);
         $response->assertSee('data-locale="en"', false);
         $response->assertSee('ui-app-navigation', false);
+        $response->assertDontSee('drawer-toggle', false);
+        $response->assertDontSee('<aside', false);
         $response->assertDontSee('fonts.bunny.net', false);
+
+        $this->assertMatchesRegularExpression(
+            '/<input[^>]*data-ts-input[^>]*aria-label="[^"]+"[^>]*>/',
+            $response->getContent(),
+        );
     }
 
     public function test_search_page_lists_public_event_and_self_hosted_activity_cards(): void

@@ -175,6 +175,28 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee('window.toggleTheme()', false);
     }
 
+    public function test_navigation_uses_accessible_dialog_markup_and_unique_theme_toggle_ids(): void
+    {
+        $response = $this->get(route('search.index'))
+            ->assertOk()
+            ->assertSee('<div', false)
+            ->assertSee('id="mobile-nav-drawer"', false)
+            ->assertSee('role="dialog"', false)
+            ->assertDontSee('<aside', false);
+
+        preg_match_all(
+            '/<input id="([^"]+)" type="checkbox" class="theme-controller/',
+            $response->getContent(),
+            $themeToggleIds,
+        );
+
+        $this->assertGreaterThanOrEqual(2, count($themeToggleIds[1]));
+        $this->assertCount(
+            count($themeToggleIds[1]),
+            array_unique($themeToggleIds[1]),
+        );
+    }
+
     public function test_navigation_shows_requests_badge_for_pending_incoming_requests(): void
     {
         $host = User::factory()->create();

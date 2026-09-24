@@ -309,7 +309,7 @@ new class extends Component
                 class="absolute inset-0 bg-base-content/20 backdrop-blur-sm"
             ></button>
 
-            <aside
+            <div
                 id="mobile-nav-drawer"
                 role="dialog"
                 aria-modal="true"
@@ -540,7 +540,7 @@ new class extends Component
                         </div>
                     @endguest
                 </div>
-            </aside>
+            </div>
         </div>
     </template>
 

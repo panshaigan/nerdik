@@ -83,7 +83,7 @@
                 class="absolute inset-0 bg-base-content/20 backdrop-blur-sm"
             ></button>
 
-            <aside
+            <div
                 id="mobile-welcome-nav-drawer"
                 role="dialog"
                 aria-modal="true"
@@ -188,7 +188,7 @@
                         </ul>
                     </div>
                 </div>
-            </aside>
+            </div>
         </div>
     </template>
 </nav>
