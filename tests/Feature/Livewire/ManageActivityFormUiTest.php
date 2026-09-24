@@ -335,4 +335,18 @@ class ManageActivityFormUiTest extends TestCase
             ->assertSet('duration_in_minutes', 180)
             ->assertSet('cancellation_deadline_in_hours', 24);
     }
+
+    public function test_edit_form_keeps_null_cancellation_deadline(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'cancellation_deadline_in_hours' => null,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('cancellation_deadline_in_hours', null);
+    }
 }

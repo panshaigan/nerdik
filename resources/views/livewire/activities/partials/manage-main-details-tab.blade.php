@@ -176,10 +176,11 @@
                 <div
                     x-data="{
                         value: @entangle('cancellation_deadline_in_hours'),
-                        localValue: 1,
-                        min: 1,
+                        localValue: 0,
+                        min: 0,
                         max: 48,
                         step: 1,
+                        noneLabel: @js(__('ui.common.none')),
                         dayLabel: @js(__('ui.activities.duration_day')),
                         daysLabel: @js(__('ui.activities.duration_days')),
                         hoursShort: @js(__('ui.activities.duration_hours_short')),
@@ -189,12 +190,15 @@
                         },
                         coerceSliderValue(wire) {
                             if (wire !== null && wire !== '') {
-                                return Number(wire);
+                                return this.snapToStep(Number(wire), this.min, this.max, this.step);
                             }
-                            return this.snapToStep((this.min + this.max) / 2, this.min, this.max, this.step);
+                            return 0;
                         },
                         formatDeadline() {
                             const v = Number(this.localValue);
+                            if (v === 0) {
+                                return this.noneLabel;
+                            }
                             let parts = [];
                             if (v >= 24) {
                                 const days = Math.floor(v / 24);
@@ -206,18 +210,14 @@
                             return parts.join(' ');
                         },
                         onSliderInput() {
-                            this.value = Number(this.localValue);
+                            const v = Number(this.localValue);
+                            this.value = v === 0 ? null : v;
                         },
                         init() {
                             this.$nextTick(() => {
                                 this.localValue = this.coerceSliderValue(this.value);
-                                if (this.value === null || this.value === '') {
-                                    this.value = this.localValue;
-                                }
                                 this.$watch('value', (v) => {
-                                    if (v !== null && v !== '') {
-                                        this.localValue = Number(v);
-                                    }
+                                    this.localValue = this.coerceSliderValue(v);
                                 });
                             });
                         },
@@ -241,7 +241,7 @@
                     <x-range
                         x-model.number="localValue"
                         @input="onSliderInput()"
-                        min="1"
+                        min="0"
                         max="48"
                         step="1"
                         class="range-xs w-full"
