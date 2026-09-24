@@ -1,5 +1,6 @@
 @php
     $canRequestJoin = $targetOrganization !== null
+        && auth()->check()
         && ! auth()->user()?->canModifyEntity($targetOrganization)
         && (int) auth()->id() !== (int) $targetOrganization->created_by
         && (int) auth()->user()?->organization_id !== (int) $targetOrganization->id;

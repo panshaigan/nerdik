@@ -147,10 +147,6 @@ class OrganizationContactPopover extends Component
      */
     private function resolveViewData(): array
     {
-        if (! auth()->check()) {
-            return $this->emptyState();
-        }
-
         $targetOrganization = Organization::query()
             ->whereKey($this->targetOrganizationId)
             ->with('links')

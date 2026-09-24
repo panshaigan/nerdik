@@ -64,7 +64,11 @@ class CatalogPagesTest extends TestCase
             ->assertSet('organizationPreviewModalOpen', true)
             ->assertSet('previewOrganizationId', $organization->id)
             ->assertSeeHtml('data-ui="overlay-sheet"')
-            ->assertSeeHtml('data-ui="organization-contact-popover"');
+            ->assertSeeHtml('data-ui="organization-contact-popover"')
+            ->assertSee('Catalog Preview Org Marker', false)
+            ->assertSee('Org preview body copy.')
+            ->assertSee(__('ui.organizations.events'))
+            ->assertDontSeeHtml('data-ui="organization-contact-popover-requests"');
     }
 
     public function test_guest_can_view_series_catalog_and_non_public_series_are_hidden(): void

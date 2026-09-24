@@ -1312,6 +1312,23 @@ class ProfileTest extends TestCase
             ->assertSee(__('ui.organizations.no_places'));
     }
 
+    public function test_organization_contact_popover_loads_content_for_guest(): void
+    {
+        $organization = Organization::factory()->create([
+            'name' => 'Guest Visible Guild',
+            'description' => '<p>Public org preview for guests.</p>',
+        ]);
+
+        Livewire::test(OrganizationContactPopover::class, [
+            'targetOrganizationId' => $organization->id,
+        ])
+            ->assertSee('Guest Visible Guild', false)
+            ->assertSee('Public org preview for guests.')
+            ->assertSee(__('ui.organizations.events'))
+            ->assertSeeHtml(BrowseSearchUrl::forOrganization($organization))
+            ->assertDontSeeHtml('data-ui="organization-contact-popover-requests"');
+    }
+
     public function test_organization_badge_with_contact_popover_disabled_does_not_render_trigger(): void
     {
         $viewer = User::factory()->create();
