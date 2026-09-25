@@ -381,7 +381,6 @@ return [
             'title' => 'Notification settings',
             'intro' => 'Choose where you receive each kind of update. In-app notifications appear in your list and may show a quick banner.',
             'col_kind' => 'What we notify you about',
-            'every_join_short' => 'Every join',
             'in_app_short' => 'In-app',
             'email_short' => 'Email',
             'activity_group' => 'Activities & proposals',

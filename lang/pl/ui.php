@@ -381,7 +381,6 @@ return [
             'title' => 'Ustawienia powiadomień',
             'intro' => 'Wybierz, jak chcesz otrzymywać różne aktualizacje. Powiadomienia w aplikacji trafiają na listę i mogą pojawiać się jako krótka nakładka.',
             'col_kind' => 'Rodzaj powiadomienia',
-            'every_join_short' => 'Każde dołączenie',
             'in_app_short' => 'W aplikacji',
             'email_short' => 'E-mail',
             'activity_group' => 'Aktywności i propozycje',
