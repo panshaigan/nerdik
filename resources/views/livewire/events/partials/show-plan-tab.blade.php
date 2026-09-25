@@ -472,8 +472,6 @@
                                         text="{{ __('ui.events.event_boundary_starts') }}"
                                         left-edge-icon="s-chevron-right"
                                         right-edge-icon="s-chevron-left"
-                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4"
-                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4"
                                     />
                                 @else
                                     <x-ui.hr
@@ -481,8 +479,6 @@
                                         text="{{ __('ui.events.event_boundary_ends') }}"
                                         left-edge-icon="s-chevron-right"
                                         right-edge-icon="s-chevron-left"
-                                        left-edge-icon-class="absolute left-1/2 -translate-x-18 w-4 h-4"
-                                        right-edge-icon-class="absolute left-1/2 translate-x-14 w-4 h-4"
                                     />
                                 @endif
                             </p>

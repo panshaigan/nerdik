@@ -86,4 +86,39 @@ class DashboardTimelineFeedTest extends TestCase
             ->assertSee('Timeline Morning Event')
             ->assertSee('Timeline Afternoon Activity');
     }
+
+    public function test_dashboard_paginates_hour_groups_via_livewire_page(): void
+    {
+        $viewer = User::factory()->create();
+        $base = now()->addDays(5)->startOfDay()->addHours(8);
+
+        $firstPageName = 'Dashboard Page One Event';
+        $secondPageName = 'Dashboard Page Two Event';
+
+        for ($i = 0; $i < 8; $i++) {
+            $startsAt = $base->copy()->addHours($i);
+            Event::factory()->create([
+                'name' => $i === 0 ? $firstPageName : "Dashboard Hour Group {$i}",
+                'created_by' => $viewer->id,
+                'starts_at' => $startsAt,
+                'ends_at' => $startsAt->copy()->addHour(),
+            ]);
+        }
+
+        $secondStartsAt = $base->copy()->addHours(8);
+        Event::factory()->create([
+            'name' => $secondPageName,
+            'created_by' => $viewer->id,
+            'starts_at' => $secondStartsAt,
+            'ends_at' => $secondStartsAt->copy()->addHour(),
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(Dashboard::class)
+            ->assertSee($firstPageName)
+            ->assertDontSee($secondPageName)
+            ->call('gotoPage', 2)
+            ->assertSee($secondPageName)
+            ->assertDontSee($firstPageName);
+    }
 }

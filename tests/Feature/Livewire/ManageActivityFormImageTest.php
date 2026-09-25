@@ -340,6 +340,81 @@ final class ManageActivityFormImageTest extends TestCase
         $this->assertSame($gallerySourcePath, $media->getCustomProperty(UserGalleryCatalog::SOURCE_PATH_PROPERTY));
     }
 
+    #[Test]
+    public function admin_can_save_edit_keeping_owners_gallery_media(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $media = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
+            1280,
+            720,
+        );
+
+        $activity = Activity::factory()->create([
+            'name' => 'Owner Gallery Activity',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'logo_source' => ActivityLogoSource::Gallery,
+            'gallery_media_id' => $media->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('name', 'Owner Gallery Activity Updated')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity->refresh();
+        $this->assertSame('Owner Gallery Activity Updated', $activity->name);
+        $this->assertSame(ActivityLogoSource::Gallery, $activity->logo_source);
+        $this->assertSame((int) $media->id, (int) $activity->gallery_media_id);
+    }
+
+    #[Test]
+    public function admin_cannot_attach_unrelated_foreign_gallery_media_on_edit(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $attached = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('attached.jpg', 800, 450),
+            1280,
+            720,
+        );
+        $foreign = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('foreign.jpg', 800, 450),
+            1280,
+            720,
+        );
+
+        $activity = Activity::factory()->create([
+            'name' => 'Owner Gallery Activity',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'logo_source' => ActivityLogoSource::Gallery,
+            'gallery_media_id' => $attached->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('gallery_media_id', (int) $foreign->id)
+            ->call('save')
+            ->assertHasErrors(['gallery_media_id']);
+    }
+
     /**
      * @return array{0: Tag, 1: Media}
      */

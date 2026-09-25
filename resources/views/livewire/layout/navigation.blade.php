@@ -177,10 +177,15 @@ new class extends Component
                     </div>
                     <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral">
                         <li class="mb-2 border-b border-base-300 px-2 pb-2 light:border-neutral">
-                            <div class="-mx-1 block rounded-lg px-1 py-0.5">
+                            <a
+                                wire:navigate
+                                href="{{ route('profile') }}"
+                                data-ui="nav-account-header"
+                                class="-mx-1 block rounded-lg px-1 py-0.5"
+                            >
                                 <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                                 <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
-                            </div>
+                            </a>
                         </li>
                         <li>
                             <a

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Media;
 
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -13,6 +14,8 @@ final class UserGalleryCatalog
     public const COLLECTION = 'gallery';
 
     public const SOURCE_PATH_PROPERTY = 'source_path';
+
+    public const PROFILE_PAGE_SIZE = 12;
 
     /**
      * @return list<array{media_id: int, sources: MediaPictureSources}>
@@ -27,6 +30,32 @@ final class UserGalleryCatalog
                 'sources' => MediaPictureSources::fromMediaWithPreset($media, 'listing_card'),
             ])
             ->all();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array{media_id: int, sources: MediaPictureSources}>
+     */
+    public function paginateForUser(User $user, int $perPage = self::PROFILE_PAGE_SIZE): LengthAwarePaginator
+    {
+        return Media::query()
+            ->where('collection_name', self::COLLECTION)
+            ->where('model_type', $user->getMorphClass())
+            ->where('model_id', $user->getKey())
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->through(fn (Media $media): array => [
+                'media_id' => (int) $media->id,
+                'sources' => MediaPictureSources::fromMediaWithPreset($media, 'listing_card'),
+            ]);
+    }
+
+    public function isAllowedGalleryMediaId(int $mediaId, User $user, ?int $currentlyAttachedId = null): bool
+    {
+        if ($this->mediaBelongsToUser($mediaId, $user)) {
+            return true;
+        }
+
+        return $currentlyAttachedId !== null && $mediaId === $currentlyAttachedId;
     }
 
     /**

@@ -93,6 +93,10 @@ final class AdminOpsNavLinks
                     ? rtrim((string) $adminerBase, '/').'/?pgsql=pgsql&username=sail'
                     : null,
             ],
+            [
+                'label' => __('ui.nav.hosting_manager'),
+                'url' => config('services.hosting_manager.url'),
+            ],
         ];
     }
 

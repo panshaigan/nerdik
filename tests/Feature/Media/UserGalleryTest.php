@@ -145,4 +145,69 @@ final class UserGalleryTest extends TestCase
 
         $this->assertCount(0, $user->fresh()->getMedia(UserGalleryCatalog::COLLECTION));
     }
+
+    #[Test]
+    public function profile_gallery_paginates_images(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $store = app(StoreUserGalleryImage::class);
+
+        $mediaIds = [];
+        for ($i = 0; $i < UserGalleryCatalog::PROFILE_PAGE_SIZE + 1; $i++) {
+            $media = $store(
+                $user,
+                UploadedFile::fake()->image("gallery-{$i}.jpg", 800, 450),
+                1280,
+                720,
+            );
+            $mediaIds[] = (int) $media->id;
+        }
+
+        // Newest first: last uploaded is first on page 1; earliest is alone on page 2.
+        $newestId = $mediaIds[UserGalleryCatalog::PROFILE_PAGE_SIZE];
+        $oldestId = $mediaIds[0];
+
+        $this->actingAs($user);
+
+        Volt::test('profile.manage-gallery-form')
+            ->assertSeeHtml('wire:key="gallery-media-'.$newestId.'"')
+            ->assertDontSeeHtml('wire:key="gallery-media-'.$oldestId.'"')
+            ->call('gotoPage', 2)
+            ->assertSeeHtml('wire:key="gallery-media-'.$oldestId.'"')
+            ->assertDontSeeHtml('wire:key="gallery-media-'.$newestId.'"');
+    }
+
+    #[Test]
+    public function is_allowed_gallery_media_id_accepts_own_or_currently_attached(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $editor = User::factory()->create();
+        $owned = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('owner.jpg', 800, 450),
+            1280,
+            720,
+        );
+        $foreign = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('other.jpg', 800, 450),
+            1280,
+            720,
+        );
+        $editorOwn = app(StoreUserGalleryImage::class)(
+            $editor,
+            UploadedFile::fake()->image('editor.jpg', 800, 450),
+            1280,
+            720,
+        );
+
+        $catalog = app(UserGalleryCatalog::class);
+
+        $this->assertTrue($catalog->isAllowedGalleryMediaId((int) $editorOwn->id, $editor));
+        $this->assertTrue($catalog->isAllowedGalleryMediaId((int) $owned->id, $editor, (int) $owned->id));
+        $this->assertFalse($catalog->isAllowedGalleryMediaId((int) $foreign->id, $editor, (int) $owned->id));
+        $this->assertFalse($catalog->isAllowedGalleryMediaId((int) $owned->id, $editor));
+    }
 }

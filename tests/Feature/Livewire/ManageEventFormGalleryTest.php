@@ -259,6 +259,91 @@ final class ManageEventFormGalleryTest extends TestCase
         );
     }
 
+    #[Test]
+    public function admin_can_save_edit_keeping_owners_gallery_media(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->organizer()->create();
+        $admin = User::factory()->admin()->create();
+        $media = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
+            1280,
+            720,
+        );
+
+        $schedule = $this->eventFormSchedule();
+        $event = Event::factory()->create([
+            'name' => 'Owner Gallery Event',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'logo_source' => EventLogoSource::Gallery,
+            'gallery_media_id' => $media->id,
+            'starts_at' => now()->addDays(7),
+            'ends_at' => now()->addDays(8),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ManageEventForm::class, ['event' => $event])
+            ->set('name', 'Owner Gallery Event Updated')
+            ->set('description', 'desc')
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
+            ->set('enrollment_windows.0.name', 'Window 1')
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $event->refresh();
+        $this->assertSame('Owner Gallery Event Updated', $event->name);
+        $this->assertSame(EventLogoSource::Gallery, $event->logo_source);
+        $this->assertSame((int) $media->id, (int) $event->gallery_media_id);
+    }
+
+    #[Test]
+    public function admin_cannot_attach_unrelated_foreign_gallery_media_on_edit(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->organizer()->create();
+        $admin = User::factory()->admin()->create();
+        $attached = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('attached.jpg', 800, 450),
+            1280,
+            720,
+        );
+        $foreign = app(StoreUserGalleryImage::class)(
+            $owner,
+            UploadedFile::fake()->image('foreign.jpg', 800, 450),
+            1280,
+            720,
+        );
+
+        $schedule = $this->eventFormSchedule();
+        $event = Event::factory()->create([
+            'name' => 'Owner Gallery Event',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'logo_source' => EventLogoSource::Gallery,
+            'gallery_media_id' => $attached->id,
+            'starts_at' => now()->addDays(7),
+            'ends_at' => now()->addDays(8),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(ManageEventForm::class, ['event' => $event])
+            ->set('description', 'desc')
+            ->set('starts_at', $schedule['starts_at'])
+            ->set('ends_at', $schedule['ends_at'])
+            ->set('enrollment_windows.0.name', 'Window 1')
+            ->set('enrollment_windows.0.starts_at', $schedule['window_starts_at'])
+            ->set('enrollment_windows.0.ends_at', $schedule['ends_at'])
+            ->set('gallery_media_id', (int) $foreign->id)
+            ->call('save')
+            ->assertHasErrors(['gallery_media_id']);
+    }
+
     /**
      * @return array{starts_at: string, ends_at: string, window_starts_at: string}
      */

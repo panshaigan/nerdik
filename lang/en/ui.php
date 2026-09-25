@@ -33,6 +33,7 @@ return [
         'google_search_console' => 'Search Console',
         'brevo' => 'Brevo',
         'adminer' => 'Adminer',
+        'hosting_manager' => 'Hosting manager',
     ],
     'impersonation' => [
         'log_in_as' => 'Log in as',

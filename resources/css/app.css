@@ -1909,6 +1909,10 @@ hr {
     color: var(--brand-neutral);
 }
 
+a {
+    text-decoration: none;
+}
+
 /**
  * Tool overflow menus (share / calendar / manage): Tailwind shadow-* uses black
  * alpha and is nearly invisible on dark base-100. Use content-colored elevation.

@@ -6,12 +6,14 @@ use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Support\Media\UserGalleryCatalog;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Livewire\WithPagination;
 use Livewire\Volt\Component;
 
 new class extends Component
 {
     use ReportsProfileTabValidation;
     use WithFileUploads;
+    use WithPagination;
 
     /** @var mixed */
     public $croppedLogo = null;
@@ -31,12 +33,9 @@ new class extends Component
         $this->reset('sourceImage');
     }
 
-    /**
-     * @return list<array{media_id: int, sources: \App\Support\Media\MediaPictureSources}>
-     */
-    public function getGalleryImagesProperty(): array
+    public function getGalleryImagesProperty(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return app(UserGalleryCatalog::class)->forUser(Auth::user());
+        return app(UserGalleryCatalog::class)->paginateForUser(Auth::user());
     }
 
     public function uploadImage(): void
@@ -56,6 +55,7 @@ new class extends Component
             );
 
             $this->reset('croppedLogo', 'sourceImage');
+            $this->resetPage();
             session()->flash('status', __('ui.profile.gallery_uploaded_success'));
         });
     }
@@ -75,6 +75,11 @@ new class extends Component
         $this->reportProfileTabValidation('images', function () use ($mediaId): void {
             app(DeleteUserGalleryImage::class)(Auth::user(), $mediaId);
             $this->confirmingDeleteMediaId = null;
+
+            if ($this->galleryImages->isEmpty() && $this->getPage() > 1) {
+                $this->previousPage();
+            }
+
             session()->flash('status', __('ui.profile.gallery_deleted_success'));
         });
     }
@@ -111,7 +116,7 @@ new class extends Component
     <div>
         <h3 class="mb-3 text-sm font-semibold text-base-content">{{ __('ui.profile.gallery_your_images') }}</h3>
 
-        @if ($this->galleryImages === [])
+        @if ($this->galleryImages->isEmpty())
             <p class="text-sm text-base-content/70">{{ __('ui.profile.gallery_empty') }}</p>
         @else
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,7 +124,7 @@ new class extends Component
                     @php
                         $mediaId = (int) $image['media_id'];
                     @endphp
-                    <div class="group relative overflow-hidden rounded-xl border border-base-300">
+                    <div class="group relative overflow-hidden rounded-xl border border-base-300" wire:key="gallery-media-{{ $mediaId }}">
                         <x-media-picture
                             :sources="$image['sources']"
                             class="aspect-video w-full object-cover"
@@ -156,6 +161,12 @@ new class extends Component
                 @endforeach
             </div>
             <p class="mt-3 text-xs text-base-content/60">{{ __('ui.profile.gallery_delete_help') }}</p>
+
+            @if ($this->galleryImages->hasPages())
+                <div class="mt-4">
+                    {{ $this->galleryImages->links() }}
+                </div>
+            @endif
         @endif
     </div>
 </section>

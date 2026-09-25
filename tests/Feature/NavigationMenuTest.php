@@ -164,6 +164,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee(route('notifications.index'), false)
             ->assertDontSee('data-ui="nav-requests"', false)
             ->assertSee('data-ui="nav-account-settings"', false)
+            ->assertSee('data-ui="nav-account-header"', false)
             ->assertSee(route('profile'), false)
             ->assertSee(__('ui.nav.account_settings'), false)
             ->assertDontSee(route('organizations.index'), false)
@@ -246,6 +247,7 @@ class NavigationMenuTest extends TestCase
         Config::set('services.google.search_console_url', 'https://search.google.example/console');
         Config::set('mail.brevo_dashboard_url', 'https://brevo.example/logs');
         Config::set('services.adminer.url', 'https://adminer.example');
+        Config::set('services.hosting_manager.url', 'https://hosting.example/dashboard');
 
         $admin = User::factory()->admin()->create();
 
@@ -267,6 +269,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.google_search_console'), false)
             ->assertSee(__('ui.nav.brevo'), false)
             ->assertSee(__('ui.nav.adminer'), false)
+            ->assertSee(__('ui.nav.hosting_manager'), false)
             ->assertSee($filamentUrl, false)
             ->assertSee($pulseUrl, false)
             ->assertSee('https://nerdik.app', false)
@@ -276,7 +279,8 @@ class NavigationMenuTest extends TestCase
             ->assertSee('https://umami.example/website', false)
             ->assertSee('https://search.google.example/console', false)
             ->assertSee('https://brevo.example/logs', false)
-            ->assertSee('https://adminer.example', false);
+            ->assertSee('https://adminer.example', false)
+            ->assertSee('https://hosting.example/dashboard', false);
     }
 
     public function test_non_admin_does_not_see_ops_links_in_profile_menu(): void
@@ -290,6 +294,7 @@ class NavigationMenuTest extends TestCase
         Config::set('services.google.search_console_url', 'https://search.google.example/console');
         Config::set('mail.brevo_dashboard_url', 'https://brevo.example/logs');
         Config::set('services.adminer.url', 'https://adminer.example');
+        Config::set('services.hosting_manager.url', 'https://hosting.example/dashboard');
 
         $user = User::factory()->organizer()->create([
             'is_admin' => false,
@@ -312,6 +317,7 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee(__('ui.nav.google_search_console'), false)
             ->assertDontSee(__('ui.nav.brevo'), false)
             ->assertDontSee(__('ui.nav.adminer'), false)
+            ->assertDontSee(__('ui.nav.hosting_manager'), false)
             ->assertDontSee($filamentUrl, false)
             ->assertDontSee($pulseUrl, false)
             ->assertDontSee('https://nerdik.app', false)
@@ -321,7 +327,8 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee('https://umami.example/website', false)
             ->assertDontSee('https://search.google.example/console', false)
             ->assertDontSee('https://brevo.example/logs', false)
-            ->assertDontSee('https://adminer.example', false);
+            ->assertDontSee('https://adminer.example', false)
+            ->assertDontSee('https://hosting.example/dashboard', false);
     }
 
     public function test_admin_ops_menu_hides_optional_links_when_unconfigured(): void
@@ -335,6 +342,7 @@ class NavigationMenuTest extends TestCase
         Config::set('services.google.search_console_url', null);
         Config::set('mail.brevo_dashboard_url', null);
         Config::set('services.adminer.url', null);
+        Config::set('services.hosting_manager.url', null);
 
         $admin = User::factory()->admin()->create();
 
@@ -356,6 +364,7 @@ class NavigationMenuTest extends TestCase
             ->assertDontSee(__('ui.nav.umami'), false)
             ->assertDontSee(__('ui.nav.google_search_console'), false)
             ->assertDontSee(__('ui.nav.brevo'), false)
-            ->assertDontSee(__('ui.nav.adminer'), false);
+            ->assertDontSee(__('ui.nav.adminer'), false)
+            ->assertDontSee(__('ui.nav.hosting_manager'), false);
     }
 }

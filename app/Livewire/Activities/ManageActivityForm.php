@@ -1134,7 +1134,15 @@ class ManageActivityForm extends Component
                         return;
                     }
                     $user = Auth::user();
-                    if ($user === null || ! app(UserGalleryCatalog::class)->mediaBelongsToUser((int) $value, $user)) {
+                    $currentlyAttachedId = $this->editingActivityId !== null
+                        ? Activity::query()->whereKey($this->editingActivityId)->value('gallery_media_id')
+                        : null;
+                    $currentlyAttachedId = $currentlyAttachedId !== null ? (int) $currentlyAttachedId : null;
+                    if ($user === null || ! app(UserGalleryCatalog::class)->isAllowedGalleryMediaId(
+                        (int) $value,
+                        $user,
+                        $currentlyAttachedId,
+                    )) {
                         $fail(__('ui.activities.image_invalid_gallery_media'));
                     }
                 },

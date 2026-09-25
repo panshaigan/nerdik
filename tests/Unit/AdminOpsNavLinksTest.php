@@ -24,11 +24,32 @@ final class AdminOpsNavLinksTest extends TestCase
         Config::set('services.google.search_console_url', null);
         Config::set('mail.brevo_dashboard_url', null);
         Config::set('services.adminer.url', null);
+        Config::set('services.hosting_manager.url', null);
 
         $urls = array_column(AdminOpsNavLinks::items(), 'url');
 
         $this->assertContains('https://staging.nerdik.app', $urls);
         $this->assertContains('http://localhost', $urls);
         $this->assertNotContains('https://nerdik.app', $urls);
+    }
+
+    #[Test]
+    public function it_includes_hosting_manager_url_when_configured(): void
+    {
+        Config::set('app.url', 'https://nerdik.app');
+        Config::set('app.environment_urls.production', null);
+        Config::set('app.environment_urls.staging', null);
+        Config::set('app.environment_urls.development', null);
+        Config::set('sentry.dashboard_url', null);
+        Config::set('mail.support_mailbox_url', null);
+        Config::set('umami.dashboard_url', null);
+        Config::set('services.google.search_console_url', null);
+        Config::set('mail.brevo_dashboard_url', null);
+        Config::set('services.adminer.url', null);
+        Config::set('services.hosting_manager.url', 'https://hosting.example/dashboard');
+
+        $urls = array_column(AdminOpsNavLinks::items(), 'url');
+
+        $this->assertContains('https://hosting.example/dashboard', $urls);
     }
 }

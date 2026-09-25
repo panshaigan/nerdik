@@ -186,7 +186,7 @@ class Dashboard extends Component
      */
     private function paginateHourGroups(array $hourGroups): LengthAwarePaginator
     {
-        $page = (int) request()->query('page', 1);
+        $page = $this->getPage();
         $total = count($hourGroups);
         $slice = collect($hourGroups)->forPage($page, self::GROUPS_PER_PAGE)->values();
 

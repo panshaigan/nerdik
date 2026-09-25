@@ -84,4 +84,18 @@ return [
         'url' => env('ADMINER_URL'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Hosting manager
+    |--------------------------------------------------------------------------
+    |
+    | External hosting / VPS manager dashboard URL for the admin profile menu.
+    | Leave empty to hide the link.
+    |
+    */
+
+    'hosting_manager' => [
+        'url' => env('HOSTING_MANAGER_URL'),
+    ],
+
 ];

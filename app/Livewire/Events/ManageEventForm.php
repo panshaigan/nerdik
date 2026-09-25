@@ -747,7 +747,15 @@ class ManageEventForm extends Component
                         return;
                     }
                     $user = Auth::user();
-                    if ($user === null || ! app(UserGalleryCatalog::class)->mediaBelongsToUser((int) $value, $user)) {
+                    $currentlyAttachedId = $this->editingEventId !== null
+                        ? Event::query()->whereKey($this->editingEventId)->value('gallery_media_id')
+                        : null;
+                    $currentlyAttachedId = $currentlyAttachedId !== null ? (int) $currentlyAttachedId : null;
+                    if ($user === null || ! app(UserGalleryCatalog::class)->isAllowedGalleryMediaId(
+                        (int) $value,
+                        $user,
+                        $currentlyAttachedId,
+                    )) {
                         $fail(__('ui.events.image_invalid_gallery_media'));
                     }
                 },
