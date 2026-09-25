@@ -175,6 +175,18 @@ class WelcomePageTest extends TestCase
     }
 
     #[Test]
+    public function test_welcome_page_renders_capability_job_tabs(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertSee('data-ui="welcome-capability-tabs"', false);
+        $response->assertSee('data-ui="welcome-tab-find"', false);
+        $response->assertSee('data-ui="welcome-tab-host"', false);
+        $response->assertSee('data-ui="welcome-tab-organize"', false);
+    }
+
+    #[Test]
     public function test_welcome_locale_links_match_main_navigation_styling(): void
     {
         $response = $this->get('/');

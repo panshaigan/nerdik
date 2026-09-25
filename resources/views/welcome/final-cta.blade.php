@@ -12,4 +12,6 @@
         @endauth
         <x-button :link="route('search.index')" class="btn-soft mt-4 md:mt-0">{{ __('ui.welcome.final_cta_secondary') }}</x-button>
     </div>
+
+    <p class="mx-auto mt-5 max-w-xl text-xs opacity-60">{{ __('ui.welcome.final_cta_social') }}</p>
 </section>
