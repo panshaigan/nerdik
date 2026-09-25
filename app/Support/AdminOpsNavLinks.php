@@ -31,8 +31,14 @@ final class AdminOpsNavLinks
                 continue;
             }
 
-            if (($item['skip_current_app'] ?? false) && self::pointsAtCurrentApp($url)) {
+            $isEnvironmentSwitch = $item['skip_current_app'] ?? false;
+
+            if ($isEnvironmentSwitch && self::pointsAtCurrentApp($url)) {
                 continue;
+            }
+
+            if ($isEnvironmentSwitch) {
+                $url = self::withCurrentPage($url);
             }
 
             $links[] = [
@@ -98,6 +104,66 @@ final class AdminOpsNavLinks
                 'url' => config('services.hosting_manager.url'),
             ],
         ];
+    }
+
+    /**
+     * Point an environment origin at the same path (+ query) as the page being viewed.
+     */
+    private static function withCurrentPage(string $baseUrl): string
+    {
+        $parts = parse_url($baseUrl);
+
+        if (! is_array($parts) || ! isset($parts['host'])) {
+            return $baseUrl;
+        }
+
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'];
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $pathAndQuery = self::currentPathAndQuery();
+
+        return $scheme.'://'.$host.$port.$pathAndQuery;
+    }
+
+    private static function currentPathAndQuery(): string
+    {
+        $uri = request()->getRequestUri();
+
+        if (! self::isLivewireUri($uri)) {
+            return $uri === '' ? '/' : $uri;
+        }
+
+        $referer = request()->headers->get('referer');
+
+        if (! is_string($referer) || $referer === '') {
+            return '/';
+        }
+
+        $parts = parse_url($referer);
+
+        if (! is_array($parts) || strcasecmp((string) ($parts['host'] ?? ''), request()->getHost()) !== 0) {
+            return '/';
+        }
+
+        if (isset($parts['port']) && (int) $parts['port'] !== (int) request()->getPort()) {
+            return '/';
+        }
+
+        $path = $parts['path'] ?? '/';
+        $query = isset($parts['query']) && $parts['query'] !== '' ? '?'.$parts['query'] : '';
+
+        return ($path === '' ? '/' : $path).$query;
+    }
+
+    private static function isLivewireUri(string $uri): bool
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+
+        if (! is_string($path) || $path === '') {
+            $path = $uri;
+        }
+
+        return preg_match('#^/livewire(?:/|-)#', $path) === 1;
     }
 
     private static function pointsAtCurrentApp(string $url): bool

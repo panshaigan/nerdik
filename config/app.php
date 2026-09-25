@@ -99,8 +99,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Shown in the admin profile menu so you can jump between production,
-    | staging, and local. The URL whose host matches APP_URL is omitted.
-    | Leave empty to hide a link.
+    | staging, and local. Links keep the current path and query. The URL
+    | whose host matches APP_URL is omitted. Leave empty to hide a link.
     |
     */
 
