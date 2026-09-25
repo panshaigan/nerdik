@@ -94,7 +94,7 @@
         </div>
     </div>
 
-    <div role="tablist" class="relative block w-full min-w-0">
+    <div role="tablist" class="relative block">
         @isset($panelOverlay)
             {{ $panelOverlay }}
         @endisset

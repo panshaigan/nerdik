@@ -1,47 +1,47 @@
-<div class="w-full min-w-0">
+<div>
     <x-page-header :title="__('ui.profile.title')">
     </x-page-header>
 
-    <div class="ui-content-card relative mt-4 w-full min-w-0 rounded-2xl mb-4 md:mb-6" data-ui="profile-tabs-shell">
+    <div class="ui-content-card relative min-w-0 rounded-2xl mb-4 md:mb-6" data-ui="profile-tabs-shell">
         <x-ui.tabs-with-toolbar
             wire:model.live="tab"
             label-div-class="flex gap-5 px-3"
             label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
             active-class="!text-base-content border-b border-primary text-primary"
-            tabs-class="relative flex w-full min-w-0 flex-col"
+            tabs-class="w-full"
             data-ui="profile-tabs"
         >
-            <x-tab name="identity" :label="$this->tabLabel('identity', __('ui.profile.tab_identity'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-identity" icon="o-identification">
+            <x-tab name="identity" :label="$this->tabLabel('identity', __('ui.profile.tab_identity'))" class="px-6 py-6" data-ui="profile-tab-identity" icon="o-identification">
                 @if (isset($loadedTabs['identity']))
                     <livewire:profile.update-identity-information-form :key="'profile-identity-'.auth()->id()" />
                 @endif
             </x-tab>
 
-            <x-tab name="contact" :label="$this->tabLabel('contact', __('ui.profile.tab_contact'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-contact" icon="o-envelope">
+            <x-tab name="contact" :label="$this->tabLabel('contact', __('ui.profile.tab_contact'))" class="px-6 py-6" data-ui="profile-tab-contact" icon="o-envelope">
                 @if (isset($loadedTabs['contact']))
                     <livewire:profile.update-contact-information-form :key="'profile-contact-'.auth()->id()" />
                 @endif
             </x-tab>
 
-            <x-tab name="avatar" :label="$this->tabLabel('avatar', __('ui.profile.tab_avatar'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-avatar" icon="o-user-circle">
+            <x-tab name="avatar" :label="$this->tabLabel('avatar', __('ui.profile.tab_avatar'))" class="px-6 py-6" data-ui="profile-tab-avatar" icon="o-user-circle">
                 @if (isset($loadedTabs['avatar']))
                     <livewire:profile.update-avatar-form :key="'profile-avatar-'.auth()->id()" />
                 @endif
             </x-tab>
 
-            <x-tab name="images" :label="$this->tabLabel('images', __('ui.profile.tab_images'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-images" icon="o-photo">
+            <x-tab name="images" :label="$this->tabLabel('images', __('ui.profile.tab_images'))" class="px-6 py-6" data-ui="profile-tab-images" icon="o-photo">
                 @if (isset($loadedTabs['images']))
                     <livewire:profile.manage-gallery-form :key="'profile-images-'.auth()->id()" />
                 @endif
             </x-tab>
 
-            <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
+            <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
                 @if (isset($loadedTabs['notifications']))
                     <livewire:profile.notification-settings-form :key="'profile-notifications-'.auth()->id()" />
                 @endif
             </x-tab>
 
-            <x-tab name="advanced" :label="$this->tabLabel('advanced', __('ui.profile.tab_advanced'))" class="w-full min-w-0 px-6 py-6" data-ui="profile-tab-advanced" icon="o-cog-6-tooth">
+            <x-tab name="advanced" :label="$this->tabLabel('advanced', __('ui.profile.tab_advanced'))" class="px-6 py-6" data-ui="profile-tab-advanced" icon="o-cog-6-tooth">
                 @if (isset($loadedTabs['advanced']))
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <livewire:profile.update-email-form :key="'profile-email-'.auth()->id()" />

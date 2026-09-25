@@ -285,17 +285,6 @@
         padding-inline: 1rem;
     }
 
-    /**
-     * Mary tabs use DaisyUI `.tab-content` (width 100% + percentage height).
-     * Percentage height against an auto-sized host collapses unevenly per panel;
-     * keep panels auto-height and full width of the card.
-     */
-    .ui-content-card:not(.ui-listing-card__surface) [role='tabpanel'].tab-content {
-        width: 100%;
-        min-width: 0;
-        height: auto;
-    }
-
     .ui-activity-show-hero,
     .ui-event-show-hero {
         margin-top: 1.5rem;
