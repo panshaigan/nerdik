@@ -82,42 +82,42 @@ new class extends Component
         @foreach (\App\Enums\NotificationPreferenceKey::uiSections() as $section)
             <div class="space-y-3">
                 <h3 class="font-medium text-base-content">{{ __('ui.profile.notifications.'.$section['group_key']) }}</h3>
-                <div class="overflow-x-auto rounded-lg border border-base-300 bg-base-200/40">
-                    <table class="table table-sm table-fixed w-full">
-                        <thead class="[&_tr]:border-base-300">
-                            <tr>
-                                <th class="text-base-content">{{ __('ui.profile.notifications.col_kind') }}</th>
-                                <th class="w-24 text-center text-base-content">{{ __('ui.profile.notifications.in_app_short') }}</th>
-                                <th class="w-24 text-center text-base-content">{{ __('ui.profile.notifications.email_short') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="[&_tr]:border-base-300">
-                            @foreach ($section['keys'] as $preferenceKeyEnum)
-                                @php
-                                    $pkey = $preferenceKeyEnum->value;
-                                @endphp
-                                <tr wire:key="{{ $pkey }}">
-                                    <td class="max-w-xl text-sm text-base-content">{{ __('ui.profile.notifications.keys.'.$pkey) }}</td>
-                                    <td class="w-24 text-center">
+                <div class="overflow-hidden rounded-lg border border-base-300 bg-base-200/40">
+                    <div class="hidden border-b border-base-300 px-4 py-3 text-sm font-medium text-base-content md:grid md:grid-cols-[minmax(0,1fr)_5rem_5rem] md:items-center md:gap-4">
+                        <span>{{ __('ui.profile.notifications.col_kind') }}</span>
+                        <span class="text-center">{{ __('ui.profile.notifications.in_app_short') }}</span>
+                        <span class="text-center">{{ __('ui.profile.notifications.email_short') }}</span>
+                    </div>
+                    <div class="divide-y divide-base-300">
+                        @foreach ($section['keys'] as $preferenceKeyEnum)
+                            @php
+                                $pkey = $preferenceKeyEnum->value;
+                            @endphp
+                            <div wire:key="{{ $pkey }}" class="flex flex-col gap-3 p-4 md:grid md:grid-cols-[minmax(0,1fr)_5rem_5rem] md:items-center md:gap-4">
+                                <p class="text-sm text-base-content">{{ __('ui.profile.notifications.keys.'.$pkey) }}</p>
+                                <div class="flex items-center gap-6 md:contents">
+                                    <label class="flex items-center gap-2 md:justify-center">
+                                        <span class="text-xs text-base-content/70 md:sr-only">{{ __('ui.profile.notifications.in_app_short') }}</span>
                                         <input
                                             type="checkbox"
                                             wire:model="preferences.{{ $pkey }}.in_app"
                                             class="checkbox checkbox-sm ui-field ui-field-notification-in-app"
                                             aria-label="{{ __('ui.profile.notifications.in_app_short') }}"
                                         />
-                                    </td>
-                                    <td class="w-24 text-center">
+                                    </label>
+                                    <label class="flex items-center gap-2 md:justify-center">
+                                        <span class="text-xs text-base-content/70 md:sr-only">{{ __('ui.profile.notifications.email_short') }}</span>
                                         <input
                                             type="checkbox"
                                             wire:model="preferences.{{ $pkey }}.email"
                                             class="checkbox checkbox-sm ui-field ui-field-notification-email"
                                             aria-label="{{ __('ui.profile.notifications.email_short') }}"
                                         />
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         @endforeach

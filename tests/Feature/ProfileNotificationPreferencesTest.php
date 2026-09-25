@@ -11,13 +11,13 @@ class ProfileNotificationPreferencesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_notification_settings_table_hides_every_join_column(): void
+    public function test_notification_settings_hides_every_join_column(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
 
         Volt::test('profile.notification-settings-form')
-            ->assertDontSeeHtml('<th class="text-center text-base-content">'.__('ui.profile.notifications.every_join_short').'</th>')
+            ->assertDontSeeHtml('wire:model="preferences.activity_participant_joined.every_join"')
             ->assertSee(__('ui.profile.notifications.in_app_short'))
             ->assertSee(__('ui.profile.notifications.email_short'));
     }

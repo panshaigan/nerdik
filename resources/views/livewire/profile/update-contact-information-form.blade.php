@@ -474,23 +474,26 @@ new class extends Component
 <section id="ui-profile-contact-section" class="ui-profile-section ui-profile-contact" data-ui="profile-contact-section">
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
     <div id="ui-profile-contact-form" class="ui-form ui-form-profile-contact space-y-4" data-ui="profile-contact-form">
-        <div class="rounded-lg border border-base-200 bg-base-200/40 p-6 space-y-4" data-ui="profile-contact-email-row">
-            <div class="flex items-center justify-between gap-4">
-                <x-select
-                    wire:model.live="selected_email"
-                    label="{{ __('ui.profile.use_provider_email_label') }}"
-                    :options="$this->accountEmailOptions()"
-                    :placeholder="__('ui.profile.use_provider_email_placeholder')"
-                    placeholder-value=""
-                    error-field="selected_provider_email"
-                    :disabled="! $this->hasAlternativeEmailOptions()"
-                    inline
-                />
+        <div class="rounded-lg border border-base-200 bg-base-200/40 p-4 sm:p-6 space-y-4" data-ui="profile-contact-email-row">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div class="min-w-0 w-full flex-1">
+                    <x-select
+                        wire:model.live="selected_email"
+                        label="{{ __('ui.profile.use_provider_email_label') }}"
+                        :options="$this->accountEmailOptions()"
+                        :placeholder="__('ui.profile.use_provider_email_placeholder')"
+                        placeholder-value=""
+                        error-field="selected_provider_email"
+                        :disabled="! $this->hasAlternativeEmailOptions()"
+                        inline
+                    />
+                </div>
                 <x-toggle
                     id="show_contact_email"
                     wire:model.live="show_contact_email"
                     :label="__('ui.profile.contact_visibility_toggle_short')"
                     right
+                    class="shrink-0"
                 />
             </div>
         </div>
@@ -545,22 +548,24 @@ new class extends Component
 
     <fieldset class="fieldset mt-4 py-0" data-ui="profile-integrations">
         <div class="space-y-4">
-            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-google">
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-4 sm:p-6" data-ui="profile-integration-google">
                 @if ($google_id !== '')
-                    <div class="flex items-center justify-between gap-4">
-                        <x-input
-                            wire:model="google_id"
-                            label="{{ __('ui.profile.integrations_google_id_label') }}"
-                            placeholder="{{ __('ui.profile.integrations_google_id_label') }}"
-                            type="text"
-                            name="google_id"
-                            inline
-                            readonly
-                            disabled
-                        />
+                    <div class="flex flex-col gap-4 md:flex-row md:items-end">
+                        <div class="min-w-0 w-full flex-1">
+                            <x-input
+                                wire:model="google_id"
+                                label="{{ __('ui.profile.integrations_google_id_label') }}"
+                                placeholder="{{ __('ui.profile.integrations_google_id_label') }}"
+                                type="text"
+                                name="google_id"
+                                inline
+                                readonly
+                                disabled
+                            />
+                        </div>
                         <x-button
                             type="button"
-                            class="btn-outline btn-error w-full max-w-sm"
+                            class="btn-outline btn-error w-full shrink-0 md:w-auto md:max-w-sm"
                             wire:click="confirmUnlinkGoogle"
                             data-ui="profile-google-unlink"
                         >{{ __('ui.profile.integrations_google_unlink') }}</x-button>
@@ -569,33 +574,36 @@ new class extends Component
                             wire:model.live="show_contact_google"
                             :label="__('ui.profile.contact_visibility_toggle_short')"
                             right
+                            class="shrink-0"
                         />
                     </div>
                 @elseif (config('services.google.client_id'))
                     <div class="flex flex-col gap-4">
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on accounts.google.com --}}
-                        <x-button :link="route('google.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
+                        <x-button :link="route('google.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_google') }}</x-button>
                     </div>
                 @endif
             </div>
 
-            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-facebook">
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-4 sm:p-6" data-ui="profile-integration-facebook">
                 <div class="space-y-4">
                     @if ($facebook_id !== '')
-                        <div class="flex items-center justify-between gap-4">
-                            <x-input
-                                wire:model="facebook_id"
-                                label="{{ __('ui.profile.integrations_facebook_id_label') }}"
-                                placeholder="{{ __('ui.profile.integrations_facebook_id_label') }}"
-                                type="text"
-                                name="facebook_id"
-                                inline
-                                readonly
-                                disabled
-                            />
+                        <div class="flex flex-col gap-4 md:flex-row md:items-end">
+                            <div class="min-w-0 w-full flex-1">
+                                <x-input
+                                    wire:model="facebook_id"
+                                    label="{{ __('ui.profile.integrations_facebook_id_label') }}"
+                                    placeholder="{{ __('ui.profile.integrations_facebook_id_label') }}"
+                                    type="text"
+                                    name="facebook_id"
+                                    inline
+                                    readonly
+                                    disabled
+                                />
+                            </div>
                             <x-button
                                 type="button"
-                                class="btn-outline btn-error w-full max-w-sm"
+                                class="btn-outline btn-error w-full shrink-0 md:w-auto md:max-w-sm"
                                 wire:click="confirmUnlinkFacebook"
                                 data-ui="profile-facebook-unlink"
                             >{{ __('ui.profile.integrations_facebook_unlink') }}</x-button>
@@ -604,17 +612,18 @@ new class extends Component
                                 wire:model.live="show_contact_facebook"
                                 :label="__('ui.profile.contact_visibility_toggle_short')"
                                 right
+                                class="shrink-0"
                             />
                         </div>
                     @elseif (config('services.facebook.client_id'))
                         <div class="flex flex-col gap-4">
                             {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on facebook.com --}}
-                            <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
+                            <x-button :link="route('facebook.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_facebook') }}</x-button>
                         </div>
                     @endif
 
-                    <div class="flex items-center gap-4">
-                        <div class="w-1/2">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <div class="min-w-0 w-full flex-1">
                             <x-input
                                 wire:model="facebook_profile_url"
                                 label="{{ __('ui.profile.integrations_facebook_profile_url_label') }} (https://www.facebook.com/your.name)"
@@ -629,7 +638,7 @@ new class extends Component
                         </div>
                         <x-button
                             type="button"
-                            class="btn-primary"
+                            class="btn-primary w-full shrink-0 sm:w-auto"
                             wire:click="saveFacebookProfileUrl"
                             data-ui="profile-facebook-profile-url-save"
                         >{{ __('ui.common.save') }}</x-button>
@@ -637,22 +646,24 @@ new class extends Component
                 </div>
             </div>
 
-            <div class="rounded-lg border border-base-200 bg-base-200/40 p-6" data-ui="profile-integration-discord">
+            <div class="rounded-lg border border-base-200 bg-base-200/40 p-4 sm:p-6" data-ui="profile-integration-discord">
                 @if ($discord_id !== '')
-                    <div class="flex items-center justify-between gap-4">
-                        <x-input
-                            wire:model="discord_id"
-                            label="{{ __('ui.profile.integrations_discord_id_label') }}"
-                            placeholder="{{ __('ui.profile.integrations_discord_id_label') }}"
-                            type="text"
-                            name="discord_id"
-                            inline
-                            readonly
-                            disabled
-                        />
+                    <div class="flex flex-col gap-4 md:flex-row md:items-end">
+                        <div class="min-w-0 w-full flex-1">
+                            <x-input
+                                wire:model="discord_id"
+                                label="{{ __('ui.profile.integrations_discord_id_label') }}"
+                                placeholder="{{ __('ui.profile.integrations_discord_id_label') }}"
+                                type="text"
+                                name="discord_id"
+                                inline
+                                readonly
+                                disabled
+                            />
+                        </div>
                         <x-button
                             type="button"
-                            class="btn-outline btn-error w-full max-w-sm"
+                            class="btn-outline btn-error w-full shrink-0 md:w-auto md:max-w-sm"
                             wire:click="confirmUnlinkDiscord"
                             data-ui="profile-discord-unlink"
                         >{{ __('ui.profile.integrations_discord_unlink') }}</x-button>
@@ -661,12 +672,13 @@ new class extends Component
                             wire:model.live="show_contact_discord"
                             :label="__('ui.profile.contact_visibility_toggle_short')"
                             right
+                            class="shrink-0"
                         />
                     </div>
                 @elseif (config('services.discord.client_id'))
                     <div class="flex flex-col gap-4">
                         {{-- OAuth must use full document navigation; wire:navigate would fetch redirect → CORS on discord.com --}}
-                        <x-button :link="route('discord.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full max-w-sm px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
+                        <x-button :link="route('discord.redirect', ['return_tab' => 'contact'])" :no-wire-navigate="true" class="btn-primary btn-lg min-h-14 w-full px-8 text-base font-semibold">{{ __('ui.profile.avatar_link_discord') }}</x-button>
                     </div>
                 @endif
             </div>
