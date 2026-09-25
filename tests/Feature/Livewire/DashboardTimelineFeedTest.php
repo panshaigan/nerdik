@@ -117,6 +117,7 @@ class DashboardTimelineFeedTest extends TestCase
             ->test(Dashboard::class)
             ->assertSee($firstPageName)
             ->assertDontSee($secondPageName)
+            ->assertSeeHtml('data-ui="dashboard-feed-loading"')
             ->call('gotoPage', 2)
             ->assertSee($secondPageName)
             ->assertDontSee($firstPageName);
