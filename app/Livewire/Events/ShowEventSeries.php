@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -135,6 +136,16 @@ class ShowEventSeries extends Component
             'open-add-entity-link',
             key: $series->getMorphClass().'-'.$series->id,
         )->to(ManageEntityLinks::class);
+    }
+
+    #[On('entity-links-changed')]
+    public function refreshEntityLinks(string $key = ''): void
+    {
+        $series = EventSeries::query()->whereKey($this->eventSeriesId)->firstOrFail();
+
+        if ($key !== $series->getMorphClass().'-'.$series->id) {
+            $this->skipRender();
+        }
     }
 
     public function openEditSeries(): void

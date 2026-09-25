@@ -82,7 +82,11 @@ final class EntityLinksTest extends TestCase
             ->set('linkName', 'Series info')
             ->set('linkUrl', 'https://example.com/series')
             ->call('saveLink')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched(
+                'entity-links-changed',
+                key: $series->getMorphClass().'-'.$series->id,
+            );
 
         $this->assertDatabaseHas('entity_links', [
             'linkable_type' => 'event_series',

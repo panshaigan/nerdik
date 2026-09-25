@@ -154,6 +154,41 @@ final class EntityLinksShowTest extends TestCase
     }
 
     #[Test]
+    public function event_series_header_refreshes_when_its_links_change(): void
+    {
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        Event::factory()->create([
+            'event_series_id' => $series->id,
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'is_public' => true,
+        ]);
+
+        $component = Livewire::actingAs($owner)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertDontSeeHtml('data-ui="event-series-show-entity-links"');
+
+        EntityLink::factory()->create([
+            'linkable_type' => $series->getMorphClass(),
+            'linkable_id' => $series->id,
+            'name' => 'New series link',
+            'url' => 'https://example.com/new-series-link',
+        ]);
+
+        $component
+            ->dispatch(
+                'entity-links-changed',
+                key: $series->getMorphClass().'-'.$series->id,
+            )
+            ->assertSeeHtml('data-ui="event-series-show-entity-links"')
+            ->assertSee('New series link');
+    }
+
+    #[Test]
     public function open_add_entity_link_dispatches_to_manage_component(): void
     {
         $host = User::factory()->create();
