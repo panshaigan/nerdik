@@ -65,7 +65,8 @@
     class="{{ $tabsClass }}"
 >
     <div {{ $tabListAttributes->class(['flex min-h-0 flex-1 flex-col']) }}>
-    <div>
+    {{-- Chrome must be a direct sibling of [role=tablist] so sticky's parent is the tall column. --}}
+    <div data-ui="tabs-toolbar-chrome">
         @isset($heading)
             {{ $heading }}
         @endisset

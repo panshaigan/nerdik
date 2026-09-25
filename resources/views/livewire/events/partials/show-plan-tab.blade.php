@@ -44,7 +44,7 @@
     @endphp
 
     @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
-        <div class="flex items-center justify-end gap-2 mb-4">
+        <div class="flex items-center justify-end gap-2 mt-2 mb-4">
             @if ($canShowPlanActivityProposalUi ?? false)
                 <x-button
                     type="button"

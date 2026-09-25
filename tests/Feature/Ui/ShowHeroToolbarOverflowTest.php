@@ -76,6 +76,7 @@ final class ShowHeroToolbarOverflowTest extends TestCase
 
         $this->assertStringNotContainsString('x-class=', $html);
         $this->assertStringNotContainsString('overflow-x-auto', $this->tabsRootClassAttribute($html));
+        $this->assertStringContainsString('data-ui="tabs-toolbar-chrome"', $html);
     }
 
     #[Test]
@@ -93,6 +94,7 @@ final class ShowHeroToolbarOverflowTest extends TestCase
         $this->assertStringContainsString('@max-2xl:tooltip-top', $html);
         $this->assertStringContainsString('plainTabLabel(tab)', $html);
         $this->assertStringContainsString(':data-tip="plainTabLabel(tab)"', $html);
+        $this->assertStringContainsString('data-ui="tabs-toolbar-chrome"', $html);
         $this->assertStringNotContainsString('overflow-x-auto', $html);
         $this->assertStringNotContainsString('[&_.inline-flex>div:last-child]:sm:inline', $html);
     }
