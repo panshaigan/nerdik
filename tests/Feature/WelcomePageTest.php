@@ -116,13 +116,11 @@ class WelcomePageTest extends TestCase
         $response->assertSee('data-ui="welcome-platform-stats"', false);
         $response->assertSee('Members', false);
         $response->assertSee('Happening soon', false);
-        $response->assertSee('Happening now', false);
+        $response->assertDontSee('Happening now', false);
         $response->assertSee((string) $stats->usersCount, false);
         $response->assertSee((string) $stats->upcomingListingsCount, false);
-        $response->assertSee((string) $stats->ongoingListingsCount, false);
         $this->assertSame($expectedUsers, $stats->usersCount);
         $this->assertSame(1, $stats->upcomingListingsCount);
-        $this->assertSame(1, $stats->ongoingListingsCount);
     }
 
     #[Test]

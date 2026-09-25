@@ -20,7 +20,7 @@
 
         <x-environment-indicator />
 
-        <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-8">
+        <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-2 py-8 lg:px-8">
 
             <header class="flex items-center justify-between gap-4 pb-6">
                 <div class="flex">

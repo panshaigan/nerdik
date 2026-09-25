@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    <div class="relative z-10 p-8 md:p-12">
+    <div class="relative z-10 p-4 md:p-12">
         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">{{ __('ui.welcome.heading') }}</p>
         <h1 class="mt-3 max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
             {{ __('ui.welcome.hero_title') }}
