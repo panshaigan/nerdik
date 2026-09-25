@@ -6,6 +6,7 @@ use App\Livewire\Browse\BrowseEvents;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -13,6 +14,13 @@ use Tests\TestCase;
 class ListingCardEventPreviewTest extends TestCase
 {
     use RefreshDatabase;
+
+    #[\Override]
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
 
     public function test_listing_card_uses_event_preview_button_instead_of_navigate_link(): void
     {
@@ -109,6 +117,71 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSee(__('ui.events.show_details'))
             ->assertSeeHtml('data-ui="overlay-sheet"')
             ->assertSeeHtml('data-ui="listing-event-preview-actions"');
+    }
+
+    public function test_open_listing_event_preview_shows_short_propose_cta_when_eligible(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $host = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $host->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseEvents::class)
+            ->call('openListingEventPreview', $event->id)
+            ->assertViewHas('previewEventCanProposeActivity', true)
+            ->assertSee(__('ui.events.propose_activity_short'))
+            ->assertSeeHtml('data-ui="listing-event-preview-propose"')
+            ->assertSee('proposal_event_id='.$event->id, false)
+            ->assertDontSeeHtml('data-ui="listing-event-preview-propose-guest"');
+    }
+
+    public function test_open_listing_event_preview_guest_propose_cta_links_to_login(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $host = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $host->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        $planReturn = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
+        $guestProposeUrl = login_url($planReturn);
+
+        Livewire::withoutLazyLoading()
+            ->test(BrowseEvents::class)
+            ->call('openListingEventPreview', $event->id)
+            ->assertViewHas('previewEventCanProposeActivity', true)
+            ->assertSee(__('ui.events.propose_activity_short'))
+            ->assertSeeHtml('data-ui="listing-event-preview-propose-guest"')
+            ->assertSee($guestProposeUrl, false)
+            ->assertDontSeeHtml('data-ui="listing-event-preview-propose"');
+    }
+
+    public function test_open_listing_event_preview_hides_propose_cta_after_event_has_started(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00', 'UTC'));
+        $host = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $host->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseEvents::class)
+            ->call('openListingEventPreview', $event->id)
+            ->assertViewHas('previewEventCanProposeActivity', false)
+            ->assertDontSeeHtml('data-ui="listing-event-preview-propose"')
+            ->assertDontSeeHtml('data-ui="listing-event-preview-propose-guest"');
     }
 
     public function test_my_events_browse_opens_event_preview_modal(): void

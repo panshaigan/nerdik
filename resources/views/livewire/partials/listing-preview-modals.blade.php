@@ -20,5 +20,6 @@
         'previewEventLocationSummary' => $previewEventLocationSummary ?? '',
         'previewEventLocationPlaces' => $previewEventLocationPlaces ?? [],
         'previewEventCoverPicture' => $previewEventCoverPicture ?? \App\Support\Ui\ListingCardPicture::empty(),
+        'previewEventCanProposeActivity' => $previewEventCanProposeActivity ?? false,
     ])
 @endif

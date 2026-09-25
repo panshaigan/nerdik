@@ -677,6 +677,7 @@ return [
         'edit_event' => 'Edytuj wydarzenie',
         'create' => 'Utwórz wydarzenie',
         'propose_activity' => 'Zaproponuj aktywność',
+        'propose_activity_short' => 'Zaproponuj',
         'want_to_propose_activity' => 'Chcesz zaproponować sesję?',
         'plan_propose_hero_title' => 'Zaproponuj sesję na ten event',
         'plan_propose_hero_description' => 'Utwórz sesję i zaproponuj poprowadzenie jej na tym wydarzeniu.',

@@ -51,6 +51,7 @@ trait WithEventPreviewModal
      *     previewEventLocationSummary: string,
      *     previewEventLocationPlaces: list<array{url: string, label: string}>,
      *     previewEventCoverPicture: ListingCardPicture,
+     *     previewEventCanProposeActivity: bool,
      * }
      */
     protected function resolveEventPreviewViewData(BrowseListingCardPresenter $presenter): array
@@ -69,6 +70,7 @@ trait WithEventPreviewModal
                 'previewEventLocationSummary' => '',
                 'previewEventLocationPlaces' => [],
                 'previewEventCoverPicture' => ListingCardPicture::empty(),
+                'previewEventCanProposeActivity' => false,
             ];
         }
 
@@ -80,6 +82,7 @@ trait WithEventPreviewModal
                 'previewEventLocationSummary' => '',
                 'previewEventLocationPlaces' => [],
                 'previewEventCoverPicture' => ListingCardPicture::empty(),
+                'previewEventCanProposeActivity' => false,
             ];
         }
 
@@ -92,6 +95,7 @@ trait WithEventPreviewModal
             'previewEventLocationSummary' => $cardViewData->locationSummary,
             'previewEventLocationPlaces' => $cardViewData->locationPlaces,
             'previewEventCoverPicture' => $cardViewData->coverPicture,
+            'previewEventCanProposeActivity' => $previewEvent->allowsActivityProposalUi(),
         ];
     }
 

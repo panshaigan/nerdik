@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -115,6 +116,47 @@ class Event extends Model implements HasMedia
     public function isCancelled(): bool
     {
         return $this->cancelled_at !== null;
+    }
+
+    /**
+     * Whether “propose an activity” CTAs may be shown for this event.
+     */
+    public function allowsActivityProposalUi(?Carbon $now = null): bool
+    {
+        $now ??= now();
+
+        if ($this->isCancelled()) {
+            return false;
+        }
+
+        if ($this->starts_at !== null && ! $now->lt($this->starts_at)) {
+            return false;
+        }
+
+        $activeEnrollmentWindow = $this->relationLoaded('enrollmentWindows')
+            ? $this->enrollmentWindows->first(function ($window) use ($now) {
+                return $window->starts_at !== null
+                    && $window->ends_at !== null
+                    && $now->between($window->starts_at, $window->ends_at);
+            })
+            : $this->enrollmentWindows()
+                ->whereNotNull('starts_at')
+                ->whereNotNull('ends_at')
+                ->where('starts_at', '<=', $now)
+                ->where('ends_at', '>=', $now)
+                ->first();
+
+        if ($activeEnrollmentWindow === null) {
+            return true;
+        }
+
+        if ($this->relationLoaded('slots')) {
+            return $this->slots->contains(
+                fn (Slot $slot): bool => $slot->activity_id === null,
+            );
+        }
+
+        return $this->slots()->whereNull('activity_id')->exists();
     }
 
     /**

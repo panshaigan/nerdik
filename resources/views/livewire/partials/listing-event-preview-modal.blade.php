@@ -79,6 +79,12 @@
                 @php
                     $previewEventSharePayload = app(\App\Support\Sharing\ShareLinks::class)->forEvent($previewEvent);
                     $previewEventCalendarPayload = app(\App\Support\Calendar\CalendarLinks::class)->forEvent($previewEvent);
+                    $previewEventProposeReturnPath = route('events.show', ['event' => $previewEvent, 'tab' => 'plan'], false);
+                    $previewEventProposeUrl = url_with_return(
+                        route('activities.create', ['proposal_event_id' => $previewEvent->id]),
+                        $previewEventProposeReturnPath,
+                    );
+                    $previewEventGuestProposeUrl = login_url($previewEventProposeReturnPath);
                 @endphp
                 @if ($previewEventSharePayload)
                     <x-ui.share-menu :payload="$previewEventSharePayload" open-upward />
@@ -88,11 +94,32 @@
                 @endif
                 <x-button
                     :link="route('events.show', $previewEvent)"
-                    class="btn-outline"
+                    class="btn-outline btn-sm sm:btn-md"
                     wire:navigate
                 >
                     {{ __('ui.events.show_details') }}
                 </x-button>
+                @if ($previewEventCanProposeActivity ?? false)
+                    @auth
+                        <x-button
+                            :link="$previewEventProposeUrl"
+                            class="btn-primary btn-sm sm:btn-md ui-action ui-action-propose"
+                            wire:navigate
+                            data-ui="listing-event-preview-propose"
+                        >
+                            {{ __('ui.events.propose_activity_short') }}
+                        </x-button>
+                    @else
+                        <x-button
+                            :link="$previewEventGuestProposeUrl"
+                            :no-wire-navigate="true"
+                            class="btn-primary btn-sm sm:btn-md ui-action ui-action-propose"
+                            data-ui="listing-event-preview-propose-guest"
+                        >
+                            {{ __('ui.events.propose_activity_short') }}
+                        </x-button>
+                    @endauth
+                @endif
             </div>
         </x-slot:actions>
     </x-modal>
