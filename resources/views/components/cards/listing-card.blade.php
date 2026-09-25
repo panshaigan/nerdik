@@ -123,21 +123,6 @@
                         </dd>
                     </div>
                 @endif
-                @if ($d->showParticipants)
-                    <div class="flex gap-2" data-ui="browse-card-participants">
-                        <dt class="sr-only">{{ __('ui.browse.participants_count') }}</dt>
-                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
-                            <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                            <span class="min-w-0 leading-snug tabular-nums">
-                                @if ($d->participantsMax !== null)
-                                    {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
-                                @else
-                                    {{ __('ui.browse.participants_filled_no_cap', ['filled' => $d->participantsFilled]) }}
-                                @endif
-                            </span>
-                        </dd>
-                    </div>
-                @endif
                 @if ($d->parentEventName !== null && $d->parentEventUrl !== null)
                     <div class="relative z-20 flex gap-2 pointer-events-auto" data-ui="activity-card-parent-event">
                         <dt class="sr-only">{{ __('ui.browse.parent_event') }}</dt>
@@ -175,6 +160,21 @@
                                     data-ui="{{ $d->dataUiPrefix }}-series-link"
                                 >{{ __($seriesNameKey, ['name' => $d->seriesName]) }}</a>
                             </span>
+                        </dd>
+                    </div>
+                @endif
+                @if ($d->showParticipants)
+                    <div class="flex gap-2" data-ui="browse-card-participants">
+                        <dt class="sr-only">{{ __('ui.browse.participants_count') }}</dt>
+                        <dd class="flex min-w-0 flex-1 gap-2 text-base-content">
+                            <x-icon name="o-users" class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                            <span class="min-w-0 leading-snug tabular-nums">
+                            @if ($d->participantsMax !== null)
+                                    {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
+                                @else
+                                    {{ __('ui.browse.participants_filled_no_cap', ['filled' => $d->participantsFilled]) }}
+                                @endif
+                        </span>
                         </dd>
                     </div>
                 @endif
