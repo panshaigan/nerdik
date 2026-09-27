@@ -20,6 +20,6 @@ regexes = ['''^51OzIWMXtwYvLreAWm1uZ06Jgb6OSd129NplObct$''']
 [[allowlists]]
 description = "Truncated example Stripe key in configuration guidelines"
 condition = "AND"
-paths = ['''^\.(cursor|claude|junie)/skills/laravel-best-practices/rules/config\.md$''']
+paths = ['''^\.(agents|cursor|claude|junie)/skills/laravel-best-practices/rules/config\.md$''']
 regexTarget = "secret"
 regexes = ['''^sk_live_abc123$''']

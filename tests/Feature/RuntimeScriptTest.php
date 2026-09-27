@@ -106,6 +106,28 @@ class RuntimeScriptTest extends TestCase
         $this->assertTrue(is_executable($path));
     }
 
+    public function test_reload_env_recreates_only_runtime_services_without_pulling_images(): void
+    {
+        $makefile = file_get_contents(base_path('Makefile'));
+        $script = file_get_contents(base_path('scripts/app-cmd.sh'));
+
+        $this->assertIsString($makefile);
+        $this->assertIsString($script);
+        $this->assertStringContainsString("reload-env:\n\t\$(APP_CMD) reload-env", $makefile);
+        $this->assertStringContainsString('runtime_services=(app worker scheduler reverb pulse)', $script);
+        $this->assertStringContainsString('runtime_services+=(caddy)', $script);
+        $this->assertStringContainsString('runtime_services+=(mailpit)', $script);
+        $this->assertStringContainsString(
+            'up -d --force-recreate --no-deps --pull never "${runtime_services[@]}"',
+            $script,
+        );
+        $this->assertStringContainsString('php artisan optimize:clear', $script);
+        $this->assertStringContainsString('php artisan optimize', $script);
+        $this->assertStringContainsString('php artisan filament:optimize', $script);
+        $this->assertStringContainsString('php artisan pulse:restart', $script);
+        $this->assertStringNotContainsString('runtime_services+=(pgsql)', $script);
+    }
+
     public function test_boost_script_exists_and_is_executable(): void
     {
         $path = base_path('scripts/lib/boost.sh');

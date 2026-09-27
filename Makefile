@@ -19,7 +19,7 @@ cmdline_eq_flags = $(strip $(foreach v,$(.VARIABLES),$(if $(and $(filter command
 # ARGS= wins; else forward remaining goals + reconstructed --flag=value vars. No inspection.
 passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdline_eq_flags))
 
-.PHONY: up down restart ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
+.PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
@@ -77,6 +77,10 @@ down:
 
 restart:
 	$(APP_CMD) restart
+
+# Recreate runtime containers with the current .env and local images only.
+reload-env:
+	$(APP_CMD) reload-env
 
 # Refresh Laravel Boost guidelines/skills and verify MCP (Sail / local only)
 boost:

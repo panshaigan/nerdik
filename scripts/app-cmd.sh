@@ -3,7 +3,7 @@
 #
 # Usage: ./scripts/app-cmd.sh <command> [args...]
 #
-# Commands: up down restart ps logs shell tinker migrate init fresh refresh
+# Commands: up down restart reload-env ps logs shell tinker migrate init fresh refresh
 #           seed cache artisan regenerate-welcome-image boost
 #
 # Production: fresh/refresh/seed/init and destructive artisan require typing
@@ -82,6 +82,34 @@ case "$CMD" in
         else
             stack_compose restart
         fi
+        ;;
+    reload-env)
+        if [[ "$RUNTIME" != "stack" ]]; then
+            echo "make reload-env is only available for staging and production stacks." >&2
+            exit 1
+        fi
+
+        runtime_services=(app worker scheduler reverb pulse)
+
+        if [[ "$DEPLOY_ENV" == "prod" ]]; then
+            runtime_services+=(caddy)
+            "${ROOT}/scripts/maintenance.sh" on
+        else
+            runtime_services+=(mailpit)
+        fi
+
+        echo "Recreating ${DEPLOY_ENV} runtime containers from local images with the current .env..."
+        stack_compose up -d --force-recreate --no-deps --pull never "${runtime_services[@]}"
+        stack_exec_t app php artisan optimize:clear
+        stack_exec_t app php artisan optimize
+        stack_exec_t app php artisan filament:optimize
+        stack_exec_t app php artisan pulse:restart
+
+        if [[ "$DEPLOY_ENV" == "prod" ]]; then
+            "${ROOT}/scripts/maintenance.sh" off
+        fi
+
+        echo "Environment reloaded for ${DEPLOY_ENV}. PostgreSQL was not recreated."
         ;;
     ps)
         if [[ "$RUNTIME" == "sail" ]]; then
