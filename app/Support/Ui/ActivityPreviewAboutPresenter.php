@@ -53,7 +53,17 @@ final class ActivityPreviewAboutPresenter
         if ($useListingCardLocation) {
             $place->loadMissing(['city', 'parent']);
 
-            return $place->compactVenueSummary();
+            $summary = $place->compactVenueSummary();
+            if ($place->parent_id && $place->parent !== null && filled($place->name)) {
+                $roomName = trim((string) $place->name);
+                if ($roomName !== '') {
+                    return $summary !== ''
+                        ? $summary.' · '.$roomName
+                        : $roomName;
+                }
+            }
+
+            return $summary;
         }
 
         return $place->venueRoomLabel();

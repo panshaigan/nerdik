@@ -111,6 +111,25 @@ final class ActivityPreviewAboutPresenterTest extends TestCase
 
         $about = $this->presenter->build($activity, useListingCardLocation: true);
 
+        $this->assertSame('Convention Center (Wroclaw) · Hall A', $about->locationLabel);
+    }
+
+    #[Test]
+    public function build_listing_card_location_omits_room_separator_when_place_is_venue_only(): void
+    {
+        $city = $this->createCity('Wroclaw');
+        $venue = Place::factory()->venue()->create([
+            'name' => 'Convention Center',
+            'city_id' => $city->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $venue->id,
+        ]);
+        $activity->setRelation('place', $venue->load('city'));
+
+        $about = $this->presenter->build($activity, useListingCardLocation: true);
+
         $this->assertSame('Convention Center (Wroclaw)', $about->locationLabel);
     }
 
