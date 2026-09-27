@@ -102,44 +102,7 @@ class PlaceController extends Controller
     {
         $this->authorizeCreatedBy($place);
 
-        $parents = Place::where('id', '!=', $place->id)
-            ->orderBy('name')
-            ->get();
-
-        return view('places.edit', [
-            'place' => $place,
-            'parents' => $parents,
-            ...$this->geoForForm(),
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Place $place)
-    {
-        $this->authorizeCreatedBy($place);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
-            'country_id' => ['nullable', 'integer', 'exists:countries,id'],
-            'type' => ['required', 'in:state,venue,room'],
-            'parent_id' => ['nullable', 'exists:places,id'],
-            'description' => ['nullable', 'string'],
-            'is_online' => ['nullable', 'boolean'],
-            'latitude' => ['nullable', 'numeric'],
-            'longitude' => ['nullable', 'numeric'],
-        ]);
-
-        $validated['is_online'] = $request->boolean('is_online');
-
-        $this->alignCityCountry($validated);
-
-        $place->update($validated);
-
-        return redirect()->route('places.index')
-            ->with('status', __('Place updated.'));
+        return view('places.edit', compact('place'));
     }
 
     /**

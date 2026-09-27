@@ -123,7 +123,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('places.rooms');
 
     Route::resource('places', PlaceController::class)
-        ->except(['show']);
+        ->except(['show', 'update']);
 
     Route::resource('tags', TagController::class)
         ->except(['show']);

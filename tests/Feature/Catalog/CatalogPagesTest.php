@@ -99,6 +99,31 @@ class CatalogPagesTest extends TestCase
             ->assertDontSeeHtml('data-ui="catalog-organization-edit"');
     }
 
+    public function test_place_catalog_shows_edit_icon_for_owner(): void
+    {
+        $owner = User::factory()->create();
+        $place = Place::factory()->venue()->create([
+            'created_by' => $owner->id,
+            'name' => 'Catalog Editable Place Marker',
+        ]);
+        Place::factory()->venue()->create([
+            'name' => 'Catalog Other Place Marker',
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(CatalogPlaces::class)
+            ->assertSeeHtml('data-ui="catalog-place-edit"')
+            ->assertSee(route('places.edit', $place), false);
+    }
+
+    public function test_place_catalog_hides_edit_icon_for_guest(): void
+    {
+        Place::factory()->venue()->create(['name' => 'Catalog Guest Place Marker']);
+
+        Livewire::test(CatalogPlaces::class)
+            ->assertDontSeeHtml('data-ui="catalog-place-edit"');
+    }
+
     public function test_guest_can_view_series_catalog_and_non_public_series_are_hidden(): void
     {
         $owner = User::factory()->create();

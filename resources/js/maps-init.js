@@ -8,8 +8,19 @@ function bootEventPlacesUnified() {
     });
 }
 
+function bootPlaceLocationMaps() {
+    document.querySelectorAll('[data-place-location-map]').forEach((root) => {
+        if (root.dataset.plmLoadStarted) {
+            return;
+        }
+        root.dataset.plmLoadStarted = '1';
+        import('./maps/place-location-map.js').then((m) => m.initPlaceLocationMap(root));
+    });
+}
+
 export function bootMaps() {
     bootEventPlacesUnified();
+    bootPlaceLocationMaps();
     document.querySelectorAll('[data-event-show-map-root]').forEach((root) => {
         if (root.dataset.eventShowMapLoadStarted) return;
         root.dataset.eventShowMapLoadStarted = '1';
@@ -32,6 +43,7 @@ if (document.readyState === 'loading') {
 
 window.addEventListener('load', () => {
     bootEventPlacesUnified();
+    bootPlaceLocationMaps();
 });
 
 document.addEventListener('livewire:navigated', bootMaps);
@@ -54,6 +66,7 @@ function registerLivewireMapsMorphHook() {
     window.Livewire.hook('morphed', () => {
         requestAnimationFrame(() => {
             bootEventPlacesUnified();
+            bootPlaceLocationMaps();
             bootMaps();
             import('./maps/event-show-map.js')
                 .then((m) => m.invalidateAllEventShowMaps())

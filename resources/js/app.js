@@ -197,7 +197,7 @@ function bootFeatureModules() {
     );
     loadOnce(
         'maps',
-        document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map]') !== null,
+        document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map], [data-place-location-map]') !== null,
         () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
     );
     bootTagSelectors();

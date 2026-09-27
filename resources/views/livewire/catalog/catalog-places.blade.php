@@ -32,6 +32,9 @@
                             stacked
                             transparent
                             data-ui="catalog-place-card"
+                            :edit-url="auth()->user()?->canModifyEntity($place) ? route('places.edit', $place) : null"
+                            :edit-aria-label="__('ui.places.edit').': '.$place->name"
+                            edit-data-ui="catalog-place-edit"
                         />
                         <x-ui.entity-links
                             :links="$place->links"
