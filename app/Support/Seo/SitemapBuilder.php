@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Support\Seo;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 
 final class SitemapBuilder
@@ -28,6 +31,8 @@ final class SitemapBuilder
             ...$this->staticUrls(),
             ...$this->publicEventUrls(),
             ...$this->publicActivityUrls(),
+            ...$this->publicEventSeriesUrls(),
+            ...$this->publicActivitySeriesUrls(),
         ];
 
         $body = collect($urls)
@@ -97,6 +102,52 @@ final class SitemapBuilder
                 $urls[] = [
                     'loc' => route('activities.show', $activity),
                     'lastmod' => $activity->updated_at,
+                ];
+            });
+
+        return $urls;
+    }
+
+    /**
+     * @return list<array{loc: string, lastmod: ?CarbonInterface}>
+     */
+    private function publicEventSeriesUrls(): array
+    {
+        $urls = [];
+
+        EventSeries::query()
+            ->whereHas('events', fn (Builder $query) => $query
+                ->where('is_public', true)
+                ->whereNull('cancelled_at'))
+            ->orderBy('id')
+            ->select(['id', 'slug'])
+            ->lazyById()
+            ->each(function (EventSeries $series) use (&$urls): void {
+                $urls[] = [
+                    'loc' => route('event-series.show', $series),
+                    'lastmod' => null,
+                ];
+            });
+
+        return $urls;
+    }
+
+    /**
+     * @return list<array{loc: string, lastmod: ?CarbonInterface}>
+     */
+    private function publicActivitySeriesUrls(): array
+    {
+        $urls = [];
+
+        ActivitySeries::query()
+            ->whereHas('activities', fn (Builder $query) => $query->attachedToPublicEvent(false))
+            ->orderBy('id')
+            ->select(['id', 'slug'])
+            ->lazyById()
+            ->each(function (ActivitySeries $series) use (&$urls): void {
+                $urls[] = [
+                    'loc' => route('activity-series.show', $series),
+                    'lastmod' => null,
                 ];
             });
 

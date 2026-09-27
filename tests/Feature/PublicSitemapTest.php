@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +37,10 @@ class PublicSitemapTest extends TestCase
             'created_by' => $user->id,
             'name' => 'Private Sitemap Event',
         ]);
+        $publicEventSeries = EventSeries::factory()->create(['created_by' => $user->id]);
+        $publicEvent->update(['event_series_id' => $publicEventSeries->id]);
+        $privateEventSeries = EventSeries::factory()->create(['created_by' => $user->id]);
+        $privateEvent->update(['event_series_id' => $privateEventSeries->id]);
 
         $place = Place::factory()->venue()->create();
         $startsAt = now()->addDays(3)->setSecond(0);
@@ -53,6 +59,10 @@ class PublicSitemapTest extends TestCase
             'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
             'name' => 'Draft Sitemap Activity',
         ]);
+        $publicActivitySeries = ActivitySeries::factory()->create(['created_by' => $user->id]);
+        $publicActivity->update(['activity_series_id' => $publicActivitySeries->id]);
+        $draftActivitySeries = ActivitySeries::factory()->create(['created_by' => $user->id]);
+        $draftActivity->update(['activity_series_id' => $draftActivitySeries->id]);
 
         $response = $this->get(route('sitemap'));
 
@@ -68,8 +78,12 @@ class PublicSitemapTest extends TestCase
         $response->assertSee('<loc>'.e(route('terms')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('events.show', $publicEvent)).'</loc>', false);
         $response->assertSee('<loc>'.e(route('activities.show', $publicActivity)).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('event-series.show', $publicEventSeries)).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('activity-series.show', $publicActivitySeries)).'</loc>', false);
         $response->assertDontSee(route('events.show', $privateEvent), false);
         $response->assertDontSee(route('activities.show', $draftActivity), false);
+        $response->assertDontSee(route('event-series.show', $privateEventSeries), false);
+        $response->assertDontSee(route('activity-series.show', $draftActivitySeries), false);
     }
 
     public function test_robots_txt_disallows_auth_paths_and_points_at_sitemap(): void

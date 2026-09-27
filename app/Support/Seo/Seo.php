@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Support\Seo;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Support\Ui\EventListingImageResolver;
 use App\Support\Ui\ListingCardPicture;
@@ -134,6 +136,16 @@ final class Seo
         );
     }
 
+    public static function forEventSeries(EventSeries $series): SeoMetadata
+    {
+        return self::forSeries($series, route('event-series.show', $series));
+    }
+
+    public static function forActivitySeries(ActivitySeries $series): SeoMetadata
+    {
+        return self::forSeries($series, route('activity-series.show', $series));
+    }
+
     public static function fromCurrentRoute(): SeoMetadata
     {
         return match (Route::currentRouteName()) {
@@ -143,6 +155,8 @@ final class Seo
             'catalog.series' => self::forCatalogSeries(),
             'events.show' => self::forEvent(self::routeModel('event', Event::class)),
             'activities.show' => self::forActivity(self::routeModel('activity', Activity::class)),
+            'event-series.show' => self::forEventSeries(self::routeModel('eventSeries', EventSeries::class)),
+            'activity-series.show' => self::forActivitySeries(self::routeModel('activitySeries', ActivitySeries::class)),
             default => self::defaults(),
         };
     }
@@ -188,6 +202,22 @@ final class Seo
             imageWidth: self::DEFAULT_IMAGE_WIDTH,
             imageHeight: self::DEFAULT_IMAGE_HEIGHT,
         );
+    }
+
+    private static function forSeries(EventSeries|ActivitySeries $series, string $canonical): SeoMetadata
+    {
+        $description = rich_text_excerpt($series->description, 160);
+
+        if ($description === '') {
+            $description = (string) __('ui.seo.entity_fallback_description', ['name' => $series->name]);
+        }
+
+        return self::withDefaultImage(new SeoMetadata(
+            title: self::pageTitle((string) $series->name),
+            description: $description,
+            canonical: $canonical,
+            type: 'article',
+        ));
     }
 
     private static function withListingOrDefaultImage(

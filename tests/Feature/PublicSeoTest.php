@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
 use App\Support\Seo\Seo;
@@ -162,5 +164,40 @@ class PublicSeoTest extends TestCase
         ]);
 
         $this->get(route('activities.show', $activity))->assertNotFound();
+    }
+
+    public function test_public_series_pages_render_series_seo_metadata(): void
+    {
+        $user = User::factory()->create();
+        $eventSeries = EventSeries::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Neon Event Series SEO',
+            'description' => '<p>A recurring tabletop convention.</p>',
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $eventSeries->id,
+        ]);
+        $activitySeries = ActivitySeries::factory()->create([
+            'created_by' => $user->id,
+            'name' => 'Neon Activity Series SEO',
+            'description' => '<p>A recurring tabletop campaign.</p>',
+        ]);
+        Activity::factory()->selfHosted()->create([
+            'created_by' => $user->id,
+            'activity_series_id' => $activitySeries->id,
+        ]);
+
+        $this->get(route('event-series.show', $eventSeries))
+            ->assertOk()
+            ->assertSee('<title>'.Seo::pageTitle('Neon Event Series SEO').'</title>', false)
+            ->assertSee('<link rel="canonical" href="'.e(route('event-series.show', $eventSeries)).'">', false)
+            ->assertSee('A recurring tabletop convention.', false);
+
+        $this->get(route('activity-series.show', $activitySeries))
+            ->assertOk()
+            ->assertSee('<title>'.Seo::pageTitle('Neon Activity Series SEO').'</title>', false)
+            ->assertSee('<link rel="canonical" href="'.e(route('activity-series.show', $activitySeries)).'">', false)
+            ->assertSee('A recurring tabletop campaign.', false);
     }
 }
