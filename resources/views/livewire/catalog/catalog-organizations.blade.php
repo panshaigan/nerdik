@@ -14,7 +14,7 @@
                 data-ui="catalog-organizations-listings"
             >
                 @forelse ($organizations as $organization)
-                    <div wire:key="catalog-organization-{{ $organization->id }}" class="relative">
+                    <div wire:key="catalog-organization-{{ $organization->id }}" class="contents">
                         <x-catalog.catalog-card
                             :title="$organization->name"
                             :subtitle="$organization->acronym"
@@ -23,19 +23,10 @@
                             transparent
                             wire:click="openOrganizationPreview({{ (int) $organization->id }})"
                             data-ui="catalog-organization-card"
+                            :edit-url="auth()->user()?->canModifyEntity($organization) ? route('organizations.edit', $organization) : null"
+                            :edit-aria-label="__('ui.organizations.edit').': '.$organization->name"
+                            edit-data-ui="catalog-organization-edit"
                         />
-                        @canModifyEntity($organization)
-                            <div class="pointer-events-auto absolute right-2 top-2 z-30">
-                                <x-button
-                                    :link="route('organizations.edit', $organization)"
-                                    class="btn btn-xs btn-square rounded-lg bg-base-100/90 text-base-content/80 shadow-sm hover:text-primary"
-                                    icon="o-pencil"
-                                    :tooltip="__('ui.common.edit')"
-                                    :aria-label="__('ui.organizations.edit').': '.$organization->name"
-                                    data-ui="catalog-organization-edit"
-                                />
-                            </div>
-                        @endcanModifyEntity
                     </div>
                 @empty
                     <div class="col-span-full rounded-xl border border-base-300 bg-base-100 p-6 text-center opacity-80">
