@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -171,11 +172,18 @@ class ManageActivityForm extends Component
     /** @var mixed */
     public $sourceImage = null;
 
-    /** @see updatedPlaceIds() avoids clearing room when map debounce re-sends the same selection */
-    private ?string $cachedSelfHostedPlaceIdsFingerprint = null;
+    /**
+     * Must be public so Livewire dehydrates it across requests; otherwise the map's
+     * debounced place_ids sync looks like a venue change and clears the room name.
+     *
+     * @see updatedPlaceIds()
+     */
+    #[Locked]
+    public ?string $cachedSelfHostedPlaceIdsFingerprint = null;
 
     /** @see updatedNewPlaces() */
-    private ?string $cachedSelfHostedNewPlacesFingerprint = null;
+    #[Locked]
+    public ?string $cachedSelfHostedNewPlacesFingerprint = null;
 
     private bool $allowHostingModeChangeWithoutConfirm = false;
 

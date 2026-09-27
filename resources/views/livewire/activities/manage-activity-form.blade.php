@@ -544,24 +544,54 @@
         }
 
         if (key !== state.lastVenueKey) {
+            const previousKey = state.lastVenueKey;
             state.lastVenueKey = key;
+            // Map often fires an empty selection before writing initialSelectedIds. That empty → venue
+            // transition is hydration, not a user changing venues — keep the saved room name.
+            const isInitialVenueHydration =
+                (previousKey === '' || previousKey === null)
+                && !!venueId
+                && !newDraft;
+
             if (newDraft || !venueId) {
                 state.rooms = [];
                 if (roomInput.value !== '') {
                     roomInput.value = '';
+                    roomInput.dispatchEvent(new Event('input', { bubbles: true }));
                     roomInput.dispatchEvent(new Event('blur', { bubbles: true }));
                 }
                 activityFormRoomClose(roomPopup, roomInput);
 
                 return;
             }
-            if (roomInput.value !== '') {
+
+            if (!isInitialVenueHydration && roomInput.value !== '') {
                 roomInput.value = '';
+                roomInput.dispatchEvent(new Event('input', { bubbles: true }));
                 roomInput.dispatchEvent(new Event('blur', { bubbles: true }));
+            } else if (isInitialVenueHydration && roomInput.value.trim() === '') {
+                activityFormRoomRestoreFromLivewire(roomRoot, roomInput);
             }
             activityFormRoomLoadForVenue(state, template, venueId).then(() => activityFormRoomClose(roomPopup, roomInput));
         } else {
             activityFormRoomClose(roomPopup, roomInput);
+        }
+    }
+
+    function activityFormRoomRestoreFromLivewire(roomRoot, roomInput) {
+        if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+            return;
+        }
+        const host = roomRoot.closest('[wire\\:id]');
+        const id = host?.getAttribute('wire:id');
+        if (!id) {
+            return;
+        }
+        const wire = window.Livewire.find(id);
+        const name = wire?.self_hosted_room_name ?? wire?.get?.('self_hosted_room_name');
+        if (typeof name === 'string' && name.trim() !== '') {
+            roomInput.value = name;
+            roomInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
     }
 

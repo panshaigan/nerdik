@@ -6,6 +6,7 @@ use App\Enums\ActivityLogoSource;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityType;
+use App\Models\Place;
 use App\Models\Tag;
 use App\Models\User;
 use Database\Seeders\ActivityTypeSeeder;
@@ -367,5 +368,35 @@ class ManageActivityFormUiTest extends TestCase
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class, ['activity' => $activity])
             ->assertSet('cancellation_deadline_in_hours', null);
+    }
+
+    public function test_edit_form_keeps_saved_room_when_map_re_syncs_same_venue(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'created_by' => $user->id,
+            'name' => 'Self Host Venue',
+        ]);
+        $room = Place::factory()->room($venue)->create([
+            'created_by' => $user->id,
+            'name' => 'Saved Room Name',
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $room->id,
+            'starts_at' => now()->addWeek(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('self_hosted_room_name', 'Saved Room Name')
+            ->assertSet('self_hosted_venue_place_id', $venue->id)
+            ->assertSet('place_ids', [$venue->id])
+            // Map init debounces the same venue selection again — must not wipe the room.
+            ->set('place_ids', [$venue->id])
+            ->assertSet('self_hosted_room_name', 'Saved Room Name')
+            ->assertSeeHtml('value="Saved Room Name"');
     }
 }

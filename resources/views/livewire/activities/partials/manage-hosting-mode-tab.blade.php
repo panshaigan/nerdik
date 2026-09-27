@@ -60,6 +60,7 @@
                         <x-input
                             id="self_hosted_room_name"
                             wire:model="self_hosted_room_name"
+                            value="{{ $this->self_hosted_room_name }}"
                             :label="__('ui.slots.room_optional')"
                             error-field="self_hosted_room_name"
                             autocomplete="off"
