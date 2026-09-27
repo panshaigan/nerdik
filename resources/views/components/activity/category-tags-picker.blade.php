@@ -57,7 +57,8 @@
     $showIcon = false;
 @endphp
 
-<div data-activity-tag-picker>
+{{-- wire:ignore: chips are painted by JS; Livewire morph would wipe them (tab switches, validation). --}}
+<div data-activity-tag-picker wire:ignore>
     <script type="application/json" data-atp-config>@json(array_merge($cfg, ['inputPlaceholder' => $atpInputPlaceholder]))</script>
     <div class="{{ $rowClass }}">
         @foreach ($categoriesOrdered as $cat)

@@ -31,6 +31,25 @@ class ManageActivityFormUiTest extends TestCase
             ->assertDontSeeHtml('activity-name-suggestions-popup');
     }
 
+    public function test_edit_form_loads_assigned_tags_into_picker_config(): void
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+        $activity->tags()->attach($tag->id);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('tag_ids', [(int) $tag->id])
+            ->assertSee('"initialSelectedIds":['.(int) $tag->id.']', false)
+            ->assertSeeHtml('data-activity-tag-picker wire:ignore')
+            ->set('tab', 'tags')
+            ->assertSet('tag_ids', [(int) $tag->id]);
+    }
+
     public function test_edit_form_clamps_legacy_min_participants_below_one(): void
     {
         $user = User::factory()->create();

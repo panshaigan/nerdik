@@ -112,6 +112,41 @@ function bootTagSelectors() {
     }));
 }
 
+function bootActivityTagPickersFeature() {
+    if (document.querySelector('[data-activity-tag-picker]') === null) {
+        return;
+    }
+
+    // Re-call boot on every feature pass: loadOnce only caches the import; fresh morph/
+    // navigate roots (without data-atp-initialized) still need initActivityTagPicker.
+    loadOnce('activity-tag-pickers', true, () => import('./activity-tag-picker')).then((mod) => {
+        mod?.bootActivityTagPickers?.();
+    });
+}
+
+let livewireActivityTagPickerMorphHookRegistered = false;
+
+function registerLivewireActivityTagPickerMorphHook() {
+    if (livewireActivityTagPickerMorphHookRegistered) {
+        return true;
+    }
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
+        return false;
+    }
+    livewireActivityTagPickerMorphHookRegistered = true;
+    window.Livewire.hook('morphed', () => {
+        requestAnimationFrame(() => bootActivityTagPickersFeature());
+    });
+
+    return true;
+}
+
+document.addEventListener('livewire:init', registerLivewireActivityTagPickerMorphHook);
+document.addEventListener('livewire:initialized', registerLivewireActivityTagPickerMorphHook);
+document.addEventListener('DOMContentLoaded', registerLivewireActivityTagPickerMorphHook);
+window.addEventListener('load', registerLivewireActivityTagPickerMorphHook);
+registerLivewireActivityTagPickerMorphHook();
+
 function bootBrowseDateRangePickersOnDemand() {
     document.querySelectorAll('[data-browse-date-range]').forEach((root) => {
         if (!(root instanceof HTMLElement) || root.dataset.dateRangeLoaderBound === '1') {
@@ -166,11 +201,7 @@ function bootFeatureModules() {
         () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
     );
     bootTagSelectors();
-    loadOnce(
-        'activity-tag-pickers',
-        document.querySelector('[data-activity-tag-picker]') !== null,
-        () => import('./activity-tag-picker').then(({ bootActivityTagPickers }) => bootActivityTagPickers()),
-    );
+    bootActivityTagPickersFeature();
     loadOnce(
         'datetime-pickers',
         document.querySelector('input[type="datetime-local"]') !== null,
