@@ -74,6 +74,31 @@ class CatalogPagesTest extends TestCase
             ->assertDontSeeHtml('data-ui="organization-contact-popover-requests"');
     }
 
+    public function test_organization_catalog_shows_edit_icon_for_owner(): void
+    {
+        $owner = User::factory()->create(['is_event_organizer' => true]);
+        $organization = Organization::factory()->create([
+            'created_by' => $owner->id,
+            'name' => 'Catalog Editable Org Marker',
+        ]);
+        Organization::factory()->create([
+            'name' => 'Catalog Other Org Marker',
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(CatalogOrganizations::class)
+            ->assertSeeHtml('data-ui="catalog-organization-edit"')
+            ->assertSee(route('organizations.edit', $organization), false);
+    }
+
+    public function test_organization_catalog_hides_edit_icon_for_guest(): void
+    {
+        Organization::factory()->create(['name' => 'Catalog Guest Org Marker']);
+
+        Livewire::test(CatalogOrganizations::class)
+            ->assertDontSeeHtml('data-ui="catalog-organization-edit"');
+    }
+
     public function test_guest_can_view_series_catalog_and_non_public_series_are_hidden(): void
     {
         $owner = User::factory()->create();

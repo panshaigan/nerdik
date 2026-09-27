@@ -179,6 +179,27 @@ final class EntityLinksTest extends TestCase
     }
 
     #[Test]
+    public function manage_entity_links_teleports_modals_outside_parent_forms(): void
+    {
+        $owner = User::factory()->create();
+        $organization = Organization::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $html = Livewire::actingAs($owner)
+            ->test(ManageEntityLinks::class, [
+                'linkable' => $organization,
+                'showAddButton' => true,
+            ])
+            ->html();
+
+        $this->assertStringContainsString('data-ui="entity-links-modals"', $html);
+        $this->assertStringContainsString('x-teleport="body"', $html);
+        $this->assertStringContainsString('data-ui="entity-links-modal"', $html);
+    }
+
+    #[Test]
     public function rejects_non_http_urls_and_supports_update_and_delete(): void
     {
         $owner = User::factory()->create();

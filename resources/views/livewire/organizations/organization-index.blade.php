@@ -51,7 +51,7 @@
                         </div>
                     </button>
                     @canModifyEntity($organization)
-                    <div class="flex shrink-0 items-center gap-1">
+                    <div class="flex shrink-0 items-center gap-1" data-ui="organization-index-actions">
                         <livewire:user-requests.invite-user-request
                             type="organization_invite"
                             :subject-id="$organization->id"
@@ -61,21 +61,21 @@
                         <x-button
                             :link="route('organizations.edit', $organization)"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
-                            :title="__('ui.common.edit')"
+                            icon="o-pencil"
+                            :tooltip="__('ui.common.edit')"
                             :aria-label="__('ui.common.edit').': '.$organization->name"
-                        >
-                            <x-ui.icons.pencil class="h-5 w-5 shrink-0" />
-                        </x-button>
+                            data-ui="organization-index-edit"
+                        />
                         <x-button
                             type="button"
                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-error"
+                            icon="o-trash"
                             wire:click="deleteOrganization({{ $organization->id }})"
                             wire:confirm="{{ __('ui.organizations.delete_confirm') }}"
-                            :title="__('ui.common.delete')"
+                            :tooltip="__('ui.common.delete')"
                             :aria-label="__('ui.common.delete').': '.$organization->name"
-                        >
-                            <x-ui.icons.trash class="h-5 w-5 shrink-0" />
-                        </x-button>
+                            data-ui="organization-index-delete"
+                        />
                     </div>
                     @endcanModifyEntity
                 </li>

@@ -180,6 +180,18 @@
                 {{ __('ui.organizations.events') }}
             </x-button>
 
+            @canModifyEntity($targetOrganization)
+                <x-button
+                    :link="route('organizations.edit', $targetOrganization)"
+                    class="btn-outline btn-block"
+                    icon="o-pencil"
+                    wire:navigate
+                    data-ui="organization-contact-popover-edit"
+                >
+                    {{ __('ui.organizations.edit') }}
+                </x-button>
+            @endcanModifyEntity
+
             @if ($canRequestJoin)
                 <div data-ui="organization-contact-popover-requests">
                     <livewire:user-requests.send-user-request

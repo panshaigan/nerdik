@@ -93,72 +93,79 @@
 
     @auth
         @if ($canManage)
-            <dialog
-                id="{{ $modalId }}"
-                class="modal backdrop-blur"
-                data-ui="entity-links-modal"
-                wire:ignore.self
-            >
-                <div class="modal-box max-w-lg ui-modal-surface">
-                    <form method="dialog" tabindex="-1">
-                        <button
-                            type="submit"
-                            class="btn btn-circle btn-sm btn-ghost absolute end-2 top-2 z-[999]"
-                            aria-label="{{ __('ui.common.close') }}"
-                            tabindex="-1"
-                        >
-                            <x-mary-icon name="o-x-mark" class="h-4 w-4" />
-                        </button>
-                    </form>
+            {{-- Teleport modal chrome out of any parent <form> (e.g. organization edit).
+                 Nested <form> tags close the outer form in HTML parsing, which silently
+                 breaks the parent submit button. --}}
+            @teleport('body')
+                <div data-ui="entity-links-modals" data-entity-links-key="{{ $listenerKey }}">
+                    <dialog
+                        id="{{ $modalId }}"
+                        class="modal backdrop-blur"
+                        data-ui="entity-links-modal"
+                        wire:ignore.self
+                    >
+                        <div class="modal-box max-w-lg ui-modal-surface">
+                            <form method="dialog" tabindex="-1">
+                                <button
+                                    type="submit"
+                                    class="btn btn-circle btn-sm btn-ghost absolute end-2 top-2 z-[999]"
+                                    aria-label="{{ __('ui.common.close') }}"
+                                    tabindex="-1"
+                                >
+                                    <x-mary-icon name="o-x-mark" class="h-4 w-4" />
+                                </button>
+                            </form>
 
-                    <h3 class="text-lg font-semibold pr-10">
-                        {{ $editingLinkId ? __('ui.entity_links.edit_action') : __('ui.entity_links.add_action') }}
-                    </h3>
+                            <h3 class="text-lg font-semibold pr-10">
+                                {{ $editingLinkId ? __('ui.entity_links.edit_action') : __('ui.entity_links.add_action') }}
+                            </h3>
 
-                    <form wire:submit.prevent="saveLink" class="mt-4 space-y-4" data-ui="entity-links-form">
-                        <div>
-                            <x-input
-                                wire:model="linkName"
-                                :label="__('ui.entity_links.name')"
-                                omit-error
-                                data-ui="entity-links-name"
-                            />
-                            <x-field-error :messages="$errors->get('linkName')" class="mt-1" />
-                        </div>
-                        <div>
-                            <x-input
-                                wire:model="linkUrl"
-                                type="text"
-                                inputmode="url"
-                                :label="__('ui.entity_links.url')"
-                                placeholder="https://example.com"
-                                omit-error
-                                data-ui="entity-links-url"
-                            />
-                            <x-field-error :messages="$errors->get('linkUrl')" class="mt-1" />
-                        </div>
+                            <form wire:submit.prevent="saveLink" class="mt-4 space-y-4" data-ui="entity-links-form">
+                                <div>
+                                    <x-input
+                                        wire:model="linkName"
+                                        :label="__('ui.entity_links.name')"
+                                        omit-error
+                                        data-ui="entity-links-name"
+                                    />
+                                    <x-field-error :messages="$errors->get('linkName')" class="mt-1" />
+                                </div>
+                                <div>
+                                    <x-input
+                                        wire:model="linkUrl"
+                                        type="text"
+                                        inputmode="url"
+                                        :label="__('ui.entity_links.url')"
+                                        placeholder="https://example.com"
+                                        omit-error
+                                        data-ui="entity-links-url"
+                                    />
+                                    <x-field-error :messages="$errors->get('linkUrl')" class="mt-1" />
+                                </div>
 
-                        <div class="modal-action">
-                            <x-button type="button" class="btn-outline" onclick="this.closest('dialog')?.close()">
-                                {{ __('ui.common.cancel') }}
-                            </x-button>
-                            <x-button type="submit" class="btn-primary" data-ui="entity-links-save">
-                                {{ __('ui.common.save') }}
-                            </x-button>
+                                <div class="modal-action">
+                                    <x-button type="button" class="btn-outline" onclick="this.closest('dialog')?.close()">
+                                        {{ __('ui.common.cancel') }}
+                                    </x-button>
+                                    <x-button type="submit" class="btn-primary" data-ui="entity-links-save">
+                                        {{ __('ui.common.save') }}
+                                    </x-button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                        <form method="dialog" class="modal-backdrop">
+                            <button type="submit" class="btn-ghost" aria-label="{{ __('ui.common.cancel') }}">{{ __('ui.common.cancel') }}</button>
+                        </form>
+                    </dialog>
+
+                    <x-ui.confirm-modal
+                        wire:model="confirmDeleteOpen"
+                        :title="__('ui.entity_links.remove_action')"
+                        :message="__('ui.entity_links.remove_confirm')"
+                        confirm-action="deleteLink"
+                    />
                 </div>
-                <form method="dialog" class="modal-backdrop">
-                    <button type="submit" class="btn-ghost" aria-label="{{ __('ui.common.cancel') }}">{{ __('ui.common.cancel') }}</button>
-                </form>
-            </dialog>
-
-            <x-ui.confirm-modal
-                wire:model="confirmDeleteOpen"
-                :title="__('ui.entity_links.remove_action')"
-                :message="__('ui.entity_links.remove_confirm')"
-                confirm-action="deleteLink"
-            />
+            @endteleport
         @endif
     @endauth
 </div>
