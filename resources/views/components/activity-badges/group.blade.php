@@ -4,7 +4,7 @@
         $visibleLimit = $shouldCollapse ? $collapseAfter : count($items);
     @endphp
     <div
-        @if ($shouldCollapse) x-data="{ expanded: false }" @endif
+        x-data="{ expanded: false }"
         {{ $attributes->class(['my-2', 'flex', 'flex-wrap', 'gap-x-1', 'gap-y-3', 'ui-activity-badge-tags']) }}
         @if (filled($dataUi)) data-ui="{{ $dataUi }}" @endif
     >

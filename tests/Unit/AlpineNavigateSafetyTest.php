@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit;
+
+use App\Domain\ActivityBadges\ActivityBadgeItem;
+use App\Domain\ActivityBadges\ActivityBadgeKind;
+use App\Enums\BadgeSemantic;
+use App\View\Components\Ui\ActivityBadgeGroup;
+use Illuminate\Support\Facades\Blade;
+use Tests\TestCase;
+
+final class AlpineNavigateSafetyTest extends TestCase
+{
+    public function test_tab_guards_selected_expressions(): void
+    {
+        $html = Blade::render('<x-tab name="events" label="Events" />');
+
+        $this->assertStringContainsString("typeof selected !== 'undefined'", $html);
+        $this->assertStringContainsString("typeof selected !== 'undefined' && selected === 'events'", $html);
+    }
+
+    public function test_tabs_with_toolbar_guards_selected_in_tab_buttons(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.tabs-with-toolbar selected="events" label-div-class="flex gap-5 px-1">
+                <x-tab name="events" label="Events" icon="o-calendar-days" />
+            </x-ui.tabs-with-toolbar>
+        BLADE);
+
+        $this->assertStringContainsString("typeof selected !== 'undefined' && selected === tab.name", $html);
+    }
+
+    public function test_popover_uses_is_open_instead_of_open(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-popover>
+                <x-slot:trigger><button type="button">Trigger</button></x-slot:trigger>
+                <x-slot:content>Tip</x-slot:content>
+            </x-popover>
+        BLADE);
+
+        $this->assertStringContainsString('isOpen', $html);
+        $this->assertStringContainsString('x-show="isOpen"', $html);
+        $this->assertStringNotContainsString('x-show="open"', $html);
+    }
+
+    public function test_overflow_menu_uses_is_open_instead_of_open(): void
+    {
+        $html = Blade::render(
+            '<x-ui.overflow-menu icon="o-share" label="Share"><span>item</span></x-ui.overflow-menu>'
+        );
+
+        $this->assertStringContainsString('isOpen', $html);
+        $this->assertStringContainsString(':aria-expanded="isOpen"', $html);
+        $this->assertStringNotContainsString(':aria-expanded="open"', $html);
+    }
+
+    public function test_activity_badge_group_always_provides_expanded_scope(): void
+    {
+        config(['activity-badges.collapse_after' => 6]);
+
+        $html = Blade::renderComponent(new ActivityBadgeGroup(
+            items: [
+                new ActivityBadgeItem(
+                    ActivityBadgeKind::TaxonomyTag,
+                    'tag:1',
+                    'One',
+                    BadgeSemantic::Neutral,
+                ),
+            ],
+        ));
+
+        $this->assertStringContainsString('x-data="{ expanded: false }"', $html);
+        $this->assertStringNotContainsString('data-ui="activity-badge-group-toggle"', $html);
+    }
+}

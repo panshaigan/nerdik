@@ -116,7 +116,9 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSeeHtml('href="'.route('events.show', $event).'"')
             ->assertSee(__('ui.events.show_details'))
             ->assertSeeHtml('data-ui="overlay-sheet"')
-            ->assertSeeHtml('data-ui="listing-event-preview-actions"');
+            ->assertSeeHtml('data-ui="listing-event-preview-actions"')
+            ->assertSeeHtml("{'modal-open !animate-none': isOpen}")
+            ->assertSeeHtml('syncDialog');
     }
 
     public function test_open_listing_event_preview_shows_short_propose_cta_when_eligible(): void

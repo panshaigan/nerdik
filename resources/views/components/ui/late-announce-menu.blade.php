@@ -20,17 +20,17 @@
 <div
     {{ $attributes->except('data-ui')->class('relative inline-flex') }}
     x-data="{
-        open: false,
+        isOpen: false,
         openUpward: {{ $openUpward ? 'true' : 'false' }},
         menuStyle: '',
         toggle() {
-            if (this.open) {
+            if (this.isOpen) {
                 this.close();
                 return;
             }
 
             this.$dispatch('ui-overflow-menu-open', { el: this.$el });
-            this.open = true;
+            this.isOpen = true;
             this.$nextTick(() => {
                 requestAnimationFrame(() => {
                     this.updatePosition();
@@ -39,13 +39,13 @@
             });
         },
         close() {
-            this.open = false;
+            this.isOpen = false;
             this.menuStyle = '';
         },
         updatePosition() {
             const trigger = this.$refs.trigger;
             const panel = this.$refs.panel;
-            if (! trigger || ! panel || ! this.open) {
+            if (! trigger || ! panel || ! this.isOpen) {
                 return;
             }
 
@@ -74,7 +74,7 @@
             }
         },
         onWindowPointerDown(event) {
-            if (! this.open) {
+            if (! this.isOpen) {
                 return;
             }
             if (this.$refs.trigger?.contains(event.target) || this.$refs.panel?.contains(event.target)) {
@@ -89,7 +89,7 @@
     x-on:ui-overflow-menu-open.window="if ($event.detail.el !== $el) close()"
     x-on:keydown.escape.window="close()"
     x-on:pointerdown.window="onWindowPointerDown($event)"
-    x-on:resize.window="open && updatePosition()"
+    x-on:resize.window="isOpen && updatePosition()"
 >
     <button
         type="button"
@@ -99,7 +99,7 @@
             'text-warning' => $hasLate,
         ])
         x-on:click.stop="toggle()"
-        :aria-expanded="open"
+        :aria-expanded="isOpen"
         aria-haspopup="dialog"
         aria-label="{{ $label }}"
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
@@ -112,7 +112,7 @@
     <div
         x-ref="panel"
         x-cloak
-        x-bind:class="open ? 'flex' : 'hidden'"
+        x-bind:class="isOpen ? 'flex' : 'hidden'"
         role="dialog"
         aria-modal="true"
         aria-label="{{ $label }}"

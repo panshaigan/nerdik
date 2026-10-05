@@ -124,6 +124,7 @@ final class ActivityBadgeGroupViewTest extends TestCase
 
         $this->assertStringNotContainsString('data-ui="activity-badge-group-toggle"', $html);
         $this->assertStringNotContainsString(__('ui.common.show_more'), $html);
+        $this->assertStringContainsString('x-data="{ expanded: false }"', $html);
     }
 
     public function test_badge_group_collapse_can_be_disabled_via_prop(): void

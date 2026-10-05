@@ -82,7 +82,7 @@
                         x-init="if (typeof tab == 'undefined') $el.remove()"
                         x-html="tab.label"
                         @click="tab.disabled ? null: selectTab(tab.name)"
-                        :class="{ '{{ $activeClass }} tab-active': selected === tab.name, 'hidden': tab.hidden }"
+                        :class="{ '{{ $activeClass }} tab-active': typeof selected !== 'undefined' && selected === tab.name, 'hidden': tab.hidden }"
                         class="tab {{ $labelClass }} [&_.inline-flex>div:last-child]:hidden @2xl:[&_.inline-flex>div:last-child]:inline @max-2xl:[&_.inline-flex>*:first-child]:!me-0 @max-2xl:tooltip @max-2xl:tooltip-top"
                     ></button>
                 </template>

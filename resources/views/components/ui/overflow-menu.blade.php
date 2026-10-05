@@ -14,17 +14,17 @@
 <div
     {{ $attributes->except('data-ui')->class('relative') }}
     x-data="{
-        open: false,
+        isOpen: false,
         openUpward: @js((bool) $openUpward),
         menuStyle: '',
         toggle() {
-            if (this.open) {
+            if (this.isOpen) {
                 this.close();
                 return;
             }
 
             this.$dispatch('ui-overflow-menu-open', { el: this.$el });
-            this.open = true;
+            this.isOpen = true;
             this.$nextTick(() => {
                 requestAnimationFrame(() => {
                     this.updatePosition();
@@ -33,7 +33,7 @@
             });
         },
         close() {
-            this.open = false;
+            this.isOpen = false;
         },
         updatePosition() {
             const trigger = this.$refs.trigger;
@@ -62,7 +62,7 @@
             }
         },
         onWindowClick(event) {
-            if (! this.open) {
+            if (! this.isOpen) {
                 return;
             }
             if (this.$refs.trigger?.contains(event.target) || this.$refs.panel?.contains(event.target)) {
@@ -74,15 +74,15 @@
     x-on:ui-overflow-menu-open.window="if ($event.detail.el !== $el) close()"
     x-on:keydown.escape.window="close()"
     x-on:click.window="onWindowClick($event)"
-    x-on:resize.window="open && updatePosition()"
-    x-on:scroll.window.passive="open && close()"
+    x-on:resize.window="isOpen && updatePosition()"
+    x-on:scroll.window.passive="isOpen && close()"
 >
     <button
         type="button"
         x-ref="trigger"
         class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
         x-on:click.stop="toggle()"
-        :aria-expanded="open"
+        :aria-expanded="isOpen"
         aria-haspopup="menu"
         aria-label="{{ $label }}"
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
@@ -95,7 +95,7 @@
     <template x-teleport="body">
         <ul
             x-ref="panel"
-            x-bind:class="open ? 'flex' : 'hidden'"
+            x-bind:class="isOpen ? 'flex' : 'hidden'"
             x-on:click="close()"
             role="menu"
             class="ui-overflow-menu-panel fixed z-[10000] flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 light:border-neutral {{ $panelClass }}"

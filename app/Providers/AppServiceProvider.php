@@ -23,6 +23,9 @@ use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
 use App\Services\ActivityFamiliarityService;
 use App\View\Components\Editor;
+use App\View\Components\Modal;
+use App\View\Components\Popover;
+use App\View\Components\Tab;
 use App\View\Components\ThemeToggle;
 use App\View\Composers\SeoComposer;
 use Carbon\Carbon;
@@ -122,6 +125,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->booted(static function (): void {
             Blade::component('editor', Editor::class);
             Blade::component('theme-toggle', ThemeToggle::class);
+            Blade::component('modal', Modal::class);
+            Blade::component('tab', Tab::class);
+            Blade::component('popover', Popover::class);
         });
 
         Blade::if('canModifyEntity', static function (mixed $entity): bool {
