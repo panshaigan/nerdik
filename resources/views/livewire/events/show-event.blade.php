@@ -265,7 +265,6 @@
             <x-tab name="plan" :label="__('ui.events.show_plan')" class="!p-0" data-ui="event-show-tab-plan" icon="o-calendar-days">
                 @if (in_array('plan', $mountedTabs, true))
                     <livewire:events.event-show-plan-tab
-                        lazy
                         :event-id="$eventId"
                         :active-tab="$tab"
                         :attached-activity-ids="$attachedActivityIds"

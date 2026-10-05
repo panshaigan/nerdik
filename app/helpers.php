@@ -463,9 +463,9 @@ if (! function_exists('rich_text')) {
     /**
      * Purified HTML safe for {!! rich_text($model->description) !!} in Blade.
      */
-    function rich_text(?string $stored): HtmlString
+    function rich_text(?string $stored, bool $prioritizeFirstImage = false): HtmlString
     {
-        return RichText::html($stored);
+        return RichText::html($stored, $prioritizeFirstImage);
     }
 }
 

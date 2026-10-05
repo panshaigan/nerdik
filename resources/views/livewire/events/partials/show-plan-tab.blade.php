@@ -98,7 +98,7 @@
                 <x-slot:content>
                     @if ($hasEventDescription)
                         <div class="rich-text-content text-base-content/80 p-1" data-ui="event-show-plan-info-description">
-                            {!! rich_text($event->description) !!}
+                            {!! rich_text($event->description, prioritizeFirstImage: true) !!}
                         </div>
                     @endif
 

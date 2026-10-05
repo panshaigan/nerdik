@@ -20,7 +20,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
@@ -31,7 +30,6 @@ use Mary\Traits\Toast;
  * Programme / slots panel for {@see ShowEvent}. Mounted only when the shell `tab` is `plan`.
  * Tab selection and `?tab=` live on the parent; do not bind `tab` to the query string here.
  */
-#[Lazy]
 class EventShowPlanTab extends Component
 {
     use AuthorizesOwnership;
@@ -80,15 +78,6 @@ class EventShowPlanTab extends Component
 
     /** Activity ids the current user has marked interested (updated live on toggle). */
     public array $interestedActivityIds = [];
-
-    public function placeholder(): string
-    {
-        return <<<'HTML'
-        <div class="flex min-h-[16rem] items-center justify-center p-8" data-ui="event-show-plan-tab-placeholder">
-            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
-        </div>
-        HTML;
-    }
 
     public function hydrate(): void
     {

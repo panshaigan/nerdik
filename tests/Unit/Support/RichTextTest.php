@@ -78,4 +78,31 @@ final class RichTextTest extends TestCase
         $this->assertStringContainsString('sizes="(max-width: 40rem) 100vw, 32rem"', $output);
         $this->assertStringContainsString('float-right', $output);
     }
+
+    public function test_html_prioritizes_first_image_when_opted_in(): void
+    {
+        $stored = '<p><img src="https://example.com/cover.jpg" alt="Cover" class="float-right" width="353" height="500"></p>';
+
+        $output = (string) RichText::html($stored, prioritizeFirstImage: true);
+
+        $this->assertStringContainsString('loading="eager"', $output);
+        $this->assertStringContainsString('fetchpriority="high"', $output);
+        $this->assertStringNotContainsString('loading="lazy"', $output);
+    }
+
+    public function test_html_keeps_subsequent_images_lazy_when_prioritizing_first(): void
+    {
+        $stored = '<p>'
+            .'<img src="https://example.com/cover.jpg" alt="Cover" class="float-right">'
+            .'<img src="https://example.com/other.jpg" alt="Other">'
+            .'</p>';
+
+        $output = (string) RichText::html($stored, prioritizeFirstImage: true);
+
+        $this->assertStringContainsString('src="https://example.com/cover.jpg"', $output);
+        $this->assertStringContainsString('src="https://example.com/other.jpg"', $output);
+        $this->assertEquals(1, substr_count($output, 'loading="eager"'));
+        $this->assertEquals(1, substr_count($output, 'fetchpriority="high"'));
+        $this->assertEquals(1, substr_count($output, 'loading="lazy"'));
+    }
 }

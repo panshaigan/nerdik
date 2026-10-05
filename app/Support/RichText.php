@@ -38,7 +38,7 @@ final class RichText
     /**
      * Safe HTML for Blade: purify again on output, then wrap for unescaped rendering.
      */
-    public static function html(?string $stored): HtmlString
+    public static function html(?string $stored, bool $prioritizeFirstImage = false): HtmlString
     {
         if ($stored === null || $stored === '') {
             return new HtmlString('');
@@ -47,7 +47,7 @@ final class RichText
         $clean = Purify::config('tinymce')->clean($stored);
         $clean = is_string($clean) ? $clean : '';
 
-        return new HtmlString(self::enhanceImages($clean));
+        return new HtmlString(self::enhanceImages($clean, $prioritizeFirstImage));
     }
 
     /**
@@ -65,7 +65,7 @@ final class RichText
         return Str::limit($plain, $limit);
     }
 
-    private static function enhanceImages(string $html): string
+    private static function enhanceImages(string $html, bool $prioritizeFirstImage = false): string
     {
         if ($html === '' || ! str_contains(strtolower($html), '<img')) {
             return $html;
@@ -82,12 +82,18 @@ final class RichText
             return $html;
         }
 
+        $isFirstImage = true;
+
         foreach ($document->getElementsByTagName('img') as $image) {
             if (! $image instanceof DOMElement) {
                 continue;
             }
 
-            if (! $image->hasAttribute('loading')) {
+            if ($prioritizeFirstImage && $isFirstImage) {
+                $image->setAttribute('loading', 'eager');
+                $image->setAttribute('fetchpriority', 'high');
+                $isFirstImage = false;
+            } elseif (! $image->hasAttribute('loading')) {
                 $image->setAttribute('loading', 'lazy');
             }
 
@@ -98,6 +104,8 @@ final class RichText
             if (! $image->hasAttribute('sizes')) {
                 $image->setAttribute('sizes', '(max-width: 40rem) 100vw, 32rem');
             }
+
+            $isFirstImage = false;
         }
 
         $root = $document->getElementById('nerdik-rich-text-root');
