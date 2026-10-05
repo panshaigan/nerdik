@@ -196,13 +196,27 @@ function bootTinyMceFieldChrome() {
     loadOnce('tinymce-field-chrome', shouldLoad, () => import('./tinymce-field-chrome'));
 }
 
+function pageNeedsImageCropper() {
+    return document.querySelector(
+        '#ui-image-crop-modal, [data-image-crop-dropzone], form[data-activity-form], form[data-event-form], form[data-org-form], #ui-profile-avatar-form',
+    ) !== null;
+}
+
+function bootImageCropperFeature() {
+    if (! pageNeedsImageCropper()) {
+        return;
+    }
+
+    // Re-call boot on every feature pass: loadOnce only caches the import; morph/navigate
+    // can insert dropzones after logo_source toggles on create forms.
+    loadOnce('image-cropper', true, () => import('./image-cropper')).then((mod) => {
+        mod?.bootImageCropper?.();
+    });
+}
+
 function bootFeatureModules() {
     bootTinyMceFieldChrome();
-    loadOnce(
-        'image-cropper',
-        document.querySelector('[data-image-crop-dropzone]') !== null,
-        () => import('./image-cropper').then(({ bootImageCropper }) => bootImageCropper()),
-    );
+    bootImageCropperFeature();
     loadOnce(
         'maps',
         document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map], [data-place-location-map]') !== null,

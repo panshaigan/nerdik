@@ -13,6 +13,19 @@ class ManageEventFormUiTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_create_form_renders_crop_modal_before_upload_dropzone(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->html();
+
+        $this->assertStringContainsString('id="ui-image-crop-modal"', $html);
+        $this->assertStringContainsString('data-event-form', $html);
+        $this->assertStringNotContainsString('data-image-crop-dropzone', $html);
+    }
+
     public function test_save_switches_to_main_details_tab_when_name_missing_from_another_tab(): void
     {
         $user = User::factory()->organizer()->create();

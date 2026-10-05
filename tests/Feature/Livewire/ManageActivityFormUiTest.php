@@ -126,6 +126,19 @@ class ManageActivityFormUiTest extends TestCase
             ->assertSeeHtml('data-ui="activity-manage-tab-participation-rules"');
     }
 
+    public function test_create_form_renders_crop_modal_before_upload_dropzone(): void
+    {
+        $user = User::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->html();
+
+        $this->assertStringContainsString('id="ui-image-crop-modal"', $html);
+        $this->assertStringContainsString('data-activity-form', $html);
+        $this->assertStringNotContainsString('data-image-crop-dropzone', $html);
+    }
+
     public function test_save_switches_to_participation_rules_tab_when_mode_invalid(): void
     {
         $this->seed(ActivityTypeSeeder::class);

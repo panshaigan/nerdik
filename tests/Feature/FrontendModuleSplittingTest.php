@@ -36,7 +36,9 @@ final class FrontendModuleSplittingTest extends TestCase
         $source = (string) file_get_contents(resource_path('js/app.js'));
 
         $this->assertStringContainsString('document.body?.dataset?.userId', $source);
-        $this->assertStringContainsString('[data-image-crop-dropzone]', $source);
+        $this->assertStringContainsString('#ui-image-crop-modal', $source);
+        $this->assertStringContainsString('form[data-activity-form]', $source);
+        $this->assertStringContainsString('bootImageCropperFeature', $source);
         $this->assertStringContainsString('[data-browse-date-range]', $source);
         $this->assertStringContainsString('dateRangeLoaderBound', $source);
         $this->assertStringContainsString('event.stopImmediatePropagation();', $source);
