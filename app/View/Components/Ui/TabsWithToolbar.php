@@ -15,6 +15,7 @@ use Mary\View\Components\Tabs;
  * children continue to register into the parent `tabs` array. Use for pages that need actions
  * beside tab labels (e.g. activity show, event show). On small screens the label bar sticks
  * under the fixed nav (see data-ui="tabs-toolbar-chrome"); overlays use overlay-sticky-tabs instead.
+ * Tab buttons live in [role=tablist]; panels scroll in [data-ui=tabs-panels].
  */
 class TabsWithToolbar extends Component
 {

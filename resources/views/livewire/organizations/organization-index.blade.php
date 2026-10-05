@@ -37,7 +37,11 @@
                                     src="{{ $organization->logoUrl() }}"
                                     alt="{{ $organization->name }}"
                                     class="h-full w-full object-cover"
+                                    width="40"
+                                    height="40"
+                                    sizes="40px"
                                     loading="lazy"
+                                    decoding="async"
                                 />
                             </div>
                         </div>

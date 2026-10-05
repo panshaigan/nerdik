@@ -299,6 +299,7 @@
                                                             wire:click="removeActivityInterest({{ (int) $activity->id }})"
                                                             class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
                                                             :tooltip="__('ui.interests.remove_from_interests')"
+                                                            :aria-label="__('ui.interests.remove_from_interests')"
                                                             data-ui="event-show-slot-interest-remove"
                                                             icon="s-star"
                                                         />
@@ -308,6 +309,7 @@
                                                             wire:click="addActivityInterest({{ (int) $activity->id }})"
                                                             class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
                                                             :tooltip="__('ui.interests.add_to_interests')"
+                                                            :aria-label="__('ui.interests.add_to_interests')"
                                                             data-ui="event-show-slot-interest-add"
                                                             icon="o-star"
                                                         />
@@ -360,7 +362,7 @@
                                         <div class="min-w-0 flex-1 space-y-1.5">
                                             @if ($activity)
                                                 <div class="flex items-baseline gap-2">
-                                                    <h4 class="min-w-0 flex-1 truncate text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h4>
+                                                    <h2 class="min-w-0 flex-1 truncate text-base font-semibold leading-snug text-base-content">{{ $activity->name }}</h2>
                                                     <span class="inline-flex shrink-0 items-center gap-1.5 text-sm tabular-nums text-base-content/75" title="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}" aria-label="{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}">
                                                         <x-icon name="o-users" class="h-4 w-4 shrink-0 text-base-content/50" />
                                                         <span>{{ (int) ($activity->participants_count ?? 0) }}/{{ $activity->max_participants ?? '∞' }}</span>

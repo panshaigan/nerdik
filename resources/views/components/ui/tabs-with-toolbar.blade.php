@@ -20,7 +20,12 @@
                 @endif,
             preserveScroll: {{ $preserveScroll ? 'true' : 'false' }},
             restoreScroll: null,
+            hostId: 'tabs-' + Math.random().toString(36).slice(2, 9),
+            rootEl: null,
             init() {
+                this.rootEl = this.$el;
+                this.$nextTick(() => this.syncTabAria());
+
                 if (! this.preserveScroll) {
                     return;
                 }
@@ -51,6 +56,25 @@
 
                 this.selected = name;
             },
+            syncTabAria() {
+                const root = this.rootEl || this.$el;
+
+                this.tabs.forEach((tab) => {
+                    const button = root.querySelector('[role=tab][data-tab-name=\'' + tab.name + '\']');
+                    const panel = root.querySelector('[role=tabpanel][data-tab-panel=\'' + tab.name + '\']');
+
+                    if (! button || ! panel) {
+                        return;
+                    }
+
+                    const buttonId = this.hostId + '-tab-' + tab.name;
+                    const panelId = this.hostId + '-tab-panel-' + tab.name;
+                    button.id = buttonId;
+                    button.setAttribute('aria-controls', panelId);
+                    panel.id = panelId;
+                    panel.setAttribute('aria-labelledby', buttonId);
+                });
+            },
             plainTabLabel(tab) {
                 if (! tab?.label) {
                     return '';
@@ -65,21 +89,28 @@
     class="{{ $tabsClass }}"
 >
     <div {{ $tabListAttributes->class(['flex min-h-0 flex-1 flex-col']) }}>
-    {{-- Chrome must be a direct sibling of [role=tablist] so sticky's parent is the tall column. --}}
+    {{-- Chrome must be a direct sibling of [data-ui=tabs-panels] so sticky's parent is the tall column. --}}
     <div data-ui="tabs-toolbar-chrome">
         @isset($heading)
             {{ $heading }}
         @endisset
         <div class="{{ $labelBarClass }}">
-            <div class="{{ $labelDivClass }} @container min-w-0 flex-1">
+            <div
+                class="{{ $labelDivClass }} @container min-w-0 flex-1"
+                role="tablist"
+                aria-label="{{ __('ui.common.tabs') }}"
+                x-effect="syncTabAria()"
+            >
                 <template x-for="tab in tabs" :key="tab.name">
                     <button
                         type="button"
                         role="tab"
+                        :aria-selected="typeof selected !== 'undefined' && selected === tab.name"
+                        :tabindex="typeof selected !== 'undefined' && selected === tab.name ? 0 : -1"
                         :data-tab-name="tab.name"
                         :data-tip="plainTabLabel(tab)"
                         :aria-label="plainTabLabel(tab)"
-                        x-init="if (typeof tab == 'undefined') $el.remove()"
+                        x-init="if (typeof tab == 'undefined') { $el.remove() } else { syncTabAria() }"
                         x-html="tab.label"
                         @click="tab.disabled ? null: selectTab(tab.name)"
                         :class="{ '{{ $activeClass }} tab-active': typeof selected !== 'undefined' && selected === tab.name, 'hidden': tab.hidden }"
@@ -95,7 +126,7 @@
         </div>
     </div>
 
-    <div role="tablist" class="relative block">
+    <div data-ui="tabs-panels" class="relative block">
         @isset($panelOverlay)
             {{ $panelOverlay }}
         @endisset

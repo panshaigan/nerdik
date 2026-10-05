@@ -103,6 +103,7 @@ return [
         'bg_color' => 'Kolor tła',
         'text_color' => 'Kolor tekstu',
         'click_for_details' => 'Kliknij, aby zobaczyć więcej',
+        'tabs' => 'Karty',
     ],
     'entity_links' => [
         'add_action' => 'Dodaj link',

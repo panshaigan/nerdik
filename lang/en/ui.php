@@ -103,6 +103,7 @@ return [
         'bg_color' => 'Background color',
         'text_color' => 'Text color',
         'click_for_details' => 'Click here for more details',
+        'tabs' => 'Tabs',
     ],
     'entity_links' => [
         'add_action' => 'Add link',

@@ -125,6 +125,11 @@ return [
             'sizes' => '100vw',
             'max_srcset_width' => 1536,
         ],
+        'page_backdrop' => [
+            'sizes' => '100vw',
+            'display_width' => 768,
+            'max_srcset_width' => 1024,
+        ],
     ],
 
     /*

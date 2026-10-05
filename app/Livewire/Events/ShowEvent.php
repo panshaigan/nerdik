@@ -459,7 +459,7 @@ class ShowEvent extends Component
 
         return view('livewire.events.show-event', [
             'event' => $event,
-            'coverPicture' => $eventListingImageResolver->resolve($event, 'listing_hero'),
+            'coverPicture' => $eventListingImageResolver->resolve($event, 'page_backdrop'),
             'sharePayload' => $shareLinks->forEvent($event),
             'calendarPayload' => $calendarLinks->forEvent($event),
             'attachedActivityIds' => $eventActivityIds,

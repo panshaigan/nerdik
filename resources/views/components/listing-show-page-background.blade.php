@@ -13,6 +13,7 @@
                 :picture="$picture"
                 class="h-full w-full object-cover"
                 loading="eager"
+                fetchpriority="low"
             />
         </div>
         <div class="absolute inset-0 bg-base-100/35"></div>

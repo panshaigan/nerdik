@@ -46,6 +46,11 @@
         'lg' => 'h-11 w-11 text-base',
         default => 'h-9 w-9 text-sm',
     };
+    $avatarPixelSize = match ($size) {
+        'sm' => 32,
+        'lg' => 44,
+        default => 36,
+    };
     $canRenderOrganizationPopover = auth()->check() && $contactPopover && $organization !== null;
     $canRenderContactPopover = auth()->check() && $contactPopover && $user !== null && ! $usesOrganization;
     $resolvedContactTooltip = is_string($contactTooltip) && $contactTooltip !== ''
@@ -127,7 +132,11 @@
                 src="{{ $resolvedAvatarUrl }}"
                 alt="{{ $resolvedName }}"
                 class="h-full w-full object-cover"
+                width="{{ $avatarPixelSize }}"
+                height="{{ $avatarPixelSize }}"
+                sizes="{{ $avatarPixelSize }}px"
                 loading="lazy"
+                decoding="async"
                 @if ($trackNavAvatar) data-nav-user-avatar @endif
             />
         </div>
@@ -147,7 +156,11 @@
                     src="{{ $resolvedAvatarUrl }}"
                     alt="{{ $resolvedName }}"
                     class="h-full w-full object-cover"
+                    width="{{ $avatarPixelSize }}"
+                    height="{{ $avatarPixelSize }}"
+                    sizes="{{ $avatarPixelSize }}px"
                     loading="lazy"
+                    decoding="async"
                     @if ($trackNavAvatar) data-nav-user-avatar @endif
                 />
             </div>

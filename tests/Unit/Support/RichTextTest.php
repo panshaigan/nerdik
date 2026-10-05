@@ -66,4 +66,16 @@ final class RichTextTest extends TestCase
         $this->assertStringContainsString('float:right', $output);
         $this->assertStringContainsString('<td>Cell</td>', $output);
     }
+
+    public function test_html_adds_lazy_loading_to_images(): void
+    {
+        $stored = '<p><img src="https://example.com/a.jpg" alt="Cover" class="float-right"></p>';
+
+        $output = (string) RichText::html($stored);
+
+        $this->assertStringContainsString('loading="lazy"', $output);
+        $this->assertStringContainsString('decoding="async"', $output);
+        $this->assertStringContainsString('sizes="(max-width: 40rem) 100vw, 32rem"', $output);
+        $this->assertStringContainsString('float-right', $output);
+    }
 }

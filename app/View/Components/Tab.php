@@ -76,7 +76,14 @@ class Tab extends Component
                             "
                     ></a>
 
-                    <div x-show="typeof selected !== 'undefined' && selected === '{{ $name }}'" role="tabpanel" {{ $attributes->class("tab-content py-5 px-1") }}>
+                    <div
+                        x-show="typeof selected !== 'undefined' && selected === '{{ $name }}'"
+                        x-init="typeof syncTabAria === 'function' && syncTabAria()"
+                        role="tabpanel"
+                        data-tab-panel="{{ $name }}"
+                        tabindex="0"
+                        {{ $attributes->class("tab-content py-5 px-1") }}
+                    >
                         {{ $slot }}
                     </div>
                 HTML;

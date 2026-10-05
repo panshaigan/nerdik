@@ -22,6 +22,7 @@ use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
 use App\Services\ActivityFamiliarityService;
+use App\View\Components\Collapse;
 use App\View\Components\Editor;
 use App\View\Components\Modal;
 use App\View\Components\Popover;
@@ -135,6 +136,7 @@ class AppServiceProvider extends ServiceProvider
             Blade::component('theme-toggle', ThemeToggle::class);
             Blade::component('modal', Modal::class);
             Blade::component('tab', Tab::class);
+            Blade::component('collapse', Collapse::class);
             Blade::component('popover', Popover::class);
         });
 

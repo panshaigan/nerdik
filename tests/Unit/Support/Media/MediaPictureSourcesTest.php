@@ -90,6 +90,25 @@ final class MediaPictureSourcesTest extends TestCase
     }
 
     #[Test]
+    public function page_backdrop_preset_caps_srcset_below_hero_widths(): void
+    {
+        config([
+            'media.test_profile' => 'full',
+            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+        ]);
+
+        $tag = Tag::factory()->create();
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-tag-hero.jpg');
+
+        $sources = MediaPictureSources::fromMediaWithPreset($media, 'page_backdrop', 'Backdrop');
+        $webpSrcset = $sources->webpSrcset();
+
+        $this->assertSame('100vw', $sources->sizes());
+        $this->assertLessThanOrEqual(1024, $this->largestSrcsetWidth($webpSrcset));
+        $this->assertStringNotContainsString('1536w', $webpSrcset);
+    }
+
+    #[Test]
     public function display_src_picks_smallest_fitting_responsive_candidate(): void
     {
         $tag = Tag::factory()->create();

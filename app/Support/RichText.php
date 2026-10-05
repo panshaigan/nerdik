@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use DOMDocument;
+use DOMElement;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Stevebauman\Purify\Facades\Purify;
@@ -43,8 +45,9 @@ final class RichText
         }
 
         $clean = Purify::config('tinymce')->clean($stored);
+        $clean = is_string($clean) ? $clean : '';
 
-        return new HtmlString(is_string($clean) ? $clean : '');
+        return new HtmlString(self::enhanceImages($clean));
     }
 
     /**
@@ -60,6 +63,54 @@ final class RichText
         $plain = trim(strip_tags(is_string($clean) ? $clean : ''));
 
         return Str::limit($plain, $limit);
+    }
+
+    private static function enhanceImages(string $html): string
+    {
+        if ($html === '' || ! str_contains(strtolower($html), '<img')) {
+            return $html;
+        }
+
+        $document = new DOMDocument;
+        $wrapped = '<?xml encoding="utf-8"?><div id="nerdik-rich-text-root">'.$html.'</div>';
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $document->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if ($loaded !== true) {
+            return $html;
+        }
+
+        foreach ($document->getElementsByTagName('img') as $image) {
+            if (! $image instanceof DOMElement) {
+                continue;
+            }
+
+            if (! $image->hasAttribute('loading')) {
+                $image->setAttribute('loading', 'lazy');
+            }
+
+            if (! $image->hasAttribute('decoding')) {
+                $image->setAttribute('decoding', 'async');
+            }
+
+            if (! $image->hasAttribute('sizes')) {
+                $image->setAttribute('sizes', '(max-width: 40rem) 100vw, 32rem');
+            }
+        }
+
+        $root = $document->getElementById('nerdik-rich-text-root');
+        if ($root === null) {
+            return $html;
+        }
+
+        $inner = '';
+        foreach ($root->childNodes as $child) {
+            $inner .= $document->saveHTML($child);
+        }
+
+        return $inner;
     }
 
     private static function isEffectivelyEmptyHtml(string $html): bool

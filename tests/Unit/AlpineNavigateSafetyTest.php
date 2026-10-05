@@ -43,6 +43,42 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString("typeof selected !== 'undefined' && selected === tab.name", $html);
     }
 
+    public function test_tabs_with_toolbar_places_tab_buttons_inside_tablist(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-ui.tabs-with-toolbar selected="description" label-div-class="flex gap-5 px-1">
+                <x-tab name="description" label="Description" icon="o-document-text" />
+            </x-ui.tabs-with-toolbar>
+        BLADE);
+
+        $this->assertStringContainsString('role="tablist"', $html);
+        $this->assertStringContainsString('data-ui="tabs-panels"', $html);
+        $this->assertStringContainsString('role="tab"', $html);
+        $this->assertStringContainsString(':aria-selected=', $html);
+        $this->assertStringContainsString('role="tabpanel"', $html);
+        $this->assertStringContainsString('data-tab-panel=', $html);
+        $this->assertStringContainsString('syncTabAria()', $html);
+        $this->assertStringContainsString('x-effect="syncTabAria()"', $html);
+        $this->assertDoesNotMatchRegularExpression('/role="tablist"[^>]*>\s*<div[^>]*role="tabpanel"/', $html);
+    }
+
+    public function test_collapse_associates_heading_with_checkbox(): void
+    {
+        $html = Blade::render(<<<'BLADE'
+            <x-collapse>
+                <x-slot:heading>Section title</x-slot:heading>
+                <x-slot:content>Body</x-slot:content>
+            </x-collapse>
+        BLADE);
+
+        $this->assertStringContainsString('id="checkbox-', $html);
+        $this->assertStringContainsString('type="checkbox"', $html);
+        $this->assertStringContainsString('<label', $html);
+        $this->assertStringContainsString('for="checkbox-', $html);
+        $this->assertStringContainsString('collapse-title', $html);
+        $this->assertStringContainsString('Section title', $html);
+    }
+
     public function test_popover_uses_is_open_instead_of_open(): void
     {
         $html = Blade::render(<<<'BLADE'

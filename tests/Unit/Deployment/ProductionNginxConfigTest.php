@@ -35,6 +35,10 @@ final class ProductionNginxConfigTest extends TestCase
         $organizationLogosBlock = $this->locationBlock('location ^~ /storage/organization-logos/');
         $this->assertStringContainsString('max-age=2592000', $organizationLogosBlock);
         $this->assertStringNotContainsString('immutable', $organizationLogosBlock);
+
+        $editorBlock = $this->locationBlock('location ^~ /storage/editor/');
+        $this->assertStringContainsString('max-age=2592000', $editorBlock);
+        $this->assertStringNotContainsString('immutable', $editorBlock);
     }
 
     private function locationBlock(string $location): string

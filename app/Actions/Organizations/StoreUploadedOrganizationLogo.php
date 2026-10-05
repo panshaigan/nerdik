@@ -12,7 +12,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 final class StoreUploadedOrganizationLogo
 {
-    private const int LOGO_SIZE = 512;
+    private const int LOGO_SIZE = 256;
 
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
