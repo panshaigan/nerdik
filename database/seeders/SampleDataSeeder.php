@@ -96,8 +96,7 @@ class SampleDataSeeder extends Seeder
 
     public static function resolveDatasetFromEnv(): int
     {
-        $raw = getenv('SEED_DATASET');
-        $value = strtolower((string) ($raw !== false ? $raw : env('SEED_DATASET', 'minimal')));
+        $value = strtolower((string) config('app.seed_dataset', 'minimal'));
 
         return match ($value) {
             'standard' => self::DATASET_STANDARD,

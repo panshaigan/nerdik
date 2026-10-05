@@ -179,4 +179,27 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated proxy IPs, or "*" when TLS terminates at a reverse proxy.
+    | Used by bootstrap/app.php to configure trusted proxy middleware.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sample Seed Dataset
+    |--------------------------------------------------------------------------
+    |
+    | Volume for `make seed` / `make refresh`: minimal, standard, or maximal.
+    |
+    */
+
+    'seed_dataset' => env('SEED_DATASET', 'minimal'),
+
 ];

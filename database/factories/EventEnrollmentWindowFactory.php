@@ -48,12 +48,12 @@ final class EventEnrollmentWindowFactory extends Factory
                 return;
             }
 
-            $window->update([
+            $window->forceFill([
                 'starts_at' => fake()->dateTimeBetween('now', '+1 week')
                     ->setTime(fake()->numberBetween(9, 17), 0, 0),
                 'ends_at' => $event->ends_at,
                 'created_by' => $event->created_by,
-            ]);
+            ])->save();
         });
     }
 }

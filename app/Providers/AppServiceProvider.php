@@ -33,6 +33,7 @@ use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event as EventFacade;
@@ -75,6 +76,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $trustedProxies = config('app.trusted_proxies');
+
+        if (filled($trustedProxies)) {
+            TrustProxies::at(
+                $trustedProxies === '*'
+                    ? '*'
+                    : array_map(trim(...), explode(',', (string) $trustedProxies)),
+            );
+        }
+
         Gate::define('viewPulse', fn (User $user): bool => $user->is_admin === true);
 
         if ($this->app->environment('production')) {
