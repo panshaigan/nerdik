@@ -207,11 +207,9 @@ function bootImageCropperFeature() {
         return;
     }
 
-    // Re-call boot on every feature pass: loadOnce only caches the import; morph/navigate
-    // can insert dropzones after logo_source toggles on create forms.
-    loadOnce('image-cropper', true, () => import('./image-cropper')).then((mod) => {
-        mod?.bootImageCropper?.();
-    });
+    // Import only; image-cropper.js binds document listeners once (event delegation).
+    // Do not re-boot on every MutationObserver pass — that aborts listeners mid file pick.
+    loadOnce('image-cropper', true, () => import('./image-cropper'));
 }
 
 function bootFeatureModules() {

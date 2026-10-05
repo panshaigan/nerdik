@@ -6,6 +6,8 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const ZOOM_RANGE_MULTIPLIER = 3;
 
 let imageCropperAbort;
+let imageCropperListenersActive = false;
+let livewireImageCropperMorphHookRegistered = false;
 let cropperInstance = null;
 let currentForm = null;
 let currentDropzone = null;
@@ -49,14 +51,22 @@ function getZoomInput() {
     return document.querySelector('[data-image-crop-zoom]');
 }
 
-function resolveForm(dropzone) {
-    const selector = dropzone?.dataset?.imageCropForm;
-    if (selector) {
-        if (selector.startsWith('#') || selector.startsWith('[')) {
-            return document.querySelector(selector);
-        }
+function resolveFormSelector(raw) {
+    if (! raw) {
+        return null;
+    }
 
-        return dropzone.closest(selector) ?? document.querySelector(`[${selector}]`);
+    if (raw.startsWith('#') || raw.startsWith('[')) {
+        return raw;
+    }
+
+    return `[${raw}]`;
+}
+
+function resolveForm(dropzone) {
+    const selector = resolveFormSelector(dropzone?.dataset?.imageCropForm);
+    if (selector) {
+        return dropzone.closest(selector) ?? document.querySelector(selector);
     }
 
     return dropzone?.closest('form') ?? null;
@@ -757,10 +767,57 @@ function findDropzoneFromEvent(event, selector) {
     return event.target?.closest(selector) ?? null;
 }
 
+function syncDropzoneAfterMorph(dropzone) {
+    const form = resolveForm(dropzone);
+    if (! form) {
+        return;
+    }
+
+    const config = getDropzoneConfig(dropzone);
+    const wire = findLivewireUploadComponent(form);
+    const hasUpload =
+        wire && typeof wire.get === 'function'
+            ? wire.get(config.wireProperty) != null
+            : false;
+
+    if (! hasUpload) {
+        resetPendingCropUi(form, dropzone, { resetPreview: false });
+    }
+}
+
+function registerLivewireImageCropperMorphHook() {
+    if (livewireImageCropperMorphHookRegistered) {
+        return true;
+    }
+
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
+        return false;
+    }
+
+    livewireImageCropperMorphHookRegistered = true;
+    window.Livewire.hook('morph.updated', ({ el }) => {
+        el.querySelectorAll?.('[data-image-crop-dropzone]')?.forEach((dropzone) => {
+            syncDropzoneAfterMorph(dropzone);
+        });
+
+        if (el.matches?.('[data-image-crop-dropzone]')) {
+            syncDropzoneAfterMorph(el);
+        }
+    });
+
+    return true;
+}
+
 export function bootImageCropper() {
-    imageCropperAbort?.abort();
+    if (imageCropperListenersActive) {
+        return;
+    }
+
+    imageCropperListenersActive = true;
     imageCropperAbort = new AbortController();
     const { signal } = imageCropperAbort;
+
+    registerLivewireImageCropperMorphHook();
 
     document.addEventListener(
         'change',
@@ -961,46 +1018,11 @@ export function bootImageCropper() {
         },
         { signal },
     );
-
-    if (typeof window.Livewire?.hook === 'function') {
-        window.Livewire.hook('morph.updated', ({ el }) => {
-            el.querySelectorAll?.('[data-image-crop-dropzone]')?.forEach((dropzone) => {
-                const form = resolveForm(dropzone);
-                if (!form) {
-                    return;
-                }
-
-                const config = getDropzoneConfig(dropzone);
-                const wire = findLivewireUploadComponent(form);
-                const hasUpload =
-                    wire && typeof wire.get === 'function'
-                        ? wire.get(config.wireProperty) != null
-                        : false;
-
-                if (!hasUpload) {
-                    resetPendingCropUi(form, dropzone, { resetPreview: false });
-                }
-            });
-
-            if (el.matches?.('[data-image-crop-dropzone]')) {
-                const form = resolveForm(el);
-                const config = getDropzoneConfig(el);
-                const wire = form ? findLivewireUploadComponent(form) : null;
-                const hasUpload =
-                    wire && typeof wire.get === 'function'
-                        ? wire.get(config.wireProperty) != null
-                        : false;
-
-                if (!hasUpload && form) {
-                    resetPendingCropUi(form, el, { resetPreview: false });
-                }
-            }
-        });
-    }
 }
 
 document.addEventListener('livewire:navigating', () => {
     imageCropperAbort?.abort();
+    imageCropperListenersActive = false;
     destroyCropperInstance();
     currentForm = null;
     currentDropzone = null;
@@ -1009,6 +1031,10 @@ document.addEventListener('livewire:navigating', () => {
     originalSourceFile = null;
     hasPendingCrop = false;
 });
+
+document.addEventListener('livewire:init', registerLivewireImageCropperMorphHook);
+document.addEventListener('livewire:initialized', registerLivewireImageCropperMorphHook);
+registerLivewireImageCropperMorphHook();
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootImageCropper, { once: true });
