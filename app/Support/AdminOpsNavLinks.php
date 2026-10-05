@@ -119,6 +119,10 @@ final class AdminOpsNavLinks
                 'label' => __('ui.nav.google_search_console'),
                 'url' => config('services.google.search_console_url'),
             ],
+            [
+                'label' => __('ui.nav.pagespeed'),
+                'url' => self::pageSpeedInsightsUrl(),
+            ],
         ];
     }
 
@@ -192,6 +196,26 @@ final class AdminOpsNavLinks
         }
 
         return $links;
+    }
+
+    private static function pageSpeedInsightsUrl(): ?string
+    {
+        $productionUrl = config('app.environment_urls.production');
+
+        if (! is_string($productionUrl) || $productionUrl === '') {
+            return null;
+        }
+
+        $targetUrl = self::withCurrentPage($productionUrl);
+
+        return 'https://pagespeed.web.dev/analysis/'
+            .self::encodePageSpeedAnalysisPath($targetUrl)
+            .'?form_factor=mobile';
+    }
+
+    private static function encodePageSpeedAnalysisPath(string $url): string
+    {
+        return str_replace(['://', '.', '/'], '-', $url);
     }
 
     /**

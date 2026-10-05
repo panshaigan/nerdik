@@ -96,11 +96,56 @@ final class AdminOpsNavLinksTest extends TestCase
             __('ui.nav.sentry'),
             __('ui.nav.umami'),
             __('ui.nav.google_search_console'),
+            __('ui.nav.pagespeed'),
             __('ui.nav.support'),
             __('ui.nav.brevo'),
             __('ui.nav.adminer'),
             __('ui.nav.hosting_manager'),
         ], $labels);
+    }
+
+    #[Test]
+    public function it_builds_pagespeed_link_for_production_url_and_current_route(): void
+    {
+        $this->setRequestUri('/search');
+
+        Config::set('app.url', 'http://localhost');
+        Config::set('app.environment_urls.production', 'https://nerdik.app');
+        Config::set('app.environment_urls.staging', null);
+        Config::set('app.environment_urls.development', null);
+        Config::set('sentry.dashboard_url', null);
+        Config::set('mail.support_mailbox_url', null);
+        Config::set('umami.dashboard_url', null);
+        Config::set('services.google.search_console_url', null);
+        Config::set('mail.brevo_dashboard_url', null);
+        Config::set('services.adminer.url', null);
+        Config::set('services.hosting_manager.url', null);
+
+        $urls = array_column(AdminOpsNavLinks::items(), 'url');
+
+        $this->assertContains(
+            'https://pagespeed.web.dev/analysis/https-nerdik-app-search?form_factor=mobile',
+            $urls,
+        );
+    }
+
+    #[Test]
+    public function it_omits_pagespeed_link_when_production_url_is_unconfigured(): void
+    {
+        Config::set('app.environment_urls.production', null);
+        Config::set('app.environment_urls.staging', null);
+        Config::set('app.environment_urls.development', null);
+        Config::set('sentry.dashboard_url', null);
+        Config::set('mail.support_mailbox_url', null);
+        Config::set('umami.dashboard_url', null);
+        Config::set('services.google.search_console_url', null);
+        Config::set('mail.brevo_dashboard_url', null);
+        Config::set('services.adminer.url', null);
+        Config::set('services.hosting_manager.url', null);
+
+        $labels = array_column(AdminOpsNavLinks::items(), 'label');
+
+        $this->assertNotContains(__('ui.nav.pagespeed'), $labels);
     }
 
     #[Test]

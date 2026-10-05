@@ -289,6 +289,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee(__('ui.nav.support'), false)
             ->assertSee(__('ui.nav.umami'), false)
             ->assertSee(__('ui.nav.google_search_console'), false)
+            ->assertSee(__('ui.nav.pagespeed'), false)
             ->assertSee(__('ui.nav.brevo'), false)
             ->assertSee(__('ui.nav.adminer'), false)
             ->assertSee(__('ui.nav.hosting_manager'), false)
@@ -300,6 +301,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee('https://mail.example/inbox', false)
             ->assertSee('https://umami.example/website', false)
             ->assertSee('https://search.google.example/console', false)
+            ->assertSee('https://pagespeed.web.dev/analysis/https-nerdik-app-dashboard?form_factor=mobile', false)
             ->assertSee('https://brevo.example/logs', false)
             ->assertSee('https://adminer.example', false)
             ->assertSee('https://hosting.example/dashboard', false);

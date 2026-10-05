@@ -35,6 +35,7 @@ return [
         'support' => 'Wsparcie',
         'umami' => 'Umami',
         'google_search_console' => 'Search Console',
+        'pagespeed' => 'PageSpeed',
         'brevo' => 'Brevo',
         'adminer' => 'Adminer',
         'hosting_manager' => 'Panel hostingu',
