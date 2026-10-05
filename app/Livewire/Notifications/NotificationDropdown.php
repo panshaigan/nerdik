@@ -14,8 +14,6 @@ class NotificationDropdown extends Component
 
     public const PREVIEW_LIMIT = 8;
 
-    public string $variant = 'desktop';
-
     #[On('database-notifications-updated')]
     public function refreshNotificationDropdown(): void
     {

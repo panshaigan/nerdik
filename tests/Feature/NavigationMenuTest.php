@@ -185,7 +185,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee('data-ui="nav-request-organizer"', false)
             ->assertDontSee(__('ui.me.menu_events'), false)
             ->assertSee(__('ui.me.menu_activities'), false)
-            ->assertSee(__('Log Out'), false)
+            ->assertSee(__('ui.nav.log_out'), false)
             ->assertDontSee('window.toggleTheme()', false);
     }
 
@@ -232,9 +232,14 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSee('data-ui="nav-requests"', false);
 
+        $html = $response->getContent();
+
+        $this->assertSame(1, substr_count($html, 'data-ui="nav-requests"'));
+        $this->assertSame(1, substr_count($html, 'data-ui="nav-notifications"'));
+
         $this->assertMatchesRegularExpression(
             '/data-ui="nav-requests"[\s\S]*?<span[^>]*>\s*1\s*<\/span>/',
-            $response->getContent(),
+            $html,
         );
     }
 

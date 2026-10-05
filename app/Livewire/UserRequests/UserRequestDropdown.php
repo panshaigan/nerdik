@@ -13,8 +13,6 @@ class UserRequestDropdown extends Component
 {
     public const PREVIEW_LIMIT = 8;
 
-    public string $variant = 'desktop';
-
     #[On('user-requests-updated')]
     #[On('database-notifications-updated')]
     public function refreshRequestDropdown(): void

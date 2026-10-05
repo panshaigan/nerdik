@@ -1,22 +1,15 @@
-@php
-    $triggerClass = $variant === 'mobile'
-        ? 'relative btn btn-ghost btn-square rounded-md opacity-70 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none'
-        : 'relative btn btn-circle btn-ghost';
-    $iconClass = $variant === 'mobile' ? 'h-6 w-6' : 'h-5 w-5';
-@endphp
-
 <div>
     @if ($hasAnyRequests)
         <div class="dropdown dropdown-end relative z-50" data-ui="nav-requests">
             <div
                 tabindex="0"
                 role="button"
-                class="{{ $triggerClass }}"
+                class="relative btn btn-ghost btn-square sm:btn-circle rounded-md sm:rounded-full opacity-70 sm:opacity-100 transition duration-150 ease-in-out hover:bg-base-200 hover:opacity-100 focus:outline-none"
                 aria-label="{{ __('ui.nav.requests') }}"
                 aria-haspopup="true"
                 data-ui="nav-requests-trigger"
             >
-                <x-mary-icon name="o-inbox-arrow-down" class="{{ $iconClass }}" />
+                <x-mary-icon name="o-inbox-arrow-down" class="h-6 w-6 sm:h-5 sm:w-5" />
                 @if ($pendingBadge !== null)
                     <span
                         class="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-content"
