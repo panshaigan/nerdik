@@ -15,6 +15,17 @@ use Illuminate\Support\Collection;
  */
 class TagBuilder extends Builder
 {
+    public function unused(): self
+    {
+        return $this->whereDoesntHave('activities');
+    }
+
+    public function createdByNonAdminUser(): self
+    {
+        return $this->whereNotNull('created_by')
+            ->whereHas('creator', fn (Builder $query): Builder => $query->where('is_admin', false));
+    }
+
     public function ofCategory(string $categoryKey): self
     {
         $categoryId = TagCategory::idByKey($categoryKey);
