@@ -138,8 +138,8 @@ class Dashboard extends Component
             ->filter()
             ->values();
 
-        $feedHourGroups = $this->paginateHourGroups(
-            $feedPresentation->hourGroupsForFeedItems($feedItems),
+        $feedMonthGroups = $this->paginateMonthGroups(
+            $feedPresentation->monthGroupsForFeedItems($feedItems),
         );
 
         $interestedEventIds = $user->interestedEvents()->pluck('events.id')->map(fn ($id) => (int) $id)->all();
@@ -176,7 +176,7 @@ class Dashboard extends Component
             'upcomingInterestedActivitiesCount' => $upcomingActivityStats['interested'],
             'upcomingParticipatingActivitiesCount' => $upcomingActivityStats['participating'],
             'upcomingCreatedActivitiesCount' => $upcomingActivityStats['created'],
-            'feedHourGroups' => $feedHourGroups,
+            'feedMonthGroups' => $feedMonthGroups,
             'interestedEventIds' => $interestedEventIds,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
@@ -198,13 +198,13 @@ class Dashboard extends Component
     }
 
     /**
-     * @param  list<array{label: string, items: Collection, starts_at: ?Carbon}>  $hourGroups
+     * @param  list<array{label: string, items: Collection, starts_at: ?Carbon}>  $monthGroups
      */
-    private function paginateHourGroups(array $hourGroups): LengthAwarePaginator
+    private function paginateMonthGroups(array $monthGroups): LengthAwarePaginator
     {
         $page = $this->getPage();
-        $total = count($hourGroups);
-        $slice = collect($hourGroups)->forPage($page, self::GROUPS_PER_PAGE)->values();
+        $total = count($monthGroups);
+        $slice = collect($monthGroups)->forPage($page, self::GROUPS_PER_PAGE)->values();
 
         return new LengthAwarePaginator(
             $slice,

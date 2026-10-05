@@ -13,7 +13,7 @@
                 $now = now();
                 $autoOpenDone = false;
             @endphp
-            @if ($feedHourGroups->isEmpty())
+            @if ($feedMonthGroups->isEmpty())
                 <p class="text-sm opacity-70">{{ __('ui.dashboard.empty') }}</p>
             @else
                 <div class="relative min-h-[12rem]">
@@ -22,7 +22,7 @@
                         data-ui="dashboard-feed-loading"
                     />
                     <ul class="space-y-6">
-                        @foreach ($feedHourGroups as $group)
+                        @foreach ($feedMonthGroups as $group)
                             @php
                                 $groupStartsAt = $group['starts_at'] ?? null;
                                 $groupItems = $group['items'] ?? collect();
@@ -63,9 +63,9 @@
                     </ul>
                 </div>
 
-                @if ($feedHourGroups->hasPages())
+                @if ($feedMonthGroups->hasPages())
                     <div class="mt-5" data-ui="dashboard-feed-pagination">
-                        {{ $feedHourGroups->links() }}
+                        {{ $feedMonthGroups->links() }}
                     </div>
                 @endif
             @endif

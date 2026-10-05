@@ -16,96 +16,96 @@ class DashboardTimelineFeedTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_dashboard_groups_items_in_the_same_hour_under_one_timeline_heading(): void
+    public function test_dashboard_groups_items_in_the_same_month_under_one_timeline_heading(): void
     {
         $viewer = User::factory()->create();
         $organizer = User::factory()->create();
-        $sharedStart = now()->addDays(2)->setTime(14, 30);
+        $sharedMonthStart = now()->addMonths(2)->setDay(12)->setTime(14, 30);
 
         $event = Event::factory()->create([
-            'name' => 'Timeline Same Hour Event',
+            'name' => 'Timeline Same Month Event',
             'created_by' => $organizer->id,
-            'starts_at' => $sharedStart,
-            'ends_at' => $sharedStart->copy()->addHours(2),
+            'starts_at' => $sharedMonthStart,
+            'ends_at' => $sharedMonthStart->copy()->addHours(2),
         ]);
 
         $activity = Activity::factory()->create([
-            'name' => 'Timeline Same Hour Activity',
+            'name' => 'Timeline Same Month Activity',
             'created_by' => $organizer->id,
-            'starts_at' => $sharedStart->copy()->addMinutes(15),
-            'ends_at' => $sharedStart->copy()->addHours(3),
+            'starts_at' => $sharedMonthStart->copy()->addDays(5)->setTime(10, 0),
+            'ends_at' => $sharedMonthStart->copy()->addDays(5)->addHours(3),
         ]);
 
         $viewer->interestedEvents()->attach($event->id);
         $viewer->interestedActivities()->attach($activity->id);
 
-        $expectedLabel = format_datetime_in_user_tz($sharedStart, 'ddd, D MMM · HH:00');
+        $expectedLabel = format_datetime_in_user_tz($sharedMonthStart, 'MMMM YYYY');
 
         Livewire::actingAs($viewer)
             ->test(Dashboard::class)
             ->assertSee($expectedLabel)
-            ->assertSee('Timeline Same Hour Event')
-            ->assertSee('Timeline Same Hour Activity')
-            ->assertSeeHtml('data-ui="dashboard-feed-group-'.$sharedStart->getTimestamp().'"')
+            ->assertSee('Timeline Same Month Event')
+            ->assertSee('Timeline Same Month Activity')
+            ->assertSeeHtml('data-ui="dashboard-feed-group-'.$sharedMonthStart->getTimestamp().'"')
             ->assertSeeHtml('ui-dashboard-feed-collapse')
             ->assertSeeHtml('ui-dashboard-feed-collapse-content')
             ->assertSeeHtml('ui-dashboard-feed-listings');
     }
 
-    public function test_dashboard_shows_separate_timeline_headings_for_different_hours(): void
+    public function test_dashboard_shows_separate_timeline_headings_for_different_months(): void
     {
         $viewer = User::factory()->create();
         $organizer = User::factory()->create();
-        $morningStart = now()->addDays(3)->setTime(10, 0);
-        $afternoonStart = now()->addDays(3)->setTime(15, 0);
+        $juneStart = now()->addMonths(3)->setMonth(6)->setDay(10)->setTime(10, 0);
+        $julyStart = now()->addMonths(3)->setMonth(7)->setDay(15)->setTime(15, 0);
 
-        $morningEvent = Event::factory()->create([
-            'name' => 'Timeline Morning Event',
+        $juneEvent = Event::factory()->create([
+            'name' => 'Timeline June Event',
             'created_by' => $organizer->id,
-            'starts_at' => $morningStart,
-            'ends_at' => $morningStart->copy()->addHours(2),
+            'starts_at' => $juneStart,
+            'ends_at' => $juneStart->copy()->addHours(2),
         ]);
 
-        $afternoonActivity = Activity::factory()->create([
-            'name' => 'Timeline Afternoon Activity',
+        $julyActivity = Activity::factory()->create([
+            'name' => 'Timeline July Activity',
             'created_by' => $organizer->id,
-            'starts_at' => $afternoonStart,
-            'ends_at' => $afternoonStart->copy()->addHours(2),
+            'starts_at' => $julyStart,
+            'ends_at' => $julyStart->copy()->addHours(2),
         ]);
 
-        $viewer->interestedEvents()->attach($morningEvent->id);
-        $viewer->interestedActivities()->attach($afternoonActivity->id);
+        $viewer->interestedEvents()->attach($juneEvent->id);
+        $viewer->interestedActivities()->attach($julyActivity->id);
 
-        $morningLabel = format_datetime_in_user_tz($morningStart, 'ddd, D MMM · HH:00');
-        $afternoonLabel = format_datetime_in_user_tz($afternoonStart, 'ddd, D MMM · HH:00');
+        $juneLabel = format_datetime_in_user_tz($juneStart, 'MMMM YYYY');
+        $julyLabel = format_datetime_in_user_tz($julyStart, 'MMMM YYYY');
 
         Livewire::actingAs($viewer)
             ->test(Dashboard::class)
-            ->assertSee($morningLabel)
-            ->assertSee($afternoonLabel)
-            ->assertSee('Timeline Morning Event')
-            ->assertSee('Timeline Afternoon Activity');
+            ->assertSee($juneLabel)
+            ->assertSee($julyLabel)
+            ->assertSee('Timeline June Event')
+            ->assertSee('Timeline July Activity');
     }
 
-    public function test_dashboard_paginates_hour_groups_via_livewire_page(): void
+    public function test_dashboard_paginates_month_groups_via_livewire_page(): void
     {
         $viewer = User::factory()->create();
-        $base = now()->addDays(5)->startOfDay()->addHours(8);
+        $base = now()->addMonths(5)->startOfMonth()->addHours(8);
 
         $firstPageName = 'Dashboard Page One Event';
         $secondPageName = 'Dashboard Page Two Event';
 
         for ($i = 0; $i < 8; $i++) {
-            $startsAt = $base->copy()->addHours($i);
+            $startsAt = $base->copy()->addMonths($i);
             Event::factory()->create([
-                'name' => $i === 0 ? $firstPageName : "Dashboard Hour Group {$i}",
+                'name' => $i === 0 ? $firstPageName : "Dashboard Month Group {$i}",
                 'created_by' => $viewer->id,
                 'starts_at' => $startsAt,
                 'ends_at' => $startsAt->copy()->addHour(),
             ]);
         }
 
-        $secondStartsAt = $base->copy()->addHours(8);
+        $secondStartsAt = $base->copy()->addMonths(8);
         Event::factory()->create([
             'name' => $secondPageName,
             'created_by' => $viewer->id,

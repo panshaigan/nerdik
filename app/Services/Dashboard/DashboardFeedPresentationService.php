@@ -7,7 +7,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
- * Hour-bucket grouping for the dashboard upcoming feed.
+ * Month-bucket grouping for the dashboard upcoming feed.
  */
 class DashboardFeedPresentationService
 {
@@ -15,7 +15,7 @@ class DashboardFeedPresentationService
      * @param  Collection<int, array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}>  $feedItems
      * @return list<array{label: string, items: Collection<int, array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}>, starts_at: ?Carbon}>
      */
-    public function hourGroupsForFeedItems(Collection $feedItems): array
+    public function monthGroupsForFeedItems(Collection $feedItems): array
     {
         $sorted = $feedItems
             ->sortBy(fn (array $item) => $item['starts_at']?->getTimestamp() ?? PHP_INT_MAX)
@@ -28,7 +28,7 @@ class DashboardFeedPresentationService
                 return '__no_time__';
             }
 
-            return $this->hourBucketKey($startsAt);
+            return $this->monthBucketKey($startsAt);
         })->sortKeys();
 
         $out = [];
@@ -40,7 +40,7 @@ class DashboardFeedPresentationService
             $out[] = [
                 'label' => $key === '__no_time__'
                     ? __('ui.events.slots_group_no_time')
-                    : $this->formatHourLabel($firstStartsAt),
+                    : $this->formatMonthLabel($firstStartsAt),
                 'items' => $groupItems->values(),
                 'starts_at' => $firstStartsAt,
             ];
@@ -49,25 +49,21 @@ class DashboardFeedPresentationService
         return $out;
     }
 
-    private function hourBucketKey(CarbonInterface $startsAt): string
+    private function monthBucketKey(CarbonInterface $startsAt): string
     {
         $carbon = $startsAt->copy()
             ->setTimezone(display_timezone())
             ->locale(app()->getLocale());
 
-        return $carbon->format('Y-m-d H');
+        return $carbon->format('Y-m');
     }
 
-    private function formatHourLabel(?CarbonInterface $startsAt): string
+    private function formatMonthLabel(?CarbonInterface $startsAt): string
     {
         if ($startsAt === null) {
             return '';
         }
 
-        $carbon = $startsAt->copy()
-            ->setTimezone(display_timezone())
-            ->locale(app()->getLocale());
-
-        return $carbon->translatedFormat('D, j M').' · '.format_time_in_user_tz($carbon->copy()->startOfHour());
+        return format_datetime_in_user_tz($startsAt, 'MMMM YYYY');
     }
 }
