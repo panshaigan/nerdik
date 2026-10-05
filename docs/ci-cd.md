@@ -172,7 +172,7 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 |---------|-----|
 | `make ci-check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
-| `IMAGE_TAG=<sha|semver> make deploy` | Pin deploy to a GHCR tag |
+| `IMAGE_TAG=<sha\|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |
 | `make artisan …` | Sail locally; compose stack on VPS. Put `bin/` first on `PATH` so `--flags` pass through (see [development-workflow.md](development-workflow.md#make-passthrough-artisan-npm-composer-test)) |
 | `make npm …` / `make composer …` | Sail-only package managers (same `PATH` tweak for `--flags`) |
