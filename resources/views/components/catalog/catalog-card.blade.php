@@ -41,17 +41,10 @@
         ])->merge(['data-ui' => $dataUi]) }}
     >
         @if ($hasCover)
-            <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]" aria-hidden="true">
-                <div class="absolute inset-0 scale-105">
-                    <x-listing-card-picture
-                        :picture="$coverPicture"
-                        class="h-full w-full object-cover"
-                        loading="lazy"
-                    />
-                </div>
-                <div class="absolute inset-0 bg-base-100/85"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-base-100/80 via-base-100/40 to-base-100/25"></div>
-            </div>
+            <x-ui.cover-backdrop
+                :picture="$coverPicture"
+                class="rounded-[inherit]"
+            />
         @endif
         <div
             @class([

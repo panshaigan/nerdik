@@ -300,19 +300,15 @@
         -webkit-mask-image: linear-gradient(
             to top,
             transparent 0%,
-            rgb(0 0 0 / 0.18) 7%,
-            rgb(0 0 0 / 0.42) 13%,
-            rgb(0 0 0 / 0.68) 19%,
-            rgb(0 0 0 / 0.89) 25%,
+            rgb(0 0 0 / 0.45) 14%,
+            rgb(0 0 0 / 0.82) 22%,
             black 30%
         );
         mask-image: linear-gradient(
             to top,
             transparent 0%,
-            rgb(0 0 0 / 0.18) 7%,
-            rgb(0 0 0 / 0.42) 13%,
-            rgb(0 0 0 / 0.68) 19%,
-            rgb(0 0 0 / 0.89) 25%,
+            rgb(0 0 0 / 0.45) 14%,
+            rgb(0 0 0 / 0.82) 22%,
             black 30%
         );
         mask-size: 100% 100%;
@@ -321,46 +317,73 @@
             -webkit-mask-image: linear-gradient(
                 to top,
                 transparent 0%,
-                rgb(0 0 0 / 0.10) 4%,
-                rgb(0 0 0 / 0.26) 8%,
-                rgb(0 0 0 / 0.48) 12%,
-                rgb(0 0 0 / 0.72) 15%,
+                rgb(0 0 0 / 0.28) 10%,
                 black 18%
             );
             mask-image: linear-gradient(
                 to top,
                 transparent 0%,
-                rgb(0 0 0 / 0.10) 4%,
-                rgb(0 0 0 / 0.26) 8%,
-                rgb(0 0 0 / 0.48) 12%,
-                rgb(0 0 0 / 0.72) 15%,
+                rgb(0 0 0 / 0.28) 10%,
                 black 18%
             );
         }
     }
 
     .ui-tile-active {
-        background: color-mix(in oklab, var(--brand-primary) 6%, rgba(255 255 255 / 0.06));
-        backdrop-filter: blur(16px) saturate(1.4);
-        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        background: color-mix(in oklab, var(--brand-primary) 11%, rgba(255 255 255 / 0.1));
 
         border: 1px solid color-mix(in oklab, var(--brand-primary) 34%, transparent);
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 12%, transparent),
-            inset 0 18px 30px -26px color-mix(in oklab, var(--brand-primary) 30%, transparent),
             0 0 22px -18px color-mix(in oklab, var(--brand-primary) 65%, transparent);
     }
 
     .ui-tile-empty {
-        background: color-mix(in oklab, var(--brand-base-100-dark) 6%, rgba(255 255 255 / 0.06));
-        backdrop-filter: blur(16px) saturate(1.4);
-        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        background: color-mix(in oklab, var(--brand-base-100-dark) 12%, rgba(255 255 255 / 0.1));
 
         border: 1px solid color-mix(in oklab, var(--brand-base-100-dark) 34%, transparent);
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--brand-base-100-dark) 12%, transparent),
-            inset 0 18px 30px -26px color-mix(in oklab, var(--brand-base-100-dark) 30%, transparent),
             0 0 22px -18px color-mix(in oklab, var(--brand-base-100-dark) 65%, transparent);
+    }
+
+    /** Cover image stack for plan slots, catalog cards, and series editions. */
+    .ui-cover-backdrop {
+        overflow: hidden;
+    }
+
+    .ui-cover-backdrop__image {
+        position: absolute;
+        inset: 0;
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        transform: scale(1.05);
+    }
+
+    .ui-cover-backdrop picture.ui-cover-backdrop__image {
+        display: block;
+    }
+
+    .ui-cover-backdrop picture.ui-cover-backdrop__image > img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .ui-cover-backdrop::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(
+                to top,
+                color-mix(in oklab, var(--color-base-100) 80%, transparent),
+                color-mix(in oklab, var(--color-base-100) 40%, transparent) 50%,
+                color-mix(in oklab, var(--color-base-100) 25%, transparent)
+            ),
+            color-mix(in oklab, var(--color-base-100) 85%, transparent);
     }
 
     /** Validation summary on manage forms — glass tile with error border, aligned to content cards. */
@@ -1057,20 +1080,6 @@
         0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
 }
 
-@utility tile-* {
-    --_glow-base: --value(--color-*);
-
-    background: color-mix(in oklab, var(--_glow-base) 6%, rgba(255 255 255 / 0.06));
-    backdrop-filter: blur(16px) saturate(1.4);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-
-    border: 1px solid color-mix(in oklab, var(--_glow-base) 34%, transparent);
-    box-shadow:
-        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 12%, transparent),
-        inset 0 18px 30px -26px color-mix(in oklab, var(--_glow-base) 30%, transparent),
-        0 0 22px -18px color-mix(in oklab, var(--_glow-base) 65%, transparent);
-}
-
 @layer utilities {
     /* ====================== CUSTOM BACKGROUNDS ====================== */
     .bg-gradient {
@@ -1184,17 +1193,15 @@
 
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
-            inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 48%, transparent),
             0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
     }
 
     .ui-tile-empty.ui-tile-marked:hover,
     .ui-tile-empty.ui-tile-marked:focus-visible {
         border-color: color-mix(in oklab, var(--brand-secondary) 65%, transparent);
-        background: color-mix(in oklab, var(--brand-secondary) 8%, rgba(255 255 255 / 0.06));
+        background: color-mix(in oklab, var(--brand-secondary) 12%, rgba(255 255 255 / 0.1));
         box-shadow:
             inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 28%, transparent),
-            inset 0 16px 28px -24px color-mix(in oklab, var(--brand-secondary) 52%, transparent),
             0 0 26px -14px color-mix(in oklab, var(--brand-secondary) 78%, transparent);
     }
 
@@ -1232,18 +1239,12 @@
         --ui-listing-card-duration: 0.75s;
         position: relative;
         outline: 0 solid transparent;
-        transform: translate3d(0, 0, 0);
         border-radius: var(--rounded-box, 1rem);
-        box-shadow:
-            0 32px 48px color-mix(in oklch, black 88%, transparent),
-            0 14px 28px color-mix(in oklch, black 72%, transparent);
+        box-shadow: 0 24px 40px color-mix(in oklch, black 80%, transparent);
         transition: transform var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
-            box-shadow:
-                0 28px 40px color-mix(in oklch, var(--brand-neutral-content-dark) 38%, transparent),
-                0 12px 24px color-mix(in oklch, var(--brand-neutral-content-dark) 30%, transparent),
-                0 0 44px color-mix(in oklch, var(--brand-neutral-content-dark) 32%, transparent);
+            box-shadow: 0 20px 36px color-mix(in oklch, var(--brand-neutral-content-dark) 34%, transparent);
         }
     }
 
@@ -1256,21 +1257,15 @@
         pointer-events: none;
         opacity: 0;
         box-shadow:
-            0 40px 56px color-mix(in oklch, black 90%, transparent),
-            0 18px 36px color-mix(in oklch, black 76%, transparent),
-            0 0 64px color-mix(in oklch, var(--brand-accent) 58%, transparent),
-            0 0 40px color-mix(in oklch, var(--brand-primary) 48%, transparent),
-            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
-            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+            0 28px 48px color-mix(in oklch, black 82%, transparent),
+            0 0 48px color-mix(in oklch, var(--brand-accent) 52%, transparent),
+            0 0 32px -8px color-mix(in oklch, var(--brand-primary) 38%, transparent);
         transition: opacity var(--ui-listing-card-duration) var(--ui-listing-card-ease);
 
         @variant light {
             box-shadow:
-                0 0 52px color-mix(in oklch, var(--brand-primary) 36%, transparent),
-                0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
-                0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
-                0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+                0 0 44px color-mix(in oklch, var(--brand-primary) 34%, transparent),
+                0 0 28px -8px color-mix(in oklch, var(--brand-accent) 28%, transparent);
         }
     }
 

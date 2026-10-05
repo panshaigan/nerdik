@@ -139,17 +139,10 @@
                                     data-ui="event-series-edition"
                                 >
                                     @if ($editionCoverPicture?->hasDisplayableImage())
-                                        <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-xl" aria-hidden="true">
-                                            <div class="absolute inset-0 scale-105">
-                                                <x-listing-card-picture
-                                                    :picture="$editionCoverPicture"
-                                                    class="h-full w-full object-cover"
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                            <div class="absolute inset-0 bg-base-100/85"></div>
-                                            <div class="absolute inset-0 bg-gradient-to-t from-base-100/80 via-base-100/40 to-base-100/25"></div>
-                                        </div>
+                                        <x-ui.cover-backdrop
+                                            :picture="$editionCoverPicture"
+                                            class="rounded-xl"
+                                        />
                                     @endif
 
                                     <div class="status-dots-toolbar relative z-[3] flex items-center px-3 pt-2 sm:px-4">
