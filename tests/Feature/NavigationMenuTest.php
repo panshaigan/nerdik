@@ -70,6 +70,18 @@ class NavigationMenuTest extends TestCase
         );
     }
 
+    public function test_authenticated_user_sees_contact_in_profile_menu(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('data-ui="nav-contact"', false)
+            ->assertSee(__('ui.footer.contact'), false)
+            ->assertSee('open-feedback-modal', false);
+    }
+
     public function test_logged_in_user_sees_create_activity_in_profile_menu_but_not_create_event_when_not_organizer(): void
     {
         $user = User::factory()->create([
@@ -164,6 +176,7 @@ class NavigationMenuTest extends TestCase
             ->assertSee(route('notifications.index'), false)
             ->assertDontSee('data-ui="nav-requests"', false)
             ->assertSee('data-ui="nav-account-settings"', false)
+            ->assertSee('data-ui="nav-contact"', false)
             ->assertSee('data-ui="nav-account-header"', false)
             ->assertSee(route('profile'), false)
             ->assertSee(__('ui.nav.account_settings'), false)

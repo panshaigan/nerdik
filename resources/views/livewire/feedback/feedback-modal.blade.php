@@ -166,7 +166,6 @@
                     <x-select
                         wire:model="type"
                         :label="__('feedback.modal.type')"
-                        :placeholder="__('feedback.modal.type')"
                         :options="$this->typeOptions()"
                         required
                         inline

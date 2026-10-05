@@ -25,6 +25,15 @@ class FeedbackModalTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_type_select_does_not_include_redundant_placeholder_option(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(FeedbackModal::class)
+            ->call('openModal')
+            ->assertSee(__('feedback.types.question'), false)
+            ->assertDontSeeHtml('<option value="">'.e(__('feedback.modal.type')).'</option>');
+    }
+
     public function test_type_options_use_mary_select_shape(): void
     {
         $options = (new FeedbackModal)->typeOptions();

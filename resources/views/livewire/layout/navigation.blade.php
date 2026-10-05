@@ -197,6 +197,26 @@ new class extends Component
                                 {{ __('ui.nav.account_settings') }}
                             </a>
                         </li>
+                        <li>
+                            <button
+                                type="button"
+                                class="w-full cursor-pointer text-left"
+                                data-ui="nav-contact"
+                                x-data="{ loadingFeedback: false }"
+                                x-bind:disabled="loadingFeedback"
+                                x-on:click="
+                                    if (loadingFeedback) return;
+                                    loadingFeedback = true;
+                                    Promise.resolve(window.prepareNerdikFeedbackModal?.())
+                                        .catch((error) => console.error('Feedback dependency load failed', error))
+                                        .then(() => $dispatch('open-feedback-modal'))
+                                        .finally(() => loadingFeedback = false);
+                                "
+                            >
+                                <x-icon name="o-chat-bubble-left-right" class="h-4 w-4 shrink-0" />
+                                {{ __('ui.footer.contact') }}
+                            </button>
+                        </li>
                         @if (auth()->user()->canCreateEvents())
                             <li>
                                 <a wire:navigate href="{{ route('organizations.index') }}">
@@ -420,6 +440,27 @@ new class extends Component
                                         <x-icon name="o-cog-6-tooth" class="h-4 w-4 shrink-0" />
                                         {{ __('ui.nav.account_settings') }}
                                     </a>
+                                </li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="w-full cursor-pointer text-left"
+                                        data-ui="nav-contact"
+                                        @click="close()"
+                                        x-data="{ loadingFeedback: false }"
+                                        x-bind:disabled="loadingFeedback"
+                                        x-on:click="
+                                            if (loadingFeedback) return;
+                                            loadingFeedback = true;
+                                            Promise.resolve(window.prepareNerdikFeedbackModal?.())
+                                                .catch((error) => console.error('Feedback dependency load failed', error))
+                                                .then(() => $dispatch('open-feedback-modal'))
+                                                .finally(() => loadingFeedback = false);
+                                        "
+                                    >
+                                        <x-icon name="o-chat-bubble-left-right" class="h-4 w-4 shrink-0" />
+                                        {{ __('ui.footer.contact') }}
+                                    </button>
                                 </li>
                                 @if (auth()->user()->canCreateEvents())
                                     <li>
