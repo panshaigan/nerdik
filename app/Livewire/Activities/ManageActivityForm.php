@@ -664,6 +664,7 @@ class ManageActivityForm extends Component
             ], true)
         ) {
             $this->pendingHostingMode = $nextMode;
+            /** @noinspection PhpFieldImmediatelyRewrittenInspection */
             $this->allowHostingModeChangeWithoutConfirm = true;
             $this->hosting_mode = $prevMode;
             $this->allowHostingModeChangeWithoutConfirm = false;
@@ -715,6 +716,7 @@ class ManageActivityForm extends Component
         }
 
         $targetMode = Activity::HOSTING_MODE_DRAFT;
+        /** @noinspection PhpFieldImmediatelyRewrittenInspection */
         $this->allowHostingModeChangeWithoutConfirm = true;
         $this->hosting_mode = $targetMode;
         $this->allowHostingModeChangeWithoutConfirm = false;

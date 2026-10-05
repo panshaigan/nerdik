@@ -211,6 +211,51 @@ class DeletionAndCancelGatesTest extends TestCase
         $this->assertNull($activity->cancelled_with_event_id);
     }
 
+    public function test_event_confirm_dialog_cancels_and_reopens(): void
+    {
+        $organizer = User::factory()->create();
+        $host = User::factory()->create();
+
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+        ]);
+
+        $this->actingAs($organizer);
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('confirmCancelEvent')
+            ->call('runConfirmedAction')
+            ->assertDispatched('slot-mutations-refresh');
+
+        $event->refresh();
+        $activity->refresh();
+        $this->assertTrue($event->isCancelled());
+        $this->assertTrue($activity->isCancelled());
+
+        $this->travel(61)->seconds();
+
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->call('confirmReopenEvent')
+            ->call('runConfirmedAction')
+            ->assertDispatched('slot-mutations-refresh');
+
+        $event->refresh();
+        $activity->refresh();
+        $this->assertFalse($event->isCancelled());
+        $this->assertFalse($activity->isCancelled());
+    }
+
     public function test_event_programme_cancel_preserves_already_cancelled_activity_on_reopen(): void
     {
         $organizer = User::factory()->create();

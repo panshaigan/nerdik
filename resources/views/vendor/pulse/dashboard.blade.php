@@ -1,3 +1,4 @@
+<!--suppress BladeUnknownComponentInspection, BladeUnknownComponentInspection -->
 <x-pulse>
     <livewire:pulse.servers cols="full" />
 

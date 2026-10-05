@@ -359,7 +359,7 @@ class ShowEvent extends Component
         );
     }
 
-    public function runConfirmedAction(): void
+    public function runConfirmedAction(LifecycleMutationRateLimiter $lifecycleRateLimiter): void
     {
         $action = $this->pendingAction;
         $this->closeConfirm();
@@ -370,8 +370,8 @@ class ShowEvent extends Component
 
         match ($action) {
             'delete_event' => $this->deleteEvent(),
-            'cancel_event' => $this->cancelEvent(),
-            'reopen_event' => $this->reopenEvent(),
+            'cancel_event' => $this->cancelEvent($lifecycleRateLimiter),
+            'reopen_event' => $this->reopenEvent($lifecycleRateLimiter),
             default => null,
         };
     }
