@@ -3,6 +3,7 @@
 namespace Tests\Feature\Notifications;
 
 use App\Livewire\Notifications\NotificationDropdown;
+use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\User;
 use App\Notifications\ProposalSubmittedNotification;
@@ -19,7 +20,11 @@ class NotificationDropdownTest extends TestCase
     {
         $user = User::factory()->create();
         $other = User::factory()->create();
-        $proposal = ActivityProposal::factory()->create()->load(['activity', 'event']);
+        $activity = Activity::factory()->create(['name' => "Prof. Kolby O'Kon"]);
+        $proposal = ActivityProposal::factory()
+            ->for($activity)
+            ->create()
+            ->load(['activity', 'event']);
 
         DatabaseNotificationFactory::new()
             ->for($other, 'notifiable')
@@ -35,7 +40,7 @@ class NotificationDropdownTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(NotificationDropdown::class)
-            ->assertSee($proposal->activity->name, false)
+            ->assertSee($proposal->activity->name)
             ->assertSee(__('ui.notifications.view_all'), false)
             ->assertSee(route('notifications.index'), false)
             ->assertSeeHtml('data-ui="nav-notifications-badge"')

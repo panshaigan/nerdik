@@ -54,7 +54,7 @@ class DatabaseNotificationFactoryTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(NotificationList::class)
-            ->assertSee($proposal->activity->name, false);
+            ->assertSee($proposal->activity->name);
     }
 
     public function test_mark_all_read_marks_notifications_and_dispatches_without_session_status(): void
