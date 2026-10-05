@@ -150,6 +150,7 @@ Full pipeline details: [`docs/ci-cd.md`](docs/ci-cd.md).
 - Update `docs/product-overview.md` for product scope and feature-level explanation.
 - Update `docs/domain-mechanics.md` for business logic and flow rules.
 - Update `docs/development-workflow.md` for setup/ops commands and local workflows.
+- Agent codebase map: edit `.ai/guidelines/` (`nerdik-map.md`, `nerdik-conventions.md`), then run `make artisan boost:update --no-interaction` to refresh `AGENTS.md` and `CLAUDE.md`.
 
 ## Optional Authentication Providers
 
