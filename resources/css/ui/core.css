@@ -7,7 +7,7 @@
     max-width: none !important;
 }
 hr {
-    color: var(--brand-neutral);
+    color: var(--color-neutral);
 }
 
 a {

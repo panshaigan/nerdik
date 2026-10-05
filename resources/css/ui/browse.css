@@ -114,7 +114,7 @@
     }
 
     .ui-filter-form-events [data-ts-field] label.input .pointer-events-none.w-4.h-4 {
-        color: var(--color-primary-dark);
+        color: var(--brand-primary-dark);
         opacity: 1;
     }
 
@@ -141,12 +141,12 @@
 
     .ui-browse-date-range-trigger:hover,
     .ui-browse-date-range-trigger:focus-visible {
-        color: var(--color-primary-dark);
+        color: var(--brand-primary-dark);
         background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
     }
 
     .ui-browse-date-range-trigger.is-active {
-        color: var(--color-primary-dark);
+        color: var(--brand-primary-dark);
         background-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
     }
 
