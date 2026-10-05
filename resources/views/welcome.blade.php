@@ -4,16 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::forWelcome()" />
-
-
         <x-theme-script />
+        <x-font-preloads />
+        @vite(['resources/js/app.js'])
+
+        <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::forWelcome()" />
 
         <x-echo-config />
         <x-sentry-config />
         <x-umami-analytics />
-
-        @vite(['resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-transparent font-sans text-base-content antialiased">
         <x-app-shell-background />

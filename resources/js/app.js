@@ -5,6 +5,7 @@ import './auth-login-form';
 import './auth-recaptcha';
 import './copy-to-clipboard';
 import './invite-user-search';
+import './browse-search-state';
 
 const moduleLoads = new Map();
 
@@ -38,21 +39,21 @@ function scheduleSentryBoot() {
         return;
     }
 
+    let scheduled = false;
     const boot = () => {
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(() => loadSentry(), { timeout: 3000 });
-
+        if (scheduled) {
             return;
         }
 
-        window.setTimeout(() => loadSentry(), 0);
+        scheduled = true;
+        loadSentry();
     };
 
-    if (document.readyState === 'complete') {
-        boot();
-    } else {
-        window.addEventListener('load', boot, { once: true });
-    }
+    ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((eventName) => {
+        window.addEventListener(eventName, boot, { once: true, passive: true, capture: true });
+    });
+
+    window.setTimeout(boot, 10000);
 }
 
 function captureLivewireFailure(status, body) {
@@ -102,13 +103,49 @@ function bootSlotForms() {
     });
 }
 
-function bootTagSelectors() {
-    const shouldLoad = document.querySelector('[data-tag-selector]') !== null;
+function tagSelectorNeedsImmediateBoot(root) {
+    const configElement = root.querySelector('script[type="application/json"][data-ts-config]');
 
-    loadOnce('tag-selectors', shouldLoad, () => import('./tags-selector').then(({ initTagSelector }) => {
+    if (! configElement) {
+        return false;
+    }
+
+    try {
+        const config = JSON.parse(configElement.textContent || '{}');
+
+        return (Array.isArray(config.initialSelectedIds) && config.initialSelectedIds.length > 0)
+            || (Array.isArray(config.initialNewTags) && config.initialNewTags.length > 0)
+            || Boolean(config.browseTextSearch?.value);
+    } catch {
+        return false;
+    }
+}
+
+function loadTagSelectors() {
+    return loadOnce('tag-selectors', true, () => import('./tags-selector').then(({ initTagSelector }) => {
         window.initTagSelector = initTagSelector;
         document.querySelectorAll('[data-tag-selector]').forEach((element) => initTagSelector(element));
     }));
+}
+
+function bootTagSelectors() {
+    document.querySelectorAll('[data-tag-selector]').forEach((root) => {
+        if (! (root instanceof HTMLElement) || root.dataset.tagSelectorLoaderBound === '1') {
+            return;
+        }
+
+        root.dataset.tagSelectorLoaderBound = '1';
+
+        if (tagSelectorNeedsImmediateBoot(root)) {
+            loadTagSelectors();
+
+            return;
+        }
+
+        root.addEventListener('pointerenter', loadTagSelectors, { once: true });
+        root.addEventListener('pointerdown', loadTagSelectors, { once: true });
+        root.addEventListener('focusin', loadTagSelectors, { once: true });
+    });
 }
 
 function bootActivityTagPickersFeature() {
@@ -240,12 +277,6 @@ function bootFeatureModules() {
         ),
     );
     bootBrowseDateRangePickersOnDemand();
-    loadOnce(
-        'browse-search-state',
-        window.location.pathname === '/search',
-        () => import('./browse-search-state').then(({ initBrowseSearchState }) => initBrowseSearchState()),
-    );
-
     bootSlotForms();
     bootScopedRealtimeModules();
 }

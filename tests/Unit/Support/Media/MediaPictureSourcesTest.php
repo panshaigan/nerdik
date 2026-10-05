@@ -78,6 +78,11 @@ final class MediaPictureSourcesTest extends TestCase
         $this->assertStringNotContainsString('768w', $webpSrcset);
         $this->assertStringNotContainsString('1024w', $webpSrcset);
         $this->assertStringContainsString('512w', $webpSrcset);
+        $this->assertSame(512, $sources->width());
+        $this->assertSame(
+            (int) round(((int) $media->getCustomProperty('height')) * (512 / (int) $media->getCustomProperty('width'))),
+            $sources->height(),
+        );
         $this->assertSame(
             '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 767px) calc(100vw - 3.5rem), (max-width: 1023px) calc((100vw - 6.5rem) / 3), (max-width: 1279px) calc((100vw - 7.5rem) / 3), 389px',
             $sources->sizes(),

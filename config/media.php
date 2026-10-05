@@ -35,14 +35,14 @@ return [
     |
     | Listing cards often include text in the artwork. Keep these high enough
     | that small type stays readable after responsive downscales. AVIF at ~50
-    | is especially soft on letterforms — prefer mid-70s+.
+    | is especially soft on letterforms — prefer ~70.
     |
     | After changing these values, re-encode existing derivatives:
     | php artisan media:backfill-thumbnails --reencode
     |
     */
     'conversion_qualities' => [
-        'avif' => 75,
+        'avif' => 70,
         'webp' => 92,
     ],
 

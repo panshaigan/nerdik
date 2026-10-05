@@ -27,6 +27,10 @@ final class ProductionNginxConfigTest extends TestCase
         $imageBlock = $this->locationBlock('location ~* ^/images/app/');
         $this->assertStringContainsString('max-age=2592000', $imageBlock);
         $this->assertStringNotContainsString('immutable', $imageBlock);
+
+        $storageBlock = $this->locationBlock('location ~* ^/storage/.+');
+        $this->assertStringContainsString('max-age=2592000', $storageBlock);
+        $this->assertStringNotContainsString('immutable', $storageBlock);
     }
 
     private function locationBlock(string $location): string

@@ -22,5 +22,9 @@ class ViteAssetTagsTest extends TestCase
             '/rel="preload"[^>]+as="style"/',
             $html,
         );
+        $this->assertMatchesRegularExpression(
+            '/rel="preload"[^>]+as="font"/',
+            (string) view('components.font-preloads')->render(),
+        );
     }
 }

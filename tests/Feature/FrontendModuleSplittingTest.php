@@ -29,6 +29,12 @@ final class FrontendModuleSplittingTest extends TestCase
 
         $this->assertStringNotContainsString("import './bootstrap';", $source);
         $this->assertStringNotContainsString("from './sentry'", $source);
+        $this->assertStringContainsString("import './browse-search-state';", $source);
+        $this->assertStringNotContainsString("import('./browse-search-state')", $source);
+        $this->assertStringNotContainsString('requestIdleCallback', $source);
+        $this->assertStringContainsString('window.setTimeout(boot, 10000)', $source);
+        $this->assertStringContainsString('tagSelectorLoaderBound', $source);
+        $this->assertStringContainsString('tagSelectorNeedsImmediateBoot', $source);
     }
 
     public function test_realtime_and_feature_modules_are_guarded_by_page_markers(): void
@@ -44,6 +50,9 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('event.stopImmediatePropagation();', $source);
         $this->assertStringContainsString('[data-activity-tag-picker]', $source);
         $this->assertStringContainsString('new MutationObserver(queueFeatureBoot)', $source);
+        $this->assertStringContainsString('tagSelectorLoaderBound', $source);
+        $this->assertStringContainsString('pointerdown', $source);
+        $this->assertStringContainsString('pointerenter', $source);
     }
 
     public function test_flatpickr_styles_are_owned_by_the_date_range_chunk(): void

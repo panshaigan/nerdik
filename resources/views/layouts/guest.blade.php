@@ -5,19 +5,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::defaults()" />
-
-
         <x-theme-script />
+        <x-font-preloads />
+        @vite(['resources/js/app.js'])
+
+        <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::defaults()" />
 
         @stack('head')
 
         <x-echo-config />
         <x-sentry-config />
         <x-umami-analytics />
-
-        <!-- Scripts -->
-        @vite(['resources/js/app.js'])
     </head>
     <body class="bg-transparent font-sans antialiased text-base-content">
         <x-app-shell-background />

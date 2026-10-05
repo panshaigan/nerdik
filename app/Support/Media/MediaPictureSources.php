@@ -123,14 +123,37 @@ final class MediaPictureSources
     {
         $width = $this->media->getCustomProperty('width');
 
-        return is_numeric($width) ? (int) $width : null;
+        if (! is_numeric($width)) {
+            return null;
+        }
+
+        $originalWidth = (int) $width;
+        $largestDelivered = $this->largestDeliveredPixelWidth();
+
+        if ($largestDelivered === null) {
+            return $originalWidth;
+        }
+
+        return min($originalWidth, $largestDelivered);
     }
 
     public function height(): ?int
     {
         $height = $this->media->getCustomProperty('height');
 
-        return is_numeric($height) ? (int) $height : null;
+        if (! is_numeric($height)) {
+            return null;
+        }
+
+        $originalHeight = (int) $height;
+        $originalWidth = $this->media->getCustomProperty('width');
+        $renderedWidth = $this->width();
+
+        if (! is_numeric($originalWidth) || $renderedWidth === null || (int) $originalWidth <= 0) {
+            return $originalHeight;
+        }
+
+        return (int) max(1, (int) round($originalHeight * ($renderedWidth / (int) $originalWidth)));
     }
 
     private function srcsetForConversion(string $conversion): string
@@ -246,6 +269,27 @@ final class MediaPictureSources
         );
 
         return is_string($stripped) ? $stripped : $srcset;
+    }
+
+    private function largestDeliveredPixelWidth(): ?int
+    {
+        if ($this->maxSrcsetWidth !== null) {
+            return $this->maxSrcsetWidth;
+        }
+
+        $srcset = $this->srcsetForConversion('webp');
+
+        if ($srcset === '') {
+            $srcset = $this->srcsetForConversion('avif');
+        }
+
+        $entries = $this->parseSrcsetEntries($srcset);
+        $widths = array_values(array_filter(
+            array_column($entries, 'width'),
+            fn (mixed $width): bool => is_int($width) && $width > 0,
+        ));
+
+        return $widths === [] ? null : max($widths);
     }
 
     private function largestWidthUrlFromSrcset(string $srcset): ?string
