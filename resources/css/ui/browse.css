@@ -1,0 +1,328 @@
+@layer components {
+    .ui-browse-events-listings .ui-listing-card {
+        contain-intrinsic-size: auto 320px;
+    }
+
+    /**
+     * Browse /search (events): colorful gradient border + hover/focus glow (override DaisyUI .input:focus outline).
+     * Glow uses ::after opacity (not box-shadow tween) — color-mix shadows do not interpolate and snap at the end.
+     */
+    .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell {
+        &.ui-gradient-frame-brand-bold {
+            --ui-browse-events-search-glow-duration: 0.55s;
+            --ui-browse-events-search-glow-ease: cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            isolation: isolate;
+            border-width: 2px !important;
+            outline: none !important;
+            background-color: var(--ui-field-bg) !important;
+            background-image:
+                linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
+                linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
+            background-origin: border-box !important;
+            background-clip: padding-box, border-box !important;
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                z-index: -1;
+                border-radius: inherit;
+                pointer-events: none;
+                opacity: 0;
+                box-shadow:
+                    0 0 22px color-mix(in oklch, var(--brand-primary) 72%, transparent),
+                    0 0 52px color-mix(in oklch, var(--brand-accent) 62%, transparent),
+                    0 0 80px -6px color-mix(in oklch, var(--brand-primary) 48%, transparent),
+                    0 10px 32px -8px color-mix(in oklch, var(--brand-accent) 55%, transparent);
+                transition: opacity var(--ui-browse-events-search-glow-duration) var(--ui-browse-events-search-glow-ease);
+            }
+
+            &:hover::after,
+            &:focus-within::after {
+                opacity: 1;
+            }
+
+            &:hover,
+            &:focus-within {
+                --input-color: transparent !important;
+                outline: none !important;
+                outline-offset: 0 !important;
+                border: 2px solid transparent !important;
+                background-color: var(--ui-field-bg) !important;
+                background-image:
+                    linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
+                    linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) !important;
+                background-origin: border-box !important;
+                background-clip: padding-box, border-box !important;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                &::after {
+                    transition: none;
+                }
+            }
+        }
+
+        &:focus-within label.input,
+        &:focus-within input[data-ts-input],
+        &:focus-within label.input:focus,
+        &:focus-within label.input:focus-within {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: transparent !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            --input-color: transparent !important;
+            --tw-ring-shadow: 0 0 #0000 !important;
+        }
+
+        input[data-ts-input]::placeholder,
+        input[data-ts-input]::-webkit-input-placeholder {
+            color: color-mix(in oklab, var(--color-base-content) var(--ui-search-placeholder-mix), transparent);
+        }
+
+        &.ts-has-selection input[data-ts-input]::placeholder,
+        &.ts-has-selection input[data-ts-input]::-webkit-input-placeholder {
+            opacity: 0;
+        }
+    }
+
+    .ui-filter-form-events [data-ts-field] > div:has([data-ts-input]) {
+        flex: 1 1 auto;
+        min-width: 0;
+        align-self: stretch;
+        display: flex;
+    }
+
+    .ui-filter-form-events [data-ts-field] fieldset,
+    .ui-filter-form-events [data-ts-field] fieldset > .w-full {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+        display: flex;
+    }
+
+    .ui-filter-form-events [data-ts-field] label.input {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        border-width: 0;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+    }
+
+    .ui-filter-form-events [data-ts-field] label.input .pointer-events-none.w-4.h-4 {
+        color: var(--color-primary-dark);
+        opacity: 1;
+    }
+
+    /**
+     * Browse events tag suggestions: grow with content (no inner scroll) and stay under the nav profile menu.
+     */
+    .ui-browse-events-filter-shell,
+    .ui-browse-events-filter-shell [data-tag-selector],
+    .ui-browse-events-filter-shell [data-tag-selector] > .relative {
+        overflow: visible;
+    }
+
+    .ui-browse-events-toolbar .ui-browse-events-toolbar-search [data-ts-field].input {
+        min-height: 2.5rem;
+    }
+
+    .ui-browse-events-toolbar-search [data-ts-field].input.ui-browse-events-search-has-date-range {
+        padding-right: 2.75rem;
+    }
+
+    .ui-browse-date-range-trigger {
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    }
+
+    .ui-browse-date-range-trigger:hover,
+    .ui-browse-date-range-trigger:focus-visible {
+        color: var(--color-primary-dark);
+        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+    }
+
+    .ui-browse-date-range-trigger.is-active {
+        color: var(--color-primary-dark);
+        background-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
+    }
+
+
+    @media (min-width: 64rem) {
+        .ui-browse-events-toolbar .browse-events-action-toolbar {
+            justify-self: end;
+        }
+    }
+
+    .ui-filter-form-events [data-browse-tag-selector] [data-ts-results] {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .ui-filter-form-events .ui-browse-filter-toggle.btn,
+    .ui-filter-form-events .join .ui-browse-filter-toggle.join-item.btn {
+        border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
+        background-color: transparent !important;
+        color: var(--color-base-content) !important;
+        --btn-bg: transparent !important;
+        --btn-border: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
+        box-shadow: none !important;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .ui-filter-form-events .ui-browse-filter-toggle.btn:hover:not(:disabled):not(.is-active):not([aria-pressed='true']),
+    .ui-filter-form-events .join .ui-browse-filter-toggle.join-item.btn:hover:not(:disabled):not(:checked) {
+        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
+        border-color: color-mix(in oklch, var(--brand-primary) 48%, transparent) !important;
+        color: var(--color-base-content) !important;
+        box-shadow: 0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent) !important;
+    }
+
+    .ui-filter-form-events .ui-browse-filter-toggle.btn.is-active,
+    .ui-filter-form-events .ui-browse-filter-toggle.btn[aria-pressed='true'],
+    .ui-filter-form-events .join .ui-browse-filter-toggle.join-item.btn:checked {
+        background-color: var(--color-primary) !important;
+        border-color: var(--color-primary) !important;
+        color: var(--color-primary-content) !important;
+        --btn-bg: var(--color-primary) !important;
+        --btn-border: var(--color-primary) !important;
+        box-shadow: 0 0 10px color-mix(in oklch, var(--brand-primary) 28%, transparent) !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn {
+        border-color: var(--ui-field-border-color) !important;
+        background-color: var(--ui-field-bg) !important;
+        color: var(--color-base-content) !important;
+        --btn-bg: var(--ui-field-bg) !important;
+        --btn-border: var(--ui-field-border-color) !important;
+        box-shadow: none !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn:hover:not(:disabled):not(:checked) {
+        background-color: color-mix(in oklab, var(--color-primary) 12%, var(--ui-field-bg)) !important;
+        border-color: var(--ui-field-focus-border-color) !important;
+        color: var(--color-base-content) !important;
+    }
+
+    .ui-form-activity .join .ui-field-hosting-mode.join-item.btn:checked {
+        background-color: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+        border-color: var(--ui-field-focus-border-color) !important;
+        color: var(--color-base-content) !important;
+        --btn-bg: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+        --btn-border: var(--ui-field-focus-border-color) !important;
+    }
+
+    .ui-form-activity .ui-tile-empty,
+    .ui-form-activity .range-dual,
+    .ui-form-activity input[type='range'].range {
+        max-width: 100%;
+    }
+
+    .ui-form-activity .fieldset label.flex.justify-between > div {
+        min-width: 0;
+        flex: 1 1 0%;
+    }
+
+    .ui-form-activity .fieldset label.flex.justify-between > input.toggle {
+        flex-shrink: 0;
+    }
+
+    .ui-filter-form-events .ui-tile-empty {
+        background: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
+        border-color: color-mix(in oklab, var(--brand-primary-dark) 32%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary-dark) 14%, transparent),
+            0 0 18px -12px color-mix(in oklch, var(--brand-accent) 35%, transparent);
+    }
+
+    /** Shared taxonomy / activity badge chips (listing cards, show pages, previews). */
+    .ui-activity-badge-tags .badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: 0.01em;
+    }
+
+    .ui-activity-badge-tags .badge.badge-outline {
+        border-width: 1px;
+        border-color: color-mix(in oklch, var(--brand-info) 45%, transparent);
+        background-color: var(--ui-badge-outline-bg);
+        color: color-mix(in oklab, var(--color-base-content) 88%, white);
+    }
+
+    @variant light {
+        .ui-activity-badge-tags .badge.badge-outline {
+            border-color: color-mix(in oklch, var(--brand-primary) 40%, transparent);
+            color: var(--color-base-content);
+        }
+    }
+
+    /**
+     * Browse events pagination: light bar without backdrop-filter.
+     */
+    .ui-browse-events-pagination {
+        background: color-mix(in oklab, var(--color-base-100) 72%, transparent);
+        border: 1px solid color-mix(in oklab, var(--color-base-300) 22%, transparent);
+    }
+
+    .ui-browse-events-pagination .join {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        border-color: color-mix(in oklab, var(--color-base-300) 18%, transparent) !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn,
+    .ui-browse-events-pagination .join .join-item.btn.bg-base-100 {
+        --join-ss: var(--radius-field);
+        --join-se: var(--radius-field);
+        --join-es: var(--radius-field);
+        --join-ee: var(--radius-field);
+        margin-inline-start: 0 !important;
+        border-inline-start-width: var(--border, 1px) !important;
+        border-color: color-mix(in oklab, var(--color-base-300) 10%, transparent) !important;
+        background-color: transparent !important;
+        color: color-mix(in oklab, var(--color-base-content) 85%, transparent) !important;
+        --btn-bg: transparent !important;
+        --btn-border: color-mix(in oklab, var(--color-base-300) 12%, transparent) !important;
+        box-shadow: none !important;
+        transition:
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn:hover:not(.btn-disabled):not(.btn-active),
+    .ui-browse-events-pagination .join .join-item.btn.bg-base-100:hover:not(.btn-disabled):not(.btn-active) {
+        background-color: color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
+        color: var(--color-base-content) !important;
+        box-shadow: 0 0 14px color-mix(in oklch, var(--brand-primary) 42%, transparent) !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn-active {
+        background-color: color-mix(in oklab, var(--color-primary) 18%, transparent) !important;
+        color: var(--color-base-content) !important;
+        box-shadow: 0 0 10px color-mix(in oklch, var(--brand-primary) 28%, transparent) !important;
+    }
+
+    .ui-browse-events-pagination .join .join-item.btn-disabled {
+        background-color: transparent !important;
+        border-color: color-mix(in oklab, var(--color-base-300) 6%, transparent) !important;
+        box-shadow: none !important;
+        opacity: 0.4;
+    }
+
+}

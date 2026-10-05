@@ -1,3 +1,5 @@
+import '../css/vendor/tinymce.css';
+
 /**
  * Align TinyMCE (Mary x-editor) with --ui-field-* tokens: iframe body + content_css.
  */

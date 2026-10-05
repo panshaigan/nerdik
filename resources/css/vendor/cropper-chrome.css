@@ -1,0 +1,68 @@
+.ui-image-crop-stage {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.ui-image-crop-canvas {
+    position: relative;
+    width: 100%;
+    min-height: 14rem;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background-color: color-mix(in oklab, var(--color-base-content) 88%, transparent);
+}
+
+.ui-image-crop-stage[data-aspect='video'] .ui-image-crop-canvas {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+}
+
+.ui-image-crop-canvas .cropper-container {
+    max-height: 100%;
+}
+
+.ui-image-crop-stage[data-aspect='square'] .cropper-view-box,
+.ui-image-crop-stage[data-aspect='square'] .cropper-face {
+    border-radius: 50%;
+}
+
+.ui-image-crop-zoom {
+    display: block;
+    width: 100%;
+    margin-block-end: 0.25rem;
+}
+
+.ui-image-crop-dropzone {
+    cursor: default;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ui-image-crop-dropzone-upload {
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ui-image-crop-dropzone-upload:hover {
+    border-color: color-mix(in oklab, var(--color-primary) 35%, var(--color-base-300));
+    background-color: color-mix(in oklab, var(--color-primary) 4%, var(--color-base-100));
+}
+
+.ui-image-crop-dropzone--active {
+    border-color: color-mix(in oklab, var(--color-primary) 55%, transparent);
+    background-color: color-mix(in oklab, var(--color-primary) 8%, var(--color-base-200));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 25%, transparent);
+}
+
+.ui-image-crop-dropzone--active .ui-image-crop-dropzone-upload {
+    border-color: color-mix(in oklab, var(--color-primary) 65%, transparent);
+    background-color: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 20%, transparent),
+        0 0 24px -8px color-mix(in oklab, var(--color-primary) 35%, transparent);
+}

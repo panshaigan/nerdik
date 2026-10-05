@@ -1,0 +1,89 @@
+@layer utilities {
+
+
+    /**
+     * Default field chrome (.input, .select, .textarea, .file-input). Tokens: --ui-field-* in :root.
+     * Excludes tag-selector shells, browse gradient search, and brand gradient frames.
+     */
+    .ui-field-shell {
+        position: relative;
+        border-radius: 0.5rem;
+        border: var(--border) solid var(--ui-field-border-color);
+        background-color: var(--ui-field-bg);
+    }
+
+    .ui-field-shell:focus-within {
+        border-color: var(--ui-field-focus-border-color);
+        outline: none;
+        outline-offset: 0;
+        box-shadow: 0 0 0 var(--ui-field-focus-ring-width) var(--ui-field-focus-ring-color);
+    }
+
+    .ui-field-shell__legend {
+        background-color: var(--ui-field-bg);
+    }
+
+    :where(
+        .input:not(.ui-gradient-frame-brand-bold):not([data-ts-field].input):not(
+            .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell
+        ):not(.ui-filter-form-events [data-ts-field] label.input),
+        .select:not(.ui-gradient-frame-brand-bold),
+        .textarea:not(.ui-gradient-frame-brand-bold),
+        .file-input:not(.ui-gradient-frame-brand-bold)
+    ):not(.input-error) {
+        background-color: var(--ui-field-bg);
+        --input-color: var(--ui-field-border-color);
+        box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset;
+    }
+
+    :where(
+        .input:not(.ui-gradient-frame-brand-bold):not([data-ts-field].input):not(
+            .ui-filter-form-events [data-ts-field].input.ui-browse-events-search-shell
+        ):not(.ui-filter-form-events [data-ts-field] label.input),
+        .select:not(.ui-gradient-frame-brand-bold),
+        .textarea:not(.ui-gradient-frame-brand-bold),
+        .file-input:not(.ui-gradient-frame-brand-bold)
+    ):is(:focus, :focus-within):not(.input-error) {
+        --input-color: var(--ui-field-focus-border-color);
+        outline: none !important;
+        outline-offset: 0 !important;
+        border-color: var(--ui-field-focus-border-color);
+        box-shadow: 0 0 0 var(--ui-field-focus-ring-width) var(--ui-field-focus-ring-color);
+    }
+
+    .floating-label > span {
+        background-color: var(--ui-field-bg);
+    }
+}
+
+/**
+ * Suggestion dropdowns: override Tailwind `bg-base-100` utilities (same tokens as fields).
+ */
+:is(
+    [data-ts-results],
+    [data-atp-results],
+    [data-ep-results],
+    [data-profile-org-popup],
+    [id$='-suggestions-popup'],
+    [data-proposal-event-popup],
+    [data-slot-name-popup],
+    [data-slot-base-name-popup],
+    [data-slot-room-popup]
+) {
+    background-color: var(--ui-field-bg) !important;
+    border-color: var(--ui-field-border-color) !important;
+}
+
+:is(
+    [data-ts-results],
+    [data-atp-results],
+    [data-ep-results],
+    [data-profile-org-popup],
+    [id$='-suggestions-popup'],
+    [data-proposal-event-popup],
+    [data-slot-name-popup],
+    [data-slot-base-name-popup],
+    [data-slot-room-popup]
+) :is(button, [role='option']) {
+    cursor: pointer;
+}

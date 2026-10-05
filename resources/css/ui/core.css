@@ -1,0 +1,42 @@
+/* ====================== MAP TWEAKS ====================== */
+/*
+ * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
+ * (tiles shrink / fail to align → blank gray map).
+ */
+.leaflet-container img {
+    max-width: none !important;
+}
+hr {
+    color: var(--brand-neutral);
+}
+
+a {
+    text-decoration: none;
+}
+
+/**
+ * Tool overflow menus (share / calendar / manage): Tailwind shadow-* uses black
+ * alpha and is nearly invisible on dark base-100. Use content-colored elevation.
+ */
+.ui-overflow-menu-panel {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--color-base-content) 22%, transparent),
+        0 14px 36px color-mix(in oklab, var(--color-base-content) 30%, transparent),
+        0 6px 14px color-mix(in oklab, #000 55%, transparent);
+}
+
+/**
+ * Mobile nav dropdowns: DaisyUI anchors the panel to the trigger, so a near-full
+ * viewport width clips off the left when the bell sits left of the hamburger.
+ * Pin both horizontal edges to the viewport instead.
+ */
+@media (width < 640px) {
+    .ui-app-navigation [data-ui='nav-notifications-panel'],
+    .ui-app-navigation [data-ui='nav-requests-panel'] {
+        position: fixed !important;
+        inset-inline: 0.75rem !important;
+        width: auto !important;
+        max-width: none !important;
+        translate: 0 !important;
+    }
+}

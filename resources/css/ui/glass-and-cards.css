@@ -1,0 +1,288 @@
+@layer components {
+    [data-ui$='-show-page-background'] {
+        height: 100vh;
+        height: 100lvh;
+    }
+
+    .ui-content-card {
+        border: 1px solid var(--ui-content-card-border);
+        background: linear-gradient(
+            180deg,
+            var(--ui-content-card-gradient-start),
+            var(--ui-content-card-gradient-end)
+        );
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 16%, transparent),
+            inset 0 36px 54px -46px color-mix(in oklab, var(--brand-info) 32%, transparent),
+            0 0 28px -18px color-mix(in oklab, var(--brand-primary) 62%, transparent);
+    }
+
+    /** Page-level content cards — nav gutter (listing surfaces stay opaque below). */
+    .ui-content-card:not(.ui-listing-card__surface) {
+        @media (width >= 40rem) {
+            margin-inline: 1.5rem;
+        }
+
+        @media (width >= 64rem) {
+            margin-inline: 2rem;
+        }
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted {
+        --tab-bg: transparent;
+        --tab-border-color: transparent;
+        margin-bottom: 0;
+        border-radius: 0;
+        border-width: 0;
+        border-bottom-width: var(--border, 1px);
+        border-bottom-color: transparent;
+        background-color: transparent;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted::before,
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted::after {
+        content: none;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .tab-lifted.tab-active {
+        border-bottom-color: var(--color-primary);
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 {
+        border-color: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+        background: transparent;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 > .flex.overflow-x-auto {
+        padding-inline: 1rem;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface) .border-b.border-base-300 > .flex.shrink-0.items-center {
+        padding-inline: 1rem;
+    }
+
+    .ui-activity-show-hero,
+    .ui-event-show-hero {
+        margin-top: 1.5rem;
+        border-radius: var(--rounded-box, 1rem);
+
+        @media (width >= 40rem) {
+            margin-top: 2rem;
+        }
+    }
+
+    .ui-card-media-fade {
+        -webkit-mask-image: var(--ui-media-fade-mask);
+        mask-image: var(--ui-media-fade-mask);
+        mask-size: 100% 100%;
+    }
+
+    .ui-tile-active {
+        background: color-mix(in oklab, var(--brand-primary) 11%, rgba(255 255 255 / 0.1));
+
+        border: 1px solid color-mix(in oklab, var(--brand-primary) 34%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 12%, transparent),
+            0 0 22px -18px color-mix(in oklab, var(--brand-primary) 65%, transparent);
+    }
+
+    .ui-tile-empty {
+        background: color-mix(in oklab, var(--color-base-100) 12%, rgba(255 255 255 / 0.1));
+        border: 1px solid color-mix(in oklab, var(--color-base-100) 34%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--color-base-100) 12%, transparent),
+            0 0 22px -18px color-mix(in oklab, var(--color-base-100) 65%, transparent);
+    }
+
+    /** Cover image stack for plan slots, catalog cards, and series editions. */
+    .ui-cover-backdrop {
+        overflow: hidden;
+    }
+
+    .ui-cover-backdrop__image {
+        position: absolute;
+        inset: 0;
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        transform: scale(1.05);
+    }
+
+    .ui-cover-backdrop picture.ui-cover-backdrop__image {
+        display: block;
+    }
+
+    .ui-cover-backdrop picture.ui-cover-backdrop__image > img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .ui-cover-backdrop::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(
+                to top,
+                color-mix(in oklab, var(--color-base-100) 80%, transparent),
+                color-mix(in oklab, var(--color-base-100) 40%, transparent) 50%,
+                color-mix(in oklab, var(--color-base-100) 25%, transparent)
+            ),
+            color-mix(in oklab, var(--color-base-100) 85%, transparent);
+    }
+
+    .ui-form-errors-panel__inner {
+        position: relative;
+        z-index: 1;
+        padding: 1rem 1.25rem;
+
+        @media (width >= 40rem) {
+            padding: 1.25rem 1.5rem;
+        }
+    }
+
+    .ui-form-errors-panel__icon-wrap {
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 9999px;
+        border: 1px solid color-mix(in oklab, var(--color-error) 28%, transparent);
+        background: color-mix(in oklab, var(--color-error) 8%, transparent);
+    }
+
+    /** Hide Mary field error text when a form-errors summary panel is shown above the form. */
+    .ui-form-profile-password .fieldset > .text-error {
+        display: none;
+    }
+
+    /**
+     * Reusable brand gradient frames (primary → accent bold ring + glow; hairline neon ring + inner panel).
+     * Use Tailwind rounded-* on the element for corner radius (bold omits radius here).
+     */
+    .ui-gradient-frame-brand-bold {
+        border: 2px solid transparent;
+        background-image:
+            linear-gradient(var(--ui-field-bg), var(--ui-field-bg)),
+            linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        box-shadow:
+            0 0 10px color-mix(in oklch, var(--brand-primary) 45%, transparent),
+            0 0 26px color-mix(in oklch, var(--brand-accent) 38%, transparent),
+            0 0 42px -8px color-mix(in oklch, var(--brand-primary) 22%, transparent);
+    }
+
+    .ui-gradient-frame-brand-hairline {
+        padding: 1px;
+        border-radius: var(--rounded-box, 1rem);
+        background-image: linear-gradient(
+            125deg,
+            color-mix(in oklch, var(--brand-info) 85%, white),
+            color-mix(in oklch, var(--brand-accent) 75%, white),
+            color-mix(in oklch, var(--brand-primary) 80%, white)
+        );
+        box-shadow:
+            0 0 14px color-mix(in oklch, var(--brand-info) 42%, transparent),
+            0 0 28px color-mix(in oklch, var(--brand-accent) 32%, transparent),
+            0 0 40px -12px color-mix(in oklch, var(--brand-primary) 28%, transparent);
+    }
+
+    .ui-gradient-frame-brand-hairline-inner {
+        border-radius: calc(var(--rounded-box, 1rem) - 1px);
+        background-color: var(--ui-hairline-inner-bg);
+        color: var(--color-base-content);
+    }
+
+    .ui-activity-badge-tooltip {
+        --tt-off: calc(100% + 0.2rem);
+        --tt-tail: calc(100% + 1px + 0.1rem);
+    }
+
+    .ui-activity-badge-tags .badge:is(.tooltip, .lg\:tooltip)::before,
+    .ui-activity-badge-tags .badge:is(.tooltip, .lg\:tooltip)::after {
+        z-index: 50;
+    }
+
+    .ui-content-card:not(.ui-listing-card__surface),
+    .ui-activity-show-info-panel {
+        border-radius: 0.75rem;
+        border: 1px solid transparent;
+    }
+
+    .ui-activity-show-info-panel {
+        padding: 0.75rem 1rem;
+    }
+
+    .ui-activity-show-hero.ui-content-card,
+    .ui-event-show-hero.ui-content-card {
+        padding: 0;
+        overflow: visible;
+    }
+
+    .ui-activity-show-hero.ui-content-card [role='tablist'],
+    .ui-event-show-hero.ui-content-card [role='tablist'] {
+        overflow: hidden;
+        border-bottom-left-radius: inherit;
+        border-bottom-right-radius: inherit;
+    }
+
+    .ui-activity-show-hero [data-ui='tabs-toolbar-chrome'],
+    .ui-event-show-hero [data-ui='tabs-toolbar-chrome'] {
+        overflow: visible;
+    }
+
+    [data-ui='activity-show-tabs-toolbar'] .btn.ui-tooltip-elevated:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='activity-show-tabs-toolbar'] .btn.ui-tooltip-elevated:is(.tooltip, .lg\:tooltip)::after,
+    [data-ui='event-show-tabs-toolbar'] .btn.ui-tooltip-elevated:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='event-show-tabs-toolbar'] .btn.ui-tooltip-elevated:is(.tooltip, .lg\:tooltip)::after,
+    [data-ui='activity-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='activity-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::after,
+    [data-ui='event-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::before,
+    [data-ui='event-show-tabs-toolbar'] .btn:is(.tooltip, .lg\:tooltip)::after {
+        z-index: 50;
+    }
+
+    /**
+     * Tabs+toolbar chrome: stick under the fixed nav on small screens (page scroll).
+     * Hook lives on the chrome wrapper (sibling of [role=tablist]) so sticky's parent
+     * is the tall tab column — not a short label-only wrapper.
+     * Overlays keep flex-pin via overlay-sticky-tabs — disable page sticky there.
+     * Keep overflow visible so DaisyUI tab tooltips are not clipped.
+     */
+    @media (width < 40rem) {
+        [data-ui='tabs-toolbar-chrome'] {
+            position: sticky;
+            top: var(--app-nav-height);
+            z-index: 30;
+            overflow: visible;
+            background: color-mix(in oklab, var(--color-base-100) 88%, transparent);
+            backdrop-filter: blur(12px) saturate(1.3);
+            -webkit-backdrop-filter: blur(12px) saturate(1.3);
+        }
+
+        .ui-overlay-shell [data-ui='tabs-toolbar-chrome'] {
+            position: relative;
+            top: auto;
+            z-index: 2;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+    }
+
+    .ui-activity-show-stat .text-base-content\/50,
+    .ui-activity-show-stat [class*='text-base-content/'] {
+        font-size: 0.75rem;
+        color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+    }
+
+    .ui-activity-show-stat .font-black {
+        font-weight: 700;
+        font-size: 1.125rem;
+        letter-spacing: -0.01em;
+    }
+
+}

@@ -1,0 +1,50 @@
+@layer components {
+    .status-dots {
+        overflow: visible;
+
+        .status-dots-toolbar {
+            position: relative;
+            z-index: 3;
+            min-height: 2rem;
+            padding: 0 0 0.35rem;
+
+            &::before {
+                content: "";
+                position: absolute;
+                left: -8px;
+                width: 0.6em;
+                height: 0.6em;
+                border-radius: 9999px;
+                box-shadow:
+                    1.4em 0 var(--color-neutral),
+                    2.8em 0 var(--color-neutral),
+                    4.2em 0 var(--color-neutral);
+                opacity: 0.45;
+
+                @media (width >= 768px) {
+                    left: 0;
+                }
+            }
+        }
+
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip) {
+            --tt-off: calc(100% + 0.35rem);
+            --tt-tail: calc(100% + 1px + 0.2rem);
+        }
+
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip)::before,
+        .status-dots-toolbar .btn:is(.tooltip, .lg\:tooltip)::after {
+            z-index: 50;
+        }
+
+        /* Active state */
+        &.status-dots-active .status-dots-toolbar::before {
+            box-shadow:
+                1.4em 0 var(--brand-primary),
+                2.8em 0 var(--brand-primary),
+                4.2em 0 var(--brand-primary);
+            opacity: 0.85;
+        }
+    }
+
+}

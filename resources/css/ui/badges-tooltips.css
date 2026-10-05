@@ -1,0 +1,32 @@
+/**
+ * DaisyUI .tooltip sets display:inline-block and wins over .badge{display:inline-flex}
+ * in the utilities layer, which drops flex centering so label text sits high in the chip.
+ * Unlayered rules must restore inline-flex + icon sizing for activity badge chips.
+ */
+.ui-activity-badge-tags .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.ui-activity-badge-tags .badge.tooltip,
+.ui-activity-badge-tags .badge.lg\:tooltip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui-activity-badge-tags .badge svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+    display: block;
+}
+
+.ui-activity-badge-tags .badge > span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}

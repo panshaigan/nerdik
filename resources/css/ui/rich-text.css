@@ -1,0 +1,38 @@
+@layer components {
+    .rich-text-content {
+        @apply prose prose-sm max-w-none text-base-content;
+        @apply prose-headings:text-base-content prose-p:text-base-content/90;
+        @apply prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary;
+        @apply prose-strong:text-base-content prose-blockquote:text-base-content/80;
+        @apply prose-code:text-base-content prose-pre:bg-base-200/80 prose-pre:text-base-content;
+        @apply prose-li:marker:text-base-content/60;
+        @apply prose-hr:border-base-300;
+        @apply prose-table:text-base-content;
+        @apply prose-th:border-base-content/20 prose-td:border-base-content/20;
+        @apply prose-img:max-w-full prose-img:h-auto;
+
+        &::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+
+        img.float-left {
+            float: left;
+            margin: 0 1rem 0.75rem 0;
+            max-width: 50%;
+        }
+
+        img.float-right {
+            float: right;
+            margin: 0 0 0.75rem 1rem;
+            max-width: 50%;
+        }
+
+        table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+        }
+    }
+}

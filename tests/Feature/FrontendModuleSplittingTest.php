@@ -19,6 +19,7 @@ final class FrontendModuleSplittingTest extends TestCase
             './activity-tag-picker',
             './datetime-picker',
             './browse-date-range-picker',
+            './tinymce-field-chrome',
             './echo',
             './sentry',
         ] as $module) {
@@ -50,5 +51,33 @@ final class FrontendModuleSplittingTest extends TestCase
 
         $this->assertStringNotContainsString('flatpickr.min.css', $entrypoint);
         $this->assertStringContainsString("import 'flatpickr/dist/flatpickr.min.css';", $dateRangePicker);
+        $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $dateRangePicker);
+    }
+
+    public function test_css_pipeline_splits_app_entry_and_limits_daisyui_and_mary_sources(): void
+    {
+        $appCss = (string) file_get_contents(resource_path('css/app.css'));
+
+        $this->assertStringContainsString("@import './theme/tokens.css';", $appCss);
+        $this->assertStringContainsString("@import './ui/browse.css';", $appCss);
+        $this->assertStringContainsString('include:', $appCss);
+        $this->assertStringNotContainsString('Components/**/*.php', $appCss);
+        $this->assertStringContainsString('mary/src/View/Components/Button.php', $appCss);
+    }
+
+    public function test_feature_vendor_styles_load_from_js_chunks_not_app_entry(): void
+    {
+        $entrypoint = (string) file_get_contents(resource_path('js/app.js'));
+        $appCss = (string) file_get_contents(resource_path('css/app.css'));
+        $tinymceChrome = (string) file_get_contents(resource_path('js/tinymce-field-chrome.js'));
+        $imageCropper = (string) file_get_contents(resource_path('js/image-cropper.js'));
+
+        $this->assertStringNotContainsString("import './tinymce-field-chrome';", $entrypoint);
+        $this->assertStringContainsString("import('./tinymce-field-chrome')", $entrypoint);
+        $this->assertStringContainsString("import '../css/vendor/tinymce.css';", $tinymceChrome);
+        $this->assertStringContainsString("import '../css/vendor/cropper-chrome.css';", $imageCropper);
+        $this->assertStringNotContainsString('vendor/tinymce.css', $appCss);
+        $this->assertStringNotContainsString('vendor/cropper-chrome.css', $appCss);
+        $this->assertStringNotContainsString('vendor/flatpickr-theme.css', $appCss);
     }
 }

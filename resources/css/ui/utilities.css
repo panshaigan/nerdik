@@ -1,0 +1,147 @@
+@utility text-glow-* {
+    --_glow-base: --value(--color-*);
+    text-shadow:
+        0 0 6px color-mix(in oklch, var(--_glow-base) var(--ui-text-glow-mix), black),
+        0 0 20px color-mix(in oklch, var(--_glow-base) var(--ui-text-glow-mix), black);
+}
+
+@utility box-glow-* {
+    --_glow-base: --value(--color-*);
+    box-shadow:
+        -4px -4px 6px color-mix(in oklch, var(--_glow-base) 100%, black),
+        3px -8px 20px color-mix(in oklch, var(--_glow-base) 100%, black);
+}
+
+@utility box-glow-dark-* {
+    --_glow-base: --value(--color-*);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--_glow-base) 15%, transparent),
+        inset 0 16px 28px -28px color-mix(in oklab, var(--_glow-base) 60%, transparent),
+        0 0 24px -10px color-mix(in oklab, var(--_glow-base) 72%, transparent),
+        0 10px 22px -18px color-mix(in oklab, var(--_glow-base) 60%, transparent);
+}
+
+@layer utilities {
+    .bg-gradient {
+        background-image: radial-gradient(
+            125% 125% at 50% 10%,
+            var(--ui-bg-gradient-stop) 40%,
+            var(--brand-secondary) 100%
+        );
+    }
+
+    .bg-texture-glass {
+        background:
+            repeating-linear-gradient(
+                45deg,
+                var(--ui-bg-texture-a) 0px,
+                var(--ui-bg-texture-a) 1px,
+                transparent 1px,
+                transparent 20px
+            )
+            0% 0% / 40px 40px,
+            repeating-linear-gradient(
+                -45deg,
+                var(--ui-bg-texture-b) 0px,
+                var(--ui-bg-texture-b) 1px,
+                transparent 1px,
+                transparent 20px
+            );
+
+        @variant light {
+            background: none;
+        }
+    }
+
+    .ui-modal-surface {
+        background: linear-gradient(180deg, var(--ui-modal-surface-start), var(--ui-modal-surface-end));
+        border: 1px solid color-mix(in oklab, var(--color-base-300) 35%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-info) 12%, transparent),
+            0 0 32px -16px color-mix(in oklab, var(--brand-primary) 45%, transparent);
+    }
+
+    .ui-tile-marked {
+        border: 1px solid color-mix(in oklab, var(--brand-secondary) 55%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 22%, transparent),
+            0 0 22px -16px color-mix(in oklab, var(--brand-secondary) 72%, transparent);
+    }
+
+    .ui-tile-empty.ui-tile-marked:hover,
+    .ui-tile-empty.ui-tile-marked:focus-visible {
+        border-color: color-mix(in oklab, var(--brand-secondary) 65%, transparent);
+        background: color-mix(in oklab, var(--brand-secondary) 12%, rgba(255 255 255 / 0.1));
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-secondary) 28%, transparent),
+            0 0 26px -14px color-mix(in oklab, var(--brand-secondary) 78%, transparent);
+    }
+
+    .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:active):not(:has(.status-dots-toolbar :active)),
+    .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:focus-visible) {
+        border-color: color-mix(in oklab, var(--brand-primary) 72%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 22%, transparent),
+            inset 0 14px 26px -22px color-mix(in oklab, var(--brand-primary) 42%, transparent),
+            0 0 28px -14px color-mix(in oklab, var(--brand-primary) 78%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:active):not(:has(.status-dots-toolbar :active)) {
+            transform: translate3d(0, -1px, 0);
+        }
+    }
+
+    .ui-stat-embed {
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    html.ui-navigating dialog.modal,
+    html.ui-navigating dialog.modal-open {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    .ui-user-badge-contact-trigger .avatar > div {
+        transition:
+            border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ui-user-badge-contact-trigger .avatar > div img {
+        transition: filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ui-user-badge-contact-trigger:is(:hover, :focus-visible) .avatar > div {
+        border-color: color-mix(in oklab, var(--color-primary) 55%, var(--color-base-300));
+        box-shadow:
+            inset 0 0 10px 2px color-mix(in oklch, var(--color-primary) 42%, transparent),
+            inset 0 0 18px 4px color-mix(in oklch, var(--color-accent) 28%, transparent);
+    }
+
+    .ui-user-badge-contact-trigger:is(:hover, :focus-visible) .avatar > div img {
+        filter: brightness(1.12);
+    }
+
+    .ui-participant-list-item .mary-hideable,
+    .ui-participant-list-item .mary-hideable .truncate {
+        overflow: visible !important;
+    }
+
+    .ui-participant-list-item [data-ui='familiarity-summary'] {
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    @media (width < 40rem) {
+        .ui-participant-list-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+    }
+}

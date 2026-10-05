@@ -1,0 +1,210 @@
+/**
+ * DaisyUI .modal-box uses max-height: 100vh, which sits under mobile browser chrome.
+ * Cap every dialog to the small viewport plus safe-area (notches / home indicator).
+ */
+.modal-box {
+    max-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.5rem);
+}
+
+/**
+ * Tall overlays: pin title/close/actions; only the Mary slot body scrolls.
+ * Mary wraps the title in the first div (mb-10 / !mb-5) and the slot in the next div.
+ *
+ * Do not put overflow:hidden on ancestors of DaisyUI tooltip hosts — ::before/::after tips
+ * clip. Scroll only dedicated panels (see overlay-sticky-tabs [role=tablist] below).
+ */
+.ui-overlay-shell.modal-box {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.ui-overlay-shell.modal-box:has([data-ui='overlay-sticky-tabs']) {
+    /* Tab chrome hosts DaisyUI tips; keep sheet height via flex + panel scroll instead. */
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box > form,
+.ui-overlay-shell.modal-box > header,
+.ui-overlay-shell.modal-box > hr,
+.ui-overlay-shell.modal-box > h3,
+.ui-overlay-shell.modal-box > .modal-action,
+.ui-overlay-shell.modal-box > div:first-of-type:not(:has([data-ui='overlay-sticky-tabs'])) {
+    flex: 0 0 auto;
+}
+
+.ui-overlay-shell.modal-box > div:first-of-type:not(:has([data-ui='overlay-sticky-tabs'])) {
+    margin-bottom: 0 !important;
+}
+
+.ui-overlay-shell.modal-box > div:first-of-type hr {
+    margin-top: 0.25rem;
+}
+
+.ui-overlay-shell.modal-box > div:not(.modal-action):not(:first-of-type) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/**
+ * Tabbed overlays: pin the tab label bar; only the tab panels scroll.
+ * Hook: data-ui="overlay-sticky-tabs" on tabs-with-toolbar.
+ * When Mary has no title header, this slot wrapper is also div:first-of-type.
+ * Overflow stays visible on chrome so DaisyUI tab tooltips are not clipped.
+ * Page-level mobile sticky uses data-ui="tabs-toolbar-chrome" (disabled inside overlays).
+ */
+.ui-overlay-shell.modal-box > div:not(.modal-action):has([data-ui='overlay-sticky-tabs']) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > :first-child {
+    flex-shrink: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] .tab:is(.tooltip, .lg\:tooltip)::before,
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] .tab:is(.tooltip, .lg\:tooltip)::after {
+    z-index: 50;
+}
+
+.ui-overlay-shell.modal-box [data-ui='overlay-sticky-tabs'] > [role='tablist'] {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/**
+ * Contact popovers: pin request/action footer; only the body (stats/contact) scrolls.
+ * Hook: data-overlay-sticky-footer on the Livewire popover root.
+ * Keep overflow visible so tab/action DaisyUI tips are not clipped; panels scroll inside.
+ */
+.ui-overlay-shell.modal-box > div:not(.modal-action):has([data-overlay-sticky-footer]) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box [data-overlay-sticky-footer] {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.ui-overlay-shell.modal-box [data-overlay-sticky-footer] > [data-ui$='-body'] {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+/**
+ * Overlay sheets: bottom sheet on small screens, right shelf from md up.
+ * Pair with DaisyUI `modal-bottom md:modal-end` on the dialog.
+ * Used by listing previews, feedback, and user/organization contact popups.
+ */
+.modal.modal-bottom .ui-overlay-sheet.modal-box {
+    width: 100%;
+    max-width: none;
+    max-height: min(90svh, calc(100svh - env(safe-area-inset-top, 0px)));
+}
+
+@media (width >= 768px) {
+    .modal.md\:modal-end .ui-overlay-sheet.modal-box {
+        width: min(36rem, 100%);
+        max-width: min(36rem, 100%);
+        height: 100svh;
+        max-height: 100svh;
+        margin-block: 0;
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+}
+
+.ui-invite-user-suggestions {
+    background-color: var(--ui-field-bg);
+    border-color: var(--ui-field-border-color);
+}
+
+.ui-invite-user-suggestions :is(button, [role='option']) {
+    cursor: pointer;
+}
+
+/**
+ * Timeline collapses (dashboard feed, event plan): shared header hover feedback.
+ * DaisyUI places an invisible checkbox above .collapse-title (z-index: 1), so title :hover never fires.
+ */
+.ui-timeline-collapse {
+    transition: border-color 0.2s ease;
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover),
+.ui-timeline-collapse:has(> input[type='checkbox']:focus-visible) {
+    border-color: color-mix(in oklab, var(--color-primary) 40%, var(--color-base-content) 10%);
+}
+
+.ui-timeline-collapse > .collapse-title {
+    cursor: pointer;
+    border-radius: 0.75rem;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover) > .collapse-title {
+    background-color: color-mix(in oklab, var(--color-primary) 6%, transparent);
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:hover) > .collapse-title :is(span, p) {
+    color: color-mix(in oklab, var(--color-base-content) 70%, var(--color-primary) 30%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-timeline-collapse,
+    .ui-timeline-collapse > .collapse-title {
+        transition: none;
+    }
+}
+
+/**
+ * Timeline / dashboard collapses: DaisyUI .collapse sets overflow:hidden (utilities layer),
+ * which clips listing-card hover glow and slot-tile icon tooltips. Unlayered rules must
+ * beat layered DaisyUI when the section is open.
+ */
+.ui-timeline-collapse:has(> input[type='checkbox']:checked),
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) {
+    overflow: visible !important;
+}
+
+.ui-timeline-collapse:has(> input[type='checkbox']:checked) > .collapse-content,
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .collapse-content,
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) > .ui-dashboard-feed-collapse-content {
+    overflow: visible !important;
+}
+
+.ui-dashboard-feed-collapse:has(> input[type='checkbox']:checked) .ui-dashboard-feed-listings {
+    margin: -2rem -1rem;
+    padding: 2rem 1rem;
+}

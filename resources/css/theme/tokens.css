@@ -1,0 +1,210 @@
+/**
+ * Brand + theme tokens. Light-theme tuning: edit effect tokens in [data-theme=light] below —
+ * not scattered @variant light copies in component files.
+ */
+@layer base {
+    :root {
+        --app-nav-height: 4rem;
+        --brand-primary: oklch(0.605 0.119 231.905);
+        --brand-primary-dark: oklch(from var(--brand-primary) calc(l - 0.12) c h);
+        --brand-primary-content: oklch(98% 0.01 240);
+
+        --brand-secondary: oklch(62% 0.26 292);
+        --brand-secondary-content: oklch(98% 0.01 182);
+
+        --brand-accent: oklch(0.803 0.147 133.745);
+        --brand-accent-content: oklch(98% 0.01 292);
+
+        --brand-info: oklch(62% 0.19 228);
+        --brand-info-content: oklch(98% 0.01 228);
+        --brand-success: oklch(64% 0.19 162);
+        --brand-success-content: oklch(98% 0.01 162);
+        --brand-warning: oklch(75% 0.18 80);
+        --brand-warning-content: oklch(0.1 0.017 20.546);
+        --brand-error: oklch(58% 0.23 25);
+        --brand-error-content: oklch(98% 0.01 25);
+
+        /* Neutrals (Light) */
+        --brand-neutral-light: oklch(30% 0.04 242);
+        --brand-neutral-content-light: oklch(95% 0.01 242);
+        --brand-base-100-light: oklch(97% 0.015 242);
+        --brand-base-200-light: oklch(92% 0.025 242);
+        --brand-base-300-light: oklch(0.93 0.007 17.274);
+        --brand-base-content-light: oklch(18% 0.04 242);
+
+        /* Neutrals (Dark) */
+        --brand-neutral-dark: oklch(78% 0.03 242);
+        --brand-neutral-content-dark: oklch(16% 0.05 242);
+        --brand-base-100-dark: oklch(16% 0.08 242);
+        --brand-base-200-dark: oklch(20% 0.08 242);
+        --brand-base-300-dark: oklch(25% 0.08 242);
+        --brand-base-content-dark: oklch(88% 0.02 242);
+
+        --brand-animation-btn: 0.15s;
+        --brand-border: 1px;
+        --brand-border-btn: 1px;
+        --brand-btn-focus-scale: 0.98;
+        --brand-radius-selector: 1rem;
+        --brand-radius-field: 1rem;
+        --brand-radius-box: 1rem;
+        --brand-rounded-btn: 0.5rem;
+        --brand-rounded-box: 1rem;
+        --brand-rounded-badge: 9999px;
+        --brand-size-selector: 0.3125rem;
+        --brand-size-field: 0.3125rem;
+        --brand-depth: 1;
+
+        /* Field chrome (.input, .select, .textarea, .file-input) */
+        --ui-field-bg: var(--color-base-300);
+        --ui-field-border-color: var(--color-base-100);
+        --ui-field-focus-border-color: var(--color-primary);
+        --ui-field-focus-ring-width: 2px;
+        --ui-field-focus-ring-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+
+        /* Effect tokens (dark default — matches current production look) */
+        --ui-glass-panel-shadow: 6px 8px 18px rgb(0 0 0 / 0.4);
+        --ui-glass-panel-fill: color-mix(in oklab, var(--color-base-100) 70%, rgba(255 255 255 / 0.06));
+        --ui-glass-panel-inset: color-mix(in oklab, var(--color-neutral-content) 22%, transparent);
+        --ui-content-card-border: color-mix(in oklab, var(--brand-info) 50%, transparent);
+        --ui-content-card-gradient-start: color-mix(in oklab, var(--color-base-300) 84%, var(--brand-primary-dark));
+        --ui-content-card-gradient-end: color-mix(in oklab, var(--color-base-100) 92%, var(--brand-primary-dark));
+        --ui-hairline-inner-bg: color-mix(in oklab, var(--color-base-100) 96%, black);
+        --ui-badge-outline-bg: color-mix(in oklab, var(--color-base-100) 88%, black);
+        --ui-bg-gradient-stop: var(--color-base-200);
+        --ui-bg-texture-a: var(--color-base-300);
+        --ui-bg-texture-b: var(--color-base-200);
+        --ui-modal-surface-start: color-mix(in oklab, var(--color-base-300) 78%, transparent);
+        --ui-modal-surface-end: color-mix(in oklab, var(--color-base-100) 88%, transparent);
+        --ui-listing-card-shadow: 0 24px 40px color-mix(in oklch, black 80%, transparent);
+        --ui-listing-card-hover-shadow:
+            0 28px 48px color-mix(in oklch, black 82%, transparent),
+            0 0 48px color-mix(in oklch, var(--brand-accent) 52%, transparent),
+            0 0 32px -8px color-mix(in oklch, var(--brand-primary) 38%, transparent);
+        --ui-text-glow-mix: 100%;
+        --ui-media-fade-mask: linear-gradient(
+            to top,
+            transparent 0%,
+            rgb(0 0 0 / 0.45) 14%,
+            rgb(0 0 0 / 0.82) 22%,
+            black 30%
+        );
+        --ui-search-placeholder-mix: 62%;
+    }
+
+    [data-theme='light'] {
+        --ui-content-card-gradient-start: color-mix(in oklab, var(--color-base-300) 82%, var(--brand-info));
+        --ui-content-card-gradient-end: color-mix(in oklab, var(--color-base-100) 90%, var(--brand-primary));
+        --ui-hairline-inner-bg: color-mix(in oklab, var(--color-base-100) 8%, black);
+        --ui-badge-outline-bg: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
+        --ui-bg-gradient-stop: var(--brand-primary-dark);
+        --ui-bg-texture-a: transparent;
+        --ui-bg-texture-b: transparent;
+        --ui-modal-surface-start: color-mix(in oklab, var(--color-base-300) 76%, transparent);
+        --ui-modal-surface-end: color-mix(in oklab, var(--color-base-100) 86%, transparent);
+        --ui-listing-card-shadow: 0 20px 36px color-mix(in oklch, var(--brand-neutral-content-dark) 34%, transparent);
+        --ui-listing-card-hover-shadow:
+            0 0 44px color-mix(in oklch, var(--brand-primary) 34%, transparent),
+            0 0 28px -8px color-mix(in oklch, var(--brand-accent) 28%, transparent);
+        --ui-text-glow-mix: 50%;
+        --ui-media-fade-mask: linear-gradient(
+            to top,
+            transparent 0%,
+            rgb(0 0 0 / 0.28) 10%,
+            black 18%
+        );
+        --ui-search-placeholder-mix: 52%;
+    }
+}
+
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* ─── Light theme ──────────────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+    name: "light";
+    color-scheme: light;
+
+    --color-primary: var(--brand-primary);
+    --color-primary-content: var(--brand-primary-content);
+    --color-secondary: var(--brand-secondary);
+    --color-secondary-content: var(--brand-secondary-content);
+    --color-accent: var(--brand-accent);
+    --color-accent-content: var(--brand-accent-content);
+
+    --color-neutral: var(--brand-neutral-light);
+    --color-neutral-content: var(--brand-neutral-content-light);
+    --color-base-100: var(--brand-base-100-light);
+    --color-base-200: var(--brand-base-200-light);
+    --color-base-300: var(--brand-base-300-light);
+    --color-base-content: var(--brand-base-content-light);
+
+    --color-info: var(--brand-info);
+    --color-info-content: var(--brand-info-content);
+    --color-success: var(--brand-success);
+    --color-success-content: var(--brand-success-content);
+    --color-warning: var(--brand-warning);
+    --color-warning-content: var(--brand-warning-content);
+    --color-error: var(--brand-error);
+    --color-error-content: var(--brand-error-content);
+
+    --animation-btn: var(--brand-animation-btn);
+    --border: var(--brand-border);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-btn-focus-scale);
+    --rounded-btn: var(--brand-rounded-btn);
+    --rounded-box: var(--brand-rounded-box);
+    --rounded-badge: var(--brand-rounded-badge);
+    --radius-selector: var(--brand-radius-selector);
+    --radius-field: var(--brand-radius-field);
+    --radius-box: var(--brand-radius-box);
+    --size-selector: var(--brand-size-selector);
+    --size-field: var(--brand-size-field);
+    --depth: var(--brand-depth);
+}
+
+/* ─── Dark theme (default) ─────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+    name: "dark";
+    default: true;
+    color-scheme: dark;
+
+    --color-primary: var(--brand-primary);
+    --color-primary-content: var(--brand-primary-content);
+    --color-secondary: var(--brand-secondary);
+    --color-secondary-content: var(--brand-secondary-content);
+    --color-accent: var(--brand-accent);
+    --color-accent-content: var(--brand-accent-content);
+
+    --color-neutral: var(--brand-neutral-dark);
+    --color-neutral-content: var(--brand-neutral-content-dark);
+    --color-base-100: var(--brand-base-100-dark);
+    --color-base-200: var(--brand-base-200-dark);
+    --color-base-300: var(--brand-base-300-dark);
+    --color-base-content: var(--brand-base-content-dark);
+
+    --color-info: var(--brand-info);
+    --color-info-content: var(--brand-info-content);
+    --color-success: var(--brand-success);
+    --color-success-content: var(--brand-success-content);
+    --color-warning: var(--brand-warning);
+    --color-warning-content: var(--brand-warning-content);
+    --color-error: var(--brand-error);
+    --color-error-content: var(--brand-error-content);
+
+    --animation-btn: var(--brand-animation-btn);
+    --border: var(--brand-border);
+    --border-btn: var(--brand-border-btn);
+    --btn-focus-scale: var(--brand-btn-focus-scale);
+    --rounded-btn: var(--brand-rounded-btn);
+    --rounded-box: var(--brand-rounded-box);
+    --rounded-badge: var(--brand-rounded-badge);
+    --radius-selector: var(--brand-radius-selector);
+    --radius-field: var(--brand-radius-field);
+    --radius-box: var(--brand-radius-box);
+    --size-selector: var(--brand-size-selector);
+    --size-field: var(--brand-size-field);
+    --depth: var(--brand-depth);
+}

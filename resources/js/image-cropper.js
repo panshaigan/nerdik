@@ -1,5 +1,6 @@
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
+import '../css/vendor/cropper-chrome.css';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const ZOOM_RANGE_MULTIPLIER = 3;

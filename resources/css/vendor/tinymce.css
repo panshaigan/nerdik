@@ -1,0 +1,81 @@
+/* Tokens: --ui-field-bg, --ui-field-border-color, --color-base-content */
+.tox.tox-tinymce {
+    border: var(--border) solid var(--ui-field-border-color) !important;
+    border-radius: var(--radius-field, 0.5rem) !important;
+    overflow: hidden;
+}
+
+.tox .tox-editor-header,
+.tox .tox-toolbar,
+.tox .tox-toolbar-overlord,
+.tox .tox-toolbar__primary,
+.tox .tox-toolbar__overflow,
+.tox .tox-anchorbar,
+.tox .tox-menubar,
+.tox .tox-statusbar,
+.tox .tox-sidebar-wrap,
+.tox .tox-editor-container,
+.tox .tox-edit-area {
+    background-color: var(--ui-field-bg) !important;
+    background-image: none !important;
+}
+
+.tox .tox-statusbar {
+    border-top: 1px solid var(--ui-field-border-color) !important;
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent) !important;
+}
+
+.tox .tox-statusbar__path-item,
+.tox .tox-statusbar__wordcount,
+.tox .tox-statusbar__branding a {
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent) !important;
+}
+
+.tox .tox-tbtn,
+.tox .tox-tbtn--enabled,
+.tox .tox-tbtn--select,
+.tox .tox-split-button {
+    background-color: transparent !important;
+    color: var(--color-base-content) !important;
+}
+
+.tox .tox-tbtn:hover:not(.tox-tbtn--disabled),
+.tox .tox-tbtn--enabled:hover:not(.tox-tbtn--disabled),
+.tox .tox-tbtn:focus-visible:not(.tox-tbtn--disabled) {
+    background-color: color-mix(in oklab, var(--color-base-content) 12%, var(--ui-field-bg)) !important;
+    color: var(--color-base-content) !important;
+}
+
+.tox .tox-tbtn--enabled,
+.tox .tox-tbtn--enabled:hover {
+    background-color: color-mix(in oklab, var(--color-primary) 14%, var(--ui-field-bg)) !important;
+}
+
+.tox .tox-tbtn svg,
+.tox .tox-tbtn svg *,
+.tox .tox-split-button__chevron svg,
+.tox .tox-split-button__chevron svg * {
+    fill: currentColor !important;
+}
+
+.tox .tox-tbtn--disabled,
+.tox .tox-tbtn--disabled svg {
+    opacity: 0.38;
+}
+
+.tox .tox-toolbar__group:not(:last-of-type) {
+    border-right: 1px solid color-mix(in oklab, var(--ui-field-border-color) 85%, transparent) !important;
+}
+
+.tox .tox-edit-area__iframe,
+.tox .tox-edit-area iframe {
+    background-color: var(--ui-field-bg) !important;
+}
+
+.tox .tox-edit-area::before {
+    border-color: var(--ui-field-focus-border-color) !important;
+}
+
+.tox.tox-tinymce:focus-within .tox-edit-area::before {
+    opacity: 1;
+}

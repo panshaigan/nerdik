@@ -4,7 +4,6 @@ import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
 import './auth-recaptcha';
 import './copy-to-clipboard';
-import './tinymce-field-chrome';
 import './invite-user-search';
 
 const moduleLoads = new Map();
@@ -189,7 +188,16 @@ function bootBrowseDateRangePickersOnDemand() {
     });
 }
 
+function bootTinyMceFieldChrome() {
+    const shouldLoad = document.querySelector(
+        '.tox-tinymce, script[src*="tinymce"], [data-ui*="editor"], form[data-activity-form], form[data-event-form], form[data-org-form]',
+    ) !== null || typeof window.tinymce !== 'undefined';
+
+    loadOnce('tinymce-field-chrome', shouldLoad, () => import('./tinymce-field-chrome'));
+}
+
 function bootFeatureModules() {
+    bootTinyMceFieldChrome();
     loadOnce(
         'image-cropper',
         document.querySelector('[data-image-crop-dropzone]') !== null,
