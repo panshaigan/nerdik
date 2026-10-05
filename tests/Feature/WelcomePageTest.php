@@ -201,7 +201,7 @@ class WelcomePageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('theme-controller', false);
+        $response->assertSee('aria-label="'.__('ui.nav.toggle_theme').'"', false);
         $response->assertSee("\$persist('dark').as('mary-theme')", false);
     }
 

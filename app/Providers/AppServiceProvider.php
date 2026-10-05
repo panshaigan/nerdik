@@ -94,6 +94,14 @@ class AppServiceProvider extends ServiceProvider
                 return false;
             }
 
+            if (($chunk['isDynamicEntry'] ?? false) === true) {
+                return false;
+            }
+
+            if (str_ends_with($url, '.js') && ! ($chunk['isEntry'] ?? false)) {
+                return false;
+            }
+
             return [];
         });
 

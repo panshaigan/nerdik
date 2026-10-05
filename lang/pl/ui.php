@@ -15,6 +15,7 @@ return [
         'my_organizations' => 'Moje organizacje',
         'log_out' => 'Wyloguj',
         'open_menu' => 'Otwórz menu',
+        'toggle_theme' => 'Przełącz motyw',
         'main_navigation' => 'Główna nawigacja',
         'log_in' => 'Zaloguj się',
         'register' => 'Zarejestruj się',

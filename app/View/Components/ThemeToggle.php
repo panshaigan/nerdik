@@ -29,8 +29,9 @@ class ThemeToggle extends Component
     {
         return <<<'HTML'
                 <div>
-                    <label
-                        for="{{ $uuid }}"
+                    <button
+                        type="button"
+                        id="{{ $uuid }}"
                         x-data="{
                             theme: $persist('{{ $darkTheme }}').as('mary-theme'),
                             class: $persist('{{ $darkClass }}').as('mary-class'),
@@ -57,13 +58,14 @@ class ThemeToggle extends Component
                                 this.setToggle()
                             }
                         }"
+                        @click="toggle()"
                         @mary-toggle-theme.window="toggle()"
+                        aria-label="{{ __('ui.nav.toggle_theme') }}"
                         {{ $attributes->class("swap swap-rotate") }}
                     >
-                        <input id="{{ $uuid }}" type="checkbox" class="theme-controller opacity-0" @click="toggle()" :value="theme" />
                         <x-mary-icon x-ref="sun" name="o-sun" class="swap-on" />
-                        <x-mary-icon x-ref="moon" name="o-moon" class="swap-off"  />
-                    </label>
+                        <x-mary-icon x-ref="moon" name="o-moon" class="swap-off" />
+                    </button>
                 </div>
             HTML;
     }

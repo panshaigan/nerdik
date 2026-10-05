@@ -196,10 +196,11 @@ class NavigationMenuTest extends TestCase
             ->assertSee('<div', false)
             ->assertSee('id="mobile-nav-drawer"', false)
             ->assertSee('role="dialog"', false)
-            ->assertDontSee('<aside', false);
+            ->assertDontSee('<aside', false)
+            ->assertSee('aria-label="'.__('ui.nav.toggle_theme').'"', false);
 
         preg_match_all(
-            '/<input id="([^"]+)" type="checkbox" class="theme-controller/',
+            '/<button[^>]*id="(theme-toggle-[^"]+)"[^>]*aria-label="[^"]*"[^>]*>/',
             $response->getContent(),
             $themeToggleIds,
         );

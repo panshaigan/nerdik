@@ -22,6 +22,11 @@ class ViteAssetTagsTest extends TestCase
             '/rel="preload"[^>]+as="style"/',
             $html,
         );
+        $this->assertDoesNotMatchRegularExpression(
+            '/rel="modulepreload"[^>]+tags-selector/',
+            $html,
+        );
+        $this->assertSame(1, preg_match_all('/rel="modulepreload"/', $html, $modulePreloads));
         $this->assertMatchesRegularExpression(
             '/rel="preload"[^>]+as="font"/',
             (string) view('components.font-preloads')->render(),

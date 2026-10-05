@@ -15,6 +15,7 @@ return [
         'my_organizations' => 'My organizations',
         'log_out' => 'Log Out',
         'open_menu' => 'Open menu',
+        'toggle_theme' => 'Toggle theme',
         'main_navigation' => 'Main navigation',
         'log_in' => 'Log in',
         'register' => 'Register',
