@@ -19,7 +19,7 @@
     @endphp
 
     <x-modal
-        wire:model="activityPreviewModalOpen"
+        wire:model.preserve-scroll="activityPreviewModalOpen"
         box-class="ui-modal-surface ui-overlay-shell ui-overlay-sheet"
         class="backdrop-blur modal-bottom md:modal-end"
         data-ui="overlay-sheet"

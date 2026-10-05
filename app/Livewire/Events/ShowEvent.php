@@ -2,18 +2,12 @@
 
 namespace App\Livewire\Events;
 
-use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
-use App\Enums\ActivityProposalStatus;
-use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
-use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Place;
 use App\Models\Slot;
-use App\Services\ActivityParticipationViewService;
 use App\Services\CancellationNotificationDispatcher;
-use App\Services\EventActivitySignupService;
 use App\Services\EventProgrammeCancellationSyncService;
 use App\Services\EventShowReadCache;
 use App\Services\LifecycleMutationRateLimiter;
@@ -23,7 +17,6 @@ use App\Support\Sharing\ShareLinks;
 use App\Support\Ui\EventListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -43,7 +36,6 @@ class ShowEvent extends Component
 {
     use AuthorizesOwnership;
     use Toast;
-    use WithActivityPreviewModal;
     use WithUiConfirmModal;
 
     #[Locked]
@@ -119,12 +111,6 @@ class ShowEvent extends Component
         if (! in_array($this->tab, $this->mountedTabs, true)) {
             $this->mountedTabs[] = $this->tab;
         }
-    }
-
-    #[On('open-event-activity-preview')]
-    public function handleOpenEventActivityPreview(int $activityId): void
-    {
-        $this->openActivityPreview($activityId);
     }
 
     #[On('event-show-shell-refresh')]
@@ -391,9 +377,6 @@ class ShowEvent extends Component
     }
 
     public function render(
-        ActivityParticipationViewService $participationView,
-        ActivityBadgeGroupBuilder $badgeGroupBuilder,
-        EventActivitySignupService $signupService,
         EventShowReadCache $eventShowReadCache,
         EventListingImageResolver $eventListingImageResolver,
         ShareLinks $shareLinks,
@@ -440,12 +423,6 @@ class ShowEvent extends Component
 
         $interestedPeopleCount = $eventShowReadCache->eventInterestedCount((int) $event->id);
 
-        $activityPreviewData = $this->resolveActivityPreviewViewData(
-            $participationView,
-            $badgeGroupBuilder,
-            $signupService,
-        );
-
         $slotNameSuggestions = [];
         $slotMassVenues = collect();
         $slotMassRoomsByVenueId = [];
@@ -474,7 +451,6 @@ class ShowEvent extends Component
             'interestedPeopleCount' => $interestedPeopleCount,
             'previousInSeries' => $previousInSeries,
             'nextInSeries' => $nextInSeries,
-            ...$activityPreviewData,
             'slotNameSuggestions' => $slotNameSuggestions,
             'slotMassVenues' => $slotMassVenues,
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
@@ -496,42 +472,6 @@ class ShowEvent extends Component
             ->unique()
             ->values()
             ->all();
-    }
-
-    protected function previewActivityQuery(int $activityId): Builder
-    {
-        return Activity::query()
-            ->whereKey($activityId)
-            ->where(function (Builder $query) {
-                $query->whereHas('slot', fn ($q) => $q->where('event_id', $this->eventId))
-                    ->orWhereHas(
-                        'proposals',
-                        fn ($q) => $q->where('event_id', $this->eventId)
-                            ->where('status', ActivityProposalStatus::Pending),
-                    );
-            });
-    }
-
-    protected function showPreviewParticipationActions(?Activity $activity): bool
-    {
-        if ($activity === null) {
-            return false;
-        }
-
-        return (int) ($activity->slot?->event_id) === (int) $this->eventId;
-    }
-
-    protected function previewActivityBelongsToParticipationBroadcast(int $activityId): bool
-    {
-        return Activity::query()
-            ->whereKey($activityId)
-            ->whereHas('slot', fn ($query) => $query->where('event_id', $this->eventId))
-            ->exists();
-    }
-
-    protected function afterPreviewParticipationChanged(): void
-    {
-        $this->dispatch('event-show-plan-counter-bump');
     }
 
     private function normalizeTab(?string $value): string

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\ActivityProposalStatus;
-use App\Livewire\Events\ShowEvent;
+use App\Livewire\Events\EventShowActivityPreviewModal;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -35,9 +35,8 @@ class ShowEventProposalsTabActivityPreviewTest extends TestCase
 
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'proposals')
-            ->call('openActivityPreview', (int) $activity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', (int) $activity->id)
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', (int) $activity->id);
     }

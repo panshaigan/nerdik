@@ -3,8 +3,8 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\ParticipationMode;
+use App\Livewire\Events\EventShowActivityPreviewModal;
 use App\Livewire\Events\EventShowPlanTab;
-use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
@@ -75,8 +75,8 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         ]);
 
         Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $activity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->assertSet('activityPreviewModalOpen', true)
             ->assertSet('previewActivityId', $activity->id)
             ->assertSet('activityPreviewTab', 'info');
@@ -98,8 +98,8 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         ]);
 
         Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $otherActivity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $otherActivity->id)
             ->assertSet('activityPreviewModalOpen', false)
             ->assertSet('previewActivityId', null);
     }
@@ -119,8 +119,8 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         ]);
 
         $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $activity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->set('activityPreviewTab', 'participation');
 
         $component->assertSet('activityPreviewRefreshTick', 0);
@@ -143,7 +143,7 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         ]);
 
         $component = Livewire::actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event]);
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id]);
 
         $component->assertSet('activityPreviewRefreshTick', 0);
         $component->call('refreshPreviewFromParticipationBroadcast', $activity->id);
@@ -184,8 +184,8 @@ class ShowEventPlanCounterBroadcastTest extends TestCase
         ]);
 
         Livewire::actingAs($viewer)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $activity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->call('joinPreviewActivity')
             ->assertSet('activityPreviewTab', 'participation');
 

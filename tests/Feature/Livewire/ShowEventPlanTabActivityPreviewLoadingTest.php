@@ -4,9 +4,9 @@ namespace Tests\Feature\Livewire;
 
 use App\Enums\ActivityProposalStatus;
 use App\Enums\ParticipationMode;
+use App\Livewire\Events\EventShowActivityPreviewModal;
 use App\Livewire\Events\EventShowPlanTab;
 use App\Livewire\Events\EventShowProposalsTab;
-use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
@@ -96,6 +96,47 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('wire:click="rejectPendingProposal(');
     }
 
+    public function test_opening_second_activity_preview_does_not_re_render_plan_tab(): void
+    {
+        $host = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $host->id]);
+        $firstActivity = Activity::factory()->scheduled()->create(['created_by' => $host->id, 'updated_by' => $host->id]);
+        $secondActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'name' => 'Second Slot Activity',
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $firstActivity->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $secondActivity->id,
+        ]);
+
+        $planTab = Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id]);
+
+        $planTab
+            ->call('openActivityPreview', $firstActivity->id)
+            ->assertDispatched('open-event-activity-preview', activityId: $firstActivity->id)
+            ->assertSet('planCounterRefreshTick', 0)
+            ->call('openActivityPreview', $secondActivity->id)
+            ->assertDispatched('open-event-activity-preview', activityId: $secondActivity->id)
+            ->assertSet('planCounterRefreshTick', 0);
+
+        Livewire::actingAs($viewer)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $firstActivity->id)
+            ->assertSet('activityPreviewModalOpen', true)
+            ->call('handleOpenEventActivityPreview', $secondActivity->id)
+            ->assertSet('previewActivityId', $secondActivity->id);
+    }
+
     public function test_activity_preview_modal_join_leave_buttons_have_loading_indicator(): void
     {
         $owner = User::factory()->create();
@@ -131,9 +172,8 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 
         Livewire::withoutLazyLoading()
             ->actingAs($viewer)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
-            ->call('openActivityPreview', $activity->id)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->assertSeeHtml('data-ui="overlay-sticky-tabs"')
             ->assertSeeHtml('wire:target="joinPreviewActivity"')
             ->assertSeeHtml('wire:loading.attr="disabled"');
@@ -146,9 +186,8 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
-            ->test(ShowEvent::class, ['event' => $event])
-            ->set('tab', 'plan')
-            ->call('openActivityPreview', 999_999)
+            ->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', 999_999)
             ->assertSet('activityPreviewModalOpen', false)
             ->assertSet('previewActivityId', null);
     }

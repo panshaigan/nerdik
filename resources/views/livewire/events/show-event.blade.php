@@ -321,17 +321,10 @@
         ])
     @endif
     @include('slots.partials.edit-modal-shell')
-    @include('livewire.events.partials.activity-preview-modal', [
-        'previewActivity' => $previewActivity ?? null,
-        'previewAbout' => $previewAbout ?? null,
-        'previewActivityBadgeItems' => $previewActivityBadgeItems ?? [],
-        'previewActivityParticipation' => $previewActivityParticipation ?? null,
-        'previewActivityHasActiveEnrollmentWindow' => $previewActivityHasActiveEnrollmentWindow ?? false,
-        'showPreviewParticipationActions' => $showPreviewParticipationActions ?? false,
-        'showPreviewParticipationTab' => $showPreviewParticipationTab ?? false,
-        'activityPreviewRefreshTick' => $activityPreviewRefreshTick ?? 0,
-    ])
-    @include('livewire.partials.familiarity-prompt-modal')
+    <livewire:events.event-show-activity-preview-modal
+        :event-id="$eventId"
+        wire:key="event-activity-preview-modal-{{ $eventId }}"
+    />
 
     <x-ui.confirm-modal
         wire:model="confirmModalOpen"

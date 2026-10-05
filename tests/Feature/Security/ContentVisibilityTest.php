@@ -4,6 +4,7 @@ namespace Tests\Feature\Security;
 
 use App\Enums\ActivityProposalStatus;
 use App\Livewire\Activities\ShowActivity;
+use App\Livewire\Events\EventShowActivityPreviewModal;
 use App\Livewire\Events\EventShowMapTab;
 use App\Livewire\Events\EventShowPlanTab;
 use App\Livewire\Events\ShowEvent;
@@ -113,12 +114,12 @@ class ContentVisibilityTest extends TestCase
         $event = Event::factory()->public()->create();
         $activity = Activity::factory()->proposed()->create();
         ActivityProposal::factory()->create(['activity_id' => $activity->id, 'event_id' => $event->id, 'status' => ActivityProposalStatus::Pending]);
-        Livewire::test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $activity->id)
+        Livewire::test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->assertSet('previewActivityId', null)
             ->assertSet('activityPreviewModalOpen', false);
-        Livewire::actingAs($event->creator)->test(ShowEvent::class, ['event' => $event])
-            ->call('openActivityPreview', $activity->id)
+        Livewire::actingAs($event->creator)->test(EventShowActivityPreviewModal::class, ['eventId' => $event->id])
+            ->call('handleOpenEventActivityPreview', $activity->id)
             ->assertSet('previewActivityId', $activity->id);
     }
 
