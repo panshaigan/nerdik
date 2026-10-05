@@ -50,6 +50,10 @@ nerdik.app {
 	}
 }
 
+www.nerdik.app {
+	redir https://nerdik.app{uri} permanent
+}
+
 staging.nerdik.app {
 	encode gzip
 

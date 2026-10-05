@@ -54,6 +54,10 @@ ${APP_DOMAIN} {
 	}
 }
 
+www.${APP_DOMAIN} {
+	redir https://${APP_DOMAIN}{uri} permanent
+}
+
 ${STAGING_DOMAIN} {
 	encode gzip
 

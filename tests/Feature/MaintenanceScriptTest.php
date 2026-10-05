@@ -104,6 +104,8 @@ class MaintenanceScriptTest extends TestCase
         $this->assertStringContainsString('status 503', $caddyfile);
         $this->assertStringContainsString('root * /etc/caddy/maintenance', $caddyfile);
         $this->assertStringContainsString('handle_errors {', $caddyfile);
+        $this->assertStringContainsString('www.example.test {', $caddyfile);
+        $this->assertStringContainsString('redir https://example.test{uri} permanent', $caddyfile);
 
         unlink($caddyfilePath);
     }

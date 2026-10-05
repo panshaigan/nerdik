@@ -24,6 +24,7 @@ Production uses a shared stack plus prod overlay: [`compose.stack.yaml`](../comp
 
 - Docker Engine and Compose plugin on the server
 - DNS `A`/`AAAA` for `APP_DOMAIN` pointing at the VPS (for Caddy automatic HTTPS)
+- DNS `A`/`AAAA` for `www.<APP_DOMAIN>` pointing at the same VPS (Caddy 301-redirects `www` to the apex canonical host)
 - Ports `80` and `443` open
 - GHCR package read access configured on the server (`docker login ghcr.io`)
 
