@@ -13,6 +13,17 @@ use Tests\TestCase;
 
 final class AlpineNavigateSafetyTest extends TestCase
 {
+    public function test_close_modals_on_navigate_uses_wire_get_and_set(): void
+    {
+        $source = (string) file_get_contents(resource_path('js/close-modals-on-navigate.js'));
+
+        $this->assertStringContainsString('component?.$wire', $source);
+        $this->assertStringContainsString('wire.get(property)', $source);
+        $this->assertStringContainsString('wire.set(property, false)', $source);
+        $this->assertStringNotContainsString('component.get(property)', $source);
+        $this->assertStringNotContainsString('component.set(property', $source);
+    }
+
     public function test_tab_guards_selected_expressions(): void
     {
         $html = Blade::render('<x-tab name="events" label="Events" />');

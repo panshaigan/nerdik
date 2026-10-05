@@ -35,9 +35,15 @@ function closeLivewireModalsBeforeNavigate() {
     ];
 
     window.Livewire.all().forEach((component) => {
+        const wire = component?.$wire;
+
+        if (!wire || typeof wire.get !== 'function' || typeof wire.set !== 'function') {
+            return;
+        }
+
         modalProperties.forEach((property) => {
-            if (component.get(property) === true) {
-                component.set(property, false);
+            if (wire.get(property) === true) {
+                wire.set(property, false);
             }
         });
     });
