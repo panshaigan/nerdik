@@ -509,7 +509,7 @@
     }
 
     function activityFormRoomUpdatePopup(els, state) {
-        const { roomInput, roomPopup } = els;
+        const { roomInput } = els;
         state.popupActive = -1;
         const q = roomInput.value.trim().toLowerCase();
         const items =
@@ -640,7 +640,7 @@
                 if (!els) {
                     return;
                 }
-                const { mapWrap, template, roomPopup } = els;
+                const { mapWrap, template } = els;
                 const state = activityFormRoomGetState(els.roomRoot);
                 const venueId = activityFormRoomGetSelectedVenueId(mapWrap);
                 if (!venueId || activityFormRoomHasNewVenueDraft(mapWrap)) {

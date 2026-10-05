@@ -214,11 +214,7 @@ new #[Layout('layouts.guest')] class extends Component
 @push('scripts')
 <script>
 (() => {
-    let registerTimezoneAbort;
     function initRegisterTimezone() {
-        registerTimezoneAbort?.abort();
-        registerTimezoneAbort = new AbortController();
-        const signal = registerTimezoneAbort.signal;
         const timezoneInput = document.querySelector('[data-register-timezone]');
         if (!timezoneInput) {
             return;
@@ -259,7 +255,6 @@ new #[Layout('layouts.guest')] class extends Component
         }
     }
 
-    document.addEventListener('livewire:navigating', () => registerTimezoneAbort?.abort());
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initRegisterTimezone, { once: true });
     } else {
