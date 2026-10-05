@@ -62,6 +62,48 @@ final class AdminOpsNavLinksTest extends TestCase
     }
 
     #[Test]
+    public function it_groups_links_in_a_logical_order(): void
+    {
+        Config::set('app.url', 'http://localhost');
+        Config::set('app.environment_urls.production', 'https://nerdik.app');
+        Config::set('app.environment_urls.staging', 'https://staging.nerdik.app');
+        Config::set('app.environment_urls.development', 'http://localhost');
+        Config::set('sentry.dashboard_url', 'https://sentry.example/org/project');
+        Config::set('mail.support_mailbox_url', 'https://mail.example/inbox');
+        Config::set('umami.dashboard_url', 'https://umami.example/website');
+        Config::set('services.google.search_console_url', 'https://search.google.example/console');
+        Config::set('mail.brevo_dashboard_url', 'https://brevo.example/logs');
+        Config::set('services.adminer.url', 'https://adminer.example');
+        Config::set('services.hosting_manager.url', 'https://hosting.example/dashboard');
+
+        $groups = AdminOpsNavLinks::groups();
+
+        $this->assertSame([
+            null,
+            __('ui.nav.admin_group_environments'),
+            __('ui.nav.admin_group_monitoring'),
+            __('ui.nav.admin_group_email'),
+            __('ui.nav.admin_group_infrastructure'),
+        ], array_column($groups, 'label'));
+
+        $labels = array_column(AdminOpsNavLinks::items(), 'label');
+
+        $this->assertSame([
+            __('ui.nav.admin_panel'),
+            __('ui.nav.pulse'),
+            __('ui.nav.production'),
+            __('ui.nav.staging'),
+            __('ui.nav.sentry'),
+            __('ui.nav.umami'),
+            __('ui.nav.google_search_console'),
+            __('ui.nav.support'),
+            __('ui.nav.brevo'),
+            __('ui.nav.adminer'),
+            __('ui.nav.hosting_manager'),
+        ], $labels);
+    }
+
+    #[Test]
     public function it_includes_hosting_manager_url_when_configured(): void
     {
         Config::set('app.url', 'https://nerdik.app');

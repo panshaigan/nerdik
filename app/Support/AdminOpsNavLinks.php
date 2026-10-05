@@ -7,13 +7,65 @@ namespace App\Support;
 final class AdminOpsNavLinks
 {
     /**
-     * External and in-app ops shortcuts shown in the admin profile menu.
+     * Grouped external and in-app ops shortcuts shown in the admin profile menu.
+     *
+     * @return list<array{label: string|null, items: list<array{label: string, url: string}>}>
+     */
+    public static function groups(): array
+    {
+        $groups = [
+            [
+                'label' => null,
+                'items' => self::resolveItems(self::platformItems()),
+            ],
+            [
+                'label' => __('ui.nav.admin_group_environments'),
+                'items' => self::resolveItems(self::environmentItems()),
+            ],
+            [
+                'label' => __('ui.nav.admin_group_monitoring'),
+                'items' => self::resolveItems(self::monitoringItems()),
+            ],
+            [
+                'label' => __('ui.nav.admin_group_email'),
+                'items' => self::resolveItems(self::emailItems()),
+            ],
+            [
+                'label' => __('ui.nav.admin_group_infrastructure'),
+                'items' => self::resolveItems(self::infrastructureItems()),
+            ],
+        ];
+
+        return array_values(array_filter(
+            $groups,
+            fn (array $group): bool => $group['items'] !== [],
+        ));
+    }
+
+    /**
+     * Flat list of all admin ops links (preserves group order).
      *
      * @return list<array{label: string, url: string}>
      */
     public static function items(): array
     {
-        $links = [
+        $items = [];
+
+        foreach (self::groups() as $group) {
+            foreach ($group['items'] as $item) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return list<array{label: string, url: string}>
+     */
+    private static function platformItems(): array
+    {
+        return [
             [
                 'label' => __('ui.nav.admin_panel'),
                 'url' => url('/'.trim((string) config('filament.admin_path'), '/')),
@@ -23,8 +75,100 @@ final class AdminOpsNavLinks
                 'url' => url('/'.trim((string) config('pulse.path'), '/')),
             ],
         ];
+    }
 
-        foreach (self::optionalItems() as $item) {
+    /**
+     * @return list<array{label: string, url: mixed, skip_current_app?: bool}>
+     */
+    private static function environmentItems(): array
+    {
+        return [
+            [
+                'label' => __('ui.nav.production'),
+                'url' => config('app.environment_urls.production'),
+                'skip_current_app' => true,
+            ],
+            [
+                'label' => __('ui.nav.staging'),
+                'url' => config('app.environment_urls.staging'),
+                'skip_current_app' => true,
+            ],
+            [
+                'label' => __('ui.nav.development'),
+                'url' => config('app.environment_urls.development'),
+                'skip_current_app' => true,
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, url: mixed}>
+     */
+    private static function monitoringItems(): array
+    {
+        return [
+            [
+                'label' => __('ui.nav.sentry'),
+                'url' => config('sentry.dashboard_url'),
+            ],
+            [
+                'label' => __('ui.nav.umami'),
+                'url' => config('umami.dashboard_url'),
+            ],
+            [
+                'label' => __('ui.nav.google_search_console'),
+                'url' => config('services.google.search_console_url'),
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, url: mixed}>
+     */
+    private static function emailItems(): array
+    {
+        return [
+            [
+                'label' => __('ui.nav.support'),
+                'url' => config('mail.support_mailbox_url'),
+            ],
+            [
+                'label' => __('ui.nav.brevo'),
+                'url' => config('mail.brevo_dashboard_url'),
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{label: string, url: mixed}>
+     */
+    private static function infrastructureItems(): array
+    {
+        $adminerBase = config('services.adminer.url');
+
+        return [
+            [
+                'label' => __('ui.nav.adminer'),
+                'url' => filled($adminerBase)
+                    ? rtrim((string) $adminerBase, '/').'/?pgsql=pgsql&username=sail'
+                    : null,
+            ],
+            [
+                'label' => __('ui.nav.hosting_manager'),
+                'url' => config('services.hosting_manager.url'),
+            ],
+        ];
+    }
+
+    /**
+     * @param  list<array{label: string, url: mixed, skip_current_app?: bool}>  $optionalItems
+     * @return list<array{label: string, url: string}>
+     */
+    private static function resolveItems(array $optionalItems): array
+    {
+        $links = [];
+
+        foreach ($optionalItems as $item) {
             $url = $item['url'];
 
             if (! is_string($url) || $url === '') {
@@ -48,62 +192,6 @@ final class AdminOpsNavLinks
         }
 
         return $links;
-    }
-
-    /**
-     * @return list<array{label: string, url: mixed, skip_current_app?: bool}>
-     */
-    private static function optionalItems(): array
-    {
-        $adminerBase = config('services.adminer.url');
-
-        return [
-            [
-                'label' => __('ui.nav.production'),
-                'url' => config('app.environment_urls.production'),
-                'skip_current_app' => true,
-            ],
-            [
-                'label' => __('ui.nav.staging'),
-                'url' => config('app.environment_urls.staging'),
-                'skip_current_app' => true,
-            ],
-            [
-                'label' => __('ui.nav.development'),
-                'url' => config('app.environment_urls.development'),
-                'skip_current_app' => true,
-            ],
-            [
-                'label' => __('ui.nav.sentry'),
-                'url' => config('sentry.dashboard_url'),
-            ],
-            [
-                'label' => __('ui.nav.support'),
-                'url' => config('mail.support_mailbox_url'),
-            ],
-            [
-                'label' => __('ui.nav.umami'),
-                'url' => config('umami.dashboard_url'),
-            ],
-            [
-                'label' => __('ui.nav.google_search_console'),
-                'url' => config('services.google.search_console_url'),
-            ],
-            [
-                'label' => __('ui.nav.brevo'),
-                'url' => config('mail.brevo_dashboard_url'),
-            ],
-            [
-                'label' => __('ui.nav.adminer'),
-                'url' => filled($adminerBase)
-                    ? rtrim((string) $adminerBase, '/').'/?pgsql=pgsql&username=sail'
-                    : null,
-            ],
-            [
-                'label' => __('ui.nav.hosting_manager'),
-                'url' => config('services.hosting_manager.url'),
-            ],
-        ];
     }
 
     /**
