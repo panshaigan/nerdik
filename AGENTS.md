@@ -120,7 +120,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 # Laravel Sail
 
 - This project runs inside Laravel Sail's Docker containers. You MUST execute all commands through Sail.
-- Always access Sail through the repository Makefile targets (`make artisan`, `make test`, `make composer`, `make npm`, `make pint`, etc.). If a sandboxed Make invocation cannot reach the WSL Docker engine, rerun that same Make target with host permissions; do not conclude that Sail or Docker is unavailable.
 - Start services using `vendor/bin/sail up -d` and stop them with `vendor/bin/sail stop`.
 - Open the application in the browser by running `vendor/bin/sail open`.
 - Always prefix PHP, Artisan, Composer, and Node commands with `vendor/bin/sail`. Examples:

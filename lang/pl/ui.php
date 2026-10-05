@@ -199,6 +199,15 @@ return [
         'title' => 'Dashboard',
         'empty' => 'Brak nadchodzących wydarzeń lub aktywności.',
     ],
+    'platform_stats' => [
+        'members' => 'Członkowie',
+        'engaged_members' => 'Zaangażowani członkowie',
+        'upcoming_events' => 'Nadchodzące wydarzenia',
+        'upcoming_activities' => 'Nadchodzące aktywności',
+        'trend_this_month' => '+:count w tym miesiącu',
+        'created_this_month' => '+:count utworzonych w tym miesiącu',
+        'engaged_ratio' => ':percent% członków',
+    ],
     'auth' => [
         'log_in_with_google' => 'Zaloguj się przez Google',
         'log_in_with_facebook' => 'Zaloguj się przez Facebook',

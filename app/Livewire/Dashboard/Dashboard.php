@@ -3,6 +3,9 @@
 namespace App\Livewire\Dashboard;
 
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
+use App\Filament\Admin\Resources\Activities\ActivityResource;
+use App\Filament\Admin\Resources\Events\EventResource;
+use App\Filament\Admin\Resources\Users\UserResource;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Models\Activity;
@@ -12,6 +15,7 @@ use App\Services\ActivityParticipationViewService;
 use App\Services\Dashboard\DashboardFeedPresentationService;
 use App\Services\Dashboard\UpcomingFeedQueryService;
 use App\Services\EventActivitySignupService;
+use App\Services\Platform\PlatformStatsService;
 use App\Services\UserInterestService;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Carbon\Carbon;
@@ -67,9 +71,14 @@ class Dashboard extends Component
         BrowseListingCardPresenter $listingCardPresenter,
         DashboardFeedPresentationService $feedPresentation,
         UpcomingFeedQueryService $upcomingFeedQuery,
+        PlatformStatsService $platformStatsService,
     ) {
         $user = Auth::user();
         $this->toastFromSessionStatus();
+
+        $platformStats = $user->is_admin
+            ? $platformStatsService->stats()
+            : null;
 
         $upcomingActivityStats = $upcomingFeedQuery->upcomingActivityStatsForUser($user->id);
 
@@ -156,6 +165,13 @@ class Dashboard extends Component
         remember_browsing_return_url($browsingReturnUrl);
 
         return view('livewire.dashboard.dashboard', [
+            'platformStats' => $platformStats,
+            'platformStatsUrls' => $platformStats !== null ? [
+                'members' => UserResource::getUrl('index'),
+                'engaged_members' => UserResource::getUrl('index'),
+                'upcoming_events' => EventResource::getUrl('index'),
+                'upcoming_activities' => ActivityResource::getUrl('index'),
+            ] : null,
             'browsingReturnUrl' => $browsingReturnUrl,
             'upcomingInterestedActivitiesCount' => $upcomingActivityStats['interested'],
             'upcomingParticipatingActivitiesCount' => $upcomingActivityStats['participating'],

@@ -11,6 +11,7 @@ use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
 use App\Models\User;
+use App\Services\Platform\PlatformStatsService;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Services\Welcome\WelcomeUpcomingQueryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,7 +30,7 @@ class WelcomePageTest extends TestCase
     {
         parent::setUp();
 
-        Cache::forget('welcome.platform_stats');
+        Cache::forget(PlatformStatsService::CACHE_KEY);
         Cache::forget('welcome.hero_tag_image');
         Cache::forget('welcome.upcoming_listing_ids.6');
     }
@@ -117,9 +118,9 @@ class WelcomePageTest extends TestCase
         $response->assertSee('Members', false);
         $response->assertSee('Happening soon', false);
         $response->assertDontSee('Happening now', false);
-        $response->assertSee((string) $stats->usersCount, false);
+        $response->assertSee((string) $stats->membersCount, false);
         $response->assertSee((string) $stats->upcomingListingsCount, false);
-        $this->assertSame($expectedUsers, $stats->usersCount);
+        $this->assertSame($expectedUsers, $stats->membersCount);
         $this->assertSame(1, $stats->upcomingListingsCount);
     }
 

@@ -1,5 +1,5 @@
 @php
-    /** @var \App\Services\Welcome\WelcomePlatformStats $stats */
+    /** @var \App\Services\Platform\PlatformStats $stats */
     /** @var \App\Support\Welcome\WelcomeHeroTagImage|null $heroImage */
 @endphp
 

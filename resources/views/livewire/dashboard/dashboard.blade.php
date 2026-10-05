@@ -1,6 +1,13 @@
 <div class="p-1">
     <x-page-header :title="__('ui.dashboard.title')"/>
     <div class="max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
+        @if ($platformStats !== null && $platformStatsUrls !== null)
+            @include('livewire.dashboard.partials.admin-platform-stats', [
+                'stats' => $platformStats,
+                'urls' => $platformStatsUrls,
+            ])
+        @endif
+
         <section class="space-y-4">
             @php
                 $now = now();
