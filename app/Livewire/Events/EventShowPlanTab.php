@@ -23,6 +23,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -110,6 +111,7 @@ class EventShowPlanTab extends Component
     /**
      * Opens the activity preview modal on the parent {@see ShowEvent} shell.
      */
+    #[Renderless]
     public function openActivityPreview(int $activityId): void
     {
         $this->dispatch('open-event-activity-preview', activityId: $activityId);

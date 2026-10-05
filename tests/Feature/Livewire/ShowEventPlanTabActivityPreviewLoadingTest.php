@@ -21,7 +21,7 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_plan_tab_renders_activity_preview_loading_markers_on_attached_slot(): void
+    public function test_plan_tab_renders_preserve_scroll_activity_preview_trigger_on_attached_slot(): void
     {
         $host = User::factory()->create(['nickname' => 'Plan Tab Host']);
         $viewer = User::factory()->create();
@@ -42,13 +42,31 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('data-ui="event-show-slot-host"')
             ->assertSeeHtml('inline-flex w-fit max-w-full pointer-events-auto')
             ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0-late-0"')
-            ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
-            ->assertSeeHtml('wire:loading.attr="disabled"')
-            ->assertSeeHtml('wire:loading.delay')
-            ->assertSeeHtml('loading loading-spinner loading-lg');
+            ->assertSeeHtml('wire:click.preserve-scroll="openActivityPreview('.$activityId.')"')
+            ->assertSeeHtml('data-ui="event-show-slot-open-activity-preview"')
+            ->assertDontSeeHtml('data-ui="event-show-slot-activity-preview-loading"');
     }
 
-    public function test_proposals_tab_renders_activity_preview_loading_markers(): void
+    public function test_plan_tab_open_activity_preview_dispatches_to_parent_without_re_render(): void
+    {
+        $host = User::factory()->create();
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $host->id]);
+        $activity = Activity::factory()->create(['created_by' => $host->id, 'updated_by' => $host->id]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->call('openActivityPreview', $activity->id)
+            ->assertDispatched('open-event-activity-preview', activityId: $activity->id);
+    }
+
+    public function test_proposals_tab_renders_preserve_scroll_activity_preview_trigger(): void
     {
         $owner = User::factory()->create();
         $proposer = User::factory()->create();
@@ -70,11 +88,9 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
         Livewire::withoutLazyLoading()
             ->actingAs($owner)
             ->test(EventShowProposalsTab::class, ['eventId' => $event->id])
-            ->assertSeeHtml('wire:target="openActivityPreview('.$activityId.')"')
-            ->assertSeeHtml('wire:loading.attr="disabled"')
-            ->assertSeeHtml('wire:loading.delay')
-            ->assertSeeHtml('loading loading-spinner loading-lg')
+            ->assertSeeHtml('wire:click.preserve-scroll="openActivityPreview('.$activityId.')"')
             ->assertSeeHtml('data-ui="event-show-proposal-open-activity-preview"')
+            ->assertDontSeeHtml('data-ui="event-show-proposal-activity-preview-loading"')
             ->assertSeeHtml('data-ui="event-show-proposal-actions"')
             ->assertSeeHtml('data-ui="event-show-proposal-reject"')
             ->assertSeeHtml('wire:click="rejectPendingProposal(');
