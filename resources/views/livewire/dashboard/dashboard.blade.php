@@ -52,6 +52,7 @@
                                                         :listing="$row['kind'] === 'event' ? $row['event'] : $row['activity']"
                                                         :interested-ids="$row['kind'] === 'event' ? ($interestedEventIds ?? []) : ($interestedActivityIds ?? [])"
                                                         :return-url="$browsingReturnUrl"
+                                                        :confirmed-activities-count="$row['kind'] === 'event' ? ($eventProgrammeActivityCounts[$row['event']->id] ?? 0) : null"
                                                     />
                                                 @endforeach
                                             </div>

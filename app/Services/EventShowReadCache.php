@@ -28,7 +28,11 @@ class EventShowReadCache
 
     private const PENDING_PROPOSALS_VERSION = 'v1';
 
-    private const TTL_SECONDS = 120;
+    private const TTL_SECONDS = 300;
+
+    private const LOCK_SECONDS = 10;
+
+    private const LOCK_WAIT_SECONDS = 5;
 
     public function __construct(private ActivityPeopleStats $activityPeopleStats) {}
 
@@ -121,16 +125,25 @@ class EventShowReadCache
             return (int) $cached['count'];
         }
 
-        $interestType = Relation::getMorphAlias(Event::class) ?? Event::class;
+        return Cache::lock($this->lockKey('interested_count', $eventId), self::LOCK_SECONDS)
+            ->block(self::LOCK_WAIT_SECONDS, function () use ($eventId, $key): int {
+                /** @var array{count: int}|null $cached */
+                $cached = Cache::get($key);
+                if (is_array($cached) && isset($cached['count'])) {
+                    return (int) $cached['count'];
+                }
 
-        $count = (int) DB::table('user_interests')
-            ->where('interest_type', $interestType)
-            ->where('interest_id', $eventId)
-            ->count();
+                $interestType = Relation::getMorphAlias(Event::class) ?? Event::class;
 
-        Cache::put($key, ['count' => $count], now()->addSeconds(self::TTL_SECONDS));
+                $count = (int) DB::table('user_interests')
+                    ->where('interest_type', $interestType)
+                    ->where('interest_id', $eventId)
+                    ->count();
 
-        return $count;
+                Cache::put($key, ['count' => $count], now()->addSeconds(self::TTL_SECONDS));
+
+                return $count;
+            });
     }
 
     /**
@@ -155,14 +168,23 @@ class EventShowReadCache
             return (bool) $cached['value'];
         }
 
-        $has = ActivityProposal::query()
-            ->where('event_id', $eventId)
-            ->where('status', ActivityProposalStatus::Pending)
-            ->exists();
+        return Cache::lock($this->lockKey('pending_proposals', $eventId), self::LOCK_SECONDS)
+            ->block(self::LOCK_WAIT_SECONDS, function () use ($eventId, $key): bool {
+                /** @var array{value: bool}|null $cached */
+                $cached = Cache::get($key);
+                if (is_array($cached) && array_key_exists('value', $cached)) {
+                    return (bool) $cached['value'];
+                }
 
-        Cache::put($key, ['value' => $has], now()->addSeconds(self::TTL_SECONDS));
+                $has = ActivityProposal::query()
+                    ->where('event_id', $eventId)
+                    ->where('status', ActivityProposalStatus::Pending)
+                    ->exists();
 
-        return $has;
+                Cache::put($key, ['value' => $has], now()->addSeconds(self::TTL_SECONDS));
+
+                return $has;
+            });
     }
 
     public function forgetPendingProposalsFlag(int $eventId): void
@@ -185,6 +207,11 @@ class EventShowReadCache
         return 'event_show.pending_proposals.'.self::PENDING_PROPOSALS_VERSION.'.'.$eventId;
     }
 
+    private function lockKey(string $segment, int $eventId): string
+    {
+        return 'event_show.lock.'.$segment.'.'.$eventId;
+    }
+
     /**
      * @return array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}
      */
@@ -192,31 +219,50 @@ class EventShowReadCache
     {
         $key = $this->statsKey($eventId);
 
-        /** @var array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}|null $cached */
-        $cached = Cache::get($key);
-        if (
-            is_array($cached)
-            && isset($cached['confirmedActivities'], $cached['confirmedParticipants'], $cached['confirmedSignups'])
-            && array_key_exists('availablePlaces', $cached)
-            && array_key_exists('availableSignupPlaces', $cached)
-        ) {
-            $availablePlaces = $cached['availablePlaces'];
-            $availableSignupPlaces = $cached['availableSignupPlaces'];
-
-            return [
-                'confirmedActivities' => (int) $cached['confirmedActivities'],
-                'confirmedParticipants' => (int) $cached['confirmedParticipants'],
-                'confirmedSignups' => (int) $cached['confirmedSignups'],
-                'availablePlaces' => $availablePlaces === null ? null : (int) $availablePlaces,
-                'availableSignupPlaces' => $availableSignupPlaces === null ? null : (int) $availableSignupPlaces,
-            ];
+        $cached = $this->cachedProgrammeStatsPayload(Cache::get($key));
+        if ($cached !== null) {
+            return $cached;
         }
 
-        $computed = $this->computeProgrammeStats($eventId);
+        return Cache::lock($this->lockKey('programme_stats', $eventId), self::LOCK_SECONDS)
+            ->block(self::LOCK_WAIT_SECONDS, function () use ($eventId, $key): array {
+                $cached = $this->cachedProgrammeStatsPayload(Cache::get($key));
+                if ($cached !== null) {
+                    return $cached;
+                }
 
-        Cache::put($key, $computed, now()->addSeconds(self::TTL_SECONDS));
+                $computed = $this->computeProgrammeStats($eventId);
 
-        return $computed;
+                Cache::put($key, $computed, now()->addSeconds(self::TTL_SECONDS));
+
+                return $computed;
+            });
+    }
+
+    /**
+     * @return array{confirmedActivities: int, confirmedParticipants: int, confirmedSignups: int, availablePlaces: int|null, availableSignupPlaces: int|null}|null
+     */
+    private function cachedProgrammeStatsPayload(mixed $cached): ?array
+    {
+        if (
+            ! is_array($cached)
+            || ! isset($cached['confirmedActivities'], $cached['confirmedParticipants'], $cached['confirmedSignups'])
+            || ! array_key_exists('availablePlaces', $cached)
+            || ! array_key_exists('availableSignupPlaces', $cached)
+        ) {
+            return null;
+        }
+
+        $availablePlaces = $cached['availablePlaces'];
+        $availableSignupPlaces = $cached['availableSignupPlaces'];
+
+        return [
+            'confirmedActivities' => (int) $cached['confirmedActivities'],
+            'confirmedParticipants' => (int) $cached['confirmedParticipants'],
+            'confirmedSignups' => (int) $cached['confirmedSignups'],
+            'availablePlaces' => $availablePlaces === null ? null : (int) $availablePlaces,
+            'availableSignupPlaces' => $availableSignupPlaces === null ? null : (int) $availableSignupPlaces,
+        ];
     }
 
     /**

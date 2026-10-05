@@ -5,39 +5,67 @@ declare(strict_types=1);
 namespace App\Support\Welcome;
 
 use App\Models\Tag;
+use App\Support\Media\CachedPictureSources;
 use App\Support\Media\MediaPictureSources;
 use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class WelcomeHeroTagImageResolver
 {
-    private const CACHE_KEY = 'welcome.hero_tag_image';
+    private const CACHE_KEY_PREFIX = 'welcome.hero_tag_image';
 
     private const CACHE_TTL_SECONDS = 3600;
 
+    /** @var list<string> */
+    private const SUPPORTED_LOCALES = ['en', 'pl'];
+
     public function resolve(): ?WelcomeHeroTagImage
     {
-        /** @var int|null $mediaId */
-        $mediaId = Cache::remember(self::CACHE_KEY, self::CACHE_TTL_SECONDS, function (): ?int {
-            $media = Media::query()
-                ->where('model_type', (new Tag)->getMorphClass())
-                ->where('collection_name', 'images')
-                ->inRandomOrder()
-                ->first();
+        $locale = app()->getLocale();
+        $cacheKey = self::cacheKeyForLocale($locale);
 
-            return $media !== null ? (int) $media->id : null;
-        });
+        /** @var array{empty?: bool, sources?: array<string, mixed>, label?: string} $payload */
+        $payload = Cache::remember(
+            $cacheKey,
+            self::CACHE_TTL_SECONDS,
+            fn (): array => $this->buildCachePayload($locale),
+        );
 
-        if ($mediaId === null) {
+        if (($payload['empty'] ?? false) === true) {
             return null;
         }
 
-        $media = Media::query()->find($mediaId);
+        if (! isset($payload['sources'], $payload['label']) || ! is_array($payload['sources'])) {
+            return null;
+        }
+
+        return new WelcomeHeroTagImage(
+            sources: CachedPictureSources::fromArray($payload['sources']),
+            label: (string) $payload['label'],
+        );
+    }
+
+    public static function forgetCachedHeroImages(): void
+    {
+        foreach (self::SUPPORTED_LOCALES as $locale) {
+            Cache::forget(self::cacheKeyForLocale($locale));
+        }
+    }
+
+    public static function cacheKeyForLocale(string $locale): string
+    {
+        return self::CACHE_KEY_PREFIX.'.'.$locale;
+    }
+
+    /**
+     * @return array{empty: true}|array{sources: array<string, mixed>, label: string}
+     */
+    private function buildCachePayload(string $locale): array
+    {
+        $media = $this->randomTagHeroMedia();
 
         if ($media === null) {
-            Cache::forget(self::CACHE_KEY);
-
-            return null;
+            return ['empty' => true];
         }
 
         $tag = Tag::query()
@@ -45,17 +73,35 @@ final class WelcomeHeroTagImageResolver
             ->find($media->model_id);
 
         if ($tag === null) {
-            Cache::forget(self::CACHE_KEY);
-
-            return null;
+            return ['empty' => true];
         }
 
-        $label = $this->tagLabel($tag, app()->getLocale());
+        $label = $this->tagLabel($tag, $locale);
+        $sources = MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', $label);
 
-        return new WelcomeHeroTagImage(
-            sources: MediaPictureSources::fromMediaWithPreset($media, 'tag_hero', $label),
-            label: $label,
-        );
+        return [
+            'sources' => CachedPictureSources::fromMediaPictureSources($sources)->toArray(),
+            'label' => $label,
+        ];
+    }
+
+    private function randomTagHeroMedia(): ?Media
+    {
+        $tagMorph = (new Tag)->getMorphClass();
+
+        /** @var Media|null $media */
+        $media = Media::query()
+            ->join('tags', function ($join) use ($tagMorph): void {
+                $join->on('tags.id', '=', 'media.model_id')
+                    ->where('media.model_type', '=', $tagMorph);
+            })
+            ->whereNull('tags.deleted_at')
+            ->where('media.collection_name', 'images')
+            ->select('media.*')
+            ->inRandomOrder()
+            ->first();
+
+        return $media;
     }
 
     private function tagLabel(Tag $tag, string $locale): string

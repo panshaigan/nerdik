@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\App;
 
+use App\Support\Welcome\WelcomeHeroTagImageResolver;
 use Database\Seeders\BaseDataSeeder;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class BootstrapProductionState
@@ -24,7 +24,7 @@ class BootstrapProductionState
         $command->call('tags:seed-images');
         $command->call('tags:recalculate-popularity');
 
-        Cache::forget('welcome.hero_tag_image');
+        WelcomeHeroTagImageResolver::forgetCachedHeroImages();
 
         $command->call('storage:link', [
             '--force' => true,

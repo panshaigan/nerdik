@@ -15,6 +15,7 @@ use App\Services\ActivityParticipationViewService;
 use App\Services\Dashboard\DashboardFeedPresentationService;
 use App\Services\Dashboard\UpcomingFeedQueryService;
 use App\Services\EventActivitySignupService;
+use App\Services\EventShowReadCache;
 use App\Services\Platform\PlatformStatsService;
 use App\Services\UserInterestService;
 use App\Support\Ui\BrowseListingCardPresenter;
@@ -164,6 +165,10 @@ class Dashboard extends Component
         $browsingReturnUrl = browsing_return_url();
         remember_browsing_return_url($browsingReturnUrl);
 
+        $eventProgrammeActivityCounts = $eventIds === []
+            ? []
+            : app(EventShowReadCache::class)->programmeActivityCounts($eventIds);
+
         return view('livewire.dashboard.dashboard', [
             'platformStats' => $platformStats,
             'platformStatsUrls' => $platformStats !== null ? [
@@ -178,6 +183,7 @@ class Dashboard extends Component
             'upcomingCreatedActivitiesCount' => $upcomingActivityStats['created'],
             'feedMonthGroups' => $feedMonthGroups,
             'interestedEventIds' => $interestedEventIds,
+            'eventProgrammeActivityCounts' => $eventProgrammeActivityCounts,
             'interestedActivityIds' => $interestedActivityIds,
             'participatingActivityIds' => $participatingActivityIds,
             'participatingEventIds' => $participatingEventIds,

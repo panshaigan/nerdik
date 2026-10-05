@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\Platform\PlatformStatsService;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Services\Welcome\WelcomeUpcomingQueryService;
+use App\Support\Welcome\WelcomeHeroTagImageResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class WelcomePageTest extends TestCase
         parent::setUp();
 
         Cache::forget(PlatformStatsService::CACHE_KEY);
-        Cache::forget('welcome.hero_tag_image');
+        WelcomeHeroTagImageResolver::forgetCachedHeroImages();
         Cache::forget('welcome.upcoming_listing_ids.6');
     }
 

@@ -1,7 +1,7 @@
 @props(['sources', 'class' => null, 'loading' => 'lazy', 'fetchpriority' => null])
 
 @php
-    /** @var \App\Support\Media\MediaPictureSources|\App\Support\Media\StaticPictureSources $sources */
+    /** @var \App\Support\Media\MediaPictureSources|\App\Support\Media\StaticPictureSources|\App\Support\Media\CachedPictureSources $sources */
 @endphp
 
 <picture @class(['block', $class, 'overflow-hidden'])>

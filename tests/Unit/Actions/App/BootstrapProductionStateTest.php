@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Actions\App;
 
 use App\Actions\App\BootstrapProductionState;
+use App\Support\Welcome\WelcomeHeroTagImageResolver;
 use Database\Seeders\BaseDataSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -26,7 +27,7 @@ final class BootstrapProductionStateTest extends TestCase
         ]);
 
         Storage::disk('public')->put('media/99/old.jpg', 'leftover');
-        Cache::put('welcome.hero_tag_image', 'cached');
+        Cache::put(WelcomeHeroTagImageResolver::cacheKeyForLocale('en'), 'cached');
 
         /** @var Command&MockInterface $command */
         $command = Mockery::mock(Command::class);
@@ -45,6 +46,6 @@ final class BootstrapProductionStateTest extends TestCase
         app(BootstrapProductionState::class)($command);
 
         Storage::disk('public')->assertMissing('media/99/old.jpg');
-        $this->assertFalse(Cache::has('welcome.hero_tag_image'));
+        $this->assertFalse(Cache::has(WelcomeHeroTagImageResolver::cacheKeyForLocale('en')));
     }
 }

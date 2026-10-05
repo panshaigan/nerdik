@@ -222,4 +222,31 @@ class EventShowReadCacheTest extends TestCase
 
         $this->assertTrue($cache->hasPendingProposals((int) $event->id));
     }
+
+    public function test_pending_proposal_save_does_not_invalidate_programme_stats_cache(): void
+    {
+        config(['cache.default' => 'array']);
+
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_PROPOSED_TO_EVENT,
+        ]);
+
+        $cache = app(EventShowReadCache::class);
+        $cache->programmeStats((int) $event->id);
+
+        $this->assertTrue(Cache::has('event_show.programme_stats.v6.'.$event->id));
+
+        ActivityProposal::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'created_by' => $owner->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        $this->assertTrue(Cache::has('event_show.programme_stats.v6.'.$event->id));
+    }
 }

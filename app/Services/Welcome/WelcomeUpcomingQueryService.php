@@ -6,6 +6,7 @@ namespace App\Services\Welcome;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Services\EventShowReadCache;
 use App\Support\Ui\BrowseListingCardPresenter;
 use App\Support\Ui\BrowseListingCardViewData;
 use Illuminate\Support\Collection;
@@ -16,10 +17,11 @@ final readonly class WelcomeUpcomingQueryService
 {
     private const CACHE_KEY_PREFIX = 'welcome.upcoming_listing_ids';
 
-    private const CACHE_TTL_SECONDS = 120;
+    private const CACHE_TTL_SECONDS = 600;
 
     public function __construct(
         private BrowseListingCardPresenter $listingCardPresenter,
+        private EventShowReadCache $eventShowReadCache,
     ) {}
 
     /**
@@ -69,13 +71,21 @@ final readonly class WelcomeUpcomingQueryService
                 ->get()
                 ->keyBy('id');
 
+        $eventProgrammeActivityCounts = $this->eventShowReadCache->programmeActivityCounts($eventIds);
+
         return collect($rows)
-            ->map(function (array $row) use ($events, $activities): ?BrowseListingCardViewData {
+            ->map(function (array $row) use ($events, $activities, $eventProgrammeActivityCounts): ?BrowseListingCardViewData {
                 $listingId = (int) $row['listing_id'];
                 if ($row['listing_kind'] === 'event') {
                     $event = $events->get($listingId);
 
-                    return $event ? $this->listingCardPresenter->fromEvent($event, []) : null;
+                    return $event
+                        ? $this->listingCardPresenter->fromEvent(
+                            $event,
+                            [],
+                            confirmedActivitiesCount: $eventProgrammeActivityCounts[$listingId] ?? 0,
+                        )
+                        : null;
                 }
 
                 $activity = $activities->get($listingId);
