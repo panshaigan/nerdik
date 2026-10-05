@@ -385,12 +385,13 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 | Daily 03:30 | `housekeeping:prune-livewire-uploads` | Remove abandoned Livewire temp uploads |
 | Daily 03:30 | `housekeeping:prune-logs` | Delete `storage/logs/*.log` older than `LOG_DAILY_DAYS` |
 | Daily 03:30 | `housekeeping:prune-sent-emails` | Delete sent email rows and stored bodies older than `HOUSEKEEPING_SENT_EMAILS_DAYS` |
+| Daily 03:30 | `model:prune` | Permanently remove soft-deleted domain rows older than `HOUSEKEEPING_SOFT_DELETED_DAYS` |
 | Weekly Sun 04:00 | `media-library:clean --delete-orphaned --force` | Orphan media, stale conversions, orphan disk dirs |
 | Every minute (if configured) | `monitoring:heartbeat scheduler` | UptimeRobot scheduler heartbeat |
 | Every minute (if configured) | `SendWorkerMonitoringHeartbeatJob` | UptimeRobot worker heartbeat (via queue) |
 | Daily (if enabled) | `telescope:prune` | Telescope data (off in prod) |
 
-**Not scheduled by design:** database notifications (retained indefinitely), `media:prune-orphans` (manual alternative), media on soft-deleted models (parent row still exists).
+**Not scheduled by design:** database notifications (retained indefinitely), `media:prune-orphans` (manual alternative).
 
 ### Retention env vars
 
@@ -403,6 +404,7 @@ The `scheduler` container runs `schedule:work` and executes automated cleanup so
 | `HOUSEKEEPING_LIVEWIRE_TMP_HOURS` | `24` | Abandoned upload files |
 | `HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS` | `7` | Host `/tmp/nerdik-*-backup-*` from sync |
 | `HOUSEKEEPING_SENT_EMAILS_DAYS` | `90` | Sent email metadata + stored HTML/text bodies |
+| `HOUSEKEEPING_SOFT_DELETED_DAYS` | `365` | Soft-deleted activities, events, places, orgs, series, tags, slots, proposals |
 
 ### Verify on VPS
 

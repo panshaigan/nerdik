@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Place extends Model
 {
-    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, PrunesExpiredSoftDeletes, SoftDeletes;
 
     public const TYPE_ROOM = 'room';
 

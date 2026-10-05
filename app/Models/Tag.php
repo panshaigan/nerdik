@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Builders\TagBuilder;
 use App\Models\Concerns\InteractsWithOptimizedImages;
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\HasBuilder;
@@ -17,7 +18,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 class Tag extends Model implements HasMedia
 {
-    use HasBuilder, HasFactory, HasMetaColumns, InteractsWithOptimizedImages, SoftDeletes;
+    use HasBuilder, HasFactory, HasMetaColumns, InteractsWithOptimizedImages, PrunesExpiredSoftDeletes, SoftDeletes;
 
     protected static string $builder = TagBuilder::class;
 

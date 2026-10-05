@@ -74,6 +74,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Soft-Deleted Model Retention
+    |--------------------------------------------------------------------------
+    |
+    | Days to retain soft-deleted domain rows before model:prune permanently
+    | removes them via forceDelete().
+    |
+    */
+
+    'soft_deleted_retention_days' => (int) env('HOUSEKEEPING_SOFT_DELETED_DAYS', 365),
+
+    /*
+    |--------------------------------------------------------------------------
     | Sync Temp Backup Retention
     |--------------------------------------------------------------------------
     |

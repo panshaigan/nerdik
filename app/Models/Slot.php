@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ParticipationMode;
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasMetaColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Slot extends Model
 {
-    use HasFactory, HasMetaColumns, SoftDeletes;
+    use HasFactory, HasMetaColumns, PrunesExpiredSoftDeletes, SoftDeletes;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EventLogoSource;
 use App\Models\Concerns\InteractsWithUploadedLogo;
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
@@ -22,7 +23,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Event extends Model implements HasMedia
 {
-    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, PrunesExpiredSoftDeletes, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string

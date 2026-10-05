@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Actions\Organizations\ResolveOrganizationLogoUrl;
 use App\Enums\OrganizationLogoSource;
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Organization extends Model
 {
-    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, PrunesExpiredSoftDeletes, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string

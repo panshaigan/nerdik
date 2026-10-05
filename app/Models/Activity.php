@@ -6,6 +6,7 @@ use App\Enums\ActivityLogoSource;
 use App\Enums\ActivityProposalStatus;
 use App\Enums\ParticipationMode;
 use App\Models\Concerns\InteractsWithUploadedLogo;
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
@@ -24,7 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Activity extends Model implements HasMedia
 {
-    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, InteractsWithUploadedLogo, PrunesExpiredSoftDeletes, SoftDeletes;
 
     public const HOSTING_MODE_DRAFT = 1;
 

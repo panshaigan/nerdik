@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasEntityLinks;
 use App\Traits\HasMetaColumns;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class ActivitySeries extends Model
 {
     /** @use HasFactory<ActivitySeriesFactory> */
-    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, SoftDeletes;
+    use HasAutoSlug, HasEntityLinks, HasFactory, HasMetaColumns, PrunesExpiredSoftDeletes, SoftDeletes;
 
     #[\Override]
     public function getRouteKeyName(): string
