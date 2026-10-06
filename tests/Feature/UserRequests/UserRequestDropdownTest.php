@@ -7,7 +7,6 @@ use App\Livewire\UserRequests\UserRequestDropdown;
 use App\Models\Activity;
 use App\Models\User;
 use App\Models\UserRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -143,10 +142,9 @@ class UserRequestDropdownTest extends TestCase
             'subject_id' => $activity->id,
         ]);
 
-        $this->expectException(ModelNotFoundException::class);
-
         Livewire::actingAs($stranger)
             ->test(UserRequestDropdown::class)
-            ->call('openRequest', $request->id);
+            ->call('openRequest', $request->id)
+            ->assertNotFound();
     }
 }

@@ -15,7 +15,6 @@ use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Slot;
 use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -94,8 +93,7 @@ class ContentVisibilityTest extends TestCase
         $parameters = $componentClass === ShowEvent::class ? ['event' => $event] : ['eventId' => $event->id];
         $component = Livewire::withoutLazyLoading()->test($componentClass, $parameters);
         $event->update(['is_public' => false]);
-        $this->expectException(ModelNotFoundException::class);
-        $component->call('$refresh');
+        $component->call('$refresh')->assertNotFound();
     }
 
     public function test_mounted_activity_rechecks_parent_event_visibility(): void
@@ -105,8 +103,7 @@ class ContentVisibilityTest extends TestCase
         Slot::factory()->create(['event_id' => $event->id, 'activity_id' => $activity->id]);
         $component = Livewire::test(ShowActivity::class, ['activity' => $activity]);
         $event->update(['is_public' => false]);
-        $this->expectException(ModelNotFoundException::class);
-        $component->call('$refresh');
+        $component->call('$refresh')->assertNotFound();
     }
 
     public function test_public_event_preview_does_not_reveal_pending_proposals_to_guests(): void
@@ -142,8 +139,8 @@ class ContentVisibilityTest extends TestCase
         $series = EventSeries::factory()->create();
         Event::factory()->public()->create(['event_series_id' => $series->id]);
         $private = Event::factory()->private()->create(['event_series_id' => $series->id]);
-        $component = Livewire::test(ShowEventSeries::class, ['eventSeries' => $series]);
-        $this->expectException(ModelNotFoundException::class);
-        $component->call('openEventPreview', $private->id);
+        Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->call('openEventPreview', $private->id)
+            ->assertNotFound();
     }
 }
