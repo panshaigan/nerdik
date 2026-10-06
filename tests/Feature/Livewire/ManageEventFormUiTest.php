@@ -26,6 +26,30 @@ class ManageEventFormUiTest extends TestCase
         $this->assertStringNotContainsString('data-image-crop-dropzone', $html);
     }
 
+    public function test_submit_button_only_disables_during_save(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->html();
+
+        $this->assertStringContainsString('data-ui="event-submit"', $html);
+        $this->assertStringContainsString('wire:target="save"', $html);
+        $this->assertStringContainsString('wire:loading.attr="disabled"', $html);
+    }
+
+    public function test_event_places_map_debounces_livewire_sync(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->html();
+
+        $this->assertStringContainsString('"debounceLivewireMs":450', $html);
+    }
+
     public function test_save_switches_to_main_details_tab_when_name_missing_from_another_tab(): void
     {
         $user = User::factory()->organizer()->create();

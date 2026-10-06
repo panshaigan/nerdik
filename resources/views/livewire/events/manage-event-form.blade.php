@@ -85,7 +85,7 @@
             <x-slot:actions class="px-6 pb-6" id="ui-event-form-actions" data-ui="event-form-actions">
                 <x-button id="ui-event-cancel" :link="$cancelUrl" class="btn-outline ui-action ui-action-cancel" data-ui="event-cancel">{{ __('ui.common.cancel') }}</x-button>
 
-                <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled">
+                <x-button id="ui-event-submit" class="btn-primary ui-action ui-action-submit" type="submit" data-ui="event-submit" wire:loading.attr="disabled" wire:target="save" spinner="save">
                     <span wire:loading.remove wire:target="save">{{ $submitLabel }}</span>
                     <span wire:loading wire:target="save">{{ __('ui.common.saving') }}</span>
                 </x-button>

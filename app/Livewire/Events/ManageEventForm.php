@@ -1100,6 +1100,7 @@ class ManageEventForm extends Component
             'openSuggestionsOnFocus' => true,
             'emptyQuerySuggestions' => 'saved_places_only',
             'limitRemoteToViewport' => true,
+            'debounceLivewireMs' => 450,
             'strings' => [
                 'yourPlaces' => __('Your places'),
                 'mapSearch' => __('Map search'),

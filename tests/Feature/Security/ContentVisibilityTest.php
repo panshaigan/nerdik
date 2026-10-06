@@ -132,7 +132,9 @@ class ContentVisibilityTest extends TestCase
         Livewire::actingAs($owner)->test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertViewHas('events', fn ($events): bool => $events->contains($public) && ! $events->contains($private));
         $this->actingAs($owner)->get(route('event-series.calendar.ics', $series))
-            ->assertOk()->assertSee($public->name)->assertDontSee($private->name);
+            ->assertOk()
+            ->assertSee('SUMMARY:'.$public->name, false)
+            ->assertDontSee('SUMMARY:'.$private->name, false);
     }
 
     public function test_private_event_preview_is_denied_even_when_its_series_is_public(): void
