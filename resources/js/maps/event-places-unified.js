@@ -46,7 +46,7 @@ function randomId() {
 /**
  * Sync selected places + draft venues into the nearest Livewire component (event form).
  */
-function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload) {
+function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload, live = true) {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
         return;
     }
@@ -66,8 +66,8 @@ function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload) {
         return;
     }
 
-    wire.set('place_ids', placeIds);
-    wire.set('new_places', newPlacesPayload);
+    wire.set('place_ids', placeIds, live);
+    wire.set('new_places', newPlacesPayload, live);
 }
 
 /**
@@ -78,16 +78,16 @@ function syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload) {
  * @param {number[]} placeIds
  * @param {object[]} newPlacesPayload
  */
-function scheduleLivewireEventPlacesSync(root, debounceMs, placeIds, newPlacesPayload) {
+function scheduleLivewireEventPlacesSync(root, debounceMs, placeIds, newPlacesPayload, live = true) {
     if (!debounceMs || debounceMs <= 0) {
-        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
+        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload, live);
 
         return;
     }
 
     clearTimeout(root._epLwSyncTimer);
     root._epLwSyncTimer = setTimeout(() => {
-        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload);
+        syncLivewireEventPlacesRoot(root, placeIds, newPlacesPayload, live);
     }, debounceMs);
 }
 
@@ -175,7 +175,7 @@ export function initEventPlacesUnified(root) {
         headingEl.textContent = cfg.strings.newVenuesHeading;
     }
 
-    function emitEventPlacesChange() {
+    function emitEventPlacesChange(live = true) {
         if (singleSelect && selectedIds.size > 1) {
             const only = Array.from(selectedIds).slice(-1);
             selectedIds.clear();
@@ -209,7 +209,7 @@ export function initEventPlacesUnified(root) {
             latitude: v.lat,
             longitude: v.lng,
         }));
-        scheduleLivewireEventPlacesSync(root, effectiveDebounceLivewireMs, placeIds, newPlacesPayload);
+        scheduleLivewireEventPlacesSync(root, effectiveDebounceLivewireMs, placeIds, newPlacesPayload, live);
         root.dispatchEvent(new CustomEvent('ep:change', {
             bubbles: true,
             detail: {
@@ -491,7 +491,7 @@ export function initEventPlacesUnified(root) {
         rebuildNewVenueRows();
     }
 
-    function rebuildNewVenueRows() {
+    function rebuildNewVenueRows(emitChange = true) {
         newVenuesEl.innerHTML = '';
         newVenues.forEach((v, i) => {
             const row = document.createElement('div');
@@ -571,7 +571,9 @@ export function initEventPlacesUnified(root) {
             newVenuesWrap.classList.toggle('hidden', newVenues.length === 0);
         }
         refreshNewMarkerIcons();
-        emitEventPlacesChange();
+        if (emitChange) {
+            emitEventPlacesChange();
+        }
     }
 
     map.on('dblclick', (e) => {
@@ -847,7 +849,7 @@ export function initEventPlacesUnified(root) {
 
     rebuildPlaceMarkers();
     selectedIds.forEach((id) => refreshPlaceMarkerIcon(id));
-    syncPlaceHiddensAndChips();
+    syncPlaceHiddensAndChips(true);
 
     newVenues.forEach((v, i) => {
         const marker = L.marker([v.lat, v.lng], { icon: iconNew(i + 1), draggable: true }).addTo(newVenuesLayer);
@@ -860,7 +862,10 @@ export function initEventPlacesUnified(root) {
         bindMarkerDrag(marker, v.id);
         newMarkers.set(v.id, marker);
     });
-    rebuildNewVenueRows();
+    rebuildNewVenueRows(false);
+
+    root.dataset.epInitialized = '1';
+    emitEventPlacesChange(false);
 
     function scheduleInvalidateSize() {
         requestAnimationFrame(() => map.invalidateSize());
@@ -971,6 +976,4 @@ export function initEventPlacesUnified(root) {
     [0, 120, 320, 700, 1200].forEach((ms) => {
         setTimeout(scheduleInvalidateWhenVisible, ms);
     });
-
-    root.dataset.epInitialized = '1';
 }
