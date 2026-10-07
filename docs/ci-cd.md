@@ -66,17 +66,17 @@ In GitHub → Settings → Branches, require the **Test** and **Compose** jobs f
 
 - On branch `main` with a clean working tree
 - Sail running (`make up`) for `make check`
-- [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated — used to poll Actions after the tag is pushed:
+- [GitHub CLI](https://cli.github.com/) (`gh`) — poll Actions after the tag is pushed
+- [`jq`](https://jqlang.github.io/jq/) — parse workflow status JSON during the watch phase
 
 ```bash
-# Ubuntu / WSL
+# Ubuntu / WSL — install both tools once
 sudo apt update && sudo apt install gh jq
 
+# Authenticate GitHub CLI (one-time)
 gh auth login
 gh auth status
 ```
-
-- `jq` (workflow status parsing during the watch phase)
 
 ```bash
 make release                 # minor bump (default), make check, push, tag, watch CI/CD + deploy
@@ -87,7 +87,7 @@ make release 1.12.5          # strict version
 
 `make release` bumps [`VERSION`](../VERSION), commits, runs `make check`, pushes the branch and `v*` tag, then polls GitHub Actions every 2 minutes until **CI + Docker + Release** and **Deploy** finish (or fails with workflow logs). It always ends with a smoke check of `https://nerdik.app/up` and prints `https://nerdik.app`.
 
-Flags: `DRY_RUN=1` (plan only; does not require `gh`), `SKIP_WATCH=1` (push/tag without polling), `SKIP_SMOKE=1` (skip final `/up` check).
+Flags: `DRY_RUN=1` (plan only; does not require `gh` or `jq`), `SKIP_WATCH=1` (push/tag without polling; does not require `jq`), `SKIP_SMOKE=1` (skip final `/up` check).
 
 ### Manual release
 
