@@ -22,6 +22,19 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString('wire.set(property, false)', $source);
         $this->assertStringNotContainsString('component.get(property)', $source);
         $this->assertStringNotContainsString('component.set(property', $source);
+        $this->assertStringContainsString('Alpine.destroyTree', $source);
+        $this->assertStringContainsString('dialog.remove()', $source);
+    }
+
+    public function test_modal_guards_is_open_expressions_during_navigate_teardown(): void
+    {
+        $source = (string) file_get_contents(app_path('View/Components/Modal.php'));
+
+        $this->assertStringContainsString("typeof isOpen !== 'undefined' && isOpen", $source);
+        $this->assertStringContainsString("typeof isOpen === 'undefined' || !isOpen", $source);
+        $this->assertStringNotContainsString(":class=\"{'modal-open !animate-none': isOpen}\"", $source);
+        $this->assertStringNotContainsString('x-bind:inert="!isOpen"', $source);
+        $this->assertStringNotContainsString('x-trap="isOpen"', $source);
     }
 
     public function test_tab_guards_selected_expressions(): void

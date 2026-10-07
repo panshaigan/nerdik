@@ -117,7 +117,7 @@ class ListingCardEventPreviewTest extends TestCase
             ->assertSee(__('ui.events.show_details'))
             ->assertSeeHtml('data-ui="overlay-sheet"')
             ->assertSeeHtml('data-ui="listing-event-preview-actions"')
-            ->assertSeeHtml("{'modal-open !animate-none': isOpen}")
+            ->assertSeeHtml("typeof isOpen !== 'undefined' && isOpen")
             ->assertSeeHtml('syncDialog');
     }
 

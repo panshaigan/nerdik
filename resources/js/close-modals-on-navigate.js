@@ -1,3 +1,17 @@
+function destroyAlpineTree(element) {
+    if (typeof window.Alpine?.destroyTree === 'function') {
+        window.Alpine.destroyTree(element);
+
+        return;
+    }
+
+    element.removeAttribute('x-data');
+    element.removeAttribute('x-init');
+    element.removeAttribute('x-trap');
+    element.removeAttribute('x-bind:inert');
+    element.removeAttribute('x-bind:class');
+}
+
 function closeMaryModalsInDocument(root = document) {
     root.querySelectorAll('dialog.modal').forEach((dialog) => {
         if (dialog.id === 'ui-session-expired-modal') {
@@ -17,8 +31,13 @@ function closeMaryModalsInDocument(root = document) {
             dialog.close();
         }
 
+        destroyAlpineTree(dialog);
         dialog.classList.remove('modal-open', '!animate-none');
         dialog.removeAttribute('open');
+
+        if (document.documentElement.classList.contains('ui-navigating')) {
+            dialog.remove();
+        }
     });
 }
 
