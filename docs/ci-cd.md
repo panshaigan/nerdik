@@ -66,28 +66,23 @@ In GitHub → Settings → Branches, require the **Test** and **Compose** jobs f
 
 - On branch `main` with a clean working tree
 - Sail running (`make up`) for `make check`
-- [GitHub CLI](https://cli.github.com/) (`gh`) — poll Actions after the tag is pushed
-- [`jq`](https://jqlang.github.io/jq/) — parse workflow status JSON during the watch phase
+- `curl` (used to poll the GitHub repo web UI after the tag is pushed)
 
 ```bash
-# Ubuntu / WSL — install both tools once
-sudo apt update && sudo apt install gh jq
-
-# Authenticate GitHub CLI (one-time)
-gh auth login
-gh auth status
-```
-
-```bash
-make release                 # minor bump (default), make check, push, tag, watch CI/CD + deploy
+make release                 # minor bump (default), make check, push, tag, watch CI/CD + release
 make release feature         # feature bump (1.10.x → 1.11.0)
 make release major           # major bump (1.x.x → 2.0.0)
 make release 1.12.5          # strict version
 ```
 
-`make release` bumps [`VERSION`](../VERSION), commits, runs `make check`, pushes the branch and `v*` tag, then polls GitHub Actions every 2 minutes until **CI + Docker + Release** and **Deploy** finish (or fails with workflow logs). It always ends with a smoke check of `https://nerdik.app/up` and prints `https://nerdik.app`.
+`make release` bumps [`VERSION`](../VERSION), commits, runs `make check`, pushes the branch and `v*` tag, then watches the GitHub website (no `gh` CLI):
 
-Flags: `DRY_RUN=1` (plan only; does not require `gh` or `jq`), `SKIP_WATCH=1` (push/tag without polling; does not require `jq`), `SKIP_SMOKE=1` (skip final `/up` check).
+1. Every **60s**, poll Actions for the release tag until **CI** and **Docker** succeed (fails fast on a red check)
+2. Then every **30s**, poll `/releases/latest` until the published tag matches the release (e.g. `v1.10.14`)
+
+It does **not** wait on Deploy. It always ends with a smoke check of `https://nerdik.app/up` and prints `https://nerdik.app`.
+
+Flags: `DRY_RUN=1` (plan only), `SKIP_WATCH=1` (push/tag without web polling), `SKIP_SMOKE=1` (skip final `/up` check).
 
 ### Manual release
 
@@ -202,7 +197,7 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 | Command | Use |
 |---------|-----|
 | `make check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
-| `make release` | Bump VERSION, `make check`, push tag, watch CI/CD + deploy, smoke `nerdik.app/up` |
+| `make release` | Bump VERSION, `make check`, push tag, watch GitHub CI/CD + Release page, smoke `nerdik.app/up` |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
 | `IMAGE_TAG=<sha\|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |
