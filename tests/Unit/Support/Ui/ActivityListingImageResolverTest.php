@@ -85,6 +85,25 @@ final class ActivityListingImageResolverTest extends TestCase
     }
 
     #[Test]
+    public function it_resolves_plan_slot_preset_when_requested(): void
+    {
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $gameTag = Tag::factory()->create(['tag_category_id' => $gameCategory->id]);
+        $gameMedia = $this->attachTagSampleMedia($gameTag, 'tests/fixtures/resolver-game-only.jpg');
+
+        $activity = Activity::factory()->create(['logo_source' => null, 'tag_media_id' => null]);
+        $activity->tags()->attach([$gameTag->id]);
+
+        $picture = $this->resolver->resolve($activity->load(Activity::listingCardEagerLoad()), 'plan_slot');
+
+        $expected = MediaPictureSources::fromMediaWithPreset($gameMedia, 'plan_slot', $activity->name);
+
+        $this->assertNotNull($picture->sources);
+        $this->assertSame($expected->webpSrc(), $picture->sources->webpSrc());
+        $this->assertSame($expected->sizes(), $picture->sources->sizes());
+    }
+
+    #[Test]
     public function it_uses_uploaded_logo_media_when_logo_source_is_upload(): void
     {
         Storage::fake('public');

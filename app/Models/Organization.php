@@ -95,6 +95,11 @@ class Organization extends Model
         return app(ResolveOrganizationLogoUrl::class)($this);
     }
 
+    public function badgeLogoUrl(): string
+    {
+        return app(ResolveOrganizationLogoUrl::class)($this, forBadge: true);
+    }
+
     public function cropSourceImageUrl(): ?string
     {
         $relativePath = 'organization-logos/'.$this->id.'-source.webp';

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 final class ResolveOrganizationLogoUrl
 {
-    public function __invoke(Organization $organization): string
+    public function __invoke(Organization $organization, bool $forBadge = false): string
     {
         $generated = $organization->generatedLogoUrl();
 
@@ -21,6 +21,13 @@ final class ResolveOrganizationLogoUrl
 
         if ($source === OrganizationLogoSource::Generated) {
             return $generated;
+        }
+
+        if ($forBadge) {
+            $badgePath = StoreUploadedOrganizationLogo::badgeRelativePath($organization);
+            if (Storage::disk('public')->exists($badgePath)) {
+                return Storage::disk('public')->url($badgePath);
+            }
         }
 
         $path = $organization->logo_path;

@@ -14,6 +14,8 @@ final class StoreUploadedOrganizationLogo
 {
     private const int LOGO_SIZE = 256;
 
+    private const int BADGE_SIZE = 72;
+
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
         private StoreSourcePublicImage $storeSourcePublicImage,
@@ -36,6 +38,13 @@ final class StoreUploadedOrganizationLogo
             self::LOGO_SIZE,
         );
 
+        ($this->storeCroppedPublicImage)(
+            self::badgeRelativePath($organization),
+            $file,
+            self::BADGE_SIZE,
+            self::BADGE_SIZE,
+        );
+
         if ($sourceFile !== null) {
             ($this->storeSourcePublicImage)(
                 'organization-logos/'.$organization->id.'-source.webp',
@@ -44,5 +53,10 @@ final class StoreUploadedOrganizationLogo
         }
 
         return $relativePath;
+    }
+
+    public static function badgeRelativePath(Organization $organization): string
+    {
+        return 'organization-logos/'.$organization->id.'-badge.webp';
     }
 }

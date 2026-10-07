@@ -56,5 +56,11 @@
 
         window.applyTheme();
         document.addEventListener('livewire:navigated', window.applyTheme);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                document.documentElement.classList.add('ui-collapse-motion-ready');
+            });
+        });
     })();
 </script>

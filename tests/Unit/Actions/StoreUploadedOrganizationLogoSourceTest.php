@@ -38,7 +38,12 @@ final class StoreUploadedOrganizationLogoSourceTest extends TestCase
 
         $this->assertSame('organization-logos/'.$organization->id.'.webp', $path);
         Storage::disk('public')->assertExists($path);
+        Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'-badge.webp');
         Storage::disk('public')->assertExists('organization-logos/'.$organization->id.'-source.webp');
+        $this->assertStringContainsString(
+            '/storage/organization-logos/'.$organization->id.'-badge.webp',
+            $organization->badgeLogoUrl(),
+        );
     }
 
     #[Test]
@@ -62,6 +67,7 @@ final class StoreUploadedOrganizationLogoSourceTest extends TestCase
         app(DeleteUploadedOrganizationLogo::class)($organization->fresh());
 
         Storage::disk('public')->assertMissing($path);
+        Storage::disk('public')->assertMissing('organization-logos/'.$organization->id.'-badge.webp');
         Storage::disk('public')->assertMissing('organization-logos/'.$organization->id.'-source.webp');
     }
 }

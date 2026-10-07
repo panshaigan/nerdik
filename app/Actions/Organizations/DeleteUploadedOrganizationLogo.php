@@ -20,6 +20,11 @@ final class DeleteUploadedOrganizationLogo
             Storage::disk('public')->delete($canonical);
         }
 
+        $badgeCanonical = StoreUploadedOrganizationLogo::badgeRelativePath($organization);
+        if (Storage::disk('public')->exists($badgeCanonical)) {
+            Storage::disk('public')->delete($badgeCanonical);
+        }
+
         $sourceCanonical = 'organization-logos/'.$organization->id.'-source.webp';
         if (Storage::disk('public')->exists($sourceCanonical)) {
             Storage::disk('public')->delete($sourceCanonical);

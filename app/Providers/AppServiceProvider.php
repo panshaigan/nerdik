@@ -46,6 +46,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Livewire\Mechanisms\FrontendAssets\FrontendAssets;
 use SocialiteProviders\Discord\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 
@@ -100,6 +101,8 @@ class AppServiceProvider extends ServiceProvider
         View::prependNamespace('livewire', resource_path('views/vendor/livewire'));
 
         View::composer(['layouts.app', 'layouts.guest', 'welcome'], SeoComposer::class);
+
+        app(FrontendAssets::class)->useScriptTagAttributes(['defer' => true]);
 
         Vite::usePreloadTagAttributes(function (?string $src, string $url, ?array $chunk, ?array $manifest): array|false {
             if (str_ends_with($url, '.css')) {

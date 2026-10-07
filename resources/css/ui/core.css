@@ -1,3 +1,7 @@
+html {
+    scrollbar-gutter: stable;
+}
+
 /* ====================== MAP TWEAKS ====================== */
 /*
  * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles

@@ -121,6 +121,11 @@ return [
             'display_width' => 256,
             'max_srcset_width' => 512,
         ],
+        'plan_slot' => [
+            'sizes' => '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 1023px) calc((100vw - 3.5rem) / 2), calc((min(80rem, 100vw) - 7.5rem) / 3)',
+            'display_width' => 256,
+            'max_srcset_width' => 384,
+        ],
         'listing_hero' => [
             'sizes' => '100vw',
             'max_srcset_width' => 1536,

@@ -507,7 +507,7 @@ class EventShowPlanTab extends Component
                     $activity,
                     ActivityBadgeGroupConfig::eventSlotCard(),
                 );
-                $activityCoverPicturesById[$activityId] = $activityListingImageResolver->resolve($activity);
+                $activityCoverPicturesById[$activityId] = $activityListingImageResolver->resolve($activity, 'plan_slot');
             } else {
                 $slotActivityTypes = collect($slot->activityTypes)
                     ->map(fn ($row) => $row->slug ? __('ui.activities.types.'.$row->slug) : null)

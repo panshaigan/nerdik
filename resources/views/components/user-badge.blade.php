@@ -36,7 +36,7 @@
         : ($avatarPicture !== null
             ? $avatarPicture->resolvedUrl($user, AvatarSlot::Badge)
             : ($usesOrganization && $organization !== null
-                ? $organization->logoUrl()
+                ? $organization->badgeLogoUrl()
                 : ($user !== null
                     ? $user->avatarUrl(AvatarSlot::Badge)
                     : User::uiAvatarsUrl($resolvedName, '#1d4ed8', '#ffffff', 2, AvatarSlot::Badge->displaySize()))));

@@ -90,6 +90,29 @@ final class MediaPictureSourcesTest extends TestCase
     }
 
     #[Test]
+    public function plan_slot_preset_caps_srcset_widths(): void
+    {
+        config([
+            'media.test_profile' => 'full',
+            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+        ]);
+
+        $tag = Tag::factory()->create();
+        $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-srcset-cap.jpg');
+
+        $sources = MediaPictureSources::fromMediaWithPreset($media, 'plan_slot', 'Plan slot');
+        $webpSrcset = $sources->webpSrcset();
+
+        $this->assertStringNotContainsString('512w', $webpSrcset);
+        $this->assertStringContainsString('384w', $webpSrcset);
+        $this->assertSame(384, $sources->width());
+        $this->assertSame(
+            '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 1023px) calc((100vw - 3.5rem) / 2), calc((min(80rem, 100vw) - 7.5rem) / 3)',
+            $sources->sizes(),
+        );
+    }
+
+    #[Test]
     public function page_backdrop_preset_caps_srcset_below_hero_widths(): void
     {
         config([

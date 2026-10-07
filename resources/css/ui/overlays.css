@@ -153,6 +153,20 @@
 }
 
 /**
+ * DaisyUI collapse animates grid-template-rows on open. Server-rendered open sections
+ * (event plan first slot group, plan info) would shift <main> on desktop before paint.
+ * Motion is enabled after first frame via html.ui-collapse-motion-ready (theme-script).
+ */
+html:not(.ui-collapse-motion-ready) :is(
+    .ui-timeline-collapse,
+    [data-ui='event-show-plan-info'] .collapse
+) {
+    @media (prefers-reduced-motion: no-preference) {
+        transition: none !important;
+    }
+}
+
+/**
  * Timeline collapses (dashboard feed, event plan): shared header hover feedback.
  * DaisyUI places an invisible checkbox above .collapse-title (z-index: 1), so title :hover never fires.
  */
