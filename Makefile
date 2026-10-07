@@ -21,7 +21,7 @@ passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdli
 
 .PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
-        maintenance deploy init dump-schema sync-from-prod sync-to-staging check \
+        maintenance deploy release init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
@@ -169,6 +169,11 @@ pint:
 # Local CI parity: gitleaks, compose, tests, composer audit, pint; FULL=1 adds Docker build
 check:
 	FULL=$(FULL) ./scripts/ci-check.sh
+
+# Release: bump VERSION, make check, push tag, watch CI/CD + deploy, smoke-check nerdik.app/up
+# Examples: make release | make release feature | make release 1.12.5
+release:
+	VERSION=$(VERSION) ./scripts/release.sh $(passthrough_args)
 
 # VPS Docker stack (not Sail) — env from APP_ENV in this checkout's .env
 IMAGE_TAG ?=

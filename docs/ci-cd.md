@@ -60,6 +60,23 @@ In GitHub → Settings → Branches, require the **Test** and **Compose** jobs f
 
 ## Releasing (tag → image → Release → deploy)
 
+### One-command release (local)
+
+From `main` with a clean working tree, Sail up, and `gh` authenticated:
+
+```bash
+make release                 # minor bump (default), make check, push, tag, watch CI/CD + deploy
+make release feature         # feature bump (1.10.x → 1.11.0)
+make release major           # major bump (1.x.x → 2.0.0)
+make release 1.12.5          # strict version
+```
+
+`make release` bumps [`VERSION`](../VERSION), commits, runs `make check`, pushes the branch and `v*` tag, then polls GitHub Actions every 2 minutes until **CI + Docker + Release** and **Deploy** finish (or fails with workflow logs). It always ends with a smoke check of `https://nerdik.app/up` and prints `https://nerdik.app`.
+
+Flags: `DRY_RUN=1` (plan only), `SKIP_WATCH=1` (push/tag without polling), `SKIP_SMOKE=1` (skip final `/up` check).
+
+### Manual release
+
 1. Bump [`VERSION`](../VERSION) if needed and commit on `main`.
 2. Tag and push:
 
@@ -170,7 +187,8 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 
 | Command | Use |
 |---------|-----|
-| `make ci-check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
+| `make check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
+| `make release` | Bump VERSION, `make check`, push tag, watch CI/CD + deploy, smoke `nerdik.app/up` |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
 | `IMAGE_TAG=<sha\|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |
