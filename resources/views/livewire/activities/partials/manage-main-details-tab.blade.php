@@ -2,7 +2,7 @@
     <div class="grid min-w-0 gap-4 sm:grid-cols-2">
         <div class="min-w-0">
             <x-input
-                wire:model.live.debounce.300ms="name"
+                wire:model="name"
                 label="{{ __('ui.activities.name') }}"
                 placeholder="{{ __('ui.activities.name') }}"
                 type="text"
@@ -36,7 +36,7 @@
         <div class="relative min-w-0">
             <input type="hidden" wire:model="organization_id" data-activity-org-id />
             <x-input
-                wire:model.live.debounce.300ms="organization_name"
+                wire:model="organization_name"
                 label="{{ __('ui.events.form_organization') }}"
                 placeholder="{{ __('ui.events.form_organization_optional') }}"
                 type="text"
@@ -61,7 +61,7 @@
         <div class="relative min-w-0">
             <input type="hidden" wire:model="activity_series_id" data-activity-series-id />
             <x-input
-                wire:model.live.debounce.300ms="activity_series_name"
+                wire:model="activity_series_name"
                 label="{{ __('ui.activities.form_activity_series') }}"
                 placeholder="{{ __('ui.activities.form_activity_series_optional') }}"
                 type="text"
@@ -254,6 +254,7 @@
 
 <div class="pt-6">
     <x-editor
+        id="activity-description-editor"
         wire:model="description"
         :gpl-license="true"
     />

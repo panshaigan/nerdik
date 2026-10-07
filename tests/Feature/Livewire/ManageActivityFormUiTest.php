@@ -32,6 +32,18 @@ class ManageActivityFormUiTest extends TestCase
             ->assertDontSeeHtml('activity-name-suggestions-popup');
     }
 
+    public function test_live_field_update_keeps_description_editor_host_markup(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->assertSeeHtml('id="activity-description-editor"')
+            ->set('name', 'Updated activity name')
+            ->assertSeeHtml('id="activity-description-editor"');
+    }
+
     public function test_edit_form_loads_assigned_tags_into_picker_config(): void
     {
         $user = User::factory()->create();

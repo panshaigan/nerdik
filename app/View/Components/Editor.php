@@ -2,6 +2,8 @@
 
 namespace App\View\Components;
 
+use Closure;
+use Illuminate\Contracts\View\View;
 use Mary\View\Components\Editor as MaryEditor;
 
 class Editor extends MaryEditor
@@ -92,5 +94,11 @@ class Editor extends MaryEditor
         ], $this->config ?? []);
 
         return parent::setup();
+    }
+
+    #[\Override]
+    public function render(): View|Closure|string
+    {
+        return view('components.editor');
     }
 }
