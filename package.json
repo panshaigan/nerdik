@@ -7,10 +7,10 @@
         "dev": "vite"
     },
     "devDependencies": {
-        "@tailwindcss/typography": "^0.5.19",
+        "@tailwindcss/typography": "^0.5.4",
         "@tailwindcss/vite": "^4.1.0",
         "axios": "^1.11.0",
-        "concurrently": "^10.0.4",
+        "concurrently": "^9.2.1",
         "daisyui": "^5.0.0",
         "laravel-echo": "^2.3.4",
         "laravel-vite-plugin": "^3.1.0",
@@ -23,5 +23,8 @@
         "@sentry/browser": "^10.73.0",
         "cropperjs": "^1.6.2",
         "flatpickr": "^4.6.13"
+    },
+    "overrides": {
+        "shell-quote": "^1.11.0"
     }
 }
