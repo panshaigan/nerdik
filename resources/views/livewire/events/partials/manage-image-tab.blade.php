@@ -9,7 +9,7 @@
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                 <input
                     type="radio"
-                    wire:model.live="logo_source"
+                    wire:model="logo_source"
                     name="logo_source"
                     value="default"
                     class="radio radio-primary mt-0.5"
@@ -22,7 +22,7 @@
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                 <input
                     type="radio"
-                    wire:model.live="logo_source"
+                    wire:model="logo_source"
                     name="logo_source"
                     value="gallery"
                     class="radio radio-primary mt-0.5"
@@ -35,7 +35,7 @@
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-3 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                 <input
                     type="radio"
-                    wire:model.live="logo_source"
+                    wire:model="logo_source"
                     name="logo_source"
                     value="upload"
                     class="radio radio-primary mt-0.5"

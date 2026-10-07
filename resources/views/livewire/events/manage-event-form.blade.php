@@ -48,7 +48,7 @@
         <x-form wire:submit.prevent="save" novalidate data-event-form>
             <div id="ui-event-form-fields" class="ui-form ui-form-event" data-ui="event-form-fields">
                 <x-ui.tabs-with-toolbar
-                    wire:model.live="tab"
+                    wire:model="tab"
                     label-div-class="flex gap-5 px-3 pt-2"
                     label-class="tab tab-lifted tab-md !px-0 !py-2 pb-2 text-sm font-semibold text-base-content/70 hover:text-base-content"
                     active-class="!text-base-content border-b border-primary text-primary"

@@ -8,7 +8,7 @@
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div class="relative">
         <x-input
-            wire:model.live.debounce.300ms="name"
+            wire:model="name"
             label="{{ __('ui.common.name') }}"
             placeholder="{{ __('ui.common.name') }}"
             type="text"
@@ -33,7 +33,7 @@
     <div class="relative">
         <input type="hidden" wire:model="organization_id" data-event-org-id />
         <x-input
-            wire:model.live.debounce.300ms="organization_name"
+            wire:model="organization_name"
             label="{{ __('ui.events.form_organization') }}"
             placeholder="{{ __('ui.events.form_organization_optional') }}"
             type="text"
@@ -58,7 +58,7 @@
     <div class="relative">
         <input type="hidden" wire:model="event_series_id" data-event-series-id />
         <x-input
-            wire:model.live.debounce.300ms="event_series_name"
+            wire:model="event_series_name"
             label="{{ __('ui.events.form_event_series') }}"
             placeholder="{{ __('ui.events.form_event_series_optional') }}"
             type="text"

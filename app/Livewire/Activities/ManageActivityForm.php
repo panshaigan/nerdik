@@ -318,7 +318,17 @@ class ManageActivityForm extends Component
 
     public function updatedTab(string $value): void
     {
-        $this->tab = $this->normalizeFormTab($value);
+        $normalized = $this->normalizeFormTab($value);
+
+        if ($normalized !== $value) {
+            $this->tab = $normalized;
+
+            return;
+        }
+
+        // Tab panels stay mounted (Alpine x-show). Re-morphing on every ?tab= sync reloads
+        // wire:ignore map chrome when switching to self-hosted location.
+        $this->skipRender();
     }
 
     private function normalizeFormTab(?string $value): string

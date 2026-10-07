@@ -5,7 +5,7 @@
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <div class="min-w-0">
                         <x-input
-                            wire:model.live="enrollment_windows.{{ $index }}.name"
+                            wire:model="enrollment_windows.{{ $index }}.name"
                             type="text"
                             :label="__('ui.events.enrollment_window_name')"
                             :placeholder="__('ui.events.enrollment_window_name')"
@@ -16,7 +16,7 @@
                     </div>
                     <div class="min-w-0">
                         <x-input
-                            wire:model.live="enrollment_windows.{{ $index }}.starts_at"
+                            wire:model="enrollment_windows.{{ $index }}.starts_at"
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_starts')"
@@ -28,7 +28,7 @@
                     </div>
                     <div class="min-w-0">
                         <x-input
-                            wire:model.live="enrollment_windows.{{ $index }}.ends_at"
+                            wire:model="enrollment_windows.{{ $index }}.ends_at"
                             type="datetime-local"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_ends')"

@@ -134,7 +134,17 @@ class ManageEventForm extends Component
 
     public function updatedTab(string $value): void
     {
-        $this->tab = $this->normalizeFormTab($value);
+        $normalized = $this->normalizeFormTab($value);
+
+        if ($normalized !== $value) {
+            $this->tab = $normalized;
+
+            return;
+        }
+
+        // Tab panels stay mounted (Alpine x-show). Re-morphing on every ?tab= sync reloads
+        // wire:ignore map chrome and causes a visible double-load when opening Location.
+        $this->skipRender();
     }
 
     public function updatedEndsAt(string $value): void

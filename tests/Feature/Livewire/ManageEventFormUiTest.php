@@ -50,6 +50,28 @@ class ManageEventFormUiTest extends TestCase
         $this->assertStringContainsString('"debounceLivewireMs":450', $html);
     }
 
+    public function test_tab_switch_to_location_skips_rerender(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->set('tab', 'location')
+            ->assertSet('tab', 'location')
+            ->assertRenderSkipped();
+    }
+
+    public function test_tab_switch_to_disabled_enrollment_windows_rerenders(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->set('tab', 'enrollment-windows')
+            ->assertSet('tab', 'main-details')
+            ->assertRenderNotSkipped();
+    }
+
     public function test_save_switches_to_main_details_tab_when_name_missing_from_another_tab(): void
     {
         $user = User::factory()->organizer()->create();
