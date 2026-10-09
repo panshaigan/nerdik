@@ -64,4 +64,13 @@ final class EditorTest extends TestCase
         $this->assertStringContainsString("'toolbar':'bold italic'", $setup);
         $this->assertStringNotContainsString('| image table', $setup);
     }
+
+    public function test_editor_view_reconciles_tinymce_after_livewire_morph(): void
+    {
+        $contents = (string) file_get_contents(resource_path('views/components/editor.blade.php'));
+
+        $this->assertStringContainsString('reconcileAfterMorph', $contents);
+        $this->assertStringContainsString("Livewire.hook('morphed'", $contents);
+        $this->assertStringContainsString('wire:key="tinymce-host-', $contents);
+    }
 }

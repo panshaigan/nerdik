@@ -86,7 +86,7 @@
         <div class="ui-tile-empty min-w-0 rounded-2xl p-4 sm:p-8 sm:col-span-2">
             <div class="grid min-w-0 grid-cols-1 gap-4 space-y-4 md:grid-cols-1">
                 <x-range-dual
-                    wire:key="participants-range-{{ $activity_type_id ?? 'none' }}-{{ $participantsMaxLimit }}"
+                    wire:key="participants-range-{{ $participantsMaxLimit }}"
                     class="min-w-0"
                     :label="__('ui.activities.participants')"
                     min-wire-model="min_participants"
