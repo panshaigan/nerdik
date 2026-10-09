@@ -56,17 +56,15 @@ class Modal extends Component
                                 syncDialog(value);
                             });
 
-                            if (typeof isOpen !== 'undefined') {
-                                syncDialog(isOpen);
-                            }
+                            syncDialog($data.isOpen);
                         "
-                        :class="{'modal-open !animate-none': typeof isOpen !== 'undefined' && isOpen}"
+                        x-bind:class="{'modal-open !animate-none': !!$data.isOpen}"
                         @if(!$persistent)
                             @keydown.escape.window = "$wire.{{ $attributes->wire('model')->value() }} = false"
                         @endif
                         @if(!$withoutTrapFocus)
-                            x-trap="typeof isOpen !== 'undefined' && isOpen"
-                            x-bind:inert="typeof isOpen === 'undefined' || !isOpen"
+                            x-trap="!!$data.isOpen"
+                            x-bind:inert="!$data.isOpen"
                         @endif
                     @endif
                 >

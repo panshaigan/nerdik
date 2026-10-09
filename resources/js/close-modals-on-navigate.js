@@ -12,30 +12,34 @@ function destroyAlpineTree(element) {
     element.removeAttribute('x-bind:class');
 }
 
-function closeMaryModalsInDocument(root = document) {
+function resetMaryModalDialog(dialog) {
+    const data = dialog.__x?.$data;
+    if (data) {
+        if ('isOpen' in data) {
+            data.isOpen = false;
+        } else if ('open' in data) {
+            data.open = false;
+        }
+    }
+
+    if (typeof dialog.close === 'function' && dialog.open) {
+        dialog.close();
+    }
+
+    dialog.classList.remove('modal-open', '!animate-none');
+    dialog.removeAttribute('open');
+}
+
+function closeMaryModalsInDocument(root = document, { removeDuringNavigate = false } = {}) {
     root.querySelectorAll('dialog.modal').forEach((dialog) => {
         if (dialog.id === 'ui-session-expired-modal') {
             return;
         }
 
-        const data = dialog.__x?.$data;
-        if (data) {
-            if ('isOpen' in data) {
-                data.isOpen = false;
-            } else if ('open' in data) {
-                data.open = false;
-            }
-        }
+        resetMaryModalDialog(dialog);
 
-        if (typeof dialog.close === 'function' && dialog.open) {
-            dialog.close();
-        }
-
-        destroyAlpineTree(dialog);
-        dialog.classList.remove('modal-open', '!animate-none');
-        dialog.removeAttribute('open');
-
-        if (document.documentElement.classList.contains('ui-navigating')) {
+        if (removeDuringNavigate && document.documentElement.classList.contains('ui-navigating')) {
+            destroyAlpineTree(dialog);
             dialog.remove();
         }
     });
@@ -79,7 +83,7 @@ function unmarkNavigating() {
 function prepareForNavigate() {
     markNavigating();
     closeLivewireModalsBeforeNavigate();
-    closeMaryModalsInDocument();
+    closeMaryModalsInDocument(document, { removeDuringNavigate: true });
 }
 
 document.addEventListener('livewire:navigate', prepareForNavigate, { capture: true });
@@ -89,7 +93,7 @@ document.addEventListener('livewire:navigating', (event) => {
 
     if (typeof event.detail?.onSwap === 'function') {
         event.detail.onSwap(() => {
-            closeMaryModalsInDocument();
+            closeMaryModalsInDocument(document, { removeDuringNavigate: true });
         });
     }
 });

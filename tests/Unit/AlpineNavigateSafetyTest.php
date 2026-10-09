@@ -23,16 +23,21 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringNotContainsString('component.get(property)', $source);
         $this->assertStringNotContainsString('component.set(property', $source);
         $this->assertStringContainsString('Alpine.destroyTree', $source);
+        $this->assertStringContainsString('removeDuringNavigate', $source);
         $this->assertStringContainsString('dialog.remove()', $source);
+        $this->assertStringContainsString('closeMaryModalsInDocument();', $source);
+        $this->assertStringContainsString('closeMaryModalsInDocument(document, { removeDuringNavigate: true })', $source);
     }
 
-    public function test_modal_guards_is_open_expressions_during_navigate_teardown(): void
+    public function test_modal_uses_data_is_open_for_morph_safe_bindings(): void
     {
         $source = (string) file_get_contents(app_path('View/Components/Modal.php'));
 
-        $this->assertStringContainsString("typeof isOpen !== 'undefined' && isOpen", $source);
-        $this->assertStringContainsString("typeof isOpen === 'undefined' || !isOpen", $source);
-        $this->assertStringNotContainsString(":class=\"{'modal-open !animate-none': isOpen}\"", $source);
+        $this->assertStringContainsString('x-bind:class="{\'modal-open !animate-none\': !!$data.isOpen}"', $source);
+        $this->assertStringContainsString('x-trap="!!$data.isOpen"', $source);
+        $this->assertStringContainsString('x-bind:inert="!$data.isOpen"', $source);
+        $this->assertStringContainsString('syncDialog($data.isOpen)', $source);
+        $this->assertStringNotContainsString(':class="{\'modal-open !animate-none\': isOpen}"', $source);
         $this->assertStringNotContainsString('x-bind:inert="!isOpen"', $source);
         $this->assertStringNotContainsString('x-trap="isOpen"', $source);
     }
