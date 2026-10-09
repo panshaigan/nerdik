@@ -1,8 +1,7 @@
 {
     "agents": [
-        "junie",
         "cursor",
-        "claude_code"
+        "codex"
     ],
     "cloud": false,
     "guidelines": true,
@@ -21,6 +20,7 @@
         "volt-development",
         "echo-development",
         "tailwindcss-development",
+        "filament-development",
         "medialibrary-development"
     ]
 }

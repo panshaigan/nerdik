@@ -26,6 +26,7 @@
 
 - Sail via Makefile: `make artisan …`, `make test --filter=…`, `make pint`.
 - Cursor rules in `.cursor/rules/` cover tooltips, env files, and test assertion style — follow those; do not restate them here.
+- Boost agents (Cursor + Codex only): edit `boost.json` / `config/boost.php`. Skills live in `.agents/skills`; `.cursor/skills` is a symlink. Guidelines refresh into `AGENTS.md` via `make artisan boost:update --no-interaction`.
 
 ## When to read code vs docs
 
