@@ -12,8 +12,20 @@ function destroyAlpineTree(element) {
     element.removeAttribute('x-bind:class');
 }
 
+function modalAlpineRootForDialog(dialog) {
+    const root = dialog.closest('[data-ui="modal-alpine-root"]');
+
+    return root ?? dialog;
+}
+
+function modalAlpineDataForDialog(dialog) {
+    const root = modalAlpineRootForDialog(dialog);
+
+    return root.__x?.$data ?? dialog.__x?.$data;
+}
+
 function resetMaryModalDialog(dialog) {
-    const data = dialog.__x?.$data;
+    const data = modalAlpineDataForDialog(dialog);
     if (data) {
         if ('isOpen' in data) {
             data.isOpen = false;
@@ -39,8 +51,9 @@ function closeMaryModalsInDocument(root = document, { removeDuringNavigate = fal
         resetMaryModalDialog(dialog);
 
         if (removeDuringNavigate && document.documentElement.classList.contains('ui-navigating')) {
-            destroyAlpineTree(dialog);
-            dialog.remove();
+            const alpineRoot = modalAlpineRootForDialog(dialog);
+            destroyAlpineTree(alpineRoot);
+            alpineRoot.remove();
         }
     });
 }

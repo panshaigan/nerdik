@@ -24,7 +24,8 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringNotContainsString('component.set(property', $source);
         $this->assertStringContainsString('Alpine.destroyTree', $source);
         $this->assertStringContainsString('removeDuringNavigate', $source);
-        $this->assertStringContainsString('dialog.remove()', $source);
+        $this->assertStringContainsString('modal-alpine-root', $source);
+        $this->assertStringContainsString('alpineRoot.remove()', $source);
         $this->assertStringContainsString('closeMaryModalsInDocument();', $source);
         $this->assertStringContainsString('closeMaryModalsInDocument(document, { removeDuringNavigate: true })', $source);
     }
@@ -33,10 +34,15 @@ final class AlpineNavigateSafetyTest extends TestCase
     {
         $source = (string) file_get_contents(app_path('View/Components/Modal.php'));
 
+        $this->assertStringContainsString('data-ui="modal-alpine-root"', $source);
+        $this->assertStringContainsString('x-ref="dialog"', $source);
+        $this->assertStringContainsString('$refs.dialog', $source);
+        $this->assertStringContainsString("\$watch('\$data.isOpen'", $source);
         $this->assertStringContainsString('x-bind:class="{\'modal-open !animate-none\': !!$data.isOpen}"', $source);
         $this->assertStringContainsString('x-trap="!!$data.isOpen"', $source);
         $this->assertStringContainsString('x-bind:inert="!$data.isOpen"', $source);
         $this->assertStringContainsString('syncDialog($data.isOpen)', $source);
+        $this->assertStringNotContainsString("\$watch('isOpen'", $source);
         $this->assertStringNotContainsString(':class="{\'modal-open !animate-none\': isOpen}"', $source);
         $this->assertStringNotContainsString('x-bind:inert="!isOpen"', $source);
         $this->assertStringNotContainsString('x-trap="isOpen"', $source);
