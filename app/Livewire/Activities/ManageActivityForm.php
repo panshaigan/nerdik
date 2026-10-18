@@ -786,36 +786,46 @@ class ManageActivityForm extends Component
 
     public function updatedPlaceIds(): void
     {
+        // Map JS debounces live $set of place_ids. Re-morphing reloads wire:ignore Leaflet.
         if ($this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
             $this->resetSelfHostedRoomTrackingFingerprints();
+            $this->skipRender();
 
             return;
         }
 
         $fp = $this->computeSelfHostedPlaceIdsFingerprint();
         if ($fp === $this->cachedSelfHostedPlaceIdsFingerprint) {
+            $this->skipRender();
+
             return;
         }
 
         $this->cachedSelfHostedPlaceIdsFingerprint = $fp;
         $this->self_hosted_room_name = null;
+        $this->skipRender();
     }
 
     public function updatedNewPlaces(): void
     {
+        // Map JS debounces live $set of new_places. Re-morphing reloads wire:ignore Leaflet.
         if ($this->hosting_mode !== Activity::HOSTING_MODE_SELF_HOSTED) {
             $this->resetSelfHostedRoomTrackingFingerprints();
+            $this->skipRender();
 
             return;
         }
 
         $fp = $this->computeSelfHostedNewPlacesFingerprint();
         if ($fp === $this->cachedSelfHostedNewPlacesFingerprint) {
+            $this->skipRender();
+
             return;
         }
 
         $this->cachedSelfHostedNewPlacesFingerprint = $fp;
         $this->self_hosted_room_name = null;
+        $this->skipRender();
     }
 
     private function resetSelfHostedRoomTrackingFingerprints(): void

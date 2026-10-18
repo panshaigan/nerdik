@@ -443,4 +443,71 @@ class ManageActivityFormUiTest extends TestCase
             ->assertSet('self_hosted_room_name', 'Saved Room Name')
             ->assertSeeHtml('value="Saved Room Name"');
     }
+
+    public function test_changing_place_ids_clears_room_without_requiring_html_morph(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'created_by' => $user->id,
+            'name' => 'Original Venue',
+        ]);
+        $otherVenue = Place::factory()->venue()->create([
+            'created_by' => $user->id,
+            'name' => 'Other Venue',
+        ]);
+        $room = Place::factory()->room($venue)->create([
+            'created_by' => $user->id,
+            'name' => 'Saved Room Name',
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $room->id,
+            'starts_at' => now()->addWeek(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('self_hosted_room_name', 'Saved Room Name')
+            // Map dblclick / venue change syncs place_ids with skipRender — room still clears.
+            ->set('place_ids', [$otherVenue->id])
+            ->assertSet('self_hosted_room_name', null);
+    }
+
+    public function test_changing_new_places_clears_room_without_requiring_html_morph(): void
+    {
+        $user = User::factory()->create();
+        $venue = Place::factory()->venue()->create([
+            'created_by' => $user->id,
+            'name' => 'Original Venue',
+        ]);
+        $room = Place::factory()->room($venue)->create([
+            'created_by' => $user->id,
+            'name' => 'Saved Room Name',
+        ]);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $room->id,
+            'starts_at' => now()->addWeek(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('self_hosted_room_name', 'Saved Room Name')
+            // Map dblclick syncs draft venues with skipRender — room still clears.
+            ->set('new_places', [[
+                'name' => 'Draft venue',
+                'address' => '',
+                'city' => '',
+                'country' => '',
+                'city_id' => null,
+                'country_id' => null,
+                'latitude' => 52.2297,
+                'longitude' => 21.0122,
+            ]])
+            ->assertSet('self_hosted_room_name', null);
+    }
 }
