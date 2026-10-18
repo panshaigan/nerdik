@@ -122,6 +122,22 @@ class ProfileTest extends TestCase
         $this->assertSame(TimeDisplayFormat::TwelveHour, $user->profile?->time_display_format);
     }
 
+    public function test_app_layout_exposes_locale_and_time_display_format_for_datetime_pickers(): void
+    {
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'time_display_format' => TimeDisplayFormat::TwelveHour,
+        ]);
+
+        $response = $this->actingAs($user)->get('/profile');
+
+        $response
+            ->assertOk()
+            ->assertSee('data-time-display-format="12h"', false)
+            ->assertSee('data-locale="'.app()->getLocale().'"', false)
+            ->assertSee('data-datetime-minute-step=', false);
+    }
+
     public function test_identity_form_defaults_timezone_to_europe_warsaw_when_profile_timezone_is_null(): void
     {
         $user = User::factory()->create();

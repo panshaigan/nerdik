@@ -261,7 +261,7 @@ function bootFeatureModules() {
     bootActivityTagPickersFeature();
     loadOnce(
         'datetime-pickers',
-        document.querySelector('input[type="datetime-local"]') !== null,
+        document.querySelector('input[data-ui-datetime]') !== null,
         () => import('./datetime-picker').then(({ bootDateTimePickers }) => bootDateTimePickers()),
     );
     loadOnce(

@@ -1,21 +1,56 @@
-.ui-filter-form-events .flatpickr-calendar {
+.flatpickr-calendar {
+    z-index: 10050;
     border-radius: 1rem;
     border-color: var(--color-base-300);
     background: var(--color-base-100);
     box-shadow: 0 10px 30px color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    color: var(--color-base-content);
 }
 
-.ui-filter-form-events .flatpickr-day.selected,
-.ui-filter-form-events .flatpickr-day.startRange,
-.ui-filter-form-events .flatpickr-day.endRange {
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year,
+span.flatpickr-weekday,
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator,
+.flatpickr-time .flatpickr-am-pm {
+    color: var(--color-base-content);
+    fill: var(--color-base-content);
+}
+
+.flatpickr-day {
+    color: var(--color-base-content);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
     background: var(--color-primary);
     border-color: var(--color-primary);
+    color: var(--color-primary-content, var(--color-base-100));
 }
 
-.ui-filter-form-events .flatpickr-day.inRange {
+.flatpickr-day.inRange {
     background: color-mix(in oklab, var(--color-primary) 18%, transparent);
     border-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
     box-shadow: none;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day.prevMonthDay:hover,
+.flatpickr-day.nextMonthDay:hover {
+    background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    border-color: transparent;
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:focus {
+    background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
 }
 
 .ui-filter-form-events .ui-browse-date-range-clear {

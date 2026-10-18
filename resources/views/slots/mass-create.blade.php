@@ -249,11 +249,14 @@
                         label="{{ __('ui.slots.starts_at_optional') }}"
                         placeholder="{{ __('ui.slots.starts_at_optional') }}"
                         name="starts_at"
-                        type="datetime-local"
+                        type="text"
                         :step="$datetimeMinuteStepSeconds"
                         value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="starts_at"
+                        data-ui-datetime
                         inline
+                        autocomplete="off"
+                        inputmode="none"
                     />
                 </div>
                 <div>
@@ -261,11 +264,14 @@
                         label="{{ __('ui.slots.ends_at_optional') }}"
                         placeholder="{{ __('ui.slots.ends_at_optional') }}"
                         name="ends_at"
-                        type="datetime-local"
+                        type="text"
                         :step="$datetimeMinuteStepSeconds"
                         value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
                         error-field="ends_at"
+                        data-ui-datetime
                         inline
+                        autocomplete="off"
+                        inputmode="none"
                     />
                 </div>
             </div>

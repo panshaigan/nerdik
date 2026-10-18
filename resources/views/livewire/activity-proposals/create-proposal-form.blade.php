@@ -47,10 +47,15 @@
                 <div>
                     <x-input
                         :label="__('ui.proposals.preferred_start_time_optional')"
+                        :placeholder="__('ui.proposals.preferred_start_time_optional')"
                         wire:model="preferred_start_time"
-                        type="datetime-local"
+                        type="text"
                         :step="$datetimeMinuteStepSeconds"
                         error-field="preferred_start_time"
+                        data-ui-datetime
+                        inline
+                        autocomplete="off"
+                        inputmode="none"
                     />
                 </div>
 

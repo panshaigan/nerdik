@@ -17,25 +17,31 @@
                     <div class="min-w-0">
                         <x-input
                             wire:model="enrollment_windows.{{ $index }}.starts_at"
-                            type="datetime-local"
+                            type="text"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_starts')"
                             :placeholder="__('ui.events.enrollment_window_starts')"
                             class="w-full min-w-0"
+                            data-ui-datetime
                             inline
+                            autocomplete="off"
+                            inputmode="none"
                         />
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.starts_at')" class="mt-2" />
                     </div>
                     <div class="min-w-0">
                         <x-input
                             wire:model="enrollment_windows.{{ $index }}.ends_at"
-                            type="datetime-local"
+                            type="text"
                             :step="$datetimeMinuteStepSeconds"
                             :label="__('ui.events.enrollment_window_ends')"
                             :placeholder="__('ui.events.enrollment_window_ends')"
                             class="w-full min-w-0"
                             :max="$eventSignupPeriodMax ?? null"
+                            data-ui-datetime
                             inline
+                            autocomplete="off"
+                            inputmode="none"
                         />
                         <x-field-error :messages="$errors->get('enrollment_windows.'.$index.'.ends_at')" class="mt-2" />
                     </div>

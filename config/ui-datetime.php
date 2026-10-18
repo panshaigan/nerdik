@@ -6,8 +6,8 @@ return [
     | Datetime UI Defaults
     |--------------------------------------------------------------------------
     |
-    | minute_step is used for all datetime-local pickers in the UI.
-    | Native datetime-local "step" is in seconds, so views should use:
+    | minute_step is used for Flatpickr datetime pickers (data-ui-datetime).
+    | Views may still pass step in seconds for markup compatibility:
     | config('ui-datetime.minute_step', 5) * 60
     |
     */

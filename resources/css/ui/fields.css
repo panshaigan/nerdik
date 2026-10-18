@@ -54,6 +54,22 @@
     .floating-label > span {
         background-color: var(--ui-field-bg);
     }
+
+    /*
+     * Flatpickr moves focus into the calendar (often appended to body), so
+     * :focus-within drops while the picker is open. Keep the floated label
+     * when the field is filled or Flatpickr marks the input .active.
+     */
+    .floating-label:has(input[data-ui-datetime]:not(:placeholder-shown)) > span,
+    .floating-label:has(input[data-ui-datetime].active) > span,
+    .floating-label:has(input[data-ui-datetime]:focus) > span {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 2;
+        top: 0;
+        translate: -12.5% calc(-50% - 0.125em);
+        scale: 0.75;
+    }
 }
 
 /**

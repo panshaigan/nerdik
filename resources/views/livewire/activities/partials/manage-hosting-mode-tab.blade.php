@@ -82,13 +82,17 @@
                         <x-input
                             id="self_hosted_starts_at"
                             :label="__('ui.activities.self_hosted_starts_at')"
+                            :placeholder="__('ui.activities.self_hosted_starts_at')"
                             wire:model="self_hosted_starts_at"
-                            type="datetime-local"
+                            type="text"
                             :step="$datetimeMinuteStepSeconds"
                             :min="$selfHostedStartTimeMin"
                             error-field="self_hosted_starts_at"
+                            data-ui-datetime
                             data-selfhost-start-input
                             inline
+                            autocomplete="off"
+                            inputmode="none"
                         />
                     </div>
                 </div>

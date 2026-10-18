@@ -186,6 +186,25 @@ class ManageActivityFormUiTest extends TestCase
             ->assertHasErrors(['hosting_mode']);
     }
 
+    public function test_self_hosted_start_datetime_field_uses_floating_label_and_flatpickr_hook(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(ManageActivityForm::class)
+            ->set('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+            ->set('tab', 'hosting-mode')
+            ->assertSeeHtml('data-ui-datetime')
+            ->assertSeeHtml('data-selfhost-start-input')
+            ->html();
+
+        $this->assertMatchesRegularExpression(
+            '/floating-label[^>]*>[\s\S]*?'.preg_quote(__('ui.activities.self_hosted_starts_at'), '/').'[\s\S]*?data-ui-datetime/u',
+            $html,
+        );
+    }
+
     public function test_age_range_saves_minimum_and_maximum(): void
     {
         $this->seed(ActivityTypeSeeder::class);

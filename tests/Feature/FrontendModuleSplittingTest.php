@@ -55,14 +55,22 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('pointerenter', $source);
     }
 
-    public function test_flatpickr_styles_are_owned_by_the_date_range_chunk(): void
+    public function test_flatpickr_styles_are_owned_by_date_picker_chunks_not_entrypoint(): void
     {
         $entrypoint = (string) file_get_contents(resource_path('js/app.js'));
         $dateRangePicker = (string) file_get_contents(resource_path('js/browse-date-range-picker.js'));
+        $datetimePicker = (string) file_get_contents(resource_path('js/datetime-picker.js'));
 
         $this->assertStringNotContainsString('flatpickr.min.css', $entrypoint);
         $this->assertStringContainsString("import 'flatpickr/dist/flatpickr.min.css';", $dateRangePicker);
         $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $dateRangePicker);
+        $this->assertStringContainsString("import 'flatpickr/dist/flatpickr.min.css';", $datetimePicker);
+        $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $datetimePicker);
+        $this->assertStringContainsString('time_24hr:', $datetimePicker);
+        $this->assertStringContainsString('disableMobile: true', $datetimePicker);
+        $this->assertStringContainsString('appendTo: document.body', $datetimePicker);
+        $this->assertStringContainsString("dateFormat: 'Y-m-d\\\\TH:i'", $datetimePicker);
+        $this->assertStringContainsString('input[data-ui-datetime]', $entrypoint);
     }
 
     public function test_css_pipeline_splits_app_entry_and_limits_daisyui_and_mary_sources(): void

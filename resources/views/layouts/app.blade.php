@@ -26,6 +26,8 @@
     </head>
     <body
         class="bg-transparent font-sans antialiased text-base-content"
+        data-locale="{{ app()->getLocale() }}"
+        data-time-display-format="{{ display_time_format()->value }}"
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >

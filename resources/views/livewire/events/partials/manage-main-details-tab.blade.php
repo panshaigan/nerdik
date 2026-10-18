@@ -84,15 +84,19 @@
         <x-input
             wire:model="starts_at"
             label="{{ __('ui.events.form_starts_at') }}"
-            type="datetime-local"
+            :placeholder="__('ui.events.form_starts_at')"
+            type="text"
             :step="$datetimeMinuteStepSeconds"
             :min="$eventStartsAtMin"
             error-field="starts_at"
             required
+            data-ui-datetime
             data-event-start-at
             data-enforce-future="{{ $enforceFuture ? '1' : '0' }}"
             class="w-full"
             inline
+            autocomplete="off"
+            inputmode="none"
         />
     </div>
 
@@ -100,14 +104,18 @@
         <x-input
             wire:model="ends_at"
             label="{{ __('ui.events.form_ends_at') }}"
-            type="datetime-local"
+            :placeholder="__('ui.events.form_ends_at')"
+            type="text"
             :step="$datetimeMinuteStepSeconds"
             :min="$eventEndsAtMin"
             error-field="ends_at"
             required
+            data-ui-datetime
             data-event-ends-at
             class="w-full"
             inline
+            autocomplete="off"
+            inputmode="none"
         />
     </div>
 </div>
