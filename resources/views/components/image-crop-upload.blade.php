@@ -118,27 +118,19 @@
 
     <div wire:ignore class="flex flex-col items-center justify-center gap-3">
         <span class="text-sm font-medium text-base-content/80">{{ $previewLabel }}</span>
-        @if ($previewUrl)
-            <img
-                src="{{ $previewUrl }}"
-                alt="{{ $previewAlt }}"
-                class="{{ $previewClasses }}"
-                loading="lazy"
-                data-image-crop-preview
-                data-default-src="{{ $previewUrl }}"
-            />
-        @else
-            <div class="{{ $placeholderClasses }}" data-image-crop-preview-placeholder>
-                <x-icon name="o-photo" class="size-12 text-base-content/40" />
-            </div>
-            <img
-                src=""
-                alt="{{ $previewAlt }}"
-                class="{{ $previewClasses }} hidden"
-                loading="lazy"
-                data-image-crop-preview
-                data-default-src=""
-            />
-        @endif
+        <div
+            class="{{ $placeholderClasses }}{{ $previewUrl ? ' hidden' : '' }}"
+            data-image-crop-preview-placeholder
+        >
+            <x-icon name="o-photo" class="size-12 text-base-content/40" />
+        </div>
+        <img
+            src="{{ $previewUrl ?? '' }}"
+            alt="{{ $previewAlt }}"
+            class="{{ $previewClasses }}{{ $previewUrl ? '' : ' hidden' }}"
+            loading="lazy"
+            data-image-crop-preview
+            data-default-src="{{ $previewUrl ?? '' }}"
+        />
     </div>
 </div>

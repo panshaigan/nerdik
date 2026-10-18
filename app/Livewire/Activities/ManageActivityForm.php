@@ -1733,6 +1733,10 @@ class ManageActivityForm extends Component
             $cropSourceImageUrl = $editingActivity->cropSourceImageUrl();
         }
 
+        if ($this->croppedLogo !== null) {
+            $logoPreviewUrl = $this->croppedLogo->temporaryUrl();
+        }
+
         return view('livewire.activities.manage-activity-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
             'cropSourceImageUrl' => $cropSourceImageUrl,

@@ -767,6 +767,28 @@ function findDropzoneFromEvent(event, selector) {
     return event.target?.closest(selector) ?? null;
 }
 
+function resolveUploadPreviewUrl(upload) {
+    if (! upload || typeof upload !== 'object') {
+        return null;
+    }
+
+    if (typeof upload.previewUrl === 'string' && upload.previewUrl !== '') {
+        return upload.previewUrl;
+    }
+
+    if (typeof upload.temporaryUrl === 'function') {
+        try {
+            const url = upload.temporaryUrl();
+
+            return typeof url === 'string' && url !== '' ? url : null;
+        } catch {
+            return null;
+        }
+    }
+
+    return null;
+}
+
 function syncDropzoneAfterMorph(dropzone) {
     const form = resolveForm(dropzone);
     if (! form) {
@@ -774,15 +796,30 @@ function syncDropzoneAfterMorph(dropzone) {
     }
 
     const config = getDropzoneConfig(dropzone);
+    const labels = getDropzoneLabels(dropzone);
     const wire = findLivewireUploadComponent(form);
-    const hasUpload =
-        wire && typeof wire.get === 'function'
-            ? wire.get(config.wireProperty) != null
-            : false;
+    const upload =
+        wire && typeof wire.get === 'function' ? wire.get(config.wireProperty) : null;
+    const hasUpload = upload != null;
 
     if (! hasUpload) {
         resetPendingCropUi(form, dropzone, { resetPreview: false });
+
+        return;
     }
+
+    const previewUrl = resolveUploadPreviewUrl(upload);
+    if (previewUrl) {
+        syncPreviewUrl(form, previewUrl);
+    }
+
+    hasPendingCrop = true;
+    updateFileUi(dropzone, {
+        buttonText: labels.crop,
+        showRemove: true,
+        showRecropHint: true,
+        showSavedSourceControls: false,
+    });
 }
 
 function registerLivewireImageCropperMorphHook() {

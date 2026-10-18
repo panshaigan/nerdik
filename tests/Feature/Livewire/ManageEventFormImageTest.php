@@ -129,6 +129,21 @@ final class ManageEventFormImageTest extends TestCase
     }
 
     #[Test]
+    public function pending_crop_exposes_temporary_preview_url(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->organizer()->create();
+        $file = UploadedFile::fake()->image('cover.jpg', 800, 450);
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            ->set('tab', 'image')
+            ->set('logo_source', EventLogoSource::Upload->value)
+            ->set('croppedLogo', $file)
+            ->assertViewHas('logoPreviewUrl', fn (?string $url): bool => filled($url));
+    }
+
+    #[Test]
     public function edit_keeps_existing_logo_without_new_crop(): void
     {
         Storage::fake('public');

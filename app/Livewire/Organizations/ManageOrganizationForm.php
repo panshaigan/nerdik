@@ -129,6 +129,10 @@ class ManageOrganizationForm extends Component
 
     public function getLogoPreviewUrlProperty(): ?string
     {
+        if ($this->croppedLogo !== null) {
+            return $this->croppedLogo->temporaryUrl();
+        }
+
         if ($this->editingOrganizationId === null) {
             return null;
         }

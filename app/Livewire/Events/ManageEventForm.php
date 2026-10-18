@@ -1161,6 +1161,10 @@ class ManageEventForm extends Component
             $cropSourceImageUrl = $editingEvent->cropSourceImageUrl();
         }
 
+        if ($this->croppedLogo !== null) {
+            $logoPreviewUrl = $this->croppedLogo->temporaryUrl();
+        }
+
         return view('livewire.events.manage-event-form', [
             'logoPreviewUrl' => $logoPreviewUrl,
             'cropSourceImageUrl' => $cropSourceImageUrl,
