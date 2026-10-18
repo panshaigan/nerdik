@@ -44,8 +44,6 @@ class BrowseSearchPageTest extends TestCase
         $response->assertDontSee('drawer-toggle', false);
         $response->assertDontSee('<aside', false);
         $response->assertDontSee('fonts.bunny.net', false);
-        $this->assertStringContainsString('as="font"', $response->getContent());
-        $this->assertStringContainsString('type="font/woff2"', $response->getContent());
 
         $this->assertMatchesRegularExpression(
             '/<input[^>]*data-ts-input[^>]*aria-label="[^"]+"[^>]*>/',

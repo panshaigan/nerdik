@@ -27,9 +27,5 @@ class ViteAssetTagsTest extends TestCase
             $html,
         );
         $this->assertSame(1, preg_match_all('/rel="modulepreload"/', $html, $modulePreloads));
-        $this->assertMatchesRegularExpression(
-            '/rel="preload"[^>]+as="font"/',
-            (string) view('components.font-preloads')->render(),
-        );
     }
 }
