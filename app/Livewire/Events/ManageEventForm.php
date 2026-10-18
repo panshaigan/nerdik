@@ -147,6 +147,18 @@ class ManageEventForm extends Component
         $this->skipRender();
     }
 
+    public function updatedPlaceIds(): void
+    {
+        // Map JS debounces live $set of place_ids. Re-morphing reloads wire:ignore Leaflet.
+        $this->skipRender();
+    }
+
+    public function updatedNewPlaces(): void
+    {
+        // Map JS debounces live $set of new_places. Re-morphing reloads wire:ignore Leaflet.
+        $this->skipRender();
+    }
+
     public function updatedEndsAt(string $value): void
     {
         $eventEnd = trim($value);

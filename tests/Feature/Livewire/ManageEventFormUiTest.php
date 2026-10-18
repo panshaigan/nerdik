@@ -61,6 +61,41 @@ class ManageEventFormUiTest extends TestCase
             ->assertRenderSkipped();
     }
 
+    public function test_place_ids_sync_skips_rerender(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            // Map dblclick debounces live $set — must not remorph wire:ignore Leaflet.
+            ->set('place_ids', [1])
+            ->assertSet('place_ids', [1])
+            ->assertRenderSkipped();
+    }
+
+    public function test_new_places_sync_skips_rerender(): void
+    {
+        $user = User::factory()->organizer()->create();
+
+        $draft = [[
+            'name' => 'Draft venue',
+            'address' => '',
+            'city' => '',
+            'country' => '',
+            'city_id' => null,
+            'country_id' => null,
+            'latitude' => 52.2297,
+            'longitude' => 21.0122,
+        ]];
+
+        Livewire::actingAs($user)
+            ->test(ManageEventForm::class)
+            // Map dblclick debounces live $set — must not remorph wire:ignore Leaflet.
+            ->set('new_places', $draft)
+            ->assertSet('new_places', $draft)
+            ->assertRenderSkipped();
+    }
+
     public function test_tab_switch_to_disabled_enrollment_windows_rerenders(): void
     {
         $user = User::factory()->organizer()->create();
