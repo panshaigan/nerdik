@@ -31,7 +31,7 @@ run_gitleaks() {
     docker run --rm \
         -v "$ROOT:/repo" \
         -w /repo \
-        gitleaks/gitleaks:latest \
+        ghcr.io/gitleaks/gitleaks:latest \
         detect --source . --config .gitleaks.toml --verbose
 }
 
