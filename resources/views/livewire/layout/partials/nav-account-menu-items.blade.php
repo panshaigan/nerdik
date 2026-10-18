@@ -6,6 +6,9 @@
     $closeOnClick = $closeOnClick ?? false;
 
     $drawerLinkClass = fn (bool $active): string => $active ? 'active font-display font-medium' : 'font-display';
+    $menuActionClass = $variant === 'drawer'
+        ? 'w-full cursor-pointer text-left font-display'
+        : 'w-full cursor-pointer text-left';
 @endphp
 
 <li>
@@ -27,7 +30,7 @@
 <li>
     <button
         type="button"
-        class="w-full cursor-pointer text-left"
+        class="{{ $menuActionClass }}"
         data-ui="nav-contact"
         @if ($closeOnClick)
             @click="close()"
@@ -85,7 +88,7 @@
         <button
             type="button"
             wire:click="openOrganizerRequestModal"
-            class="w-full cursor-pointer text-left"
+            class="{{ $menuActionClass }}"
             data-ui="nav-request-organizer"
             @if ($closeOnClick)
                 @click="close()"
@@ -155,6 +158,7 @@
     <button
         type="button"
         wire:click="logout"
+        class="{{ $menuActionClass }}"
         @if ($closeOnClick)
             @click="close()"
         @endif
