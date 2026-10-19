@@ -10,7 +10,8 @@ use Illuminate\View\Component;
 
 /**
  * Mary-compatible popover that uses `isOpen` instead of `open` to avoid collisions
- * with native dialog state during Livewire morph.
+ * with native dialog state during Livewire morph, and binds via `$data.isOpen` so
+ * morph clone/init does not throw ReferenceError when scope is briefly unavailable.
  */
 class Popover extends Component
 {
@@ -55,7 +56,7 @@ class Popover extends Component
 
                   <!-- CONTENT -->
                   <div
-                    x-show="isOpen"
+                    x-show="!!$data.isOpen"
                     x-anchor.{{ $position }}.offset.{{ $offset }}="$refs.myTrigger"
                     x-transition
                     @mouseover="show()"

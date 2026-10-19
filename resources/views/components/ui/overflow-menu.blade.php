@@ -74,15 +74,15 @@
     x-on:ui-overflow-menu-open.window="if ($event.detail.el !== $el) close()"
     x-on:keydown.escape.window="close()"
     x-on:click.window="onWindowClick($event)"
-    x-on:resize.window="isOpen && updatePosition()"
-    x-on:scroll.window.passive="isOpen && close()"
+    x-on:resize.window="$data.isOpen && updatePosition()"
+    x-on:scroll.window.passive="$data.isOpen && close()"
 >
     <button
         type="button"
         x-ref="trigger"
         class="btn btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
         x-on:click.stop="toggle()"
-        :aria-expanded="isOpen"
+        x-bind:aria-expanded="!!$data.isOpen"
         aria-haspopup="menu"
         aria-label="{{ $label }}"
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
@@ -95,11 +95,11 @@
     <template x-teleport="body">
         <ul
             x-ref="panel"
-            x-bind:class="isOpen ? 'flex' : 'hidden'"
+            x-bind:class="$data.isOpen ? 'flex' : 'hidden'"
             x-on:click="close()"
             role="menu"
             class="ui-overflow-menu-panel fixed z-[10000] flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 light:border-neutral {{ $panelClass }}"
-            :style="menuStyle"
+            x-bind:style="menuStyle"
             x-on:scroll.stop
             @if (is_string($listDataUi) && $listDataUi !== '')
                 data-ui="{{ $listDataUi }}"

@@ -89,7 +89,7 @@
     x-on:ui-overflow-menu-open.window="if ($event.detail.el !== $el) close()"
     x-on:keydown.escape.window="close()"
     x-on:pointerdown.window="onWindowPointerDown($event)"
-    x-on:resize.window="isOpen && updatePosition()"
+    x-on:resize.window="$data.isOpen && updatePosition()"
 >
     <button
         type="button"
@@ -99,7 +99,7 @@
             'text-warning' => $hasLate,
         ])
         x-on:click.stop="toggle()"
-        :aria-expanded="isOpen"
+        x-bind:aria-expanded="!!$data.isOpen"
         aria-haspopup="dialog"
         aria-label="{{ $label }}"
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
@@ -112,12 +112,12 @@
     <div
         x-ref="panel"
         x-cloak
-        x-bind:class="isOpen ? 'flex' : 'hidden'"
+        x-bind:class="$data.isOpen ? 'flex' : 'hidden'"
         role="dialog"
         aria-modal="true"
         aria-label="{{ $label }}"
         class="ui-late-announce-panel fixed z-[10000] max-h-[min(70vh,24rem)] flex-col gap-3 overflow-y-auto border border-base-300 bg-base-100 p-4 shadow-lg light:border-neutral max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:w-80 sm:rounded-box"
-        :style="menuStyle"
+        x-bind:style="menuStyle"
         x-on:pointerdown.stop
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
             data-ui="{{ $triggerDataUi }}-panel"

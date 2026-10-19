@@ -103,7 +103,7 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString('Section title', $html);
     }
 
-    public function test_popover_uses_is_open_instead_of_open(): void
+    public function test_popover_uses_data_is_open_for_morph_safe_bindings(): void
     {
         $html = Blade::render(<<<'BLADE'
             <x-popover>
@@ -112,20 +112,35 @@ final class AlpineNavigateSafetyTest extends TestCase
             </x-popover>
         BLADE);
 
-        $this->assertStringContainsString('isOpen', $html);
-        $this->assertStringContainsString('x-show="isOpen"', $html);
+        $this->assertStringContainsString('isOpen: false', $html);
+        $this->assertStringContainsString('x-show="!!$data.isOpen"', $html);
+        $this->assertStringNotContainsString('x-show="isOpen"', $html);
         $this->assertStringNotContainsString('x-show="open"', $html);
     }
 
-    public function test_overflow_menu_uses_is_open_instead_of_open(): void
+    public function test_overflow_menu_uses_data_is_open_for_morph_safe_bindings(): void
     {
         $html = Blade::render(
             '<x-ui.overflow-menu icon="o-share" label="Share"><span>item</span></x-ui.overflow-menu>'
         );
 
-        $this->assertStringContainsString('isOpen', $html);
-        $this->assertStringContainsString(':aria-expanded="isOpen"', $html);
+        $this->assertStringContainsString('isOpen: false', $html);
+        $this->assertStringContainsString('x-bind:aria-expanded="!!$data.isOpen"', $html);
+        $this->assertStringContainsString('x-bind:class="$data.isOpen ? \'flex\' : \'hidden\'"', $html);
+        $this->assertStringNotContainsString(':aria-expanded="isOpen"', $html);
+        $this->assertStringNotContainsString('x-bind:class="isOpen ?', $html);
         $this->assertStringNotContainsString(':aria-expanded="open"', $html);
+    }
+
+    public function test_late_announce_menu_uses_data_is_open_for_morph_safe_bindings(): void
+    {
+        $html = Blade::render('<x-ui.late-announce-menu />');
+
+        $this->assertStringContainsString('isOpen: false', $html);
+        $this->assertStringContainsString('x-bind:aria-expanded="!!$data.isOpen"', $html);
+        $this->assertStringContainsString('x-bind:class="$data.isOpen ? \'flex\' : \'hidden\'"', $html);
+        $this->assertStringNotContainsString(':aria-expanded="isOpen"', $html);
+        $this->assertStringNotContainsString('x-bind:class="isOpen ?', $html);
     }
 
     public function test_activity_badge_group_always_provides_expanded_scope(): void
