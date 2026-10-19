@@ -328,6 +328,115 @@ class BrowseMapFeaturesTest extends TestCase
         $this->assertNotContains((int) $secondActivity->id, $activityIds);
     }
 
+    public function test_scheduled_activities_map_features_with_search_query(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+
+        $place = Place::factory()->venue()->create([
+            'name' => 'Search Map Venue',
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Hosting Event For Search Map',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
+        $matchingActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'name' => 'Porzucane Unique Map Search Activity',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $matchingActivity->id,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        $unrelatedActivity = Activity::factory()->scheduled()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'name' => 'Unrelated Scheduled Activity For Map Search',
+            'starts_at' => $startsAt->copy()->addHour(),
+            'ends_at' => $endsAt,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $unrelatedActivity->id,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt->copy()->addHour(),
+            'ends_at' => $endsAt,
+        ]);
+
+        $res = $this->getJson(route('search.map-features', [
+            'min_lat' => 51.0,
+            'max_lat' => 51.2,
+            'min_lng' => 16.9,
+            'max_lng' => 17.2,
+            'zoom' => 12,
+            'q' => 'Porzucane',
+        ]));
+        $res->assertOk();
+        $res->assertJsonPath('meta.aggregate', 'points');
+
+        $eventFeatures = array_values(array_filter(
+            $res->json('features'),
+            static fn (array $f): bool => ($f['properties']['kind'] ?? null) === 'event'
+                && (int) ($f['properties']['id'] ?? 0) === (int) $event->id
+        ));
+        $this->assertCount(1, $eventFeatures);
+        $this->assertSame('Hosting Event For Search Map', $eventFeatures[0]['properties']['name']);
+    }
+
+    public function test_map_country_rollup_with_search_query(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(14)->setSecond(0);
+        $endsAt = (clone $startsAt)->addHours(5);
+        $country = Country::factory()->create(['iso_alpha2' => 'PL']);
+        CountryTranslation::query()->create([
+            'country_id' => $country->id,
+            'locale' => 'en',
+            'name' => 'Poland',
+        ]);
+        $place = Place::factory()->venue()->create([
+            'country_id' => $country->id,
+            'latitude' => 51.11,
+            'longitude' => 17.03,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Country Rollup Search Event Unique',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+        $event->places()->attach($place->id);
+
+        $res = $this->getJson(route('search.map-features', [
+            'min_lat' => 51.0,
+            'max_lat' => 51.2,
+            'min_lng' => 16.9,
+            'max_lng' => 17.2,
+            'zoom' => 4,
+            'q' => 'Country Rollup Search Event Unique',
+        ]));
+        $res->assertOk();
+        $res->assertJsonPath('meta.aggregate', 'country');
+        $this->assertNotEmpty($res->json('features'));
+        $this->assertTrue((bool) ($res->json('features.0.properties.countrySummary') ?? false));
+        $this->assertSame(1, (int) ($res->json('features.0.properties.count') ?? 0));
+    }
+
     public function test_event_without_activities_reports_activity_count_of_one(): void
     {
         $user = User::factory()->create();

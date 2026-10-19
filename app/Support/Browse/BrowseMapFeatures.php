@@ -161,7 +161,8 @@ final class BrowseMapFeatures
     private static function eventCountryAggregateRows(BrowseListingFilterBag $bag): Collection
     {
         $q = BrowseListingQuery::baseEventQuery($bag, self::browseUserId());
-        $q->join('event_place', 'event_place.event_id', '=', 'events.id')
+        $q->reorder() // drop hybrid-search ORDER BY (incompatible with GROUP BY)
+            ->join('event_place', 'event_place.event_id', '=', 'events.id')
             ->join('places', 'places.id', '=', 'event_place.place_id')
             ->whereNotNull('places.country_id')
             ->whereNotNull('places.latitude')
@@ -181,7 +182,8 @@ final class BrowseMapFeatures
     private static function activityCountryAggregateRowsSelfHosted(BrowseListingFilterBag $bag): Collection
     {
         $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
-        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
+        $q->reorder() // drop hybrid-search ORDER BY (incompatible with GROUP BY)
+            ->where('activities.hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->join('places', 'places.id', '=', 'activities.place_id')
             ->whereNotNull('places.country_id')
             ->whereNotNull('places.latitude')
@@ -207,7 +209,8 @@ final class BrowseMapFeatures
             ->groupBy('activity_id');
 
         $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
-        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+        $q->reorder() // drop hybrid-search ORDER BY (incompatible with GROUP BY)
+            ->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
             ->joinSub($firstSlot, 'fs', 'fs.activity_id', '=', 'activities.id')
             ->join('slots as slot_pick', 'slot_pick.id', '=', 'fs.sid')
             ->join('places', 'places.id', '=', 'slot_pick.place_id')
@@ -379,7 +382,8 @@ final class BrowseMapFeatures
             ->groupBy('activity_id');
 
         $q = BrowseListingQuery::baseActivityQuery($bag, self::browseUserId());
-        $q->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
+        $q->reorder() // drop hybrid-search ORDER BY (incompatible with GROUP BY)
+            ->where('activities.hosting_mode', Activity::HOSTING_MODE_SCHEDULED_ON_EVENT)
             ->joinSub($firstSlot, 'fs', 'fs.activity_id', '=', 'activities.id')
             ->join('slots as slot_pick', 'slot_pick.id', '=', 'fs.sid')
             ->join('events', 'events.id', '=', 'slot_pick.event_id')
