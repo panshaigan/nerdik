@@ -54,9 +54,17 @@ new class extends Component
     {
         $user = Auth::user();
 
+        $this->name = trim($this->name);
+        $this->nickname = trim($this->nickname);
+
         $validated = $this->validate([
             'name' => ['nullable', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:255'],
+            'nickname' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
             'discord_handle' => ['nullable', 'string', 'max:255'],
             'timezone' => ['nullable', 'string', 'timezone'],

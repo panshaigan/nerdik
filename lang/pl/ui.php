@@ -121,7 +121,7 @@ return [
         'copyright' => ':year Piotr Kurpiewski',
         'privacy' => 'Prywatność',
         'terms' => 'Regulamin',
-        'contact' => 'Kontakt',
+        'contact' => 'Konta',
     ],
     'welcome' => [
         'tagline' => 'Tagline placeholder',

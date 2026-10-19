@@ -122,6 +122,62 @@ class ProfileTest extends TestCase
         $this->assertSame(TimeDisplayFormat::TwelveHour, $user->profile?->time_display_format);
     }
 
+    public function test_identity_nickname_must_be_unique(): void
+    {
+        User::factory()->create(['nickname' => 'Klaudia']);
+        $user = User::factory()->create(['nickname' => 'my-nick']);
+
+        $this->actingAs($user);
+
+        // Trailing space mirrors the production failure; trim runs before unique.
+        Volt::test('profile.update-identity-information-form')
+            ->set('name', 'Test User')
+            ->set('nickname', 'Klaudia ')
+            ->set('timezone', 'Europe/Warsaw')
+            ->set('time_display_format', '24h')
+            ->call('updateIdentityInformation')
+            ->assertHasErrors(['nickname']);
+
+        $this->assertSame('my-nick', $user->refresh()->nickname);
+    }
+
+    public function test_identity_nickname_is_trimmed_before_save(): void
+    {
+        $user = User::factory()->create(['nickname' => 'my-nick']);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-identity-information-form')
+            ->set('name', '  Test User  ')
+            ->set('nickname', '  Klaudia  ')
+            ->set('timezone', 'Europe/Warsaw')
+            ->set('time_display_format', '24h')
+            ->call('updateIdentityInformation')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertSame('Test User', $user->name);
+        $this->assertSame('Klaudia', $user->nickname);
+    }
+
+    public function test_identity_allows_keeping_own_nickname(): void
+    {
+        $user = User::factory()->create(['nickname' => 'my-nick']);
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-identity-information-form')
+            ->set('name', 'Test User')
+            ->set('nickname', 'my-nick')
+            ->set('timezone', 'Europe/Warsaw')
+            ->set('time_display_format', '24h')
+            ->call('updateIdentityInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame('my-nick', $user->refresh()->nickname);
+    }
+
     public function test_app_layout_exposes_locale_and_time_display_format_for_datetime_pickers(): void
     {
         $user = User::factory()->create();

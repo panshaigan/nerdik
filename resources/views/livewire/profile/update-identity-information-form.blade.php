@@ -3,6 +3,7 @@
 use App\Enums\TimeDisplayFormat;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
@@ -54,13 +55,22 @@ new class extends Component
     public function updateIdentityInformation(): void
     {
         $this->reportProfileTabValidation('identity', function (): void {
+            $this->name = trim($this->name);
+            $this->nickname = trim($this->nickname);
+
+            $user = Auth::user();
             $allowedOrganizationIds = collect($this->organizationOptions)
                 ->pluck('id')
                 ->all();
 
             $validated = $this->validate([
                 'name' => ['nullable', 'string', 'max:255'],
-                'nickname' => ['required', 'string', 'max:255'],
+                'nickname' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique(User::class)->ignore($user->id),
+                ],
                 'organization_id' => [
                     'nullable',
                     'integer',
@@ -70,7 +80,6 @@ new class extends Component
                 'time_display_format' => ['required', 'string', Rule::enum(TimeDisplayFormat::class)],
             ]);
 
-            $user = Auth::user();
             $user->fill([
                 'name' => $validated['name'],
                 'nickname' => $validated['nickname'],
