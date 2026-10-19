@@ -98,7 +98,7 @@ final class ActivityBadgeGroupViewTest extends TestCase
         $this->assertStringContainsString(__('ui.common.show_more'), $html);
         $this->assertStringContainsString(__('ui.common.show_less'), $html);
         $this->assertStringContainsString('x-data="{ expanded: false }"', $html);
-        $this->assertStringContainsString('x-show="expanded"', $html);
+        $this->assertStringContainsString("typeof expanded !== 'undefined' && expanded", $html);
     }
 
     public function test_badge_group_does_not_collapse_when_within_limit(): void

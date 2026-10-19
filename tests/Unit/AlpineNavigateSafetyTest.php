@@ -146,4 +146,28 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString('x-data="{ expanded: false }"', $html);
         $this->assertStringNotContainsString('data-ui="activity-badge-group-toggle"', $html);
     }
+
+    public function test_activity_badge_group_guards_expanded_during_morph(): void
+    {
+        config(['activity-badges.collapse_after' => 2]);
+
+        $items = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $items[] = new ActivityBadgeItem(
+                ActivityBadgeKind::TaxonomyTag,
+                "tag:{$i}",
+                "Tag {$i}",
+                BadgeSemantic::Neutral,
+            );
+        }
+
+        $html = Blade::renderComponent(new ActivityBadgeGroup(items: $items));
+
+        $this->assertStringContainsString("typeof expanded !== 'undefined' && expanded", $html);
+        $this->assertStringContainsString("typeof expanded === 'undefined' || !expanded", $html);
+        $this->assertStringContainsString("typeof expanded !== 'undefined' && (expanded = !expanded)", $html);
+        $this->assertStringNotContainsString('x-show="expanded"', $html);
+        $this->assertStringNotContainsString('x-show="! expanded"', $html);
+        $this->assertStringNotContainsString('x-on:click="expanded = ! expanded"', $html);
+    }
 }

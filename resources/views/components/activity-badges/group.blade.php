@@ -14,7 +14,7 @@
                 $isOverflow = $shouldCollapse && $index >= $visibleLimit;
             @endphp
             @if ($isOverflow)
-                <span class="contents" x-show="expanded" x-cloak>
+                <span class="contents" x-show="typeof expanded !== 'undefined' && expanded" x-cloak>
             @endif
             <x-badge
                 :icon="$item->icon"
@@ -39,11 +39,11 @@
             <button
                 type="button"
                 class="btn btn-ghost btn-xs h-auto min-h-0 px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10"
-                x-on:click="expanded = ! expanded"
+                x-on:click="typeof expanded !== 'undefined' && (expanded = !expanded)"
                 data-ui="activity-badge-group-toggle"
             >
-                <span x-show="! expanded">{{ __('ui.common.show_more') }}</span>
-                <span x-show="expanded" x-cloak>{{ __('ui.common.show_less') }}</span>
+                <span x-show="typeof expanded === 'undefined' || !expanded">{{ __('ui.common.show_more') }}</span>
+                <span x-show="typeof expanded !== 'undefined' && expanded" x-cloak>{{ __('ui.common.show_less') }}</span>
             </button>
         @endif
     </div>
