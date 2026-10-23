@@ -107,7 +107,7 @@ echo "Target image: ${IMAGE}"
 
 if ! docker manifest inspect "${IMAGE}" >/dev/null 2>&1; then
     echo "GHCR image not found: ${IMAGE}" >&2
-    echo "Wait for the Docker workflow on main to finish publishing this SHA, or deploy a different tag with IMAGE_TAG=<sha>." >&2
+    echo "Images are published only for v* release tags (Docker workflow). Wait for that run, or deploy with IMAGE_TAG=<full-sha|semver> (e.g. IMAGE_TAG=1.10.21)." >&2
     exit 1
 fi
 

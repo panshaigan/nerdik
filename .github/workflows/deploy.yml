@@ -20,6 +20,9 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy-prod:
     name: Deploy to production
@@ -50,8 +53,9 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           DISPATCH_TAG: ${{ github.event.inputs.image_tag }}
-          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
           FALLBACK_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -61,7 +65,15 @@ jobs:
               TAG="${FALLBACK_SHA}"
             fi
           elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
-            TAG="${WORKFLOW_SHA}"
+            # Release is triggered via workflow_run, so this job's workflow_run.head_sha is the
+            # default-branch tip — which can diverge from the v* commit Docker published
+            # (e.g. after amend/rebase). Use the GitHub Release target commit instead.
+            TAG="$(gh release view --repo "$REPO" --json targetCommitish,tagName \
+              --jq 'if (.targetCommitish | test("^[0-9a-f]{40}$")) then .targetCommitish else (.tagName | ltrimstr("v")) end')"
+            if [[ -z "$TAG" ]]; then
+              echo "Could not resolve IMAGE_TAG from latest GitHub Release" >&2
+              exit 1
+            fi
           else
             TAG="${FALLBACK_SHA}"
           fi

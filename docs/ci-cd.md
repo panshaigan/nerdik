@@ -95,8 +95,8 @@ git push origin v1.0.4
 ```
 
 3. **CI** and **Docker** run on the tag. When Docker finishes successfully, **Release** waits for CI to pass, then creates the GitHub Release (notes + image refs).
-4. **Deploy** starts automatically when **Release** succeeds (`workflow_run`; SSH → `IMAGE_TAG=<sha> ./scripts/vps-deploy.sh`, same pull+deploy path as `make deploy`). If the `production` environment has required reviewers, approve there.
-5. Optional: redeploy a known tag/SHA via Actions → **Deploy** → Run workflow, or on the VPS with `IMAGE_TAG=… make deploy`.
+4. **Deploy** starts automatically when **Release** succeeds (`workflow_run`; SSH → `IMAGE_TAG=<release-target-sha> ./scripts/vps-deploy.sh`, same pull+deploy path as `make deploy`). It resolves the image from the latest GitHub Release’s `targetCommitish` (the tagged commit Docker published), not from `main` tip — so an amend/rebase after tagging no longer points deploy at a missing GHCR digest. If the `production` environment has required reviewers, approve there.
+5. Optional: redeploy a known tag/SHA via Actions → **Deploy** → Run workflow (e.g. `1.10.21` or the full git SHA), or on the VPS with `IMAGE_TAG=… make deploy`.
 
 ## Docker images (no VPS required)
 
