@@ -540,6 +540,7 @@ Do not expose Sail-only tools (Adminer, Mailpit) in **production**. Staging Mail
 ## Post-deploy verification
 
 - `GET /up` returns healthy
+- PHP runtime ≥ 8.5.12 inside the app container (`php -v`) after any PHP security pin bump; see [security.md](security.md#php2shell--core-php-rce)
 - Login and registration (and OAuth if enabled)
 - Media upload (avatars, listing images)
 - Queue: media conversions complete
