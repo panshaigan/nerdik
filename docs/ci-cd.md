@@ -69,13 +69,13 @@ In GitHub → Settings → Branches, require the **Test** and **Compose** jobs f
 - `curl` (used to poll the GitHub repo web UI after the tag is pushed)
 
 ```bash
-make release                 # minor bump (default), make check, push, tag, watch CI/CD + release
+make release                 # make check, then minor bump (default), push, tag, watch CI/CD + release
 make release feature         # feature bump (1.10.x → 1.11.0)
 make release major           # major bump (1.x.x → 2.0.0)
 make release 1.12.5          # strict version
 ```
 
-`make release` bumps [`VERSION`](../VERSION), commits, runs `make check`, pushes the branch and `v*` tag, then watches the GitHub website (no `gh` CLI):
+`make release` runs `make check` first, then bumps [`VERSION`](../VERSION), commits, pushes the branch and `v*` tag, then watches the GitHub website (no `gh` CLI):
 
 1. Every **60s**, poll Actions for the release tag until **CI** and **Docker** succeed (fails fast on a red check)
 2. Then every **30s**, poll `/releases/latest` until the published tag matches the release (e.g. `v1.10.14`)
@@ -197,7 +197,7 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 | Command | Use |
 |---------|-----|
 | `make check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
-| `make release` | Bump VERSION, `make check`, push tag, watch GitHub CI/CD + Release page, smoke `nerdik.app/up` |
+| `make release` | `make check`, then bump VERSION, push tag, watch GitHub CI/CD + Release page, smoke `nerdik.app/up` |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
 | `IMAGE_TAG=<sha\|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |

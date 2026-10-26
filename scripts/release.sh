@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bump VERSION, run local checks, push tag, watch GitHub web UI, smoke-check production.
+# Run local checks, then bump VERSION, push tag, watch GitHub web UI, smoke-check production.
 #
 # Usage:
 #   ./scripts/release.sh [minor|feature|major|MAJOR.MINOR.PATCH]
@@ -323,24 +323,24 @@ main() {
     step "Release ${RELEASE_VERSION} (from ${current}, mode=${mode:-minor})"
 
     if [[ "${DRY_RUN:-}" == "1" ]]; then
-        echo "DRY_RUN: would write VERSION=${RELEASE_VERSION}"
-        echo "DRY_RUN: would commit, run make check, push, tag ${RELEASE_TAG}"
+        echo "DRY_RUN: would run make check, then write VERSION=${RELEASE_VERSION}"
+        echo "DRY_RUN: would commit, push, tag ${RELEASE_TAG}"
         echo "DRY_RUN: would watch ${GITHUB_WEB} for CI/CD then Release ${RELEASE_TAG}"
         return 0
     fi
 
     require_tag_available "$RELEASE_TAG"
 
+    step "Local CI checks (make check)"
+    if ! make check; then
+        die "make check failed. Fix issues before releasing."
+    fi
+
     version_write_file "$VERSION_FILE" "$RELEASE_VERSION"
 
     step "Commit version bump"
     git add VERSION
     git commit -m "chore: release v${RELEASE_VERSION}"
-
-    step "Local CI checks (make check)"
-    if ! make check; then
-        die "make check failed. Fix issues or reset the release commit."
-    fi
 
     step "Push branch and tag"
     git push origin HEAD

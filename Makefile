@@ -170,7 +170,7 @@ pint:
 check:
 	FULL=$(FULL) ./scripts/ci-check.sh
 
-# Release: bump VERSION, make check, push tag, watch CI/CD + deploy, smoke-check nerdik.app/up
+# Release: make check, then bump VERSION, push tag, watch CI/CD + deploy, smoke-check nerdik.app/up
 # Examples: make release | make release feature | make release 1.12.5
 release:
 	VERSION=$(VERSION) ./scripts/release.sh $(passthrough_args)
