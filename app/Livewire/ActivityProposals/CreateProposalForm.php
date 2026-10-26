@@ -12,10 +12,12 @@ use App\Traits\AuthorizesOwnership;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class CreateProposalForm extends Component
 {
     use AuthorizesOwnership;
+    use Toast;
 
     public Event $event;
 
@@ -77,9 +79,8 @@ class CreateProposalForm extends Component
             $validSlotIds
         );
 
-        session()->flash('status', __('ui.status.proposal_submitted'));
-
-        return redirect()->route('events.show', $event);
+        $this->success(__('ui.status.proposal_submitted'));
+        $this->redirect(route('events.show', $event), navigate: true);
     }
 
     public function render()

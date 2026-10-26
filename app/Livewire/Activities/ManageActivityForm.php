@@ -37,10 +37,12 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Mary\Traits\Toast;
 
 class ManageActivityForm extends Component
 {
     use AuthorizesOwnership;
+    use Toast;
     use WithFileUploads;
     use WithUiConfirmModal {
         closeConfirm as protected traitCloseConfirm;
@@ -986,7 +988,8 @@ class ManageActivityForm extends Component
             }
             $timing->checkpoint('authorization');
 
-            return $activityForm->persist(
+            /** @var array{message: string, url: string} $result */
+            $result = $activityForm->persist(
                 $this,
                 $validated,
                 $tagSelectionService,
@@ -994,6 +997,13 @@ class ManageActivityForm extends Component
                 $locationResolver,
                 $timing,
             );
+
+            // Same pattern as ShowEvent/ShowActivity deletes: toast in this Livewire
+            // response, then wire:navigate so the persisted Mary toaster stays visible.
+            $this->success($result['message']);
+            $this->redirect($result['url'], navigate: true);
+
+            return null;
         } catch (ValidationException $exception) {
             $this->focusTabForValidationErrors($exception);
 

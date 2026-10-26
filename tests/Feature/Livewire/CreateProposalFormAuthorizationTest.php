@@ -75,4 +75,26 @@ class CreateProposalFormAuthorizationTest extends TestCase
 
         $this->assertSame([$validSlot->id], $attachedSlotIds);
     }
+
+    public function test_successful_proposal_toasts_and_redirects_to_event(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+
+        $message = __('ui.status.proposal_submitted');
+
+        Livewire::actingAs($user)
+            ->test(CreateProposalForm::class, ['event' => $event])
+            ->set('activity_id', $activity->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('events.show', $event))
+            ->assertSessionHas('mary.toast.title', $message);
+
+        $this->assertSame(1, ActivityProposal::query()->count());
+    }
 }

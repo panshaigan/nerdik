@@ -126,16 +126,17 @@ class ActivityFormService
         $this->syncSlotScheduleAfterActivityChange($activity);
         $timing->checkpoint('schedule');
 
-        session()->flash('status', $message);
-
-        $response = match (true) {
-            $proposalCreated !== null => redirect()->route('events.show', $proposalCreated->event),
-            $form->editingActivityId !== null => redirect()->route('activities.show', $activity),
-            default => redirect()->route('search.index'),
+        $url = match (true) {
+            $proposalCreated !== null => route('events.show', $proposalCreated->event),
+            $form->editingActivityId !== null => route('activities.show', $activity),
+            default => route('search.index'),
         };
         $timing->checkpoint('redirect');
 
-        return $response;
+        return [
+            'message' => $message,
+            'url' => $url,
+        ];
     }
 
     private function syncSlotScheduleAfterActivityChange(Activity $activity): void

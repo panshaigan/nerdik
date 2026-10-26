@@ -15,9 +15,21 @@
         };
 
         let fired = false;
+        let attempts = 0;
+        const maxAttempts = 40;
+
+        const canFire = () => typeof window.toast === 'function' && window.Alpine;
 
         const fireToast = () => {
-            if (fired || typeof window.toast !== 'function') {
+            if (fired) {
+                return;
+            }
+
+            if (! canFire()) {
+                if (attempts++ < maxAttempts) {
+                    window.setTimeout(fireToast, 50);
+                }
+
                 return;
             }
 
@@ -35,6 +47,10 @@
                 },
             });
         };
+
+        // Mary toaster listens via Alpine (@mary-toast.window). Firing before Alpine
+        // initializes drops the event with no retry — wait for alpine:initialized.
+        document.addEventListener('alpine:initialized', fireToast, { once: true });
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', fireToast, { once: true });

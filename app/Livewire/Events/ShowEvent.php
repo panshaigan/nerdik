@@ -382,6 +382,8 @@ class ShowEvent extends Component
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
     ): View {
+        $this->toastFromSessionStatus();
+
         $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
 
         $event->load([
@@ -456,6 +458,22 @@ class ShowEvent extends Component
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
             'slotCreateModalReady' => $this->slotCreateModalReady,
+        ]);
+    }
+
+    private function toastFromSessionStatus(): void
+    {
+        $status = session()->pull('status');
+        if (! is_string($status) || $status === '') {
+            return;
+        }
+
+        // Prefer ui.toast over Mary $this->success(): on full-page loads the Livewire
+        // component hydrates before <x-toast /> defines window.toast, so $this->js() is a no-op.
+        // toast-from-session sits after the toaster in the layout and fires reliably.
+        session()->now('ui.toast', [
+            'type' => 'success',
+            'title' => $status,
         ]);
     }
 
