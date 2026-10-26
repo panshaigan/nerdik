@@ -409,7 +409,10 @@ class ShowEvent extends Component
         $hasPendingProposals = $canManageEvent && $eventShowReadCache->hasPendingProposals((int) $event->id);
 
         if ($this->tab === 'proposals' && (! $canManageEvent || ! $hasPendingProposals)) {
-            $this->tab = 'description';
+            $this->tab = 'plan';
+            if (! in_array('plan', $this->mountedTabs, true)) {
+                $this->mountedTabs[] = 'plan';
+            }
         }
 
         $hasInterest = $user !== null
