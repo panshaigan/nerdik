@@ -358,6 +358,73 @@ class ActivityLotteryTest extends TestCase
         Notification::assertSentTimes(WaitlistPromotedNotification::class, 1);
     }
 
+    public function test_has_resolvable_trigger_and_resolve_at_for_self_hosted_lottery(): void
+    {
+        $host = User::factory()->create();
+        $activity = $this->createSelfHostedLotteryActivity($host);
+        $service = app(ActivityLotteryService::class);
+
+        $this->assertTrue($service->hasResolvableTrigger($activity));
+        $this->assertNotNull($service->resolveAt($activity));
+
+        $open = Activity::factory()->create([
+            'created_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(3),
+        ]);
+        $this->assertFalse($service->hasResolvableTrigger($open));
+        $this->assertNull($service->resolveAt($open));
+    }
+
+    public function test_upcoming_draw_notices_empty_for_non_lottery_and_lists_final_for_lottery(): void
+    {
+        $host = User::factory()->create();
+        $open = Activity::factory()->create([
+            'created_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(3),
+        ]);
+        $lottery = $this->createSelfHostedLotteryActivity($host);
+        $service = app(ActivityLotteryService::class);
+
+        $this->assertSame([], $service->upcomingDrawNotices($open));
+
+        $notices = $service->upcomingDrawNotices($lottery, 'test-ui');
+        $this->assertNotEmpty($notices);
+        $this->assertSame('test-ui-lottery-draw-final', $notices[0]['dataUi']);
+        $this->assertNotSame('', $notices[0]['message']);
+    }
+
+    public function test_resolve_with_loaded_waitlist_relation_reorders_in_memory(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $activity = $this->createSelfHostedLotteryActivity($host, maxParticipants: 1);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => User::factory()->create()->id,
+            'position' => 1,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => User::factory()->create()->id,
+            'position' => 2,
+        ]);
+
+        $activity = $activity->fresh()->load('waitlist', 'participants');
+        Carbon::setTestNow(app(ActivityLotteryService::class)->lotteryDrawAt($activity)->copy()->addMinute());
+        app(ActivityLotteryService::class)->resolveActivity($activity);
+
+        $this->assertNotNull($activity->fresh()->lottery_resolved_at);
+        $this->assertSame(1, $activity->fresh()->participants()->count());
+        $this->assertSame(1, $activity->fresh()->waitlist()->count());
+    }
+
     private function createSelfHostedLotteryActivity(User $host, ?int $maxParticipants = 4): Activity
     {
         return Activity::factory()->create([

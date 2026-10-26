@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\ParticipationMode;
+use App\Enums\UserRequestResolutionOutcome;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
@@ -335,6 +336,110 @@ class ActivityParticipationServiceTest extends TestCase
                 ->exists()
         );
         Notification::assertNotSentTo($carol, WaitlistPromotedNotification::class);
+    }
+
+    #[Test]
+    public function leave_waitlist_removes_entry_and_reorders(): void
+    {
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $activity = $this->joinableSelfHosted($host, [
+            'participation_mode' => ParticipationMode::HostApproval,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $alice->id,
+            'position' => 1,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $bob->id,
+            'position' => 2,
+        ]);
+
+        $response = $this->service->leaveWaitlist($activity, $alice);
+
+        $this->assertSame(__('You left the waitlist.'), $response->getSession()->get('status'));
+        $this->assertFalse(
+            ActivityWaitlistEntry::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $alice->id)
+                ->exists()
+        );
+        $this->assertSame(1, (int) ActivityWaitlistEntry::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $bob->id)
+            ->value('position'));
+    }
+
+    #[Test]
+    public function leave_waitlist_when_not_listed_returns_status(): void
+    {
+        $host = User::factory()->create();
+        $user = User::factory()->create();
+        $activity = $this->joinableSelfHosted($host, [
+            'participation_mode' => ParticipationMode::HostApproval,
+        ]);
+
+        $response = $this->service->leaveWaitlist($activity, $user);
+
+        $this->assertSame(__('You are not on the waitlist.'), $response->getSession()->get('status'));
+    }
+
+    #[Test]
+    public function participate_as_invited_user_joins_open_activity(): void
+    {
+        $host = User::factory()->create();
+        $invitee = User::factory()->create(['email_verified_at' => now()]);
+        $activity = $this->joinableSelfHosted($host);
+
+        $outcome = $this->service->participateAsInvitedUser($activity, $invitee);
+
+        $this->assertSame(UserRequestResolutionOutcome::Joined, $outcome);
+        $this->assertTrue(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $invitee->id)
+                ->exists()
+        );
+    }
+
+    #[Test]
+    public function participate_as_invited_user_waitlists_when_approval_required(): void
+    {
+        $host = User::factory()->create();
+        $invitee = User::factory()->create(['email_verified_at' => now()]);
+        $activity = $this->joinableSelfHosted($host, [
+            'participation_mode' => ParticipationMode::HostApproval,
+        ]);
+
+        $outcome = $this->service->participateAsInvitedUser($activity, $invitee);
+
+        $this->assertSame(UserRequestResolutionOutcome::Waitlisted, $outcome);
+        $this->assertTrue(
+            ActivityWaitlistEntry::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $invitee->id)
+                ->exists()
+        );
+    }
+
+    #[Test]
+    public function participate_as_invited_user_returns_joined_when_already_participating(): void
+    {
+        $host = User::factory()->create();
+        $invitee = User::factory()->create(['email_verified_at' => now()]);
+        $activity = $this->joinableSelfHosted($host);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $invitee->id,
+            'is_absent' => false,
+        ]);
+
+        $outcome = $this->service->participateAsInvitedUser($activity, $invitee);
+
+        $this->assertSame(UserRequestResolutionOutcome::Joined, $outcome);
     }
 
     #[Test]

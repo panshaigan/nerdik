@@ -10,6 +10,7 @@ use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
 use App\Models\ActivityLotteryDraw;
 use App\Models\ActivityType;
+use App\Models\Place;
 use App\Models\User;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
@@ -18,6 +19,7 @@ use App\Services\TagSelectionService;
 use App\Support\Performance\PersistenceTiming;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -108,6 +110,140 @@ final class ActivityFormServiceTest extends TestCase
         $this->assertFalse(
             ActivityLotteryDraw::query()->where('activity_id', $activity->id)->exists()
         );
+    }
+
+    public function test_persist_self_hosted_creates_room_under_selected_venue(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $venue = Place::create([
+            'name' => 'Self Host Venue',
+            'type' => 'venue',
+            'is_online' => false,
+        ]);
+
+        /** @var ManageActivityForm $form */
+        $form = Livewire::actingAs($user)->test(ManageActivityForm::class)->instance();
+        $form->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        $form->self_hosted_venue_place_id = $venue->id;
+        $form->self_hosted_room_name = 'Table 3';
+        $form->self_hosted_starts_at = now()->addDay()->startOfHour()->format('Y-m-d\TH:i');
+        $form->tag_ids = [];
+        $form->new_tags = [];
+        $form->new_places = [];
+
+        $validated = $this->draftValidatedPayload(new Activity([
+            'name' => 'Self Hosted Room Activity',
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'duration_in_minutes' => 120,
+        ]), [
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open->value,
+        ]);
+
+        app(ActivityFormService::class)->persist(
+            $form,
+            $validated,
+            app(TagSelectionService::class),
+            app(ActivityHostingModeService::class),
+            app(LocationResolver::class),
+            (new PersistenceTiming)->start('test'),
+        );
+
+        $activity = Activity::query()->where('name', 'Self Hosted Room Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertSame(Activity::HOSTING_MODE_SELF_HOSTED, $activity->hosting_mode);
+        $this->assertNotNull($activity->place_id);
+
+        $room = Place::query()->find($activity->place_id);
+        $this->assertNotNull($room);
+        $this->assertSame('room', $room->type);
+        $this->assertSame($venue->id, (int) $room->parent_id);
+        $this->assertSame('Table 3', $room->name);
+    }
+
+    public function test_persist_self_hosted_requires_place_and_start(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+
+        /** @var ManageActivityForm $form */
+        $form = Livewire::actingAs($user)->test(ManageActivityForm::class)->instance();
+        $form->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        $form->self_hosted_venue_place_id = null;
+        $form->self_hosted_place_id = null;
+        $form->self_hosted_starts_at = null;
+        $form->tag_ids = [];
+        $form->new_tags = [];
+
+        $validated = $this->draftValidatedPayload(new Activity([
+            'name' => 'Missing Self Host Fields',
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]), [
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+
+        $this->expectException(ValidationException::class);
+        app(ActivityFormService::class)->persist(
+            $form,
+            $validated,
+            app(TagSelectionService::class),
+            app(ActivityHostingModeService::class),
+            app(LocationResolver::class),
+            (new PersistenceTiming)->start('test'),
+        );
+    }
+
+    public function test_persist_self_hosted_uses_venue_when_no_room_name(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $venue = Place::create([
+            'name' => 'Venue Only Place',
+            'type' => 'venue',
+            'is_online' => false,
+        ]);
+
+        /** @var ManageActivityForm $form */
+        $form = Livewire::actingAs($user)->test(ManageActivityForm::class)->instance();
+        $form->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        $form->self_hosted_venue_place_id = $venue->id;
+        $form->self_hosted_room_name = null;
+        $form->self_hosted_starts_at = now()->addDays(2)->startOfHour()->format('Y-m-d\TH:i');
+        $form->tag_ids = [];
+        $form->new_tags = [];
+        $form->new_places = [];
+
+        $validated = $this->draftValidatedPayload(new Activity([
+            'name' => 'Venue Only Activity',
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'duration_in_minutes' => 60,
+        ]), [
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open->value,
+        ]);
+
+        app(ActivityFormService::class)->persist(
+            $form,
+            $validated,
+            app(TagSelectionService::class),
+            app(ActivityHostingModeService::class),
+            app(LocationResolver::class),
+            (new PersistenceTiming)->start('test'),
+        );
+
+        $activity = Activity::query()->where('name', 'Venue Only Activity')->first();
+        $this->assertNotNull($activity);
+        $this->assertSame($venue->id, (int) $activity->place_id);
     }
 
     /**
