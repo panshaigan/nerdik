@@ -42,7 +42,6 @@ class ActivityPlacesLowNotification extends Notification implements ShouldQueue,
             ]))
             ->line(__('ui.notifications.activity_places_low_line_2', [
                 'remaining' => $this->remaining,
-                'max' => $this->max,
             ]))
             ->action(
                 __('ui.notifications.view_activity'),

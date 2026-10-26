@@ -297,6 +297,29 @@ class InterestedPlacesThresholdNotifierTest extends TestCase
         $this->assertSame([], $notification->via($follower->fresh()));
     }
 
+    public function test_places_low_mail_shows_remaining_without_max(): void
+    {
+        $user = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'max_participants' => 6,
+        ]);
+        $event = Event::factory()->public()->create();
+
+        $activityMail = (new ActivityPlacesLowNotification($activity, 1, 6))->toMail($user);
+        $eventMail = (new EventPlacesLowNotification($event, 1, 6))->toMail($user);
+
+        $this->assertContains(
+            __('ui.notifications.activity_places_low_line_2', ['remaining' => 1]),
+            $activityMail->introLines,
+        );
+        $this->assertContains(
+            __('ui.notifications.event_places_low_line_2', ['remaining' => 1]),
+            $eventMail->introLines,
+        );
+        $this->assertStringNotContainsString('1/6', implode("\n", $activityMail->introLines));
+        $this->assertStringNotContainsString('1/6', implode("\n", $eventMail->introLines));
+    }
+
     public function test_configurable_threshold_is_respected(): void
     {
         config(['interested_places.remaining_ratio_threshold' => 0.5]);

@@ -42,7 +42,6 @@ class EventPlacesLowNotification extends Notification implements ShouldQueue, Sh
             ]))
             ->line(__('ui.notifications.event_places_low_line_2', [
                 'remaining' => $this->remaining,
-                'max' => $this->max,
             ]))
             ->action(
                 __('ui.notifications.view_event'),
