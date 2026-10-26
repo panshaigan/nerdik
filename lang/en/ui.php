@@ -1184,6 +1184,7 @@ return [
     ],
     'familiarity' => [
         'title' => 'How familiar are you?',
+        'disclaimer' => 'This is only so the host can prepare better. You don’t need to know these things well.',
         'continue' => 'Continue',
         'skip_all' => 'Skip all',
         'activity_type' => 'Activity type',

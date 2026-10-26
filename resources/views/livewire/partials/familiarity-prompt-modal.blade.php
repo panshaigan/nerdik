@@ -11,8 +11,9 @@
     separator
 >
     <div class="space-y-4" data-ui="familiarity-prompt">
-        <div>
+        <div class="space-y-1">
             <h2 class="text-lg font-bold text-base-content">{{ __('ui.familiarity.title') }}</h2>
+            <p class="text-sm text-base-content/70">{{ __('ui.familiarity.disclaimer') }}</p>
         </div>
 
         <div class="max-h-[60vh] space-y-5 overflow-y-auto pr-1">

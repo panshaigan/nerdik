@@ -1174,6 +1174,7 @@ return [
     ],
     'familiarity' => [
         'title' => 'Jak dobrze znasz...',
+        'disclaimer' => 'To tylko po to, żeby prowadzący mógł się lepiej przygotować. Znajomość nie jest wymagana.',
         'continue' => 'Dalej',
         'skip_all' => 'Pomiń wszystkie',
         'activity_type' => 'Typ aktywności',
