@@ -7,8 +7,10 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\User;
+use App\Notifications\WaitlistPromotedNotification;
 use App\Services\ActivityParticipationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -229,6 +231,110 @@ class ActivityParticipationServiceTest extends TestCase
                 ->where('user_id', $joiner->id)
                 ->exists()
         );
+    }
+
+    #[Test]
+    public function leave_auto_promotes_first_waitlist_entry_for_open_full_activity(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $carol = User::factory()->create();
+        $activity = $this->joinableSelfHosted($host, ['max_participants' => 2]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $alice->id,
+            'is_absent' => false,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $bob->id,
+            'is_absent' => false,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $carol->id,
+            'position' => 1,
+        ]);
+
+        $response = $this->service->leave($activity->fresh(), $bob);
+
+        $this->assertSame(__('You left the activity.'), $response->getSession()->get('status'));
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $bob->id)
+                ->exists()
+        );
+        $this->assertTrue(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $carol->id)
+                ->exists()
+        );
+        $this->assertFalse(
+            ActivityWaitlistEntry::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $carol->id)
+                ->exists()
+        );
+        Notification::assertSentTo($carol, WaitlistPromotedNotification::class);
+    }
+
+    #[Test]
+    public function leave_does_not_auto_promote_when_approval_required(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+        $carol = User::factory()->create();
+        $activity = $this->joinableSelfHosted($host, [
+            'participation_mode' => ParticipationMode::HostApproval,
+            'max_participants' => 2,
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $alice->id,
+            'is_absent' => false,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $bob->id,
+            'is_absent' => false,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $carol->id,
+            'position' => 1,
+        ]);
+
+        $this->service->leave($activity->fresh(), $bob);
+
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $bob->id)
+                ->exists()
+        );
+        $this->assertFalse(
+            ActivityUser::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $carol->id)
+                ->exists()
+        );
+        $this->assertTrue(
+            ActivityWaitlistEntry::query()
+                ->where('activity_id', $activity->id)
+                ->where('user_id', $carol->id)
+                ->exists()
+        );
+        Notification::assertNotSentTo($carol, WaitlistPromotedNotification::class);
     }
 
     #[Test]

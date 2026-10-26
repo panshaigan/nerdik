@@ -33,7 +33,9 @@ class UserRequestDecisionService
         UserRequestStatus $targetStatus,
         ?string $declineNote,
     ): UserRequest {
-        return DB::transaction(function () use ($request, $actor, $targetStatus, $declineNote): UserRequest {
+        $markedExpired = false;
+
+        $resolved = DB::transaction(function () use ($request, $actor, $targetStatus, $declineNote, &$markedExpired): ?UserRequest {
             $locked = UserRequest::query()->whereKey($request->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->isPending()) {
@@ -47,10 +49,9 @@ class UserRequestDecisionService
                     'status' => UserRequestStatus::Expired,
                     'responded_at' => now(),
                 ]);
+                $markedExpired = true;
 
-                throw ValidationException::withMessages([
-                    'request' => [__('ui.user_requests.expired')],
-                ]);
+                return null;
             }
 
             $handler = $this->handlers->get($locked->type);
@@ -74,5 +75,13 @@ class UserRequestDecisionService
 
             return $fresh;
         });
+
+        if ($markedExpired) {
+            throw ValidationException::withMessages([
+                'request' => [__('ui.user_requests.expired')],
+            ]);
+        }
+
+        return $resolved;
     }
 }

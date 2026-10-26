@@ -13,6 +13,7 @@ use App\Notifications\ProposalRejectedNotification;
 use App\Services\ActivityProposalDecisionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -106,5 +107,109 @@ class ActivityProposalDecisionServiceTest extends TestCase
         $this->assertNull($proposal->accepted_slot_id);
         $this->assertSame(Activity::HOSTING_MODE_DRAFT, (int) $activity->hosting_mode);
         Notification::assertSentTo($proposer, ProposalRejectedNotification::class);
+    }
+
+    #[Test]
+    public function accept_with_null_slot_id_auto_selects_fitting_free_slot(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create($this->fittingActivityAttributes($owner));
+        $slot = Slot::factory()->create($this->fittingSlotAttributes($event));
+
+        $proposal = ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $owner->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        app(ActivityProposalDecisionService::class)->accept($proposal, null);
+
+        $proposal->refresh();
+        $slot->refresh();
+        $activity->refresh();
+
+        $this->assertSame(ActivityProposalStatus::Accepted, $proposal->status);
+        $this->assertSame($slot->id, (int) $proposal->accepted_slot_id);
+        $this->assertSame($activity->id, (int) $slot->activity_id);
+        $this->assertSame(Activity::HOSTING_MODE_SCHEDULED_ON_EVENT, (int) $activity->hosting_mode);
+    }
+
+    #[Test]
+    public function accept_with_null_slot_id_fails_when_no_fitting_slot(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create(array_merge(
+            $this->fittingActivityAttributes($owner),
+            ['duration_in_minutes' => 180],
+        ));
+        Slot::factory()->create(array_merge(
+            $this->fittingSlotAttributes($event),
+            [
+                'starts_at' => now()->addDay(),
+                'ends_at' => now()->addDay()->addHour(),
+            ],
+        ));
+
+        $proposal = ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $owner->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        try {
+            app(ActivityProposalDecisionService::class)->accept($proposal, null);
+            $this->fail('Expected ValidationException when no fitting slot exists.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('slot_id', $e->errors());
+            $this->assertSame(
+                __('ui.status.no_fitting_slot_for_proposal'),
+                $e->errors()['slot_id'][0],
+            );
+        }
+
+        $this->assertSame(ActivityProposalStatus::Pending, $proposal->fresh()->status);
+    }
+
+    #[Test]
+    public function accept_with_explicit_slot_rejects_duration_mismatch(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create(array_merge(
+            $this->fittingActivityAttributes($owner),
+            ['duration_in_minutes' => 180],
+        ));
+        $slot = Slot::factory()->create(array_merge(
+            $this->fittingSlotAttributes($event),
+            [
+                'starts_at' => now()->addDay(),
+                'ends_at' => now()->addDay()->addHour(),
+            ],
+        ));
+
+        $proposal = ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $owner->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        try {
+            app(ActivityProposalDecisionService::class)->accept($proposal, $slot->id);
+            $this->fail('Expected ValidationException for duration mismatch.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('slot_id', $e->errors());
+            $this->assertSame(
+                __('ui.status.slot_activity_type_or_duration_mismatch'),
+                $e->errors()['slot_id'][0],
+            );
+        }
+
+        $this->assertSame(ActivityProposalStatus::Pending, $proposal->fresh()->status);
+        $this->assertNull($slot->fresh()->activity_id);
     }
 }

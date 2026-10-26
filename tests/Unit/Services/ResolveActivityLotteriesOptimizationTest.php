@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Console;
+namespace Tests\Unit\Services;
 
 use App\Enums\ParticipationMode;
 use App\Models\Activity;

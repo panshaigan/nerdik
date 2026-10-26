@@ -73,6 +73,10 @@ Without `bin` on `PATH`, use either `./bin/make artisan …` or `make artisan AR
   - CI uses `php artisan test --compact --parallel` (see `.github/workflows/ci.yml`)
 - Faster local loop (excludes `@group slow`):
   - `make test-fast`
+- Local Services coverage report (pcov; not a CI gate):
+  - `make test-coverage-services`
+  - HTML report: `storage/coverage/services/index.html`
+  - Narrow with `ARGS`, e.g. `make test-coverage-services ARGS='--filter=ActivityHostingModesTest'`
 
 For quick Makefile filtering (requires `bin` on `PATH`; see above):
 

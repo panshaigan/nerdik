@@ -69,6 +69,41 @@ class ScheduledMaintenanceJobsTest extends TestCase
 
         $this->assertNotNull($activity->fresh()->lottery_resolved_at);
         $this->assertSame(1, $activity->participants()->count());
+
+        $resolvedAt = $activity->fresh()->lottery_resolved_at;
+        (new ResolveActivityLotteriesJob)->handle(app(ActivityLotteryService::class));
+        $this->assertTrue($resolvedAt->equalTo($activity->fresh()->lottery_resolved_at));
+        $this->assertSame(1, $activity->participants()->count());
+    }
+
+    public function test_resolve_activity_lotteries_job_is_noop_when_nothing_due(): void
+    {
+        Notification::fake();
+
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Lottery,
+            'lottery_draw_in_hours' => 24,
+            'cancellation_deadline_in_hours' => 24,
+            'max_participants' => 1,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(3),
+            'lottery_resolved_at' => null,
+        ]);
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => User::factory()->create()->id,
+            'position' => 1,
+        ]);
+
+        (new ResolveActivityLotteriesJob)->handle(app(ActivityLotteryService::class));
+
+        $this->assertNull($activity->fresh()->lottery_resolved_at);
+        $this->assertSame(0, $activity->participants()->count());
+        Notification::assertNothingSent();
     }
 
     public function test_expire_user_requests_job_expires_due_requests(): void
@@ -93,6 +128,34 @@ class ScheduledMaintenanceJobsTest extends TestCase
         $this->assertSame(UserRequestStatus::Expired, $request->fresh()->status);
         Notification::assertSentTo($owner, UserRequestResolvedNotification::class);
         Notification::assertSentTo($recipient, UserRequestResolvedNotification::class);
+
+        Notification::fake();
+        (new ExpireUserRequestsJob)->handle(app(UserRequestExpirer::class));
+        Notification::assertNothingSent();
+        $this->assertSame(UserRequestStatus::Expired, $request->fresh()->status);
+    }
+
+    public function test_expire_user_requests_job_is_noop_when_nothing_due(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $owner = User::factory()->create();
+        $organization->update(['created_by' => $owner->id, 'updated_by' => $owner->id]);
+        $recipient = User::factory()->create();
+
+        $request = UserRequest::factory()->organizationInvite()->create([
+            'requester_id' => $owner->id,
+            'recipient_id' => $recipient->id,
+            'subject_type' => 'organization',
+            'subject_id' => $organization->id,
+            'expires_at' => now()->addDay(),
+        ]);
+
+        (new ExpireUserRequestsJob)->handle(app(UserRequestExpirer::class));
+
+        $this->assertSame(UserRequestStatus::Pending, $request->fresh()->status);
+        Notification::assertNothingSent();
     }
 
     public function test_send_scheduled_periodic_digest_job_sends_for_matching_local_time(): void
