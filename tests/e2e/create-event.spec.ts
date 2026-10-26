@@ -20,5 +20,5 @@ test('organizer creates an event through the tabbed form', async ({ page }) => {
     await waitForLivewireIdle(page);
 
     await searchFor(page, name);
-    await expect(page.locator('[data-ui="event-card"]').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('link', { name, exact: true })).toBeVisible({ timeout: 30_000 });
 });

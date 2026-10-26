@@ -4,8 +4,14 @@ import path from 'node:path';
 export type E2EFixtures = {
     player: { email: string; password: string };
     organizer: { email: string; password: string };
-    event: { name: string; slug: string; path: string };
+    event: { name: string; slug: string; path: string; edit_path: string };
     activity: { name: string; slug: string; path: string };
+    slot: { id: number; name: string };
+    empty_slot: { id: number; name: string };
+    waitlist_activity: { name: string; slug: string; path: string };
+    draft_activity: { name: string; slug: string; path: string };
+    pending_proposal: { activity_name: string; activity_slug: string; proposal_id: number };
+    notification: { id: string; expected_path: string };
     place: { name: string; latitude: number; longitude: number };
     map: { path: string };
 };

@@ -1,7 +1,15 @@
+import path from 'node:path';
+
 import { expect, type Locator, type Page } from '@playwright/test';
 
 export async function waitForLivewireIdle(page: Page): Promise<void> {
     await expect(page.locator('html')).not.toHaveClass(/ui-navigating/, { timeout: 20_000 });
+}
+
+export async function logout(page: Page): Promise<void> {
+    await page.context().clearCookies();
+    await page.goto('/');
+    await waitForLivewireIdle(page);
 }
 
 export async function login(page: Page, email: string, password: string): Promise<void> {
@@ -28,6 +36,38 @@ export async function saveCurrentSearch(page: Page): Promise<void> {
     await page.locator('[data-ui="browse-events-save-search"]').click();
     await expect(page.getByText('Search saved')).toBeVisible();
     await page.keyboard.press('Escape');
+}
+
+export function e2eFixturePath(filename: string): string {
+    return path.join(process.cwd(), 'tests', 'e2e', 'fixtures', filename);
+}
+
+export async function setEventLogoSourceUpload(page: Page): Promise<void> {
+    await page.evaluate(async () => {
+        const host = document.querySelector('form[data-event-form]')?.closest('[wire\\:id]');
+        const wireId = host?.getAttribute('wire:id');
+        if (!wireId || typeof window.Livewire === 'undefined') {
+            throw new Error('Manage event Livewire host not found');
+        }
+        const component = window.Livewire.find(wireId);
+        await component?.set('tab', 'image');
+        await component?.set('logo_source', 'upload');
+    });
+    await waitForLivewireIdle(page);
+}
+
+export async function cropAndApply(page: Page, filePath: string): Promise<void> {
+    const dropzone = page.locator('[data-image-crop-dropzone]');
+    await expect(dropzone).toBeVisible({ timeout: 20_000 });
+
+    const fileInput = dropzone.locator('[data-image-crop-file]');
+    await fileInput.setInputFiles(filePath);
+
+    const modal = page.locator('#ui-image-crop-modal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('[data-image-crop-apply]')).toBeEnabled();
+    await page.locator('[data-image-crop-apply]').click();
+    await expect(modal).toBeHidden();
 }
 
 export async function selectSavedPlace(page: Page, placeName: string): Promise<void> {

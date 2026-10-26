@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace Tests\Feature\Console;
 
 use App\Actions\E2E\PrepareE2EFixtures;
+use App\Enums\ActivityProposalStatus;
 use App\Enums\ParticipationMode;
 use App\Models\Activity;
+use App\Models\ActivityProposal;
 use App\Models\ActivityUser;
+use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Slot;
 use App\Models\User;
+use App\Notifications\ProposalSubmittedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
@@ -69,6 +74,35 @@ final class PrepareE2ECommandTest extends TestCase
         $this->assertSame('/events/'.PrepareE2EFixtures::EVENT_SLUG, $decoded['event']['path'] ?? null);
         $this->assertStringContainsString('map_view=1', (string) ($decoded['map']['path'] ?? ''));
         $this->assertStringContainsString(rawurlencode(PrepareE2EFixtures::EVENT_NAME), (string) ($decoded['map']['path'] ?? ''));
+        $this->assertSame('/events/'.PrepareE2EFixtures::EVENT_SLUG.'/edit', $decoded['event']['edit_path'] ?? null);
+        $this->assertNotNull($decoded['slot']['id'] ?? null);
+        $this->assertNotNull($decoded['empty_slot']['id'] ?? null);
+
+        $waitlistActivity = Activity::query()->where('slug', PrepareE2EFixtures::WAITLIST_ACTIVITY_SLUG)->first();
+        $this->assertNotNull($waitlistActivity);
+        $this->assertSame(ParticipationMode::HostApproval, $waitlistActivity->participation_mode);
+
+        $pendingProposal = ActivityProposal::query()
+            ->whereHas('activity', fn ($q) => $q->where('slug', PrepareE2EFixtures::PENDING_PROPOSAL_ACTIVITY_SLUG))
+            ->first();
+        $this->assertNotNull($pendingProposal);
+        $this->assertSame(ActivityProposalStatus::Pending, $pendingProposal->status);
+
+        $this->assertTrue(
+            DatabaseNotification::query()
+                ->where('notifiable_id', $organizer->id)
+                ->where('type', ProposalSubmittedNotification::class)
+                ->whereNull('read_at')
+                ->exists(),
+        );
+
+        $emptySlot = Slot::query()->find($decoded['empty_slot']['id']);
+        $pendingActivity = Activity::query()
+            ->where('slug', PrepareE2EFixtures::PENDING_PROPOSAL_ACTIVITY_SLUG)
+            ->first();
+        $this->assertNotNull($emptySlot);
+        $this->assertNotNull($pendingActivity);
+        $this->assertTrue($emptySlot->fitsProposalActivity($pendingActivity));
     }
 
     #[Test]
@@ -90,6 +124,21 @@ final class PrepareE2ECommandTest extends TestCase
         $this->assertFalse(
             ActivityUser::query()
                 ->where('activity_id', $activity->id)
+                ->where('user_id', $player->id)
+                ->exists(),
+        );
+
+        $waitlistActivity = Activity::query()->where('slug', PrepareE2EFixtures::WAITLIST_ACTIVITY_SLUG)->firstOrFail();
+        ActivityWaitlistEntry::query()->create([
+            'activity_id' => $waitlistActivity->id,
+            'user_id' => $player->id,
+        ]);
+
+        $this->artisan('e2e:prepare')->assertSuccessful();
+
+        $this->assertFalse(
+            ActivityWaitlistEntry::query()
+                ->where('activity_id', $waitlistActivity->id)
                 ->where('user_id', $player->id)
                 ->exists(),
         );

@@ -104,7 +104,9 @@ Tag with `#[Group('slow')]` / `#[Group('infra')]` on the test class (or method).
 
 ### Browser E2E (Playwright)
 
-Covers the first-wave UI journeys PHPUnit cannot see: login return URLs, saved search restore, the browse map, joining from the event plan, and the tabbed create forms.
+Covers UI journeys PHPUnit cannot see well: login return URLs, saved search restore, the browse map, joining from the event plan, tabbed create forms, image crop on the event form, slot edit modal, notification bell, mobile nav drawer, waitlist join/leave, and activity propose/accept on the event plan.
+
+Second-wave fixtures (from `e2e:prepare`) include an occupied slot and empty slot on the join event, a host-approval waitlist activity, a player draft activity, a pre-seeded pending proposal, and an unread proposal notification for the organizer.
 
 With Sail already running:
 
@@ -122,7 +124,7 @@ vendor/bin/sail exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test ./script
 vendor/bin/sail exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test
 ```
 
-`e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event, a joinable activity, and a Wrocław venue. It also writes `storage/app/e2e-fixtures.json`. Re-running it clears the player's signup so the join spec stays repeatable.
+`e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event with enrollment, joinable and waitlist activities, proposal fixtures, a Wrocław venue, and `storage/app/e2e-fixtures.json`. Re-running it clears the player's signup and waitlist entries so join/waitlist specs stay repeatable.
 
 Point Playwright at a non-default origin with `PLAYWRIGHT_BASE_URL` (defaults to `http://localhost` locally so it matches Sail `APP_URL` / `SESSION_DOMAIN`, and `http://localhost:8000` in CI). Specs live in `tests/e2e/`. Keep business rules in PHPUnit; do not duplicate waitlist/lottery matrices here.
 
