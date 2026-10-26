@@ -102,6 +102,28 @@ Layering: put counting, filtering, join/waitlist/proposal/slot-fit rules in Unit
 
 Tag with `#[Group('slow')]` / `#[Group('infra')]` on the test class (or method). Latest parallel-suite speed backlog: [test-suite-speed-baseline.md](test-suite-speed-baseline.md).
 
+### Browser E2E (Playwright)
+
+Covers the first-wave UI journeys PHPUnit cannot see: login return URLs, saved search restore, the browse map, joining from the event plan, and the tabbed create forms.
+
+With Sail already running:
+
+```bash
+vendor/bin/sail exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright install --with-deps chromium   # once
+make test-e2e
+```
+
+Or step by step:
+
+```bash
+vendor/bin/sail artisan e2e:prepare
+vendor/bin/sail exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test
+```
+
+`e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event, a joinable activity, and a Wrocław venue. It also writes `storage/app/e2e-fixtures.json`. Re-running it clears the player's signup so the join spec stays repeatable.
+
+Point Playwright at a non-default origin with `PLAYWRIGHT_BASE_URL` (defaults to `http://localhost` locally so it matches Sail `APP_URL` / `SESSION_DOMAIN`, and `http://localhost:8000` in CI). Specs live in `tests/e2e/`. Keep business rules in PHPUnit; do not duplicate waitlist/lottery matrices here.
+
 ## Code Style
 
 For PHP formatting in changed files:

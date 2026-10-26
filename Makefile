@@ -20,7 +20,7 @@ cmdline_eq_flags = $(strip $(foreach v,$(.VARIABLES),$(if $(and $(filter command
 passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdline_eq_flags))
 
 .PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
-        test test-fast test-coverage-services npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
+        test test-fast test-e2e test-coverage-services npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy release init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
@@ -154,6 +154,11 @@ test-coverage-services:
 
 test-all:
 	$(SAIL) artisan test --parallel
+
+# First-wave Playwright browser tests (Sail app must already be up).
+test-e2e:
+	$(SAIL) artisan e2e:prepare
+	$(SAIL) exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test $(ARGS)
 
 regenerate-tags:
 	$(SAIL) artisan tags:recalculate-popularity

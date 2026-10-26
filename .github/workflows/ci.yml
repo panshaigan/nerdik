@@ -109,6 +109,100 @@ jobs:
       - name: Composer audit
         run: composer audit
 
+  browser:
+    name: Browser
+    runs-on: ubuntu-latest
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: testing
+      DB_USERNAME: nerdik
+      DB_PASSWORD: secret
+      APP_URL: http://localhost:8000
+      SESSION_DOMAIN: localhost
+      RECAPTCHA_ENABLED: false
+      BROADCAST_CONNECTION: null
+      QUEUE_CONNECTION: sync
+      CACHE_STORE: array
+      MAIL_MAILER: array
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build PostgreSQL image
+        run: docker build -t nerdik-pgsql:ci docker/pgsql
+
+      - name: Start PostgreSQL
+        run: |
+          docker run -d \
+            --name pgsql \
+            -e POSTGRES_DB=testing \
+            -e POSTGRES_USER=nerdik \
+            -e POSTGRES_PASSWORD=secret \
+            -p 5432:5432 \
+            nerdik-pgsql:ci
+
+          for i in $(seq 1 30); do
+            if docker exec pgsql pg_isready -U nerdik -d testing; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "PostgreSQL did not become ready in time." >&2
+          docker logs pgsql
+          exit 1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: bcmath, exif, gd, intl, mbstring, pdo_pgsql, zip
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@v4
+        with:
+          composer-options: --prefer-dist --no-interaction
+
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Install npm dependencies and build assets
+        run: |
+          npm ci
+          npm run build
+          npx playwright install --with-deps chromium
+
+      - name: Run migrations and Playwright fixtures
+        run: |
+          php artisan migrate --force
+          php artisan e2e:prepare
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
   compose:
     name: Compose
     runs-on: ubuntu-latest

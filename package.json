@@ -4,9 +4,12 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test:e2e": "playwright test",
+        "test:e2e:install": "playwright install chromium"
     },
     "devDependencies": {
+        "@playwright/test": "^1.56.1",
         "@tailwindcss/typography": "^0.5.4",
         "@tailwindcss/vite": "^4.1.0",
         "axios": "^1.11.0",

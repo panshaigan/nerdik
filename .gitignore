@@ -15,6 +15,10 @@
 /.zed
 /auth.json
 /node_modules
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 /public/build
 /public/css/filament
 /public/fonts/filament
