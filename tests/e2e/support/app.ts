@@ -6,6 +6,12 @@ export async function waitForLivewireIdle(page: Page): Promise<void> {
     await expect(page.locator('html')).not.toHaveClass(/ui-navigating/, { timeout: 20_000 });
 }
 
+export async function clickDatabaseNotification(page: Page, notificationId: string): Promise<void> {
+    await page
+        .locator(`[data-ui="nav-notification-item"][wire\\:key="nav-notification-${notificationId}"]`)
+        .click();
+}
+
 export async function logout(page: Page): Promise<void> {
     await page.context().clearCookies();
     await page.goto('/');
