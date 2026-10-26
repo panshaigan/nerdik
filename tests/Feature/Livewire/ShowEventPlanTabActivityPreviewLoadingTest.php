@@ -42,7 +42,7 @@ class ShowEventPlanTabActivityPreviewLoadingTest extends TestCase
             ->assertSeeHtml('data-ui="event-show-slot-host"')
             ->assertSeeHtml('inline-flex w-fit max-w-full pointer-events-auto')
             ->assertSeeHtml('wire:key="user-badge-contact-'.$host->id.'-'.$activity->id.'-0-late-0"')
-            ->assertSeeHtml('wire:click.preserve-scroll="$dispatch(\'open-event-activity-preview\', { activityId: '.$activityId.' })"')
+            ->assertSeeHtml('x-on:click="$el.setAttribute(\'data-loading\', \'true\'); $dispatch(\'open-event-activity-preview\', { activityId: '.$activityId.' })"')
             ->assertSeeHtml('data-ui="event-show-slot-open-activity-preview"')
             ->assertSeeHtml('data-ui="event-show-slot-activity-preview-loading"');
     }

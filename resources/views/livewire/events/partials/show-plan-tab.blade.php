@@ -215,7 +215,7 @@
                                         />
                                     @endif
                                 @endif
-                                <div class="status-dots-toolbar relative z-[3] flex items-center">
+                                <div class="status-dots-toolbar relative z-[3] flex items-center pointer-events-none">
                                     <div class="flex-1"></div>
                                     @auth
                                         @php
@@ -342,13 +342,13 @@
                                 <div class="px-3 pb-3 sm:px-4">
                                     @if ($activity)
                                         {{--
-                                            Dispatch to the sibling preview modal (not a plan-tab action).
-                                            Client $dispatch keeps data-loading on this button for the modal
-                                            request; wire:loading on a #[Renderless] plan-tab method cannot.
+                                            Alpine $dispatch so the browser event target is this button:
+                                            Livewire then puts data-loading on the peer (not the plan-tab root).
+                                            Set data-loading immediately so the overlay shows before the request sends.
                                         --}}
                                         <button
                                             type="button"
-                                            wire:click.preserve-scroll="$dispatch('open-event-activity-preview', { activityId: {{ (int) $activity->id }} })"
+                                            x-on:click="$el.setAttribute('data-loading', 'true'); $dispatch('open-event-activity-preview', { activityId: {{ (int) $activity->id }} })"
                                             class="peer absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40 motion-reduce:transition-none data-loading:cursor-wait"
                                             aria-label="{{ $activity->name }}"
                                             data-ui="event-show-slot-open-activity-preview"
