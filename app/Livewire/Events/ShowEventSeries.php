@@ -5,6 +5,7 @@ namespace App\Livewire\Events;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
+use App\Livewire\Concerns\WithSeriesActivitiesSort;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
@@ -37,6 +38,7 @@ class ShowEventSeries extends Component
     use Toast;
     use WithActivityPreviewModal;
     use WithEventPreviewModal;
+    use WithSeriesActivitiesSort;
     use WithUiConfirmModal;
 
     #[Locked]
@@ -369,12 +371,14 @@ class ShowEventSeries extends Component
             return collect();
         }
 
-        return Activity::query()
+        $query = Activity::query()
             ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
             ->with(Activity::listingCardEagerLoad())
-            ->withCount('interestedUsers')
-            ->orderBy('name')
-            ->get();
+            ->withCount('interestedUsers');
+
+        $this->applySeriesActivitySort($query);
+
+        return $query->get();
     }
 
     /**

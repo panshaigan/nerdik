@@ -4,6 +4,7 @@ namespace App\Livewire\Activities;
 
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
+use App\Livewire\Concerns\WithSeriesActivitiesSort;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
@@ -29,6 +30,7 @@ class ShowActivitySeries extends Component
     use AuthorizesOwnership;
     use Toast;
     use WithActivityPreviewModal;
+    use WithSeriesActivitiesSort;
     use WithUiConfirmModal;
 
     #[Locked]
@@ -199,13 +201,14 @@ class ShowActivitySeries extends Component
         abort_unless($series->isVisibleTo(auth()->user()), 404);
         $series->load('links');
 
-        /** @var Collection<int, Activity> $activities */
-        $activities = $this->seriesActivitiesQuery()
+        $activitiesQuery = $this->seriesActivitiesQuery()
             ->with(Activity::listingCardEagerLoad())
-            ->withCount('interestedUsers')
-            ->orderByRaw(Activity::scheduleStartsAtSql().' ASC')
-            ->orderBy('activities.id')
-            ->get();
+            ->withCount('interestedUsers');
+
+        $this->applySeriesActivitySort($activitiesQuery);
+
+        /** @var Collection<int, Activity> $activities */
+        $activities = $activitiesQuery->get();
 
         $hosts = $this->uniqueActivityHosts($activities);
         $stats = $this->seriesStats($activities, $activityPeopleStats);

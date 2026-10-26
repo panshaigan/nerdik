@@ -106,6 +106,12 @@
                     @if ($activities->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.activity_series.empty_activities') }}</p>
                     @else
+                        <div class="mb-4">
+                            @include('livewire.partials.listing-sort-controls', [
+                                'sortIdPrefix' => 'activity-series-activities',
+                                'fields' => ['date', 'host', 'name'],
+                            ])
+                        </div>
                         <div
                             class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6"
                             data-ui="activity-series-activities-list"

@@ -6,6 +6,7 @@
         ($activityInviteSubjectId ?? null)
         || ($organizationInviteSubjectId ?? null)
         || (($organizationJoinSubjectId ?? null) && ($organizationJoinRecipientId ?? null))
+        || ($canBanTarget ?? false)
         || $canImpersonateTarget
     );
     $defaultTab = $canViewContact ? 'contact' : 'statistics';
@@ -157,6 +158,18 @@
                                 <p class="text-sm text-base-content/50">{{ __('ui.profile.contact_no_played_activities') }}</p>
                             @endforelse
                         </div>
+
+                        <div class="space-y-2" data-ui="user-contact-popover-reputation-stats">
+                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.contact_reputation_section') }}</p>
+                            <div class="flex items-center justify-between gap-3 text-sm text-base-content/65">
+                                <span>{{ __('ui.profile.contact_host_bans_stat') }}</span>
+                                <span class="font-semibold tabular-nums text-base-content" data-ui="user-contact-popover-host-ban-count">{{ $hostBanCount }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3 text-sm text-base-content/65">
+                                <span>{{ __('ui.profile.contact_absences_stat') }}</span>
+                                <span class="font-semibold tabular-nums text-base-content" data-ui="user-contact-popover-absence-count">{{ $absenceCount }}</span>
+                            </div>
+                        </div>
                     </div>
                 </x-tab>
             </x-ui.tabs-with-toolbar>
@@ -182,6 +195,27 @@
                     :recipient-id="$targetUser->id"
                     :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteSubjectId"
                 />
+            @endif
+            @if ($canBanTarget)
+                @if ($isBannedByViewer)
+                    <x-button
+                        type="button"
+                        class="btn-sm btn-outline"
+                        wire:click="unbanUser"
+                        spinner="unbanUser"
+                        data-ui="user-contact-popover-unban"
+                        :aria-label="__('ui.profile.unban_user')"
+                    >{{ __('ui.profile.unban_user') }}</x-button>
+                @else
+                    <x-button
+                        type="button"
+                        class="btn-sm btn-outline btn-error"
+                        wire:click="banUser"
+                        spinner="banUser"
+                        data-ui="user-contact-popover-ban"
+                        :aria-label="__('ui.profile.ban_user')"
+                    >{{ __('ui.profile.ban_user') }}</x-button>
+                @endif
             @endif
             @if ($organizationJoinSubjectId && $organizationJoinRecipientId)
                 <livewire:user-requests.send-user-request

@@ -551,4 +551,106 @@ class EventSeriesTest extends TestCase
                     && $edition['confirmed_participants'] === 2;
             });
     }
+
+    public function test_activities_tab_sorts_by_date_name_and_host(): void
+    {
+        $owner = User::factory()->create(['nickname' => 'owner_host']);
+        $hostAlice = User::factory()->create(['nickname' => 'alice_host']);
+        $hostBob = User::factory()->create(['nickname' => 'bob_host']);
+        $hostCarol = User::factory()->create(['nickname' => 'carol_host']);
+
+        $series = EventSeries::factory()->create([
+            'name' => 'Sortable Editions',
+            'created_by' => $owner->id,
+        ]);
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(8),
+        ]);
+
+        $zebra = Activity::factory()->scheduled()->create([
+            'created_by' => $hostCarol->id,
+            'updated_by' => $hostCarol->id,
+            'name' => 'Zebra Session',
+        ]);
+        $middle = Activity::factory()->scheduled()->create([
+            'created_by' => $hostAlice->id,
+            'updated_by' => $hostAlice->id,
+            'name' => 'Middle Session',
+        ]);
+        $alpha = Activity::factory()->scheduled()->create([
+            'created_by' => $hostBob->id,
+            'updated_by' => $hostBob->id,
+            'name' => 'Alpha Session',
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $zebra->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDays(5)->setTime(10, 0),
+            'ends_at' => now()->addDays(5)->setTime(12, 0),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $middle->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDays(5)->setTime(14, 0),
+            'ends_at' => now()->addDays(5)->setTime(16, 0),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $alpha->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDays(5)->setTime(12, 0),
+            'ends_at' => now()->addDays(5)->setTime(14, 0),
+        ]);
+
+        $component = Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->set('tab', 'activities')
+            ->assertSet('sort', 'date')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Alpha Session',
+                'Middle Session',
+            ]);
+
+        $component->call('toggleSort', 'name')
+            ->assertSet('sort', 'name')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Alpha Session',
+                'Middle Session',
+                'Zebra Session',
+            ]);
+
+        $component->call('toggleSort', 'name')
+            ->assertSet('sort_dir', 'desc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Middle Session',
+                'Alpha Session',
+            ]);
+
+        $component->call('toggleSort', 'host')
+            ->assertSet('sort', 'host')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Middle Session',
+                'Alpha Session',
+                'Zebra Session',
+            ]);
+
+        $component->call('toggleSort', 'host')
+            ->assertSet('sort_dir', 'desc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Alpha Session',
+                'Middle Session',
+            ]);
+    }
 }

@@ -379,6 +379,12 @@ class EventActivitySignupService
             ]);
         }
 
+        if (app(UserHostBanService::class)->isBannedFromActivity($user, $activity)) {
+            throw ValidationException::withMessages([
+                '_' => [__('ui.activities.signup_blocked_banned_by_host')],
+            ]);
+        }
+
         if ($forLotteryResolution) {
             $this->assertNoScheduleOverlap($activity, $user, $hostApprovingParticipant);
 

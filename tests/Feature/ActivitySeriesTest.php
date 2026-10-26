@@ -480,4 +480,87 @@ class ActivitySeriesTest extends TestCase
         $this->assertFalse($follower->interestedActivities()->whereKey($upcomingA->id)->exists());
         $this->assertFalse($follower->interestedActivities()->whereKey($upcomingB->id)->exists());
     }
+
+    public function test_activities_tab_sorts_by_date_name_and_host(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $owner = User::factory()->create(['nickname' => 'owner_host']);
+        $hostAlice = User::factory()->create(['nickname' => 'alice_host']);
+        $hostBob = User::factory()->create(['nickname' => 'bob_host']);
+        $hostCarol = User::factory()->create(['nickname' => 'carol_host']);
+
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Sortable Sessions',
+            'created_by' => $owner->id,
+        ]);
+
+        $this->createSelfHostedActivity([
+            'created_by' => $hostCarol->id,
+            'updated_by' => $hostCarol->id,
+            'activity_series_id' => $series->id,
+            'name' => 'Zebra Session',
+            'starts_at' => now()->addDays(1),
+            'ends_at' => now()->addDays(1)->addHours(2),
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $hostAlice->id,
+            'updated_by' => $hostAlice->id,
+            'activity_series_id' => $series->id,
+            'name' => 'Middle Session',
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(2),
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $hostBob->id,
+            'updated_by' => $hostBob->id,
+            'activity_series_id' => $series->id,
+            'name' => 'Alpha Session',
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(2),
+        ]);
+
+        $component = Livewire::test(ShowActivitySeries::class, ['activitySeries' => $series])
+            ->assertSet('sort', 'date')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Alpha Session',
+                'Middle Session',
+            ]);
+
+        $component->call('toggleSort', 'name')
+            ->assertSet('sort', 'name')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Alpha Session',
+                'Middle Session',
+                'Zebra Session',
+            ]);
+
+        $component->call('toggleSort', 'name')
+            ->assertSet('sort_dir', 'desc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Middle Session',
+                'Alpha Session',
+            ]);
+
+        $component->call('toggleSort', 'host')
+            ->assertSet('sort', 'host')
+            ->assertSet('sort_dir', 'asc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Middle Session',
+                'Alpha Session',
+                'Zebra Session',
+            ]);
+
+        $component->call('toggleSort', 'host')
+            ->assertSet('sort_dir', 'desc')
+            ->assertViewHas('activities', fn ($activities) => $activities->pluck('name')->all() === [
+                'Zebra Session',
+                'Alpha Session',
+                'Middle Session',
+            ]);
+    }
 }

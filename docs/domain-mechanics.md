@@ -70,7 +70,8 @@ Join is blocked if:
 - user already participates,
 - user is already on waitlist,
 - activity requires approval (user should join waitlist instead),
-- participant limit is reached.
+- participant limit is reached,
+- the activity host has banned the user (also blocks waitlist, invites, and host waitlist approval).
 
 ## Waitlist
 
@@ -93,9 +94,16 @@ Hosts can:
 
 - mark participants absent/unmark absent,
 - move participants to waitlist,
-- remove participants.
+- remove participants,
+- ban a user from all of their activities (from the user contact popup, if they have hosted at least once).
+
+Banning removes the user from the host’s upcoming roster and waitlist rows and blocks future joins; past activities are left unchanged. Unban only clears the ban (no automatic re-join).
 
 Host self-removal/move protections are enforced where applicable.
+
+## Reputation Warning
+
+A `!` indicator appears on a user’s badge when they have been banned by at least two distinct hosts, or marked absent at least three times. Ban and absence counts are shown on the user contact popup statistics tab.
 
 ## Authorization Model
 

@@ -7,7 +7,9 @@ use App\Models\ActivityUser;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\ContactVisibilityService;
+use App\Services\UserHostBanService;
 use App\Support\Profile\ProviderContactUrls;
+use App\Support\Users\UserReputationStats;
 use Illuminate\Http\RedirectResponse;
 use Livewire\Component;
 use STS\FilamentImpersonate\Facades\Impersonation;
@@ -19,6 +21,36 @@ class UserContactPopover extends Component
     public ?int $contextOrganizationId = null;
 
     public int $targetUserId;
+
+    public function banUser(UserHostBanService $hostBanService): void
+    {
+        [$viewer, $targetUser] = $this->banActorAndTarget();
+        $hostBanService->ban($viewer, $targetUser);
+    }
+
+    public function unbanUser(UserHostBanService $hostBanService): void
+    {
+        [$viewer, $targetUser] = $this->banActorAndTarget();
+        $hostBanService->unban($viewer, $targetUser);
+    }
+
+    /**
+     * @return array{0: User, 1: User}
+     */
+    private function banActorAndTarget(): array
+    {
+        $viewer = auth()->user();
+        if (! $viewer instanceof User) {
+            abort(403);
+        }
+
+        $targetUser = User::query()->whereKey($this->targetUserId)->first();
+        if (! $targetUser instanceof User) {
+            abort(404);
+        }
+
+        return [$viewer, $targetUser];
+    }
 
     /**
      * Start impersonating the target user (admins only).
@@ -172,12 +204,21 @@ class UserContactPopover extends Component
             && ! $viewer->is($targetUser)
             && ! Impersonation::isImpersonating();
 
+        $hostBanService = app(UserHostBanService::class);
+        $canBanTarget = ! $viewer->is($targetUser) && $hostBanService->viewerCanBan($viewer);
+        $isBannedByViewer = $canBanTarget && $hostBanService->isBannedByHost($targetUser, $viewer);
+        $reputation = app(UserReputationStats::class)->forUser($targetUser);
+
         return [
             'canViewContact' => $canViewContact,
             'canImpersonateTarget' => $canImpersonateTarget,
+            'canBanTarget' => $canBanTarget,
+            'isBannedByViewer' => $isBannedByViewer,
             'targetUser' => $targetUser,
             'hostedStatsByType' => $this->hostedStatsByType($targetUser->id),
             'participationStatsByType' => $this->participationStatsByType($targetUser->id),
+            'hostBanCount' => $reputation['ban_count'],
+            'absenceCount' => $reputation['absence_count'],
             'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
             'activityInviteSubjectId' => $this->contextActivityId,
             'organizationInviteSubjectId' => $this->resolveOrganizationInviteSubjectId($viewer, $targetUser),
@@ -255,9 +296,13 @@ class UserContactPopover extends Component
         return [
             'canViewContact' => false,
             'canImpersonateTarget' => false,
+            'canBanTarget' => false,
+            'isBannedByViewer' => false,
             'targetUser' => null,
             'hostedStatsByType' => [],
             'participationStatsByType' => [],
+            'hostBanCount' => 0,
+            'absenceCount' => 0,
             'contacts' => [
                 'email' => null,
                 'facebook' => null,

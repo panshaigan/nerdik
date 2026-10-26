@@ -21,6 +21,7 @@
     use App\Models\User;
     use App\Support\Ui\AvatarPicture;
     use App\Support\Ui\AvatarSlot;
+    use App\Support\Users\UserReputationStats;
 
     $usesOrganization = $organization !== null;
     $resolvedName = trim((string) ($name ?? ($usesOrganization
@@ -87,6 +88,29 @@
     $lateBadgeTip = $showLateBadge
         ? __('ui.activities.late_badge_tooltip', ['minutes' => $resolvedLateMinutes])
         : null;
+
+    $showReputationWarning = false;
+    $reputationWarningTip = null;
+    if ($user instanceof User && ! $usesOrganization) {
+        $reputation = app(UserReputationStats::class)->forUser($user);
+        $showReputationWarning = $reputation['show_warning'];
+        if ($showReputationWarning) {
+            $bansMeet = $reputation['ban_count'] >= UserReputationStats::MIN_HOSTS_FOR_WARNING;
+            $absencesMeet = $reputation['absence_count'] >= UserReputationStats::MIN_ABSENCES_FOR_WARNING;
+            $reputationWarningTip = match (true) {
+                $bansMeet && $absencesMeet => __('ui.profile.reputation_warning_tooltip', [
+                    'bans' => $reputation['ban_count'],
+                    'absences' => $reputation['absence_count'],
+                ]),
+                $bansMeet => __('ui.profile.reputation_warning_tooltip_bans', [
+                    'bans' => $reputation['ban_count'],
+                ]),
+                default => __('ui.profile.reputation_warning_tooltip_absences', [
+                    'absences' => $reputation['absence_count'],
+                ]),
+            };
+        }
+    }
 @endphp
 
 @if ($canRenderOrganizationPopover)
@@ -140,6 +164,14 @@
                 @if ($trackNavAvatar) data-nav-user-avatar @endif
             />
         </div>
+        @if ($showReputationWarning)
+            <span
+                class="pointer-events-none absolute -left-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-[9px] font-semibold leading-none text-error-content tooltip tooltip-top"
+                data-tip="{{ $reputationWarningTip }}"
+                data-ui="user-badge-reputation-warning"
+                aria-label="{{ $reputationWarningTip }}"
+            >!</span>
+        @endif
         @if ($showLateBadge)
             <span
                 class="pointer-events-none absolute -right-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-0.5 text-[9px] font-semibold leading-none text-warning-content tooltip tooltip-top"
@@ -164,6 +196,14 @@
                     @if ($trackNavAvatar) data-nav-user-avatar @endif
                 />
             </div>
+            @if ($showReputationWarning)
+                <span
+                    class="pointer-events-none absolute -left-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-[9px] font-semibold leading-none text-error-content tooltip tooltip-top"
+                    data-tip="{{ $reputationWarningTip }}"
+                    data-ui="user-badge-reputation-warning"
+                    aria-label="{{ $reputationWarningTip }}"
+                >!</span>
+            @endif
             @if ($showLateBadge)
                 <span
                     class="pointer-events-none absolute -right-1 -top-1 z-[1] flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-0.5 text-[9px] font-semibold leading-none text-warning-content tooltip tooltip-top"

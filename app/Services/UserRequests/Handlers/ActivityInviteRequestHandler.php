@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserRequest;
 use App\Services\ActivityParticipationService;
 use App\Services\EventActivitySignupService;
+use App\Services\UserHostBanService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
@@ -20,6 +21,7 @@ class ActivityInviteRequestHandler implements UserRequestHandler
     public function __construct(
         private readonly ActivityParticipationService $participation,
         private readonly EventActivitySignupService $signupService,
+        private readonly UserHostBanService $hostBanService,
     ) {}
 
     public function type(): UserRequestType
@@ -64,6 +66,12 @@ class ActivityInviteRequestHandler implements UserRequestHandler
         if ($event !== null && $event->isCancelled()) {
             throw ValidationException::withMessages([
                 'subject' => [__('ui.events.signup_blocked_event_cancelled')],
+            ]);
+        }
+
+        if ($this->hostBanService->isBannedFromActivity($recipient, $subject)) {
+            throw ValidationException::withMessages([
+                'recipient' => [__('ui.activities.signup_blocked_banned_by_host')],
             ]);
         }
 

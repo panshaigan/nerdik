@@ -348,6 +348,16 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->belongsTo(Organization::class);
     }
 
+    public function hostBansIssued(): HasMany
+    {
+        return $this->hasMany(UserHostBan::class, 'host_user_id');
+    }
+
+    public function hostBansReceived(): HasMany
+    {
+        return $this->hasMany(UserHostBan::class, 'banned_user_id');
+    }
+
     public function interestedActivities(): MorphToMany
     {
         return $this->morphedByMany(Activity::class, 'interest', 'user_interests');
