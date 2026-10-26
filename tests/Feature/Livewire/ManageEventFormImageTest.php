@@ -17,10 +17,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\SeedsListingDefaultMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class ManageEventFormImageTest extends TestCase
 {
     use RefreshDatabase;

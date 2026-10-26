@@ -14,9 +14,11 @@ use Database\Seeders\ActivityTypeSeeder;
 use Database\Seeders\TagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class TagSeederImagesTest extends TestCase
 {
     use RefreshDatabase;

@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
+#[Group('infra')]
 class MakePassthroughTest extends TestCase
 {
     public function test_passthrough_scripts_exist_and_are_executable(): void

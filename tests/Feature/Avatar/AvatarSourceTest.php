@@ -16,10 +16,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AssertsResponsiveMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class AvatarSourceTest extends TestCase
 {
     use AssertsResponsiveMedia;

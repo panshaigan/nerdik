@@ -10,10 +10,12 @@ use App\Models\Activity;
 use App\Models\Tag;
 use App\View\Components\Cards\ListingCard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class ListingCardPictureTest extends TestCase
 {
     use AttachesFixtureMedia;

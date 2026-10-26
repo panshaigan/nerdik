@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Illuminate\Support\Facades\Vite;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('infra')]
 class ViteAssetTagsTest extends TestCase
 {
     public function test_built_assets_emit_stylesheets_without_css_preloads(): void

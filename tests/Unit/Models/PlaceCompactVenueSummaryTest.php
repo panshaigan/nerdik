@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Unit\Models;
 
 use App\Models\City;
 use App\Models\CityTranslation;

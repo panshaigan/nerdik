@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Notifications;
+namespace Tests\Unit\Services\Notifications;
 
 use App\Enums\NotificationPreferenceKey;
 use App\Models\Activity;

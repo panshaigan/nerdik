@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('infra')]
 final class FrontendModuleSplittingTest extends TestCase
 {
     public function test_heavy_page_modules_are_dynamically_imported_from_the_application_entrypoint(): void

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\Services;
 
 use App\Models\Activity;
 use App\Models\ActivityType;

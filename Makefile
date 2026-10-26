@@ -20,7 +20,7 @@ cmdline_eq_flags = $(strip $(foreach v,$(.VARIABLES),$(if $(and $(filter command
 passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdline_eq_flags))
 
 .PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
-        test npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
+        test test-fast npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy release init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
@@ -135,6 +135,10 @@ cache:
 #   make test --parallel
 test:
 	@$(PASSTHROUGH) test $(passthrough_args)
+
+# Local fast loop: excludes #[Group('slow')] (media/image/PDF/series giants). CI / make test stay full.
+test-fast:
+	$(SAIL) artisan test --compact --exclude-group=slow $(ARGS)
 
 test-all:
 	$(SAIL) artisan test --parallel

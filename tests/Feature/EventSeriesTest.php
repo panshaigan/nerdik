@@ -16,8 +16,10 @@ use App\Support\Events\EventEditionDateBumper;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('slow')]
 class EventSeriesTest extends TestCase
 {
     use RefreshDatabase;

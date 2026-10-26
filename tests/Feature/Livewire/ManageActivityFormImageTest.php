@@ -20,11 +20,13 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class ManageActivityFormImageTest extends TestCase
 {
     use AttachesFixtureMedia;

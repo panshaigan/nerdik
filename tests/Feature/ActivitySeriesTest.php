@@ -15,8 +15,10 @@ use App\Support\Ui\BrowseListingCardPresenter;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('slow')]
 class ActivitySeriesTest extends TestCase
 {
     use RefreshDatabase;

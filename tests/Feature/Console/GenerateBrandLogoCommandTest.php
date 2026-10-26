@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 #[Group('brand-logo-mutation')]
+#[Group('slow')]
 final class GenerateBrandLogoCommandTest extends TestCase
 {
     private ?string $isolatedOutputDir = null;

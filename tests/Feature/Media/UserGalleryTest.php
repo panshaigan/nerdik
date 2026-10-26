@@ -17,9 +17,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class UserGalleryTest extends TestCase
 {
     use RefreshDatabase;

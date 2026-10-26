@@ -18,10 +18,12 @@ use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class ActivityListingImageResolverTest extends TestCase
 {
     use AttachesFixtureMedia;

@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
+#[Group('infra')]
 class SyncScriptsTest extends TestCase
 {
     /**

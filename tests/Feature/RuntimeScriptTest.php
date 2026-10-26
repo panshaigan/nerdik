@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
+#[Group('infra')]
 class RuntimeScriptTest extends TestCase
 {
     public function test_runtime_script_exists_and_is_executable(): void

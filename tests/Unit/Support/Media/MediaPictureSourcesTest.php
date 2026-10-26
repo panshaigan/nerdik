@@ -7,10 +7,12 @@ namespace Tests\Unit\Support\Media;
 use App\Models\Tag;
 use App\Support\Media\MediaPictureSources;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AttachesFixtureMedia;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class MediaPictureSourcesTest extends TestCase
 {
     use AttachesFixtureMedia;

@@ -68,12 +68,35 @@ Without `bin` on `PATH`, use either `./bin/make artisan …` or `make artisan AR
   - `vendor/bin/sail artisan test --compact --filter testName`
 - Run one test file:
   - `vendor/bin/sail artisan test --compact tests/Feature/ExampleTest.php`
-- Run all tests:
-  - `vendor/bin/sail artisan test --compact`
+- Run all tests (CI parity; includes `@group slow`):
+  - `make test` or `vendor/bin/sail artisan test --compact`
+  - CI uses `php artisan test --compact --parallel` (see `.github/workflows/ci.yml`)
+- Faster local loop (excludes `@group slow`):
+  - `make test-fast`
 
 For quick Makefile filtering (requires `bin` on `PATH`; see above):
 
 - `make test --filter=SomeTest`
+
+### Unit vs Feature
+
+Keep two PHPUnit suites only:
+
+| Suite | Put tests here when… |
+| --- | --- |
+| `tests/Unit` | No HTTP and no `Livewire::test`. Pure helpers/presenters go under `Unit/Support` (etc.). Domain logic that needs the DB and factories goes under `Unit/Services` or `Unit/Models`. |
+| `tests/Feature` | The test hits HTTP (`get`/`post`/…) and/or `Livewire::test`. |
+
+Layering: put counting, filtering, join/waitlist/proposal/slot-fit rules in Unit/Services. Feature/Livewire stays a thin smoke that the UI reflects a seeded outcome — do not duplicate the same matrix in both layers. See `.cursor/rules/ui-testing.mdc` and `.cursor/rules/no-config-value-tests.mdc`.
+
+### PHPUnit groups
+
+| Group | Meaning |
+| --- | --- |
+| `slow` | Intentionally heavy (PDF, large media pipelines, series, image forms). Excluded by `make test-fast`; always run in CI / `make test`. |
+| `infra` | Static checks of scripts, nginx, Vite, Makefile, workflows. Cheap; kept in the default suite (not excluded by `test-fast`). |
+
+Tag with `#[Group('slow')]` / `#[Group('infra')]` on the test class (or method). Latest parallel-suite speed backlog: [test-suite-speed-baseline.md](test-suite-speed-baseline.md).
 
 ## Code Style
 

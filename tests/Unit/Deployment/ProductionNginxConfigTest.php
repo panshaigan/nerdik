@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Deployment;
 
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
+#[Group('infra')]
 final class ProductionNginxConfigTest extends TestCase
 {
     public function test_fingerprinted_build_assets_are_cached_immutably(): void

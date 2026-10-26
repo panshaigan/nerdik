@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Unit\Services;
 
 use App\Enums\ActivityProposalStatus;
 use App\Models\Activity;

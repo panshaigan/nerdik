@@ -18,8 +18,10 @@ use App\Support\Media\BrandLogoSources;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
+#[Group('slow')]
 final class ParticipantRosterPdfTest extends TestCase
 {
     use RefreshDatabase;

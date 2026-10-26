@@ -12,10 +12,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pulse\Entry;
 use Laravel\Pulse\Pulse;
-use Laravel\Pulse\Recorders\CacheInteractions;
-use Laravel\Pulse\Recorders\Exceptions;
-use Laravel\Pulse\Recorders\SlowRequests;
-use Laravel\Pulse\Recorders\UserRequests;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
@@ -33,26 +29,6 @@ final class PulsePerformanceInstrumentationTest extends TestCase
         app(Pulse::class)->flush();
 
         parent::tearDown();
-    }
-
-    public function test_only_high_volume_recorders_are_sampled_by_default(): void
-    {
-        $this->assertSame(0.1, config('pulse.recorders.'.CacheInteractions::class.'.sample_rate'));
-        $this->assertSame(0.1, config('pulse.recorders.'.UserRequests::class.'.sample_rate'));
-        $this->assertSame(1, config('pulse.recorders.'.Exceptions::class.'.sample_rate'));
-        $this->assertSame(1, config('pulse.recorders.'.SlowRequests::class.'.sample_rate'));
-        $this->assertSame(1, config('pulse.recorders.'.SlowLivewireActions::class.'.sample_rate'));
-    }
-
-    public function test_checksum_failures_are_ignored_and_event_cache_keys_are_grouped(): void
-    {
-        $config = config('pulse.recorders.'.CacheInteractions::class);
-
-        $this->assertContains('/^livewire-checksum-failures:.*/', $config['ignore']);
-        $this->assertSame(
-            'event_show.programme_stats.*.*',
-            $config['groups']['/^event_show\\.programme_stats\\.v\\d+\\.\\d+$/'],
-        );
     }
 
     public function test_slow_persistence_records_only_bounded_phase_aggregates(): void

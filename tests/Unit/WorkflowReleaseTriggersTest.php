@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+#[Group('infra')]
 final class WorkflowReleaseTriggersTest extends TestCase
 {
     #[Test]
