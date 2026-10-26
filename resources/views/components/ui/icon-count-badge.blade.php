@@ -4,7 +4,7 @@
 
 @php
     $resolvedCount = (int) $count;
-    $countLabel = $resolvedCount > 9 ? '9+' : (string) $resolvedCount;
+    $countLabel = (string) $resolvedCount;
 @endphp
 
 <span {{ $attributes->class('relative inline-flex')->merge(['data-count' => (string) $resolvedCount]) }}>

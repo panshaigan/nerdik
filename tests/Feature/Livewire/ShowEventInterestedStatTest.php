@@ -100,6 +100,20 @@ class ShowEventInterestedStatTest extends TestCase
             ->assertSeeHtml('data-count="0"');
     }
 
+    public function test_toolbar_follow_count_shows_full_number_above_nine(): void
+    {
+        $event = Event::factory()->public()->create();
+
+        User::factory()
+            ->count(12)
+            ->create()
+            ->each(fn (User $follower) => $follower->interestedEvents()->attach($event->id));
+
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->assertSeeHtml('data-count="12"')
+            ->assertDontSeeHtml('9+');
+    }
+
     public function test_shell_follow_count_updates_after_plan_tab_activity_interest_sync(): void
     {
         config(['cache.default' => 'array']);
