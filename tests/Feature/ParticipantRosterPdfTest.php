@@ -373,9 +373,78 @@ final class ParticipantRosterPdfTest extends TestCase
         ])->render();
 
         $this->assertSame(1, substr_count($html, 'One Shot Night'));
-        $this->assertStringContainsString('sign-session', $html);
-        $this->assertStringNotContainsString('sign-slot', $html);
-        $this->assertStringNotContainsString('sign-game', $html);
+        $this->assertStringContainsString('class="sign-session"', $html);
+        $this->assertStringNotContainsString('class="sign-slot"', $html);
+        $this->assertStringNotContainsString('class="sign-game"', $html);
+        $this->assertStringContainsString('<div class="activity-table-sign">', $html);
+        $this->assertStringContainsString('sign-spacer', $html);
+    }
+
+    public function test_event_participants_pdf_has_one_page_per_table_sign_without_blank_overflow(): void
+    {
+        $owner = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'name' => 'Con Signs',
+            'slug' => 'con-signs',
+            'created_by' => $owner->id,
+        ]);
+
+        $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $gameTag = Tag::factory()->for($gameCategory, 'tagCategory')->create();
+        TagTranslation::factory()->create([
+            'tag_id' => $gameTag->id,
+            'locale' => 'en',
+            'label' => 'Mork Borg',
+        ]);
+
+        $longName = 'Nie Chce Byc W Twojej Czarnej Twierdzy';
+        $activity = Activity::factory()->scheduled()->create([
+            'name' => $longName,
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $activity->tags()->attach($gameTag->id);
+
+        Slot::factory()->create([
+            'name' => 'Stol #04',
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addWeek()->setTime(17, 0),
+        ]);
+
+        $second = Activity::factory()->scheduled()->create([
+            'name' => 'Short Table',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        Slot::factory()->create([
+            'name' => 'Stol #01',
+            'event_id' => $event->id,
+            'activity_id' => $second->id,
+            'starts_at' => now()->addWeek()->setTime(17, 0),
+        ]);
+
+        $response = $this->actingAs($owner)
+            ->get(route('events.participants.pdf', $event));
+
+        $response->assertOk();
+        $pdf = $response->getContent();
+        $this->assertNotFalse($pdf);
+        $this->assertSame(3, $this->countPdfPages((string) $pdf));
+    }
+
+    private function countPdfPages(string $pdfBinary): int
+    {
+        if (class_exists(\Imagick::class)) {
+            $imagick = new \Imagick;
+            $imagick->readImageBlob($pdfBinary);
+
+            return $imagick->getNumberImages();
+        }
+
+        preg_match_all('/\/Type\s*\/Page[^s]/', $pdfBinary, $matches);
+
+        return count($matches[0]);
     }
 
     public function test_admin_can_download_activity_participants_pdf(): void

@@ -107,38 +107,7 @@
         }
         .table-sign-page {
             page-break-before: always;
-        }
-        table.activity-table-sign {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: DejaVu Sans, sans-serif;
-            color: #111;
-        }
-        table.activity-table-sign td {
-            vertical-align: middle;
-            text-align: center;
-            padding: 48px 36px;
-        }
-        .activity-table-sign .sign-slot {
-            font-size: 50pt;
-            font-weight: bold;
-            line-height: 1.2;
-            margin: 0 0 32px;
-        }
-        .activity-table-sign .sign-session {
-            font-size: 72pt;
-            font-weight: bold;
-            line-height: 1.15;
-            margin: 0 0 32px;
-        }
-        .activity-table-sign .sign-game {
-            font-size: 54pt;
-            font-weight: bold;
-            line-height: 1.2;
-            margin: 0 0 24px;
-        }
-        .activity-table-sign .sign-brand {
-            margin: 0;
+            page-break-inside: avoid;
         }
     </style>
 </head>
