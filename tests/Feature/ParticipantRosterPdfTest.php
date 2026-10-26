@@ -15,6 +15,7 @@ use App\Models\TagTranslation;
 use App\Models\User;
 use App\Services\ParticipantRosterPdfBuilder;
 use App\Support\Media\BrandLogoSources;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -424,27 +425,20 @@ final class ParticipantRosterPdfTest extends TestCase
             'starts_at' => now()->addWeek()->setTime(17, 0),
         ]);
 
-        $response = $this->actingAs($owner)
-            ->get(route('events.participants.pdf', $event));
+        $this->actingAs($owner)
+            ->get(route('events.participants.pdf', $event))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
 
-        $response->assertOk();
-        $pdf = $response->getContent();
-        $this->assertNotFalse($pdf);
-        $this->assertSame(3, $this->countPdfPages((string) $pdf));
-    }
+        // Count pages via DomPDF itself — Imagick needs Ghostscript and fails in CI.
+        $roster = app(ParticipantRosterPdfBuilder::class)->eventRoster($event->fresh(['places.city']));
+        $pdf = Pdf::loadView('pdf.event-participants', [
+            'roster' => $roster,
+            'brandLogos' => $this->pdfBrandLogos(),
+        ])->setPaper('a4', 'landscape');
+        $pdf->output();
 
-    private function countPdfPages(string $pdfBinary): int
-    {
-        if (class_exists(\Imagick::class)) {
-            $imagick = new \Imagick;
-            $imagick->readImageBlob($pdfBinary);
-
-            return $imagick->getNumberImages();
-        }
-
-        preg_match_all('/\/Type\s*\/Page[^s]/', $pdfBinary, $matches);
-
-        return count($matches[0]);
+        $this->assertSame(3, $pdf->getDomPDF()->getCanvas()->get_page_count());
     }
 
     public function test_admin_can_download_activity_participants_pdf(): void
