@@ -158,6 +158,7 @@ test-all:
 # First-wave Playwright browser tests (Sail app must already be up).
 test-e2e:
 	$(SAIL) artisan e2e:prepare
+	$(SAIL) exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test ./scripts/ensure-playwright-chromium.sh
 	$(SAIL) exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test $(ARGS)
 
 regenerate-tags:

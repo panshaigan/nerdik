@@ -109,14 +109,16 @@ Covers the first-wave UI journeys PHPUnit cannot see: login return URLs, saved s
 With Sail already running:
 
 ```bash
-vendor/bin/sail exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright install --with-deps chromium   # once
 make test-e2e
 ```
+
+`make test-e2e` runs `e2e:prepare`, installs Playwright Chromium inside the Sail container when it is missing (first run only), then runs the specs.
 
 Or step by step:
 
 ```bash
 vendor/bin/sail artisan e2e:prepare
+vendor/bin/sail exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test ./scripts/ensure-playwright-chromium.sh
 vendor/bin/sail exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test
 ```
 
