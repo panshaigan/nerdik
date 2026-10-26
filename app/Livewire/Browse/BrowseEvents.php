@@ -419,7 +419,9 @@ class BrowseEvents extends Component
      */
     protected function paginateEventsOnly()
     {
-        $query = $this->baseEventQuery()->with(Event::listingCardEagerLoad());
+        $query = $this->baseEventQuery()
+            ->with(Event::listingCardEagerLoad())
+            ->withCount('interestedUsers');
         $this->applyBrowseEventSort($query);
         $paginator = $query->paginate($this->browseListingsPerPage());
         $paginator->setCollection(
@@ -435,7 +437,10 @@ class BrowseEvents extends Component
     protected function paginateActivitiesOnly()
     {
         $query = $this->baseActivityQuery()->with(Activity::listingCardEagerLoad())
-            ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)]);
+            ->withCount([
+                'participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false),
+                'interestedUsers',
+            ]);
         $this->applyBrowseActivitySort($query);
         $paginator = $query->paginate($this->browseListingsPerPage());
         $paginator->setCollection(
@@ -491,6 +496,7 @@ class BrowseEvents extends Component
             ? collect()
             : Event::query()
                 ->with(Event::listingCardEagerLoad())
+                ->withCount('interestedUsers')
                 ->whereIn('id', $eventIds)
                 ->get()
                 ->keyBy('id');
@@ -499,7 +505,10 @@ class BrowseEvents extends Component
             ? collect()
             : Activity::query()
                 ->with(Activity::listingCardEagerLoad())
-                ->withCount(['participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false)])
+                ->withCount([
+                    'participants as participants_count' => fn (Builder $q) => $q->where('is_absent', false),
+                    'interestedUsers',
+                ])
                 ->whereIn('id', $activityIds)
                 ->get()
                 ->keyBy('id');

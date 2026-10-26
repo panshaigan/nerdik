@@ -45,6 +45,9 @@ final class BrowseListingCardPresenter
         $place?->loadMissing(['city', 'parent']);
         $activity->loadMissing('activitySeries');
         $series = $activity->activitySeries;
+        $interestedPeopleCount = isset($activity->interested_users_count)
+            ? (int) $activity->interested_users_count
+            : (int) $activity->interestedUsers()->count();
 
         return new BrowseListingCardViewData(
             kind: 'activity',
@@ -55,6 +58,7 @@ final class BrowseListingCardPresenter
             editUrl: url_with_return(route('activities.edit', $activity), $return),
             canEdit: $canEdit,
             isInterested: in_array((int) $activity->id, $interestedIds, true),
+            interestedPeopleCount: $interestedPeopleCount,
             interestWireMethod: 'toggleActivityInterest',
             timeSummary: format_date_range_compact($timeSourceStartsAt, $timeSourceEndsAt),
             locationSummary: $place?->compactVenueSummary() ?? '',
@@ -108,6 +112,9 @@ final class BrowseListingCardPresenter
                 && $now->between($window->starts_at, $window->ends_at);
         });
         $series = $event->eventSeries;
+        $interestedPeopleCount = isset($event->interested_users_count)
+            ? (int) $event->interested_users_count
+            : (int) $event->interestedUsers()->count();
 
         return new BrowseListingCardViewData(
             kind: 'event',
@@ -118,6 +125,7 @@ final class BrowseListingCardPresenter
             editUrl: url_with_return(route('events.edit', $event), $return),
             canEdit: $canEdit,
             isInterested: in_array((int) $event->id, $interestedIds, true),
+            interestedPeopleCount: $interestedPeopleCount,
             interestWireMethod: 'toggleEventInterest',
             timeSummary: format_date_range_compact($event->starts_at, $event->ends_at),
             locationSummary: $this->eventLocationSummary($event),

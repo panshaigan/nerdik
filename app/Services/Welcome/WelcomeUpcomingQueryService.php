@@ -58,6 +58,7 @@ final readonly class WelcomeUpcomingQueryService
                     'slots.activityTypes',
                     'enrollmentWindows',
                 ])
+                ->withCount('interestedUsers')
                 ->whereIn('id', $eventIds)
                 ->get()
                 ->keyBy('id');
@@ -66,7 +67,10 @@ final readonly class WelcomeUpcomingQueryService
             ? collect()
             : Activity::query()
                 ->with(Activity::listingCardEagerLoad())
-                ->withCount(['participants as participants_count' => fn ($query) => $query->where('is_absent', false)])
+                ->withCount([
+                    'participants as participants_count' => fn ($query) => $query->where('is_absent', false),
+                    'interestedUsers',
+                ])
                 ->whereIn('id', $activityIds)
                 ->get()
                 ->keyBy('id');

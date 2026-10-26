@@ -103,6 +103,7 @@ class Dashboard extends Component
             ? collect()
             : Event::query()
                 ->with(Event::listingCardEagerLoad())
+                ->withCount('interestedUsers')
                 ->whereIn('id', $eventIds)
                 ->get()
                 ->keyBy('id');
@@ -111,7 +112,10 @@ class Dashboard extends Component
             ? collect()
             : Activity::query()
                 ->with(Activity::listingCardEagerLoad())
-                ->withCount(['participants as participants_count' => fn ($q) => $q->where('is_absent', false)])
+                ->withCount([
+                    'participants as participants_count' => fn ($q) => $q->where('is_absent', false),
+                    'interestedUsers',
+                ])
                 ->whereIn('id', $activityIds)
                 ->get()
                 ->keyBy('id');

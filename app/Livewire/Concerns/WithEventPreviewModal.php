@@ -103,6 +103,7 @@ trait WithEventPreviewModal
     {
         return Event::query()
             ->whereKey($eventId)
-            ->with(Event::listingCardEagerLoad());
+            ->with(Event::listingCardEagerLoad())
+            ->withCount('interestedUsers');
     }
 }

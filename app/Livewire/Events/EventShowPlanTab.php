@@ -483,6 +483,7 @@ class EventShowPlanTab extends Component
                     'canceller',
                 ])->withCount([
                     'participants',
+                    'interestedUsers',
                 ]),
                 'activityTypes',
             ])->orderBy('starts_at'),

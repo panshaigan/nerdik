@@ -29,6 +29,24 @@ class BrowseInterestToggleTest extends TestCase
         $this->assertFalse($user->fresh()->interestedEvents()->whereKey($event->id)->exists());
     }
 
+    public function test_event_listing_card_shows_full_interest_count_on_star(): void
+    {
+        $viewer = User::factory()->create();
+        $event = Event::factory()->public()->create();
+
+        User::factory()
+            ->count(12)
+            ->create()
+            ->each(fn (User $follower) => $follower->interestedEvents()->attach($event->id));
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($viewer)
+            ->test(BrowseEvents::class, ['only_events' => true])
+            ->assertSeeHtml('data-ui="event-card-interest-count"')
+            ->assertSeeHtml('data-count="12"')
+            ->assertDontSeeHtml('9+');
+    }
+
     public function test_toggle_activity_interest_adds_and_removes_activity_and_related_event_interest(): void
     {
         $user = User::factory()->create();

@@ -22,6 +22,7 @@ final readonly class BrowseListingCardViewData
         public string $editUrl,
         public bool $canEdit,
         public bool $isInterested,
+        public int $interestedPeopleCount,
         public string $interestWireMethod,
         public string $timeSummary,
         public string $locationSummary,

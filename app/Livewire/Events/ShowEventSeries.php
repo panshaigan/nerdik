@@ -372,6 +372,7 @@ class ShowEventSeries extends Component
         return Activity::query()
             ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
             ->with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers')
             ->orderBy('name')
             ->get();
     }
@@ -415,7 +416,8 @@ class ShowEventSeries extends Component
     {
         return $this->seriesEventsQuery()
             ->whereKey($eventId)
-            ->with(Event::listingCardEagerLoad());
+            ->with(Event::listingCardEagerLoad())
+            ->withCount('interestedUsers');
     }
 
     protected function previewActivityQuery(int $activityId): Builder
@@ -425,7 +427,8 @@ class ShowEventSeries extends Component
         return Activity::query()
             ->whereKey($activityId)
             ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
-            ->with(Activity::listingCardEagerLoad());
+            ->with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers');
     }
 
     protected function useListingCardLocationInActivityPreview(): bool

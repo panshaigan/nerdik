@@ -212,6 +212,40 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
+    public function from_activity_exposes_interested_people_count(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+        ]);
+        User::factory()
+            ->count(3)
+            ->create()
+            ->each(fn (User $follower) => $follower->interestedActivities()->attach($activity->id));
+
+        $activity->loadCount('interestedUsers');
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertSame(3, $viewData->interestedPeopleCount);
+    }
+
+    #[Test]
+    public function from_event_exposes_interested_people_count(): void
+    {
+        $event = Event::factory()->create();
+        User::factory()
+            ->count(4)
+            ->create()
+            ->each(fn (User $follower) => $follower->interestedEvents()->attach($event->id));
+
+        $event->loadCount('interestedUsers');
+
+        $viewData = $this->presenter->fromEvent($event, []);
+
+        $this->assertSame(4, $viewData->interestedPeopleCount);
+    }
+
+    #[Test]
     public function from_event_exposes_confirmed_activities_count_using_programme_stats(): void
     {
         $user = User::factory()->create();

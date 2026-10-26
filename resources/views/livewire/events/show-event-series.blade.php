@@ -168,25 +168,30 @@
                                                         data-ui="event-card-edit"
                                                     />
                                                 @endif
-                                                    @if ($isInterestedInEdition)
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="toggleEventInterest({{ $editionId }})"
-                                                            class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                            :tooltip-bottom="__('ui.interests.remove_from_interests')"
-                                                            data-ui="event-card-interest-remove"
-                                                            icon="s-star"
-                                                        />
-                                                    @else
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="toggleEventInterest({{ $editionId }})"
-                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                            :tooltip-bottom="__('ui.interests.add_to_interests')"
-                                                            data-ui="event-card-interest-add"
-                                                            icon="o-star"
-                                                        />
-                                                    @endif
+                                                    <x-ui.icon-count-badge
+                                                        :count="$editionStats['interested_people_count']"
+                                                        data-ui="event-card-interest-count"
+                                                    >
+                                                        @if ($isInterestedInEdition)
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="toggleEventInterest({{ $editionId }})"
+                                                                class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                                                :tooltip-bottom="__('ui.interests.remove_from_interests')"
+                                                                data-ui="event-card-interest-remove"
+                                                                icon="s-star"
+                                                            />
+                                                        @else
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="toggleEventInterest({{ $editionId }})"
+                                                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                                                :tooltip-bottom="__('ui.interests.add_to_interests')"
+                                                                data-ui="event-card-interest-add"
+                                                                icon="o-star"
+                                                            />
+                                                        @endif
+                                                    </x-ui.icon-count-badge>
                                             @endauth
                                         </div>
                                     </div>

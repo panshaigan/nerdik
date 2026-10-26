@@ -475,6 +475,30 @@ class EventSeriesTest extends TestCase
         $this->assertFalse($follower->interestedEvents()->whereKey($upcomingB->id)->exists());
     }
 
+    public function test_edition_tile_star_shows_full_interest_count(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $owner->id]);
+        $edition = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(4),
+        ]);
+
+        User::factory()
+            ->count(12)
+            ->create()
+            ->each(fn (User $follower) => $follower->interestedEvents()->attach($edition->id));
+
+        Livewire::actingAs($viewer)
+            ->test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertSeeHtml('data-ui="event-card-interest-count"')
+            ->assertSeeHtml('data-count="12"')
+            ->assertDontSeeHtml('9+');
+    }
+
     public function test_series_participant_stats_include_hosts_without_double_counting(): void
     {
         $owner = User::factory()->create();

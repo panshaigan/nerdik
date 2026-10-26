@@ -202,6 +202,7 @@ class ShowActivitySeries extends Component
         /** @var Collection<int, Activity> $activities */
         $activities = $this->seriesActivitiesQuery()
             ->with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers')
             ->orderByRaw(Activity::scheduleStartsAtSql().' ASC')
             ->orderBy('activities.id')
             ->get();
@@ -344,7 +345,8 @@ class ShowActivitySeries extends Component
     {
         return $this->seriesActivitiesQuery()
             ->whereKey($activityId)
-            ->with(Activity::listingCardEagerLoad());
+            ->with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers');
     }
 
     protected function useListingCardLocationInActivityPreview(): bool

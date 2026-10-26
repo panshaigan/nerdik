@@ -292,28 +292,34 @@
                                                     @endif
                                                     @php
                                                         $isInterestedInActivity = in_array((int) $activity->id, $interestedActivityIds ?? [], true);
+                                                        $activityInterestedPeopleCount = (int) ($activity->interested_users_count ?? 0);
                                                     @endphp
-                                                    @if ($isInterestedInActivity)
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="removeActivityInterest({{ (int) $activity->id }})"
-                                                            class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                            :tooltip="__('ui.interests.remove_from_interests')"
-                                                            :aria-label="__('ui.interests.remove_from_interests')"
-                                                            data-ui="event-show-slot-interest-remove"
-                                                            icon="s-star"
-                                                        />
-                                                    @else
-                                                        <x-button
-                                                            type="button"
-                                                            wire:click="addActivityInterest({{ (int) $activity->id }})"
-                                                            class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                            :tooltip="__('ui.interests.add_to_interests')"
-                                                            :aria-label="__('ui.interests.add_to_interests')"
-                                                            data-ui="event-show-slot-interest-add"
-                                                            icon="o-star"
-                                                        />
-                                                    @endif
+                                                    <x-ui.icon-count-badge
+                                                        :count="$activityInterestedPeopleCount"
+                                                        data-ui="event-show-slot-interest-count"
+                                                    >
+                                                        @if ($isInterestedInActivity)
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="removeActivityInterest({{ (int) $activity->id }})"
+                                                                class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
+                                                                :tooltip="__('ui.interests.remove_from_interests')"
+                                                                :aria-label="__('ui.interests.remove_from_interests')"
+                                                                data-ui="event-show-slot-interest-remove"
+                                                                icon="s-star"
+                                                            />
+                                                        @else
+                                                            <x-button
+                                                                type="button"
+                                                                wire:click="addActivityInterest({{ (int) $activity->id }})"
+                                                                class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
+                                                                :tooltip="__('ui.interests.add_to_interests')"
+                                                                :aria-label="__('ui.interests.add_to_interests')"
+                                                                data-ui="event-show-slot-interest-add"
+                                                                icon="o-star"
+                                                            />
+                                                        @endif
+                                                    </x-ui.icon-count-badge>
                                                 @endif
                                             </div>
                                         @endif

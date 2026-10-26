@@ -20,25 +20,27 @@
                 />
             @endif
             <div class="flex flex-col items-center gap-1">
-                @if ($d->isInterested)
-                    <x-button
-                        type="button"
-                        wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                        class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs btn-square rounded-lg ui-action ui-action-interest-remove"
-                        :aria-label="__('ui.interests.remove_from_interests')"
-                        icon="s-star"
-                        data-ui="{{ $d->dataUiPrefix }}-interest-remove"
-                    />
-                @else
-                    <x-button
-                        type="button"
-                        wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
-                        class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs btn-square rounded-lg ui-action ui-action-interest-add"
-                        :aria-label="__('ui.interests.add_to_interests')"
-                        icon="o-star"
-                        data-ui="{{ $d->dataUiPrefix }}-interest-add"
-                    />
-                @endif
+                <x-ui.icon-count-badge :count="$d->interestedPeopleCount" data-ui="{{ $d->dataUiPrefix }}-interest-count">
+                    @if ($d->isInterested)
+                        <x-button
+                            type="button"
+                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                            class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs btn-square rounded-lg ui-action ui-action-interest-remove"
+                            :aria-label="__('ui.interests.remove_from_interests')"
+                            icon="s-star"
+                            data-ui="{{ $d->dataUiPrefix }}-interest-remove"
+                        />
+                    @else
+                        <x-button
+                            type="button"
+                            wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
+                            class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs btn-square rounded-lg ui-action ui-action-interest-add"
+                            :aria-label="__('ui.interests.add_to_interests')"
+                            icon="o-star"
+                            data-ui="{{ $d->dataUiPrefix }}-interest-add"
+                        />
+                    @endif
+                </x-ui.icon-count-badge>
                 @if ($d->canEdit)
                     <x-button
                         :link="$d->editUrl"

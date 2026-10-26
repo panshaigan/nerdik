@@ -104,6 +104,7 @@ class BrowseActivities extends Component
         EventActivitySignupService $signupService,
     ) {
         $query = Activity::with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers')
             ->attachedToPublicEvent();
 
         if (filled($this->from_date)) {
