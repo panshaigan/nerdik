@@ -23,22 +23,16 @@
             'label' => __('ui.nav.search'),
         ],
         [
-            'href' => route('catalog.places'),
-            'active' => request()->routeIs('catalog.places'),
-            'icon' => 'o-map-pin',
-            'label' => __('ui.nav.places'),
-        ],
-        [
-            'href' => route('catalog.organizations'),
-            'active' => request()->routeIs('catalog.organizations'),
-            'icon' => 'o-building-office-2',
-            'label' => __('ui.nav.organizations'),
-        ],
-        [
             'href' => route('catalog.series'),
             'active' => request()->routeIs('catalog.series'),
             'icon' => 'o-rectangle-stack',
             'label' => __('ui.nav.series'),
+        ],
+        [
+            'href' => route('catalog.places'),
+            'active' => request()->routeIs('catalog.places'),
+            'icon' => 'o-map-pin',
+            'label' => __('ui.nav.places'),
         ],
     ];
 @endphp

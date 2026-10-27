@@ -196,6 +196,37 @@ class GlobalNavSearchTest extends TestCase
             ->assertSee('data-ui="global-nav-search"', false);
     }
 
+    public function test_dismiss_suggestions_hides_suggestion_panel(): void
+    {
+        $owner = User::factory()->create();
+        $activity = Activity::factory()->scheduled()->create([
+            'name' => 'Dismiss Panel Activity',
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(4),
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        Livewire::test(GlobalNavSearch::class)
+            ->set('q', 'Dismiss Panel')
+            ->assertSee('data-ui="global-nav-search-suggestions"', false)
+            ->call('dismissSuggestions')
+            ->assertDontSee('data-ui="global-nav-search-suggestions"', false)
+            ->set('q', 'Dismiss Panel X')
+            ->assertSee('data-ui="global-nav-search-suggestions"', false);
+    }
+
     private function attachTagToVisibleActivity(Tag $tag): void
     {
         $owner = User::factory()->create();

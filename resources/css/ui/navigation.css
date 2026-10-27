@@ -8,6 +8,28 @@
         overflow: visible;
     }
 
+    @media (min-width: 60rem) {
+        .ui-app-navigation .ui-nav-global-search-field {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: min(18rem, 38vw);
+        }
+
+        .ui-app-navigation .ui-nav-global-search-field [data-ui='global-nav-search'] {
+            width: 100%;
+        }
+
+        .ui-app-navigation .ui-nav-global-search-field .input {
+            min-width: 0;
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .ui-app-navigation .ui-nav-global-search-field {
+            max-width: 20rem;
+        }
+    }
+
     .ui-app-navigation .dropdown-content {
         z-index: 100;
     }

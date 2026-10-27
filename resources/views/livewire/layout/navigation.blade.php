@@ -100,10 +100,10 @@ new class extends Component
         full-width
         role="navigation"
         aria-label="{{ __('ui.nav.main_navigation') }}"
-        class="fixed top-0 inset-x-0 z-40 border-b border-white/10 {{ $navSurface }} [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
+        class="fixed top-0 inset-x-0 z-40 border-b border-white/10 {{ $navSurface }} [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:min-w-0 [&>div]:!py-0 [&>div]:px-4 nav:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
-            <div class="flex" x-show="! searchOpen" x-cloak>
+            <div class="flex min-w-0" x-show="! searchOpen" x-cloak>
                 <div class="flex shrink-0 items-center">
                     <x-brand
                         size="nav"
@@ -113,86 +113,107 @@ new class extends Component
                     />
                 </div>
 
-                <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden min-w-0 space-x-4 nav:-my-px nav:ms-10 nav:flex nav:overflow-hidden">
                     @include('livewire.layout.partials.nav-primary-links', ['variant' => 'bar'])
                 </div>
             </div>
         </x-slot:brand>
 
-        <x-slot:actions class="!gap-2 sm:!gap-2 overflow-visible">
-            <div class="flex w-full min-w-0 items-center gap-1 sm:ms-6 sm:w-auto sm:gap-2">
+        <x-slot:actions class="!min-w-0 !shrink !gap-2 overflow-visible nav:!ms-6 nav:!justify-end">
+            <div class="flex w-full min-w-0 items-center justify-end gap-1 nav:w-auto nav:gap-2">
+                <div class="shrink-0 nav:hidden" x-show="! searchOpen" x-cloak>
+                    <x-button
+                        type="button"
+                        class="btn-ghost btn-square btn-sm"
+                        @click="openSearch()"
+                        icon="o-magnifying-glass"
+                        :tooltip="__('ui.nav.open_search')"
+                        :aria-label="__('ui.nav.open_search')"
+                    />
+                </div>
+
                 <div
-                    class="min-w-0 items-center gap-2 sm:flex sm:w-56 lg:w-72"
-                    :class="searchOpen ? 'flex max-sm:fixed max-sm:inset-x-0 max-sm:top-0 max-sm:z-[60] max-sm:min-h-16 max-sm:border-b max-sm:border-white/10 max-sm:px-4 max-sm:backdrop-blur-md {{ $navSurface }}' : 'max-sm:hidden'"
+                    class="flex min-w-0 items-center justify-end gap-1 nav:max-w-[min(100%,40rem)] nav:gap-2"
+                    :class="searchOpen
+                        ? 'max-nav:fixed max-nav:inset-x-0 max-nav:top-0 max-nav:z-[60] max-nav:flex max-nav:min-h-16 max-nav:flex-1 max-nav:items-center max-nav:px-4 max-nav:bg-transparent'
+                        : 'max-nav:hidden nav:flex'"
                 >
-                    <livewire:layout.global-nav-search />
-                </div>
-
-                <x-button
-                    type="button"
-                    class="btn-ghost btn-square btn-sm shrink-0 sm:hidden"
-                    x-show="! searchOpen"
-                    @click="openSearch()"
-                    icon="o-magnifying-glass"
-                    :tooltip="__('ui.nav.open_search')"
-                    :aria-label="__('ui.nav.open_search')"
-                />
-
-                <div class="flex items-center gap-1 sm:gap-2" x-show="! searchOpen" x-cloak>
-                <div class="hidden sm:flex sm:items-center sm:gap-2">
-                    <x-locale-toggle />
-                    <x-theme-toggle class="btn btn-circle btn-ghost"/>
-                    @guest
-                        <x-button :link="route('login')" class="btn-ghost btn-sm font-display">
-                            {{ __('ui.nav.log_in') }}
-                        </x-button>
-
-                        @if (Route::has('register'))
-                            <x-button :link="route('register')" class="btn-primary btn-sm font-display">
-                                {{ __('ui.nav.register') }}
-                            </x-button>
-                        @endif
-                    @endguest
-                </div>
-                @auth
-                    <livewire:user-requests.user-request-dropdown
-                        :key="'nav-requests-'.auth()->id()"
-                    />
-                    <livewire:notifications.notification-dropdown
-                        :key="'nav-notifications-'.auth()->id()"
-                    />
-                    <div class="dropdown dropdown-end relative z-50 hidden sm:block">
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle border border-base-300 p-0 light:border-neutral">
-                            <x-user-badge
-                                :user="auth()->user()"
-                                :avatar-url="$navAvatarUrl"
-                                size="sm"
-                                avatar-only
-                                track-nav-avatar
-                                :contact-popover="false"
-                            />
-                        </div>
-                        <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral">
-                            <li class="mb-2 border-b border-base-300 px-2 pb-2 light:border-neutral">
-                                <a
-                                    wire:navigate
-                                    href="{{ route('profile') }}"
-                                    data-ui="nav-account-header"
-                                    class="-mx-1 block rounded-lg px-1 py-0.5"
-                                >
-                                    <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
-                                    <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
-                                </a>
-                            </li>
-                            @include('livewire.layout.partials.nav-account-menu-items', ['variant' => 'dropdown'])
-                        </ul>
+                    <div class="shrink-0 nav:hidden" x-show="searchOpen" x-cloak>
+                        <x-button
+                            type="button"
+                            class="btn-ghost btn-square btn-sm"
+                            @click="closeSearch()"
+                            icon="o-x-mark"
+                            :tooltip="__('ui.nav.close_search')"
+                            :aria-label="__('ui.nav.close_search')"
+                        />
                     </div>
-                @endauth
-                <div class="-me-2 flex items-center sm:hidden">
+
+                    <div class="ui-nav-global-search-field min-w-0 w-full">
+                        <livewire:layout.global-nav-search />
+                    </div>
+
+                    <div class="hidden shrink-0 items-center gap-2 nav:flex">
+                        <x-locale-toggle />
+                        <x-theme-toggle class="btn btn-circle btn-ghost"/>
+                        @guest
+                            <x-button :link="route('login')" class="btn-ghost btn-sm font-display">
+                                {{ __('ui.nav.log_in') }}
+                            </x-button>
+
+                            @if (Route::has('register'))
+                                <x-button :link="route('register')" class="btn-primary btn-sm font-display">
+                                    {{ __('ui.nav.register') }}
+                                </x-button>
+                            @endif
+                        @endguest
+                    </div>
+                </div>
+
+                <div
+                    class="flex shrink-0 items-center gap-1 nav:gap-2"
+                    x-bind:class="searchOpen ? 'max-nav:hidden' : ''"
+                >
+                    @auth
+                        <livewire:user-requests.user-request-dropdown
+                            :key="'nav-requests-'.auth()->id()"
+                        />
+                        <livewire:notifications.notification-dropdown
+                            :key="'nav-notifications-'.auth()->id()"
+                        />
+                        <div class="dropdown dropdown-end relative z-50 hidden nav:block">
+                            <div tabindex="0" role="button" class="btn btn-ghost btn-circle border border-base-300 p-0 light:border-neutral">
+                                <x-user-badge
+                                    :user="auth()->user()"
+                                    :avatar-url="$navAvatarUrl"
+                                    size="sm"
+                                    avatar-only
+                                    track-nav-avatar
+                                    :contact-popover="false"
+                                />
+                            </div>
+                            <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral">
+                                <li class="mb-2 border-b border-base-300 px-2 pb-2 light:border-neutral">
+                                    <a
+                                        wire:navigate
+                                        href="{{ route('profile') }}"
+                                        data-ui="nav-account-header"
+                                        class="-mx-1 block rounded-lg px-1 py-0.5"
+                                    >
+                                        <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
+                                        <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
+                                    </a>
+                                </li>
+                                @include('livewire.layout.partials.nav-account-menu-items', ['variant' => 'dropdown'])
+                            </ul>
+                        </div>
+                    @endauth
+                </div>
+
+                <div class="-me-2 flex shrink-0 items-center nav:hidden" x-show="! searchOpen" x-cloak>
                     <x-button
                         type="button"
                         x-ref="menuToggle"
-                        x-show="! searchOpen"
                         @click="toggle()"
                         x-bind:aria-expanded="open"
                         aria-controls="mobile-nav-drawer"
@@ -204,7 +225,6 @@ new class extends Component
                             <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </x-button>
-                </div>
                 </div>
             </div>
         </x-slot:actions>
@@ -222,7 +242,7 @@ new class extends Component
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
-            class="fixed inset-0 z-50 sm:hidden"
+            class="fixed inset-0 z-50 nav:hidden"
         >
             <button
                 type="button"

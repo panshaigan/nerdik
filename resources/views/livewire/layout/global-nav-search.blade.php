@@ -7,16 +7,17 @@
         'places' => ['icon' => 'o-map-pin', 'label' => __('ui.nav.search_group_places')],
         'tags' => ['icon' => 'o-tag', 'label' => __('ui.nav.search_group_tags')],
     ];
-    $showSuggestions = mb_strlen(trim($q)) >= 2 && $hasSuggestions;
 @endphp
 
 <div
-    class="relative min-w-0 flex-1 overflow-visible sm:flex-none"
+    class="relative min-w-0 w-full flex-1 overflow-visible"
     data-ui="global-nav-search"
     x-data="{
         activeIndex: -1,
         init() {
             this.positionSuggestions();
+            this._onDocumentPointerDown = (event) => this.onOutsideClick(event);
+            document.addEventListener('pointerdown', this._onDocumentPointerDown, true);
             if (typeof Livewire !== 'undefined' && typeof Livewire.hook === 'function') {
                 Livewire.hook('commit', ({ succeed }) => {
                     succeed(() => {
@@ -27,6 +28,9 @@
             }
             window.addEventListener('resize', () => this.positionSuggestions());
             window.addEventListener('scroll', () => this.positionSuggestions(), true);
+        },
+        destroy() {
+            document.removeEventListener('pointerdown', this._onDocumentPointerDown, true);
         },
         suggestionItems() {
             return Array.from(this.$refs.suggestions?.querySelectorAll('[data-flat-index]') ?? []);
@@ -57,16 +61,30 @@
         },
         applyActiveStyles() {
             this.$nextTick(() => {
-                const items = this.$refs.suggestions?.querySelectorAll('[data-flat-index]') ?? [];
+                const panel = this.$refs.suggestions;
+                const items = panel?.querySelectorAll('[data-flat-index]') ?? [];
                 items.forEach((element) => {
                     const idx = Number(element.dataset.flatIndex);
                     const active = idx === this.activeIndex;
                     element.classList.toggle('bg-base-200', active);
                     element.setAttribute('aria-selected', active ? 'true' : 'false');
                 });
-                items.find((element) => Number(element.dataset.flatIndex) === this.activeIndex)
-                    ?.scrollIntoView({ block: 'nearest' });
+                const activeItem = Array.from(items).find(
+                    (element) => Number(element.dataset.flatIndex) === this.activeIndex,
+                );
+                if (panel && activeItem) {
+                    this.scrollOptionIntoPanel(activeItem, panel);
+                }
             });
+        },
+        scrollOptionIntoPanel(option, panel) {
+            const panelRect = panel.getBoundingClientRect();
+            const optionRect = option.getBoundingClientRect();
+            if (optionRect.top < panelRect.top) {
+                panel.scrollTop -= panelRect.top - optionRect.top;
+            } else if (optionRect.bottom > panelRect.bottom) {
+                panel.scrollTop += optionRect.bottom - panelRect.bottom;
+            }
         },
         activeDescendantId() {
             if (this.activeIndex < 0) {
@@ -79,38 +97,79 @@
         },
         onOutsideClick(event) {
             const panel = this.$refs.suggestions;
-            const field = this.$refs.globalSearchInput?.closest('label');
+            const field = this.$refs.searchField;
             if (panel?.contains(event.target) || field?.contains(event.target)) {
                 return;
             }
+            if (! panel) {
+                return;
+            }
             this.resetKeyboard();
+            this.$wire.dismissSuggestions();
+        },
+        onEscape(event) {
+            if (this.$refs.suggestions) {
+                event.stopPropagation();
+                this.resetKeyboard();
+                this.$wire.dismissSuggestions();
+                return;
+            }
+            this.$dispatch('global-nav-search-close-mobile');
         },
         positionSuggestions() {
             this.$nextTick(() => {
-                const input = this.$refs.globalSearchInput;
+                const field = this.$refs.searchField;
                 const panel = this.$refs.suggestions;
-                if (! input || ! panel) {
+                if (! field || ! panel) {
                     return;
                 }
-                const rect = input.getBoundingClientRect();
+                const rect = field.getBoundingClientRect();
+                const gap = 4;
+                const viewportPad = 8;
+                const isDesktopNav = window.matchMedia('(min-width: 60rem)').matches;
+                let left = rect.left;
+                let width = isDesktopNav ? rect.width * 2 : rect.width;
+                const maxRight = window.innerWidth - viewportPad;
+                if (left + width > maxRight) {
+                    width = Math.max(0, maxRight - left);
+                }
+                if (left < viewportPad) {
+                    const overflow = viewportPad - left;
+                    left = viewportPad;
+                    width = Math.max(0, width - overflow);
+                }
+                if (isDesktopNav && width < rect.width * 2 && left > viewportPad) {
+                    const desiredWidth = rect.width * 2;
+                    const shift = Math.min(left - viewportPad, desiredWidth - width);
+                    left -= shift;
+                    width += shift;
+                    if (left + width > maxRight) {
+                        width = Math.max(0, maxRight - left);
+                    }
+                }
                 panel.style.position = 'fixed';
-                panel.style.top = `${rect.bottom + 4}px`;
-                panel.style.left = `${rect.left}px`;
-                panel.style.width = `${Math.max(rect.width, 16 * 16)}px`;
+                panel.style.top = `${rect.bottom + gap}px`;
+                panel.style.left = `${left}px`;
+                panel.style.width = `${width}px`;
                 panel.style.right = 'auto';
+                panel.style.boxSizing = 'border-box';
             });
         },
     }"
-    @focusin="positionSuggestions()"
-    @click.outside="onOutsideClick($event)"
+    @focusin="positionSuggestions(); $wire.reopenSuggestionsIfEligible()"
     @keydown.arrow-down.prevent="navigateDown()"
     @keydown.arrow-up.prevent="navigateUp()"
     @keydown.enter="onEnter($event)"
-    @keydown.escape="resetKeyboard(); $dispatch('global-nav-search-close-mobile')"
+    @keydown.escape.stop="onEscape($event)"
 >
     <form wire:submit="submitSearch" class="relative min-w-0 flex-1">
-        <label class="input input-bordered input-sm flex w-full min-w-0 items-center gap-2 bg-base-100/90 light:bg-base-100">
-            <x-icon name="o-magnifying-glass" class="h-4 w-4 shrink-0 opacity-60" />
+        <label
+            x-ref="searchField"
+            class="input input-bordered input-sm flex w-full min-w-0 items-center gap-2 bg-base-100/90 light:bg-base-100"
+        >
+            <span class="inline-flex shrink-0 nav:hidden" aria-hidden="true">
+                <x-icon name="o-magnifying-glass" class="h-4 w-4 opacity-60" />
+            </span>
             <input
                 type="text"
                 wire:model.live.debounce.300ms="q"

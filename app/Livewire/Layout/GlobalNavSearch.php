@@ -14,6 +14,8 @@ class GlobalNavSearch extends Component
 {
     public string $q = '';
 
+    public bool $suggestionsDismissed = false;
+
     public bool $organizationPreviewModalOpen = false;
 
     public ?int $previewOrganizationId = null;
@@ -45,6 +47,23 @@ class GlobalNavSearch extends Component
         }
 
         $this->redirect(route('search.index', ['q' => $term]), navigate: true);
+    }
+
+    public function dismissSuggestions(): void
+    {
+        $this->suggestionsDismissed = true;
+    }
+
+    public function reopenSuggestionsIfEligible(): void
+    {
+        if (mb_strlen(trim($this->q)) >= 2) {
+            $this->suggestionsDismissed = false;
+        }
+    }
+
+    public function updatedQ(): void
+    {
+        $this->suggestionsDismissed = false;
     }
 
     public function openOrganizationPreview(int $organizationId): void
@@ -89,7 +108,24 @@ class GlobalNavSearch extends Component
         return view('livewire.layout.global-nav-search', [
             'suggestions' => $suggestions,
             'hasSuggestions' => self::hasAnySuggestions($suggestions),
+            'showSuggestions' => $this->shouldShowSuggestions($suggestions),
         ]);
+    }
+
+    /**
+     * @param  array<string, list<array<string, mixed>>>  $suggestions
+     */
+    private function shouldShowSuggestions(array $suggestions): bool
+    {
+        if ($this->suggestionsDismissed) {
+            return false;
+        }
+
+        if (mb_strlen(trim($this->q)) < 2) {
+            return false;
+        }
+
+        return self::hasAnySuggestions($suggestions);
     }
 
     /**
