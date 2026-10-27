@@ -20,6 +20,10 @@ final class WorkflowReleaseTriggersTest extends TestCase
         $this->assertStringContainsString('pull_request:', $ci);
         $this->assertStringContainsString("tags:\n      - v*", $ci);
         $this->assertStringNotContainsString("branches:\n      - main", $ci);
+        // A bare YAML null is exported as an empty string. Laravel then looks up
+        // a broadcast connection named "" while booting artisan in composer install.
+        $this->assertStringContainsString('BROADCAST_CONNECTION: "null"', $ci);
+        $this->assertDoesNotMatchRegularExpression('/BROADCAST_CONNECTION:\s+null\s*$/m', $ci);
     }
 
     #[Test]

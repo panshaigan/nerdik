@@ -123,7 +123,9 @@ jobs:
       APP_URL: http://localhost:8000
       SESSION_DOMAIN: localhost
       RECAPTCHA_ENABLED: false
-      BROADCAST_CONNECTION: null
+      # Quoted: a YAML null becomes an empty env var, and artisan then dies
+      # during composer install with "Broadcast connection [] is not defined."
+      BROADCAST_CONNECTION: "null"
       QUEUE_CONNECTION: sync
       CACHE_STORE: array
       MAIL_MAILER: array
