@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\Slot;
 use Illuminate\Database\Eloquent\Model;
 
 trait AuthorizesOwnership
@@ -14,5 +15,11 @@ trait AuthorizesOwnership
     {
         $user = auth()->user();
         abort_unless($user && $user->canModifyEntity($entity), 403);
+    }
+
+    protected function authorizeEventSlot(Slot $slot): void
+    {
+        $user = auth()->user();
+        abort_unless($user && $user->canModifyEventSlot($slot), 403);
     }
 }

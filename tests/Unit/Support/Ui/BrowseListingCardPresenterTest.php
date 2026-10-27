@@ -456,13 +456,17 @@ final class BrowseListingCardPresenterTest extends TestCase
     {
         $owner = User::factory()->create();
         $admin = User::factory()->admin()->create();
+        $maintainer = User::factory()->create(['is_event_organizer' => false]);
         $stranger = User::factory()->create();
-        $event = Event::factory()->create(['created_by' => $owner->id]);
+        $event = Event::factory()->withMaintainer($maintainer)->create(['created_by' => $owner->id]);
 
         $this->actingAs($owner);
         $this->assertTrue($this->presenter->fromEvent($event, [])->canEdit);
 
         $this->actingAs($admin);
+        $this->assertTrue($this->presenter->fromEvent($event, [])->canEdit);
+
+        $this->actingAs($maintainer);
         $this->assertTrue($this->presenter->fromEvent($event, [])->canEdit);
 
         $this->actingAs($stranger);

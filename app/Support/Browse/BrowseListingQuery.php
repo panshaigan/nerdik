@@ -23,7 +23,7 @@ final class BrowseListingQuery
 
         if ($filters->onlyMine && $userId !== null) {
             $query->where(function (Builder $outer) use ($userId): void {
-                $outer->where('events.created_by', $userId)
+                $outer->where(fn (Builder $managed) => $managed->managedByUser($userId))
                     ->orWhere(function (Builder $publicParticipation) use ($userId): void {
                         $publicParticipation
                             ->where('events.is_public', true)

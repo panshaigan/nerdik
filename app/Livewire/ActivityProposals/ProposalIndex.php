@@ -16,7 +16,7 @@ class ProposalIndex extends Component
         $proposals = ActivityProposal::query()
             ->where(function ($query) use ($userId): void {
                 $query->where('created_by', $userId)
-                    ->orWhereHas('event', fn ($eventQuery) => $eventQuery->where('created_by', $userId));
+                    ->orWhereHas('event', fn ($eventQuery) => $eventQuery->managedByUser($userId));
             })
             ->with(['activity', 'event', 'creator', 'acceptedSlot'])
             ->orderBy('created_at', 'desc')

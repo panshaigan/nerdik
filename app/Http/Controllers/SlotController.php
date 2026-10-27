@@ -22,13 +22,13 @@ class SlotController extends Controller
      */
     public function edit(Request $request, Slot $slot)
     {
-        $this->authorizeCreatedBy($slot);
+        $this->authorizeEventSlot($slot);
 
         $slot->load(['event.places', 'place.parent', 'activityTypes']);
 
         $user = auth()->user();
         $events = Event::query()
-            ->when(! $user?->is_admin, fn ($query) => $query->where('created_by', $user?->id))
+            ->when(! $user?->is_admin, fn ($query) => $query->managedByUser((int) $user?->id))
             ->orderBy('starts_at', 'desc')
             ->get();
 
@@ -68,7 +68,7 @@ class SlotController extends Controller
      */
     public function update(Request $request, Slot $slot)
     {
-        $this->authorizeCreatedBy($slot);
+        $this->authorizeEventSlot($slot);
 
         if ($request->expectsJson()) {
             try {

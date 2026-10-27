@@ -135,3 +135,7 @@
     :label="__('ui.events.public_event')"
     :hint="__('ui.events.public_event_hint')"
 />
+
+@island(name: 'event-maintainers')
+    @include('livewire.events.partials.manage-maintainers-section')
+@endisland

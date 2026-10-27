@@ -68,7 +68,7 @@ class UpcomingFeedQueryService
         $rows = collect();
 
         $myEventRows = Event::query()
-            ->where('created_by', $userId)
+            ->managedByUser($userId)
             ->whereRaw($eventSortExpr.' >= ?', [now()])
             ->select(['id'])
             ->selectRaw($eventSortExpr.' as sort_at')

@@ -397,7 +397,7 @@ class ShowEvent extends Component
         ]);
 
         $user = auth()->user();
-        $canManageEvent = $user !== null && $user->canModifyEntity($event);
+        $canManageEvent = $user !== null && $user->canManageEvent($event);
 
         $previousInSeries = $event->previousInSeries();
         $nextInSeries = $event->nextInSeries();

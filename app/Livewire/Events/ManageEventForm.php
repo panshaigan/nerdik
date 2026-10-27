@@ -10,8 +10,10 @@ use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\User;
 use App\Services\EventActivitySignupService;
 use App\Services\EventEmptySlotCloneService;
+use App\Services\Events\EventMaintainerService;
 use App\Services\LocationResolver;
 use App\Support\Events\EventDefaultImageCatalog;
 use App\Support\Events\EventEditionDateBumper;
@@ -28,10 +30,12 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Mary\Traits\Toast;
 
 class ManageEventForm extends Component
 {
     use AuthorizesOwnership;
+    use Toast;
     use WithFileUploads;
 
     private const NAME_SUGGESTIONS_LIMIT = 40;
@@ -92,6 +96,14 @@ class ManageEventForm extends Component
 
     /** When set, creating the event will clone empty slots from this source (owner-only; re-checked on save). */
     public ?int $duplicateSlotsFromEventId = null;
+
+    public string $lastSearchTerm = '';
+
+    /** @var list<array{id: int, name: string, display_name: string, avatar: string}> */
+    public array $userOptions = [];
+
+    /** @var array{id: int, name: string, display_name: string, avatar: string}|null */
+    public ?array $selectedMaintainerOption = null;
 
     public ?string $logo_source = null;
 
@@ -157,6 +169,118 @@ class ManageEventForm extends Component
     {
         // Map JS debounces live $set of new_places. Re-morphing reloads wire:ignore Leaflet.
         $this->skipRender();
+    }
+
+    public function updatedLastSearchTerm(EventMaintainerService $maintainers): void
+    {
+        $this->searchMaintainerCandidates($maintainers);
+    }
+
+    public function searchMaintainerCandidates(EventMaintainerService $maintainers): void
+    {
+        $event = $this->editingEventModel();
+        $actor = auth()->user();
+        if ($event === null || $actor === null || ! $actor->canManageEventMaintainers($event)) {
+            $this->userOptions = [];
+
+            return;
+        }
+
+        $this->userOptions = $maintainers->searchCandidates($event, $actor, $this->lastSearchTerm);
+    }
+
+    public function selectMaintainerCandidate(int $userId, EventMaintainerService $maintainers): void
+    {
+        $this->rememberMaintainerCandidate($userId);
+        $this->persistSelectedMaintainer($maintainers);
+    }
+
+    public function clearMaintainerCandidate(): void
+    {
+        $this->selectedMaintainerOption = null;
+        $this->lastSearchTerm = '';
+        $this->userOptions = [];
+    }
+
+    public function addMaintainer(EventMaintainerService $maintainers): void
+    {
+        $this->persistSelectedMaintainer($maintainers);
+    }
+
+    public function removeMaintainer(int $userId, EventMaintainerService $maintainers): void
+    {
+        $event = $this->editingEventModel();
+        $actor = auth()->user();
+        $maintainer = User::query()->find($userId);
+        if ($event === null || $actor === null || $maintainer === null) {
+            return;
+        }
+
+        try {
+            $maintainers->removeMaintainer($event, $actor, $maintainer);
+        } catch (ValidationException $e) {
+            $this->addError('maintainer', $e->validator->errors()->first('maintainer'));
+
+            return;
+        }
+
+        $this->success(__('ui.events.maintainers.removed'));
+    }
+
+    protected function rememberMaintainerCandidate(int $userId): void
+    {
+        $option = collect($this->userOptions)->firstWhere('id', $userId);
+        if ($option === null) {
+            $user = User::query()->find($userId);
+            if ($user === null) {
+                return;
+            }
+
+            $option = [
+                'id' => $user->id,
+                'name' => $user->nickname,
+                'display_name' => $user->displayName(),
+                'avatar' => $user->avatarUrl(),
+            ];
+        }
+
+        $this->selectedMaintainerOption = $option;
+        $this->lastSearchTerm = '';
+        $this->userOptions = [];
+    }
+
+    protected function persistSelectedMaintainer(EventMaintainerService $maintainers): void
+    {
+        $event = $this->editingEventModel();
+        $actor = auth()->user();
+        if ($event === null || $actor === null || $this->selectedMaintainerOption === null) {
+            return;
+        }
+
+        $candidate = User::query()->find($this->selectedMaintainerOption['id']);
+        if ($candidate === null) {
+            return;
+        }
+
+        try {
+            $maintainers->addMaintainer($event, $actor, $candidate);
+        } catch (ValidationException $e) {
+            $this->addError('maintainer', $e->validator->errors()->first('maintainer'));
+
+            return;
+        }
+
+        $this->clearMaintainerCandidate();
+        $this->success(__('ui.events.maintainers.added'));
+    }
+
+    protected function editingEventModel(): ?Event
+    {
+        if ($this->editingEventId === null) {
+            return null;
+        }
+
+        return Event::query()->with(['creator', 'maintainers'])->find($this->editingEventId);
     }
 
     public function updatedEndsAt(string $value): void
@@ -593,6 +717,7 @@ class ManageEventForm extends Component
         EventActivitySignupService $signupService,
         EventEmptySlotCloneService $slotCloneService,
         PersistenceTiming $timing,
+        EventMaintainerService $maintainers,
     ): mixed {
         $operation = $this->editingEventId === null ? 'event.create' : 'event.update';
         $timing->start($operation);
@@ -645,6 +770,7 @@ class ManageEventForm extends Component
                 $this->syncEnrollmentWindows($event, $signupService);
                 $timing->checkpoint('enrollment_windows');
                 $this->applyEventLogoFromForm($event, $timing);
+                $this->persistSelectedMaintainer($maintainers);
                 session()->flash('status', __('Event updated.'));
 
                 $response = redirect()->route('events.show', $event);
@@ -1069,7 +1195,7 @@ class ManageEventForm extends Component
     public function render()
     {
         $editingEvent = $this->editingEventId !== null
-            ? Event::query()->with('creator')->find($this->editingEventId)
+            ? Event::query()->with(['creator', 'maintainers'])->find($this->editingEventId)
             : null;
 
         $places = Place::with(['city.translations', 'country.translations'])

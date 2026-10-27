@@ -292,7 +292,7 @@ class EventShowPlanTab extends Component
             abort(404);
         }
 
-        $this->authorizeCreatedBy($slot);
+        $this->authorizeEventSlot($slot);
         $slot->delete();
         $this->proposalSlotIds = array_values(array_filter(
             $this->proposalSlotIds,

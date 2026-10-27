@@ -7,7 +7,9 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\Slot;
+use App\Models\User;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Services\Events\EventMaintainerService;
 use Illuminate\Validation\ValidationException;
 
 class ActivityProposalFlowService
@@ -26,11 +28,15 @@ class ActivityProposalFlowService
         }
 
         $submitterId = $proposal->created_by;
-        if ((int) $event->created_by === (int) $submitterId) {
+        $submitter = $submitterId !== null ? User::query()->find($submitterId) : null;
+        if ($submitter !== null && $submitter->canModifyEntity($event)) {
             return;
         }
 
-        $event->creator?->notify(new ProposalSubmittedNotification($proposal));
+        $managers = app(EventMaintainerService::class)->managingUsers($event);
+        foreach ($managers as $manager) {
+            $manager->notify(new ProposalSubmittedNotification($proposal));
+        }
     }
 
     /**
@@ -89,7 +95,8 @@ class ActivityProposalFlowService
             return;
         }
 
-        if ((int) $event->created_by !== (int) $proposal->created_by) {
+        $submitter = $proposal->created_by !== null ? User::query()->find($proposal->created_by) : null;
+        if ($submitter === null || ! $submitter->canModifyEntity($event)) {
             return;
         }
 

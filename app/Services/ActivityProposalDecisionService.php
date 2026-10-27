@@ -75,9 +75,15 @@ class ActivityProposalDecisionService
         $this->hostingModes->markScheduledOnEvent($proposal->activity);
         $this->participationConstraints->applyForcedSettingsToActivity($slot, $proposal->activity);
 
-        // Organizers do not need a notification about accepting their own proposal.
-        if ((int) $proposal->created_by !== (int) $event->created_by) {
-            $proposal->creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
+        $proposal->loadMissing(['creator', 'event']);
+        $eventForNotify = $proposal->event;
+        $creator = $proposal->creator;
+        $creatorManagesEvent = $eventForNotify !== null
+            && $creator !== null
+            && $creator->canModifyEntity($eventForNotify);
+
+        if (! $creatorManagesEvent) {
+            $creator?->notify(new ProposalAcceptedNotification($proposal->fresh(['activity', 'event'])));
         }
     }
 

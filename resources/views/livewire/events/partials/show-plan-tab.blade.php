@@ -220,7 +220,7 @@
                                     @auth
                                         @php
                                             $showDetachActivity = $canManageEvent && $activity;
-                                            $showSlotEditDelete = auth()->user()?->canModifyEntity($slot) ?? false;
+                                            $showSlotEditDelete = auth()->user()?->canModifyEventSlot($slot) ?? false;
                                         @endphp
                                         @if ($showDetachActivity || $showSlotEditDelete || $activity)
                                             <div class="flex items-center justify-end relative z-[3] gap-1 pointer-events-auto" @if (! $activity) onclick="event.stopPropagation()" @endif>

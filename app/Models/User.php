@@ -21,6 +21,7 @@ use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -305,9 +306,61 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             return true;
         }
 
+        if ($entity instanceof Event) {
+            return $this->canManageEvent($entity);
+        }
+
         $ownerId = $entity->getAttribute('created_by');
 
         return $ownerId !== null && (int) $ownerId === (int) $this->id;
+    }
+
+    /**
+     * Whether this user may manage an event (owner or assigned co-organizer).
+     */
+    public function canManageEvent(Event $event): bool
+    {
+        if ($this->is_admin === true) {
+            return true;
+        }
+
+        return $event->isMaintainedBy($this);
+    }
+
+    /**
+     * Whether this user may add or remove event maintainers (owner or admin only).
+     */
+    public function canManageEventMaintainers(Event $event): bool
+    {
+        if ($this->is_admin === true) {
+            return true;
+        }
+
+        $ownerId = $event->getAttribute('created_by');
+
+        return $ownerId !== null && (int) $ownerId === (int) $this->id;
+    }
+
+    /**
+     * Whether this user may mutate a slot belonging to an event (event owner or maintainer).
+     */
+    public function canModifyEventSlot(Slot $slot): bool
+    {
+        if ($this->is_admin === true) {
+            return true;
+        }
+
+        $slot->loadMissing('event');
+        $event = $slot->event;
+
+        return $event instanceof Event && $this->canModifyEntity($event);
+    }
+
+    public function maintainedEvents(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_maintainers')
+            ->withPivot('created_by')
+            ->withTimestamps();
     }
 
     /**

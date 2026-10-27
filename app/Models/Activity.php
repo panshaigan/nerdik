@@ -58,10 +58,10 @@ class Activity extends Model implements HasMedia
 
             if ($user !== null) {
                 $visibility->orWhere('activities.created_by', $user->id)
-                    ->orWhereHas('slot.event', fn (Builder $event) => $event->where('events.created_by', $user->id))
+                    ->orWhereHas('slot.event', fn (Builder $event) => $event->managedByUser($user->id))
                     ->orWhereHas('proposals', fn (Builder $proposal) => $proposal
                         ->where('status', ActivityProposalStatus::Pending)
-                        ->whereHas('event', fn (Builder $event) => $event->where('events.created_by', $user->id)));
+                        ->whereHas('event', fn (Builder $event) => $event->managedByUser($user->id)));
             }
         });
     }

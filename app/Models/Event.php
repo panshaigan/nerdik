@@ -74,9 +74,42 @@ class Event extends Model implements HasMedia
         $query->where(function (Builder $visibility) use ($user): void {
             $visibility->where('events.is_public', true);
             if ($user !== null) {
-                $visibility->orWhere('events.created_by', $user->id);
+                $visibility->orWhere(fn (Builder $managed) => $managed->managedByUser($user->id));
             }
         });
+    }
+
+    /**
+     * Owner or assigned maintainer (not admins — use {@see User::canModifyEntity} for auth).
+     *
+     * @param  Builder<Event>  $query
+     */
+    public function scopeManagedByUser(Builder $query, int $userId): void
+    {
+        $query->where(function (Builder $managed) use ($userId): void {
+            $managed->where('events.created_by', $userId)
+                ->orWhereHas('maintainers', fn (Builder $maintainers) => $maintainers->where('users.id', $userId));
+        });
+    }
+
+    public function isMaintainedBy(User $user): bool
+    {
+        if ((int) $this->created_by === (int) $user->id) {
+            return true;
+        }
+
+        if (! $this->exists) {
+            return false;
+        }
+
+        return $this->maintainers()->whereKey($user->getKey())->exists();
+    }
+
+    public function maintainers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'event_maintainers')
+            ->withPivot('created_by')
+            ->withTimestamps();
     }
 
     public function listingMedia(): BelongsTo

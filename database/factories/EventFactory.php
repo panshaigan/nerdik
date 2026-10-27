@@ -75,6 +75,20 @@ final class EventFactory extends Factory
         ]);
     }
 
+    public function withMaintainer(?User $maintainer = null): self
+    {
+        return $this->afterCreating(function (Event $event) use ($maintainer): void {
+            $user = $maintainer ?? User::factory()->create();
+            if ((int) $user->id === (int) $event->created_by) {
+                $user = User::factory()->create();
+            }
+
+            $event->maintainers()->attach($user->id, [
+                'created_by' => $event->created_by,
+            ]);
+        });
+    }
+
     public function withSameCreatorAsOrganization(): self
     {
         return $this->afterCreating(function (Event $event) {
