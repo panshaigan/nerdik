@@ -57,6 +57,7 @@ new class extends Component
 <div
     x-data="{
         open: false,
+        searchOpen: false,
         toggle() {
             this.open = ! this.open;
             this.syncBody();
@@ -65,6 +66,15 @@ new class extends Component
             this.open = false;
             this.syncBody();
             this.$nextTick(() => this.$refs.menuToggle?.focus());
+        },
+        openSearch() {
+            this.searchOpen = true;
+            this.$nextTick(() => {
+                this.$root.querySelector('[data-ui=\'global-nav-search\'] input')?.focus();
+            });
+        },
+        closeSearch() {
+            this.searchOpen = false;
         },
         syncBody() {
             document.body.style.overflow = this.open ? 'hidden' : '';
@@ -76,6 +86,7 @@ new class extends Component
         },
     }"
     @keydown.escape.window="open && close()"
+    @global-nav-search-close-mobile.window="closeSearch()"
     class="ui-app-navigation"
 >
     @php
@@ -92,7 +103,7 @@ new class extends Component
         class="fixed top-0 inset-x-0 z-40 border-b border-white/10 {{ $navSurface }} [&>div]:mx-auto [&>div]:max-w-7xl [&>div]:min-h-16 [&>div]:!py-0 [&>div]:px-4 sm:[&>div]:px-6 lg:[&>div]:px-8"
     >
         <x-slot:brand>
-            <div class="flex">
+            <div class="flex" x-show="! searchOpen" x-cloak>
                 <div class="flex shrink-0 items-center">
                     <x-brand
                         size="nav"
@@ -108,8 +119,26 @@ new class extends Component
             </div>
         </x-slot:brand>
 
-        <x-slot:actions class="!gap-2 sm:!gap-2">
-            <div class="flex items-center gap-1 sm:ms-6 sm:gap-2">
+        <x-slot:actions class="!gap-2 sm:!gap-2 overflow-visible">
+            <div class="flex w-full min-w-0 items-center gap-1 sm:ms-6 sm:w-auto sm:gap-2">
+                <div
+                    class="min-w-0 items-center gap-2 sm:flex sm:w-56 lg:w-72"
+                    :class="searchOpen ? 'flex max-sm:fixed max-sm:inset-x-0 max-sm:top-0 max-sm:z-[60] max-sm:min-h-16 max-sm:border-b max-sm:border-white/10 max-sm:px-4 max-sm:backdrop-blur-md {{ $navSurface }}' : 'max-sm:hidden'"
+                >
+                    <livewire:layout.global-nav-search />
+                </div>
+
+                <x-button
+                    type="button"
+                    class="btn-ghost btn-square btn-sm shrink-0 sm:hidden"
+                    x-show="! searchOpen"
+                    @click="openSearch()"
+                    icon="o-magnifying-glass"
+                    :tooltip="__('ui.nav.open_search')"
+                    :aria-label="__('ui.nav.open_search')"
+                />
+
+                <div class="flex items-center gap-1 sm:gap-2" x-show="! searchOpen" x-cloak>
                 <div class="hidden sm:flex sm:items-center sm:gap-2">
                     <x-locale-toggle />
                     <x-theme-toggle class="btn btn-circle btn-ghost"/>
@@ -163,6 +192,7 @@ new class extends Component
                     <x-button
                         type="button"
                         x-ref="menuToggle"
+                        x-show="! searchOpen"
                         @click="toggle()"
                         x-bind:aria-expanded="open"
                         aria-controls="mobile-nav-drawer"
@@ -174,6 +204,7 @@ new class extends Component
                             <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </x-button>
+                </div>
                 </div>
             </div>
         </x-slot:actions>

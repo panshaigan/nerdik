@@ -3,6 +3,11 @@
         height: var(--app-nav-height);
     }
 
+    .ui-app-navigation [data-ui='global-nav-search'],
+    .ui-app-navigation [data-ui='global-nav-search-suggestions'] {
+        overflow: visible;
+    }
+
     .ui-app-navigation .dropdown-content {
         z-index: 100;
     }

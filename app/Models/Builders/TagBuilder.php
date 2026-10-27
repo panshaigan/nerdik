@@ -5,6 +5,7 @@ namespace App\Models\Builders;
 use App\Models\Activity;
 use App\Models\Tag;
 use App\Models\TagCategory;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -98,6 +99,120 @@ class TagBuilder extends Builder
                 ->where('taggable_type', $activityMorph)
                 ->whereIn('taggable_id', Activity::query()->attachedToPublicEvent($upcomingOnly)->select('activities.id'));
         });
+    }
+
+    public function usedOnActivitiesVisibleTo(?User $user): self
+    {
+        $activityMorph = (new Activity)->getMorphClass();
+
+        return $this->whereIn($this->getModel()->getQualifiedKeyName(), function ($query) use ($activityMorph, $user): void {
+            $query->select('tag_id')
+                ->from('taggables')
+                ->where('taggable_type', $activityMorph)
+                ->whereIn('taggable_id', Activity::query()->visibleTo($user)->select('activities.id'));
+        });
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function searchForGlobalNav(string $query, ?User $user, int $limit): Collection
+    {
+        $normalized = mb_strtolower(trim($query));
+        if ($normalized === '') {
+            return collect();
+        }
+
+        $like = '%'.$normalized.'%';
+        $similarityThreshold = 0.2;
+        $useSimilarity = mb_strlen($normalized) >= 3;
+
+        return $this->getModel()->newQuery()
+            ->with(['translations', 'aliases', 'tagCategory.translations'])
+            ->usedOnActivitiesVisibleTo($user)
+            ->where(function (Builder $outer) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                $outer->whereHas('translations', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                    $q->where(function (Builder $inner) use ($like): void {
+                        $inner->whereRaw('LOWER(label) LIKE ?', [$like])
+                            ->orWhereRaw('LOWER(slug) LIKE ?', [$like]);
+                    });
+                    if ($useSimilarity) {
+                        $q->orWhere(function (Builder $inner) use ($normalized, $similarityThreshold): void {
+                            $inner->whereRaw('similarity(LOWER(label), ?) >= ?', [$normalized, $similarityThreshold])
+                                ->orWhereRaw('similarity(LOWER(slug), ?) >= ?', [$normalized, $similarityThreshold]);
+                        });
+                    }
+                })->orWhereHas('aliases', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                    $q->whereRaw('LOWER(alias) LIKE ?', [$like]);
+                    if ($useSimilarity) {
+                        $q->orWhereRaw('similarity(LOWER(alias), ?) >= ?', [$normalized, $similarityThreshold]);
+                    }
+                });
+            })
+            ->orderByRaw(
+                '
+                (
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) = ? OR LOWER(tag_translations.slug) = ?)
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) = ?
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) LIKE ? OR LOWER(tag_translations.slug) LIKE ?)
+                    ) THEN 1 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) LIKE ?
+                    ) THEN 1 ELSE 0 END
+                ) DESC,
+                GREATEST(
+                    COALESCE((
+                        SELECT MAX(
+                            GREATEST(
+                                similarity(LOWER(tag_translations.label), ?),
+                                similarity(LOWER(tag_translations.slug), ?)
+                            )
+                        )
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                    ), 0),
+                    COALESCE((
+                        SELECT MAX(similarity(LOWER(tag_aliases.alias), ?))
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                    ), 0)
+                ) DESC
+                ',
+                [
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                    $like,
+                    $like,
+                    $like,
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                ]
+            )
+            ->orderedByPopularity()
+            ->limit($limit)
+            ->get();
     }
 
     /**
