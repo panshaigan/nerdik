@@ -61,6 +61,10 @@ ensure_sail_running() {
 
 run_test_job() {
     step "npm ci"
+    # Older e2e installs left root-owned Chromium files in node_modules
+    # (PLAYWRIGHT_BROWSERS_PATH=0). npm ci runs as sail and cannot delete them.
+    "$SAIL" exec -u root laravel.test \
+        bash -c 'source scripts/lib/playwright-chromium.sh && playwright_remove_node_modules_browsers "$PWD"'
     "$SAIL" npm ci
 
     step "npm run build"

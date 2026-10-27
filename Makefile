@@ -156,10 +156,11 @@ test-all:
 	$(SAIL) artisan test --parallel
 
 # First-wave Playwright browser tests (Sail app must already be up).
+# Chromium is installed as the sail user, outside node_modules, so npm ci can wipe node_modules.
 test-e2e:
 	$(SAIL) artisan e2e:prepare
-	$(SAIL) exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test ./scripts/ensure-playwright-chromium.sh
-	$(SAIL) exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test $(ARGS)
+	$(SAIL) exec -u root laravel.test ./scripts/ensure-playwright-chromium.sh
+	$(SAIL) exec laravel.test npx playwright test $(ARGS)
 
 regenerate-tags:
 	$(SAIL) artisan tags:recalculate-popularity

@@ -1,26 +1,44 @@
 #!/usr/bin/env bash
-# Ensure Playwright Chromium is present in the Sail app container (PLAYWRIGHT_BROWSERS_PATH=0).
+# Ensure Playwright Chromium is installed for the Sail app user.
+#
+# OS packages need root (`playwright install-deps`). The browser is installed
+# as the app user into that user's cache, outside node_modules, so a later
+# `npm ci` can delete node_modules without hitting root-owned files.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/playwright-chromium.sh
+source "${ROOT}/scripts/lib/playwright-chromium.sh"
+
 cd "$ROOT"
 
-export PLAYWRIGHT_BROWSERS_PATH=0
+APP_USER="${PLAYWRIGHT_APP_USER:-sail}"
 
-playwright_chromium_ready() {
-    find node_modules/playwright-core/.local-browsers \
-        -maxdepth 4 \
-        -type f \
-        -name chrome \
-        -path '*/chrome-linux64/*' \
-        2>/dev/null \
-        | head -n 1 \
-        | grep -q .
-}
+playwright_sanitize_browsers_path
+playwright_remove_node_modules_browsers "$ROOT"
 
-if playwright_chromium_ready; then
+if playwright_chromium_installed "$APP_USER"; then
     exit 0
 fi
 
 echo 'Playwright Chromium not found; installing browser and OS dependencies (first run may take a minute)...' >&2
-npx playwright install --with-deps chromium
+
+if [[ "$(id -u)" -eq 0 ]]; then
+    npx playwright install-deps chromium
+
+    if [[ -n "${PLAYWRIGHT_BROWSERS_PATH:-}" ]]; then
+        runuser -u "$APP_USER" -- env PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_BROWSERS_PATH" \
+            npx playwright install chromium
+    else
+        runuser -u "$APP_USER" -- npx playwright install chromium
+    fi
+
+    exit 0
+fi
+
+if [[ "$(id -un)" != "$APP_USER" ]]; then
+    echo "Run this script as root or as ${APP_USER}." >&2
+    exit 1
+fi
+
+npx playwright install chromium

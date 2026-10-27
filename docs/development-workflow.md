@@ -114,14 +114,14 @@ With Sail already running:
 make test-e2e
 ```
 
-`make test-e2e` runs `e2e:prepare`, installs Playwright Chromium inside the Sail container when it is missing (first run only), then runs the specs.
+`make test-e2e` runs `e2e:prepare`, installs Playwright Chromium inside the Sail container when it is missing (first run only), then runs the specs. Chromium goes into the `sail` user's cache, not `node_modules`, so a later `npm ci` can replace `node_modules`.
 
 Or step by step:
 
 ```bash
 vendor/bin/sail artisan e2e:prepare
-vendor/bin/sail exec -u root -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test ./scripts/ensure-playwright-chromium.sh
-vendor/bin/sail exec -e PLAYWRIGHT_BROWSERS_PATH=0 laravel.test npx playwright test
+vendor/bin/sail exec -u root laravel.test ./scripts/ensure-playwright-chromium.sh
+vendor/bin/sail exec laravel.test npx playwright test
 ```
 
 `e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event with enrollment, joinable and waitlist activities, proposal fixtures, a Wrocław venue, and `storage/app/e2e-fixtures.json`. Re-running it clears the player's signup and waitlist entries so join/waitlist specs stay repeatable.
