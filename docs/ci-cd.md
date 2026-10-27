@@ -84,6 +84,20 @@ It does **not** wait on Deploy. It always ends with a smoke check of `https://ne
 
 Flags: `DRY_RUN=1` (plan only), `SKIP_WATCH=1` (push/tag without web polling), `SKIP_SMOKE=1` (skip final `/up` check).
 
+After `make check` has already passed, publish without running it again:
+
+```bash
+make release-push            # minor bump, commit, push, tag (no make check)
+make release-push feature
+```
+
+If that tag was already pushed and GitHub CI failed, fix the branch, then move the tag onto the current commit and push it again. This deletes the remote tag first so CI and Docker start a new run. It does not bump `VERSION`.
+
+```bash
+make release-repush          # retag the version in VERSION
+make release-repush 1.10.24  # retag a specific release
+```
+
 ### Manual release
 
 1. Bump [`VERSION`](../VERSION) if needed and commit on `main`.
@@ -198,6 +212,8 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 |---------|-----|
 | `make check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
 | `make release` | `make check`, then bump VERSION, push tag, watch GitHub CI/CD + Release page, smoke `nerdik.app/up` |
+| `make release-push` | Same publish as `make release`, without `make check` |
+| `make release-repush` | Move an existing release tag onto HEAD and push it again after a failed GitHub run |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |
 | `IMAGE_TAG=<sha\|semver> make deploy` | Pin deploy to a GHCR tag |
 | `make down` | Stop this checkout's stack (use in `/opt/nerdik-staging` to leave prod up) |

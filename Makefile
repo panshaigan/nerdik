@@ -21,7 +21,7 @@ passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdli
 
 .PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test test-fast test-e2e test-coverage-services npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
-        maintenance deploy release init dump-schema sync-from-prod sync-to-staging check \
+        maintenance deploy release release-push release-repush init dump-schema sync-from-prod sync-to-staging check \
         backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
@@ -197,6 +197,18 @@ check:
 # Examples: make release | make release feature | make release 1.12.5
 release:
 	VERSION=$(VERSION) ./scripts/release.sh $(passthrough_args)
+
+# Same publish as make release, without make check. Run make check yourself first.
+# Examples: make release-push | make release-push feature | make release-push 1.12.5
+release-push:
+	VERSION=$(VERSION) SKIP_CHECK=1 ./scripts/release.sh $(passthrough_args)
+
+# Move the existing VERSION tag onto HEAD and push it again.
+# Use when that tag was already pushed and GitHub CI failed. Deletes the remote
+# tag first so Actions starts a new run. Does not bump VERSION or run make check.
+# Examples: make release-repush | make release-repush 1.10.24
+release-repush:
+	REPUSH=1 ./scripts/release.sh $(passthrough_args)
 
 # VPS Docker stack (not Sail) — env from APP_ENV in this checkout's .env
 IMAGE_TAG ?=
