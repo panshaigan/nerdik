@@ -160,8 +160,8 @@ return [
             'large' => ['webp' => 98],
         ],
         'sources' => [
-            'dark' => 'images/app/background-dark-original.png',
-            'light' => 'images/app/background-light-original.png',
+            'dark' => 'images/app/background-dark-original.webp',
+            'light' => 'images/app/background-light-original.webp',
         ],
         'output_dir' => 'images/app/backgrounds',
     ],
