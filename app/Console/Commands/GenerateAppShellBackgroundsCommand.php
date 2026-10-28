@@ -37,7 +37,8 @@ class GenerateAppShellBackgroundsCommand extends Command
             ));
         }
 
-        $this->line('Manifest: public/images/app/backgrounds/manifest.json');
+        $outputDir = (string) config('media.app_shell_background.output_dir', 'images/app/backgrounds');
+        $this->line('Manifest: public/'.$outputDir.'/manifest.json');
 
         return self::SUCCESS;
     }

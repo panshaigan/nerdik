@@ -24,6 +24,14 @@ final class GenerateAppShellBackgroundVariants
         /** @var array<string, string> $sources */
         $sources = $config['sources'] ?? [];
         $outputDir = (string) ($config['output_dir'] ?? 'images/app/backgrounds');
+
+        if (app()->runningUnitTests() && $outputDir === 'images/app/backgrounds') {
+            throw new RuntimeException(
+                'Refusing to regenerate app shell backgrounds in public/images/app/backgrounds during tests. '
+                .'Override media.app_shell_background.output_dir to an isolated directory.',
+            );
+        }
+
         $manifest = [];
 
         foreach ($sources as $theme => $sourcePath) {
