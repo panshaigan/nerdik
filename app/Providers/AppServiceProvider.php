@@ -191,6 +191,12 @@ class AppServiceProvider extends ServiceProvider
             )->by("participation:{$userId}:{$activityId}");
         });
 
+        RateLimiter::for('admin-custom-email', function (): Limit {
+            return Limit::perMinute(
+                max(1, (int) config('admin_custom_email.sends_per_minute', 30)),
+            );
+        });
+
         RateLimiter::for('feedback-upload', function (Request $request) {
             return Limit::perMinutes(
                 max(1, (int) config('feedback.upload_decay_minutes', 1)),

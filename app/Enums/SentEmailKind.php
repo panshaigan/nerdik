@@ -11,6 +11,7 @@ use App\Notifications\ActivityParticipantLeftNotification;
 use App\Notifications\ActivityPlacesLowNotification;
 use App\Notifications\ActivityRemovedByHostNotification;
 use App\Notifications\ActivityReopenedNotification;
+use App\Notifications\AdminCustomEmailNotification;
 use App\Notifications\EventCancelledNotification;
 use App\Notifications\EventPlacesLowNotification;
 use App\Notifications\EventReopenedNotification;
@@ -55,6 +56,7 @@ enum SentEmailKind: string
     case ResetPassword = 'reset_password';
     case VerifyPendingEmail = 'verify_pending_email';
     case BackupFailed = 'backup_failed';
+    case AdminCustom = 'admin_custom';
     case Unknown = 'unknown';
 
     public function label(): string
@@ -91,6 +93,7 @@ enum SentEmailKind: string
             VerifyEmailNotification::class => self::VerifyEmail,
             ResetPasswordNotification::class => self::ResetPassword,
             BackupFailedMail::class => self::BackupFailed,
+            AdminCustomEmailNotification::class => self::AdminCustom,
             default => self::Unknown,
         };
     }
