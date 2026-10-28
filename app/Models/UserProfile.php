@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\AvatarSource;
 use App\Enums\TimeDisplayFormat;
+use App\Support\Ui\GeneratedAvatarColors;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,20 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class UserProfile extends Model
 {
     use HasFactory;
+
+    #[\Override]
+    protected static function booted(): void
+    {
+        static::creating(function (UserProfile $profile): void {
+            if ($profile->avatar_bg_color !== null || $profile->avatar_text_color !== null) {
+                return;
+            }
+
+            $colors = GeneratedAvatarColors::random();
+            $profile->avatar_bg_color = $colors['background'];
+            $profile->avatar_text_color = $colors['text'];
+        });
+    }
 
     /**
      * @var list<string>

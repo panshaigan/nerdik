@@ -37,8 +37,6 @@ final class UserProfileFactory extends Factory
             'show_contact_facebook' => true,
             'show_contact_google' => true,
             'show_contact_discord' => true,
-            'avatar_bg_color' => '#1d4ed8',
-            'avatar_text_color' => '#ffffff',
             'avatar_initials' => null,
             'discord_handle' => null,
             'current_location' => null,

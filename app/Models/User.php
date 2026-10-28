@@ -12,6 +12,7 @@ use App\Notifications\VerifyEmailNotification;
 use App\Notifications\VerifyPendingEmailNotification;
 use App\Support\Ui\AvatarPicture;
 use App\Support\Ui\AvatarSlot;
+use App\Support\Ui\GeneratedAvatarColors;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasName;
@@ -180,8 +181,8 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
 
         return self::uiAvatarsUrl(
             $this->generatedAvatarName(),
-            (string) ($profile?->avatar_bg_color ?? '#1d4ed8'),
-            (string) ($profile?->avatar_text_color ?? '#ffffff'),
+            (string) ($profile?->avatar_bg_color ?? GeneratedAvatarColors::defaultBackground()),
+            (string) ($profile?->avatar_text_color ?? GeneratedAvatarColors::defaultText()),
             $this->generatedAvatarLength(),
             $size,
         );

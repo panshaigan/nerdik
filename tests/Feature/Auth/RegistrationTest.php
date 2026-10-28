@@ -6,6 +6,7 @@ use Anhskohbo\NoCaptcha\NoCaptcha;
 use App\Enums\AppLocale;
 use App\Models\User;
 use App\Notifications\VerifyEmailNotification;
+use App\Support\Ui\GeneratedAvatarColors;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
@@ -49,6 +50,9 @@ class RegistrationTest extends TestCase
         $this->assertSame('test-user', $user->nickname);
         $this->assertNull($user->name);
         $this->assertSame('Europe/Warsaw', $user->profile?->timezone);
+        $this->assertNotNull($user->profile?->avatar_bg_color);
+        $this->assertContains($user->profile?->avatar_bg_color, GeneratedAvatarColors::palette());
+        $this->assertSame(GeneratedAvatarColors::defaultText(), $user->profile?->avatar_text_color);
 
         Notification::assertSentTo($user, VerifyEmailNotification::class);
     }
