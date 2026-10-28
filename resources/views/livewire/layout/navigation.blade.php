@@ -192,8 +192,16 @@ new class extends Component
                                     :contact-popover="false"
                                 />
                             </div>
-                            <ul tabindex="0" class="menu dropdown-content z-[100] mt-3 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg light:border-neutral">
-                                <li class="mb-2 border-b border-base-300 px-2 pb-2 light:border-neutral">
+                            <div
+                                tabindex="0"
+                                @class([
+                                    'dropdown-content z-[100] mt-3 overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-lg light:border-neutral',
+                                    'w-72' => auth()->user()->is_admin,
+                                    'w-56' => ! auth()->user()->is_admin,
+                                ])
+                                data-ui="nav-account-menu"
+                            >
+                                <div class="border-b border-base-300 p-2 light:border-neutral">
                                     <a
                                         wire:navigate
                                         href="{{ route('profile') }}"
@@ -203,9 +211,14 @@ new class extends Component
                                         <p class="text-sm font-semibold" x-data="{{ json_encode(['name' => auth()->user()->displayName()]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></p>
                                         <p class="text-xs opacity-70">{{ auth()->user()->email }}</p>
                                     </a>
-                                </li>
-                                @include('livewire.layout.partials.nav-account-menu-items', ['variant' => 'dropdown'])
-                            </ul>
+                                </div>
+                                <ul
+                                    class="menu max-h-[50vh] overflow-y-auto overflow-x-hidden p-2"
+                                    data-ui="nav-account-menu-scroll"
+                                >
+                                    @include('livewire.layout.partials.nav-account-menu-items', ['variant' => 'dropdown'])
+                                </ul>
+                            </div>
                         </div>
                     @endauth
                 </div>

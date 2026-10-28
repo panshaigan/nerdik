@@ -34,6 +34,16 @@
         z-index: 100;
     }
 
+    /*
+     * DaisyUI .menu uses column + flex-wrap; max-height makes items flow into extra
+     * columns and clip horizontally. Keep one column and scroll vertically instead.
+     */
+    .ui-app-navigation [data-ui='nav-account-menu-scroll'].menu {
+        flex-wrap: nowrap;
+        width: 100%;
+        min-width: 0;
+    }
+
     .ui-app-navigation .ui-nav-link {
         position: relative;
         background-color: transparent;
