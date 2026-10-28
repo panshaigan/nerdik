@@ -272,6 +272,7 @@
                 <x-tab name="info" :label="__('ui.activities.show_about')" class="!p-0" data-ui="activity-show-tab-info" icon="o-light-bulb">
                     @include('livewire.activities.partials.show-about-tab', [
                         'activity' => $activity,
+                        'suggestedBringRows' => $suggestedBringRows,
                         'scheduleMapConfig' => $schedule->scheduleMapConfig,
                         'scheduleVenue' => $schedule->scheduleVenue,
                         'scheduleRoom' => $schedule->scheduleRoom,

@@ -13,6 +13,7 @@ use App\Models\TagCategoryTranslation;
 use App\Models\TagContext;
 use App\Models\TagRelation;
 use App\Models\TagTranslation;
+use App\Services\ActivitySuggestedBringService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -746,6 +747,7 @@ class TagSeeder extends Seeder
                 'aliases' => ['en' => 'D&D'],
                 'relations' => [$this->tagIds['5E'], $this->tagIds['Forgotten Realms']],
                 'contexts' => [ActivityType::SLUG_RPG],
+                'suggested_bring' => ['Polyhedral dice'],
             ],
             [
                 'category' => 'game',
@@ -892,6 +894,7 @@ class TagSeeder extends Seeder
                 'pl' => 'Ostrza w mroku',
                 'relations' => [$this->tagIds['Steampunk'], $this->tagIds['Forged in the Dark']],
                 'contexts' => [ActivityType::SLUG_RPG],
+                'suggested_bring' => ['Six-sided dice (d6s)'],
             ],
             [
                 'category' => 'game',
@@ -1143,6 +1146,16 @@ class TagSeeder extends Seeder
 
             if (isset($data['images'])) {
                 app(AttachTagMediaFromPublic::class)($tag, $data['images']);
+            }
+
+            if (isset($data['suggested_bring']) && is_array($data['suggested_bring'])) {
+                app(ActivitySuggestedBringService::class)->syncBringLabelsForBringable(
+                    $tag,
+                    array_values(array_filter(array_map(
+                        static fn ($label): string => trim(is_string($label) ? $label : ''),
+                        $data['suggested_bring'],
+                    ))),
+                );
             }
 
             $this->tagIds[$data['en']] = $tag->id;

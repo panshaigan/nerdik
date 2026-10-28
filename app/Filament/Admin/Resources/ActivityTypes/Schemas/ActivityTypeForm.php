@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityTypes\Schemas;
 
 use App\Models\ActivityType;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -53,6 +54,20 @@ class ActivityTypeForm
                             ->columnSpanFull(),
                     ])
                     ->visible(fn (Get $get, ?ActivityType $record): bool => ($record?->slug ?? $get('slug')) === ActivityType::SLUG_RPG)
+                    ->columnSpanFull(),
+                Section::make('Suggested to bring')
+                    ->description('Default optional suggestions for activities of this type.')
+                    ->schema([
+                        Repeater::make('suggested_bring_labels')
+                            ->label('Items')
+                            ->schema([
+                                TextInput::make('label')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+                    ])
                     ->columnSpanFull(),
             ]);
     }

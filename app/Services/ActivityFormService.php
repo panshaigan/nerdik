@@ -62,6 +62,8 @@ class ActivityFormService
                 'sourceImage',
                 'activity_series_name',
                 'organization_name',
+                'provided_bring_item_ids',
+                'suggested_bring_extras',
             ]
         );
 
@@ -100,6 +102,8 @@ class ActivityFormService
             $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
             $timing->checkpoint('tags');
+            $this->syncActivitySuggestedBring($form, $activity);
+            $timing->checkpoint('suggested_bring');
             $this->applyActivityLogoFromForm($form, $activity, $timing);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
@@ -114,6 +118,8 @@ class ActivityFormService
             $timing->checkpoint('location_hosting');
             $this->syncActivityTags($activity, $tagIds);
             $timing->checkpoint('tags');
+            $this->syncActivitySuggestedBring($form, $activity);
+            $timing->checkpoint('suggested_bring');
             $this->applyActivityLogoFromForm($form, $activity, $timing);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
@@ -178,6 +184,15 @@ class ActivityFormService
         }
 
         RecalculateTagPopularityJob::dispatch($affectedTagIds)->afterCommit();
+    }
+
+    private function syncActivitySuggestedBring(ManageActivityForm $form, Activity $activity): void
+    {
+        app(ActivitySuggestedBringService::class)->syncActivityKit(
+            $activity,
+            $form->provided_bring_item_ids,
+            $form->suggested_bring_extras,
+        );
     }
 
     private function createProposalForActivityIfRequested(

@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -161,6 +162,21 @@ class Activity extends Model implements HasMedia
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable', 'taggables');
+    }
+
+    public function suggestedBringExtras(): MorphMany
+    {
+        return $this->morphMany(SuggestedBringItem::class, 'bringable')->orderBy('sort_order');
+    }
+
+    public function providedSuggestedBringItems(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            SuggestedBringItem::class,
+            'activity_suggested_bring_provisions',
+            'activity_id',
+            'suggested_bring_item_id',
+        );
     }
 
     public function slot(): HasOne

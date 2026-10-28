@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityParticipationService;
 use App\Services\ActivityParticipationViewService;
+use App\Services\ActivitySuggestedBringService;
 use App\Services\UserInterestService;
 use App\Support\Calendar\CalendarLinks;
 use App\Support\Sharing\ShareLinks;
@@ -371,6 +372,7 @@ class ShowActivity extends Component
         ActivityBadgeGroupBuilder $badgeGroupBuilder,
         ActivityListingImageResolver $activityListingImageResolver,
         ActivityShowSchedulePresenter $schedulePresenter,
+        ActivitySuggestedBringService $suggestedBring,
         ShareLinks $shareLinks,
         CalendarLinks $calendarLinks,
     ) {
@@ -408,6 +410,7 @@ class ShowActivity extends Component
 
         $badgeItems = $badgeGroupBuilder->build($activity, ActivityBadgeGroupConfig::activityHero());
         $schedule = $schedulePresenter->build($activity);
+        $suggestedBringRows = $suggestedBring->listForActivity($activity);
 
         return view('livewire.activities.show-activity', [
             'activity' => $activity,
@@ -441,6 +444,7 @@ class ShowActivity extends Component
             'isLotteryPending' => $vm->isLotteryPending,
             'isLotteryResolved' => $vm->isLotteryResolved,
             'lotteryDrawNotices' => $vm->lotteryDrawNotices,
+            'suggestedBringRows' => $suggestedBringRows,
         ]);
     }
 

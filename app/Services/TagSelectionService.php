@@ -37,7 +37,11 @@ class TagSelectionService
                 continue;
             }
 
-            $createdOrMatchedIds[] = $this->findOrCreateTagByLabel($label, $categoryId);
+            $createdOrMatchedIds[] = $this->findOrCreateTagByLabel(
+                $label,
+                $categoryId,
+                $this->normalizeSuggestedBringLabels($row['suggested_bring'] ?? []),
+            );
         }
 
         $all = array_values(array_unique(array_merge($baseIds, $createdOrMatchedIds)));
@@ -46,9 +50,11 @@ class TagSelectionService
     }
 
     /**
+     * @param  list<string>  $suggestedBringLabels  Applied only when a new tag is created.
+     *
      * @throws Throwable
      */
-    public function findOrCreateTagByLabel(string $label, int $categoryId): int
+    public function findOrCreateTagByLabel(string $label, int $categoryId, array $suggestedBringLabels = []): int
     {
         $lower = mb_strtolower(trim($label));
         $locale = app()->getLocale();
@@ -62,7 +68,11 @@ class TagSelectionService
             })
             ->first();
 
-        return $existing->id ?? DB::transaction(static function () use ($label, $categoryId, $locale) {
+        if ($existing !== null) {
+            return (int) $existing->id;
+        }
+
+        return DB::transaction(function () use ($label, $categoryId, $locale, $suggestedBringLabels) {
             $tag = Tag::create([
                 'tag_category_id' => $categoryId,
             ]);
@@ -78,8 +88,42 @@ class TagSelectionService
                 );
             }
 
-            return $tag->id;
+            if ($suggestedBringLabels !== []) {
+                app(ActivitySuggestedBringService::class)->attachKitToNewTag($tag, $suggestedBringLabels);
+            }
+
+            return (int) $tag->id;
         });
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizeSuggestedBringLabels(mixed $raw): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $labels = [];
+        foreach ($raw as $entry) {
+            if (is_string($entry)) {
+                $trimmed = trim($entry);
+                if ($trimmed !== '') {
+                    $labels[] = $trimmed;
+                }
+
+                continue;
+            }
+            if (is_array($entry) && isset($entry['label'])) {
+                $trimmed = trim((string) $entry['label']);
+                if ($trimmed !== '') {
+                    $labels[] = $trimmed;
+                }
+            }
+        }
+
+        return $labels;
     }
 
     /**

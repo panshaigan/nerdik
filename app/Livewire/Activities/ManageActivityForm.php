@@ -18,6 +18,7 @@ use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
+use App\Services\ActivitySuggestedBringService;
 use App\Services\LocationResolver;
 use App\Services\SlotParticipationConstraintService;
 use App\Services\TagSelectionService;
@@ -159,8 +160,14 @@ class ManageActivityForm extends Component
     /** @var list<int> */
     public array $tag_ids = [];
 
-    /** @var list<array{label: string, category_id: int|string}> */
+    /** @var list<array{label: string, category_id: int|string, suggested_bring?: list<string>}> */
     public array $new_tags = [];
+
+    /** @var list<int> */
+    public array $provided_bring_item_ids = [];
+
+    /** @var list<array{label: string, host_provides: bool}> */
+    public array $suggested_bring_extras = [];
 
     public ?string $logo_source = null;
 
@@ -193,7 +200,7 @@ class ManageActivityForm extends Component
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries', 'organization']);
+            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries', 'organization', 'providedSuggestedBringItems', 'suggestedBringExtras']);
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
@@ -233,6 +240,18 @@ class ManageActivityForm extends Component
             $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
+            $this->provided_bring_item_ids = $activity->providedSuggestedBringItems
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+            $this->suggested_bring_extras = $activity->suggestedBringExtras
+                ->map(fn ($item): array => [
+                    'label' => (string) $item->label,
+                    'host_provides' => (bool) $item->host_provides,
+                ])
+                ->values()
+                ->all();
             $this->hydrateLogoFieldsFromActivity($activity);
             if ($this->hosting_mode === Activity::HOSTING_MODE_PROPOSED_TO_EVENT) {
                 $proposal = $activity->proposals()
@@ -363,13 +382,71 @@ class ManageActivityForm extends Component
         return $escapedLabel.' <span class="badge badge-error badge-xs ms-1" aria-hidden="true">!</span>';
     }
 
+    /**
+     * @return list<array{id: int, label: string, inherited: bool, host_provides: bool}>
+     */
+    public function inheritedSuggestedBringRows(): array
+    {
+        $typeId = $this->activity_type_id !== null && $this->activity_type_id !== ''
+            ? (int) $this->activity_type_id
+            : null;
+
+        return app(ActivitySuggestedBringService::class)->listInheritedForForm(
+            $typeId,
+            array_values(array_unique(array_map('intval', $this->tag_ids))),
+            $this->provided_bring_item_ids,
+        );
+    }
+
+    public function addSuggestedBringExtraRow(): void
+    {
+        $this->suggested_bring_extras[] = [
+            'label' => '',
+            'host_provides' => false,
+        ];
+    }
+
+    public function removeSuggestedBringExtraRow(int $index): void
+    {
+        if (! array_key_exists($index, $this->suggested_bring_extras)) {
+            return;
+        }
+
+        unset($this->suggested_bring_extras[$index]);
+        $this->suggested_bring_extras = array_values($this->suggested_bring_extras);
+    }
+
+    public function addNewTagSuggestedBringLine(int $newTagIndex): void
+    {
+        if (! array_key_exists($newTagIndex, $this->new_tags)) {
+            return;
+        }
+
+        if (! isset($this->new_tags[$newTagIndex]['suggested_bring']) || ! is_array($this->new_tags[$newTagIndex]['suggested_bring'])) {
+            $this->new_tags[$newTagIndex]['suggested_bring'] = [];
+        }
+
+        $this->new_tags[$newTagIndex]['suggested_bring'][] = '';
+    }
+
+    public function removeNewTagSuggestedBringLine(int $newTagIndex, int $lineIndex): void
+    {
+        if (! isset($this->new_tags[$newTagIndex]['suggested_bring'][$lineIndex])) {
+            return;
+        }
+
+        unset($this->new_tags[$newTagIndex]['suggested_bring'][$lineIndex]);
+        $this->new_tags[$newTagIndex]['suggested_bring'] = array_values($this->new_tags[$newTagIndex]['suggested_bring']);
+    }
+
     private function validationAttributeTab(string $attribute): string
     {
         $root = str_contains($attribute, '.') ? explode('.', $attribute, 2)[0] : $attribute;
 
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
-            'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
+            'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours',
+            'provided_bring_item_ids', 'suggested_bring_extras' => 'main-details',
             'lottery_draw_in_hours', 'participation_mode', 'allows_observers', 'collect_familiarity' => 'participation-rules',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
@@ -1145,6 +1222,13 @@ class ManageActivityForm extends Component
             'new_tags' => ['nullable', 'array'],
             'new_tags.*.label' => ['nullable', 'string', 'max:255'],
             'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
+            'new_tags.*.suggested_bring' => ['nullable', 'array'],
+            'new_tags.*.suggested_bring.*' => ['nullable', 'string', 'max:255'],
+            'provided_bring_item_ids' => ['nullable', 'array'],
+            'provided_bring_item_ids.*' => ['integer', 'exists:suggested_bring_items,id'],
+            'suggested_bring_extras' => ['nullable', 'array'],
+            'suggested_bring_extras.*.label' => ['nullable', 'string', 'max:255'],
+            'suggested_bring_extras.*.host_provides' => ['nullable', 'boolean'],
             'logo_source' => ['nullable', 'string', Rule::in(array_map(static fn (ActivityLogoSource $s) => $s->value, ActivityLogoSource::cases()))],
             'selected_tag_media_id' => [
                 'nullable',

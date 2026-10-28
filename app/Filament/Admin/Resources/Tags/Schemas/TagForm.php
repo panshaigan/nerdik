@@ -3,9 +3,12 @@
 namespace App\Filament\Admin\Resources\Tags\Schemas;
 
 use App\Filament\Forms\Components\BelongsToSelect;
+use App\Models\TagCategory;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class TagForm
@@ -35,6 +38,26 @@ class TagForm
                 BelongsToSelect::user('created_by'),
                 BelongsToSelect::user('updated_by'),
                 BelongsToSelect::user('deleted_by'),
+                Section::make('Suggested to bring')
+                    ->description('Default optional suggestions for activities using this tag (game tags).')
+                    ->schema([
+                        Repeater::make('suggested_bring_labels')
+                            ->label('Items')
+                            ->schema([
+                                TextInput::make('label')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(function (Get $get): bool {
+                        $categoryId = (int) ($get('tag_category_id') ?? 0);
+                        $gameCategoryId = TagCategory::idByKey(TagCategory::KEY_GAME);
+
+                        return $gameCategoryId !== null && $categoryId === $gameCategoryId;
+                    })
+                    ->columnSpanFull(),
             ]);
     }
 }

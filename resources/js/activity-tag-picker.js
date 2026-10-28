@@ -27,6 +27,43 @@ function sameNewTagsPayload(a, b) {
     return JSON.stringify(a || []) === JSON.stringify(b || []);
 }
 
+function mergeSuggestedBringFromWire(root, payload) {
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
+        return payload;
+    }
+    const host = root.closest('[wire\\:id]');
+    const wireId = host?.getAttribute('wire:id');
+    const wire = wireId ? window.Livewire.find(wireId) : null;
+    if (!wire) {
+        return payload;
+    }
+    const get = typeof wire.get === 'function' ? wire.get.bind(wire) : typeof wire.$get === 'function' ? wire.$get.bind(wire) : null;
+    if (!get) {
+        return payload;
+    }
+    const existing = get('new_tags');
+    if (!Array.isArray(existing)) {
+        return payload.map((row) => ({
+            ...row,
+            suggested_bring: Array.isArray(row.suggested_bring) ? row.suggested_bring : [],
+        }));
+    }
+
+    return payload.map((row) => {
+        const match = existing.find(
+            (entry) =>
+                String(entry?.label || '').trim() === String(row.label || '').trim()
+                && Number(entry?.category_id) === Number(row.category_id),
+        );
+        const suggested = match?.suggested_bring;
+
+        return {
+            ...row,
+            suggested_bring: Array.isArray(suggested) ? suggested : [],
+        };
+    });
+}
+
 function sortByPopularity(tags) {
     return [...tags].sort((a, b) => {
         const scoreDiff = (Number(b.popularity_score) || 0) - (Number(a.popularity_score) || 0);
@@ -209,10 +246,13 @@ export function initActivityTagPicker(root) {
         const tagIds = Array.from(selected)
             .sort((a, b) => a - b)
             .map((id) => Number(id));
-        const newTagsPayload = pendingNew.map((t) => ({
-            label: t.label,
-            category_id: Number(t.category_id),
-        }));
+        const newTagsPayload = mergeSuggestedBringFromWire(
+            root,
+            pendingNew.map((t) => ({
+                label: t.label,
+                category_id: Number(t.category_id),
+            })),
+        );
         syncLivewireTagState(root, tagIds, newTagsPayload);
         root.dispatchEvent(
             new CustomEvent('activity-tags-changed', {

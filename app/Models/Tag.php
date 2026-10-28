@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -93,6 +94,11 @@ class Tag extends Model implements HasMedia
     public function activities(): MorphToMany
     {
         return $this->morphedByMany(Activity::class, 'taggable', 'taggables');
+    }
+
+    public function suggestedBringItems(): MorphMany
+    {
+        return $this->morphMany(SuggestedBringItem::class, 'bringable')->orderBy('sort_order');
     }
 
     public function contexts(): HasMany

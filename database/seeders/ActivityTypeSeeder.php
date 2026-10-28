@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ActivityType;
+use App\Services\ActivitySuggestedBringService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +25,23 @@ class ActivityTypeSeeder extends Seeder
                 'slug' => $slug,
                 'max_participants_limit' => ActivityType::defaultMaxParticipantsLimitForSlug($slug),
             ]);
+        }
+
+        $this->seedSuggestedBringDefaults();
+    }
+
+    private function seedSuggestedBringDefaults(): void
+    {
+        $bring = app(ActivitySuggestedBringService::class);
+
+        $rpg = ActivityType::findBySlug(ActivityType::SLUG_RPG);
+        if ($rpg !== null) {
+            $bring->syncBringLabelsForBringable($rpg, ['Paper', 'Pencil']);
+        }
+
+        $board = ActivityType::findBySlug(ActivityType::SLUG_BOARD);
+        if ($board !== null) {
+            $bring->syncBringLabelsForBringable($board, ['The game (box)']);
         }
     }
 }

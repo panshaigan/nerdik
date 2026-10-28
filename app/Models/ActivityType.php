@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\HasMedia;
 
 class ActivityType extends Model implements HasMedia
@@ -55,6 +56,11 @@ class ActivityType extends Model implements HasMedia
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class);
+    }
+
+    public function suggestedBringItems(): MorphMany
+    {
+        return $this->morphMany(SuggestedBringItem::class, 'bringable')->orderBy('sort_order');
     }
 
     public function slots(): BelongsToMany

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tag;
+use App\Services\ActivitySuggestedBringService;
 use App\Services\TagService;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class TagController extends Controller
             'labelEn' => '',
             'labelPl' => '',
             'categoryOptions' => $tags->categoryOptions(),
+            'suggestedBringLabels' => [],
         ]);
     }
 
@@ -46,9 +48,12 @@ class TagController extends Controller
             'tag_category_id' => ['required', 'integer', 'exists:tag_categories,id'],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
+            'suggested_bring_labels' => ['nullable', 'array'],
+            'suggested_bring_labels.*' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $tags->createFromValidated($validated);
+        $tag = $tags->createFromValidated($validated);
+        $this->syncTagBringLabels($tag, $validated);
 
         return redirect()->route('tags.index')
             ->with('status', __('Tag created.'));
@@ -72,10 +77,12 @@ class TagController extends Controller
         $tag->loadMissing('translations');
         $labelEn = $tag->translations->firstWhere('locale', 'en')?->label ?? '';
         $labelPl = $tag->translations->firstWhere('locale', 'pl')?->label ?? '';
+        $tag->loadMissing('suggestedBringItems');
+        $suggestedBringLabels = $tag->suggestedBringItems->pluck('label')->all();
 
         $categoryOptions = $tags->categoryOptions();
 
-        return view('tags.edit', compact('tag', 'labelEn', 'labelPl', 'categoryOptions'));
+        return view('tags.edit', compact('tag', 'labelEn', 'labelPl', 'categoryOptions', 'suggestedBringLabels'));
     }
 
     /**
@@ -89,9 +96,12 @@ class TagController extends Controller
             'tag_category_id' => ['required', 'integer', 'exists:tag_categories,id'],
             'label_en' => ['nullable', 'string', 'max:255'],
             'label_pl' => ['nullable', 'string', 'max:255'],
+            'suggested_bring_labels' => ['nullable', 'array'],
+            'suggested_bring_labels.*' => ['nullable', 'string', 'max:255'],
         ]);
 
         $tags->updateFromValidated($tag, $validated);
+        $this->syncTagBringLabels($tag, $validated);
 
         return redirect()->route('tags.index')
             ->with('status', __('Tag updated.'));
@@ -108,5 +118,19 @@ class TagController extends Controller
 
         return redirect()->route('tags.index')
             ->with('status', __('Tag deleted.'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function syncTagBringLabels(Tag $tag, array $validated): void
+    {
+        $labels = collect($validated['suggested_bring_labels'] ?? [])
+            ->map(fn ($value) => trim(is_string($value) ? $value : ''))
+            ->filter(fn (string $label): bool => $label !== '')
+            ->values()
+            ->all();
+
+        app(ActivitySuggestedBringService::class)->syncBringLabelsForBringable($tag, $labels);
     }
 }
