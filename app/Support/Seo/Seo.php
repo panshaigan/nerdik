@@ -92,6 +92,15 @@ final class Seo
         ));
     }
 
+    public static function forFeatures(): SeoMetadata
+    {
+        return self::withDefaultImage(new SeoMetadata(
+            title: self::pageTitle((string) __('ui.seo.features_title')),
+            description: (string) __('ui.seo.features_description'),
+            canonical: route('features'),
+        ));
+    }
+
     public static function forEvent(Event $event): SeoMetadata
     {
         $description = rich_text_excerpt($event->description, 160);

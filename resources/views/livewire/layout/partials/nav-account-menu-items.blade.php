@@ -28,6 +28,22 @@
     </a>
 </li>
 <li>
+    <a
+        wire:navigate
+        href="{{ route('features') }}"
+        data-ui="nav-features"
+        @if ($closeOnClick)
+            @click="close()"
+        @endif
+        @if ($variant === 'drawer')
+            class="{{ $drawerLinkClass(request()->routeIs('features')) }}"
+        @endif
+    >
+        <x-icon name="o-sparkles" class="h-4 w-4 shrink-0" />
+        {{ __('ui.nav.features') }}
+    </a>
+</li>
+<li>
     <button
         type="button"
         class="{{ $menuActionClass }}"

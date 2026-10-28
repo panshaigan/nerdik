@@ -51,6 +51,7 @@
                 <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <!--p>{{ config('app.name', 'nerdik') }} · {{ __('ui.welcome.footer_tagline') }}</p-->
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <a href="{{ route('features') }}" class="link link-hover opacity-80">{{ __('ui.footer.features') }}</a>
                         <a href="{{ route('privacy') }}" class="link link-hover opacity-80">{{ __('ui.footer.privacy') }}</a>
                         <a href="{{ route('terms') }}" class="link link-hover opacity-80">{{ __('ui.footer.terms') }}</a>
                         <button

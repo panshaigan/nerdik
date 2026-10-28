@@ -76,6 +76,7 @@ class PublicSitemapTest extends TestCase
         $response->assertSee('<loc>'.e(route('catalog.series')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('privacy')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('terms')).'</loc>', false);
+        $response->assertSee('<loc>'.e(route('features')).'</loc>', false);
         $response->assertSee('<loc>'.e(route('events.show', $publicEvent)).'</loc>', false);
         $response->assertSee('<loc>'.e(route('activities.show', $publicActivity)).'</loc>', false);
         $response->assertSee('<loc>'.e(route('event-series.show', $publicEventSeries)).'</loc>', false);
