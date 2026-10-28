@@ -1218,6 +1218,9 @@ return [
             'no_activities' => 'No activities on this event.',
         ],
     ],
+    'moderation' => [
+        'removed_placeholder' => '[removed by moderator]',
+    ],
     'familiarity' => [
         'title' => 'How familiar are you?',
         'disclaimer' => 'This is only so the host can prepare better. You don’t need to know these things well.',

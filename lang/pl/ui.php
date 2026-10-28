@@ -1208,6 +1208,9 @@ return [
             'no_activities' => 'Brak aktywności na tym wydarzeniu.',
         ],
     ],
+    'moderation' => [
+        'removed_placeholder' => '[usunięte przez moderatora]',
+    ],
     'familiarity' => [
         'title' => 'Jak dobrze znasz...',
         'disclaimer' => 'To tylko po to, żeby prowadzący mógł się lepiej przygotować. Znajomość nie jest wymagana.',
