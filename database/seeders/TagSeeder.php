@@ -747,7 +747,9 @@ class TagSeeder extends Seeder
                 'aliases' => ['en' => 'D&D'],
                 'relations' => [$this->tagIds['5E'], $this->tagIds['Forgotten Realms']],
                 'contexts' => [ActivityType::SLUG_RPG],
-                'suggested_bring' => ['Polyhedral dice'],
+                'suggested_bring' => [
+                    ['en' => 'Polyhedral dice', 'pl' => 'Kości wielościenne'],
+                ],
             ],
             [
                 'category' => 'game',
@@ -894,7 +896,9 @@ class TagSeeder extends Seeder
                 'pl' => 'Ostrza w mroku',
                 'relations' => [$this->tagIds['Steampunk'], $this->tagIds['Forged in the Dark']],
                 'contexts' => [ActivityType::SLUG_RPG],
-                'suggested_bring' => ['Six-sided dice (d6s)'],
+                'suggested_bring' => [
+                    ['en' => 'Six-sided dice (d6s)', 'pl' => 'Kości sześcienne (k6)'],
+                ],
             ],
             [
                 'category' => 'game',
@@ -1151,10 +1155,7 @@ class TagSeeder extends Seeder
             if (isset($data['suggested_bring']) && is_array($data['suggested_bring'])) {
                 app(ActivitySuggestedBringService::class)->syncBringLabelsForBringable(
                     $tag,
-                    array_values(array_filter(array_map(
-                        static fn ($label): string => trim(is_string($label) ? $label : ''),
-                        $data['suggested_bring'],
-                    ))),
+                    array_values(array_filter($data['suggested_bring'], static fn ($entry): bool => is_string($entry) || is_array($entry))),
                 );
             }
 

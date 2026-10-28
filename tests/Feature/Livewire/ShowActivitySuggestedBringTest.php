@@ -23,12 +23,13 @@ final class ShowActivitySuggestedBringTest extends TestCase
     public function it_shows_suggested_bring_with_not_a_gate_copy_and_host_provides(): void
     {
         $rpg = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
-        $typeItem = SuggestedBringItem::factory()->create([
-            'bringable_type' => 'activity_type',
-            'bringable_id' => $rpg->id,
-            'label' => 'Paper',
-            'sort_order' => 0,
-        ]);
+        $typeItem = SuggestedBringItem::factory()
+            ->state([
+                'bringable_type' => 'activity_type',
+                'bringable_id' => $rpg->id,
+            ])
+            ->withTranslations(['en' => 'Paper'])
+            ->create();
 
         $gameCategory = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $gameTag = Tag::factory()->for($gameCategory, 'tagCategory')->create();
@@ -42,6 +43,7 @@ final class ShowActivitySuggestedBringTest extends TestCase
         $html = Livewire::test(ShowActivity::class, ['activity' => $activity])->html();
 
         $this->assertStringContainsString('data-ui="activity-show-suggested-bring"', $html);
+        $this->assertStringContainsString(__('ui.activities.suggested_bring.optional_label'), $html);
         $this->assertStringContainsString(__('ui.activities.suggested_bring.not_a_gate'), $html);
         $this->assertStringContainsString('Paper', $html);
         $this->assertStringContainsString(__('ui.activities.suggested_bring.host_provides'), $html);

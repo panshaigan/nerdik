@@ -27,7 +27,14 @@ class EditActivityType extends EditRecord
         $type = $this->getRecord();
         $type->loadMissing('suggestedBringItems');
         $data['suggested_bring_labels'] = $type->suggestedBringItems
-            ->map(fn ($item): array => ['label' => (string) $item->label])
+            ->map(function ($item): array {
+                $item->loadMissing('translations');
+
+                return [
+                    'label_en' => (string) ($item->translations->firstWhere('locale', 'en')?->label ?? ''),
+                    'label_pl' => (string) ($item->translations->firstWhere('locale', 'pl')?->label ?? ''),
+                ];
+            })
             ->values()
             ->all();
 
@@ -38,8 +45,10 @@ class EditActivityType extends EditRecord
     {
         $state = $this->form->getState();
         $labels = collect($state['suggested_bring_labels'] ?? [])
-            ->map(fn ($row) => is_array($row) ? trim((string) ($row['label'] ?? '')) : '')
-            ->filter(fn (string $label): bool => $label !== '')
+            ->filter(fn ($row): bool => is_array($row) && (
+                trim((string) ($row['label_en'] ?? '')) !== ''
+                || trim((string) ($row['label_pl'] ?? '')) !== ''
+            ))
             ->values()
             ->all();
 

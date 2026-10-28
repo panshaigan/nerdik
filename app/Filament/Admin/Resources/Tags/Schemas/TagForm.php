@@ -38,14 +38,17 @@ class TagForm
                 BelongsToSelect::user('created_by'),
                 BelongsToSelect::user('updated_by'),
                 BelongsToSelect::user('deleted_by'),
-                Section::make('Suggested to bring')
-                    ->description('Default optional suggestions for activities using this tag (game tags).')
+                Section::make(__('ui.activities.suggested_bring.admin_section'))
+                    ->description(__('ui.activities.suggested_bring.admin_section_help'))
                     ->schema([
                         Repeater::make('suggested_bring_labels')
-                            ->label('Items')
+                            ->label(__('ui.tags.suggested_bring.heading'))
                             ->schema([
-                                TextInput::make('label')
-                                    ->required()
+                                TextInput::make('label_en')
+                                    ->label(__('ui.tags.suggested_bring.label_en'))
+                                    ->maxLength(255),
+                                TextInput::make('label_pl')
+                                    ->label(__('ui.tags.suggested_bring.label_pl'))
                                     ->maxLength(255),
                             ])
                             ->defaultItems(0)

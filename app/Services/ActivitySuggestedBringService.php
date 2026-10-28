@@ -13,16 +13,19 @@ use Illuminate\Support\Collection;
 
 class ActivitySuggestedBringService
 {
+    /** @var list<string> */
+    private const SUPPORTED_LOCALES = ['en', 'pl'];
+
     /**
      * @return list<array{id: int, label: string, inherited: bool, host_provides: bool}>
      */
     public function listForActivity(Activity $activity): array
     {
         $activity->loadMissing([
-            'activityType.suggestedBringItems',
+            'activityType.suggestedBringItems.translations',
             'tags.tagCategory',
-            'tags.suggestedBringItems',
-            'suggestedBringExtras',
+            'tags.suggestedBringItems.translations',
+            'suggestedBringExtras.translations',
             'providedSuggestedBringItems',
         ]);
 
@@ -50,13 +53,13 @@ class ActivitySuggestedBringService
         $typeItems = collect();
         if ($activityTypeId !== null && $activityTypeId > 0) {
             $type = ActivityType::query()
-                ->with('suggestedBringItems')
+                ->with('suggestedBringItems.translations')
                 ->find($activityTypeId);
             $typeItems = $type?->suggestedBringItems ?? collect();
         }
 
         $gameTags = Tag::query()
-            ->with(['tagCategory', 'suggestedBringItems'])
+            ->with(['tagCategory', 'suggestedBringItems.translations'])
             ->whereIn('id', $directTagIds)
             ->get();
 
@@ -89,7 +92,7 @@ class ActivitySuggestedBringService
 
         $activity->providedSuggestedBringItems()->sync($allowedProvided);
 
-        $activity->suggestedBringExtras()->delete();
+        $activity->suggestedBringExtras()->each(fn (SuggestedBringItem $item) => $item->delete());
 
         $sort = 0;
         foreach ($extras as $row) {
@@ -101,34 +104,34 @@ class ActivitySuggestedBringService
                 continue;
             }
 
-            $activity->suggestedBringExtras()->create([
-                'label' => mb_substr($label, 0, 255),
+            $item = $activity->suggestedBringExtras()->create([
                 'sort_order' => $sort,
                 'host_provides' => (bool) ($row['host_provides'] ?? false),
             ]);
+            $this->syncItemTranslations($item, $this->normalizeTranslationEntry($label));
             $sort++;
         }
     }
 
     /**
-     * @param  list<string>  $labels
+     * @param  list<string|array<string, string>>  $entries
      */
-    public function syncBringLabelsForBringable(ActivityType|Tag $bringable, array $labels): void
+    public function syncBringLabelsForBringable(ActivityType|Tag $bringable, array $entries): void
     {
-        $bringable->suggestedBringItems()->delete();
+        $bringable->suggestedBringItems()->each(fn (SuggestedBringItem $item) => $item->delete());
 
         $sort = 0;
-        foreach ($labels as $raw) {
-            $label = trim(is_string($raw) ? $raw : '');
-            if ($label === '') {
+        foreach ($entries as $raw) {
+            $labelsByLocale = $this->normalizeTranslationEntry($raw);
+            if ($labelsByLocale === []) {
                 continue;
             }
 
-            $bringable->suggestedBringItems()->create([
-                'label' => mb_substr($label, 0, 255),
+            $item = $bringable->suggestedBringItems()->create([
                 'sort_order' => $sort,
                 'host_provides' => false,
             ]);
+            $this->syncItemTranslations($item, $labelsByLocale);
             $sort++;
         }
     }
@@ -138,7 +141,78 @@ class ActivitySuggestedBringService
      */
     public function attachKitToNewTag(Tag $tag, array $labels): void
     {
-        $this->syncBringLabelsForBringable($tag, $labels);
+        $entries = array_map(
+            static fn (string $label): string => $label,
+            array_values(array_filter(array_map(
+                static fn ($value): string => trim(is_string($value) ? $value : ''),
+                $labels,
+            ))),
+        );
+
+        $this->syncBringLabelsForBringable($tag, $entries);
+    }
+
+    /**
+     * @param  array<string, string>  $labelsByLocale
+     */
+    private function syncItemTranslations(SuggestedBringItem $item, array $labelsByLocale): void
+    {
+        $item->translations()->delete();
+
+        foreach (self::SUPPORTED_LOCALES as $locale) {
+            $label = trim((string) ($labelsByLocale[$locale] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+
+            $item->translations()->create([
+                'locale' => $locale,
+                'label' => mb_substr($label, 0, 255),
+            ]);
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function normalizeTranslationEntry(mixed $raw): array
+    {
+        if (is_string($raw)) {
+            $label = trim($raw);
+            if ($label === '') {
+                return [];
+            }
+
+            $locale = app()->getLocale();
+            $out = [];
+            if (in_array($locale, self::SUPPORTED_LOCALES, true)) {
+                $out[$locale] = $label;
+            }
+            $out['en'] = $label;
+
+            return $out;
+        }
+
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $out = [];
+        foreach (self::SUPPORTED_LOCALES as $locale) {
+            $label = trim((string) ($raw[$locale] ?? $raw['label_'.$locale] ?? ''));
+            if ($label !== '') {
+                $out[$locale] = $label;
+            }
+        }
+
+        if ($out !== [] && ! isset($out['en'])) {
+            $fallback = $out[app()->getLocale()] ?? reset($out);
+            if (is_string($fallback) && $fallback !== '') {
+                $out['en'] = $fallback;
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -171,7 +245,7 @@ class ActivitySuggestedBringService
 
         foreach ([$typeItems, $gameTagItems] as $group) {
             foreach ($group as $item) {
-                $label = trim((string) $item->label);
+                $label = $item->displayLabel();
                 if ($label === '') {
                     continue;
                 }
@@ -186,7 +260,7 @@ class ActivitySuggestedBringService
         }
 
         foreach ($extraItems as $item) {
-            $label = trim((string) $item->label);
+            $label = $item->displayLabel();
             if ($label === '') {
                 continue;
             }

@@ -28,7 +28,9 @@ final class TagSelectionServiceSuggestedBringTest extends TestCase
         $this->assertSame($firstId, $secondId);
 
         $tag = Tag::query()->findOrFail($firstId);
-        $labels = $tag->suggestedBringItems()->pluck('label')->all();
+        $labels = $tag->suggestedBringItems()->with('translations')->get()
+            ->map(fn ($item) => $item->displayLabel('en'))
+            ->all();
 
         $this->assertSame(['d6s'], $labels);
     }
@@ -49,6 +51,6 @@ final class TagSelectionServiceSuggestedBringTest extends TestCase
 
         $this->assertCount(1, $ids);
         $tag = Tag::query()->findOrFail($ids[0]);
-        $this->assertSame(['Polyhedral dice'], $tag->suggestedBringItems()->pluck('label')->all());
+        $this->assertSame(['Polyhedral dice'], $tag->suggestedBringItems()->with('translations')->get()->map(fn ($i) => $i->displayLabel('en'))->all());
     }
 }

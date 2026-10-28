@@ -14,8 +14,10 @@ class CreateTag extends CreateRecord
     {
         $state = $this->form->getState();
         $labels = collect($state['suggested_bring_labels'] ?? [])
-            ->map(fn ($row) => is_array($row) ? trim((string) ($row['label'] ?? '')) : '')
-            ->filter(fn (string $label): bool => $label !== '')
+            ->filter(fn ($row): bool => is_array($row) && (
+                trim((string) ($row['label_en'] ?? '')) !== ''
+                || trim((string) ($row['label_pl'] ?? '')) !== ''
+            ))
             ->values()
             ->all();
 

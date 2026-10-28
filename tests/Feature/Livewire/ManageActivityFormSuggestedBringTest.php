@@ -23,12 +23,13 @@ final class ManageActivityFormSuggestedBringTest extends TestCase
     {
         $host = User::factory()->create();
         $rpg = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
-        $inherited = SuggestedBringItem::factory()->create([
-            'bringable_type' => 'activity_type',
-            'bringable_id' => $rpg->id,
-            'label' => 'Pencil',
-            'sort_order' => 0,
-        ]);
+        $inherited = SuggestedBringItem::factory()
+            ->state([
+                'bringable_type' => 'activity_type',
+                'bringable_id' => $rpg->id,
+            ])
+            ->withTranslations(['en' => 'Pencil'])
+            ->create();
 
         $activity = Activity::factory()->create([
             'created_by' => $host->id,
@@ -51,7 +52,11 @@ final class ManageActivityFormSuggestedBringTest extends TestCase
         $this->assertTrue($activity->providedSuggestedBringItems()->whereKey($inherited->id)->exists());
         $this->assertSame(
             ['Name tag'],
-            $activity->suggestedBringExtras()->pluck('label')->all(),
+            $activity->suggestedBringExtras()
+                ->with('translations')
+                ->get()
+                ->map(fn ($item) => $item->displayLabel())
+                ->all(),
         );
         $this->assertTrue((bool) $activity->suggestedBringExtras()->first()?->host_provides);
     }

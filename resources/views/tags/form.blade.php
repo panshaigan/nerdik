@@ -33,32 +33,50 @@
     </div>
 
     @php
-        $bringLabels = old('suggested_bring_labels', $suggestedBringLabels ?? []);
-        if (! is_array($bringLabels)) {
-            $bringLabels = [];
+        $bringRows = old('suggested_bring', $suggestedBringRows ?? []);
+        if (! is_array($bringRows)) {
+            $bringRows = [];
         }
-        if ($bringLabels === []) {
-            $bringLabels = [''];
+        if ($bringRows === []) {
+            $bringRows = [['label_en' => '', 'label_pl' => '']];
         }
     @endphp
     <div>
-        <p class="mb-2 text-sm font-medium">{{ __('Suggested to bring (optional)') }}</p>
-        <p class="mb-2 text-xs text-base-content/60">{{ __('One line per item; shown as optional suggestions on activities.') }}</p>
-        @foreach ($bringLabels as $index => $bringLabel)
-            <x-input
-                class="mb-2"
-                name="suggested_bring_labels[]"
-                type="text"
-                value="{{ is_string($bringLabel) ? $bringLabel : '' }}"
-                error-field="suggested_bring_labels.{{ $index }}"
-            />
+        <p class="mb-1 text-sm font-medium">{{ __('ui.tags.suggested_bring.heading') }}</p>
+        <p class="mb-3 text-xs text-base-content/60">{{ __('ui.tags.suggested_bring.help') }}</p>
+        @foreach ($bringRows as $index => $row)
+            <div class="mb-3 grid gap-2 sm:grid-cols-2">
+                <x-input
+                    name="suggested_bring[{{ $index }}][label_en]"
+                    :label="__('ui.tags.suggested_bring.label_en')"
+                    type="text"
+                    value="{{ is_array($row) ? ($row['label_en'] ?? '') : '' }}"
+                    error-field="suggested_bring.{{ $index }}.label_en"
+                />
+                <x-input
+                    name="suggested_bring[{{ $index }}][label_pl]"
+                    :label="__('ui.tags.suggested_bring.label_pl')"
+                    type="text"
+                    value="{{ is_array($row) ? ($row['label_pl'] ?? '') : '' }}"
+                    error-field="suggested_bring.{{ $index }}.label_pl"
+                />
+            </div>
         @endforeach
-        <x-input
-            name="suggested_bring_labels[]"
-            type="text"
-            value=""
-            placeholder="{{ __('Add another…') }}"
-        />
+        <div class="grid gap-2 sm:grid-cols-2">
+            <x-input
+                name="suggested_bring[{{ count($bringRows) }}][label_en]"
+                :label="__('ui.tags.suggested_bring.label_en')"
+                type="text"
+                value=""
+                :placeholder="__('ui.tags.suggested_bring.add_row')"
+            />
+            <x-input
+                name="suggested_bring[{{ count($bringRows) }}][label_pl]"
+                :label="__('ui.tags.suggested_bring.label_pl')"
+                type="text"
+                value=""
+            />
+        </div>
     </div>
 </div>
 

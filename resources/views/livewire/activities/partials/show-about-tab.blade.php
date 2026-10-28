@@ -9,24 +9,7 @@
         @endif
 
         @if (! empty($suggestedBringRows))
-            <section class="space-y-2" data-ui="activity-show-suggested-bring">
-                <div>
-                    <h3 class="text-sm font-semibold text-base-content">{{ __('ui.activities.suggested_bring.heading') }}</h3>
-                    <p class="text-xs text-base-content/60 underline decoration-base-content/30 underline-offset-2">
-                        {{ __('ui.activities.suggested_bring.not_a_gate') }}
-                    </p>
-                </div>
-                <ul class="list-disc space-y-1 pl-5 text-sm text-base-content/80">
-                    @foreach ($suggestedBringRows as $row)
-                        <li data-ui="activity-show-suggested-bring-item">
-                            <span>{{ $row['label'] }}</span>
-                            @if ($row['host_provides'])
-                                <span class="text-base-content/60">— {{ __('ui.activities.suggested_bring.host_provides') }}</span>
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
+            <x-activities.suggested-bring-show :rows="$suggestedBringRows" class="mt-2" />
         @endif
 
         <livewire:entity-links.manage-entity-links

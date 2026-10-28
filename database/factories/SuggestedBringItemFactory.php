@@ -24,7 +24,6 @@ final class SuggestedBringItemFactory extends Factory
         return [
             'bringable_type' => 'activity',
             'bringable_id' => Activity::factory(),
-            'label' => fake()->words(3, true),
             'sort_order' => 0,
             'host_provides' => false,
         ];
@@ -36,5 +35,24 @@ final class SuggestedBringItemFactory extends Factory
             'bringable_type' => 'activity',
             'bringable_id' => $activity->id,
         ]);
+    }
+
+    /**
+     * @param  array<string, string>  $labelsByLocale
+     */
+    public function withTranslations(array $labelsByLocale): static
+    {
+        return $this->afterCreating(function (SuggestedBringItem $item) use ($labelsByLocale): void {
+            foreach ($labelsByLocale as $locale => $label) {
+                $trimmed = trim((string) $label);
+                if ($trimmed === '') {
+                    continue;
+                }
+                $item->translations()->create([
+                    'locale' => (string) $locale,
+                    'label' => mb_substr($trimmed, 0, 255),
+                ]);
+            }
+        });
     }
 }

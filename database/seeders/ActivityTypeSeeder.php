@@ -36,12 +36,17 @@ class ActivityTypeSeeder extends Seeder
 
         $rpg = ActivityType::findBySlug(ActivityType::SLUG_RPG);
         if ($rpg !== null) {
-            $bring->syncBringLabelsForBringable($rpg, ['Paper', 'Pencil']);
+            $bring->syncBringLabelsForBringable($rpg, [
+                ['en' => 'Paper', 'pl' => 'Kartka'],
+                ['en' => 'Pencil', 'pl' => 'Ołówek'],
+            ]);
         }
 
         $board = ActivityType::findBySlug(ActivityType::SLUG_BOARD);
         if ($board !== null) {
-            $bring->syncBringLabelsForBringable($board, ['The game (box)']);
+            $bring->syncBringLabelsForBringable($board, [
+                ['en' => 'The game (box)', 'pl' => 'Gra (pudełko)'],
+            ]);
         }
     }
 }
