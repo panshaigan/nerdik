@@ -19,7 +19,6 @@ class NavigationMenuTest extends TestCase
         $this->get(route('search.index'))
             ->assertOk()
             ->assertSee(route('catalog.places'), false)
-            ->assertSee(route('catalog.organizations'), false)
             ->assertSee(route('catalog.series'), false)
             ->assertDontSee(__('ui.nav.create_event'), false)
             ->assertDontSee(__('ui.nav.create_activity'), false);

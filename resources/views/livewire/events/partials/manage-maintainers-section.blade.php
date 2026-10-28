@@ -204,7 +204,7 @@
                                     wire:target="lastSearchTerm,searchMaintainerCandidates,updatedLastSearchTerm"
                                     class="px-3 py-2 text-sm text-base-content/60"
                                 >
-                                    {{ __('ui.user_requests.invite_user_no_results') }}
+                                    {{ __('ui.events.maintainers.no_results') }}
                                 </li>
                             @endforelse
                         </ul>
