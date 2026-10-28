@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "kind": "game_tag_suggested_bring",
+  "_meta": {
+    "purpose": "Suggested things to bring per game tag (optional, not required to join).",
+    "locales": ["en", "pl"],
+    "rules": [
+      "Do not modify tag.id or tag.label.",
+      "Fill suggested_bring with ordered display strings; en required, pl recommended.",
+      "Max 255 characters per locale per line.",
+      "Focus on system-specific items (especially dice); skip generic stationery."
+    ]
+  },
+  "entries": [
+    {
+      "tag": { "id": 112, "label": "Dungeons & Dragons 5E" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + 3d6 + d20", "pl": "Zestaw kości RPG + 3k6 + k20" }
+      ]
+    },
+    {
+      "tag": { "id": 113, "label": "Warhammer Fantasy Roleplay 4E" },
+      "suggested_bring": [
+        { "en": "2d10 (percentile)", "pl": "2k10 (procentowe)" }
+      ]
+    },
+    {
+      "tag": { "id": 114, "label": "Warhammer Fantasy Roleplay 2E" },
+      "suggested_bring": [
+        { "en": "2d10 (percentile)", "pl": "2k10 (procentowe)" }
+      ]
+    },
+    {
+      "tag": { "id": 115, "label": "Forbidden Lands" },
+      "suggested_bring": [
+        { "en": "9d6 (3 colors)", "pl": "9k6 (3 kolory)" },
+        { "en": "d8 + d10 + d12 (optional)", "pl": "k8 + k10 + k12 (opcjonalnie)" }
+      ]
+    },
+    {
+      "tag": { "id": 116, "label": "Tales from the Loop" },
+      "suggested_bring": [
+        { "en": "10d6", "pl": "10k6" }
+      ]
+    },
+    {
+      "tag": { "id": 117, "label": "Blade Runner" },
+      "suggested_bring": [
+        { "en": "2 each: d6, d8, d10, d12", "pl": "Po 2: k6, k8, k10, k12" }
+      ]
+    },
+    {
+      "tag": { "id": 118, "label": "Trophy Dark" },
+      "suggested_bring": [
+        { "en": "8d6 (4 light, 4 dark)", "pl": "8k6 (4 jasne, 4 ciemne)" }
+      ]
+    },
+    {
+      "tag": { "id": 119, "label": "Mothership" },
+      "suggested_bring": [
+        { "en": "2d10 + d20", "pl": "2k10 + k20" }
+      ]
+    },
+    {
+      "tag": { "id": 120, "label": "Liminal Horror" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 121, "label": "Warlock" },
+      "suggested_bring": [
+        { "en": "d20 + 2d6", "pl": "k20 + 2k6" }
+      ]
+    },
+    {
+      "tag": { "id": 122, "label": "Maze Rats" },
+      "suggested_bring": [
+        { "en": "3d6", "pl": "3k6" }
+      ]
+    },
+    {
+      "tag": { "id": 123, "label": "Call of Cthulhu" },
+      "suggested_bring": [
+        { "en": "d100 (or 2d10)", "pl": "k100 (lub 2k10)" },
+        { "en": "Polyhedral dice set (optional)", "pl": "Zestaw kości RPG (opcjonalnie)" }
+      ]
+    },
+    {
+      "tag": { "id": 124, "label": "Trail of Cthulhu" },
+      "suggested_bring": [
+        { "en": "d6", "pl": "k6" }
+      ]
+    },
+    {
+      "tag": { "id": 125, "label": "Kids on Bikes" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 126, "label": "Kids on Brooms" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 127, "label": "Dzikie Pola" },
+      "suggested_bring": [
+        { "en": "d20", "pl": "k20" }
+      ]
+    },
+    {
+      "tag": { "id": 128, "label": "Cyberpunk RED" },
+      "suggested_bring": [
+        { "en": "d10 + 6d6", "pl": "k10 + 6k6" }
+      ]
+    },
+    {
+      "tag": { "id": 129, "label": "Star Trek Adventures" },
+      "suggested_bring": [
+        { "en": "5d20", "pl": "5k20" }
+      ]
+    },
+    {
+      "tag": { "id": 130, "label": "Never Going Home" },
+      "suggested_bring": [
+        { "en": "6d6", "pl": "6k6" }
+      ]
+    },
+    {
+      "tag": { "id": 131, "label": "Pathfinder 2E" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + 3d6 + d20", "pl": "Zestaw kości RPG + 3k6 + k20" }
+      ]
+    },
+    {
+      "tag": { "id": 132, "label": "The One Ring" },
+      "suggested_bring": [
+        { "en": "2d12 + 6d6", "pl": "2k12 + 6k6" }
+      ]
+    },
+    {
+      "tag": { "id": 133, "label": "Shadow of the Demon Lord" },
+      "suggested_bring": [
+        { "en": "d20 + 4d6", "pl": "k20 + 4k6" }
+      ]
+    },
+    {
+      "tag": { "id": 134, "label": "Blades in the Dark" },
+      "suggested_bring": [
+        { "en": "6d6", "pl": "6k6" }
+      ]
+    },
+    {
+      "tag": { "id": 135, "label": "Vampire: The Masquerade" },
+      "suggested_bring": [
+        { "en": "10d10", "pl": "10k10" },
+        { "en": "5d10 (different color, Hunger)", "pl": "5k10 (inny kolor, Głód)" }
+      ]
+    },
+    {
+      "tag": { "id": 136, "label": "Werewolf: The Apocalipse" },
+      "suggested_bring": [
+        { "en": "12d10", "pl": "12k10" },
+        { "en": "5d10 (different color, Rage)", "pl": "5k10 (inny kolor, Szał)" }
+      ]
+    },
+    {
+      "tag": { "id": 137, "label": "Hunter: The Reckoning" },
+      "suggested_bring": [
+        { "en": "10d10", "pl": "10k10" },
+        { "en": "5d10 (different color, Desperation)", "pl": "5k10 (inny kolor, Desperacja)" }
+      ]
+    },
+    {
+      "tag": { "id": 138, "label": "Deadlands" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + d6 (different color)", "pl": "Zestaw kości RPG + k6 (inny kolor)" }
+      ]
+    },
+    {
+      "tag": { "id": 139, "label": "Earthdawn" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + d6, d8, d10, d12", "pl": "Zestaw kości RPG + k6, k8, k10, k12" }
+      ]
+    },
+    {
+      "tag": { "id": 140, "label": "Mörk Borg" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + d6", "pl": "Zestaw kości RPG + k6" }
+      ]
+    },
+    {
+      "tag": { "id": 141, "label": "Pirat Borg" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + 2d6 + d8", "pl": "Zestaw kości RPG + 2k6 + k8" }
+      ]
+    },
+    {
+      "tag": { "id": 142, "label": "Alien" },
+      "suggested_bring": [
+        { "en": "10d6 (base)", "pl": "10k6 (bazowe)" },
+        { "en": "10d6 (different color, stress)", "pl": "10k6 (inny kolor, stres)" }
+      ]
+    },
+    {
+      "tag": { "id": 143, "label": "The Walking Dead" },
+      "suggested_bring": [
+        { "en": "10d6 (base)", "pl": "10k6 (bazowe)" },
+        { "en": "10d6 (different color, stress)", "pl": "10k6 (inny kolor, stres)" }
+      ]
+    },
+    {
+      "tag": { "id": 144, "label": "Conan (Modiphius)" },
+      "suggested_bring": [
+        { "en": "2d20 + 5d6", "pl": "2k20 + 5k6" }
+      ]
+    },
+    {
+      "tag": { "id": 145, "label": "Dune" },
+      "suggested_bring": [
+        { "en": "5d20", "pl": "5k20" }
+      ]
+    },
+    {
+      "tag": { "id": 146, "label": "Achtung Cthulhu" },
+      "suggested_bring": [
+        { "en": "2d20 + 5d6", "pl": "2k20 + 5k6" }
+      ]
+    },
+    {
+      "tag": { "id": 147, "label": "Star Wars (FF)" },
+      "suggested_bring": [
+        { "en": "Star Wars narrative dice set (14 dice)", "pl": "Zestaw kości narracyjnych Star Wars (14 kości)" }
+      ]
+    },
+    {
+      "tag": { "id": 148, "label": "Delta Green" },
+      "suggested_bring": [
+        { "en": "2d10 (percentile)", "pl": "2k10 (procentowe)" },
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 149, "label": "Monster of the Week" },
+      "suggested_bring": [
+        { "en": "2d6", "pl": "2k6" }
+      ]
+    },
+    {
+      "tag": { "id": 150, "label": "7th Sea" },
+      "suggested_bring": [
+        { "en": "10d10", "pl": "10k10" }
+      ]
+    },
+    {
+      "tag": { "id": 151, "label": "Fate Core" },
+      "suggested_bring": [
+        { "en": "4 Fate dice (or 4d6)", "pl": "4 kości Fate (lub 4k6)" },
+        { "en": "Fate Point tokens (optional)", "pl": "Żetony Punktów Losu (opcjonalnie)" }
+      ]
+    },
+    {
+      "tag": { "id": 152, "label": "Dungeon World" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + d6", "pl": "Zestaw kości RPG + k6" }
+      ]
+    },
+    {
+      "tag": { "id": 153, "label": "Vaesen" },
+      "suggested_bring": [
+        { "en": "10d6", "pl": "10k6" }
+      ]
+    },
+    {
+      "tag": { "id": 154, "label": "Brindlewood Bay" },
+      "suggested_bring": [
+        { "en": "3d6", "pl": "3k6" }
+      ]
+    },
+    {
+      "tag": { "id": 155, "label": "Dragonbane" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 156, "label": "Fallout" },
+      "suggested_bring": [
+        { "en": "2d20 + 4d6", "pl": "2k20 + 4k6" }
+      ]
+    },
+    {
+      "tag": { "id": 157, "label": "Kult: Divinity Lost" },
+      "suggested_bring": [
+        { "en": "2d10", "pl": "2k10" }
+      ]
+    },
+    {
+      "tag": { "id": 158, "label": "Ten Candles" },
+      "suggested_bring": []
+    },
+    {
+      "tag": { "id": 159, "label": "City of Mist" },
+      "suggested_bring": [
+        { "en": "2d6", "pl": "2k6" }
+      ]
+    },
+    {
+      "tag": { "id": 160, "label": "Fabula Ultima" },
+      "suggested_bring": [
+        { "en": "2 each: d6, d8, d10, d12", "pl": "Po 2: k6, k8, k10, k12" },
+        { "en": "Fabula Point tokens (optional)", "pl": "Żetony Punktów Fabuli (opcjonalnie)" }
+      ]
+    },
+    {
+      "tag": { "id": 161, "label": "Pendragon" },
+      "suggested_bring": [
+        { "en": "d20 + 6d6", "pl": "k20 + 6k6" }
+      ]
+    },
+    {
+      "tag": { "id": 162, "label": "Fallout 2d20" },
+      "suggested_bring": [
+        { "en": "2d20 + 4d6", "pl": "2k20 + 4k6" },
+        { "en": "Bottle caps (optional)", "pl": "Kapsle (opcjonalnie)" }
+      ]
+    },
+    {
+      "tag": { "id": 163, "label": "Dungeon Crawl Classics" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set", "pl": "Zestaw kości RPG" }
+      ]
+    },
+    {
+      "tag": { "id": 164, "label": "CY_borg" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + d6", "pl": "Zestaw kości RPG + k6" }
+      ]
+    },
+    {
+      "tag": { "id": 165, "label": "Berdysz k10" },
+      "suggested_bring": []
+    },
+    {
+      "tag": { "id": 170, "label": "Root" },
+      "suggested_bring": [
+        { "en": "2d6", "pl": "2k6" }
+      ]
+    },
+    {
+      "tag": { "id": 175, "label": "Shadowdark" },
+      "suggested_bring": [
+        { "en": "Polyhedral dice set + 2d6 + d20", "pl": "Zestaw kości RPG + 2k6 + k20" }
+      ]
+    },
+    {
+      "tag": { "id": 177, "label": "Serce: Miasto poniżej" },
+      "suggested_bring": [
+        { "en": "4d10", "pl": "4k10" }
+      ]
+    }
+  ]
+}
