@@ -66,8 +66,12 @@ playwright_remove_node_modules_browsers() {
 playwright_chromium_installed() {
     local app_user="$1"
     local cache
+    local has_chrome has_headless_shell
 
     cache="$(playwright_browser_cache_dir "$app_user")"
 
-    [[ -n "$(find "$cache" -type f -name chrome -path '*/chrome-linux64/*' -print -quit 2>/dev/null || true)" ]]
+    has_chrome="$(find "$cache" -type f -name chrome -path '*/chrome-linux64/*' -print -quit 2>/dev/null || true)"
+    has_headless_shell="$(find "$cache" -type f -name chrome-headless-shell -path '*/chrome-headless-shell-linux64/*' -print -quit 2>/dev/null || true)"
+
+    [[ -n "$has_chrome" && -n "$has_headless_shell" ]]
 }

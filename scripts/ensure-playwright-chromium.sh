@@ -30,7 +30,7 @@ if [[ "$(id -u)" -eq 0 ]]; then
         runuser -u "$APP_USER" -- env PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_BROWSERS_PATH" \
             npx playwright install chromium
     else
-        runuser -u "$APP_USER" -- npx playwright install chromium
+        runuser -u "$APP_USER" -- env -u PLAYWRIGHT_BROWSERS_PATH npx playwright install chromium
     fi
 
     exit 0
@@ -41,4 +41,4 @@ if [[ "$(id -un)" != "$APP_USER" ]]; then
     exit 1
 fi
 
-npx playwright install chromium
+env -u PLAYWRIGHT_BROWSERS_PATH npx playwright install chromium

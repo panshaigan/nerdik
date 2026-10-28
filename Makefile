@@ -160,7 +160,8 @@ test-all:
 test-e2e:
 	$(SAIL) artisan e2e:prepare
 	$(SAIL) exec -u root laravel.test ./scripts/ensure-playwright-chromium.sh
-	$(SAIL) exec laravel.test npx playwright test $(ARGS)
+	$(SAIL) exec -u root laravel.test rm -rf test-results playwright-report
+	$(SAIL) exec -u sail laravel.test env -u PLAYWRIGHT_BROWSERS_PATH npx playwright test $(ARGS)
 
 regenerate-tags:
 	$(SAIL) artisan tags:recalculate-popularity

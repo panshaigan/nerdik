@@ -5,8 +5,8 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:e2e": "playwright test",
-        "test:e2e:install": "playwright install chromium"
+        "test:e2e": "env -u PLAYWRIGHT_BROWSERS_PATH playwright test",
+        "test:e2e:install": "env -u PLAYWRIGHT_BROWSERS_PATH playwright install chromium"
     },
     "devDependencies": {
         "@playwright/test": "^1.56.1",

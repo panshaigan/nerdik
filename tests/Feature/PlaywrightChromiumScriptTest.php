@@ -110,10 +110,12 @@ BASH;
         $check = file_get_contents(base_path('scripts/ci-check.sh'));
         $makefile = file_get_contents(base_path('Makefile'));
         $ensure = file_get_contents(base_path('scripts/ensure-playwright-chromium.sh'));
+        $dockerfile = file_get_contents(base_path('docker/sail/Dockerfile'));
 
         $this->assertIsString($check);
         $this->assertIsString($makefile);
         $this->assertIsString($ensure);
+        $this->assertIsString($dockerfile);
 
         $remove = strpos($check, 'playwright_remove_node_modules_browsers');
         $npmCi = strpos($check, '"$SAIL" npm ci');
@@ -122,9 +124,12 @@ BASH;
         $this->assertNotFalse($npmCi);
         $this->assertLessThan($npmCi, $remove);
         $this->assertStringContainsString('exec -u root', $check);
+        $this->assertStringContainsString('exec -u sail laravel.test env -u PLAYWRIGHT_BROWSERS_PATH', $makefile);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $makefile);
         $this->assertStringContainsString('runuser -u "$APP_USER"', $ensure);
+        $this->assertStringContainsString('env -u PLAYWRIGHT_BROWSERS_PATH', $ensure);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $ensure);
+        $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $dockerfile);
     }
 
     private function removeTree(string $root): void
