@@ -55,7 +55,7 @@
 
         <x-ui.hr class="mx-auto my-10 max-w-5xl" icon="o-sparkles" color="neutral" />
 
-        <div class="mx-auto max-w-5xl overflow-visible">
+        <div class="mt-6 mx-auto max-w-5xl overflow-visible">
             <div
                 class="flex flex-wrap justify-center gap-2"
                 role="tablist"
