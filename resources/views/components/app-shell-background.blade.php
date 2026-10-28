@@ -6,7 +6,7 @@
 
 @if ($enabled)
     <div
-        class="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#00050a] light:bg-[#f5f0e8]"
+        class="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#00050a] light:bg-base-200"
         data-ui="app-shell-background"
         aria-hidden="true"
         x-data="{

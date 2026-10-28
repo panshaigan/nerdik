@@ -24,13 +24,13 @@
         --brand-error: oklch(58% 0.23 25);
         --brand-error-content: oklch(98% 0.01 25);
 
-        /* Neutrals (Light) */
-        --brand-neutral-light: oklch(30% 0.04 242);
-        --brand-neutral-content-light: oklch(95% 0.01 242);
-        --brand-base-100-light: oklch(97% 0.015 242);
-        --brand-base-200-light: oklch(92% 0.025 242);
-        --brand-base-300-light: oklch(0.93 0.007 17.274);
-        --brand-base-content-light: oklch(18% 0.04 242);
+        /* Neutrals (Light) — cool SaaS surfaces, hue aligned with primary */
+        --brand-neutral-light: oklch(32% 0.025 240);
+        --brand-neutral-content-light: oklch(98% 0.005 240);
+        --brand-base-100-light: oklch(99.2% 0.004 240);
+        --brand-base-200-light: oklch(96% 0.012 240);
+        --brand-base-300-light: oklch(91.5% 0.012 240);
+        --brand-base-content-light: oklch(22% 0.03 250);
 
         /* Neutrals (Dark) */
         --brand-neutral-dark: oklch(78% 0.03 242);
@@ -92,16 +92,19 @@
     }
 
     [data-theme='light'] {
-        --ui-content-card-gradient-start: color-mix(in oklab, var(--color-base-300) 82%, var(--brand-info));
-        --ui-content-card-gradient-end: color-mix(in oklab, var(--color-base-100) 90%, var(--brand-primary));
-        --ui-hairline-inner-bg: color-mix(in oklab, var(--color-base-100) 8%, black);
-        --ui-badge-outline-bg: color-mix(in oklab, var(--color-base-200) 92%, var(--color-base-100));
-        --ui-bg-gradient-stop: var(--brand-primary-dark);
+        --ui-field-bg: var(--color-base-100);
+        --ui-field-border-color: var(--color-base-300);
+        --ui-content-card-border: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+        --ui-content-card-gradient-start: var(--color-base-100);
+        --ui-content-card-gradient-end: var(--color-base-100);
+        --ui-hairline-inner-bg: var(--color-base-100);
+        --ui-badge-outline-bg: var(--color-base-100);
+        --ui-bg-gradient-stop: var(--color-base-200);
         --ui-bg-texture-a: transparent;
         --ui-bg-texture-b: transparent;
         --ui-modal-surface-start: color-mix(in oklab, var(--color-base-300) 76%, transparent);
         --ui-modal-surface-end: color-mix(in oklab, var(--color-base-100) 86%, transparent);
-        --ui-listing-card-shadow: 0 20px 36px color-mix(in oklch, var(--brand-neutral-content-dark) 34%, transparent);
+        --ui-listing-card-shadow: 0 12px 28px color-mix(in oklch, var(--color-base-content) 8%, transparent);
         --ui-listing-card-hover-shadow:
             0 0 44px color-mix(in oklch, var(--brand-primary) 34%, transparent),
             0 0 28px -8px color-mix(in oklch, var(--brand-accent) 28%, transparent);

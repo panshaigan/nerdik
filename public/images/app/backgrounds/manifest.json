@@ -45,44 +45,44 @@
     },
     "light": {
         "sizes": "100vw",
-        "width": 1716,
+        "width": 1717,
         "height": 916,
         "variants": {
             "webp": [
                 {
                     "width": 384,
                     "path": "images/app/backgrounds/light/384w.webp",
-                    "bytes": 1462
+                    "bytes": 1902
                 },
                 {
                     "width": 512,
                     "path": "images/app/backgrounds/light/512w.webp",
-                    "bytes": 2406
+                    "bytes": 2940
                 },
                 {
                     "width": 640,
                     "path": "images/app/backgrounds/light/640w.webp",
-                    "bytes": 3462
+                    "bytes": 4220
                 },
                 {
                     "width": 768,
                     "path": "images/app/backgrounds/light/768w.webp",
-                    "bytes": 4814
+                    "bytes": 5666
                 },
                 {
                     "width": 1024,
                     "path": "images/app/backgrounds/light/1024w.webp",
-                    "bytes": 8240
+                    "bytes": 9110
                 },
                 {
                     "width": 1536,
                     "path": "images/app/backgrounds/light/1536w.webp",
-                    "bytes": 17060
+                    "bytes": 17922
                 },
                 {
                     "width": 1716,
                     "path": "images/app/backgrounds/light/1716w.webp",
-                    "bytes": 24170
+                    "bytes": 21248
                 }
             ]
         }
