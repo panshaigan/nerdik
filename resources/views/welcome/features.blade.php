@@ -71,4 +71,23 @@
             @endforeach
         </div>
     </div>
+
+    <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <x-button :link="route('features')" class="btn-primary btn-sm" wire:navigate>
+            {{ __('ui.welcome.see_all_features') }}
+        </x-button>
+        <div class="flex flex-wrap justify-center gap-2 text-xs">
+            <a href="{{ route('features', ['tab' => 'players']) }}" class="link link-hover opacity-80" wire:navigate>
+                {{ __('ui.features.tab_players') }}
+            </a>
+            <span class="opacity-40" aria-hidden="true">·</span>
+            <a href="{{ route('features', ['tab' => 'hosts']) }}" class="link link-hover opacity-80" wire:navigate>
+                {{ __('ui.features.tab_hosts') }}
+            </a>
+            <span class="opacity-40" aria-hidden="true">·</span>
+            <a href="{{ route('features', ['tab' => 'organizers']) }}" class="link link-hover opacity-80" wire:navigate>
+                {{ __('ui.features.tab_organizers') }}
+            </a>
+        </div>
+    </div>
 </section>

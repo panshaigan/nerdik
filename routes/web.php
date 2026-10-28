@@ -69,6 +69,7 @@ Route::get('geocode/search', [GeocodeController::class, 'search'])
 
 Route::get('privacy', fn () => view('pages.privacy', ['seo' => Seo::forPrivacy()]))->name('privacy');
 Route::get('terms', fn () => view('pages.terms', ['seo' => Seo::forTerms()]))->name('terms');
+Route::get('features', fn () => view('pages.features', ['seo' => Seo::forFeatures()]))->name('features');
 
 Route::get('share/{target}', ShareRedirectController::class)
     ->whereIn('target', ['facebook', 'whatsapp', 'x', 'telegram'])

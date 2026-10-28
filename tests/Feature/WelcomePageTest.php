@@ -184,6 +184,7 @@ class WelcomePageTest extends TestCase
         $response->assertSee('data-ui="welcome-tab-find"', false);
         $response->assertSee('data-ui="welcome-tab-host"', false);
         $response->assertSee('data-ui="welcome-tab-organize"', false);
+        $response->assertSee(route('features'), false);
     }
 
     #[Test]

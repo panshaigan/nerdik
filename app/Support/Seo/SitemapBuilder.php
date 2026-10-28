@@ -60,6 +60,7 @@ final class SitemapBuilder
             ['loc' => route('catalog.series'), 'lastmod' => null],
             ['loc' => route('privacy'), 'lastmod' => null],
             ['loc' => route('terms'), 'lastmod' => null],
+            ['loc' => route('features'), 'lastmod' => null],
         ];
     }
 

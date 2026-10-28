@@ -82,6 +82,17 @@ class NavigationMenuTest extends TestCase
             ->assertSee('open-feedback-modal', false);
     }
 
+    public function test_authenticated_user_sees_features_link_in_profile_menu(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(route('features'), false)
+            ->assertSee('data-ui="nav-features"', false);
+    }
+
     public function test_logged_in_user_sees_create_activity_in_profile_menu_but_not_create_event_when_not_organizer(): void
     {
         $user = User::factory()->create([

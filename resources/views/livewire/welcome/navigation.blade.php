@@ -27,6 +27,12 @@
     class="ui-app-navigation -mx-3 flex flex-1 items-center justify-end"
 >
     <div class="hidden items-center gap-2 sm:flex">
+        <a
+            href="{{ route('features') }}"
+            class="btn btn-ghost btn-sm font-display"
+        >
+            {{ __('ui.nav.features') }}
+        </a>
         <x-locale-toggle />
         <x-theme-toggle class="btn btn-circle btn-ghost"/>
 
@@ -110,6 +116,17 @@
                             {{ __('ui.nav.navigation') }}
                         </p>
                         <ul class="menu menu-lg w-full px-0">
+                            <li>
+                                <a
+                                    href="{{ route('features') }}"
+                                    wire:navigate
+                                    @click="close()"
+                                    class="font-display"
+                                >
+                                    <x-icon name="o-sparkles" class="h-4 w-4 shrink-0" />
+                                    {{ __('ui.nav.features') }}
+                                </a>
+                            </li>
                             <li>
                                 <a
                                     href="{{ BrowseSearchState::indexUrl() }}"
