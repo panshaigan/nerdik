@@ -124,7 +124,7 @@ vendor/bin/sail exec -u root laravel.test ./scripts/ensure-playwright-chromium.s
 vendor/bin/sail exec -u sail laravel.test env -u PLAYWRIGHT_BROWSERS_PATH npx playwright test
 ```
 
-`e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event with enrollment, joinable and waitlist activities, proposal fixtures, a Wrocław venue, and `storage/app/e2e-fixtures.json`. Re-running it clears the player's signup and waitlist entries so join/waitlist specs stay repeatable.
+`e2e:prepare` upserts deterministic users (`e2e.player@nerdik.test` / `e2e.organizer@nerdik.test`, password `password`), a public event with enrollment, joinable and waitlist activities, proposal fixtures, a Wrocław venue, and `storage/app/e2e-fixtures.json`. Each run also removes leftover rows those fixture users created in earlier Playwright runs (extra events, activities, and slots on the join event) and resets the empty plan slot. Re-running it clears the player's signup and waitlist entries so join/waitlist specs stay repeatable.
 
 Point Playwright at a non-default origin with `PLAYWRIGHT_BASE_URL` (defaults to `http://localhost` locally so it matches Sail `APP_URL` / `SESSION_DOMAIN`, and `http://localhost:8000` in CI). Specs live in `tests/e2e/`. Keep business rules in PHPUnit; do not duplicate waitlist/lottery matrices here.
 

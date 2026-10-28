@@ -62,6 +62,19 @@ final class PrepareE2EFixtures
 
     public const ENROLLMENT_NAME = 'E2E Playwright Enrollment';
 
+    /**
+     * @return list<string>
+     */
+    public static function protectedActivitySlugs(): array
+    {
+        return [
+            self::ACTIVITY_SLUG,
+            self::WAITLIST_ACTIVITY_SLUG,
+            self::DRAFT_ACTIVITY_SLUG,
+            self::PENDING_PROPOSAL_ACTIVITY_SLUG,
+        ];
+    }
+
     public const OCCUPIED_SLOT_NAME = 'E2E Table';
 
     public const EMPTY_SLOT_NAME = 'E2E Empty Slot';
@@ -71,6 +84,8 @@ final class PrepareE2EFixtures
      */
     public function __invoke(): array
     {
+        app(CleanupE2EPlaywrightLeftovers::class)();
+
         (new ActivityTypeSeeder)->run();
 
         $organizer = $this->upsertUser(
@@ -318,10 +333,10 @@ final class PrepareE2EFixtures
         $slot = Slot::query()->updateOrCreate(
             [
                 'event_id' => $event->id,
-                'name' => self::EMPTY_SLOT_NAME,
+                'activity_id' => null,
             ],
             [
-                'activity_id' => null,
+                'name' => self::EMPTY_SLOT_NAME,
                 'starts_at' => $startsAt,
                 'ends_at' => $endsAt,
                 'place_id' => $place->id,

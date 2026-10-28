@@ -153,4 +153,69 @@ final class PrepareE2ECommandTest extends TestCase
             ->expectsOutputToContain('Refusing --fresh in production.')
             ->assertFailed();
     }
+
+    #[Test]
+    public function it_removes_playwright_created_events_and_activities(): void
+    {
+        $this->artisan('e2e:prepare')->assertSuccessful();
+
+        $organizer = User::query()->where('email', PrepareE2EFixtures::ORGANIZER_EMAIL)->firstOrFail();
+        $player = User::query()->where('email', PrepareE2EFixtures::PLAYER_EMAIL)->firstOrFail();
+
+        $extraEvent = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'updated_by' => $organizer->id,
+            'name' => 'E2E Created Event leftover',
+        ]);
+        $extraActivity = Activity::factory()->create([
+            'created_by' => $player->id,
+            'updated_by' => $player->id,
+            'name' => 'E2E Proposed Activity leftover',
+        ]);
+
+        $this->artisan('e2e:prepare')->assertSuccessful();
+
+        $this->assertNull(Event::query()->find($extraEvent->id));
+        $this->assertNull(Activity::query()->find($extraActivity->id));
+        $this->assertSame(1, Event::query()->where('slug', PrepareE2EFixtures::EVENT_SLUG)->count());
+    }
+
+    #[Test]
+    public function it_resets_the_fixture_empty_slot_after_a_playwright_rename(): void
+    {
+        $this->artisan('e2e:prepare')->assertSuccessful();
+
+        $payload = json_decode((string) File::get(PrepareE2EFixtures::fixturePath()), true);
+        $emptySlot = Slot::query()->findOrFail($payload['empty_slot']['id']);
+        $emptySlot->forceFill(['name' => 'E2E Edited Slot 12345'])->save();
+
+        Slot::query()->create([
+            'event_id' => $emptySlot->event_id,
+            'activity_id' => null,
+            'name' => 'Duplicate empty slot',
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+            'place_id' => $emptySlot->place_id,
+            'created_by' => $emptySlot->created_by,
+            'max_capacity' => 6,
+            'requires_approval' => false,
+        ]);
+
+        $this->artisan('e2e:prepare')->assertSuccessful();
+
+        $this->assertSame(
+            1,
+            Slot::query()
+                ->where('event_id', $emptySlot->event_id)
+                ->whereNull('activity_id')
+                ->count(),
+        );
+
+        $resetSlot = Slot::query()
+            ->where('event_id', $emptySlot->event_id)
+            ->whereNull('activity_id')
+            ->firstOrFail();
+
+        $this->assertSame(PrepareE2EFixtures::EMPTY_SLOT_NAME, $resetSlot->name);
+    }
 }
