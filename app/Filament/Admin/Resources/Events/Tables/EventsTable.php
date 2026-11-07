@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Events\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -26,6 +27,7 @@ class EventsTable
             ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('organization.name')

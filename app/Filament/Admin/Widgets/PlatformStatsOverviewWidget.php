@@ -35,7 +35,7 @@ class PlatformStatsOverviewWidget extends StatsOverviewWidget
     private function membersStat(PlatformStats $stats): Stat
     {
         return Stat::make(__('ui.platform_stats.members'), $stats->membersCount)
-            ->description(__('ui.platform_stats.trend_this_month', ['count' => $stats->membersAddedThisMonth]))
+            ->description($stats->membersSignupWindowsDescription())
             ->descriptionIcon(Heroicon::OutlinedArrowTrendingUp, IconPosition::Before)
             ->chart($stats->memberSignupTrend)
             ->url(UserResource::getUrl('index'));

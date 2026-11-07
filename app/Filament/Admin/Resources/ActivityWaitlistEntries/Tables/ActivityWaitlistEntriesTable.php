@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityWaitlistEntries\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Services\ActivityFamiliarityService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -19,6 +20,7 @@ class ActivityWaitlistEntriesTable
             'user',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('activity.name')
                     ->searchable(),
                 BelongsToColumn::user('user_id'),

@@ -12,6 +12,9 @@ final readonly class PlatformStats
     public function __construct(
         public int $membersCount,
         public int $membersAddedThisMonth,
+        public int $membersAddedThisWeek,
+        public int $membersAddedLast7Days,
+        public int $membersAddedLast3Days,
         public int $engagedMembersCount,
         public int $upcomingEventsCount,
         public int $upcomingActivitiesCount,
@@ -34,5 +37,15 @@ final readonly class PlatformStats
         }
 
         return (int) round(($this->engagedMembersCount / $this->membersCount) * 100);
+    }
+
+    public function membersSignupWindowsDescription(): string
+    {
+        return implode(' · ', [
+            __('ui.platform_stats.trend_this_month', ['count' => $this->membersAddedThisMonth]),
+            __('ui.platform_stats.trend_this_week', ['count' => $this->membersAddedThisWeek]),
+            __('ui.platform_stats.trend_last_7_days', ['count' => $this->membersAddedLast7Days]),
+            __('ui.platform_stats.trend_last_3_days', ['count' => $this->membersAddedLast3Days]),
+        ]);
     }
 }

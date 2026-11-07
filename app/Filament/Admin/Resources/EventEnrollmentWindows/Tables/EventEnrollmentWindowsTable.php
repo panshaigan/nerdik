@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\EventEnrollmentWindows\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -21,6 +22,7 @@ class EventEnrollmentWindowsTable
             'updater',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('event.name')

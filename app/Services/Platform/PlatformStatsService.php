@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class PlatformStatsService
 {
-    public const CACHE_KEY = 'platform.stats';
+    public const CACHE_KEY = 'platform.stats.v2';
 
     public const CACHE_TTL_SECONDS = 600;
 
@@ -41,7 +41,10 @@ final class PlatformStatsService
 
         return new PlatformStats(
             membersCount: $membersCount,
-            membersAddedThisMonth: $this->membersAddedThisMonth($now),
+            membersAddedThisMonth: $this->membersAddedSince($now, $now->copy()->startOfMonth()),
+            membersAddedThisWeek: $this->membersAddedSince($now, $now->copy()->startOfWeek()),
+            membersAddedLast7Days: $this->membersAddedSince($now, $now->copy()->subDays(7)),
+            membersAddedLast3Days: $this->membersAddedSince($now, $now->copy()->subDays(3)),
             engagedMembersCount: $this->engagementQuery->engagedMembersCount(),
             upcomingEventsCount: $this->listingCountsQuery->upcomingEventsCount($now),
             upcomingActivitiesCount: $this->listingCountsQuery->upcomingActivitiesCount($now),
@@ -53,11 +56,11 @@ final class PlatformStatsService
         );
     }
 
-    private function membersAddedThisMonth(Carbon $now): int
+    private function membersAddedSince(Carbon $now, Carbon $since): int
     {
         return User::query()
             ->where('is_deleted', false)
-            ->where('created_at', '>=', $now->copy()->startOfMonth())
+            ->where('created_at', '>=', $since)
             ->count();
     }
 

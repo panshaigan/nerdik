@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\TagContexts\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Models\TagContext;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -20,6 +21,7 @@ class TagContextsTable
             'context',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::record('tag', searchable: true),
                 TextColumn::make('context_type')
                     ->searchable(),

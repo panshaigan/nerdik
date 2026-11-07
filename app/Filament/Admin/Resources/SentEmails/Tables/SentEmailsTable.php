@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\SentEmails\Tables;
 
 use App\Enums\SentEmailKind;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\SentEmail;
@@ -19,6 +20,7 @@ class SentEmailsTable
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['recipientUser', 'related']))
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('sent_at')
                     ->dateTime()
                     ->sortable(),

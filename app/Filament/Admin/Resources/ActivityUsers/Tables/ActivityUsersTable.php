@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityUsers\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Services\ActivityFamiliarityService;
 use Filament\Actions\BulkActionGroup;
@@ -25,6 +26,7 @@ class ActivityUsersTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('activity.name')
                     ->searchable(),
                 BelongsToColumn::user('user_id'),

@@ -9,6 +9,7 @@ use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Activities\ActivityResource;
 use App\Filament\Admin\Resources\Events\EventResource;
 use App\Filament\Admin\Resources\Users\UserResource;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\User;
@@ -143,6 +144,7 @@ class ModerateContent extends Page implements HasTable
         return $table
             ->defaultSort('updated_at', 'desc')
             ->columns([
+                IdColumn::make(),
                 ImageColumn::make('preview_image')
                     ->label('Image')
                     ->state(fn (User $record): ?string => $moderation->profilePreviewImageUrl($record))
@@ -186,6 +188,7 @@ class ModerateContent extends Page implements HasTable
         return $table
             ->defaultSort('updated_at', 'desc')
             ->columns([
+                IdColumn::make(),
                 ImageColumn::make('preview_image')
                     ->label('Image')
                     ->state(fn (Activity $record): ?string => $moderation->activityPreviewImageUrl($record))
@@ -229,6 +232,7 @@ class ModerateContent extends Page implements HasTable
         return $table
             ->defaultSort('updated_at', 'desc')
             ->columns([
+                IdColumn::make(),
                 ImageColumn::make('preview_image')
                     ->label('Image')
                     ->state(fn (Event $record): ?string => $moderation->eventPreviewImageUrl($record))

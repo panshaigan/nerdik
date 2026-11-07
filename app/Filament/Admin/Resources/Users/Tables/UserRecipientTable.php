@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\Users\Tables;
 
 use App\Filament\Admin\Support\AdminCustomEmailForm;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\User;
@@ -35,6 +36,7 @@ final class UserRecipientTable
     public static function columns(): array
     {
         return [
+            IdColumn::make(),
             TextColumn::make('name')
                 ->searchable(),
             TextColumn::make('nickname')
@@ -70,6 +72,7 @@ final class UserRecipientTable
     {
         return $table
             ->columns(self::columns())
+            ->defaultSort('id', direction: 'desc')
             ->filters([
                 TernaryFilter::make('is_event_organizer'),
                 TernaryFilter::make('is_admin'),

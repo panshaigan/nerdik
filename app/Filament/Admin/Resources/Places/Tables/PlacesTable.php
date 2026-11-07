@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Places\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Place;
@@ -30,6 +31,7 @@ class PlacesTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::placeName(),
                 TextColumn::make('type')
                     ->searchable(),

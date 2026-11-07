@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\EventSeries\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -22,6 +23,7 @@ class EventSeriesTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('slug')

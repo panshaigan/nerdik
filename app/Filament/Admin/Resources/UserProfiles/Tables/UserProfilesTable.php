@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\UserProfiles\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -17,6 +18,7 @@ class UserProfilesTable
             'user',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::user('user_id'),
                 TextColumn::make('google_id')
                     ->searchable(),

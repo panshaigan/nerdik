@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagCategories\Tables;
 
+use App\Filament\Tables\Columns\IdColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -14,6 +15,7 @@ class TagCategoriesTable
     {
         return $table
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('key')
                     ->searchable(),
             ])

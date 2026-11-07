@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\TagCategoryTranslations\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Models\TagCategoryTranslation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -19,6 +20,7 @@ class TagCategoryTranslationsTable
             'category.translations',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::record('category', label: 'Tag category'),
                 TextColumn::make('locale')
                     ->searchable(),

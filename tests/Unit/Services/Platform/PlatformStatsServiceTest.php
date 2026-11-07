@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\User;
 use App\Services\Platform\PlatformStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -98,6 +99,44 @@ final class PlatformStatsServiceTest extends TestCase
 
         $this->assertSame(1, $stats->upcomingEventsCount);
         $this->assertSame(1, $stats->upcomingActivitiesCount);
+    }
+
+    #[Test]
+    public function it_counts_members_added_in_signup_windows(): void
+    {
+        $now = Carbon::parse('2026-02-15 12:00:00');
+
+        User::factory()->create(['created_at' => $now->copy()->subMonths(2), 'is_deleted' => false]);
+        User::factory()->create(['created_at' => $now->copy()->startOfMonth()->addDay(), 'is_deleted' => false]);
+        User::factory()->create(['created_at' => $now->copy()->startOfWeek()->addHours(2), 'is_deleted' => false]);
+        User::factory()->create(['created_at' => $now->copy()->subDays(5), 'is_deleted' => false]);
+        User::factory()->create(['created_at' => $now->copy()->subDays(2), 'is_deleted' => false]);
+        User::factory()->create(['created_at' => $now->copy()->subDay(), 'is_deleted' => false]);
+
+        $stats = app(PlatformStatsService::class)->stats($now);
+
+        $this->assertSame(6, $stats->membersCount);
+        $this->assertSame(5, $stats->membersAddedThisMonth);
+        $this->assertSame(4, $stats->membersAddedThisWeek);
+        $this->assertSame(4, $stats->membersAddedLast7Days);
+        $this->assertSame(2, $stats->membersAddedLast3Days);
+        $this->assertStringContainsString(__('ui.platform_stats.trend_last_3_days', ['count' => 2]), $stats->membersSignupWindowsDescription());
+    }
+
+    #[Test]
+    public function it_excludes_deleted_users_from_signup_windows(): void
+    {
+        $now = Carbon::parse('2026-02-15 12:00:00');
+
+        User::factory()->create(['created_at' => $now->copy()->subDay(), 'is_deleted' => true]);
+
+        $stats = app(PlatformStatsService::class)->stats($now);
+
+        $this->assertSame(0, $stats->membersCount);
+        $this->assertSame(0, $stats->membersAddedThisMonth);
+        $this->assertSame(0, $stats->membersAddedThisWeek);
+        $this->assertSame(0, $stats->membersAddedLast7Days);
+        $this->assertSame(0, $stats->membersAddedLast3Days);
     }
 
     #[Test]

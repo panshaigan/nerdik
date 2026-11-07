@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Activities\Tables;
 
 use App\Enums\ParticipationMode;
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Activity;
@@ -31,6 +32,7 @@ class ActivitiesTable
             ...BelongsToColumn::AUDIT_USER_RELATIONSHIPS,
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('name')
                     ->searchable(),
                 BelongsToColumn::record('activityType', searchable: true),

@@ -12,6 +12,7 @@
         <x-stat
             :title="__('ui.platform_stats.members')"
             :value="$stats->membersCount"
+            description="{{ $stats->membersSignupWindowsDescription() }}"
             icon="o-users"
             class="ui-stat-embed ui-activity-show-stat"
         />

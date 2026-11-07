@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\ActivityTypeSlots\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -18,6 +19,7 @@ class ActivityTypeSlotsTable
             'activityType',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::slot(),
                 BelongsToColumn::record('activityType', searchable: true),
             ])

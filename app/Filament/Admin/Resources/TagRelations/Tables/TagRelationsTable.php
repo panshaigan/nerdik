@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\TagRelations\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -17,6 +18,7 @@ class TagRelationsTable
             'relatedTag.translations',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::record('tag', searchable: true),
                 BelongsToColumn::record('relatedTag', label: 'Related tag', searchable: true),
             ])

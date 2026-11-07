@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Tags\Tables;
 
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Tag;
@@ -32,6 +33,7 @@ class TagsTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('label_en')
                     ->label('English')
                     ->state(fn (Tag $record): string => $record->displayLabel('en'))

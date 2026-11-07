@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\ActivityProposals\Tables;
 
 use App\Enums\ActivityProposalStatus;
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -28,6 +29,7 @@ class ActivityProposalsTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('activity.name')
                     ->searchable(),
                 TextColumn::make('event.name')

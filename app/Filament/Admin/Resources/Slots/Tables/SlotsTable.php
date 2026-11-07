@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Slots\Tables;
 
 use App\Enums\ParticipationMode;
 use App\Filament\Tables\Columns\BelongsToColumn;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\CommonFilters;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -29,6 +30,7 @@ class SlotsTable
             'deleter',
         ])
             ->columns([
+                IdColumn::make(),
                 BelongsToColumn::slotRecord(),
                 TextColumn::make('event.name')
                     ->searchable(),

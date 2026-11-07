@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources\Feedback\Tables;
 
 use App\Enums\FeedbackStatus;
 use App\Enums\FeedbackType;
+use App\Filament\Tables\Columns\IdColumn;
 use App\Filament\Tables\Filters\BelongsToFilter;
 use App\Filament\Tables\Filters\CommonFilters;
 use App\Models\Feedback;
@@ -22,6 +23,7 @@ class FeedbackTable
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['user']))
             ->columns([
+                IdColumn::make(),
                 TextColumn::make('created_at')
                     ->label('Submitted')
                     ->dateTime()
