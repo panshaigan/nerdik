@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Places;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Places\Pages\CreatePlace;
 use App\Filament\Admin\Resources\Places\Pages\EditPlace;
 use App\Filament\Admin\Resources\Places\Pages\ListPlaces;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class PlaceResource extends Resource
 {
     protected static ?string $model = Place::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Catalog;
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

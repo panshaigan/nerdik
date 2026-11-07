@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Tags;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\Tags\Pages\CreateTag;
 use App\Filament\Admin\Resources\Tags\Pages\EditTag;
@@ -17,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 use function Filament\Support\original_request;
 
@@ -25,6 +27,10 @@ class TagResource extends Resource
     protected static ?string $model = Tag::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Tags;
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Countries;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Countries\Pages\CreateCountry;
 use App\Filament\Admin\Resources\Countries\Pages\EditCountry;
 use App\Filament\Admin\Resources\Countries\Pages\ListCountries;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class CountryResource extends Resource
 {
     protected static ?string $model = Country::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Geography;
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

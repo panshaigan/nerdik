@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Users\Tables\UserRecipientTable;
 use App\Filament\Admin\Support\AdminCustomEmailForm;
 use App\Models\User;
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use UnitEnum;
 
 class SendCustomEmail extends Page implements HasTable
 {
@@ -35,11 +37,13 @@ class SendCustomEmail extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPaperAirplane;
 
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Communication;
+
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $navigationLabel = null;
 
     protected static ?string $title = null;
-
-    protected static ?int $navigationSort = 12;
 
     protected string $view = 'filament-panels::pages.page';
 

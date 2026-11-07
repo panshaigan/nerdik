@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityProposals;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityProposals\Pages\CreateActivityProposal;
 use App\Filament\Admin\Resources\ActivityProposals\Pages\EditActivityProposal;
 use App\Filament\Admin\Resources\ActivityProposals\Pages\ListActivityProposals;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class ActivityProposalResource extends Resource
 {
     protected static ?string $model = ActivityProposal::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {

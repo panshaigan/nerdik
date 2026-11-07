@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityWaitlistEntries;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Pages\CreateActivityWaitlistEntry;
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Pages\EditActivityWaitlistEntry;
 use App\Filament\Admin\Resources\ActivityWaitlistEntries\Pages\ListActivityWaitlistEntries;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityWaitlistEntryResource extends Resource
 {
     protected static ?string $model = ActivityWaitlistEntry::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 8;
 
     public static function form(Schema $schema): Schema
     {

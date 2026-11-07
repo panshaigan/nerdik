@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagAliases;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagAliases\Pages\CreateTagAlias;
 use App\Filament\Admin\Resources\TagAliases\Pages\EditTagAlias;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class TagAliasResource extends Resource
 {
     protected static ?string $model = TagAlias::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Tags;
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

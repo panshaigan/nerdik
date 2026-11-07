@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\EventSeries;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\EventSeries\Pages\CreateEventSeries;
 use App\Filament\Admin\Resources\EventSeries\Pages\EditEventSeries;
 use App\Filament\Admin\Resources\EventSeries\Pages\ListEventSeries;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class EventSeriesResource extends Resource
 {
     protected static ?string $model = EventSeries::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Events;
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
 

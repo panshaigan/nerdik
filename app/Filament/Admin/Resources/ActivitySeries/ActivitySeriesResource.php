@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivitySeries;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivitySeries\Pages\CreateActivitySeries;
 use App\Filament\Admin\Resources\ActivitySeries\Pages\EditActivitySeries;
 use App\Filament\Admin\Resources\ActivitySeries\Pages\ListActivitySeries;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class ActivitySeriesResource extends Resource
 {
     protected static ?string $model = ActivitySeries::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
 

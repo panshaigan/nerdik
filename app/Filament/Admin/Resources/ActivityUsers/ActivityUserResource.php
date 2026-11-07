@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityUsers;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityUsers\Pages\CreateActivityUser;
 use App\Filament\Admin\Resources\ActivityUsers\Pages\EditActivityUser;
 use App\Filament\Admin\Resources\ActivityUsers\Pages\ListActivityUsers;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityUserResource extends Resource
 {
     protected static ?string $model = ActivityUser::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {

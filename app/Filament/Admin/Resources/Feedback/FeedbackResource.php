@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Feedback;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Feedback\Pages\ListFeedback;
 use App\Filament\Admin\Resources\Feedback\Pages\ViewFeedback;
 use App\Filament\Admin\Resources\Feedback\Schemas\FeedbackInfolist;
@@ -15,12 +16,17 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use UnitEnum;
 
 class FeedbackResource extends Resource
 {
     protected static ?string $model = FeedbackModel::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Communication;
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'subject';
 
@@ -29,8 +35,6 @@ class FeedbackResource extends Resource
     protected static ?string $modelLabel = 'feedback';
 
     protected static ?string $pluralModelLabel = 'feedback';
-
-    protected static ?int $navigationSort = 20;
 
     public static function infolist(Schema $schema): Schema
     {

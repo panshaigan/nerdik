@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityProposalSlots;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\CreateActivityProposalSlot;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\EditActivityProposalSlot;
 use App\Filament\Admin\Resources\ActivityProposalSlots\Pages\ListActivityProposalSlots;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityProposalSlotResource extends Resource
 {
     protected static ?string $model = ActivityProposalSlot::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

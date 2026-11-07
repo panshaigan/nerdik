@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityTypeSlots;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityTypeSlots\Pages\CreateActivityTypeSlot;
 use App\Filament\Admin\Resources\ActivityTypeSlots\Pages\EditActivityTypeSlot;
 use App\Filament\Admin\Resources\ActivityTypeSlots\Pages\ListActivityTypeSlots;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityTypeSlotResource extends Resource
 {
     protected static ?string $model = ActivityTypeSlot::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

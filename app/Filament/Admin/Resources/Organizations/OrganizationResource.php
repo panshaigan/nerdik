@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Organizations;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Organizations\Pages\CreateOrganization;
 use App\Filament\Admin\Resources\Organizations\Pages\EditOrganization;
 use App\Filament\Admin\Resources\Organizations\Pages\ListOrganizations;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class OrganizationResource extends Resource
 {
     protected static ?string $model = Organization::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Catalog;
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

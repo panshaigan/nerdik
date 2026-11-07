@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Slots;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\Slots\Pages\CreateSlot;
 use App\Filament\Admin\Resources\Slots\Pages\EditSlot;
@@ -15,12 +16,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class SlotResource extends Resource
 {
     protected static ?string $model = Slot::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Events;
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\SentEmails;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\SentEmails\Pages\ListSentEmails;
 use App\Filament\Admin\Resources\SentEmails\Pages\ViewSentEmail;
@@ -13,12 +14,17 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use UnitEnum;
 
 class SentEmailResource extends Resource
 {
     protected static ?string $model = SentEmail::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Communication;
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'subject';
 

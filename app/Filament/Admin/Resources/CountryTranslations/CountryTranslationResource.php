@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CountryTranslations;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\CountryTranslations\Pages\CreateCountryTranslation;
 use App\Filament\Admin\Resources\CountryTranslations\Pages\EditCountryTranslation;
 use App\Filament\Admin\Resources\CountryTranslations\Pages\ListCountryTranslations;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class CountryTranslationResource extends Resource
 {
     protected static ?string $model = CountryTranslation::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Geography;
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

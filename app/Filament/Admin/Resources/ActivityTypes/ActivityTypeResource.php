@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ActivityTypes;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\ActivityTypes\Pages\CreateActivityType;
 use App\Filament\Admin\Resources\ActivityTypes\Pages\EditActivityType;
 use App\Filament\Admin\Resources\ActivityTypes\Pages\ListActivityTypes;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityTypeResource extends Resource
 {
     protected static ?string $model = ActivityType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Activities;
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Pages;
 
 use App\Enums\AvatarSource;
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Activities\ActivityResource;
 use App\Filament\Admin\Resources\Events\EventResource;
 use App\Filament\Admin\Resources\Users\UserResource;
@@ -32,6 +33,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
+use UnitEnum;
 
 class ModerateContent extends Page implements HasTable
 {
@@ -42,11 +44,13 @@ class ModerateContent extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldExclamation;
 
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Moderation;
+
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $navigationLabel = 'Content moderation';
 
     protected static ?string $title = 'Content moderation';
-
-    protected static ?int $navigationSort = 21;
 
     protected string $view = 'filament-panels::pages.page';
 

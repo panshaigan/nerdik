@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\UserProfiles;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\UserProfiles\Pages\CreateUserProfile;
 use App\Filament\Admin\Resources\UserProfiles\Pages\EditUserProfile;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class UserProfileResource extends Resource
 {
     protected static ?string $model = UserProfile::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Users;
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

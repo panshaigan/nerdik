@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\EventEnrollmentWindows;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Pages\CreateEventEnrollmentWindow;
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Pages\EditEventEnrollmentWindow;
 use App\Filament\Admin\Resources\EventEnrollmentWindows\Pages\ListEventEnrollmentWindows;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class EventEnrollmentWindowResource extends Resource
 {
     protected static ?string $model = EventEnrollmentWindow::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Events;
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

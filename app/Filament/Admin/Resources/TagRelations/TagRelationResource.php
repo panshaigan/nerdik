@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\TagRelations;
 
+use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Filament\Admin\Resources\Resource;
 use App\Filament\Admin\Resources\TagRelations\Pages\CreateTagRelation;
 use App\Filament\Admin\Resources\TagRelations\Pages\EditTagRelation;
@@ -13,12 +14,17 @@ use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class TagRelationResource extends Resource
 {
     protected static ?string $model = TagRelation::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = AdminNavigationGroup::Tags;
+
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {
