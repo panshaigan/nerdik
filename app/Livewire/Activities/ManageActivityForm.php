@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Mary\Traits\Toast;
@@ -693,7 +694,6 @@ class ManageActivityForm extends Component
         $normalized = ($value === '' || $value === null || (int) $value === 0) ? null : (int) $value;
         if ($normalized === null) {
             $this->proposal_preferred_start_time = null;
-            $this->proposal_event_search = '';
             $this->proposal_allowed_activity_type_ids = null;
 
             return;
@@ -1379,6 +1379,7 @@ class ManageActivityForm extends Component
     /**
      * @return array{id: int, label: string}[]
      */
+    #[Renderless]
     public function searchProposalEvents(string $query = ''): array
     {
         $trimmed = trim($query);

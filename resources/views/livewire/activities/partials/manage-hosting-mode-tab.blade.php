@@ -117,7 +117,7 @@
                         id="proposal_event_search"
                         class="ui-field ui-field-proposal-event"
                         :label="__('ui.activities.proposal_event')"
-                        wire:model.live.debounce.250ms="proposal_event_search"
+                        wire:model="proposal_event_search"
                         error-field="proposal_event_id"
                         type="text"
                         autocomplete="off"
