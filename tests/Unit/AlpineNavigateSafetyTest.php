@@ -127,9 +127,11 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString('isOpen: false', $html);
         $this->assertStringContainsString('x-bind:aria-expanded="!!$data.isOpen"', $html);
         $this->assertStringContainsString('x-bind:class="$data.isOpen ? \'flex\' : \'hidden\'"', $html);
+        $this->assertStringContainsString('x-bind:style="$data.menuStyle"', $html);
         $this->assertStringNotContainsString(':aria-expanded="isOpen"', $html);
         $this->assertStringNotContainsString('x-bind:class="isOpen ?', $html);
         $this->assertStringNotContainsString(':aria-expanded="open"', $html);
+        $this->assertStringNotContainsString('x-bind:style="menuStyle"', $html);
     }
 
     public function test_late_announce_menu_uses_data_is_open_for_morph_safe_bindings(): void
@@ -139,8 +141,29 @@ final class AlpineNavigateSafetyTest extends TestCase
         $this->assertStringContainsString('isOpen: false', $html);
         $this->assertStringContainsString('x-bind:aria-expanded="!!$data.isOpen"', $html);
         $this->assertStringContainsString('x-bind:class="$data.isOpen ? \'flex\' : \'hidden\'"', $html);
+        $this->assertStringContainsString('x-bind:style="$data.menuStyle"', $html);
         $this->assertStringNotContainsString(':aria-expanded="isOpen"', $html);
         $this->assertStringNotContainsString('x-bind:class="isOpen ?', $html);
+        $this->assertStringNotContainsString('x-bind:style="menuStyle"', $html);
+    }
+
+    public function test_close_modals_on_navigate_forces_full_page_load_for_ops_panels(): void
+    {
+        $source = (string) file_get_contents(resource_path('js/close-modals-on-navigate.js'));
+
+        $this->assertStringContainsString('__nerdikSpaFullPagePrefixes', $source);
+        $this->assertStringContainsString('forceFullPageLoadForOpsPanels', $source);
+        $this->assertStringContainsString('window.location.assign(url.href)', $source);
+        $this->assertStringContainsString('event.preventDefault()', $source);
+    }
+
+    public function test_sentry_skips_expected_livewire_model_not_found_failures(): void
+    {
+        $source = (string) file_get_contents(resource_path('js/sentry.js'));
+
+        $this->assertStringContainsString('isExpectedLivewireModelNotFound', $source);
+        $this->assertStringContainsString("body.includes('No query results for model')", $source);
+        $this->assertStringContainsString('if (isExpectedLivewireModelNotFound(status, body))', $source);
     }
 
     public function test_activity_badge_group_always_provides_expanded_scope(): void

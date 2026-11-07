@@ -117,7 +117,7 @@
         aria-modal="true"
         aria-label="{{ $label }}"
         class="ui-late-announce-panel fixed z-[10000] max-h-[min(70vh,24rem)] flex-col gap-3 overflow-y-auto border border-base-300 bg-base-100 p-4 shadow-lg light:border-neutral max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:w-80 sm:rounded-box"
-        x-bind:style="menuStyle"
+        x-bind:style="$data.menuStyle"
         x-on:pointerdown.stop
         @if (is_string($triggerDataUi) && $triggerDataUi !== '')
             data-ui="{{ $triggerDataUi }}-panel"

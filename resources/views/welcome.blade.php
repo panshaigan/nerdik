@@ -10,6 +10,7 @@
         <x-seo.head-meta :metadata="$seo ?? \App\Support\Seo\Seo::forWelcome()" />
 
         <x-echo-config />
+        <x-spa-navigate-config />
         <x-sentry-config />
         <x-umami-analytics />
     </head>

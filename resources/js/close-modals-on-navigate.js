@@ -93,7 +93,48 @@ function unmarkNavigating() {
     document.documentElement.classList.remove('ui-navigating');
 }
 
-function prepareForNavigate() {
+function spaFullPagePrefixes() {
+    return Array.isArray(window.__nerdikSpaFullPagePrefixes)
+        ? window.__nerdikSpaFullPagePrefixes
+        : [];
+}
+
+function requiresFullPageLoad(url) {
+    if (!(url instanceof URL)) {
+        return false;
+    }
+
+    const path = url.pathname || '/';
+
+    return spaFullPagePrefixes().some(
+        (prefix) => typeof prefix === 'string'
+            && prefix !== ''
+            && (path === prefix || path.startsWith(`${prefix}/`)),
+    );
+}
+
+/**
+ * Filament/Pulse ship their own Alpine stores. SPA-swapping those pages into
+ * the front app leaves bindings like filamentSchema / $store.sidebar undefined.
+ */
+function forceFullPageLoadForOpsPanels(event) {
+    const url = event?.detail?.url;
+
+    if (!requiresFullPageLoad(url)) {
+        return false;
+    }
+
+    event.preventDefault();
+    window.location.assign(url.href);
+
+    return true;
+}
+
+function prepareForNavigate(event) {
+    if (event?.type === 'livewire:navigate' && forceFullPageLoadForOpsPanels(event)) {
+        return;
+    }
+
     markNavigating();
     closeLivewireModalsBeforeNavigate();
     closeMaryModalsInDocument(document, { removeDuringNavigate: true });
@@ -102,7 +143,7 @@ function prepareForNavigate() {
 document.addEventListener('livewire:navigate', prepareForNavigate, { capture: true });
 
 document.addEventListener('livewire:navigating', (event) => {
-    prepareForNavigate();
+    prepareForNavigate(event);
 
     if (typeof event.detail?.onSwap === 'function') {
         event.detail.onSwap(() => {

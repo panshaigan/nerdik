@@ -12,20 +12,20 @@ use Throwable;
 final class SentryBeforeSend
 {
     /**
-     * Drop deploy/restart noise when Docker DNS cannot resolve the Compose
-     * Postgres service name. Real DB failures (refused, timeout, SQL errors)
-     * are still reported.
+     * Drop deploy/restart noise when the Compose Postgres service is briefly
+     * unreachable (DNS flaps or connection refused to host "pgsql"). Real SQL
+     * errors and failures against non-compose hosts are still reported.
      */
     public static function beforeSend(Event $event, ?EventHint $hint = null): ?Event
     {
-        if (self::isTransientPgsqlDnsFailure($hint?->exception)) {
+        if (self::isTransientPgsqlConnectivityFailure($hint?->exception)) {
             return null;
         }
 
         return $event;
     }
 
-    public static function isTransientPgsqlDnsFailure(?Throwable $throwable): bool
+    public static function isTransientPgsqlConnectivityFailure(?Throwable $throwable): bool
     {
         if (! $throwable instanceof QueryException) {
             return false;
@@ -33,10 +33,12 @@ final class SentryBeforeSend
 
         $message = $throwable->getMessage();
 
+        if (! str_contains($message, 'pgsql')) {
+            return false;
+        }
+
         return str_contains($message, 'could not translate host name "pgsql"')
-            || (
-                str_contains($message, 'pgsql')
-                && str_contains($message, 'Temporary failure in name resolution')
-            );
+            || str_contains($message, 'Temporary failure in name resolution')
+            || str_contains($message, 'Connection refused');
     }
 }

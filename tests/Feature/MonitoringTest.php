@@ -66,6 +66,18 @@ class MonitoringTest extends TestCase
             ->assertSee('Object captured as promise rejection with keys: body, errors, json, status', false);
     }
 
+    public function test_spa_navigate_prefixes_are_injected_for_client_guard(): void
+    {
+        Config::set('filament.admin_path', 'secret-admin');
+        Config::set('pulse.path', 'pulse');
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('window.__nerdikSpaFullPagePrefixes', false)
+            ->assertSee('/secret-admin', false)
+            ->assertSee('/pulse', false);
+    }
+
     public function test_sentry_config_is_omitted_when_dsn_is_empty(): void
     {
         Config::set('sentry.dsn', null);

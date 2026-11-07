@@ -99,7 +99,7 @@
             x-on:click="close()"
             role="menu"
             class="ui-overflow-menu-panel fixed z-[10000] flex-col gap-0.5 rounded-box border border-base-300 bg-base-100 p-2 light:border-neutral {{ $panelClass }}"
-            x-bind:style="menuStyle"
+            x-bind:style="$data.menuStyle"
             x-on:scroll.stop
             @if (is_string($listDataUi) && $listDataUi !== '')
                 data-ui="{{ $listDataUi }}"

@@ -42,4 +42,12 @@ final class SpaNavigateTest extends TestCase
         $this->assertTrue(SpaNavigate::allowed('/admin-extra'));
         $this->assertTrue(SpaNavigate::allowed('/pulse-check'));
     }
+
+    public function test_full_page_path_prefixes_are_normalized_for_client_guard(): void
+    {
+        Config::set('filament.admin_path', 'secret-admin');
+        Config::set('pulse.path', 'pulse');
+
+        $this->assertSame(['/secret-admin', '/pulse'], SpaNavigate::fullPagePathPrefixes());
+    }
 }

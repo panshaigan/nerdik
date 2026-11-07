@@ -13,6 +13,7 @@
         @stack('head')
 
         <x-echo-config />
+        <x-spa-navigate-config />
         <x-sentry-config />
         <x-umami-analytics />
     </head>

@@ -70,11 +70,29 @@ export function bootSentry() {
 }
 
 /**
+ * Deleted/missing models while a Livewire page is still open (stale edit URL, etc.).
+ *
+ * @param {number} status
+ * @param {unknown} body
+ */
+export function isExpectedLivewireModelNotFound(status, body) {
+    if (status !== 404 || typeof body !== 'string') {
+        return false;
+    }
+
+    return body.includes('No query results for model');
+}
+
+/**
  * @param {number} status
  * @param {string|undefined} body
  */
 export function captureLivewireFailure(status, body) {
     if (!window.__nerdikSentryBooted) {
+        return;
+    }
+
+    if (isExpectedLivewireModelNotFound(status, body)) {
         return;
     }
 

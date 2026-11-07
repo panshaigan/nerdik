@@ -35,9 +35,11 @@ final class SpaNavigate
     }
 
     /**
+     * Path prefixes that must never be SPA-swapped into the front app Alpine runtime.
+     *
      * @return list<string>
      */
-    private static function fullPagePathPrefixes(): array
+    public static function fullPagePathPrefixes(): array
     {
         $prefixes = [];
 

@@ -20,7 +20,21 @@ class SentryBeforeSendTest extends TestCase
             'SQLSTATE[08006] [7] could not translate host name "pgsql" to address: Temporary failure in name resolution',
         );
 
-        $this->assertTrue(SentryBeforeSend::isTransientPgsqlDnsFailure($exception));
+        $this->assertTrue(SentryBeforeSend::isTransientPgsqlConnectivityFailure($exception));
+
+        $hint = EventHint::fromArray(['exception' => $exception]);
+        $event = Event::createEvent();
+
+        $this->assertNull(SentryBeforeSend::beforeSend($event, $hint));
+    }
+
+    public function test_drops_pgsql_connection_refused_during_compose_restarts(): void
+    {
+        $exception = $this->queryException(
+            'SQLSTATE[08006] [7] connection to server at "pgsql" (172.18.0.5), port 5432 failed: Connection refused',
+        );
+
+        $this->assertTrue(SentryBeforeSend::isTransientPgsqlConnectivityFailure($exception));
 
         $hint = EventHint::fromArray(['exception' => $exception]);
         $event = Event::createEvent();
@@ -34,7 +48,7 @@ class SentryBeforeSendTest extends TestCase
             'SQLSTATE[23505]: Unique violation: 7 ERROR: duplicate key value violates unique constraint',
         );
 
-        $this->assertFalse(SentryBeforeSend::isTransientPgsqlDnsFailure($exception));
+        $this->assertFalse(SentryBeforeSend::isTransientPgsqlConnectivityFailure($exception));
 
         $hint = EventHint::fromArray(['exception' => $exception]);
         $event = Event::createEvent();
@@ -45,7 +59,7 @@ class SentryBeforeSendTest extends TestCase
     public function test_keeps_non_query_exceptions(): void
     {
         $this->assertFalse(
-            SentryBeforeSend::isTransientPgsqlDnsFailure(new RuntimeException('boom')),
+            SentryBeforeSend::isTransientPgsqlConnectivityFailure(new RuntimeException('boom')),
         );
 
         $hint = EventHint::fromArray(['exception' => new RuntimeException('boom')]);
