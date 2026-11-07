@@ -113,13 +113,13 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
             <div>
                 <div data-proposal-event-autocomplete>
-                    {{-- Ignore only the text field/popup so remorphs can still sync proposal_event_id. --}}
+                    {{-- Ignore the text field/popup so selecting an event (slots remorph) cannot remount it. --}}
                     <div class="relative" wire:ignore>
                         <x-input
                             id="proposal_event_search"
                             class="ui-field ui-field-proposal-event"
                             :label="__('ui.activities.proposal_event')"
-                            wire:model.live.debounce.250ms="proposal_event_search"
+                            wire:model="proposal_event_search"
                             type="text"
                             autocomplete="off"
                             data-proposal-event-input
@@ -130,7 +130,7 @@
                             data-ui="proposal-event-search"
                             :readonly="$proposalFieldsReadonly"
                             :disabled="$proposalFieldsReadonly"
-                            :clearable="! $proposalFieldsReadonly"
+                            :clearable="false"
                             :omit-error="true"
                             inline
                         />
@@ -159,7 +159,11 @@
         </div>
 
         @if ($proposal_event_id && $proposalEventSlots->isNotEmpty())
-            <div class="mt-4 space-y-2 border-t border-base-300/50 pt-4">
+            <div
+                class="mt-4 space-y-2 border-t border-base-300/50 pt-4"
+                x-show="!!$wire.proposal_event_id"
+                x-cloak
+            >
                 <x-proposals.preferred-slot-checklist
                     :slots="$proposalEventSlots"
                     wire-model="proposal_slot_ids"

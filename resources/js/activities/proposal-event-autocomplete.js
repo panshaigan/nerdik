@@ -25,6 +25,21 @@ function callLivewireMethod(wire, method, ...args) {
     return Promise.resolve([]);
 }
 
+/** Update Livewire state without a network round-trip / remorph. */
+function setWireQuiet(wire, property, value) {
+    if (!wire) {
+        return;
+    }
+    if (typeof wire.$set === 'function') {
+        wire.$set(property, value, false);
+
+        return;
+    }
+    if (typeof wire.set === 'function') {
+        wire.set(property, value, false);
+    }
+}
+
 function parseConfig(root) {
     const cfgEl = root.querySelector('script[type="application/json"][data-proposal-event-config]');
     if (!cfgEl) {
@@ -70,7 +85,15 @@ function clearSelectedEvent(root, search = '') {
         input.value = search;
     }
 
-    return callLivewireMethod(getLivewire(root), 'clearProposalEventSelection', search);
+    const wire = getLivewire(root);
+    // Quiet updates: a live clear remorphs slots and steals focus from the search input.
+    setWireQuiet(wire, 'proposal_event_id', null);
+    setWireQuiet(wire, 'proposal_event_search', search);
+    setWireQuiet(wire, 'proposal_slot_ids', []);
+    setWireQuiet(wire, 'proposal_preferred_start_time', null);
+    setWireQuiet(wire, 'proposal_allowed_activity_type_ids', null);
+
+    return Promise.resolve();
 }
 
 function setSelectedEvent(root, item, clearSearch = false) {
