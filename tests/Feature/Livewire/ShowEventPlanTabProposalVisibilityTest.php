@@ -6,6 +6,7 @@ namespace Tests\Feature\Livewire;
 
 use App\Livewire\Events\EventShowPlanTab;
 use App\Models\Activity;
+use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
 use App\Models\Slot;
@@ -18,6 +19,14 @@ use Tests\TestCase;
 class ShowEventPlanTabProposalVisibilityTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function resolvedProposeCopy(string $typesPhrase): array
+    {
+        return [
+            'cta' => __('ui.events.propose_activity', ['types' => $typesPhrase]),
+            'title' => __('ui.events.plan_propose_hero_title', ['types' => $typesPhrase]),
+        ];
+    }
 
     #[\Override]
     protected function tearDown(): void
@@ -36,12 +45,16 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->actingAs($user)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', true)
-            ->assertSee(__('ui.events.propose_activity'))
-            ->assertSee(__('ui.events.plan_propose_hero_title'));
+            ->assertViewHas('proposalTypesPhrase', $fallback)
+            ->assertSee($copy['cta'])
+            ->assertSee($copy['title']);
     }
 
     public function test_guest_sees_propose_ctas_linking_to_login_when_eligible(): void
@@ -57,11 +70,14 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
         $planReturn = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
         $loginHref = login_url($planReturn);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', true)
-            ->assertSee(__('ui.events.propose_activity'))
-            ->assertSee(__('ui.events.plan_propose_hero_title'))
+            ->assertSee($copy['cta'])
+            ->assertSee($copy['title'])
             ->assertSeeHtml('data-ui="event-show-propose-guest"')
             ->assertSee($loginHref, false)
             ->assertDontSeeHtml('data-ui="event-show-propose"');
@@ -77,11 +93,14 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
-            ->assertDontSee(__('ui.events.propose_activity'))
-            ->assertDontSee(__('ui.events.plan_propose_hero_title'));
+            ->assertDontSee($copy['cta'])
+            ->assertDontSee($copy['title']);
     }
 
     public function test_plan_tab_hides_propose_ctas_after_event_has_started(): void
@@ -94,12 +113,15 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->actingAs($user)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
-            ->assertDontSee(__('ui.events.propose_activity'))
-            ->assertDontSee(__('ui.events.plan_propose_hero_title'));
+            ->assertDontSee($copy['cta'])
+            ->assertDontSee($copy['title']);
     }
 
     public function test_plan_tab_hides_propose_ctas_during_active_enrollment_window_when_no_empty_slots(): void
@@ -122,11 +144,14 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->actingAs($user)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
-            ->assertDontSee(__('ui.events.propose_activity'));
+            ->assertDontSee($copy['cta']);
     }
 
     public function test_plan_tab_shows_propose_ctas_during_active_enrollment_window_when_empty_slots_remain(): void
@@ -153,12 +178,45 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->actingAs($user)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', true)
-            ->assertSee(__('ui.events.propose_activity'))
-            ->assertSee(__('ui.events.plan_propose_hero_title'));
+            ->assertViewHas('proposalTypesPhrase', $fallback)
+            ->assertSee($copy['cta'])
+            ->assertSee($copy['title']);
+    }
+
+    public function test_plan_tab_uses_rpg_propose_noun_when_free_slots_allow_rpg(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-01 12:00:00', 'UTC'));
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => Carbon::parse('2026-05-10 12:00:00', 'UTC'),
+            'ends_at' => Carbon::parse('2026-05-10 20:00:00', 'UTC'),
+        ]);
+        $rpgType = ActivityType::query()->where('slug', ActivityType::SLUG_RPG)->first()
+            ?? ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $slot = Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => null,
+            'name' => 'RPG Empty Slot',
+        ]);
+        $slot->activityTypes()->sync([$rpgType->id]);
+
+        $rpgNoun = (string) __('ui.activities.propose_nouns.rpg');
+        $copy = $this->resolvedProposeCopy($rpgNoun);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($user)
+            ->test(EventShowPlanTab::class, ['eventId' => $event->id])
+            ->assertViewHas('proposalTypesPhrase', $rpgNoun)
+            ->assertSee($copy['cta'])
+            ->assertSee($copy['title']);
     }
 
     public function test_plan_tab_hides_propose_ctas_during_active_enrollment_window_when_all_slots_are_filled(): void
@@ -189,11 +247,14 @@ class ShowEventPlanTabProposalVisibilityTest extends TestCase
             'accumulative_activities' => false,
         ]);
 
+        $fallback = (string) __('ui.activities.propose_noun_fallback');
+        $copy = $this->resolvedProposeCopy($fallback);
+
         Livewire::withoutLazyLoading()
             ->actingAs($user)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
-            ->assertDontSee(__('ui.events.propose_activity'));
+            ->assertDontSee($copy['cta']);
     }
 
     public function test_empty_slots_are_visible_by_default_outside_restricted_windows(): void

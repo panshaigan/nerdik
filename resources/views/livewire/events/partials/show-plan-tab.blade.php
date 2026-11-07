@@ -44,15 +44,15 @@
     @endphp
 
     @if ($hasEmptySlots || ($canShowPlanActivityProposalUi ?? false))
-        <div class="flex items-center justify-end gap-2 mt-2 mb-4">
+        <div class="flex items-center justify-center gap-2 mt-2 mb-4">
             @if ($canShowPlanActivityProposalUi ?? false)
                 <x-button
                     type="button"
-                    class="btn-outline btn-sm btn-primary"
+                    class="btn-sm btn-primary"
                     x-on:click="document.getElementById('ui-event-show-plan-propose-hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
                     data-ui="event-show-scroll-to-propose-hero"
                 >
-                    {{ __('ui.events.want_to_propose_activity') }}
+                    {{ __('ui.events.want_to_propose_activity', ['types' => $proposalTypesPhrase]) }}
                 </x-button>
             @endif
             @if ($hasEmptySlots && false)
@@ -511,10 +511,10 @@
                     <div class="hero-content flex-col px-5 py-8 text-center sm:px-10">
                         <div class="max-w-xl px-2">
                             <h2 class="text-2xl font-bold leading-tight tracking-tight text-base-content sm:text-3xl">
-                                {{ __('ui.events.plan_propose_hero_title') }}
+                                {{ __('ui.events.plan_propose_hero_title', ['types' => $proposalTypesPhrase]) }}
                             </h2>
                             <p class="py-5 text-base leading-relaxed text-base-content/80">
-                                {{ __('ui.events.plan_propose_hero_description') }}
+                                {{ __('ui.events.plan_propose_hero_description', ['types' => $proposalTypesPhrase]) }}
                             </p>
                             @auth
                                 <x-ui.magic-button
@@ -525,7 +525,7 @@
                                     x-bind:href="proposeActivityHref()"
                                     wire:navigate
                                 >
-                                    {{ __('ui.events.propose_activity') }}
+                                    {{ __('ui.events.propose_activity', ['types' => $proposalTypesPhrase]) }}
                                 </x-ui.magic-button>
                             @else
                                 <x-ui.magic-button
@@ -535,7 +535,7 @@
                                     class="ui-action ui-action-propose"
                                     data-ui="event-show-propose-guest"
                                 >
-                                    {{ __('ui.events.propose_activity') }}
+                                    {{ __('ui.events.propose_activity', ['types' => $proposalTypesPhrase]) }}
                                 </x-ui.magic-button>
                             @endauth
                         </div>

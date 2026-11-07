@@ -17,4 +17,15 @@ class ActivityTypeTest extends TestCase
         $this->assertContains('rpg', $values);
         $this->assertContains('workshop', $values);
     }
+
+    #[Test]
+    public function canonical_activity_type_propose_noun_keys_exist(): void
+    {
+        $typeSlugs = array_keys((array) __('ui.activities.types'));
+        $nounSlugs = array_keys((array) __('ui.activities.propose_nouns'));
+
+        $this->assertSame([], array_diff($typeSlugs, $nounSlugs));
+        $this->assertSame([], array_diff($nounSlugs, $typeSlugs));
+        $this->assertNotSame('', trim((string) __('ui.activities.propose_noun_fallback')));
+    }
 }

@@ -14,6 +14,7 @@ use App\Services\ActivityProposalDecisionService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Services\UserInterestService;
+use App\Support\Events\EventProposalTypeCopy;
 use App\Support\Ui\ActivityListingImageResolver;
 use App\Traits\AuthorizesOwnership;
 use Illuminate\Contracts\View\View;
@@ -497,6 +498,12 @@ class EventShowPlanTab extends Component
 
         $canShowPlanActivityProposalUi = $event->allowsActivityProposalUi(now());
 
+        $freeSlots = $event->slots
+            ->filter(fn (Slot $slot): bool => $slot->activity === null)
+            ->values();
+
+        $proposalTypesPhrase = app(EventProposalTypeCopy::class)->typesPhraseForFreeSlots($freeSlots);
+
         $slotCardBadgeItemsByActivityId = [];
         $slotTypeBadgeItemsBySlotId = [];
         $activityCoverPicturesById = [];
@@ -529,6 +536,7 @@ class EventShowPlanTab extends Component
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
+            'proposalTypesPhrase' => $proposalTypesPhrase,
             'showEmptySlots' => (bool) $this->showEmptySlots,
             'hasEmptySlots' => $hasEmptySlots,
             'emptySlotsRestricted' => $this->shouldRestrictEmptySlots($event, $user),
