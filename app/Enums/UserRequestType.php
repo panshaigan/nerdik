@@ -10,6 +10,7 @@ enum UserRequestType: string
     case OrganizationJoinRequest = 'organization_join_request';
     case ActivityInvite = 'activity_invite';
     case EventOrganizerFlag = 'event_organizer_flag';
+    case GroupInvite = 'group_invite';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum UserRequestType: string
             self::OrganizationJoinRequest => __('ui.user_requests.received_organization_join'),
             self::ActivityInvite => __('ui.user_requests.received_activity_invite'),
             self::EventOrganizerFlag => __('ui.user_requests.received_organizer_flag'),
+            self::GroupInvite => __('ui.user_requests.received_group_invite'),
         };
     }
 

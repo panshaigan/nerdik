@@ -20,6 +20,7 @@ class UserRequestHandlerRegistry
             Handlers\OrganizationJoinRequestHandler::class,
             Handlers\ActivityInviteRequestHandler::class,
             Handlers\EventOrganizerFlagRequestHandler::class,
+            Handlers\GroupInviteRequestHandler::class,
         ];
 
         foreach ($handlerClasses as $class) {

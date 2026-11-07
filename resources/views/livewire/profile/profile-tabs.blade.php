@@ -35,6 +35,12 @@
                 @endif
             </x-tab>
 
+            <x-tab name="availability" :label="$this->tabLabel('availability', __('ui.profile.tab_availability'))" class="px-6 py-6" data-ui="profile-tab-availability" icon="o-calendar-days">
+                @if (isset($loadedTabs['availability']))
+                    <livewire:profile.update-availability-form :key="'profile-availability-'.auth()->id()" />
+                @endif
+            </x-tab>
+
             <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
                 @if (isset($loadedTabs['notifications']))
                     <livewire:profile.notification-settings-form :key="'profile-notifications-'.auth()->id()" />

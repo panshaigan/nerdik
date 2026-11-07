@@ -111,6 +111,14 @@ A `!` indicator appears on a user’s badge when they have been banned by at lea
 - Non-admin users can modify entities only when `created_by` matches their user ID.
 - Proposal and participation decisions use these ownership checks for protected actions.
 
+## Groups And Shared Availability
+
+- **Group** is a private member list (not Organization). The creator is owner (`created_by`) and is always a member.
+- Only the owner may invite (via `UserRequestType::GroupInvite`), remove members, rename, or delete the group. Other members may leave.
+- **Availability is global per user:** weekday defaults and date exceptions live on the user profile; every group aggregates members’ resolved status for each calendar day.
+- Resolve order for a date: date exception → weekday default → uncertain when no defaults are stored.
+- Group calendar UI shows per-day available counts, optional minimum-available / all-members filters, and day detail lists (available / unavailable / uncertain).
+
 ## Time, Audit, And Deletion Conventions
 
 - Datetimes are stored in UTC.

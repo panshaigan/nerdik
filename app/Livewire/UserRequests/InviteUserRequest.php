@@ -6,6 +6,7 @@ namespace App\Livewire\UserRequests;
 
 use App\Enums\UserRequestType;
 use App\Models\Activity;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\UserRequests\UserInviteSearchService;
@@ -160,6 +161,7 @@ class InviteUserRequest extends Component
         return match (UserRequestType::from($this->type)) {
             UserRequestType::ActivityInvite => __('ui.user_requests.invite_participant_title'),
             UserRequestType::OrganizationInvite => __('ui.user_requests.invite_organization_title'),
+            UserRequestType::GroupInvite => __('ui.user_requests.invite_group_title'),
             default => __('ui.user_requests.review_request'),
         };
     }
@@ -169,6 +171,7 @@ class InviteUserRequest extends Component
         return match (UserRequestType::from($this->type)) {
             UserRequestType::ActivityInvite => __('ui.user_requests.invite_participant'),
             UserRequestType::OrganizationInvite => __('ui.user_requests.invite_to_organization'),
+            UserRequestType::GroupInvite => __('ui.user_requests.invite_to_group'),
             default => __('ui.user_requests.send_invite'),
         };
     }
@@ -191,11 +194,12 @@ class InviteUserRequest extends Component
         return view('livewire.user-requests.invite-user-request');
     }
 
-    private function resolveSubject(UserRequestType $type): Activity|Organization|null
+    private function resolveSubject(UserRequestType $type): Activity|Group|Organization|null
     {
         return match ($type) {
             UserRequestType::ActivityInvite => Activity::query()->find($this->subjectId),
             UserRequestType::OrganizationInvite => Organization::query()->find($this->subjectId),
+            UserRequestType::GroupInvite => Group::query()->find($this->subjectId),
             default => null,
         };
     }

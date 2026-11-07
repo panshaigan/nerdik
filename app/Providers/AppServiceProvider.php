@@ -11,6 +11,7 @@ use App\Models\EntityLink;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Feedback;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
@@ -127,6 +128,7 @@ class AppServiceProvider extends ServiceProvider
             'event_series' => EventSeries::class,
             'activity_series' => ActivitySeries::class,
             'organization' => Organization::class,
+            'group' => Group::class,
             'place' => Place::class,
             'user' => User::class,
             'activity_type' => ActivityType::class,

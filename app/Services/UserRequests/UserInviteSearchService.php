@@ -6,6 +6,7 @@ namespace App\Services\UserRequests;
 
 use App\Enums\UserRequestType;
 use App\Models\Activity;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -73,6 +74,20 @@ class UserInviteSearchService
 
             return collect($excluded)
                 ->merge($memberIds)
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        if ($type === UserRequestType::GroupInvite) {
+            $group = Group::query()->with('users:id')->find($subjectId);
+            if ($group === null) {
+                return $excluded;
+            }
+
+            return collect($excluded)
+                ->merge($group->users->pluck('id'))
                 ->filter()
                 ->unique()
                 ->values()

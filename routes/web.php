@@ -27,6 +27,7 @@ use App\Models\Activity;
 use App\Models\ActivitySeries;
 use App\Models\Event;
 use App\Models\EventSeries;
+use App\Models\Group;
 use App\Services\Welcome\WelcomePageDataService;
 use App\Support\Seo\Seo;
 use Illuminate\Support\Facades\Route;
@@ -95,6 +96,18 @@ Route::view('profile', 'profile')
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('slots', '/dashboard', 301);
+
+    Route::view('groups', 'groups.index')
+        ->middleware('verified')
+        ->name('groups.index');
+
+    Route::get('groups/{group:slug}', function (Group $group) {
+        abort_unless($group->isVisibleTo(auth()->user()), 404);
+
+        return view('groups.show', ['group' => $group]);
+    })
+        ->middleware('verified')
+        ->name('groups.show');
 
     Route::get('organizations', function () {
         abort_unless(auth()->user()?->canCreateEvents(), 403, __('ui.organizations.only_event_organizers_can_manage'));

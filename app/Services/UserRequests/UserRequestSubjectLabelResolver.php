@@ -6,6 +6,7 @@ namespace App\Services\UserRequests;
 
 use App\Enums\UserRequestType;
 use App\Models\Activity;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\UserRequest;
 
@@ -21,6 +22,9 @@ class UserRequestSubjectLabelResolver
                 ? $subject->name
                 : __('ui.common.unknown_user'),
             UserRequestType::ActivityInvite => $subject instanceof Activity
+                ? $subject->name
+                : __('ui.common.unknown_user'),
+            UserRequestType::GroupInvite => $subject instanceof Group
                 ? $subject->name
                 : __('ui.common.unknown_user'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.organizer_flag_subject'),

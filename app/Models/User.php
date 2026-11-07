@@ -402,6 +402,21 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->belongsTo(Organization::class);
     }
 
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class)->withTimestamps();
+    }
+
+    public function availabilityWeekday(): HasOne
+    {
+        return $this->hasOne(UserAvailabilityWeekday::class);
+    }
+
+    public function availabilityDateExceptions(): HasMany
+    {
+        return $this->hasMany(UserAvailabilityDateException::class);
+    }
+
     public function hostBansIssued(): HasMany
     {
         return $this->hasMany(UserHostBan::class, 'host_user_id');

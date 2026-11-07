@@ -30,6 +30,22 @@
 <li>
     <a
         wire:navigate
+        href="{{ route('groups.index') }}"
+        data-ui="nav-my-groups"
+        @if ($closeOnClick)
+            @click="close()"
+        @endif
+        @if ($variant === 'drawer')
+            class="{{ $drawerLinkClass(request()->routeIs('groups.*')) }}"
+        @endif
+    >
+        <x-icon name="o-user-group" class="h-4 w-4 shrink-0" />
+        {{ __('ui.nav.my_groups') }}
+    </a>
+</li>
+<li>
+    <a
+        wire:navigate
         href="{{ route('features') }}"
         data-ui="nav-features"
         @if ($closeOnClick)
