@@ -11,23 +11,48 @@
         </div>
     </div>
 
-    <div class="mt-4 flex flex-wrap items-end gap-4 rounded-lg border border-base-300 bg-base-100 p-4" data-ui="group-availability-filter">
-        <x-input
-            type="number"
-            min="1"
-            :max="$memberCount"
-            wire:model.live.debounce.300ms="minAvailable"
-            :label="__('ui.groups.filter_min_available')"
-            class="w-32"
-        />
-        <label class="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" class="checkbox checkbox-sm" wire:model.live="requireAll" />
-            <span class="label-text">{{ __('ui.groups.filter_require_all') }}</span>
-        </label>
-        @if ($filterActive)
-            <p class="w-full text-xs text-base-content/60">{{ __('ui.groups.filter_hint') }}</p>
-        @endif
-    </div>
+    <section
+        class="mt-5 overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm"
+        data-ui="group-availability-filter"
+        aria-labelledby="group-availability-filter-heading"
+    >
+        <div class="border-b border-base-300 bg-base-200/50 px-4 py-3 sm:px-5">
+            <div class="flex items-start gap-3">
+                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-base-100 text-base-content/70 ring-1 ring-base-300">
+                    <x-icon name="o-funnel" class="h-4 w-4" />
+                </span>
+                <div class="min-w-0">
+                    <h3 id="group-availability-filter-heading" class="text-sm font-semibold text-base-content">
+                        {{ __('ui.groups.filter_heading') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-base-content/65">
+                        {{ __('ui.groups.filter_description') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6 sm:px-5 sm:py-4">
+            <div class="w-full sm:w-40">
+                <x-input
+                    type="number"
+                    min="1"
+                    :max="$memberCount"
+                    wire:model.live.debounce.300ms="minAvailable"
+                    :label="__('ui.groups.filter_min_available')"
+                    :disabled="$requireAll"
+                />
+            </div>
+            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-base-300 bg-base-200/40 px-3 py-2.5 transition hover:border-base-content/20">
+                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" wire:model.live="requireAll" />
+                <span class="text-sm text-base-content">{{ __('ui.groups.filter_require_all') }}</span>
+            </label>
+            @if ($filterActive)
+                <p class="w-full text-xs text-base-content/60 sm:ms-auto sm:w-auto sm:self-center">
+                    {{ __('ui.groups.filter_hint') }}
+                </p>
+            @endif
+        </div>
+    </section>
 
     <div class="mt-4 overflow-x-auto">
         <div class="grid min-w-[20rem] grid-cols-7 gap-1 text-center text-xs font-medium text-base-content/70">
@@ -64,9 +89,10 @@
                         @disabled(! $inMonth)
                         @style([$dayStyle => $dayStyle !== null])
                         @class([
-                            'flex min-h-16 flex-col items-center justify-center rounded-lg border p-1 text-xs transition',
-                            'border-transparent bg-base-200/30 opacity-40' => ! $inMonth,
-                            'hover:brightness-95' => $inMonth && ! $filteredOut,
+                            'flex min-h-16 flex-col items-center justify-center rounded-lg border p-1 text-xs transition duration-150',
+                            'cursor-pointer hover:-translate-y-0.5 hover:brightness-95 hover:shadow-md hover:shadow-base-content/10 active:translate-y-0 active:brightness-90' => $inMonth && ! $filteredOut,
+                            'cursor-pointer hover:opacity-50' => $filteredOut,
+                            'cursor-default border-transparent bg-base-200/30 opacity-40' => ! $inMonth,
                             'opacity-25 grayscale' => $filteredOut,
                             'ring-2 ring-primary ring-offset-2 ring-offset-base-100' => $selectedDate === $cell['date'],
                             'ring-2 ring-base-content/40 ring-offset-1 ring-offset-base-100' => $filterActive && $inMonth && $matches && $selectedDate !== $cell['date'],

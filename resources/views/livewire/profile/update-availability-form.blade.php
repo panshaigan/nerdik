@@ -150,19 +150,11 @@ new class extends Component
             {{ __('ui.profile.availability.exceptions_intro') }}
         </p>
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <x-input
-                type="date"
-                wire:model="exceptionFrom"
-                :label="__('ui.profile.availability.exception_from')"
-                class="flex-1"
-            />
-            <x-input
-                type="date"
-                wire:model="exceptionTo"
-                :label="__('ui.profile.availability.exception_to')"
-                class="flex-1"
-            />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end">
+            @include('livewire.profile.partials.availability-date-range', [
+                'exceptionFrom' => $exceptionFrom,
+                'exceptionTo' => $exceptionTo,
+            ])
             <x-select
                 wire:model="exceptionStatus"
                 :label="__('ui.profile.availability.exception_status')"
@@ -173,7 +165,6 @@ new class extends Component
                 ]"
                 option-value="id"
                 option-label="name"
-                class="flex-1"
             />
             <x-button type="submit" class="btn-secondary" spinner="addException">
                 {{ __('ui.profile.availability.add_exception') }}

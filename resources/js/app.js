@@ -209,18 +209,29 @@ function bootBrowseDateRangePickersOnDemand() {
                 return;
             }
 
-            const trigger = event.target instanceof Element
-                ? event.target.closest('[data-browse-date-range-trigger]')
-                : null;
+            const target = event.target instanceof Element ? event.target : null;
+            const trigger = target?.closest('[data-browse-date-range-trigger]');
+            const rangeInput = target?.closest('[data-browse-date-range-input]');
 
-            if (!(trigger instanceof HTMLElement)) {
+            if (!(trigger instanceof HTMLElement) && !(rangeInput instanceof HTMLInputElement)) {
                 return;
             }
 
             event.preventDefault();
             event.stopImmediatePropagation();
             await ensureReady();
-            trigger.click();
+
+            if (trigger instanceof HTMLElement) {
+                trigger.click();
+
+                return;
+            }
+
+            const input = root.querySelector('[data-browse-date-range-input]');
+            if (input instanceof HTMLInputElement) {
+                input.focus();
+                input.click();
+            }
         }, { capture: true });
     });
 }

@@ -28,6 +28,20 @@ function findWire(root) {
 }
 
 /**
+ * @param {HTMLElement} root
+ */
+function fromProp(root) {
+    return root.dataset.fromProp || 'from_date';
+}
+
+/**
+ * @param {HTMLElement} root
+ */
+function toProp(root) {
+    return root.dataset.toProp || 'to_date';
+}
+
+/**
  * @param {Date} date
  */
 function formatYmd(date) {
@@ -39,7 +53,7 @@ function formatYmd(date) {
 }
 
 /**
- * @param {string | undefined | null}
+ * @param {string | undefined | null} str
  * @returns {Date | null}
  */
 function parseYmd(str) {
@@ -57,14 +71,17 @@ function parseYmd(str) {
 
 /**
  * @param {import('livewire').Component | null} wire
+ * @param {HTMLElement} root
+ * @param {string | null} from
+ * @param {string | null} to
  */
-function syncWire(wire, from, to) {
+function syncWire(wire, root, from, to) {
     if (!wire) {
         return;
     }
 
-    wire.set('from_date', from || null);
-    wire.set('to_date', to || null);
+    wire.set(fromProp(root), from || '');
+    wire.set(toProp(root), to || '');
 }
 
 /**
@@ -76,6 +93,31 @@ function updateTriggerActiveState(trigger, from, to) {
     const active = Boolean(from || to);
     trigger.classList.toggle('is-active', active);
     trigger.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
+/**
+ * @param {HTMLInputElement} input
+ * @param {string} from
+ * @param {string} to
+ */
+function updateVisibleInputDisplay(input, from, to) {
+    if (input.classList.contains('sr-only')) {
+        return;
+    }
+
+    if (!from && !to) {
+        input.value = '';
+
+        return;
+    }
+
+    if (from && to && from !== to) {
+        input.value = `${from} – ${to}`;
+
+        return;
+    }
+
+    input.value = from || to || '';
 }
 
 /**
@@ -108,9 +150,16 @@ function syncPickerFromRoot(root) {
     const dates = defaultDatesFromRoot(root);
     fp.setDate(dates.length > 0 ? dates : [], false);
 
+    const from = root.dataset.fromDate ?? '';
+    const to = root.dataset.toDate ?? '';
     const trigger = root.querySelector('[data-browse-date-range-trigger]');
     if (trigger instanceof HTMLElement) {
-        updateTriggerActiveState(trigger, root.dataset.fromDate ?? '', root.dataset.toDate ?? '');
+        updateTriggerActiveState(trigger, from, to);
+    }
+
+    const input = root.querySelector('[data-browse-date-range-input]');
+    if (input instanceof HTMLInputElement) {
+        updateVisibleInputDisplay(input, from, to);
     }
 }
 
@@ -126,41 +175,53 @@ function initBrowseDateRangePicker(root) {
 
     const input = root.querySelector('[data-browse-date-range-input]');
     const trigger = root.querySelector('[data-browse-date-range-trigger]');
-    if (!(input instanceof HTMLInputElement) || !(trigger instanceof HTMLElement)) {
+    if (!(input instanceof HTMLInputElement)) {
         return;
     }
 
     const locale = root.dataset.locale || 'en';
     const defaultDates = defaultDatesFromRoot(root);
+    const minDate = root.dataset.minDate || undefined;
 
     const fp = flatpickr(input, {
         mode: 'range',
         enableTime: false,
         dateFormat: 'Y-m-d',
+        allowInput: false,
         defaultDate: defaultDates.length > 0 ? defaultDates : undefined,
+        ...(minDate ? { minDate } : {}),
         ...(locale === 'pl' ? { locale: Polish } : {}),
         onChange(selectedDates) {
             const wire = findWire(root);
 
             if (selectedDates.length === 0) {
-                syncWire(wire, null, null);
-                updateTriggerActiveState(trigger, '', '');
+                syncWire(wire, root, null, null);
+                if (trigger instanceof HTMLElement) {
+                    updateTriggerActiveState(trigger, '', '');
+                }
+                updateVisibleInputDisplay(input, '', '');
 
                 return;
             }
 
             if (selectedDates.length === 1) {
                 const day = formatYmd(selectedDates[0]);
-                syncWire(wire, day, null);
-                updateTriggerActiveState(trigger, day, '');
+                syncWire(wire, root, day, null);
+                if (trigger instanceof HTMLElement) {
+                    updateTriggerActiveState(trigger, day, '');
+                }
+                updateVisibleInputDisplay(input, day, '');
 
                 return;
             }
 
             const from = formatYmd(selectedDates[0]);
             const to = formatYmd(selectedDates[1]);
-            syncWire(wire, from, to);
-            updateTriggerActiveState(trigger, from, to);
+            syncWire(wire, root, from, to);
+            if (trigger instanceof HTMLElement) {
+                updateTriggerActiveState(trigger, from, to);
+            }
+            updateVisibleInputDisplay(input, from, to);
         },
         onClose(selectedDates) {
             if (selectedDates.length !== 1) {
@@ -169,8 +230,11 @@ function initBrowseDateRangePicker(root) {
 
             const day = formatYmd(selectedDates[0]);
             const wire = findWire(root);
-            syncWire(wire, day, day);
-            updateTriggerActiveState(trigger, day, day);
+            syncWire(wire, root, day, day);
+            if (trigger instanceof HTMLElement) {
+                updateTriggerActiveState(trigger, day, day);
+            }
+            updateVisibleInputDisplay(input, day, day);
         },
         onReady(_selectedDates, _dateStr, instance) {
             const clearLabel = root.dataset.clearLabel || 'Clear';
@@ -182,26 +246,37 @@ function initBrowseDateRangePicker(root) {
                 event.preventDefault();
                 instance.clear();
                 const wire = findWire(root);
-                if (wire && typeof wire.call === 'function') {
-                    wire.call('clearDateRange');
+                if (wire && typeof wire.call === 'function' && root.dataset.clearMethod) {
+                    wire.call(root.dataset.clearMethod);
                 } else {
-                    syncWire(wire, null, null);
+                    syncWire(wire, root, null, null);
                 }
-                updateTriggerActiveState(trigger, '', '');
+                if (trigger instanceof HTMLElement) {
+                    updateTriggerActiveState(trigger, '', '');
+                }
+                updateVisibleInputDisplay(input, '', '');
                 instance.close();
             });
             instance.calendarContainer?.appendChild(clearBtn);
+
+            updateVisibleInputDisplay(
+                input,
+                root.dataset.fromDate ?? '',
+                root.dataset.toDate ?? '',
+            );
         },
     });
 
-    trigger.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        fp.open();
-    });
+    if (trigger instanceof HTMLElement) {
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            fp.open();
+        });
+        updateTriggerActiveState(trigger, root.dataset.fromDate ?? '', root.dataset.toDate ?? '');
+    }
 
     instances.set(root, fp);
-    updateTriggerActiveState(trigger, root.dataset.fromDate ?? '', root.dataset.toDate ?? '');
 }
 
 export function bootBrowseDateRangePickers() {
@@ -216,8 +291,14 @@ if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.hook === 'f
     window.Livewire.hook('commit', ({ succeed }) => {
         succeed(() => {
             document.querySelectorAll('[data-browse-date-range]').forEach((root) => {
-                if (root instanceof HTMLElement) {
+                if (!(root instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (instances.has(root)) {
                     syncPickerFromRoot(root);
+                } else {
+                    initBrowseDateRangePicker(root);
                 }
             });
         });
