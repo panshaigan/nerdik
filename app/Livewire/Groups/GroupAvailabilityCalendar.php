@@ -58,7 +58,26 @@ class GroupAvailabilityCalendar extends Component
 
     public function updatedMinAvailable(mixed $value): void
     {
-        $this->minAvailable = $value === '' || $value === null ? null : max(0, (int) $value);
+        if ($value === '' || $value === null) {
+            $this->minAvailable = null;
+
+            return;
+        }
+
+        $this->minAvailable = max(1, (int) $value);
+    }
+
+    public function updatedRequireAll(mixed $value): void
+    {
+        $this->requireAll = (bool) $value;
+        if ($this->requireAll) {
+            $this->minAvailable = null;
+        }
+    }
+
+    public function isFilterActive(): bool
+    {
+        return $this->requireAll || ($this->minAvailable !== null && $this->minAvailable > 0);
     }
 
     public function render(GroupAvailabilityService $calendar)
@@ -66,10 +85,11 @@ class GroupAvailabilityCalendar extends Component
         $group = Group::query()->visibleTo(Auth::user())->whereKey($this->groupId)->firstOrFail();
 
         $monthDate = Carbon::parse($this->month.'-01');
+        $minAvailable = $this->requireAll ? null : $this->minAvailable;
         $summary = $calendar->monthSummary(
             $group,
             $monthDate,
-            $this->minAvailable,
+            $minAvailable,
             $this->requireAll,
         );
 
@@ -108,6 +128,7 @@ class GroupAvailabilityCalendar extends Component
             'monthLabel' => $monthDate->translatedFormat('F Y'),
             'dayDetail' => $dayDetail,
             'memberCount' => count($summary['member_ids']),
+            'filterActive' => $this->isFilterActive(),
         ]);
     }
 }

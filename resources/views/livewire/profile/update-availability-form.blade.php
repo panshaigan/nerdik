@@ -3,6 +3,7 @@
 use App\Enums\AvailabilityStatus;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
 use App\Services\UserAvailabilityService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
@@ -21,12 +22,14 @@ new class extends Component
         'sun' => false,
     ];
 
-    public string $exceptionDate = '';
+    public string $exceptionFrom = '';
+
+    public string $exceptionTo = '';
 
     public string $exceptionStatus = 'available';
 
-    /** @var list<array{id: int, date: string, status: string, status_label: string}> */
-    public array $exceptions = [];
+    /** @var list<array{from: string, to: string, status: string, status_label: string}> */
+    public array $exceptionRanges = [];
 
     public function mount(UserAvailabilityService $availability): void
     {
@@ -42,15 +45,9 @@ new class extends Component
             }
         }
 
-        $this->exceptions = $availability->upcomingExceptions($user)
-            ->map(fn ($row) => [
-                'id' => (int) $row->id,
-                'date' => $row->date->toDateString(),
-                'status' => $row->status->value,
-                'status_label' => $row->status->label(),
-            ])
-            ->values()
-            ->all();
+        $this->exceptionRanges = $availability->groupExceptionsIntoRanges(
+            $availability->upcomingExceptions($user),
+        );
     }
 
     public function saveWeekdays(UserAvailabilityService $availability): void
@@ -75,32 +72,34 @@ new class extends Component
             }
 
             $this->validate([
-                'exceptionDate' => ['required', 'date', 'after_or_equal:today'],
+                'exceptionFrom' => ['required', 'date', 'after_or_equal:today'],
+                'exceptionTo' => ['required', 'date', 'after_or_equal:exceptionFrom'],
                 'exceptionStatus' => ['required', 'in:'.implode(',', AvailabilityStatus::values())],
             ]);
 
             $status = AvailabilityStatus::from($this->exceptionStatus);
-            $availability->upsertDateException($user, \Illuminate\Support\Carbon::parse($this->exceptionDate), $status);
+            $availability->upsertDateExceptionRange(
+                $user,
+                Carbon::parse($this->exceptionFrom),
+                Carbon::parse($this->exceptionTo),
+                $status,
+            );
 
-            $this->exceptionDate = '';
+            $this->exceptionFrom = '';
+            $this->exceptionTo = '';
             $this->exceptionStatus = AvailabilityStatus::Available->value;
             $this->mount($availability);
         });
     }
 
-    public function removeException(int $exceptionId, UserAvailabilityService $availability): void
+    public function removeExceptionRange(string $from, string $to, UserAvailabilityService $availability): void
     {
         $user = Auth::user();
         if ($user === null) {
             return;
         }
 
-        $row = $user->availabilityDateExceptions()->whereKey($exceptionId)->first();
-        if ($row === null) {
-            return;
-        }
-
-        $availability->removeDateException($user, $row->date);
+        $availability->removeDateExceptionRange($user, Carbon::parse($from), Carbon::parse($to));
         $this->mount($availability);
     }
 }; ?>
@@ -115,7 +114,7 @@ new class extends Component
         </p>
     </header>
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
 
     <form wire:submit="saveWeekdays" class="space-y-6" data-ui="profile-availability-weekdays-form">
         <fieldset>
@@ -154,8 +153,14 @@ new class extends Component
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <x-input
                 type="date"
-                wire:model="exceptionDate"
-                :label="__('ui.profile.availability.exception_date')"
+                wire:model="exceptionFrom"
+                :label="__('ui.profile.availability.exception_from')"
+                class="flex-1"
+            />
+            <x-input
+                type="date"
+                wire:model="exceptionTo"
+                :label="__('ui.profile.availability.exception_to')"
                 class="flex-1"
             />
             <x-select
@@ -176,19 +181,29 @@ new class extends Component
         </div>
     </form>
 
-    @if ($exceptions !== [])
+    @if ($exceptionRanges !== [])
         <ul class="mt-4 space-y-2" role="list" data-ui="profile-availability-exception-list">
-            @foreach ($exceptions as $exception)
-                <li wire:key="availability-exception-{{ $exception['id'] }}" class="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2">
+            @foreach ($exceptionRanges as $range)
+                @php
+                    $fromLabel = Carbon::parse($range['from'])->translatedFormat('j M Y');
+                    $toLabel = Carbon::parse($range['to'])->translatedFormat('j M Y');
+                    $dateLabel = $range['from'] === $range['to']
+                        ? $fromLabel
+                        : $fromLabel.' – '.$toLabel;
+                @endphp
+                <li
+                    wire:key="availability-exception-{{ $range['from'] }}-{{ $range['to'] }}-{{ $range['status'] }}"
+                    class="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2"
+                >
                     <div class="min-w-0 text-sm">
-                        <span class="font-medium">{{ \Illuminate\Support\Carbon::parse($exception['date'])->translatedFormat('j M Y') }}</span>
-                        <span class="text-base-content/70">— {{ $exception['status_label'] }}</span>
+                        <span class="font-medium">{{ $dateLabel }}</span>
+                        <span class="text-base-content/70">— {{ $range['status_label'] }}</span>
                     </div>
                     <x-button
                         type="button"
                         class="btn-ghost btn-square btn-sm text-error"
                         icon="o-trash"
-                        wire:click="removeException({{ $exception['id'] }})"
+                        wire:click="removeExceptionRange('{{ $range['from'] }}', '{{ $range['to'] }}')"
                         :tooltip="__('ui.common.delete')"
                         :aria-label="__('ui.common.delete')"
                     />

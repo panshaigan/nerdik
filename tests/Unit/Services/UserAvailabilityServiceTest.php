@@ -99,4 +99,62 @@ final class UserAvailabilityServiceTest extends TestCase
             $result['2026-03-08'][(int) $user->id],
         );
     }
+
+    public function test_upsert_date_exception_range_covers_each_day(): void
+    {
+        $user = User::factory()->create();
+        $service = app(UserAvailabilityService::class);
+
+        $service->upsertDateExceptionRange(
+            $user,
+            Carbon::parse('2026-04-01'),
+            Carbon::parse('2026-04-03'),
+            AvailabilityStatus::Unavailable,
+        );
+
+        $this->assertSame(
+            AvailabilityStatus::Unavailable,
+            $service->statusFor($user, Carbon::parse('2026-04-01')),
+        );
+        $this->assertSame(
+            AvailabilityStatus::Unavailable,
+            $service->statusFor($user, Carbon::parse('2026-04-02')),
+        );
+        $this->assertSame(
+            AvailabilityStatus::Unavailable,
+            $service->statusFor($user, Carbon::parse('2026-04-03')),
+        );
+        $this->assertSame(
+            AvailabilityStatus::Uncertain,
+            $service->statusFor($user, Carbon::parse('2026-04-04')),
+        );
+    }
+
+    public function test_group_exceptions_into_ranges(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-07'));
+
+        $user = User::factory()->create();
+        $service = app(UserAvailabilityService::class);
+        $service->upsertDateExceptionRange(
+            $user,
+            Carbon::parse('2026-12-01'),
+            Carbon::parse('2026-12-03'),
+            AvailabilityStatus::Available,
+        );
+        $service->upsertDateException(
+            $user,
+            Carbon::parse('2026-12-05'),
+            AvailabilityStatus::Unavailable,
+        );
+
+        $ranges = $service->groupExceptionsIntoRanges($service->upcomingExceptions($user));
+
+        $this->assertCount(2, $ranges);
+        $this->assertSame('2026-12-01', $ranges[0]['from']);
+        $this->assertSame('2026-12-03', $ranges[0]['to']);
+        $this->assertSame('available', $ranges[0]['status']);
+        $this->assertSame('2026-12-05', $ranges[1]['from']);
+        $this->assertSame('2026-12-05', $ranges[1]['to']);
+    }
 }

@@ -47,6 +47,42 @@ class UserAvailabilityService
         );
     }
 
+    /**
+     * Upsert the same status for every day from $from through $to (inclusive).
+     *
+     * @return list<UserAvailabilityDateException>
+     */
+    public function upsertDateExceptionRange(
+        User $user,
+        CarbonInterface $from,
+        CarbonInterface $to,
+        AvailabilityStatus $status,
+    ): array {
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+
+        if ($end->lessThan($start)) {
+            throw ValidationException::withMessages([
+                'exceptionTo' => [__('ui.availability.invalid_range')],
+            ]);
+        }
+
+        if ($start->diffInDays($end) > 366) {
+            throw ValidationException::withMessages([
+                'exceptionTo' => [__('ui.profile.availability.exception_range_too_long')],
+            ]);
+        }
+
+        $rows = [];
+        $cursor = $start->copy();
+        while ($cursor->lessThanOrEqualTo($end)) {
+            $rows[] = $this->upsertDateException($user, $cursor, $status);
+            $cursor->addDay();
+        }
+
+        return $rows;
+    }
+
     public function removeDateException(User $user, CarbonInterface $date): void
     {
         UserAvailabilityDateException::query()
@@ -55,10 +91,22 @@ class UserAvailabilityService
             ->delete();
     }
 
+    public function removeDateExceptionRange(User $user, CarbonInterface $from, CarbonInterface $to): void
+    {
+        $start = Carbon::parse($from)->toDateString();
+        $end = Carbon::parse($to)->toDateString();
+
+        UserAvailabilityDateException::query()
+            ->where('user_id', $user->id)
+            ->whereDate('date', '>=', $start)
+            ->whereDate('date', '<=', $end)
+            ->delete();
+    }
+
     /**
      * @return Collection<int, UserAvailabilityDateException>
      */
-    public function upcomingExceptions(User $user, int $limit = 50): Collection
+    public function upcomingExceptions(User $user, int $limit = 366): Collection
     {
         return UserAvailabilityDateException::query()
             ->where('user_id', $user->id)
@@ -66,6 +114,55 @@ class UserAvailabilityService
             ->orderBy('date')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Collapse consecutive same-status exception days into ranges for display.
+     *
+     * @param  Collection<int, UserAvailabilityDateException>  $exceptions
+     * @return list<array{from: string, to: string, status: string, status_label: string}>
+     */
+    public function groupExceptionsIntoRanges(Collection $exceptions): array
+    {
+        $ranges = [];
+        $current = null;
+
+        foreach ($exceptions->sortBy(fn (UserAvailabilityDateException $row) => $row->date->toDateString())->values() as $row) {
+            $date = $row->date->toDateString();
+            $status = $row->status->value;
+
+            if ($current === null) {
+                $current = [
+                    'from' => $date,
+                    'to' => $date,
+                    'status' => $status,
+                    'status_label' => $row->status->label(),
+                ];
+
+                continue;
+            }
+
+            $nextExpected = Carbon::parse($current['to'])->addDay()->toDateString();
+            if ($current['status'] === $status && $date === $nextExpected) {
+                $current['to'] = $date;
+
+                continue;
+            }
+
+            $ranges[] = $current;
+            $current = [
+                'from' => $date,
+                'to' => $date,
+                'status' => $status,
+                'status_label' => $row->status->label(),
+            ];
+        }
+
+        if ($current !== null) {
+            $ranges[] = $current;
+        }
+
+        return $ranges;
     }
 
     public function statusFor(User $user, CarbonInterface $date): AvailabilityStatus

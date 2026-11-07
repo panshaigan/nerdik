@@ -14,8 +14,9 @@
     <div class="mt-4 flex flex-wrap items-end gap-4 rounded-lg border border-base-300 bg-base-100 p-4" data-ui="group-availability-filter">
         <x-input
             type="number"
-            min="0"
-            wire:model.live="minAvailable"
+            min="1"
+            :max="$memberCount"
+            wire:model.live.debounce.300ms="minAvailable"
             :label="__('ui.groups.filter_min_available')"
             class="w-32"
         />
@@ -23,6 +24,9 @@
             <input type="checkbox" class="checkbox checkbox-sm" wire:model.live="requireAll" />
             <span class="label-text">{{ __('ui.groups.filter_require_all') }}</span>
         </label>
+        @if ($filterActive)
+            <p class="w-full text-xs text-base-content/60">{{ __('ui.groups.filter_hint') }}</p>
+        @endif
     </div>
 
     <div class="mt-4 overflow-x-auto">
@@ -35,27 +39,46 @@
             @foreach ($weeks as $weekIndex => $week)
                 @foreach ($week as $cell)
                     @php
-                        $matches = $cell['counts']['matches_filter'] ?? false;
+                        $matches = (bool) ($cell['counts']['matches_filter'] ?? false);
                         $inMonth = $cell['in_month'];
                         $available = (int) ($cell['counts']['available'] ?? 0);
+                        $total = max(1, (int) ($cell['counts']['total'] ?? $memberCount ?: 1));
+                        $ratio = $memberCount > 0 ? $available / $total : 0;
+                        $hue = (int) round($ratio * 120);
+                        $dayStyle = $inMonth
+                            ? sprintf(
+                                'background-color: hsl(%d 72%% 88%%); border-color: hsl(%d 55%% 42%%); color: hsl(%d 45%% 18%%);',
+                                $hue,
+                                $hue,
+                                $hue,
+                            )
+                            : null;
+                        $filteredOut = $filterActive && $inMonth && ! $matches;
                     @endphp
                     <button
                         type="button"
                         wire:key="cal-{{ $weekIndex }}-{{ $cell['date'] }}"
-                        wire:click="{{ $inMonth ? "selectDate('".$cell['date']."')" : '' }}"
+                        @if ($inMonth)
+                            wire:click="selectDate('{{ $cell['date'] }}')"
+                        @endif
                         @disabled(! $inMonth)
-                        class="@class([
+                        @style([$dayStyle => $dayStyle !== null])
+                        @class([
                             'flex min-h-16 flex-col items-center justify-center rounded-lg border p-1 text-xs transition',
-                            'border-base-300 bg-base-100 hover:border-primary' => $inMonth,
                             'border-transparent bg-base-200/30 opacity-40' => ! $inMonth,
+                            'hover:brightness-95' => $inMonth && ! $filteredOut,
+                            'opacity-25 grayscale' => $filteredOut,
                             'ring-2 ring-primary ring-offset-2 ring-offset-base-100' => $selectedDate === $cell['date'],
-                            'border-success/60 bg-success/10' => $inMonth && $matches && $available > 0,
-                        ])"
+                            'ring-2 ring-base-content/40 ring-offset-1 ring-offset-base-100' => $filterActive && $inMonth && $matches && $selectedDate !== $cell['date'],
+                        ])
                         data-ui="group-calendar-day"
+                        @if ($filterActive && $inMonth)
+                            data-matches-filter="{{ $matches ? '1' : '0' }}"
+                        @endif
                     >
                         <span class="font-semibold">{{ \Illuminate\Support\Carbon::parse($cell['date'])->format('j') }}</span>
                         @if ($inMonth)
-                            <span class="mt-1 text-[0.65rem] text-base-content/80" title="{{ __('ui.availability.status_available') }}">
+                            <span class="mt-1 text-[0.65rem] font-medium opacity-90" title="{{ __('ui.availability.status_available') }}">
                                 {{ $available }}/{{ $memberCount }}
                             </span>
                         @endif
@@ -68,7 +91,7 @@
     @if ($selectedDate !== null && $dayDetail !== null)
         <x-modal wire:model="dayDetailOpen" :title="\Illuminate\Support\Carbon::parse($selectedDate)->translatedFormat('j F Y')" class="backdrop-blur">
             <div class="space-y-4" data-ui="group-day-detail">
-                @foreach (['available' => 'success', 'unavailable' => 'error', 'uncertain' => 'warning'] as $bucket => $color)
+                @foreach (['available', 'unavailable', 'uncertain'] as $bucket)
                     <div>
                         <h3 class="text-sm font-semibold text-base-content">
                             @switch($bucket)
