@@ -154,9 +154,46 @@ class LivewireSecurityHardeningTest extends TestCase
             ->call('handleNotificationClick', $externalId)
             ->assertRedirect(route('dashboard'));
 
-        Livewire::actingAs($user)
+        $internal = Livewire::actingAs($user)
             ->test(NotificationList::class)
             ->call('handleNotificationClick', $internalId)
             ->assertRedirect('/profile');
+
+        $this->assertTrue($internal->effects['redirectUsingNavigate'] ?? false);
+    }
+
+    public function test_notification_redirect_to_filament_admin_skips_spa_navigate(): void
+    {
+        $user = User::factory()->admin()->create();
+        $adminPath = '/'.trim((string) config('filament.admin_path'), '/');
+        $adminUrl = $adminPath.'/feedback/2';
+
+        $user->notify(new class($adminUrl) extends Notification
+        {
+            public function __construct(private string $url) {}
+
+            public function via(object $notifiable): array
+            {
+                return ['database'];
+            }
+
+            public function toArray(object $notifiable): array
+            {
+                return [
+                    'type' => 'feedback_received',
+                    'url' => $this->url,
+                ];
+            }
+        });
+
+        $notificationId = $user->notifications()->latest()->value('id');
+        $this->assertNotNull($notificationId);
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('handleNotificationClick', $notificationId)
+            ->assertRedirect($adminUrl);
+
+        $this->assertArrayNotHasKey('redirectUsingNavigate', $component->effects);
     }
 }

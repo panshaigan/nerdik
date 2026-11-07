@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Support\Livewire\SpaNavigate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -22,9 +23,8 @@ trait HandlesDatabaseNotificationClick
         // The destination page loads fresh unread indicators.
 
         if ($isActionable) {
-            $this->redirect(
+            $this->redirectToNotificationUrl(
                 route('requests.index', ['request' => $data['request_id']]),
-                navigate: true,
             );
 
             return;
@@ -35,7 +35,7 @@ trait HandlesDatabaseNotificationClick
             if (count($items) === 1) {
                 $itemUrl = $items[0]['url'] ?? '';
                 if (is_string($itemUrl) && Str::startsWith($itemUrl, '/') && ! Str::startsWith($itemUrl, '//')) {
-                    $this->redirect($itemUrl, navigate: true);
+                    $this->redirectToNotificationUrl($itemUrl);
 
                     return;
                 }
@@ -47,6 +47,11 @@ trait HandlesDatabaseNotificationClick
             ? $url
             : route('dashboard');
 
-        $this->redirect($safeUrl, navigate: true);
+        $this->redirectToNotificationUrl($safeUrl);
+    }
+
+    private function redirectToNotificationUrl(string $url): void
+    {
+        $this->redirect($url, navigate: SpaNavigate::allowed($url));
     }
 }
