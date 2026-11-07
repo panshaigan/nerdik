@@ -48,11 +48,11 @@ return [
     ],
 
     'templates' => [
-        'thanks' => "Dziękujemy za kontakt!\n\nOtrzymaliśmy Twoją wiadomość i odezwiemy się, jeśli będziemy potrzebować więcej szczegółów.",
-        'need_more_info' => "Dziękujemy za zgłoszenie.\n\nCzy możesz podać więcej szczegółów (kroki reprodukcji, urządzenie/przeglądarka oraz zrzuty ekranu, jeśli to możliwe)?",
-        'looking_into_it' => "Dziękujemy — przyglądamy się temu.\n\nDam znać, gdy będziemy wiedzieć więcej.",
-        'resolved' => "Jeszcze raz dziękujemy za zgłoszenie.\n\nZajęliśmy się sprawą po naszej stronie. Daj znać, jeśli nadal widzisz problem.",
-        'wont_change' => "Dziękujemy za sugestię.\n\nPrzejrzeliśmy ją i na razie nie będziemy tego zmieniać, ale doceniamy, że poświęciłeś czas na napisanie.",
+        'thanks' => '<p>Dziękujemy za kontakt!</p><p>Otrzymaliśmy Twoją wiadomość i odezwiemy się, jeśli będziemy potrzebować więcej szczegółów.</p>',
+        'need_more_info' => '<p>Dziękujemy za zgłoszenie.</p><p>Czy możesz podać więcej szczegółów (kroki reprodukcji, urządzenie/przeglądarka oraz zrzuty ekranu, jeśli to możliwe)?</p>',
+        'looking_into_it' => '<p>Dziękujemy — przyglądamy się temu.</p><p>Dam znać, gdy będziemy wiedzieć więcej.</p>',
+        'resolved' => '<p>Jeszcze raz dziękujemy za zgłoszenie.</p><p>Zajęliśmy się sprawą po naszej stronie. Daj znać, jeśli nadal widzisz problem.</p>',
+        'wont_change' => '<p>Dziękujemy za sugestię.</p><p>Przejrzeliśmy ją i na razie nie będziemy tego zmieniać, ale doceniamy, że poświęciłeś czas na napisanie.</p>',
     ],
 
     'template_labels' => [

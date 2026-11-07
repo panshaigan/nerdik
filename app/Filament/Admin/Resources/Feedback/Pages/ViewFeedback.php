@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\Feedback\Pages;
 
 use App\Filament\Admin\Resources\Feedback\FeedbackResource;
+use App\Filament\Forms\Components\TinyMceEditor;
 use App\Models\Feedback;
 use App\Models\User;
 use App\Services\Feedback\FeedbackReplyService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Utilities\Set;
@@ -42,10 +42,9 @@ class ViewFeedback extends ViewRecord
 
                             $set('admin_reply', (string) __('feedback.templates.'.$state));
                         }),
-                    Textarea::make('admin_reply')
+                    TinyMceEditor::make('admin_reply')
                         ->label(__('feedback.admin.reply_body'))
                         ->required()
-                        ->rows(8)
                         ->columnSpanFull(),
                 ])
                 ->action(function (array $data, FeedbackReplyService $replies): void {

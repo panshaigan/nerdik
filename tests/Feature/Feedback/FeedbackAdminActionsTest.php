@@ -56,7 +56,7 @@ class FeedbackAdminActionsTest extends TestCase
         $this->assertNull($reopened->resolved_by_id);
     }
 
-    public function test_reply_to_user_sends_database_notification_and_resolves(): void
+    public function test_reply_to_user_sends_database_and_mail_notification_and_resolves(): void
     {
         Notification::fake();
 
@@ -64,14 +64,27 @@ class FeedbackAdminActionsTest extends TestCase
         $reporter = User::factory()->create();
         $feedback = Feedback::factory()->fromUser($reporter)->create();
 
-        $replied = app(FeedbackReplyService::class)->reply($feedback, $admin, 'Thanks — we fixed it.');
+        $replied = app(FeedbackReplyService::class)->reply(
+            $feedback,
+            $admin,
+            '<p>Thanks — we fixed it.</p>',
+        );
 
         $this->assertTrue($replied->hasReply());
         $this->assertSame(FeedbackStatus::Resolved, $replied->status);
-        $this->assertSame('Thanks — we fixed it.', $replied->admin_reply);
+        $this->assertSame('<p>Thanks — we fixed it.</p>', $replied->admin_reply);
         $this->assertSame($admin->id, $replied->replied_by_id);
 
-        Notification::assertSentTo($reporter, FeedbackRepliedNotification::class);
+        Notification::assertSentTo(
+            $reporter,
+            FeedbackRepliedNotification::class,
+            function (FeedbackRepliedNotification $notification, array $channels) use ($replied): bool {
+                return in_array('database', $channels, true)
+                    && in_array('broadcast', $channels, true)
+                    && in_array('mail', $channels, true)
+                    && $notification->feedback->is($replied);
+            },
+        );
     }
 
     public function test_reply_to_guest_sends_mail_notification(): void
@@ -83,7 +96,11 @@ class FeedbackAdminActionsTest extends TestCase
             'email' => 'guest@example.com',
         ]);
 
-        app(FeedbackReplyService::class)->reply($feedback, $admin, 'Thanks for reporting.');
+        app(FeedbackReplyService::class)->reply(
+            $feedback,
+            $admin,
+            '<p>Thanks for reporting.</p>',
+        );
 
         Notification::assertSentOnDemand(
             FeedbackRepliedNotification::class,

@@ -72,6 +72,8 @@ class FeedbackInfolist
                         TextEntry::make('admin_reply')
                             ->hiddenLabel()
                             ->prose()
+                            ->html()
+                            ->formatStateUsing(fn (?string $state): string => RichText::html($state)->toHtml())
                             ->columnSpanFull(),
                         TextEntry::make('replied_at')
                             ->dateTime(),

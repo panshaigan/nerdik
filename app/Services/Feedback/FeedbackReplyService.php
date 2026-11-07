@@ -8,6 +8,7 @@ use App\Enums\FeedbackStatus;
 use App\Models\Feedback;
 use App\Models\User;
 use App\Notifications\FeedbackRepliedNotification;
+use App\Support\RichText;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
@@ -21,9 +22,9 @@ final class FeedbackReplyService
             ]);
         }
 
-        $reply = trim($replyBody);
+        $reply = RichText::sanitize($replyBody);
 
-        if ($reply === '') {
+        if ($reply === null) {
             throw ValidationException::withMessages([
                 'admin_reply' => [__('validation.required', ['attribute' => 'reply'])],
             ]);

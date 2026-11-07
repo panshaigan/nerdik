@@ -76,7 +76,7 @@ final class FeedbackFactory extends Factory
             $replier ??= User::factory()->admin()->create();
 
             return [
-                'admin_reply' => $reply ?? fake()->paragraph(),
+                'admin_reply' => $reply ?? '<p>'.e(fake()->paragraph()).'</p>',
                 'replied_at' => now(),
                 'replied_by_id' => $replier->id,
                 'status' => FeedbackStatus::Resolved,

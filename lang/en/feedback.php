@@ -48,11 +48,11 @@ return [
     ],
 
     'templates' => [
-        'thanks' => "Thanks for getting in touch!\n\nWe've received your message and will follow up if we need more details.",
-        'need_more_info' => "Thanks for the report.\n\nCould you share a bit more detail (steps to reproduce, device/browser, and screenshots if possible)?",
-        'looking_into_it' => "Thanks — we're looking into this.\n\nWe'll update you when we know more.",
-        'resolved' => "Thanks again for reporting this.\n\nWe've addressed the issue on our side. Please let us know if you still see a problem.",
-        'wont_change' => "Thanks for the suggestion.\n\nWe've reviewed it and won't be changing this for now, but we appreciate you taking the time to write.",
+        'thanks' => '<p>Thanks for getting in touch!</p><p>We\'ve received your message and will follow up if we need more details.</p>',
+        'need_more_info' => '<p>Thanks for the report.</p><p>Could you share a bit more detail (steps to reproduce, device/browser, and screenshots if possible)?</p>',
+        'looking_into_it' => '<p>Thanks — we\'re looking into this.</p><p>We\'ll update you when we know more.</p>',
+        'resolved' => '<p>Thanks again for reporting this.</p><p>We\'ve addressed the issue on our side. Please let us know if you still see a problem.</p>',
+        'wont_change' => '<p>Thanks for the suggestion.</p><p>We\'ve reviewed it and won\'t be changing this for now, but we appreciate you taking the time to write.</p>',
     ],
 
     'template_labels' => [

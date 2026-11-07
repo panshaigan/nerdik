@@ -9,6 +9,7 @@ use App\Enums\SentEmailKind;
 use App\Models\Feedback;
 use App\Models\User;
 use App\Notifications\Concerns\BroadcastsWithDatabasePayload;
+use App\Support\RichText;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -31,7 +32,7 @@ class FeedbackRepliedNotification extends Notification implements ProvidesSentEm
     public function via(object $notifiable): array
     {
         if ($notifiable instanceof User) {
-            return ['database', 'broadcast'];
+            return ['database', 'broadcast', 'mail'];
         }
 
         return ['mail'];
@@ -39,14 +40,19 @@ class FeedbackRepliedNotification extends Notification implements ProvidesSentEm
 
     public function toMail(object $notifiable): MailMessage
     {
+        $replyHtml = (string) ($this->feedback->admin_reply ?? '');
+        $htmlBody = RichText::html($replyHtml)->toHtml();
+        $textBody = RichText::excerpt($replyHtml, 10_000);
+
         return (new MailMessage)
             ->subject(__('feedback.notifications.replied_mail_subject', [
                 'subject' => $this->feedback->subject,
             ]))
-            ->line(__('feedback.notifications.replied_mail_intro', [
+            ->markdown('mail.feedback-replied', [
                 'subject' => $this->feedback->subject,
-            ]))
-            ->line($this->feedback->admin_reply ?? '');
+                'htmlBody' => $htmlBody,
+                'textBody' => $textBody,
+            ]);
     }
 
     /**
@@ -58,7 +64,7 @@ class FeedbackRepliedNotification extends Notification implements ProvidesSentEm
             'type' => 'feedback_replied',
             'feedback_id' => $this->feedback->id,
             'subject' => $this->feedback->subject,
-            'admin_reply' => $this->feedback->admin_reply,
+            'admin_reply' => RichText::excerpt($this->feedback->admin_reply, 500),
             'url' => route('notifications.index', [], false),
             'toast_title' => __('feedback.notifications.replied_title'),
             'toast_description' => __('feedback.notifications.replied_subtitle', [
