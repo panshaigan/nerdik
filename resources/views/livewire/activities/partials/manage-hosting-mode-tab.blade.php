@@ -112,40 +112,44 @@
     <div class="mt-4 border-t border-base-300 pt-4">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
             <div>
-                <div class="relative" data-proposal-event-autocomplete>
-                    <x-input
-                        id="proposal_event_search"
-                        class="ui-field ui-field-proposal-event"
-                        :label="__('ui.activities.proposal_event')"
-                        wire:model="proposal_event_search"
-                        error-field="proposal_event_id"
-                        type="text"
-                        autocomplete="off"
-                        data-proposal-event-input
-                        aria-autocomplete="list"
-                        aria-expanded="false"
-                        aria-controls="proposal-event-suggestions-popup"
-                        :placeholder="__('ui.activities.proposal_event_search_placeholder')"
-                        data-ui="proposal-event-search"
-                        :readonly="$proposalFieldsReadonly"
-                        :disabled="$proposalFieldsReadonly"
-                        :clearable="! $proposalFieldsReadonly"
-                        inline
-                    />
+                <div data-proposal-event-autocomplete>
+                    {{-- Ignore only the text field/popup so remorphs can still sync proposal_event_id. --}}
+                    <div class="relative" wire:ignore>
+                        <x-input
+                            id="proposal_event_search"
+                            class="ui-field ui-field-proposal-event"
+                            :label="__('ui.activities.proposal_event')"
+                            wire:model.live.debounce.250ms="proposal_event_search"
+                            type="text"
+                            autocomplete="off"
+                            data-proposal-event-input
+                            aria-autocomplete="list"
+                            aria-expanded="false"
+                            aria-controls="proposal-event-suggestions-popup"
+                            :placeholder="__('ui.activities.proposal_event_search_placeholder')"
+                            data-ui="proposal-event-search"
+                            :readonly="$proposalFieldsReadonly"
+                            :disabled="$proposalFieldsReadonly"
+                            :clearable="! $proposalFieldsReadonly"
+                            :omit-error="true"
+                            inline
+                        />
+                        <script type="application/json" data-proposal-event-config>
+                            @json([
+                                'initialSuggestions' => $proposalEventSuggestions,
+                                'noneLabel' => __('ui.activities.proposal_event_none'),
+                                'noResultsLabel' => __('ui.activities.proposal_event_search_no_results')
+                            ])
+                        </script>
+                        <div
+                            id="proposal-event-suggestions-popup"
+                            class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
+                            data-proposal-event-popup
+                            role="listbox"
+                        ></div>
+                    </div>
                     <input type="hidden" wire:model.live="proposal_event_id" data-proposal-event-id />
-                    <script type="application/json" data-proposal-event-config>
-                        @json([
-                            'initialSuggestions' => $proposalEventSuggestions,
-                            'noneLabel' => __('ui.activities.proposal_event_none'),
-                            'noResultsLabel' => __('ui.activities.proposal_event_search_no_results')
-                        ])
-                    </script>
-                    <div
-                        id="proposal-event-suggestions-popup"
-                        class="absolute left-0 right-0 z-20 mt-1 hidden max-h-56 overflow-y-auto rounded-lg border border-base-300 bg-base-100 py-1 shadow-lg"
-                        data-proposal-event-popup
-                        role="listbox"
-                    ></div>
+                    <x-field-error :messages="$errors->get('proposal_event_id')" class="mt-2" />
                 </div>
                 @if ($futureEvents->isEmpty())
                     <p class="mt-1 text-xs text-base-content/60">{{ __('ui.activities.proposal_no_future_events') }}</p>

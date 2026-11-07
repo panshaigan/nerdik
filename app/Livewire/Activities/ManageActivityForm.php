@@ -728,6 +728,15 @@ class ManageActivityForm extends Component
         $this->proposal_allowed_activity_type_ids = null;
     }
 
+    public function clearProposalEventSelection(string $search = ''): void
+    {
+        $this->proposal_event_id = null;
+        $this->proposal_event_search = $search;
+        $this->proposal_preferred_start_time = null;
+        $this->proposal_slot_ids = [];
+        $this->proposal_allowed_activity_type_ids = null;
+    }
+
     public function updatedProposalSlotIds(): void
     {
         $this->applyProposalContextPrefill();

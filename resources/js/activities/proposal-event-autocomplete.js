@@ -60,6 +60,19 @@ function applySelectionStyles(popup, activeIndex) {
     });
 }
 
+function clearSelectedEvent(root, search = '') {
+    const input = root.querySelector('[data-proposal-event-input]');
+    const hidden = root.querySelector('[data-proposal-event-id]');
+    if (hidden) {
+        hidden.value = '';
+    }
+    if (input) {
+        input.value = search;
+    }
+
+    return callLivewireMethod(getLivewire(root), 'clearProposalEventSelection', search);
+}
+
 function setSelectedEvent(root, item, clearSearch = false) {
     const input = root.querySelector('[data-proposal-event-input]');
     const hidden = root.querySelector('[data-proposal-event-id]');
@@ -71,12 +84,16 @@ function setSelectedEvent(root, item, clearSearch = false) {
     const idValue = item?.id ? String(item.id) : '';
     const labelValue = clearSearch ? '' : String(item?.label || '');
     root.dataset.proposalEventSelecting = '1';
-    hidden.value = idValue;
-    hidden.dispatchEvent(new Event('input', { bubbles: true }));
-    hidden.dispatchEvent(new Event('change', { bubbles: true }));
-
     input.value = labelValue;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    if (!idValue) {
+        clearSelectedEvent(root, labelValue);
+    } else {
+        hidden.value = idValue;
+        hidden.dispatchEvent(new Event('input', { bubbles: true }));
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
     delete root.dataset.proposalEventSelecting;
     closePopup(input, popup);
 }
@@ -222,9 +239,8 @@ function bindDelegation() {
         }
         const hidden = root.querySelector('[data-proposal-event-id]');
         if (hidden?.value) {
-            hidden.value = '';
-            hidden.dispatchEvent(new Event('input', { bubbles: true }));
-            hidden.dispatchEvent(new Event('change', { bubbles: true }));
+            // Keep the typed query on the server so remorphs (slots clearing) cannot restore the old label.
+            clearSelectedEvent(root, input.value);
         }
 
         let run = debouncedFetchByRoot.get(root);
