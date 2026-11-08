@@ -96,4 +96,17 @@ return [
 
     'tmp_backup_retention_days' => (int) env('HOUSEKEEPING_TMP_BACKUP_RETENTION_DAYS', 7),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Availability Date Exception Grace
+    |--------------------------------------------------------------------------
+    |
+    | Extra days of past user_availability_date_exceptions to keep before
+    | housekeeping:prune-availability-exceptions deletes them. With 0, any
+    | exception strictly before today (app timezone) is removed.
+    |
+    */
+
+    'availability_exceptions_grace_days' => (int) env('HOUSEKEEPING_AVAILABILITY_EXCEPTIONS_GRACE_DAYS', 0),
+
 ];
