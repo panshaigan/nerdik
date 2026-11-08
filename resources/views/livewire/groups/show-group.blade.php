@@ -91,6 +91,23 @@
                     @endif
                 </x-tab>
 
+                @if ($canManage)
+                    <x-tab
+                        name="discover"
+                        :label="__('ui.groups.tab_discover')"
+                        class="px-4 py-5 sm:px-6 sm:py-6"
+                        data-ui="group-show-tab-discover"
+                        icon="o-magnifying-glass"
+                    >
+                        @if (in_array('discover', $mountedTabs, true))
+                            <livewire:groups.group-discover-matches
+                                :group-id="$group->id"
+                                :key="'group-discover-'.$group->id"
+                            />
+                        @endif
+                    </x-tab>
+                @endif
+
                 <x-tab
                     name="location"
                     :label="__('ui.groups.tab_location')"

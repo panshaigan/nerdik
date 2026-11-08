@@ -9,8 +9,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Persists group location/radius and interest tags used later for suggesting potential members.
- * Matching/discovery is not wired yet — this only stores the setup data.
+ * Persists group location/radius and interest tags used by {@see GroupCandidateDiscoveryService}.
  */
 class GroupDiscoveryPreferencesService
 {

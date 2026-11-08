@@ -35,6 +35,14 @@ class ShowGroup extends Component
     {
         $this->groupSlug = $groupSlug;
         $this->tab = $this->normalizeTab($this->tab);
+
+        if ($this->tab === 'discover') {
+            $group = $this->resolveGroup();
+            if (! Auth::user()?->canModifyEntity($group)) {
+                $this->tab = 'calendar';
+            }
+        }
+
         $this->mountedTabs = [$this->tab];
     }
 
@@ -129,7 +137,7 @@ class ShowGroup extends Component
 
     private function normalizeTab(?string $value): string
     {
-        return in_array($value, ['calendar', 'members', 'location', 'tags'], true)
+        return in_array($value, ['calendar', 'members', 'discover', 'location', 'tags'], true)
             ? $value
             : 'calendar';
     }
