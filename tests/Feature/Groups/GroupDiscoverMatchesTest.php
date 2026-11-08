@@ -181,7 +181,7 @@ final class GroupDiscoverMatchesTest extends TestCase
 
         Livewire::actingAs($member)
             ->withQueryParams(['tab' => 'discover'])
-            ->test(ShowGroup::class, ['groupSlug' => $group->slug])
+            ->test(ShowGroup::class, ['groupId' => $group->id])
             ->assertSet('tab', 'calendar');
     }
 

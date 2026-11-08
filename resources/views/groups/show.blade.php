@@ -5,5 +5,5 @@
         </a>
     </x-slot>
 
-    <livewire:groups.show-group :group-slug="$group->slug" />
+    <livewire:groups.show-group :group-id="$group->id" />
 </x-app-layout>

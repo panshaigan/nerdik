@@ -6,7 +6,6 @@ namespace App\Livewire\Groups;
 
 use App\Models\Group;
 use App\Models\Tag;
-use App\Models\TagCategory;
 use App\Services\GroupDiscoveryPreferencesService;
 use App\Services\TagSelectionService;
 use Illuminate\Support\Facades\Auth;
@@ -40,27 +39,14 @@ class GroupTagsForm extends Component
     public function getTagPickerConfigProperty(): array
     {
         $locale = app()->getLocale();
-        $tagSelection = app(TagSelectionService::class);
+        $taxonomy = app(TagSelectionService::class)->cachedActivityFormPickerTaxonomy($locale);
 
         return [
             'locale' => $locale,
             'semanticByTagCategory' => config('activity-badges.semantic_by_tag_category', []),
             'defaultTaxonomySemantic' => config('activity-badges.semantic_by_kind.taxonomy_tag', 'neutral'),
-            'categories' => TagCategory::query()
-                ->with('translations')
-                ->orderBy('key')
-                ->get()
-                ->map(static fn (TagCategory $cat) => [
-                    'id' => (int) $cat->id,
-                    'key' => (string) $cat->key,
-                    'name' => (string) $cat->name($locale),
-                ])
-                ->values()
-                ->all(),
-            'tags' => $tagSelection->tagsPayloadForActivityPicker(
-                Tag::query()->forActivityFormPicker()->get(),
-                $locale,
-            ),
+            'categories' => $taxonomy['categories'],
+            'tags' => $taxonomy['tags'],
             'initialSelectedIds' => $this->tag_ids,
             'initialNewTags' => $this->new_tags,
             'ignoreActivityTypeContexts' => true,

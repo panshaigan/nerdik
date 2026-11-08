@@ -10,16 +10,24 @@ use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class GroupAvailabilityService
 {
+    private const MONTH_SUMMARY_VERSION = 'v1';
+
+    private const MONTH_SUMMARY_TTL_SECONDS = 60;
+
+    /** @var array<int, Collection<int, User>> */
+    private array $membersByGroupId = [];
+
     public function __construct(
         private readonly UserAvailabilityService $availability,
     ) {}
 
     /**
      * @return array{
-     *     days: array<string, array{available: int, unavailable: int, uncertain: int, total: int}>,
+     *     days: array<string, array{available: int, unavailable: int, uncertain: int, total: int, matches_filter: bool}>,
      *     member_ids: list<int>
      * }
      */
@@ -27,18 +35,16 @@ class GroupAvailabilityService
     {
         $start = Carbon::parse($month)->startOfMonth()->startOfDay();
         $end = Carbon::parse($month)->endOfMonth()->startOfDay();
+        $monthKey = $start->format('Y-m');
 
         $members = $this->memberUsers($group);
         $memberIds = $members->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $total = count($memberIds);
 
-        $statuses = $this->availability->statusesForUsersBetween($memberIds, $start, $end);
+        $rawDays = $this->cachedRawMonthDays((int) $group->id, $monthKey, $memberIds, $start, $end, $total);
 
         $days = [];
-        foreach ($statuses as $dateKey => $perUser) {
-            $counts = $this->countStatuses($perUser);
-            $counts['total'] = $total;
-
+        foreach ($rawDays as $dateKey => $counts) {
             $days[$dateKey] = $counts;
             $days[$dateKey]['matches_filter'] = $this->passesFilter($counts, $minAvailable, $requireAll, $total);
         }
@@ -125,11 +131,65 @@ class GroupAvailabilityService
     }
 
     /**
+     * @param  list<int>  $memberIds
+     * @return array<string, array{available: int, unavailable: int, uncertain: int, total: int}>
+     */
+    private function cachedRawMonthDays(
+        int $groupId,
+        string $monthKey,
+        array $memberIds,
+        CarbonInterface $start,
+        CarbonInterface $end,
+        int $total,
+    ): array {
+        $cacheKey = $this->monthSummaryCacheKey($groupId, $monthKey, $memberIds);
+
+        /** @var array<string, array{available: int, unavailable: int, uncertain: int, total: int}> $days */
+        $days = Cache::remember(
+            $cacheKey,
+            self::MONTH_SUMMARY_TTL_SECONDS,
+            function () use ($memberIds, $start, $end, $total): array {
+                $statuses = $this->availability->statusesForUsersBetween($memberIds, $start, $end);
+                $days = [];
+
+                foreach ($statuses as $dateKey => $perUser) {
+                    $counts = $this->countStatuses($perUser);
+                    $counts['total'] = $total;
+                    $days[$dateKey] = $counts;
+                }
+
+                return $days;
+            },
+        );
+
+        return $days;
+    }
+
+    /**
+     * @param  list<int>  $memberIds
+     */
+    private function monthSummaryCacheKey(int $groupId, string $monthKey, array $memberIds): string
+    {
+        $sorted = $memberIds;
+        sort($sorted);
+
+        return sprintf(
+            'group-avail-month:%s:%d:%s:%s',
+            self::MONTH_SUMMARY_VERSION,
+            $groupId,
+            $monthKey,
+            md5(implode(',', $sorted)),
+        );
+    }
+
+    /**
      * @return Collection<int, User>
      */
     private function memberUsers(Group $group): Collection
     {
-        return $group->users()
+        $groupId = (int) $group->id;
+
+        return $this->membersByGroupId[$groupId] ??= $group->users()
             ->where('users.is_deleted', false)
             ->orderBy('nickname')
             ->get();

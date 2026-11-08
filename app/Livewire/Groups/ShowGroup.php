@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Livewire\Groups;
 
 use App\Models\Group;
-use App\Models\User;
 use App\Services\GroupMembershipService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Mary\Traits\Toast;
 
@@ -16,7 +16,8 @@ class ShowGroup extends Component
 {
     use Toast;
 
-    public string $groupSlug;
+    #[Locked]
+    public int $groupId;
 
     public string $tab = 'calendar';
 
@@ -31,16 +32,19 @@ class ShowGroup extends Component
         'tab' => ['except' => 'calendar'],
     ];
 
-    public function mount(string $groupSlug): void
+    public function hydrate(): void
     {
-        $this->groupSlug = $groupSlug;
+        Group::query()->visibleTo(Auth::user())->whereKey($this->groupId)->firstOrFail();
+    }
+
+    public function mount(int $groupId): void
+    {
+        $group = Group::query()->visibleTo(Auth::user())->whereKey($groupId)->firstOrFail();
+        $this->groupId = (int) $group->id;
         $this->tab = $this->normalizeTab($this->tab);
 
-        if ($this->tab === 'discover') {
-            $group = $this->resolveGroup();
-            if (! Auth::user()?->canModifyEntity($group)) {
-                $this->tab = 'calendar';
-            }
+        if ($this->tab === 'discover' && ! Auth::user()?->canModifyEntity($group)) {
+            $this->tab = 'calendar';
         }
 
         $this->mountedTabs = [$this->tab];
@@ -57,23 +61,6 @@ class ShowGroup extends Component
         }
 
         $this->skipRender();
-    }
-
-    public function removeMember(int $userId, GroupMembershipService $membership): void
-    {
-        $actor = Auth::user();
-        $group = $this->resolveGroup();
-        $member = User::query()->findOrFail($userId);
-
-        try {
-            $membership->removeMember($group, $actor, $member);
-        } catch (ValidationException $exception) {
-            $this->error((string) collect($exception->errors())->flatten()->first());
-
-            return;
-        }
-
-        $this->success(__('ui.groups.member_removed'));
     }
 
     public function leave(GroupMembershipService $membership): void
@@ -118,7 +105,7 @@ class ShowGroup extends Component
 
     public function render()
     {
-        $group = $this->resolveGroup()->load(['users']);
+        $group = $this->resolveGroup();
 
         return view('livewire.groups.show-group', [
             'group' => $group,
@@ -131,7 +118,7 @@ class ShowGroup extends Component
     {
         return Group::query()
             ->visibleTo(Auth::user())
-            ->where('slug', $this->groupSlug)
+            ->whereKey($this->groupId)
             ->firstOrFail();
     }
 

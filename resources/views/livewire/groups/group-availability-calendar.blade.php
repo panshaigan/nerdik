@@ -28,7 +28,7 @@
                 </span>
             </label>
             <x-range
-                wire:model.live="minAvailable"
+                wire:model.live.debounce.300ms="minAvailable"
                 min="0"
                 max="{{ max(1, $memberCount) }}"
                 step="1"

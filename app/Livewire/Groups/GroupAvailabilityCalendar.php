@@ -8,10 +8,12 @@ use App\Models\Group;
 use App\Services\GroupAvailabilityService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class GroupAvailabilityCalendar extends Component
 {
+    #[Locked]
     public int $groupId;
 
     public string $month;

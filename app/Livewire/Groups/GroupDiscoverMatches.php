@@ -80,11 +80,9 @@ class GroupDiscoverMatches extends Component
 
         $hasCriteria = $discovery->hasDiscoveryCriteria($group);
 
-        if (! $hasCriteria || $actor === null) {
-            $candidates = User::query()->whereRaw('1 = 0')->paginate(20);
-        } else {
-            $candidates = $discovery->candidates($group, $actor);
-        }
+        $candidates = (! $hasCriteria || $actor === null)
+            ? $discovery->emptyCandidates()
+            : $discovery->candidates($group, $actor);
 
         return view('livewire.groups.group-discover-matches', [
             'group' => $group,

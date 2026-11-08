@@ -127,7 +127,7 @@ final class GroupDiscoveryPreferencesTest extends TestCase
 
         Livewire::actingAs($owner)
             ->withQueryParams(['tab' => 'members'])
-            ->test(ShowGroup::class, ['groupSlug' => $group->slug])
+            ->test(ShowGroup::class, ['groupId' => $group->id])
             ->assertSet('tab', 'members')
             ->assertSet('mountedTabs', ['members']);
     }

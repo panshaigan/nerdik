@@ -7,6 +7,7 @@ use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagContext;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -91,6 +92,8 @@ class TagSelectionService
             if ($suggestedBringLabels !== []) {
                 app(ActivitySuggestedBringService::class)->attachKitToNewTag($tag, $suggestedBringLabels);
             }
+
+            $this->forgetActivityFormPickerTaxonomy();
 
             return (int) $tag->id;
         });
@@ -235,6 +238,57 @@ class TagSelectionService
         }
 
         return $ids->contains($activityTypeId);
+    }
+
+    /**
+     * Categories + tags payload for activity/group/profile tag pickers (shared, TTL-cached).
+     *
+     * @return array{
+     *     categories: list<array{id: int, key: string, name: string}>,
+     *     tags: list<array<string, mixed>>
+     * }
+     */
+    public function cachedActivityFormPickerTaxonomy(string $locale): array
+    {
+        /** @var array{categories: list<array{id: int, key: string, name: string}>, tags: list<array<string, mixed>>} */
+        return Cache::remember(
+            'tag-picker-taxonomy:'.$locale.':v1',
+            300,
+            function () use ($locale): array {
+                $categories = TagCategory::query()
+                    ->with('translations')
+                    ->orderBy('key')
+                    ->get()
+                    ->map(static fn (TagCategory $cat): array => [
+                        'id' => (int) $cat->id,
+                        'key' => (string) $cat->key,
+                        'name' => (string) $cat->name($locale),
+                    ])
+                    ->values()
+                    ->all();
+
+                return [
+                    'categories' => $categories,
+                    'tags' => $this->tagsPayloadForActivityPicker(
+                        Tag::query()->forActivityFormPicker()->get(),
+                        $locale,
+                    ),
+                ];
+            },
+        );
+    }
+
+    public function forgetActivityFormPickerTaxonomy(?string $locale = null): void
+    {
+        if ($locale !== null) {
+            Cache::forget('tag-picker-taxonomy:'.$locale.':v1');
+
+            return;
+        }
+
+        foreach (['en', 'pl'] as $supportedLocale) {
+            Cache::forget('tag-picker-taxonomy:'.$supportedLocale.':v1');
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ use App\Support\Geo\BoundingBox;
 use App\Support\Geo\Haversine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
 class GroupCandidateDiscoveryService
 {
@@ -26,6 +27,11 @@ class GroupCandidateDiscoveryService
         $group->loadMissing('tags');
 
         return $group->tags->isNotEmpty() || $group->hasLocation();
+    }
+
+    public function emptyCandidates(int $perPage = 20): LengthAwarePaginator
+    {
+        return $this->emptyPage($perPage);
     }
 
     public function candidates(Group $group, User $actor, int $perPage = 20): LengthAwarePaginator
@@ -127,6 +133,6 @@ class GroupCandidateDiscoveryService
 
     private function emptyPage(int $perPage): LengthAwarePaginator
     {
-        return User::query()->whereRaw('1 = 0')->paginate($perPage);
+        return new Paginator([], 0, $perPage);
     }
 }

@@ -41,6 +41,11 @@ final class GroupAvailabilityServiceTest extends TestCase
 
         $summaryFiltered = $service->monthSummary($group, Carbon::parse('2026-03-01'), minAvailable: 3);
         $this->assertFalse($summaryFiltered['days']['2026-03-07']['matches_filter']);
+
+        // Second call with a different filter must reuse the cached raw day counts.
+        $summaryAgain = $service->monthSummary($group, Carbon::parse('2026-03-01'), minAvailable: 2);
+        $this->assertTrue($summaryAgain['days']['2026-03-07']['matches_filter']);
+        $this->assertSame(2, $summaryAgain['days']['2026-03-07']['available']);
     }
 
     public function test_day_detail_lists_members_by_status(): void
