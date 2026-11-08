@@ -2,34 +2,59 @@ import L from './leaflet-setup.js';
 import { addThemedBasemapToMap } from './themed-basemap.js';
 
 /**
- * @param {import('leaflet').Map} map
- * @param {import('leaflet').Circle} circle
+ * @param {number} radiusKm
  */
-function refreshMapLayout(map, circle) {
-    map.invalidateSize({ animate: false });
-    map.fitBounds(circle.getBounds(), { padding: [24, 24], animate: false });
-    map.eachLayer((layer) => {
-        if (typeof layer.redraw === 'function') {
-            layer.redraw();
-        }
-    });
+function zoomForRadiusKm(radiusKm) {
+    const targetKm = Math.max(radiusKm * 2.8, 2);
+    const zoom = Math.log2(40_075 / targetKm);
+
+    return Math.max(4, Math.min(15, Math.round(zoom)));
 }
 
 /**
- * @param {import('leaflet').Map} map
- * @param {import('leaflet').Circle} circle
+ * @param {HTMLElement} root
+ * @returns {{ lat: number, lng: number, radiusKm: number }|null}
  */
-function scheduleRefresh(map, circle) {
-    requestAnimationFrame(() => refreshMapLayout(map, circle));
-    [50, 150, 300, 600].forEach((ms) => {
-        setTimeout(() => refreshMapLayout(map, circle), ms);
-    });
+function readPlayAreaConfig(root) {
+    const fromData = {
+        lat: Number(root.dataset.latitude),
+        lng: Number(root.dataset.longitude),
+        radiusKm: Number(root.dataset.radiusKm),
+    };
+
+    if (
+        Number.isFinite(fromData.lat)
+        && Number.isFinite(fromData.lng)
+        && Number.isFinite(fromData.radiusKm)
+        && fromData.radiusKm > 0
+    ) {
+        return fromData;
+    }
+
+    const cfgEl = root.querySelector('script[type="application/json"][data-upapm-config]');
+    if (!cfgEl) {
+        return null;
+    }
+
+    let cfg = {};
+    try {
+        cfg = JSON.parse(cfgEl.textContent || '{}');
+    } catch {
+        return null;
+    }
+
+    const lat = Number(cfg.latitude);
+    const lng = Number(cfg.longitude);
+    const radiusKm = Number(cfg.radiusKm);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(radiusKm) || radiusKm <= 0) {
+        return null;
+    }
+
+    return { lat, lng, radiusKm };
 }
 
 /**
- * Mary tabs use x-show (display:none). DaisyUI sheets also animate translate.
- * Wait until the host has a real laid-out box before creating Leaflet.
- *
  * @param {HTMLElement} el
  * @param {() => void} callback
  */
@@ -58,7 +83,7 @@ function whenReadyToMount(el, callback) {
                 }
             }
         },
-        { threshold: [0, 0.01, 0.1] },
+        { threshold: [0, 0.01] },
     );
     io.observe(el);
 
@@ -70,8 +95,7 @@ function whenReadyToMount(el, callback) {
         parent = parent.parentElement;
     }
 
-    // Modal translate animation / flex layout may settle after the first paint.
-    [0, 50, 100, 250, 500].forEach((ms) => setTimeout(finish, ms));
+    finish();
 }
 
 /**
@@ -96,31 +120,16 @@ function silenceZoomControlAnchors(map) {
  * @param {HTMLElement} root
  */
 function mountMap(root) {
-    const cfgEl = root.querySelector('script[type="application/json"][data-upapm-config]');
     const mapEl = root.querySelector('[data-upapm-map]');
-    if (!cfgEl || !mapEl) {
+    const config = readPlayAreaConfig(root);
+    if (!mapEl || config === null) {
         return;
     }
 
-    let cfg = {};
-    try {
-        cfg = JSON.parse(cfgEl.textContent || '{}');
-    } catch {
-        cfg = {};
-    }
+    const { lat, lng, radiusKm } = config;
+    const zoom = zoomForRadiusKm(radiusKm);
 
-    const lat = Number(cfg.latitude);
-    const lng = Number(cfg.longitude);
-    const radiusKm = Number(cfg.radiusKm);
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(radiusKm) || radiusKm <= 0) {
-        return;
-    }
-
-    // Ensure the Leaflet host has an explicit pixel height before L.map reads it.
-    if (!mapEl.style.height) {
-        mapEl.style.height = '280px';
-    }
+    mapEl.style.height = mapEl.style.height || '280px';
     mapEl.style.width = '100%';
 
     const map = L.map(mapEl, {
@@ -128,14 +137,15 @@ function mountMap(root) {
         dragging: true,
         zoomControl: true,
         fadeAnimation: false,
-    });
+        zoomAnimation: false,
+        markerZoomAnimation: false,
+    }).setView([lat, lng], zoom);
 
     addThemedBasemapToMap(map, {
         osmAttribution: '&copy; OpenStreetMap',
     });
     silenceZoomControlAnchors(map);
 
-    // CSS variables are unreliable as SVG presentation attributes inside some overlay trees.
     const circle = L.circle([lat, lng], {
         radius: radiusKm * 1000,
         color: '#38bdf8',
@@ -145,46 +155,16 @@ function mountMap(root) {
     }).addTo(map);
 
     L.marker([lat, lng]).addTo(map);
+    map.fitBounds(circle.getBounds(), { padding: [28, 28], animate: false, maxZoom: zoom });
 
-    scheduleRefresh(map, circle);
-
-    const ro = new ResizeObserver(() => {
-        refreshMapLayout(map, circle);
+    // One layout settle after the tab panel finishes showing — avoid repeated setView blinks.
+    requestAnimationFrame(() => {
+        map.invalidateSize({ animate: false });
+        map.fitBounds(circle.getBounds(), { padding: [28, 28], animate: false, maxZoom: zoom });
     });
-    ro.observe(mapEl);
-    ro.observe(root);
-
-    const io = new IntersectionObserver(
-        (entries) => {
-            for (const entry of entries) {
-                if (entry.isIntersecting && entry.intersectionRatio > 0) {
-                    scheduleRefresh(map, circle);
-                    break;
-                }
-            }
-        },
-        { threshold: [0, 0.01, 0.5] },
-    );
-    io.observe(root);
-
-    const onTabClick = (event) => {
-        const target = event.target;
-        if (!(target instanceof Element)) {
-            return;
-        }
-        const tab = target.closest('[data-tab-name="play-preferences"]');
-        if (!tab) {
-            return;
-        }
-        scheduleRefresh(map, circle);
-    };
-    document.addEventListener('click', onTabClick, true);
 
     root._upapmMap = map;
     root._upapmDestroy = () => {
-        ro.disconnect();
-        io.disconnect();
-        document.removeEventListener('click', onTabClick, true);
         map.remove();
         delete root._upapmMap;
         delete root._upapmDestroy;

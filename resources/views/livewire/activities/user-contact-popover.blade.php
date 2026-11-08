@@ -149,6 +149,9 @@
                                 <div
                                     data-user-play-area-preview-map
                                     class="relative z-0 overflow-visible rounded-md border border-base-300"
+                                    data-latitude="{{ $playAreaPreview['latitude'] }}"
+                                    data-longitude="{{ $playAreaPreview['longitude'] }}"
+                                    data-radius-km="{{ $playAreaPreview['radius_km'] }}"
                                     wire:ignore
                                 >
                                     <script type="application/json" data-upapm-config>@json($playAreaPreviewMapConfig)</script>
