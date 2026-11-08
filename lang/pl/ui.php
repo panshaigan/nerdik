@@ -774,6 +774,8 @@ return [
         'clear' => 'Wyczyść',
         'save_search' => 'Zapisz wyszukiwanie',
         'save_search_success' => 'Wyszukiwanie zapisane',
+        'apply_preferences' => 'Użyj moich preferencji',
+        'apply_preferences_empty' => 'Najpierw ustaw preferencje gry w profilu (tagi i obszar gry).',
         'filters' => 'Filtry',
         'date_label' => 'Data',
         'date_range_toggle' => 'Filtruj według zakresu dat',

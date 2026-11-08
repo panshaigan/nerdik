@@ -251,6 +251,51 @@ class BrowseEvents extends Component
         return $this->redirectRoute('search.index');
     }
 
+    public function applyMyPreferences(): void
+    {
+        $user = auth()->user();
+        abort_unless($user !== null, 403);
+
+        $state = BrowseSearchUrl::playPreferencesFilterState($user);
+        if ($state === null) {
+            $this->warning(__('ui.browse.apply_preferences_empty'));
+
+            return;
+        }
+
+        BrowseSearchState::forget();
+        $this->js('window.__nerdikClearBrowseSearchState?.()');
+
+        $this->resetPage();
+        $this->reset([
+            'q',
+            'min_lat',
+            'max_lat',
+            'min_lng',
+            'max_lng',
+            'include_past_events',
+            'only_events',
+            'only_activities',
+            'only_mine',
+            'only_free_places',
+            'map_view',
+            'from_date',
+            'to_date',
+            'place_id',
+            'organization_id',
+        ]);
+        $this->resetTagFilter();
+
+        $bag = $state['bag'];
+        $this->tag_ids = array_map('intval', $bag->tagIds);
+        $this->tags_match_all = $bag->tagsMatchAll;
+        $this->min_lat = $bag->minLat;
+        $this->max_lat = $bag->maxLat;
+        $this->min_lng = $bag->minLng;
+        $this->max_lng = $bag->maxLng;
+        $this->map_view = $state['mapView'];
+    }
+
     public function saveSearchParams(): void
     {
         if (BrowseSearchUrl::isEphemeralPreset(request())) {

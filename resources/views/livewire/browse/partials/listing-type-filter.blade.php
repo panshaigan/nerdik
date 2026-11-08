@@ -71,6 +71,20 @@
                     class="browse-events-save-clear-toolbar"
                     data-ui="browse-events-save-clear-toolbar"
                 >
+                    @auth
+                        <x-button
+                            type="button"
+                            wire:click="applyMyPreferences"
+                            wire:key="browse-events-apply-preferences"
+                            class="btn btn-ghost btn-sm"
+                            :tooltip="__('ui.browse.apply_preferences')"
+                            :aria-label="__('ui.browse.apply_preferences')"
+                            data-ui="browse-events-apply-preferences"
+                        >
+                            <x-icon name="o-sparkles" class="h-4 w-4 shrink-0" />
+                            {{ __('ui.browse.apply_preferences') }}
+                        </x-button>
+                    @endauth
                     <x-button
                         type="button"
                         wire:click="saveSearchParams"

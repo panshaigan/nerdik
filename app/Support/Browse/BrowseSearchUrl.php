@@ -7,6 +7,8 @@ namespace App\Support\Browse;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\User;
+use App\Support\Geo\BoundingBox;
 use Illuminate\Http\Request;
 
 /**
@@ -52,6 +54,76 @@ final class BrowseSearchUrl
             ...self::MY_ACTIVITIES,
             'preset' => self::PRESET_MY_ACTIVITIES,
         ]);
+    }
+
+    /**
+     * @return array{bag: BrowseListingFilterBag, mapView: bool}|null
+     */
+    public static function playPreferencesFilterState(User $user): ?array
+    {
+        $user->loadMissing(['interestTags', 'playArea']);
+
+        $tagIds = $user->interestTags
+            ->pluck('id')
+            ->map(static fn ($id) => (int) $id)
+            ->filter(static fn (int $id) => $id > 0)
+            ->values()
+            ->all();
+
+        $playArea = $user->playArea;
+        $minLat = null;
+        $maxLat = null;
+        $minLng = null;
+        $maxLng = null;
+        $mapView = false;
+
+        if ($playArea !== null) {
+            $bbox = BoundingBox::fromCenterRadiusKm(
+                (float) $playArea->latitude,
+                (float) $playArea->longitude,
+                (int) $playArea->radius_km,
+            );
+            $minLat = $bbox['min_lat'];
+            $maxLat = $bbox['max_lat'];
+            $minLng = $bbox['min_lng'];
+            $maxLng = $bbox['max_lng'];
+            $mapView = true;
+        }
+
+        if ($tagIds === [] && $minLat === null) {
+            return null;
+        }
+
+        return [
+            'bag' => new BrowseListingFilterBag(
+                q: '',
+                tagIds: $tagIds,
+                tagsMatchAll: false,
+                includePastEvents: false,
+                onlyEvents: false,
+                onlyActivities: false,
+                onlyMine: false,
+                onlyFreePlaces: false,
+                minLat: $minLat,
+                maxLat: $maxLat,
+                minLng: $minLng,
+                maxLng: $maxLng,
+            ),
+            'mapView' => $mapView,
+        ];
+    }
+
+    /**
+     * Relative /search URL from profile play preferences (interest tags + play area bbox), or null when empty.
+     */
+    public static function fromUserPlayPreferences(User $user): ?string
+    {
+        $state = self::playPreferencesFilterState($user);
+        if ($state === null) {
+            return null;
+        }
+
+        return self::returnUrlFromFilterBag($state['bag'], mapView: $state['mapView']);
     }
 
     public static function forOrganization(Organization $organization): string

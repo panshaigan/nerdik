@@ -774,6 +774,8 @@ return [
         'clear' => 'Clear',
         'save_search' => 'Save search',
         'save_search_success' => 'Search saved',
+        'apply_preferences' => 'Use my preferences',
+        'apply_preferences_empty' => 'Set play preferences in your profile first (interest tags and play area).',
         'filters' => 'Filters',
         'date_label' => 'Date',
         'date_range_toggle' => 'Filter by date range',
