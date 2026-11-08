@@ -20,7 +20,7 @@ final class ProfilePlayPreferencesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_availability_form_persists_play_area_and_tags(): void
+    public function test_availability_form_save_persists_play_area_and_tags(): void
     {
         $user = User::factory()->create();
         $category = TagCategory::factory()->create(['key' => TagCategory::KEY_MECHANIC]);
@@ -34,19 +34,52 @@ final class ProfilePlayPreferencesTest extends TestCase
         $this->actingAs($user);
 
         Volt::test('profile.update-availability-form')
+            ->set('weekdays.mon', true)
             ->set('playLatitude', 52.2297)
             ->set('playLongitude', 21.0122)
             ->set('playRadiusKm', 35)
             ->set('playLabel', 'Warsaw')
-            ->set('tag_ids', [(int) $tag->id]);
+            ->set('tag_ids', [(int) $tag->id])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('profile-availability-updated');
 
         $user->refresh();
-        $user->load(['playArea', 'interestTags']);
+        $user->load(['playArea', 'interestTags', 'availabilityWeekday']);
 
+        $this->assertTrue((bool) $user->availabilityWeekday?->mon);
         $this->assertNotNull($user->playArea);
         $this->assertSame(35, (int) $user->playArea->radius_km);
         $this->assertSame('Warsaw', $user->playArea->label);
         $this->assertSame([(int) $tag->id], $user->interestTags->pluck('id')->all());
+    }
+
+    public function test_draft_play_area_changes_do_not_persist_until_save(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Volt::test('profile.update-availability-form')
+            ->call('setPlayAreaDraft', 52.2297, 21.0122, 40, 'Warsaw')
+            ->assertSet('playLatitude', 52.2297)
+            ->assertSet('playRadiusKm', 40);
+
+        $this->assertDatabaseMissing('user_play_areas', ['user_id' => $user->id]);
+    }
+
+    public function test_save_clears_play_area_when_draft_is_empty(): void
+    {
+        $user = User::factory()->create();
+        app(UserPlayPreferencesService::class)->savePlayArea($user, 52.0, 21.0, 25, 'Warsaw');
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-availability-form')
+            ->call('setPlayAreaDraft', null, null, 25, null)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('user_play_areas', ['user_id' => $user->id]);
     }
 
     public function test_user_contact_popover_exposes_play_preferences_data(): void
@@ -75,20 +108,5 @@ final class ProfilePlayPreferencesTest extends TestCase
             ->assertSee('Warsaw', false)
             ->assertSee('Azul', false)
             ->assertSeeHtml('data-ui="user-contact-popover-tab-play-preferences"');
-    }
-
-    public function test_clear_play_area_from_form(): void
-    {
-        $user = User::factory()->create();
-        app(UserPlayPreferencesService::class)->savePlayArea($user, 52.0, 21.0, 25, 'Warsaw');
-
-        $this->actingAs($user);
-
-        Volt::test('profile.update-availability-form')
-            ->call('clearPlayArea')
-            ->assertSet('playLatitude', null)
-            ->assertSet('playLongitude', null);
-
-        $this->assertDatabaseMissing('user_play_areas', ['user_id' => $user->id]);
     }
 }

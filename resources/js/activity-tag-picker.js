@@ -132,7 +132,11 @@ function getActivityTypeIdFromLivewire(root) {
     return n > 0 ? n : null;
 }
 
-function isSuggestible(tag, activityTypeId) {
+function isSuggestible(tag, activityTypeId, ignoreActivityTypeContexts = false) {
+    if (ignoreActivityTypeContexts) {
+        return true;
+    }
+
     const ctx = tag.context_activity_type_ids;
     if (!Array.isArray(ctx) || ctx.length === 0) {
         return true;
@@ -163,6 +167,7 @@ export function initActivityTagPicker(root) {
     }
 
     const locale = cfg.locale || 'en';
+    const ignoreActivityTypeContexts = cfg.ignoreActivityTypeContexts === true;
     const allTags = Array.isArray(cfg.tags) ? cfg.tags : [];
     const byId = new Map(allTags.map((t) => [Number(t.id), t]));
     const selected = new Set((cfg.initialSelectedIds || []).map((x) => Number(x)));
@@ -420,7 +425,7 @@ export function initActivityTagPicker(root) {
                 if (Number(t.category_id) !== Number(categoryId)) {
                     return false;
                 }
-                if (!isSuggestible(t, activityTypeId)) {
+                if (!isSuggestible(t, activityTypeId, ignoreActivityTypeContexts)) {
                     return false;
                 }
                 const labels = Object.values(t.labels || {}).map(norm);
@@ -434,7 +439,7 @@ export function initActivityTagPicker(root) {
     function tagsForCategoryRow(categoryId, q) {
         const activityTypeId = getActivityTypeIdFromLivewire(root);
         const qn = norm(q);
-        let pool = allTags.filter((t) => Number(t.category_id) === Number(categoryId) && isSuggestible(t, activityTypeId));
+        let pool = allTags.filter((t) => Number(t.category_id) === Number(categoryId) && isSuggestible(t, activityTypeId, ignoreActivityTypeContexts));
 
         if (!qn) {
             return sortByPopularity(pool).slice(0, MAX_RESULTS);

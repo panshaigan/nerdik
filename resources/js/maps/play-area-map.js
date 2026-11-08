@@ -6,6 +6,7 @@ const DEFAULT_CENTER = [52.2297, 21.0122];
 const DEFAULT_ZOOM = 6;
 const FOCUS_ZOOM = 11;
 const SEARCH_DEBOUNCE_MS = 280;
+const RADIUS_SYNC_DEBOUNCE_MS = 120;
 
 /**
  * @param {HTMLElement} root
@@ -27,14 +28,38 @@ function syncLivewirePlayArea(root, payload) {
     }
 
     const wire = window.Livewire.find(id);
-    if (!wire || typeof wire.set !== 'function') {
+    if (!wire || typeof wire.call !== 'function') {
         return;
     }
 
-    wire.set('playLatitude', payload.latitude, true);
-    wire.set('playLongitude', payload.longitude, true);
-    wire.set('playRadiusKm', payload.radiusKm, true);
-    wire.set('playLabel', payload.label, true);
+    wire.call(
+        'setPlayAreaDraft',
+        payload.latitude,
+        payload.longitude,
+        payload.radiusKm,
+        payload.label,
+    );
+}
+
+/**
+ * Leaflet zoom controls use <a href="#"> which scrolls the page to the top.
+ *
+ * @param {import('leaflet').Map} map
+ */
+function silenceZoomControlAnchors(map) {
+    const container = map.zoomControl?.getContainer?.();
+    if (!container) {
+        return;
+    }
+
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    container.querySelectorAll('a').forEach((anchor) => {
+        L.DomEvent.on(anchor, 'click', (event) => {
+            L.DomEvent.preventDefault(event);
+            L.DomEvent.stopPropagation(event);
+        });
+    });
 }
 
 /**
@@ -57,7 +82,9 @@ export function initPlayAreaMap(root) {
     const searchInput = root.querySelector('[data-pam-search]');
     const resultsEl = root.querySelector('[data-pam-results]');
     const radiusInput = root.querySelector('[data-pam-radius]');
+    const radiusValueEl = root.querySelector('[data-pam-radius-value]');
     const labelEl = root.querySelector('[data-pam-label]');
+    const clearBtn = root.querySelector('[data-pam-clear]');
 
     if (!mapEl) {
         return;
@@ -93,11 +120,13 @@ export function initPlayAreaMap(root) {
     );
 
     addThemedBasemapToMap(map);
+    silenceZoomControlAnchors(map);
 
     /** @type {import('leaflet').Marker|null} */
     let marker = null;
     /** @type {import('leaflet').Circle|null} */
     let circle = null;
+    let radiusSyncTimer = null;
 
     /** @type {{ latitude: number|null, longitude: number|null, radiusKm: number, label: string|null }} */
     let state = {
@@ -111,11 +140,24 @@ export function initPlayAreaMap(root) {
         if (!labelEl) {
             return;
         }
-        const text = state.label || cfg.strings?.noLocation || '';
-        labelEl.textContent = text;
+        labelEl.textContent = state.label || cfg.strings?.noLocation || '';
     }
 
-    updateLabelDisplay();
+    function updateRadiusDisplay() {
+        if (radiusValueEl) {
+            radiusValueEl.textContent = String(state.radiusKm);
+        }
+        if (radiusInput instanceof HTMLInputElement && radiusInput.value !== String(state.radiusKm)) {
+            radiusInput.value = String(state.radiusKm);
+        }
+    }
+
+    function updateClearVisibility() {
+        if (!(clearBtn instanceof HTMLElement)) {
+            return;
+        }
+        clearBtn.classList.toggle('hidden', state.latitude === null || state.longitude === null);
+    }
 
     function redrawCircle() {
         if (state.latitude === null || state.longitude === null) {
@@ -169,6 +211,11 @@ export function initPlayAreaMap(root) {
         state.longitude = null;
         state.label = null;
         updateLabelDisplay();
+        updateClearVisibility();
+    }
+
+    function pushStateToLivewire() {
+        syncLivewirePlayArea(root, state);
     }
 
     /**
@@ -180,6 +227,7 @@ export function initPlayAreaMap(root) {
         state.latitude = lat;
         state.longitude = lng;
         placeMarker(lat, lng);
+        updateClearVisibility();
 
         if (options.label !== undefined) {
             state.label = options.label;
@@ -198,34 +246,60 @@ export function initPlayAreaMap(root) {
             }
         }
 
-        syncLivewirePlayArea(root, state);
+        pushStateToLivewire();
     }
 
     function onRadiusChange() {
         if (!(radiusInput instanceof HTMLInputElement)) {
             return;
         }
+
         let next = Math.round(Number(radiusInput.value));
         if (!Number.isFinite(next)) {
             next = defaultRadius;
         }
         next = Math.min(maxRadius, Math.max(minRadius, next));
-        radiusInput.value = String(next);
         state.radiusKm = next;
+        updateRadiusDisplay();
         redrawCircle();
-        if (state.latitude !== null && state.longitude !== null) {
-            syncLivewirePlayArea(root, state);
-        }
+
+        clearTimeout(radiusSyncTimer);
+        radiusSyncTimer = setTimeout(() => {
+            if (state.latitude !== null && state.longitude !== null) {
+                pushStateToLivewire();
+            } else {
+                pushStateToLivewire();
+            }
+        }, RADIUS_SYNC_DEBOUNCE_MS);
     }
 
+    updateLabelDisplay();
+    updateRadiusDisplay();
+    updateClearVisibility();
+
     if (radiusInput instanceof HTMLInputElement) {
+        L.DomEvent.disableClickPropagation(radiusInput);
         radiusInput.addEventListener('input', onRadiusChange);
         radiusInput.addEventListener('change', onRadiusChange);
+    }
+
+    if (clearBtn instanceof HTMLElement) {
+        clearBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            clearTimeout(radiusSyncTimer);
+            clearMapLayers();
+            state.radiusKm = defaultRadius;
+            updateRadiusDisplay();
+            map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+            pushStateToLivewire();
+        });
     }
 
     if (hasInitial) {
         placeMarker(initialLat, initialLng);
         redrawCircle();
+        updateClearVisibility();
     }
 
     map.on('click', (e) => {
@@ -320,32 +394,9 @@ export function initPlayAreaMap(root) {
         hideResults();
     });
 
-    const onCleared = () => {
-        clearMapLayers();
-        if (radiusInput instanceof HTMLInputElement) {
-            radiusInput.value = String(defaultRadius);
-        }
-        state.radiusKm = defaultRadius;
-        map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-    };
-
-    window.addEventListener('profile-play-area-cleared', onCleared);
-
     requestAnimationFrame(() => {
         map.invalidateSize();
     });
 
     root._pamMap = map;
-    root._pamDestroy = () => {
-        window.removeEventListener('profile-play-area-cleared', onCleared);
-    };
-}
-
-export function initAllPlayAreaMaps() {
-    document.querySelectorAll('[data-play-area-map]').forEach((root) => {
-        if (!(root instanceof HTMLElement)) {
-            return;
-        }
-        initPlayAreaMap(root);
-    });
 }

@@ -42,6 +42,17 @@ export function initUserPlayAreaPreviewMap(root) {
     const map = L.map(mapEl, { scrollWheelZoom: false, dragging: true, zoomControl: true });
     addThemedBasemapToMap(map);
 
+    const zoomContainer = map.zoomControl?.getContainer?.();
+    if (zoomContainer) {
+        L.DomEvent.disableClickPropagation(zoomContainer);
+        zoomContainer.querySelectorAll('a').forEach((anchor) => {
+            L.DomEvent.on(anchor, 'click', (event) => {
+                L.DomEvent.preventDefault(event);
+                L.DomEvent.stopPropagation(event);
+            });
+        });
+    }
+
     const circle = L.circle([lat, lng], {
         radius: radiusKm * 1000,
         color: 'var(--color-primary)',
