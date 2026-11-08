@@ -201,9 +201,6 @@ new class extends Component
             <h3 class="text-sm font-semibold text-base-content">
                 {{ __('ui.profile.availability.play_area_title') }}
             </h3>
-            <p class="mt-1 text-xs text-base-content/70">
-                {{ __('ui.profile.availability.play_area_hint') }}
-            </p>
         </div>
         @include('livewire.profile.partials.play-area-map', [
             'playAreaMapConfig' => $this->playAreaMapConfig,
@@ -217,9 +214,6 @@ new class extends Component
             <h3 class="text-sm font-semibold text-base-content">
                 {{ __('ui.profile.availability.interest_tags_title') }}
             </h3>
-            <p class="mt-1 text-xs text-base-content/70">
-                {{ __('ui.profile.availability.interest_tags_hint') }}
-            </p>
         </div>
         <x-activity.category-tags-picker :config="$this->interestTagPickerConfig" />
         <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />

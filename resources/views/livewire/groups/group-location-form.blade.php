@@ -3,9 +3,6 @@
         <h2 class="text-lg font-medium text-base-content">
             {{ __('ui.groups.location_title') }}
         </h2>
-        <p class="mt-1 text-sm text-base-content/70">
-            {{ __('ui.groups.location_hint') }}
-        </p>
     </header>
 
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="!mx-0 mb-4" />

@@ -1,6 +1,5 @@
 <div class="space-y-4" data-ui="group-discover-matches">
     <h2 class="text-lg font-medium text-base-content">{{ __('ui.groups.discover_title') }}</h2>
-    <p class="text-sm text-base-content/70">{{ __('ui.groups.discover_hint') }}</p>
 
     @if (! $hasCriteria)
         <p class="rounded-lg border border-dashed border-base-300 bg-base-100 px-4 py-6 text-sm text-base-content/70">
