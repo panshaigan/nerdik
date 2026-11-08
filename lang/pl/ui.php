@@ -511,8 +511,12 @@ return [
         'tab_avatar' => 'Awatar',
         'tab_images' => 'Moje grafiki',
         'tab_availability' => 'Dostępność',
+        'tab_play_preferences' => 'Preferencje gry',
         'tab_notifications' => 'Powiadomienia',
         'tab_advanced' => 'Zaawansowane',
+        'play_preferences' => [
+            'title' => 'Preferencje gry',
+        ],
         'availability' => [
             'title' => 'Dostępność na sesje',
             'weekday_defaults' => 'Typowe dni tygodnia',
@@ -536,7 +540,6 @@ return [
             'play_area_radius_km' => 'Promień',
             'play_area_radius_unit' => 'km',
             'play_area_clear' => 'Wyczyść obszar',
-            'play_area_no_label' => 'Brak etykiety lokalizacji',
             'interest_tags_title' => 'W czym chcę grać',
             'interest_tags_hint' => 'Wybierz gry, klimaty, mechaniki lub inne tagi pasujące do tego, czego szukasz.',
             'interest_tags_placeholder' => 'Szukaj lub utwórz tagi',

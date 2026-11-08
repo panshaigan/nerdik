@@ -511,8 +511,12 @@ return [
         'tab_avatar' => 'Avatar',
         'tab_images' => 'My images',
         'tab_availability' => 'Availability',
+        'tab_play_preferences' => 'Play preferences',
         'tab_notifications' => 'Notifications',
         'tab_advanced' => 'Advanced',
+        'play_preferences' => [
+            'title' => 'Play preferences',
+        ],
         'availability' => [
             'title' => 'Meeting availability',
             'weekday_defaults' => 'Typical weekdays',
@@ -536,7 +540,6 @@ return [
             'play_area_radius_km' => 'Radius',
             'play_area_radius_unit' => 'km',
             'play_area_clear' => 'Clear area',
-            'play_area_no_label' => 'No location label yet',
             'interest_tags_title' => 'What I want to play',
             'interest_tags_hint' => 'Pick games, settings, mechanics, or any tags that match what you are looking for.',
             'interest_tags_placeholder' => 'Search or create tags',

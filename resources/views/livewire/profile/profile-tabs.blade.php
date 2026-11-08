@@ -41,6 +41,12 @@
                 @endif
             </x-tab>
 
+            <x-tab name="play-preferences" :label="$this->tabLabel('play-preferences', __('ui.profile.tab_play_preferences'))" class="px-6 py-6" data-ui="profile-tab-play-preferences" icon="o-map-pin">
+                @if (isset($loadedTabs['play-preferences']))
+                    <livewire:profile.update-play-preferences-form :key="'profile-play-preferences-'.auth()->id()" />
+                @endif
+            </x-tab>
+
             <x-tab name="notifications" :label="$this->tabLabel('notifications', __('ui.profile.tab_notifications'))" class="px-6 py-6" data-ui="profile-tab-notifications" icon="o-bell">
                 @if (isset($loadedTabs['notifications']))
                     <livewire:profile.notification-settings-form :key="'profile-notifications-'.auth()->id()" />

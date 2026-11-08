@@ -83,7 +83,6 @@ export function initPlayAreaMap(root) {
     const resultsEl = root.querySelector('[data-pam-results]');
     const radiusInput = root.querySelector('[data-pam-radius]');
     const radiusValueEl = root.querySelector('[data-pam-radius-value]');
-    const labelEl = root.querySelector('[data-pam-label]');
     const clearBtn = root.querySelector('[data-pam-clear]');
 
     if (!mapEl) {
@@ -135,13 +134,6 @@ export function initPlayAreaMap(root) {
         radiusKm,
         label: cfg.label || null,
     };
-
-    function updateLabelDisplay() {
-        if (!labelEl) {
-            return;
-        }
-        labelEl.textContent = state.label || cfg.strings?.noLocation || '';
-    }
 
     function updateRadiusDisplay() {
         if (radiusValueEl) {
@@ -210,7 +202,6 @@ export function initPlayAreaMap(root) {
         state.latitude = null;
         state.longitude = null;
         state.label = null;
-        updateLabelDisplay();
         updateClearVisibility();
     }
 
@@ -231,7 +222,6 @@ export function initPlayAreaMap(root) {
 
         if (options.label !== undefined) {
             state.label = options.label;
-            updateLabelDisplay();
         }
 
         if (options.reverse && cfg.reverseUrl) {
@@ -240,7 +230,6 @@ export function initPlayAreaMap(root) {
                     params: { lat, lng },
                 });
                 state.label = data.address_short || data.display_name || state.label;
-                updateLabelDisplay();
             } catch {
                 // Keep coords even if reverse geocode fails.
             }
@@ -273,7 +262,6 @@ export function initPlayAreaMap(root) {
         }, RADIUS_SYNC_DEBOUNCE_MS);
     }
 
-    updateLabelDisplay();
     updateRadiusDisplay();
     updateClearVisibility();
 

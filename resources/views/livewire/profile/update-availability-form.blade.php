@@ -2,11 +2,7 @@
 
 use App\Enums\AvailabilityStatus;
 use App\Livewire\Profile\Concerns\ReportsProfileTabValidation;
-use App\Models\Tag;
-use App\Models\TagCategory;
-use App\Services\TagSelectionService;
 use App\Services\UserAvailabilityService;
-use App\Services\UserPlayPreferencesService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
@@ -35,20 +31,6 @@ new class extends Component
     /** @var list<array{from: string, to: string, status: string, status_label: string}> */
     public array $exceptionRanges = [];
 
-    public ?float $playLatitude = null;
-
-    public ?float $playLongitude = null;
-
-    public int $playRadiusKm = UserPlayPreferencesService::DEFAULT_RADIUS_KM;
-
-    public ?string $playLabel = null;
-
-    /** @var list<int> */
-    public array $tag_ids = [];
-
-    /** @var list<array{label?: string, category_id?: int}> */
-    public array $new_tags = [];
-
     public function mount(UserAvailabilityService $availability): void
     {
         $user = Auth::user();
@@ -66,125 +48,11 @@ new class extends Component
         $this->exceptionRanges = $availability->groupExceptionsIntoRanges(
             $availability->upcomingExceptions($user),
         );
-
-        $this->hydratePlayPreferences($user);
     }
 
-    private function hydratePlayPreferences(\App\Models\User $user): void
+    public function save(UserAvailabilityService $availability): void
     {
-        $user->loadMissing(['playArea', 'interestTags']);
-
-        $playArea = $user->playArea;
-        if ($playArea !== null) {
-            $this->playLatitude = (float) $playArea->latitude;
-            $this->playLongitude = (float) $playArea->longitude;
-            $this->playRadiusKm = (int) $playArea->radius_km;
-            $this->playLabel = $playArea->label;
-        } else {
-            $this->playLatitude = null;
-            $this->playLongitude = null;
-            $this->playRadiusKm = UserPlayPreferencesService::DEFAULT_RADIUS_KM;
-            $this->playLabel = null;
-        }
-
-        $this->tag_ids = $user->interestTags
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->values()
-            ->all();
-        $this->new_tags = [];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getPlayAreaMapConfigProperty(): array
-    {
-        return [
-            'searchUrl' => route('geocode.search'),
-            'reverseUrl' => route('geocode.reverse'),
-            'latitude' => $this->playLatitude,
-            'longitude' => $this->playLongitude,
-            'radiusKm' => $this->playRadiusKm,
-            'label' => $this->playLabel,
-            'minRadiusKm' => UserPlayPreferencesService::MIN_RADIUS_KM,
-            'maxRadiusKm' => UserPlayPreferencesService::MAX_RADIUS_KM,
-            'defaultRadiusKm' => UserPlayPreferencesService::DEFAULT_RADIUS_KM,
-            'strings' => [
-                'noLocation' => (string) __('ui.profile.availability.play_area_no_label'),
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getInterestTagPickerConfigProperty(): array
-    {
-        $locale = app()->getLocale();
-        $tagSelection = app(TagSelectionService::class);
-
-        return [
-            'locale' => $locale,
-            'semanticByTagCategory' => config('activity-badges.semantic_by_tag_category', []),
-            'defaultTaxonomySemantic' => config('activity-badges.semantic_by_kind.taxonomy_tag', 'neutral'),
-            'categories' => TagCategory::query()
-                ->with('translations')
-                ->orderBy('key')
-                ->get()
-                ->map(static fn (TagCategory $cat) => [
-                    'id' => (int) $cat->id,
-                    'key' => (string) $cat->key,
-                    'name' => (string) $cat->name($locale),
-                ])
-                ->values()
-                ->all(),
-            'tags' => $tagSelection->tagsPayloadForActivityPicker(
-                Tag::query()->forActivityFormPicker()->get(),
-                $locale,
-            ),
-            'initialSelectedIds' => $this->tag_ids,
-            'initialNewTags' => $this->new_tags,
-            'ignoreActivityTypeContexts' => true,
-            'strings' => [
-                'createTag' => __('ui.tags.create_tag'),
-                'auto' => __('ui.tags.auto'),
-            ],
-        ];
-    }
-
-    public function setPlayAreaDraft(
-        ?float $latitude,
-        ?float $longitude,
-        int $radiusKm,
-        ?string $label,
-    ): void {
-        $this->playLatitude = $latitude;
-        $this->playLongitude = $longitude;
-        $this->playRadiusKm = max(
-            UserPlayPreferencesService::MIN_RADIUS_KM,
-            min(UserPlayPreferencesService::MAX_RADIUS_KM, $radiusKm),
-        );
-        $normalized = $label !== null ? trim($label) : null;
-        $this->playLabel = $normalized === '' ? null : $normalized;
-        $this->skipRender();
-    }
-
-    public function updatedTagIds(): void
-    {
-        $this->skipRender();
-    }
-
-    public function updatedNewTags(): void
-    {
-        $this->skipRender();
-    }
-
-    public function save(
-        UserAvailabilityService $availability,
-        UserPlayPreferencesService $preferences,
-    ): void {
-        $this->reportProfileTabValidation('availability', function () use ($availability, $preferences): void {
+        $this->reportProfileTabValidation('availability', function () use ($availability): void {
             $user = Auth::user();
             if ($user === null) {
                 return;
@@ -198,38 +66,10 @@ new class extends Component
                 'weekdays.fri' => ['boolean'],
                 'weekdays.sat' => ['boolean'],
                 'weekdays.sun' => ['boolean'],
-                'playLatitude' => ['nullable', 'numeric', 'between:-90,90'],
-                'playLongitude' => ['nullable', 'numeric', 'between:-180,180'],
-                'playRadiusKm' => [
-                    'integer',
-                    'min:'.UserPlayPreferencesService::MIN_RADIUS_KM,
-                    'max:'.UserPlayPreferencesService::MAX_RADIUS_KM,
-                ],
-                'playLabel' => ['nullable', 'string', 'max:255'],
-                'tag_ids' => ['nullable', 'array'],
-                'tag_ids.*' => ['integer', 'exists:tags,id'],
-                'new_tags' => ['nullable', 'array'],
-                'new_tags.*.label' => ['nullable', 'string', 'max:255'],
-                'new_tags.*.category_id' => ['nullable', 'integer', 'exists:tag_categories,id'],
             ]);
 
             $availability->saveWeekdayDefaults($user, $this->weekdays);
 
-            if ($this->playLatitude !== null && $this->playLongitude !== null) {
-                $preferences->savePlayArea(
-                    $user,
-                    (float) $this->playLatitude,
-                    (float) $this->playLongitude,
-                    (int) $this->playRadiusKm,
-                    $this->playLabel,
-                );
-            } else {
-                $preferences->clearPlayArea($user);
-            }
-
-            $preferences->syncInterestTags($user, $this->tag_ids, $this->new_tags);
-
-            $this->new_tags = [];
             $this->dispatch('profile-availability-updated');
         });
     }
@@ -361,40 +201,6 @@ new class extends Component
             @endforeach
         </ul>
     @endif
-
-    <div class="divider my-8"></div>
-
-    <div class="space-y-4 overflow-visible" data-ui="profile-availability-play-area">
-        <div>
-            <h3 class="text-sm font-semibold text-base-content">
-                {{ __('ui.profile.availability.play_area_title') }}
-            </h3>
-            <p class="mt-1 text-xs text-base-content/70">
-                {{ __('ui.profile.availability.play_area_hint') }}
-            </p>
-        </div>
-        @include('livewire.profile.partials.play-area-map', [
-            'playAreaMapConfig' => $this->playAreaMapConfig,
-        ])
-    </div>
-
-    <div class="divider my-8"></div>
-
-    <div class="space-y-3 overflow-visible" data-ui="profile-availability-interest-tags">
-        <div>
-            <h3 class="text-sm font-semibold text-base-content">
-                {{ __('ui.profile.availability.interest_tags_title') }}
-            </h3>
-            <p class="mt-1 text-xs text-base-content/70">
-                {{ __('ui.profile.availability.interest_tags_hint') }}
-            </p>
-        </div>
-        <x-activity.category-tags-picker :config="$this->interestTagPickerConfig" />
-        <x-field-error :messages="$errors->get('tag_ids')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_tags')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_tags.*.label')" class="mt-2" />
-        <x-field-error :messages="$errors->get('new_tags.*.category_id')" class="mt-2" />
-    </div>
 
     <div class="mt-8 flex items-center justify-end gap-3" data-ui="profile-availability-save">
         <x-action-message class="me-3" on="profile-availability-updated">{{ __('ui.common.saved') }}</x-action-message>

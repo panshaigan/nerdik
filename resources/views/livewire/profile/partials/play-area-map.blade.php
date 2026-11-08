@@ -47,7 +47,6 @@
             value="{{ (int) ($playAreaMapConfig['radiusKm'] ?? 25) }}"
             aria-label="{{ __('ui.profile.availability.play_area_radius_km') }}"
         />
-        <p class="text-sm text-base-content/80" data-pam-label></p>
     </div>
     <div
         data-pam-map
