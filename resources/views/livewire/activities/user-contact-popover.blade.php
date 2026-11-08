@@ -148,14 +148,15 @@
                                 <p class="text-base-content/70">{{ $playAreaPreview['caption'] }}</p>
                                 <div
                                     data-user-play-area-preview-map
-                                    class="overflow-hidden rounded-md border border-base-300 bg-base-200/30"
+                                    class="relative z-0 overflow-visible rounded-md border border-base-300"
                                     wire:ignore
                                 >
                                     <script type="application/json" data-upapm-config>@json($playAreaPreviewMapConfig)</script>
                                     <div
                                         data-upapm-map
-                                        class="z-0 w-full"
-                                        style="min-height: 220px; height: min(320px, 40vh);"
+                                        class="relative z-0 w-full rounded-md"
+                                        style="height: 280px;"
+                                        data-ui="user-contact-popover-play-area-map"
                                     ></div>
                                 </div>
                             @else

@@ -4,11 +4,26 @@ html {
 
 /* ====================== MAP TWEAKS ====================== */
 /*
- * Leaflet + Tailwind: preflight sets img { max-width: 100% }, which breaks map tiles
- * (tiles shrink / fail to align → blank gray map).
+ * Leaflet + Tailwind: preflight sets img { max-width: 100%; height: auto }, which breaks
+ * map tiles (tiles shrink / fail to align → blank gray map).
  */
-.leaflet-container img {
+.leaflet-container img,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow,
+.leaflet-tile-container img {
     max-width: none !important;
+    max-height: none !important;
+}
+
+/* DaisyUI modal-box uses CSS translate; keep map panes compositing correctly inside sheets. */
+.ui-overlay-shell .leaflet-container {
+    isolation: isolate;
+    background: #dbe3ea;
+}
+
+.ui-overlay-shell .leaflet-tile-pane,
+.ui-overlay-shell .leaflet-overlay-pane {
+    opacity: 1 !important;
 }
 hr {
     color: var(--color-neutral);

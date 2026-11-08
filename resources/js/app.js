@@ -263,11 +263,15 @@ function bootImageCropperFeature() {
 function bootFeatureModules() {
     bootTinyMceFieldChrome();
     bootImageCropperFeature();
+    // Re-call bootMaps on every feature pass: loadOnce only caches the import; Livewire
+    // modals (e.g. user preview play-area map) insert map roots after the first page boot.
     loadOnce(
         'maps',
         document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map], [data-place-location-map], [data-play-area-map], [data-user-play-area-preview-map]') !== null,
-        () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
-    );
+        () => import('./maps-init'),
+    ).then((mod) => {
+        mod?.bootMaps?.();
+    });
     bootTagSelectors();
     bootActivityTagPickersFeature();
     loadOnce(

@@ -30,10 +30,9 @@ function bootPlayAreaMaps() {
 
 function bootUserPlayAreaPreviewMaps() {
     document.querySelectorAll('[data-user-play-area-preview-map]').forEach((root) => {
-        if (root.dataset.upapmLoadStarted) {
+        if (root.dataset.upapmInitialized === '1' || root.dataset.upapmPending === '1') {
             return;
         }
-        root.dataset.upapmLoadStarted = '1';
         import('./maps/user-play-area-preview-map.js').then((m) => m.initUserPlayAreaPreviewMap(root));
     });
 }

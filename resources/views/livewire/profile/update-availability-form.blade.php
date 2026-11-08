@@ -396,7 +396,7 @@ new class extends Component
         <x-field-error :messages="$errors->get('new_tags.*.category_id')" class="mt-2" />
     </div>
 
-    <div class="mt-8 flex items-center gap-3" data-ui="profile-availability-save">
+    <div class="mt-8 flex items-center justify-end gap-3" data-ui="profile-availability-save">
         <x-action-message class="me-3" on="profile-availability-updated">{{ __('ui.common.saved') }}</x-action-message>
         <x-button
             type="button"
