@@ -50,17 +50,19 @@ new class extends Component
         );
     }
 
-    public function saveWeekdays(UserAvailabilityService $availability): void
+    public function updated(string $property): void
     {
-        $this->reportProfileTabValidation('availability', function () use ($availability): void {
-            $user = Auth::user();
-            if ($user === null) {
-                return;
-            }
+        if (! str_starts_with($property, 'weekdays')) {
+            return;
+        }
 
-            $availability->saveWeekdayDefaults($user, $this->weekdays);
-            $this->dispatch('profile-availability-updated');
-        });
+        $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
+
+        app(UserAvailabilityService::class)->saveWeekdayDefaults($user, $this->weekdays);
+        $this->dispatch('profile-availability-updated');
     }
 
     public function addException(UserAvailabilityService $availability): void
@@ -109,36 +111,27 @@ new class extends Component
         <h2 class="text-lg font-medium text-base-content">
             {{ __('ui.profile.availability.title') }}
         </h2>
-        <p class="mt-1 text-sm text-base-content/70">
-            {{ __('ui.profile.availability.intro') }}
-        </p>
     </header>
 
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
 
-    <form wire:submit="saveWeekdays" class="space-y-6" data-ui="profile-availability-weekdays-form">
-        <fieldset>
-            <legend class="text-sm font-semibold text-base-content">
-                {{ __('ui.profile.availability.weekday_defaults') }}
-            </legend>
-            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                @foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $day)
-                    <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2">
-                        <input
-                            type="checkbox"
-                            class="checkbox checkbox-sm checkbox-primary"
-                            wire:model.live="weekdays.{{ $day }}"
-                        />
-                        <span class="label-text">{{ __('ui.profile.availability.weekday_'.$day) }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </fieldset>
-
-        <x-button type="submit" class="btn-primary" spinner="saveWeekdays">
-            {{ __('ui.common.save') }}
-        </x-button>
-    </form>
+    <div class="space-y-3" data-ui="profile-availability-weekdays-form">
+        <h3 class="text-sm font-semibold text-base-content">
+            {{ __('ui.profile.availability.weekday_defaults') }}
+        </h3>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            @foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $day)
+                <label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2 transition duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md hover:shadow-base-content/10">
+                    <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm checkbox-primary"
+                        wire:model.live="weekdays.{{ $day }}"
+                    />
+                    <span class="label-text">{{ __('ui.profile.availability.weekday_'.$day) }}</span>
+                </label>
+            @endforeach
+        </div>
+    </div>
 
     <div class="divider my-8"></div>
 
@@ -146,9 +139,6 @@ new class extends Component
         <h3 class="text-sm font-semibold text-base-content">
             {{ __('ui.profile.availability.exceptions_title') }}
         </h3>
-        <p class="text-sm text-base-content/70">
-            {{ __('ui.profile.availability.exceptions_intro') }}
-        </p>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end">
             @include('livewire.profile.partials.availability-date-range', [
@@ -176,15 +166,15 @@ new class extends Component
         <ul class="mt-4 space-y-2" role="list" data-ui="profile-availability-exception-list">
             @foreach ($exceptionRanges as $range)
                 @php
-                    $fromLabel = Carbon::parse($range['from'])->translatedFormat('j M Y');
-                    $toLabel = Carbon::parse($range['to'])->translatedFormat('j M Y');
+                    $fromLabel = format_date_in_user_tz($range['from']);
+                    $toLabel = format_date_in_user_tz($range['to']);
                     $dateLabel = $range['from'] === $range['to']
                         ? $fromLabel
                         : $fromLabel.' – '.$toLabel;
                 @endphp
                 <li
                     wire:key="availability-exception-{{ $range['from'] }}-{{ $range['to'] }}-{{ $range['status'] }}"
-                    class="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2"
+                    class="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2 transition duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md hover:shadow-base-content/10"
                 >
                     <div class="min-w-0 text-sm">
                         <span class="font-medium">{{ $dateLabel }}</span>

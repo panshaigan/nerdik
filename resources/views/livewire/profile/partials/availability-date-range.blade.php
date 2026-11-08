@@ -21,7 +21,7 @@
         <input
             type="text"
             data-browse-date-range-input
-            class="input input-bordered w-full cursor-pointer pr-10"
+            class="input input-bordered w-full cursor-pointer pr-10 transition duration-150 hover:border-primary/50"
             readonly
             placeholder="{{ __('ui.profile.availability.exception_range_placeholder') }}"
             aria-label="{{ __('ui.profile.availability.exception_range') }}"

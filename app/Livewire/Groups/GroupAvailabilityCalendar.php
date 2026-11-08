@@ -16,9 +16,7 @@ class GroupAvailabilityCalendar extends Component
 
     public string $month;
 
-    public ?int $minAvailable = null;
-
-    public bool $requireAll = false;
+    public int $minAvailable = 0;
 
     public ?string $selectedDate = null;
 
@@ -58,26 +56,12 @@ class GroupAvailabilityCalendar extends Component
 
     public function updatedMinAvailable(mixed $value): void
     {
-        if ($value === '' || $value === null) {
-            $this->minAvailable = null;
-
-            return;
-        }
-
-        $this->minAvailable = max(1, (int) $value);
-    }
-
-    public function updatedRequireAll(mixed $value): void
-    {
-        $this->requireAll = (bool) $value;
-        if ($this->requireAll) {
-            $this->minAvailable = null;
-        }
+        $this->minAvailable = max(0, (int) $value);
     }
 
     public function isFilterActive(): bool
     {
-        return $this->requireAll || ($this->minAvailable !== null && $this->minAvailable > 0);
+        return $this->minAvailable > 0;
     }
 
     public function render(GroupAvailabilityService $calendar)
@@ -85,12 +69,12 @@ class GroupAvailabilityCalendar extends Component
         $group = Group::query()->visibleTo(Auth::user())->whereKey($this->groupId)->firstOrFail();
 
         $monthDate = Carbon::parse($this->month.'-01');
-        $minAvailable = $this->requireAll ? null : $this->minAvailable;
+        $minAvailable = $this->minAvailable > 0 ? $this->minAvailable : null;
         $summary = $calendar->monthSummary(
             $group,
             $monthDate,
             $minAvailable,
-            $this->requireAll,
+            requireAll: false,
         );
 
         $start = $monthDate->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);

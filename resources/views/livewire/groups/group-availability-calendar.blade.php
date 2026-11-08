@@ -1,9 +1,6 @@
 <div class="min-w-0" data-ui="group-availability-calendar">
     <div class="flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h2 class="text-lg font-medium text-base-content">{{ __('ui.groups.calendar_title') }}</h2>
-            <p class="mt-1 text-sm text-base-content/70">{{ __('ui.groups.calendar_intro', ['count' => $memberCount]) }}</p>
-        </div>
+        <h2 class="text-lg font-medium text-base-content">{{ __('ui.groups.calendar_title') }}</h2>
         <div class="flex items-center gap-2">
             <x-button type="button" class="btn-ghost btn-square btn-sm" icon="o-chevron-left" wire:click="previousMonth" :aria-label="__('ui.groups.previous_month')" />
             <span class="min-w-[10rem] text-center text-sm font-semibold">{{ $monthLabel }}</span>
@@ -17,50 +14,36 @@
         aria-labelledby="group-availability-filter-heading"
     >
         <div class="border-b border-base-300 bg-base-200/50 px-4 py-3 sm:px-5">
-            <div class="flex items-start gap-3">
-                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-base-100 text-base-content/70 ring-1 ring-base-300">
-                    <x-icon name="o-funnel" class="h-4 w-4" />
-                </span>
-                <div class="min-w-0">
-                    <h3 id="group-availability-filter-heading" class="text-sm font-semibold text-base-content">
-                        {{ __('ui.groups.filter_heading') }}
-                    </h3>
-                    <p class="mt-0.5 text-xs text-base-content/65">
-                        {{ __('ui.groups.filter_description') }}
-                    </p>
-                </div>
-            </div>
+            <h3 id="group-availability-filter-heading" class="text-sm font-semibold text-base-content">
+                {{ __('ui.groups.filter_heading') }}
+            </h3>
         </div>
-        <div class="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6 sm:px-5 sm:py-4">
-            <div class="w-full sm:w-40">
-                <x-input
-                    type="number"
-                    min="1"
-                    :max="$memberCount"
-                    wire:model.live.debounce.300ms="minAvailable"
-                    :label="__('ui.groups.filter_min_available')"
-                    :disabled="$requireAll"
-                />
-            </div>
-            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-base-300 bg-base-200/40 px-3 py-2.5 transition hover:border-base-content/20">
-                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" wire:model.live="requireAll" />
-                <span class="text-sm text-base-content">{{ __('ui.groups.filter_require_all') }}</span>
+        <div class="space-y-2 p-4 sm:px-5 sm:py-4">
+            <label class="flex justify-between text-sm font-medium">
+                <span>
+                    {{ __('ui.groups.filter_min_available') }}:
+                    <span class="font-semibold">
+                        {{ $minAvailable > 0 ? $minAvailable : __('ui.browse.any') }}
+                    </span>
+                </span>
             </label>
-            @if ($filterActive)
-                <p class="w-full text-xs text-base-content/60 sm:ms-auto sm:w-auto sm:self-center">
-                    {{ __('ui.groups.filter_hint') }}
-                </p>
-            @endif
+            <x-range
+                wire:model.live="minAvailable"
+                min="0"
+                max="{{ max(1, $memberCount) }}"
+                step="1"
+                class="range-xs w-full"
+            />
         </div>
     </section>
 
-    <div class="mt-4 overflow-x-auto">
-        <div class="grid min-w-[20rem] grid-cols-7 gap-1 text-center text-xs font-medium text-base-content/70">
+    <div class="mt-8 overflow-x-auto">
+        <div class="grid min-w-[20rem] grid-cols-7 gap-1 rounded-lg bg-base-200/70 px-1 py-2 text-center text-xs font-semibold uppercase tracking-wide text-base-content">
             @foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $weekday)
-                <div class="py-1">{{ __('ui.profile.availability.weekday_'.$weekday) }}</div>
+                <div>{{ __('ui.profile.availability.weekday_'.$weekday) }}</div>
             @endforeach
         </div>
-        <div class="mt-1 grid min-w-[20rem] grid-cols-7 gap-1">
+        <div class="mt-2 grid min-w-[20rem] grid-cols-7 gap-1">
             @foreach ($weeks as $weekIndex => $week)
                 @foreach ($week as $cell)
                     @php
@@ -115,7 +98,7 @@
     </div>
 
     @if ($selectedDate !== null && $dayDetail !== null)
-        <x-modal wire:model="dayDetailOpen" :title="\Illuminate\Support\Carbon::parse($selectedDate)->translatedFormat('j F Y')" class="backdrop-blur">
+        <x-modal wire:model="dayDetailOpen" :title="format_date_in_user_tz($selectedDate)" class="backdrop-blur">
             <div class="space-y-4" data-ui="group-day-detail">
                 @foreach (['available', 'unavailable', 'uncertain'] as $bucket)
                     <div>

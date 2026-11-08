@@ -35,7 +35,11 @@
             </div>
         </div>
 
-        <section class="mt-8" data-ui="group-members">
+        <section class="mt-10">
+            <livewire:groups.group-availability-calendar :group-id="$group->id" :key="'group-calendar-'.$group->id" />
+        </section>
+
+        <section class="mt-10" data-ui="group-members">
             <h2 class="text-lg font-medium text-base-content">{{ __('ui.groups.members_title') }}</h2>
             <ul class="mt-4 space-y-2" role="list">
                 @foreach ($group->users as $member)
@@ -55,10 +59,6 @@
                     </li>
                 @endforeach
             </ul>
-        </section>
-
-        <section class="mt-10">
-            <livewire:groups.group-availability-calendar :group-id="$group->id" :key="'group-calendar-'.$group->id" />
         </section>
     </div>
 </div>
