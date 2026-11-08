@@ -18,9 +18,37 @@ class ShowGroup extends Component
 
     public string $groupSlug;
 
+    public string $tab = 'calendar';
+
+    /**
+     * Tab keys whose panel Livewire children stay mounted after first visit.
+     *
+     * @var list<string>
+     */
+    public array $mountedTabs = [];
+
+    protected array $queryString = [
+        'tab' => ['except' => 'calendar'],
+    ];
+
     public function mount(string $groupSlug): void
     {
         $this->groupSlug = $groupSlug;
+        $this->tab = $this->normalizeTab($this->tab);
+        $this->mountedTabs = [$this->tab];
+    }
+
+    public function updatedTab(string $value): void
+    {
+        $this->tab = $this->normalizeTab($value);
+
+        if (! in_array($this->tab, $this->mountedTabs, true)) {
+            $this->mountedTabs[] = $this->tab;
+
+            return;
+        }
+
+        $this->skipRender();
     }
 
     public function removeMember(int $userId, GroupMembershipService $membership): void
@@ -97,5 +125,12 @@ class ShowGroup extends Component
             ->visibleTo(Auth::user())
             ->where('slug', $this->groupSlug)
             ->firstOrFail();
+    }
+
+    private function normalizeTab(?string $value): string
+    {
+        return in_array($value, ['calendar', 'members', 'location', 'tags'], true)
+            ? $value
+            : 'calendar';
     }
 }

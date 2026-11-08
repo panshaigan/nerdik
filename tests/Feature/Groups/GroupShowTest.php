@@ -22,7 +22,10 @@ final class GroupShowTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('groups.show', $group))
-            ->assertOk();
+            ->assertOk()
+            ->assertSeeHtml('data-ui="group-show-tabs"')
+            ->assertSeeHtml('data-ui="group-show-tab-calendar"')
+            ->assertSeeHtml('data-ui="group-show-tab-members"');
     }
 
     public function test_non_member_cannot_view_group(): void
