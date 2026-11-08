@@ -265,7 +265,7 @@ function bootFeatureModules() {
     bootImageCropperFeature();
     loadOnce(
         'maps',
-        document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map], [data-place-location-map]') !== null,
+        document.querySelector('[data-event-places-unified], [data-event-show-map-root], [data-browse-events-map], [data-place-location-map], [data-play-area-map], [data-user-play-area-preview-map]') !== null,
         () => import('./maps-init').then(({ bootMaps }) => bootMaps()),
     );
     bootTagSelectors();

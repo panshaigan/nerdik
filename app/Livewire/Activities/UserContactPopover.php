@@ -5,7 +5,9 @@ namespace App\Livewire\Activities;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Organization;
+use App\Models\Tag;
 use App\Models\User;
+use App\Models\UserPlayArea;
 use App\Services\ContactVisibilityService;
 use App\Services\UserHostBanService;
 use App\Support\Profile\ProviderContactUrls;
@@ -192,7 +194,16 @@ class UserContactPopover extends Component
             return $this->emptyState();
         }
 
-        $targetUser = User::query()->with('profile', 'organization')->whereKey($this->targetUserId)->first();
+        $targetUser = User::query()
+            ->with([
+                'profile',
+                'organization',
+                'playArea',
+                'interestTags.translations',
+                'interestTags.tagCategory.translations',
+            ])
+            ->whereKey($this->targetUserId)
+            ->first();
 
         if (! $targetUser instanceof User) {
             return $this->emptyState();
@@ -224,7 +235,62 @@ class UserContactPopover extends Component
             'organizationInviteSubjectId' => $this->resolveOrganizationInviteSubjectId($viewer, $targetUser),
             'organizationJoinSubjectId' => $this->resolveOrganizationJoinSubjectId($viewer, $targetUser),
             'organizationJoinRecipientId' => $this->resolveOrganizationJoinRecipientId($viewer, $targetUser),
+            'playAreaPreview' => $this->resolvePlayAreaPreview($targetUser),
+            'interestTagBadges' => $this->resolveInterestTagBadges($targetUser),
         ];
+    }
+
+    /**
+     * @return null|array{latitude: float, longitude: float, radius_km: int, label: ?string, caption: string}
+     */
+    private function resolvePlayAreaPreview(User $targetUser): ?array
+    {
+        $area = $targetUser->playArea;
+        if (! $area instanceof UserPlayArea) {
+            return null;
+        }
+
+        $caption = filled($area->label)
+            ? (string) __('ui.profile.availability.play_area_preview_caption', [
+                'label' => $area->label,
+                'radius' => $area->radius_km,
+            ])
+            : (string) __('ui.profile.availability.play_area_preview_caption_no_label', [
+                'radius' => $area->radius_km,
+            ]);
+
+        return [
+            'latitude' => (float) $area->latitude,
+            'longitude' => (float) $area->longitude,
+            'radius_km' => (int) $area->radius_km,
+            'label' => $area->label,
+            'caption' => $caption,
+        ];
+    }
+
+    /**
+     * @return list<array{id: int, label: string, category: string, badge: string}>
+     */
+    private function resolveInterestTagBadges(User $targetUser): array
+    {
+        $locale = app()->getLocale();
+
+        return $targetUser->interestTags
+            ->sortBy(fn (Tag $tag) => sprintf('%02d-%s', (int) $tag->tag_category_id, mb_strtolower($tag->displayLabel($locale))))
+            ->map(function (Tag $tag) use ($locale): array {
+                $category = $tag->tagCategory?->name($locale) ?? '';
+                $label = $tag->displayLabel($locale);
+                $badge = $category !== '' ? $category.' · '.$label : $label;
+
+                return [
+                    'id' => (int) $tag->id,
+                    'label' => $label,
+                    'category' => $category,
+                    'badge' => $badge,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private function resolveOrganizationInviteSubjectId(User $viewer, User $targetUser): ?int
@@ -312,6 +378,8 @@ class UserContactPopover extends Component
             'organizationInviteSubjectId' => null,
             'organizationJoinSubjectId' => null,
             'organizationJoinRecipientId' => null,
+            'playAreaPreview' => null,
+            'interestTagBadges' => [],
         ];
     }
 

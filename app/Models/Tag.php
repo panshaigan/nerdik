@@ -96,6 +96,11 @@ class Tag extends Model implements HasMedia
         return $this->morphedByMany(Activity::class, 'taggable', 'taggables');
     }
 
+    public function usersWithInterest(): MorphToMany
+    {
+        return $this->morphedByMany(User::class, 'taggable', 'taggables');
+    }
+
     public function suggestedBringItems(): MorphMany
     {
         return $this->morphMany(SuggestedBringItem::class, 'bringable')->orderBy('sort_order');

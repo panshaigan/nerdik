@@ -128,6 +128,60 @@
                 </x-tab>
 
                 <x-tab
+                    name="play-preferences"
+                    :label="__('ui.profile.preview_play_preferences_tab')"
+                    class="!p-0"
+                    data-ui="user-contact-popover-tab-play-preferences"
+                    icon="o-map-pin"
+                >
+                    <div class="space-y-5 p-4 text-sm" data-ui="user-contact-popover-play-preferences">
+                        <div class="space-y-2" data-ui="user-contact-popover-play-area">
+                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.availability.play_area_title') }}</p>
+                            @if ($playAreaPreview !== null)
+                                @php
+                                    $playAreaPreviewMapConfig = [
+                                        'latitude' => $playAreaPreview['latitude'],
+                                        'longitude' => $playAreaPreview['longitude'],
+                                        'radiusKm' => $playAreaPreview['radius_km'],
+                                    ];
+                                @endphp
+                                <p class="text-base-content/70">{{ $playAreaPreview['caption'] }}</p>
+                                <div
+                                    data-user-play-area-preview-map
+                                    class="overflow-hidden rounded-md border border-base-300 bg-base-200/30"
+                                    wire:ignore
+                                >
+                                    <script type="application/json" data-upapm-config>@json($playAreaPreviewMapConfig)</script>
+                                    <div
+                                        data-upapm-map
+                                        class="z-0 w-full"
+                                        style="min-height: 220px; height: min(320px, 40vh);"
+                                    ></div>
+                                </div>
+                            @else
+                                <p class="text-sm text-base-content/50">{{ __('ui.profile.availability.play_area_empty') }}</p>
+                            @endif
+                        </div>
+
+                        <div class="space-y-2" data-ui="user-contact-popover-interest-tags">
+                            <p class="text-sm font-semibold text-base-content">{{ __('ui.profile.availability.interest_tags_title') }}</p>
+                            @if ($interestTagBadges !== [])
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($interestTagBadges as $tagBadge)
+                                        <span
+                                            class="badge badge-outline badge-sm"
+                                            wire:key="user-preview-interest-tag-{{ $tagBadge['id'] }}"
+                                        >{{ $tagBadge['badge'] }}</span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-sm text-base-content/50">{{ __('ui.profile.availability.interest_tags_empty') }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </x-tab>
+
+                <x-tab
                     name="statistics"
                     :label="__('ui.organizations.statistics_tab')"
                     class="!p-0"
