@@ -111,12 +111,16 @@ BASH;
         $compose = file_get_contents(base_path('compose.yaml'));
         $makefile = file_get_contents(base_path('Makefile'));
         $ensure = file_get_contents(base_path('scripts/ensure-playwright-chromium.sh'));
+        $startContainer = file_get_contents(base_path('docker/sail/start-container'));
+        $playwrightLib = file_get_contents(base_path('scripts/lib/playwright-chromium.sh'));
         $dockerfile = file_get_contents(base_path('docker/sail/Dockerfile'));
 
         $this->assertIsString($check);
         $this->assertIsString($compose);
         $this->assertIsString($makefile);
         $this->assertIsString($ensure);
+        $this->assertIsString($startContainer);
+        $this->assertIsString($playwrightLib);
         $this->assertIsString($dockerfile);
 
         $remove = strpos($check, 'playwright_remove_node_modules_browsers');
@@ -133,6 +137,8 @@ BASH;
         $this->assertStringContainsString('env -u PLAYWRIGHT_BROWSERS_PATH', $ensure);
         $this->assertStringContainsString('LARAVEL_SAIL', $ensure);
         $this->assertStringContainsString('sail-playwright:/home/sail/.cache/ms-playwright', $compose);
+        $this->assertStringContainsString('chown "${uid}:${gid}" "$cache_parent"', $playwrightLib);
+        $this->assertStringContainsString('chown sail:sail "${SAIL_HOME}/.cache"', $startContainer);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $ensure);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $dockerfile);
     }

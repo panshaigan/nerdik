@@ -15,6 +15,14 @@ fi
 
 chmod -R ugo+rw /.composer
 
+if [ "$(id -u)" = 0 ]; then
+    SAIL_HOME="$(getent passwd sail | cut -d: -f6)"
+    if [ -n "${SAIL_HOME}" ] && [ "${SAIL_HOME}" != "/" ]; then
+        mkdir -p "${SAIL_HOME}/.cache"
+        chown sail:sail "${SAIL_HOME}/.cache" || chown "$(id -u sail):$(id -g sail)" "${SAIL_HOME}/.cache"
+    fi
+fi
+
 if [ $# -gt 0 ]; then
     if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
         exec "$@"
