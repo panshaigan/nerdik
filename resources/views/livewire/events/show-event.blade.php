@@ -177,6 +177,19 @@
                                 panel-class="w-64"
                                 data-ui="event-show-manage"
                             >
+                                @if (! $event->isCancelled())
+                                    <x-ui.overflow-menu-item
+                                        id="ui-event-show-schedule-activity"
+                                        icon="o-play"
+                                        class="ui-action ui-action-schedule-activity"
+                                        wire:click.stop="openScheduleActivityModal"
+                                        wire:loading.attr="disabled"
+                                        wire:target="openScheduleActivityModal"
+                                        data-ui="event-show-schedule-activity"
+                                    >
+                                        {{ __('ui.events.schedule_activity_action') }}
+                                    </x-ui.overflow-menu-item>
+                                @endif
                                 <x-ui.overflow-menu-item
                                     id="ui-event-show-create-slots"
                                     icon="o-plus"
@@ -318,6 +331,12 @@
             'slotBaseNameSuggestions' => $slotBaseNameSuggestions,
             'slotNameSuggestions' => $slotNameSuggestions ?? [],
         ])
+        @if (! $event->isCancelled())
+            <livewire:events.create-scheduled-activity-form
+                :event-id="$eventId"
+                wire:key="schedule-activity-{{ $eventId }}"
+            />
+        @endif
     @endif
     @include('slots.partials.edit-modal-shell')
     <livewire:events.event-show-activity-preview-modal

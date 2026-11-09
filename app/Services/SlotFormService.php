@@ -195,12 +195,18 @@ class SlotFormService
      */
     public function ensureVenueWhenEventHasPlaces(Request $request, Event $event): void
     {
+        $raw = $request->input('venue_place_id');
+        $venuePlaceId = ($raw === null || $raw === '') ? null : (int) $raw;
+        $this->assertVenuePresentWhenEventHasPlaces($event, $venuePlaceId);
+    }
+
+    public function assertVenuePresentWhenEventHasPlaces(Event $event, ?int $venuePlaceId): void
+    {
         if ($this->venuesForEventMassForm($event)->isEmpty()) {
             return;
         }
 
-        $raw = $request->input('venue_place_id');
-        if ($raw === null || $raw === '') {
+        if ($venuePlaceId === null || $venuePlaceId <= 0) {
             throw ValidationException::withMessages([
                 'venue_place_id' => [__('ui.slots.venue_required_when_event_has_places')],
             ]);
@@ -210,14 +216,13 @@ class SlotFormService
     /**
      * Resolve venue + optional room into a single `places.id` for slot placement.
      */
-    public function resolveMassSlotPlaceId(Request $request, Event $event): ?int
+    public function resolveSlotPlaceId(Event $event, ?int $venuePlaceId, ?string $newRoomName): ?int
     {
-        $venueRaw = $request->input('venue_place_id');
-        if ($venueRaw === null || $venueRaw === '') {
+        if ($venuePlaceId === null || $venuePlaceId <= 0) {
             return null;
         }
 
-        $venueId = (int) $venueRaw;
+        $venueId = $venuePlaceId;
 
         $eventPlaceIds = $event->places()->pluck('places.id');
         if (! $eventPlaceIds->contains($venueId)) {
@@ -228,7 +233,7 @@ class SlotFormService
 
         $venue = Place::query()->findOrFail($venueId);
 
-        $newRoomName = trim((string) $request->input('new_room_name', ''));
+        $newRoomName = trim((string) ($newRoomName ?? ''));
         if ($newRoomName !== '') {
             $existing = Place::query()
                 ->where('parent_id', $venueId)
@@ -255,6 +260,23 @@ class SlotFormService
         }
 
         return $venueId;
+    }
+
+    /**
+     * Resolve venue + optional room into a single `places.id` for slot placement.
+     */
+    public function resolveMassSlotPlaceId(Request $request, Event $event): ?int
+    {
+        $venueRaw = $request->input('venue_place_id');
+        if ($venueRaw === null || $venueRaw === '') {
+            return null;
+        }
+
+        return $this->resolveSlotPlaceId(
+            $event,
+            (int) $venueRaw,
+            (string) $request->input('new_room_name', ''),
+        );
     }
 
     /**

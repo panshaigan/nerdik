@@ -180,6 +180,17 @@ class ShowEvent extends Component
     /**
      * Loads mass-create modal data once and opens the dialog (organizers only).
      */
+    public function openScheduleActivityModal(): void
+    {
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null && $user->canModifyEntity($event), 403);
+        abort_if($event->isCancelled(), 403);
+
+        $this->dispatch('open-schedule-activity', eventId: $this->eventId)
+            ->to(CreateScheduledActivityForm::class);
+    }
+
     public function openSlotCreateModal(): void
     {
         $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->with('places')->firstOrFail();

@@ -182,6 +182,17 @@ class EventShowPlanTab extends Component
         $this->warning(__('ui.interests.removed_activity'));
     }
 
+    public function openScheduleActivityModal(): void
+    {
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+        $user = auth()->user();
+        abort_unless($user !== null && $user->canModifyEntity($event), 403);
+        abort_if($event->isCancelled(), 403);
+
+        $this->dispatch('open-schedule-activity', eventId: $this->eventId)
+            ->to(CreateScheduledActivityForm::class);
+    }
+
     #[On('slot-mutations-refresh')]
     public function refreshAfterSlotMutation(): void
     {
@@ -533,6 +544,7 @@ class EventShowPlanTab extends Component
         return view('livewire.events.event-show-plan-tab', [
             'event' => $event,
             'canManageEvent' => $canManageEvent,
+            'canOrganizerScheduleActivity' => $canManageEvent && ! $event->isCancelled(),
             'activeEnrollmentWindow' => $activeEnrollmentWindow,
             'activeWindowRemainingByActivityId' => $activeWindowRemainingByActivityId,
             'canShowPlanActivityProposalUi' => $canShowPlanActivityProposalUi,
