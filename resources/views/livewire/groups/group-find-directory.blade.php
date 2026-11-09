@@ -5,7 +5,11 @@
     </header>
 
     <div class="mb-6 space-y-4 rounded-lg border border-base-300 bg-base-100 p-4" data-ui="groups-find-filters">
-        <div class="relative min-w-0 w-full max-w-full overflow-visible" data-ui="groups-find-search">
+        <div
+            class="relative min-w-0 w-full max-w-full overflow-visible"
+            data-ui="groups-find-search"
+            aria-label="{{ __('ui.groups.find_name') }}"
+        >
             <div wire:ignore class="block w-full min-w-0 max-w-full">
                 @include('tags.partials.selector', [
                     'tags' => $tags,
