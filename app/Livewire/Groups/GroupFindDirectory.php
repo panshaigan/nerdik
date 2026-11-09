@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Groups;
 
+use App\Models\Tag;
 use App\Services\GroupPublicDirectoryService;
-use App\Services\TagSelectionService;
+use App\Support\Browse\BrowseTagSelectorPayload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -37,11 +39,16 @@ class GroupFindDirectory extends Component
         $this->resetPage();
     }
 
+    public function updatedNearMyPlayArea(): void
+    {
+        $this->resetPage();
+    }
+
     /**
      * @param  list<int|string>  $tag_ids
      * @param  list<array{label: string, category_id: int|string}>  $new_tags
      */
-    public function syncFindTagsFromPicker(array $tag_ids, array $new_tags = []): void
+    public function syncBrowseTagsFromSelector(array $tag_ids, array $new_tags = []): void
     {
         $this->tag_ids = array_values(array_unique(array_filter(
             array_map(static fn ($id) => (int) $id, $tag_ids),
@@ -60,33 +67,43 @@ class GroupFindDirectory extends Component
         $this->resetPage();
     }
 
-    public function updatedNearMyPlayArea(): void
-    {
-        $this->resetPage();
-    }
-
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     tags: list<array<string, mixed>>,
+     *     events: list<array<string, mixed>>,
+     *     activities: list<array<string, mixed>>
+     * }
      */
-    public function getTagPickerConfigProperty(): array
+    #[Renderless]
+    public function searchBrowseSuggestions(string $q): array
     {
+        $trimmed = trim($q);
+        if ($trimmed === '') {
+            return [
+                'tags' => [],
+                'events' => [],
+                'activities' => [],
+            ];
+        }
+
         $locale = app()->getLocale();
-        $taxonomy = app(TagSelectionService::class)->cachedActivityFormPickerTaxonomy($locale);
+        $categoryContext = BrowseTagSelectorPayload::categoryMapsFromConfig(
+            BrowseTagSelectorPayload::categoriesForLocale($locale),
+        );
+        $tagLimit = (int) config('browse.tag_suggestions.search_limit', 30);
+
+        $tags = Tag::query()->searchForPublicGroupSelector($trimmed, $tagLimit);
 
         return [
-            'locale' => $locale,
-            'semanticByTagCategory' => config('activity-badges.semantic_by_tag_category', []),
-            'defaultTaxonomySemantic' => config('activity-badges.semantic_by_kind.taxonomy_tag', 'neutral'),
-            'categories' => $taxonomy['categories'],
-            'tags' => $taxonomy['tags'],
-            'initialSelectedIds' => $this->tag_ids,
-            'initialNewTags' => [],
-            'ignoreActivityTypeContexts' => true,
-            'strings' => [
-                'createTag' => __('ui.tags.create_tag'),
-                'auto' => __('ui.tags.auto'),
-            ],
-            'livewireSyncMethod' => 'syncFindTagsFromPicker',
+            'tags' => BrowseTagSelectorPayload::fromCollection(
+                $tags,
+                $locale,
+                $categoryContext['namesById'],
+                $categoryContext['keysById'],
+                includeRelatedIds: false,
+            ),
+            'events' => [],
+            'activities' => [],
         ];
     }
 
@@ -112,6 +129,7 @@ class GroupFindDirectory extends Component
             'groups' => $groups,
             'viewerHasPlayArea' => $viewerHasPlayArea,
             'locale' => $locale,
+            'tags' => Tag::query()->forPublicGroupSelector($this->tag_ids),
         ]);
     }
 }

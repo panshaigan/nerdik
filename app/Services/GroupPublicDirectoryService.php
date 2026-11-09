@@ -43,7 +43,7 @@ class GroupPublicDirectoryService
 
         $tagIds = array_values(array_unique(array_map('intval', $tagIds)));
         if ($tagIds !== []) {
-            BrowseTagFilter::apply($query, $tagIds, matchAll: true, relation: 'tags');
+            BrowseTagFilter::apply($query, $tagIds, matchAll: false, relation: 'tags');
         }
 
         if ($nearMyPlayArea) {

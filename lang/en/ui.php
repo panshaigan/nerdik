@@ -477,6 +477,7 @@ return [
         'find_title' => 'Find groups',
         'find_hint' => 'Public groups you can join. Shared calendars stay visible only after you join.',
         'find_name' => 'Search by name',
+        'find_placeholder' => 'Search…',
         'find_near_play_area' => 'Near my play area',
         'find_empty' => 'No public groups match these filters.',
         'join' => 'Join group',

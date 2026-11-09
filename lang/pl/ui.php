@@ -477,6 +477,7 @@ return [
         'find_title' => 'Znajdź grupy',
         'find_hint' => 'Publiczne grupy, do których możesz dołączyć. Wspólny kalendarz zobaczysz dopiero po dołączeniu.',
         'find_name' => 'Szukaj po nazwie',
+        'find_placeholder' => 'Szukaj…',
         'find_near_play_area' => 'W pobliżu mojego obszaru gry',
         'find_empty' => 'Brak publicznych grup pasujących do filtrów.',
         'join' => 'Dołącz do grupy',

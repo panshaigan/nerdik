@@ -53,7 +53,7 @@
     if ($browseTextSearch) {
         $tagSelectorConfig['browseTextSearch'] = [
             'enabled' => true,
-            'property' => 'q',
+            'property' => (string) ($browseTextSearchProperty ?? 'q'),
             'value' => (string) ($browseTextValue ?? ''),
         ];
     }

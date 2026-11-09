@@ -11,6 +11,7 @@ use App\Livewire\Groups\ShowGroup;
 use App\Models\Group;
 use App\Models\Tag;
 use App\Models\TagCategory;
+use App\Models\TagTranslation;
 use App\Models\User;
 use App\Services\GroupMembershipService;
 use App\Support\Search\GlobalNavSearch as GlobalNavSearchService;
@@ -146,9 +147,68 @@ final class GroupPublicVisibilityTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(GroupFindDirectory::class)
-            ->call('syncFindTagsFromPicker', [$bladeTag->id], [])
+            ->call('syncBrowseTagsFromSelector', [$bladeTag->id], [])
             ->assertSee('Cyberpunk Nights')
             ->assertDontSee('Fantasy Tavern');
+    }
+
+    public function test_find_directory_filters_by_name_query(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        Group::factory()->public()->withOwnerMember()->create([
+            'created_by' => $owner->id,
+            'name' => 'Warsaw Boardgamers',
+        ]);
+
+        Group::factory()->public()->withOwnerMember()->create([
+            'created_by' => $owner->id,
+            'name' => 'Kraków RPG',
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(GroupFindDirectory::class)
+            ->set('nameQuery', 'Warsaw')
+            ->assertSee('Warsaw Boardgamers')
+            ->assertDontSee('Kraków RPG');
+    }
+
+    public function test_search_browse_suggestions_only_includes_tags_on_public_groups(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $category = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+
+        $publicTag = Tag::factory()->for($category, 'tagCategory')->create();
+        TagTranslation::query()->create([
+            'tag_id' => $publicTag->id,
+            'locale' => 'en',
+            'label' => 'BladeRunnerFindUnique',
+        ]);
+
+        $privateOnlyTag = Tag::factory()->for($category, 'tagCategory')->create();
+        TagTranslation::query()->create([
+            'tag_id' => $privateOnlyTag->id,
+            'locale' => 'en',
+            'label' => 'PrivateOnlyFindUnique',
+        ]);
+
+        $publicGroup = Group::factory()->public()->withOwnerMember()->create(['created_by' => $owner->id]);
+        $publicGroup->tags()->attach($publicTag->id);
+
+        $privateGroup = Group::factory()->withOwnerMember()->create(['created_by' => $owner->id]);
+        $privateGroup->tags()->attach($privateOnlyTag->id);
+
+        $component = Livewire::actingAs($viewer)->test(GroupFindDirectory::class);
+
+        $publicMatches = $component->instance()->searchBrowseSuggestions('BladeRunnerFind');
+        $publicTagIds = collect($publicMatches['tags'])->pluck('id')->map(static fn ($id) => (int) $id)->all();
+        $this->assertContains((int) $publicTag->id, $publicTagIds);
+
+        $privateMatches = $component->instance()->searchBrowseSuggestions('PrivateOnlyFind');
+        $privateTagIds = collect($privateMatches['tags'])->pluck('id')->map(static fn ($id) => (int) $id)->all();
+        $this->assertNotContains((int) $privateOnlyTag->id, $privateTagIds);
     }
 
     public function test_find_directory_lists_public_group_and_skips_private_and_mine(): void

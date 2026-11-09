@@ -3,6 +3,7 @@
 namespace App\Models\Builders;
 
 use App\Models\Activity;
+use App\Models\Group;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\User;
@@ -98,6 +99,18 @@ class TagBuilder extends Builder
                 ->from('taggables')
                 ->where('taggable_type', $activityMorph)
                 ->whereIn('taggable_id', Activity::query()->attachedToPublicEvent($upcomingOnly)->select('activities.id'));
+        });
+    }
+
+    public function usedOnPublicGroups(): self
+    {
+        $groupMorph = (new Group)->getMorphClass();
+
+        return $this->whereIn($this->getModel()->getQualifiedKeyName(), function ($query) use ($groupMorph): void {
+            $query->select('tag_id')
+                ->from('taggables')
+                ->where('taggable_type', $groupMorph)
+                ->whereIn('taggable_id', Group::query()->publiclyDiscoverable()->select('groups.id'));
         });
     }
 
@@ -406,6 +419,144 @@ class TagBuilder extends Builder
         $excludeKeys = config('browse.tag_suggestions.exclude_category_keys_from_preload', []);
 
         $popular = $this->getModel()->newQuery()->forBrowsePreloadSuggestions($perCategory, $excludeKeys);
+
+        $missing = array_values(array_diff($normalized, $popular->pluck('id')->map(fn ($id) => (int) $id)->all()));
+        if ($missing === []) {
+            return $popular;
+        }
+
+        $extra = $this->getModel()->newQuery()
+            ->with(['translations', 'aliases', 'tagCategory.translations'])
+            ->whereIn('id', $missing)
+            ->orderBy('id')
+            ->get();
+
+        return $popular->merge($extra)->unique('id')->values();
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function searchForPublicGroupSelector(string $query, int $limit): Collection
+    {
+        $normalized = mb_strtolower(trim($query));
+        if ($normalized === '') {
+            return collect();
+        }
+
+        $like = '%'.$normalized.'%';
+        $similarityThreshold = 0.2;
+        $useSimilarity = mb_strlen($normalized) >= 3;
+
+        return $this->getModel()->newQuery()
+            ->with(['translations', 'aliases', 'tagCategory.translations'])
+            ->usedOnPublicGroups()
+            ->where(function (Builder $outer) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                $outer->whereHas('translations', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                    $q->where(function (Builder $inner) use ($like): void {
+                        $inner->whereRaw('LOWER(label) LIKE ?', [$like])
+                            ->orWhereRaw('LOWER(slug) LIKE ?', [$like]);
+                    });
+                    if ($useSimilarity) {
+                        $q->orWhere(function (Builder $inner) use ($normalized, $similarityThreshold): void {
+                            $inner->whereRaw('similarity(LOWER(label), ?) >= ?', [$normalized, $similarityThreshold])
+                                ->orWhereRaw('similarity(LOWER(slug), ?) >= ?', [$normalized, $similarityThreshold]);
+                        });
+                    }
+                })->orWhereHas('aliases', function (Builder $q) use ($like, $normalized, $similarityThreshold, $useSimilarity): void {
+                    $q->whereRaw('LOWER(alias) LIKE ?', [$like]);
+                    if ($useSimilarity) {
+                        $q->orWhereRaw('similarity(LOWER(alias), ?) >= ?', [$normalized, $similarityThreshold]);
+                    }
+                });
+            })
+            ->orderByRaw(
+                '
+                (
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) = ? OR LOWER(tag_translations.slug) = ?)
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) = ?
+                    ) THEN 2 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                          AND (LOWER(tag_translations.label) LIKE ? OR LOWER(tag_translations.slug) LIKE ?)
+                    ) THEN 1 ELSE 0 END
+                    +
+                    CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                          AND LOWER(tag_aliases.alias) LIKE ?
+                    ) THEN 1 ELSE 0 END
+                ) DESC,
+                GREATEST(
+                    COALESCE((
+                        SELECT MAX(
+                            GREATEST(
+                                similarity(LOWER(tag_translations.label), ?),
+                                similarity(LOWER(tag_translations.slug), ?)
+                            )
+                        )
+                        FROM tag_translations
+                        WHERE tag_translations.tag_id = tags.id
+                    ), 0),
+                    COALESCE((
+                        SELECT MAX(similarity(LOWER(tag_aliases.alias), ?))
+                        FROM tag_aliases
+                        WHERE tag_aliases.tag_id = tags.id
+                    ), 0)
+                ) DESC
+                ',
+                [
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                    $like,
+                    $like,
+                    $like,
+                    $normalized,
+                    $normalized,
+                    $normalized,
+                ]
+            )
+            ->orderedByPopularity()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Tags attached to public groups, plus any selected ids needed for chip labels.
+     *
+     * @param  list<int|string>  $selectedIds
+     * @return Collection<int, Tag>
+     */
+    public function forPublicGroupSelector(array $selectedIds): Collection
+    {
+        $normalized = array_values(array_unique(array_filter(
+            array_map(static fn ($id) => (int) $id, $selectedIds),
+            static fn (int $id) => $id > 0
+        )));
+
+        $limit = (int) config('browse.tag_suggestions.search_limit', 30);
+
+        $popular = $this->getModel()->newQuery()
+            ->with(['translations', 'aliases', 'tagCategory.translations'])
+            ->usedOnPublicGroups()
+            ->orderedByPopularity()
+            ->limit($limit)
+            ->get();
 
         $missing = array_values(array_diff($normalized, $popular->pluck('id')->map(fn ($id) => (int) $id)->all()));
         if ($missing === []) {
