@@ -33,7 +33,7 @@ class ShowEventSessionStatusToastTest extends TestCase
     public function test_event_show_page_fires_toast_from_flashed_status(): void
     {
         $user = User::factory()->create();
-        $event = Event::factory()->public()->create();
+        $event = Event::factory()->public()->create(['name' => 'Toast Event']);
         $message = __('ui.status.activity_saved_with_proposal', ['event' => $event->name]);
 
         $this
