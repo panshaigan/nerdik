@@ -19,6 +19,7 @@ use App\Models\TagCategory;
 use App\Services\ActivityFormService;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivitySuggestedBringService;
+use App\Services\GroupCalendarActivityPrefillService;
 use App\Services\LocationResolver;
 use App\Services\SlotParticipationConstraintService;
 use App\Services\TagSelectionService;
@@ -194,6 +195,9 @@ class ManageActivityForm extends Component
     /** @see updatedNewPlaces() */
     #[Locked]
     public ?string $cachedSelfHostedNewPlacesFingerprint = null;
+
+    #[Locked]
+    public ?string $groupCalendarToken = null;
 
     private bool $allowHostingModeChangeWithoutConfirm = false;
 
@@ -605,42 +609,31 @@ class ManageActivityForm extends Component
             return;
         }
 
-        if (! request()->filled('hosting_mode')
-            && ! request()->filled('self_hosted_starts_at')
-            && ! request()->has('tag_ids')) {
+        $rawToken = request()->query('group_calendar');
+        if (! is_string($rawToken) || trim($rawToken) === '') {
             return;
         }
 
-        if (request()->has('tag_ids')) {
-            $raw = request()->query('tag_ids');
-            $ids = [];
-            if (is_array($raw)) {
-                $ids = array_values(array_filter(array_map('intval', $raw)));
-            } elseif (is_string($raw) && $raw !== '') {
-                $ids = array_values(array_filter(array_map('intval', explode(',', $raw))));
-            }
-            if ($ids !== []) {
-                $this->tag_ids = Tag::query()
-                    ->whereIn('id', $ids)
-                    ->pluck('id')
-                    ->map(fn ($id) => (int) $id)
-                    ->values()
-                    ->all();
-                $this->new_tags = [];
-            }
+        $user = Auth::user();
+        if ($user === null) {
+            return;
         }
 
-        $hostingMode = (int) request()->query('hosting_mode', 0);
-        if ($hostingMode === Activity::HOSTING_MODE_SELF_HOSTED) {
-            $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        $prefill = app(GroupCalendarActivityPrefillService::class)->resolve($rawToken, $user);
+        if ($prefill === null) {
+            return;
         }
 
-        if (request()->filled('self_hosted_starts_at')) {
-            $raw = request()->query('self_hosted_starts_at');
-            if (is_string($raw) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', trim($raw)) === 1) {
-                $this->self_hosted_starts_at = trim($raw);
-                $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
-            }
+        $this->groupCalendarToken = $rawToken;
+        $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        $this->self_hosted_starts_at = $prefill->selfHostedStartsAt;
+        $this->participation_mode = ParticipationMode::HostApproval->value;
+        $this->min_participants = $prefill->playerCount;
+        $this->max_participants = $prefill->playerCount;
+
+        if ($prefill->tagIds !== []) {
+            $this->tag_ids = $prefill->tagIds;
+            $this->new_tags = [];
         }
     }
 

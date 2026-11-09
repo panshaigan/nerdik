@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Groups;
 
-use App\Models\Activity;
 use App\Models\Group;
 use App\Services\GroupAvailabilityService;
+use App\Services\GroupCalendarActivityPrefillService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
@@ -79,18 +79,15 @@ class GroupAvailabilityCalendar extends Component
             return null;
         }
 
-        $query = [
-            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
-            'self_hosted_starts_at' => $this->selectedDate.'T18:00',
-        ];
-
-        $groupTagIds = $group->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-        if ($groupTagIds !== []) {
-            $query['tag_ids'] = $groupTagIds;
+        $user = Auth::user();
+        if ($user === null) {
+            return null;
         }
 
+        $token = app(GroupCalendarActivityPrefillService::class)->makeToken($group, $this->selectedDate, $user);
+
         return url_with_return(
-            route('activities.create').'?'.http_build_query($query),
+            route('activities.create', ['group_calendar' => $token]),
             route('groups.show', $group, false),
         );
     }

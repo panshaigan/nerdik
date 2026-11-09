@@ -26,6 +26,7 @@ class ActivityFormService
     public function __construct(
         private readonly SlotScheduleSyncService $slotScheduleSync,
         private readonly ActivityProposalFlowService $proposalFlow,
+        private readonly GroupCalendarActivityPrefillService $groupCalendarPrefill,
     ) {}
 
     /**
@@ -123,6 +124,8 @@ class ActivityFormService
             $this->applyActivityLogoFromForm($form, $activity, $timing);
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
+            $this->enrollGroupCalendarMembersIfRequested($form, $activity);
+            $timing->checkpoint('group_calendar_enroll');
             $message = $proposalCreated
                 ? __('ui.status.activity_saved_with_proposal', ['event' => $proposalCreated->event->name])
                 : __('Activity created.');
@@ -401,5 +404,28 @@ class ActivityFormService
         $activity->save();
         $timing->checkpoint('image_state');
         $form->reset('croppedLogo', 'sourceImage');
+    }
+
+    private function enrollGroupCalendarMembersIfRequested(ManageActivityForm $form, Activity $activity): void
+    {
+        if ($form->groupCalendarToken === null || $form->groupCalendarToken === '') {
+            return;
+        }
+
+        $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
+
+        $resolved = $this->groupCalendarPrefill->resolve($form->groupCalendarToken, $user);
+        if ($resolved === null) {
+            return;
+        }
+
+        if (! $activity->isJoinableMode() || $activity->isCancelled()) {
+            return;
+        }
+
+        $this->groupCalendarPrefill->enrollFromResolved($activity, $resolved, $user);
     }
 }
