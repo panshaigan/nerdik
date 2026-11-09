@@ -70,9 +70,11 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $datetimePicker);
         $this->assertStringContainsString('time_24hr:', $datetimePicker);
         $this->assertStringContainsString('disableMobile: true', $datetimePicker);
-        $this->assertStringContainsString('appendTo: document.body', $datetimePicker);
+        $this->assertStringContainsString('appendParentFor(input)', $datetimePicker);
         $this->assertStringContainsString('datetimeInputFormat()', $datetimePicker);
-        $this->assertStringContainsString('input[data-ui-datetime]', $entrypoint);
+        $this->assertStringContainsString('./datetime-picker-bridge', $entrypoint);
+        $bridge = (string) file_get_contents(resource_path('js/datetime-picker-bridge.js'));
+        $this->assertStringContainsString('data-schedule-activity-field', $bridge);
     }
 
     public function test_css_pipeline_splits_app_entry_and_limits_daisyui_and_mary_sources(): void

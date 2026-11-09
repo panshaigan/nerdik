@@ -95,6 +95,21 @@ class CreateScheduledActivityForm extends Component
         $this->modalOpen = true;
         $this->resetForm();
         $this->applyVenueDefaults($event);
+
+        $this->js(<<<'JS'
+            queueMicrotask(() => {
+                requestAnimationFrame(async () => {
+                    await (window.ensureScheduleActivityFormReady?.() ?? Promise.resolve());
+                    const form = document.getElementById('event-schedule-activity-form');
+                    if (!form) {
+                        return;
+                    }
+                    delete form.dataset.slotMassFormInitialized;
+                    window.initSlotMassForm?.(form);
+                    await window.refreshScheduleActivityForm?.(form);
+                });
+            });
+        JS);
     }
 
     public function closeModal(): void

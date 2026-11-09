@@ -1,4 +1,5 @@
 import '../css/app.css';
+import './datetime-picker-bridge';
 import './close-modals-on-navigate';
 import { captureBrowserTimezone } from './browser-timezone';
 import './auth-login-form';
@@ -518,6 +519,28 @@ function registerLivewireRequestFailureHandlers() {
 }
 
 document.addEventListener('livewire:init', registerLivewireRequestFailureHandlers);
+
+function registerScheduleActivityModalHooks() {
+    if (typeof window.Livewire?.hook !== 'function') {
+        return;
+    }
+
+    window.Livewire.hook('commit', ({ succeed }) => {
+        succeed(() => {
+            queueMicrotask(() => {
+                const form = document.getElementById('event-schedule-activity-form');
+                const dialog = form?.closest('dialog');
+                if (!form || !dialog?.open) {
+                    return;
+                }
+
+                void window.refreshScheduleActivityForm?.(form);
+            });
+        });
+    });
+}
+
+document.addEventListener('livewire:init', registerScheduleActivityModalHooks);
 document.addEventListener('DOMContentLoaded', registerLivewireRequestFailureHandlers);
 
 function bootBrowserTimezone() {

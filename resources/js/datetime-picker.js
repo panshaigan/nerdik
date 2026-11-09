@@ -176,6 +176,16 @@ function syncInstanceFromInput(input) {
     }
 }
 
+function appendParentFor(input) {
+    const dialog = input.closest('dialog');
+
+    if (dialog?.open) {
+        return dialog;
+    }
+
+    return document.body;
+}
+
 /**
  * @param {HTMLInputElement} input
  * @returns {import('flatpickr').Instance}
@@ -207,7 +217,7 @@ function ensureInstance(input) {
         disableMobile: true,
         allowInput: false,
         clickOpens: false,
-        appendTo: document.body,
+        appendTo: appendParentFor(input),
         defaultDate: defaultDate || undefined,
         minDate: minDate || undefined,
         maxDate: maxDate || undefined,
@@ -228,9 +238,58 @@ function ensureInstance(input) {
 }
 
 /**
+ * @param {HTMLElement} target
+ * @returns {HTMLInputElement | null}
+ */
+function resolveDatetimeActivationInput(target) {
+    const input = datetimeInputFromEventTarget(target);
+    if (!input) {
+        return null;
+    }
+
+    if (!(target instanceof Element)) {
+        return input;
+    }
+
+    const directInput = target.closest('input[data-ui-datetime]');
+    if (directInput instanceof HTMLInputElement) {
+        return input;
+    }
+
+    const shell = target.closest('label.input');
+    if (shell?.contains(target)) {
+        return input;
+    }
+
+    const scheduleField = target.closest('[data-schedule-activity-field]');
+    if (scheduleField?.contains(target)) {
+        return input;
+    }
+
+    const floatingLabel = target.closest('label.floating-label');
+    if (floatingLabel?.contains(target) && floatingLabel.querySelector('input[data-ui-datetime]') === input) {
+        return input;
+    }
+
+    return null;
+}
+
+/**
+ * @param {PointerEvent} event
+ */
+export function openPickerFromPointerEvent(event) {
+    const input = resolveDatetimeActivationInput(event.target);
+    if (!input) {
+        return;
+    }
+
+    openPicker(input);
+}
+
+/**
  * @param {HTMLInputElement} input
  */
-function openPicker(input) {
+export function openPicker(input) {
     if (input.disabled) {
         return;
     }
@@ -305,47 +364,6 @@ export function bootDateTimePickers() {
     document.addEventListener('livewire:navigated', syncMountedDatetimePickers);
 
     document.addEventListener(
-        'pointerdown',
-        (event) => {
-            const input = datetimeInputFromEventTarget(event.target);
-            if (!input) {
-                return;
-            }
-
-            const directInput = event.target instanceof Element
-                ? event.target.closest('input[data-ui-datetime]')
-                : null;
-            const shell = event.target instanceof Element
-                ? event.target.closest('label.input')
-                : null;
-
-            if (!directInput && !shell?.contains(event.target)) {
-                return;
-            }
-
-            event.preventDefault();
-            openPicker(input);
-        },
-        true,
-    );
-
-    document.addEventListener(
-        'keydown',
-        (event) => {
-            if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'ArrowDown') {
-                return;
-            }
-            const input = event.target;
-            if (!(input instanceof HTMLInputElement) || !input.hasAttribute('data-ui-datetime')) {
-                return;
-            }
-            event.preventDefault();
-            openPicker(input);
-        },
-        true,
-    );
-
-    document.addEventListener(
         'input',
         (event) => {
             const input = event.target;
@@ -411,4 +429,6 @@ export function bootDateTimePickers() {
 if (typeof window !== 'undefined') {
     window.bootDateTimePickers = bootDateTimePickers;
     window.primeDatetimePickersIn = primeDatetimePickersIn;
+    window.openPicker = openPicker;
+    window.openPickerFromPointerEvent = openPickerFromPointerEvent;
 }
