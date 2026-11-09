@@ -62,6 +62,10 @@ class CreateScheduledActivityForm extends Component
 
     public bool $allowsObserversLockedBySlots = false;
 
+    public bool $modalOpen = false;
+
+    public int $formBootKey = 0;
+
     public function hydrate(): void
     {
         Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
@@ -90,7 +94,18 @@ class CreateScheduledActivityForm extends Component
 
         $this->resetForm();
         $this->applyVenueDefaults($event);
-        $this->openDialog();
+        $this->formBootKey++;
+        $this->modalOpen = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->modalOpen = false;
+    }
+
+    public function updatedVenuePlaceId(): void
+    {
+        $this->new_room_name = '';
     }
 
     public function save(OrganizerScheduledActivityService $scheduledActivities): void
@@ -149,7 +164,7 @@ class CreateScheduledActivityForm extends Component
         $this->success(__('ui.events.schedule_activity_success'));
         $this->dispatch('slot-mutations-refresh');
         $this->resetForm();
-        $this->closeDialog();
+        $this->modalOpen = false;
     }
 
     public function render(SlotFormService $slotForms): View
@@ -233,26 +248,5 @@ class CreateScheduledActivityForm extends Component
         if ($venues->count() === 1) {
             $this->venue_place_id = (int) $venues->first()->id;
         }
-    }
-
-    private function openDialog(): void
-    {
-        $this->js(<<<'JS'
-            queueMicrotask(() => {
-                document.getElementById('event-schedule-activity-modal')?.showModal();
-                requestAnimationFrame(() => {
-                    document.getElementById('event-schedule-activity-modal')?.showModal();
-                });
-            });
-        JS);
-    }
-
-    private function closeDialog(): void
-    {
-        $this->js(<<<'JS'
-            queueMicrotask(() => {
-                document.getElementById('event-schedule-activity-modal')?.close();
-            });
-        JS);
     }
 }

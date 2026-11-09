@@ -78,7 +78,8 @@ function loadOnce(key, shouldLoad, loader) {
 }
 
 function bootSlotForms() {
-    const shouldLoad = document.querySelector('[data-slot-mass-form], #slot-edit-modal') !== null;
+    const shouldLoad =
+        document.querySelector('[data-slot-mass-form], [data-schedule-activity-form], #slot-edit-modal') !== null;
 
     loadOnce('slot-forms', shouldLoad, async () => {
         const [{ initSlotEditForm }, { initSlotMassForm }] = await Promise.all([
@@ -89,17 +90,35 @@ function bootSlotForms() {
         window.initSlotEditForm = initSlotEditForm;
         window.initSlotMassForm = initSlotMassForm;
 
-        document.querySelectorAll('form[data-slot-mass-form]').forEach((form) => {
-            if (form.closest('#slot-edit-modal-body')) {
-                return;
-            }
+        const bootForms = () => {
+            document.querySelectorAll('form[data-schedule-activity-form]').forEach((form) => {
+                delete form.dataset.slotMassFormInitialized;
+            });
 
-            if (form.hasAttribute('data-slot-edit-form')) {
-                initSlotEditForm(form);
-            } else {
-                initSlotMassForm(form);
-            }
-        });
+            document.querySelectorAll('form[data-slot-mass-form], form[data-schedule-activity-form]').forEach((form) => {
+                if (form.closest('#slot-edit-modal-body')) {
+                    return;
+                }
+
+                if (form.dataset.slotMassFormInitialized === '1') {
+                    return;
+                }
+
+                if (form.hasAttribute('data-slot-edit-form')) {
+                    initSlotEditForm(form);
+                } else {
+                    initSlotMassForm(form);
+                }
+            });
+        };
+
+        bootForms();
+
+        if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.hook === 'function') {
+            window.Livewire.hook('morphed', () => {
+                requestAnimationFrame(bootForms);
+            });
+        }
     });
 }
 

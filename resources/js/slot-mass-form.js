@@ -11,6 +11,12 @@ export function initSlotMassForm(form) {
 
     const massForm = form;
 
+    if (form.hasAttribute('data-schedule-activity-form')) {
+        initScheduleActivityLivewireForm(massForm);
+
+        return;
+    }
+
     massForm.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') {
             return;
@@ -395,6 +401,153 @@ export function initSlotMassForm(form) {
 }
 
 /**
+ * Livewire schedule-activity modal: datetime defaults/limits and room autocomplete (no mass POST).
+ *
+ * @param {HTMLFormElement} form
+ */
+function initScheduleActivityLivewireForm(form) {
+    const configJson = form.querySelector('[data-slot-mass-config]');
+    const roomsJson = form.querySelector('[data-schedule-activity-rooms]');
+    let eventDatetimeBounds = {};
+    let roomsByVenueId = {};
+    try {
+        const parsed = JSON.parse(configJson?.textContent || '{}');
+        eventDatetimeBounds = parsed.eventDatetimeBounds || {};
+    } catch {
+        eventDatetimeBounds = {};
+    }
+    try {
+        roomsByVenueId = JSON.parse(roomsJson?.textContent || '{}');
+    } catch {
+        roomsByVenueId = {};
+    }
+
+    const startsField = form.querySelector('[data-schedule-activity-field="starts_at"]');
+    const endsField = form.querySelector('[data-schedule-activity-field="ends_at"]');
+    const startsAtInput = startsField?.querySelector('input[data-ui-datetime]') ?? null;
+    const endsAtInput = endsField?.querySelector('input[data-ui-datetime]') ?? null;
+    const venueSelect =
+        form.querySelector('[data-schedule-activity-venue-select] select') ??
+        form.querySelector('select[wire\\:model="venue_place_id"]');
+    const roomInput = form.querySelector('[data-slot-room-input] input') ?? form.querySelector('[data-slot-room-input]');
+    const roomPopup = form.querySelector('[data-slot-room-popup]');
+
+    const eventBounds = Object.values(eventDatetimeBounds)[0] || null;
+
+    function parseLocalDateTime(value) {
+        if (!value) {
+            return null;
+        }
+        const parsed = new Date(value);
+
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatLocalDateTime(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function applyEventDatetimeLimits() {
+        const eventStart = eventBounds?.starts_at || '';
+        const eventEnd = eventBounds?.ends_at || '';
+        if (startsAtInput) {
+            startsAtInput.min = eventStart;
+            startsAtInput.max = eventEnd;
+        }
+        if (endsAtInput) {
+            endsAtInput.min = eventStart;
+            endsAtInput.max = eventEnd;
+        }
+    }
+
+    function syncInputValue(input, value) {
+        if (!(input instanceof HTMLInputElement)) {
+            return;
+        }
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function defaultStartsAtIfEmpty() {
+        if (!startsAtInput || startsAtInput.value) {
+            return;
+        }
+        if (eventBounds?.starts_at) {
+            syncInputValue(startsAtInput, eventBounds.starts_at);
+        }
+    }
+
+    function defaultEndsAtIfEmpty() {
+        if (!endsAtInput || endsAtInput.value) {
+            return;
+        }
+
+        const baseDate =
+            parseLocalDateTime(startsAtInput?.value || '') || parseLocalDateTime(eventBounds?.starts_at || '');
+        if (!baseDate) {
+            return;
+        }
+
+        const defaultEnd = new Date(baseDate.getTime() + 4 * 60 * 60 * 1000);
+        let finalEnd = defaultEnd;
+        const eventEndDate = parseLocalDateTime(eventBounds?.ends_at || '');
+        if (eventEndDate && finalEnd > eventEndDate) {
+            finalEnd = eventEndDate;
+        }
+        syncInputValue(endsAtInput, formatLocalDateTime(finalEnd));
+    }
+
+    function currentVenueId() {
+        const hiddenVenue = form.querySelector('[data-schedule-activity-venue-select] input[type="hidden"]');
+        if (hiddenVenue?.value) {
+            return String(hiddenVenue.value);
+        }
+
+        return venueSelect?.value ? String(venueSelect.value) : '';
+    }
+
+    function getRoomsForVenue() {
+        const vid = currentVenueId();
+        if (!vid) {
+            return [];
+        }
+
+        return roomsByVenueId[vid] || roomsByVenueId[Number.parseInt(vid, 10)] || [];
+    }
+
+    if (roomInput instanceof HTMLInputElement && roomPopup) {
+        wireRoomAutocomplete(roomInput, roomPopup, form, () => getRoomsForVenue());
+    }
+
+    venueSelect?.addEventListener('change', () => {
+        if (roomInput instanceof HTMLInputElement) {
+            roomInput.value = '';
+            roomInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
+    applyEventDatetimeLimits();
+    startsAtInput?.addEventListener('focus', defaultStartsAtIfEmpty);
+    startsAtInput?.addEventListener('click', defaultStartsAtIfEmpty);
+    endsAtInput?.addEventListener('focus', defaultEndsAtIfEmpty);
+    endsAtInput?.addEventListener('click', defaultEndsAtIfEmpty);
+
+    if (typeof window.bootDateTimePickers === 'function') {
+        window.bootDateTimePickers();
+    } else {
+        import('./datetime-picker')
+            .then(({ bootDateTimePickers }) => bootDateTimePickers())
+            .catch(() => {});
+    }
+}
+
+/**
  * Suggest rooms that are children of the selected venue; unknown text is submitted as new_room_name.
  *
  * @param {HTMLInputElement} roomInput
@@ -402,7 +555,7 @@ export function initSlotMassForm(form) {
  * @param {HTMLFormElement} massForm
  * @param {() => { id: number, name: string }[]} getRooms
  */
-function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
+export function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
     /** @type {{ id: number, name: string }[]} */
     const MAX_RESULTS = 8;
     const POPUP_MARGIN_PX = 8;
@@ -490,6 +643,7 @@ function wireRoomAutocomplete(roomInput, roomPopup, massForm, getRooms) {
 
     function choose(name) {
         roomInput.value = name;
+        roomInput.dispatchEvent(new Event('input', { bubbles: true }));
         closeRoomPopup();
     }
 

@@ -76,7 +76,7 @@ class CreateScheduledActivityFormTest extends TestCase
         $event = Event::factory()->public()->create(['created_by' => $owner->id]);
 
         Livewire::test(ShowEvent::class, ['event' => $event])
-            ->assertDontSeeHtml('id="event-schedule-activity-modal"');
+            ->assertDontSeeHtml('data-ui="schedule-activity-form-host"');
 
         $rpg = $this->rpgActivityType();
 
@@ -100,7 +100,7 @@ class CreateScheduledActivityFormTest extends TestCase
 
         Livewire::actingAs($owner)
             ->test(ShowEvent::class, ['event' => $event])
-            ->assertDontSeeHtml('id="event-schedule-activity-modal"');
+            ->assertDontSeeHtml('livewire:events.create-scheduled-activity-form');
 
         $rpg = $this->rpgActivityType();
 
@@ -131,9 +131,12 @@ class CreateScheduledActivityFormTest extends TestCase
             ->actingAs($owner)
             ->test(EventShowPlanTab::class, ['eventId' => $event->id])
             ->assertViewHas('canShowPlanActivityProposalUi', false)
-            ->assertViewHas('canOrganizerScheduleActivity', true)
-            ->assertSeeHtml('data-ui="event-show-plan-schedule-activity"')
+            ->assertDontSeeHtml('data-ui="event-show-plan-schedule-activity"')
             ->assertDontSee($proposeTitle);
+
+        Livewire::actingAs($owner)
+            ->test(ShowEvent::class, ['event' => $event])
+            ->assertSeeHtml('data-ui="event-show-schedule-activity"');
     }
 
     public function test_validation_requires_venue_when_event_has_places_and_rejects_end_before_start(): void
@@ -176,8 +179,13 @@ class CreateScheduledActivityFormTest extends TestCase
         $event = Event::factory()->create(['created_by' => $owner->id]);
 
         Livewire::actingAs($owner)
+            ->test(CreateScheduledActivityForm::class, ['eventId' => $event->id])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSeeHtml('id="event-schedule-activity-form"');
+
+        Livewire::actingAs($owner)
             ->test(ShowEvent::class, ['event' => $event])
-            ->assertSeeHtml('id="event-schedule-activity-modal"')
             ->call('openScheduleActivityModal');
     }
 }

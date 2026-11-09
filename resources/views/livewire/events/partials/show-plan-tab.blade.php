@@ -148,22 +148,6 @@
         @endif
     @endauth
 
-    @if ($canOrganizerScheduleActivity ?? false)
-        <div class="mb-4 flex justify-end" data-ui="event-show-plan-schedule-activity-toolbar">
-            <x-button
-                type="button"
-                class="btn-primary btn-sm"
-                wire:click="openScheduleActivityModal"
-                wire:loading.attr="disabled"
-                wire:target="openScheduleActivityModal"
-                data-ui="event-show-plan-schedule-activity"
-                icon="o-play"
-            >
-                {{ __('ui.events.schedule_activity_action') }}
-            </x-button>
-        </div>
-    @endif
-
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             @php
@@ -505,22 +489,7 @@
                 @endif
             </li>
         @empty
-            <li class="py-6 text-center">
-                <p class="text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</p>
-                @if ($canOrganizerScheduleActivity ?? false)
-                    <x-button
-                        type="button"
-                        class="btn-primary btn-sm mt-4"
-                        wire:click="openScheduleActivityModal"
-                        wire:loading.attr="disabled"
-                        wire:target="openScheduleActivityModal"
-                        data-ui="event-show-plan-schedule-activity-empty"
-                        icon="o-play"
-                    >
-                        {{ __('ui.events.schedule_activity_action') }}
-                    </x-button>
-                @endif
-            </li>
+            <li class="py-2 text-sm text-base-content/70">{{ __('ui.events.no_slots_yet') }}</li>
         @endforelse
     </ul>
     @if ($canShowPlanActivityProposalUi ?? false)
