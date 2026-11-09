@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\GroupVisibility;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,8 +26,16 @@ final class GroupFactory extends Factory
             'name' => $name,
             'slug' => Str::slug($name),
             'description' => fake()->optional()->sentence(),
+            'visibility' => GroupVisibility::Private,
             'created_by' => User::factory(),
         ];
+    }
+
+    public function public(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'visibility' => GroupVisibility::Public,
+        ]);
     }
 
     public function withOwnerMember(): static

@@ -6,6 +6,7 @@ namespace App\Support\Search;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Tag;
@@ -28,7 +29,8 @@ final class GlobalNavSearch
      *     organizations: list<array{kind: string, id: int, label: string, url: null}>,
      *     users: list<array{kind: string, id: int, label: string, url: null}>,
      *     places: list<array{kind: string, id: int, label: string, url: string}>,
-     *     tags: list<array{kind: string, id: int, label: string, url: string}>
+     *     tags: list<array{kind: string, id: int, label: string, url: string}>,
+     *     groups: list<array{kind: string, id: int, label: string, url: string}>
      * }
      */
     public static function search(string $query, ?User $user): array
@@ -47,6 +49,7 @@ final class GlobalNavSearch
             'users' => self::searchUsers($trimmed, $limit),
             'places' => self::searchPlaces($trimmed, $limit),
             'tags' => self::searchTags($trimmed, $user, $limit),
+            'groups' => self::searchGroups($trimmed, $user, $limit),
         ];
     }
 
@@ -57,7 +60,8 @@ final class GlobalNavSearch
      *     organizations: list<array{kind: string, id: int, label: string, url: null}>,
      *     users: list<array{kind: string, id: int, label: string, url: null}>,
      *     places: list<array{kind: string, id: int, label: string, url: string}>,
-     *     tags: list<array{kind: string, id: int, label: string, url: string}>
+     *     tags: list<array{kind: string, id: int, label: string, url: string}>,
+     *     groups: list<array{kind: string, id: int, label: string, url: string}>
      * }
      */
     public static function emptyPayload(): array
@@ -69,6 +73,7 @@ final class GlobalNavSearch
             'users' => [],
             'places' => [],
             'tags' => [],
+            'groups' => [],
         ];
     }
 
@@ -233,6 +238,37 @@ final class GlobalNavSearch
                 'id' => (int) $tag->id,
                 'label' => $tag->displayLabel(),
                 'url' => route('search.index', ['tag_ids' => [(int) $tag->id]], false) ?: '/search?tag_ids[]='.(int) $tag->id,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{kind: string, id: int, label: string, url: string}>
+     */
+    private static function searchGroups(string $query, ?User $user, int $limit): array
+    {
+        if ($user === null) {
+            return [];
+        }
+
+        $term = trim($query);
+        if ($term === '') {
+            return [];
+        }
+
+        $operator = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+
+        return Group::query()
+            ->publiclyDiscoverable()
+            ->where('name', $operator, '%'.$term.'%')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->map(static fn (Group $group): array => [
+                'kind' => 'group',
+                'id' => (int) $group->id,
+                'label' => (string) $group->name,
+                'url' => route('groups.show', $group),
             ])
             ->all();
     }

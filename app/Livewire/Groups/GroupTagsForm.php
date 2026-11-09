@@ -132,7 +132,7 @@ class GroupTagsForm extends Component
     private function resolveGroup(): Group
     {
         return Group::query()
-            ->visibleTo(Auth::user())
+            ->memberContentVisibleTo(Auth::user())
             ->whereKey($this->groupId)
             ->firstOrFail();
     }

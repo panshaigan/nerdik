@@ -6,6 +6,7 @@
         'users' => ['icon' => 'o-user', 'label' => __('ui.nav.search_group_users')],
         'places' => ['icon' => 'o-map-pin', 'label' => __('ui.nav.search_group_places')],
         'tags' => ['icon' => 'o-tag', 'label' => __('ui.nav.search_group_tags')],
+        'groups' => ['icon' => 'o-user-group', 'label' => __('ui.nav.search_group_groups')],
     ];
 @endphp
 

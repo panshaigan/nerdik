@@ -1,5 +1,9 @@
 <div class="py-12 p-1">
     <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+        <h2 class="mb-4 text-lg font-semibold text-base-content" data-ui="groups-mine-heading">
+            {{ __('ui.groups.mine_title') }}
+        </h2>
+
         <div class="mb-6 flex justify-end">
             <x-button
                 type="button"
@@ -34,6 +38,8 @@
                 </li>
             @endforelse
         </ul>
+
+        <livewire:groups.group-find-directory />
     </div>
 
     <x-modal wire:model="createModalOpen" :title="__('ui.groups.create')" data-ui="groups-create-modal">

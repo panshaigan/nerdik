@@ -94,7 +94,7 @@ class GroupAvailabilityCalendar extends Component
 
     public function render(GroupAvailabilityService $calendar)
     {
-        $group = Group::query()->visibleTo(Auth::user())->with('tags')->whereKey($this->groupId)->firstOrFail();
+        $group = Group::query()->memberContentVisibleTo(Auth::user())->with('tags')->whereKey($this->groupId)->firstOrFail();
 
         $monthDate = Carbon::parse($this->month.'-01');
         $minAvailable = $this->minAvailable > 0 ? $this->minAvailable : null;

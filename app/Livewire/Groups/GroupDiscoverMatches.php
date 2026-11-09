@@ -95,7 +95,8 @@ class GroupDiscoverMatches extends Component
     private function resolveGroup(): Group
     {
         return Group::query()
-            ->visibleTo(Auth::user())
-            ->findOrFail($this->groupId);
+            ->memberContentVisibleTo(Auth::user())
+            ->whereKey($this->groupId)
+            ->firstOrFail();
     }
 }

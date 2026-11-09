@@ -113,8 +113,10 @@ A `!` indicator appears on a user’s badge when they have been banned by at lea
 
 ## Groups And Shared Availability
 
-- **Group** is a private member list (not Organization). The creator is owner (`created_by`) and is always a member.
-- Only the owner may invite (via `UserRequestType::GroupInvite`), remove members, rename, or delete the group. Other members may leave.
+- **Group** is a shared availability party (not Organization). The creator is owner (`created_by`) and is always a member. New groups default to **private** visibility.
+- **Private** groups are visible only to members (and admins). **Public** groups can be discovered and joined by any signed-in user via open join; switching back to private keeps existing members but stops new discovery/joins.
+- Only the owner may invite (via `UserRequestType::GroupInvite`), remove members, rename, change visibility, or delete the group. Other members may leave.
+- Non-members who can open a public group page see summary metadata only (name, description, tags, area, member count)—not the shared availability calendar or member roster until they join.
 - **Availability is global per user:** weekday defaults and date exceptions live on the user profile; every group aggregates members’ resolved status for each calendar day.
 - Resolve order for a date: date exception → weekday default → uncertain when no defaults are stored.
 - Group calendar UI shows per-day available counts, optional minimum-available / all-members filters, and day detail lists (available / unavailable / uncertain).

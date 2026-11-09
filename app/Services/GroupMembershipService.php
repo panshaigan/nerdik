@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\GroupVisibility;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -114,6 +115,39 @@ class GroupMembershipService
         $group->update([
             'name' => $name,
             'description' => $description !== null && trim($description) !== '' ? trim($description) : null,
+            'updated_by' => $actor->id,
+        ]);
+
+        return $group->fresh() ?? $group;
+    }
+
+    public function join(Group $group, User $user): void
+    {
+        if (! $group->isPublic()) {
+            throw ValidationException::withMessages([
+                'group' => [__('ui.groups.join_private')],
+            ]);
+        }
+
+        if ($group->users()->whereKey($user->getKey())->exists()) {
+            throw ValidationException::withMessages([
+                'user' => [__('ui.groups.already_member')],
+            ]);
+        }
+
+        $group->users()->attach($user->id);
+    }
+
+    public function updateVisibility(Group $group, User $actor, GroupVisibility $visibility): Group
+    {
+        if (! $actor->canModifyEntity($group)) {
+            throw ValidationException::withMessages([
+                'group' => [__('ui.groups.manage_unauthorized')],
+            ]);
+        }
+
+        $group->update([
+            'visibility' => $visibility,
             'updated_by' => $actor->id,
         ]);
 

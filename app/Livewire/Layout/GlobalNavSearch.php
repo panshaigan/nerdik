@@ -31,7 +31,8 @@ class GlobalNavSearch extends Component
      *     organizations: list<array<string, mixed>>,
      *     users: list<array<string, mixed>>,
      *     places: list<array<string, mixed>>,
-     *     tags: list<array<string, mixed>>
+     *     tags: list<array<string, mixed>>,
+     *     groups: list<array<string, mixed>>
      * }
      */
     public function suggestions(): array
@@ -137,7 +138,7 @@ class GlobalNavSearch extends Component
         $flat = [];
         $index = 0;
 
-        foreach (['events', 'activities', 'organizations', 'users', 'places', 'tags'] as $group) {
+        foreach (['events', 'activities', 'organizations', 'users', 'places', 'tags', 'groups'] as $group) {
             foreach ($suggestions[$group] ?? [] as $item) {
                 $flat[] = [
                     ...$item,

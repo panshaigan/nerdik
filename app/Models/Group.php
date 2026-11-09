@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\GroupVisibility;
 use App\Models\Concerns\PrunesExpiredSoftDeletes;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
@@ -32,6 +33,7 @@ class Group extends Model
         'name',
         'slug',
         'description',
+        'visibility',
         'latitude',
         'longitude',
         'radius_km',
@@ -46,10 +48,16 @@ class Group extends Model
     protected function casts(): array
     {
         return [
+            'visibility' => GroupVisibility::class,
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'radius_km' => 'integer',
         ];
+    }
+
+    public function isPublic(): bool
+    {
+        return $this->visibility === GroupVisibility::Public;
     }
 
     public function users(): BelongsToMany
@@ -77,11 +85,53 @@ class Group extends Model
             return false;
         }
 
+        if ($this->users()->whereKey($user->getKey())->exists()) {
+            return true;
+        }
+
+        return $this->isPublic();
+    }
+
+    public function canViewMemberContent(?User $user): bool
+    {
+        if ($user?->is_admin) {
+            return true;
+        }
+
+        if ($user === null) {
+            return false;
+        }
+
         return $this->users()->whereKey($user->getKey())->exists();
     }
 
     /** @param Builder<self> $query */
     public function scopeVisibleTo(Builder $query, ?User $user): void
+    {
+        if ($user?->is_admin) {
+            return;
+        }
+
+        if ($user === null) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->where(function (Builder $outer) use ($user): void {
+            $outer->where('visibility', GroupVisibility::Public)
+                ->orWhereHas('users', fn (Builder $members) => $members->whereKey($user->getKey()));
+        });
+    }
+
+    /** @param Builder<self> $query */
+    public function scopePubliclyDiscoverable(Builder $query): void
+    {
+        $query->where('visibility', GroupVisibility::Public);
+    }
+
+    /** @param Builder<self> $query */
+    public function scopeMemberContentVisibleTo(Builder $query, ?User $user): void
     {
         if ($user?->is_admin) {
             return;
@@ -99,12 +149,6 @@ class Group extends Model
     /** @param Builder<self> $query */
     public function scopeForUser(Builder $query, User $user): void
     {
-        if ($user->is_admin) {
-            $query->whereHas('users', fn (Builder $members) => $members->whereKey($user->getKey()));
-
-            return;
-        }
-
-        $query->visibleTo($user);
+        $query->whereHas('users', fn (Builder $members) => $members->whereKey($user->getKey()));
     }
 }

@@ -31,7 +31,7 @@ final class GroupShowTest extends TestCase
             ->assertSeeHtml('data-ui="group-show-tab-members"');
     }
 
-    public function test_non_member_cannot_view_group(): void
+    public function test_non_member_cannot_view_private_group(): void
     {
         $owner = User::factory()->create();
         $outsider = User::factory()->create();
