@@ -114,7 +114,7 @@ With Sail already running:
 make test-e2e
 ```
 
-`make test-e2e` runs `e2e:prepare`, installs Playwright Chromium inside the Sail container when it is missing (first run only), then runs the specs. Chromium goes into the `sail` user's cache, not `node_modules`, so a later `npm ci` can replace `node_modules`.
+`make test-e2e` runs `e2e:prepare`, installs Playwright Chromium inside the Sail container when it is missing (first run only), then runs the specs. Chromium is stored in the `sail-playwright` Docker volume (`/home/sail/.cache/ms-playwright`), not `node_modules`, so container restarts and later `npm ci` do not force a full re-download. After pulling this change, recreate the app container once (`make down` && `make up`, or `docker compose up -d --force-recreate laravel.test`).
 
 Or step by step:
 

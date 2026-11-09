@@ -171,6 +171,19 @@ jobs:
           node-version: "24"
           cache: npm
 
+      - name: Resolve Playwright version
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+          restore-keys: |
+            playwright-chromium-${{ runner.os }}-
+
       - name: Install Composer dependencies
         uses: ramsey/composer-install@v4
         with:
@@ -185,7 +198,11 @@ jobs:
         run: |
           npm ci
           npm run build
-          npx playwright install --with-deps chromium
+
+      - name: Install Playwright Chromium
+        run: |
+          npx playwright install-deps chromium
+          npx playwright install chromium
 
       - name: Run migrations and Playwright fixtures
         run: |

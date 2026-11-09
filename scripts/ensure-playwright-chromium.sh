@@ -21,10 +21,13 @@ if playwright_chromium_installed "$APP_USER"; then
     exit 0
 fi
 
-echo 'Playwright Chromium not found; installing browser and OS dependencies (first run may take a minute)...' >&2
+echo 'Playwright Chromium not found; installing browser (first run may take a minute)...' >&2
 
 if [[ "$(id -u)" -eq 0 ]]; then
-    npx playwright install-deps chromium
+    # Sail image already runs `playwright install-deps` at build time (docker/sail/Dockerfile).
+    if [[ "${LARAVEL_SAIL:-}" != "1" ]]; then
+        npx playwright install-deps chromium
+    fi
 
     if [[ -n "${PLAYWRIGHT_BROWSERS_PATH:-}" ]]; then
         runuser -u "$APP_USER" -- env PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_BROWSERS_PATH" \

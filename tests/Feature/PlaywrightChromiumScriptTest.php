@@ -108,11 +108,13 @@ BASH;
     public function test_release_check_clears_node_modules_browsers_before_npm_ci(): void
     {
         $check = file_get_contents(base_path('scripts/ci-check.sh'));
+        $compose = file_get_contents(base_path('compose.yaml'));
         $makefile = file_get_contents(base_path('Makefile'));
         $ensure = file_get_contents(base_path('scripts/ensure-playwright-chromium.sh'));
         $dockerfile = file_get_contents(base_path('docker/sail/Dockerfile'));
 
         $this->assertIsString($check);
+        $this->assertIsString($compose);
         $this->assertIsString($makefile);
         $this->assertIsString($ensure);
         $this->assertIsString($dockerfile);
@@ -128,6 +130,8 @@ BASH;
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $makefile);
         $this->assertStringContainsString('runuser -u "$APP_USER"', $ensure);
         $this->assertStringContainsString('env -u PLAYWRIGHT_BROWSERS_PATH', $ensure);
+        $this->assertStringContainsString('LARAVEL_SAIL', $ensure);
+        $this->assertStringContainsString('sail-playwright:/home/sail/.cache/ms-playwright', $compose);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $ensure);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $dockerfile);
     }
