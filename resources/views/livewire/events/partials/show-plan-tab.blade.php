@@ -239,6 +239,16 @@
                                                         >
                                                             {{ __('ui.events.edit_slot') }}
                                                         </x-ui.overflow-menu-item>
+                                                        @if ($activity && auth()->user()?->canModifyEntity($activity))
+                                                            <x-ui.overflow-menu-item
+                                                                icon="o-pencil-square"
+                                                                :href="url_with_return(route('activities.edit', $activity))"
+                                                                wire:navigate
+                                                                data-ui="event-show-slot-edit-activity"
+                                                            >
+                                                                {{ __('ui.activities.edit_activity') }}
+                                                            </x-ui.overflow-menu-item>
+                                                        @endif
                                                         @if ($showDetachActivity)
                                                             <x-ui.overflow-menu-item
                                                                 icon="o-link-slash"

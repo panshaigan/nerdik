@@ -88,7 +88,7 @@ class ActivityHostingModesTest extends TestCase
             'ends_at' => null,
         ]);
 
-        $startsAt = now()->addDays(2)->startOfHour()->format('Y-m-d\TH:i');
+        $startsAt = now()->addDays(2)->startOfHour()->format(datetime_local_input_format());
 
         app(ActivityHostingModeService::class)->setSelfHosted($activity, $place->id, $startsAt);
         $activity->refresh();
@@ -111,7 +111,7 @@ class ActivityHostingModesTest extends TestCase
             app(ActivityHostingModeService::class)->setSelfHosted(
                 $activity,
                 999_999,
-                now()->addDay()->format('Y-m-d\TH:i'),
+                now()->addDay()->format(datetime_local_input_format()),
             );
             $this->fail('Expected ValidationException for missing place.');
         } catch (ValidationException $e) {

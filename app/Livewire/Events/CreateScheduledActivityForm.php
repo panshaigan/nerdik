@@ -92,10 +92,9 @@ class CreateScheduledActivityForm extends Component
         $event = $this->resolveEventForOrganizer();
         abort_if($event->isCancelled(), 403);
 
+        $this->modalOpen = true;
         $this->resetForm();
         $this->applyVenueDefaults($event);
-        $this->formBootKey++;
-        $this->modalOpen = true;
     }
 
     public function closeModal(): void
@@ -197,8 +196,8 @@ class CreateScheduledActivityForm extends Component
             'slotMassRoomsByVenueId' => $slotMassRoomsByVenueId,
             'singleVenueLocked' => $slotMassVenues->count() === 1,
             'eventDatetimeBounds' => [
-                'starts_at' => $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : null,
-                'ends_at' => $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : null,
+                'starts_at' => $event->starts_at ? format_datetime_local_input($event->starts_at) : null,
+                'ends_at' => $event->ends_at ? format_datetime_local_input($event->ends_at) : null,
             ],
             'datetimeMinuteStepSeconds' => $datetimeMinuteStepSeconds,
         ]);

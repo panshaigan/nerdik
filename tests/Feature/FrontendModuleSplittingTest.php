@@ -71,7 +71,7 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('time_24hr:', $datetimePicker);
         $this->assertStringContainsString('disableMobile: true', $datetimePicker);
         $this->assertStringContainsString('appendTo: document.body', $datetimePicker);
-        $this->assertStringContainsString("dateFormat: 'Y-m-d\\\\TH:i'", $datetimePicker);
+        $this->assertStringContainsString('datetimeInputFormat()', $datetimePicker);
         $this->assertStringContainsString('input[data-ui-datetime]', $entrypoint);
     }
 

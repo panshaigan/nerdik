@@ -12,4 +12,7 @@ return [
     |
     */
     'minute_step' => 1,
+
+    /** Value shown in Flatpickr / datetime text inputs (space between date and time). */
+    'input_format' => 'Y-m-d H:i',
 ];

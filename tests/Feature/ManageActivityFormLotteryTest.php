@@ -24,7 +24,7 @@ class ManageActivityFormLotteryTest extends TestCase
         $user = User::factory()->create();
         $venue = Place::factory()->venue()->create();
         $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
-        $startsAt = now()->addWeek()->format('Y-m-d\TH:i');
+        $startsAt = now()->addWeek()->format(datetime_local_input_format());
 
         Livewire::actingAs($user)
             ->test(ManageActivityForm::class)

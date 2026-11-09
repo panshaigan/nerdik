@@ -414,7 +414,7 @@ class ManageEventForm extends Component
             ->addDay()
             ->setTime(12, 0, 0);
 
-        return $start->format('Y-m-d\TH:i');
+        return $start->format(datetime_local_input_format());
     }
 
     protected function userTimezone(): string
@@ -495,13 +495,13 @@ class ManageEventForm extends Component
                 ->values()
                 ->all();
         } else {
-            $this->starts_at = $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : '';
-            $this->ends_at = $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : '';
+            $this->starts_at = $event->starts_at ? format_datetime_local_input($event->starts_at) : '';
+            $this->ends_at = $event->ends_at ? format_datetime_local_input($event->ends_at) : '';
             $this->enrollment_windows = $event->enrollmentWindows
                 ->map(fn ($p) => [
                     'name' => (string) $p->name,
-                    'starts_at' => format_in_user_tz($p->starts_at, 'Y-m-d\TH:i'),
-                    'ends_at' => format_in_user_tz($p->ends_at, 'Y-m-d\TH:i'),
+                    'starts_at' => format_datetime_local_input($p->starts_at),
+                    'ends_at' => format_datetime_local_input($p->ends_at),
                     'max_activities_per_user' => $p->max_activities_per_user,
                     'max_allowed_participants_per_activity' => $p->max_allowed_participants_per_activity,
                     'accumulative_activities' => (bool) $p->accumulative_activities,

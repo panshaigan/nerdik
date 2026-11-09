@@ -61,11 +61,11 @@ class PostgresRuntimePortabilityTest extends TestCase
             ->set('organization_id', null)
             ->set('organization_name', 'alpha guild')
             ->set('description', 'desc')
-            ->set('starts_at', now()->addDays(7)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('starts_at', now()->addDays(7)->format(datetime_local_input_format()))
+            ->set('ends_at', now()->addDays(8)->format(datetime_local_input_format()))
             ->set('enrollment_windows.0.name', 'Default window')
-            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format('Y-m-d\TH:i'))
-            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format('Y-m-d\TH:i'))
+            ->set('enrollment_windows.0.starts_at', now()->addDays(1)->format(datetime_local_input_format()))
+            ->set('enrollment_windows.0.ends_at', now()->addDays(8)->format(datetime_local_input_format()))
             ->call('save');
 
         $this->assertSame(1, Organization::query()->whereRaw('LOWER(name) = LOWER(?)', ['alpha guild'])->count());

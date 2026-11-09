@@ -30,6 +30,7 @@
         data-locale="{{ app()->getLocale() }}"
         data-time-display-format="{{ display_time_format()->value }}"
         data-datetime-minute-step="{{ max(1, (int) config('ui-datetime.minute_step', 5)) }}"
+        data-datetime-input-format="{{ config('ui-datetime.input_format', 'Y-m-d H:i') }}"
         @auth data-user-id="{{ auth()->id() }}" @endauth
     >
         <x-app-shell-background :enabled="! request()->routeIs('activities.show', 'events.show')" />

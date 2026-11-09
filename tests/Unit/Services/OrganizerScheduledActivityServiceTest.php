@@ -35,8 +35,8 @@ class OrganizerScheduledActivityServiceTest extends TestCase
             'ends_at' => now()->addDays(2),
         ]);
 
-        $startsAt = $event->starts_at->copy()->addHour()->format('Y-m-d\TH:i');
-        $endsAt = $event->starts_at->copy()->addHours(3)->format('Y-m-d\TH:i');
+        $startsAt = $event->starts_at->copy()->addHour()->format(datetime_local_input_format());
+        $endsAt = $event->starts_at->copy()->addHours(3)->format(datetime_local_input_format());
         $rpgId = $this->rpgActivityType()->id;
 
         $result = app(OrganizerScheduledActivityService::class)->create($event, $user, [
@@ -68,8 +68,8 @@ class OrganizerScheduledActivityServiceTest extends TestCase
         app(OrganizerScheduledActivityService::class)->create($event, $user, [
             'name' => 'No venue',
             'activity_type_id' => $this->rpgActivityType()->id,
-            'starts_at' => now()->addDay()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addDay()->addHours(2)->format('Y-m-d\TH:i'),
+            'starts_at' => now()->addDay()->format(datetime_local_input_format()),
+            'ends_at' => now()->addDay()->addHours(2)->format(datetime_local_input_format()),
             'participation_mode' => 'open',
         ]);
     }

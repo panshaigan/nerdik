@@ -43,15 +43,15 @@
     if (isset($events) && $events) {
         foreach ($events as $ev) {
             $eventDatetimeBounds[(int) $ev->id] = [
-                'starts_at' => $ev->starts_at ? format_in_user_tz($ev->starts_at, 'Y-m-d\TH:i') : null,
-                'ends_at' => $ev->ends_at ? format_in_user_tz($ev->ends_at, 'Y-m-d\TH:i') : null,
+                'starts_at' => $ev->starts_at ? format_datetime_local_input($ev->starts_at) : null,
+                'ends_at' => $ev->ends_at ? format_datetime_local_input($ev->ends_at) : null,
             ];
         }
     }
     if ($lockedEvent) {
         $eventDatetimeBounds[(int) $lockedEvent->id] = [
-            'starts_at' => $lockedEvent->starts_at ? format_in_user_tz($lockedEvent->starts_at, 'Y-m-d\TH:i') : null,
-            'ends_at' => $lockedEvent->ends_at ? format_in_user_tz($lockedEvent->ends_at, 'Y-m-d\TH:i') : null,
+            'starts_at' => $lockedEvent->starts_at ? format_datetime_local_input($lockedEvent->starts_at) : null,
+            'ends_at' => $lockedEvent->ends_at ? format_datetime_local_input($lockedEvent->ends_at) : null,
         ];
     }
     $slotMassConfig['eventDatetimeBounds'] = $eventDatetimeBounds;
@@ -251,9 +251,10 @@
                         name="starts_at"
                         type="text"
                         :step="$datetimeMinuteStepSeconds"
-                        value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_in_user_tz($slot->starts_at, 'Y-m-d\TH:i') : '') }}"
+                        value="{{ old('starts_at', $editMode && $slot && $slot->starts_at ? format_datetime_local_input($slot->starts_at) : '') }}"
                         error-field="starts_at"
                         data-ui-datetime
+                        icon="o-calendar-days"
                         inline
                         autocomplete="off"
                         inputmode="none"
@@ -266,9 +267,10 @@
                         name="ends_at"
                         type="text"
                         :step="$datetimeMinuteStepSeconds"
-                        value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_in_user_tz($slot->ends_at, 'Y-m-d\TH:i') : '') }}"
+                        value="{{ old('ends_at', $editMode && $slot && $slot->ends_at ? format_datetime_local_input($slot->ends_at) : '') }}"
                         error-field="ends_at"
                         data-ui-datetime
+                        icon="o-calendar-days"
                         inline
                         autocomplete="off"
                         inputmode="none"

@@ -1,9 +1,9 @@
 @php
     $enforceFuture = (bool) ($enforceFutureDates ?? false);
-    $eventStartsAtMin = $enforceFuture ? format_in_user_tz(now(), 'Y-m-d\TH:i') : null;
+    $eventStartsAtMin = $enforceFuture ? format_datetime_local_input(now()) : null;
     $eventEndsAtMin = ($starts_at ?? '') !== ''
         ? $starts_at
-        : ($enforceFuture ? format_in_user_tz(now(), 'Y-m-d\TH:i') : null);
+        : ($enforceFuture ? format_datetime_local_input(now()) : null);
 @endphp
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div class="relative">

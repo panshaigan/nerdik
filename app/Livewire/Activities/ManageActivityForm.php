@@ -242,7 +242,7 @@ class ManageActivityForm extends Component
             if ($this->self_hosted_venue_place_id !== null) {
                 $this->place_ids = [$this->self_hosted_venue_place_id];
             }
-            $this->self_hosted_starts_at = format_in_user_tz($activity->starts_at, 'Y-m-d\TH:i');
+            $this->self_hosted_starts_at = format_datetime_local_input($activity->starts_at);
             $this->tag_ids = $activity->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
             $this->new_tags = [];
             $this->provided_bring_item_ids = $activity->providedSuggestedBringItems
@@ -1658,8 +1658,8 @@ class ManageActivityForm extends Component
         }
 
         return [
-            'min' => $event->starts_at ? format_in_user_tz($event->starts_at, 'Y-m-d\TH:i') : null,
-            'max' => $event->ends_at ? format_in_user_tz($event->ends_at, 'Y-m-d\TH:i') : null,
+            'min' => $event->starts_at ? format_datetime_local_input($event->starts_at) : null,
+            'max' => $event->ends_at ? format_datetime_local_input($event->ends_at) : null,
             'minUtc' => $event->starts_at?->copy()->setTimezone('UTC'),
             'maxUtc' => $event->ends_at?->copy()->setTimezone('UTC'),
         ];
@@ -1903,7 +1903,7 @@ class ManageActivityForm extends Component
             'activityTagPickerConfig' => $activityTagPickerConfig,
             'futureEvents' => $this->futureEventsForProposal(),
             'selfHostedPlacesConfig' => $selfHostedPlacesConfig,
-            'selfHostedStartTimeMin' => format_in_user_tz(now(), 'Y-m-d\TH:i'),
+            'selfHostedStartTimeMin' => format_datetime_local_input(now()),
             'roomsFetchUrlTemplate' => $roomsFetchUrlTemplate,
             'proposalEventSuggestions' => $proposalEventSuggestions,
             'proposalEventSlots' => $proposalEventSlots,

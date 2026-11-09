@@ -172,6 +172,26 @@ if (! function_exists('format_time_in_user_tz')) {
     }
 }
 
+if (! function_exists('datetime_local_input_format')) {
+    /**
+     * PHP date() pattern for datetime picker text inputs (Flatpickr value in the field).
+     */
+    function datetime_local_input_format(): string
+    {
+        return (string) config('ui-datetime.input_format', 'Y-m-d H:i');
+    }
+}
+
+if (! function_exists('format_datetime_local_input')) {
+    /**
+     * @param  Carbon|DateTimeInterface|string|null  $date
+     */
+    function format_datetime_local_input($date): string
+    {
+        return format_in_user_tz($date, datetime_local_input_format());
+    }
+}
+
 if (! function_exists('parse_datetime_to_utc')) {
     /**
      * Parse a datetime string (e.g. from datetime-local input) as the current user's timezone and return Carbon in UTC.
@@ -183,7 +203,9 @@ if (! function_exists('parse_datetime_to_utc')) {
             return null;
         }
 
-        return Carbon::parse($value, display_timezone())->setTimezone('UTC');
+        $normalized = str_replace('T', ' ', trim($value));
+
+        return Carbon::parse($normalized, display_timezone())->setTimezone('UTC');
     }
 }
 

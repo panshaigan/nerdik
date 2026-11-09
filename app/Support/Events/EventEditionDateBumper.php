@@ -38,6 +38,6 @@ final class EventEditionDateBumper
 
     public function formatForDatetimeLocal(CarbonInterface $date): string
     {
-        return $this->bump($date)->format('Y-m-d\TH:i');
+        return $this->bump($date)->format(datetime_local_input_format());
     }
 }

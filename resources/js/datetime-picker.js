@@ -21,12 +21,22 @@ function appLocale() {
     return document.body?.dataset?.locale || 'en';
 }
 
+function datetimeInputFormat() {
+    return document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i';
+}
+
 function pad2(n) {
     return String(n).padStart(2, '0');
 }
 
 function formatLocalDateTime(d) {
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    const usesT = datetimeInputFormat().includes('T');
+
+    if (usesT) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    }
+
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 /**
@@ -183,7 +193,7 @@ function ensureInstance(input) {
 
     const fp = flatpickr(input, {
         enableTime: true,
-        dateFormat: 'Y-m-d\\TH:i',
+        dateFormat: datetimeInputFormat().replace(/\\/g, '\\\\'),
         time_24hr: useTwentyFourHourClock(),
         minuteIncrement: minuteIncrementFromDom(),
         disableMobile: true,

@@ -229,7 +229,7 @@ final class EventActivitySignupServiceTest extends TestCase
         try {
             $this->service->validateAndNormalizePeriodRowsForEvent($event, [
                 [
-                    'starts_at' => now()->addDays(4)->format('Y-m-d\TH:i'),
+                    'starts_at' => now()->addDays(4)->format(datetime_local_input_format()),
                     'ends_at' => '',
                 ],
             ], Carbon::now('UTC'));
@@ -247,8 +247,8 @@ final class EventActivitySignupServiceTest extends TestCase
             'ends_at' => now()->addDays(7),
         ]);
 
-        $start = now()->addDays(4)->format('Y-m-d\TH:i');
-        $end = now()->addDays(6)->format('Y-m-d\TH:i');
+        $start = now()->addDays(4)->format(datetime_local_input_format());
+        $end = now()->addDays(6)->format(datetime_local_input_format());
 
         $normalized = $this->service->validateAndNormalizePeriodRowsForEvent($event, [
             [
@@ -279,8 +279,8 @@ final class EventActivitySignupServiceTest extends TestCase
         try {
             $this->service->validateAndNormalizePeriodRowsForEvent($event, [
                 [
-                    'starts_at' => now()->addDays(5)->format('Y-m-d\TH:i'),
-                    'ends_at' => now()->addDays(8)->format('Y-m-d\TH:i'),
+                    'starts_at' => now()->addDays(5)->format(datetime_local_input_format()),
+                    'ends_at' => now()->addDays(8)->format(datetime_local_input_format()),
                 ],
             ], Carbon::now('UTC'));
             $this->fail('Expected ValidationException when window ends after event.');

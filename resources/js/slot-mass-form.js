@@ -288,14 +288,19 @@ export function initSlotMassForm(form) {
         return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
 
+    function datetimeInputFormat() {
+        return document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i';
+    }
+
     function formatLocalDateTime(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
+        const separator = datetimeInputFormat().includes('T') ? 'T' : ' ';
 
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        return `${year}-${month}-${day}${separator}${hours}:${minutes}`;
     }
 
     function getCurrentEventId() {
@@ -450,7 +455,9 @@ function initScheduleActivityLivewireForm(form) {
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
 
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        const separator = (document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i').includes('T') ? 'T' : ' ';
+
+        return `${year}-${month}-${day}${separator}${hours}:${minutes}`;
     }
 
     function applyEventDatetimeLimits() {

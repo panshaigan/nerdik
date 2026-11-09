@@ -354,9 +354,9 @@ final class ManageEventFormGalleryTest extends TestCase
         $now = now();
 
         return [
-            'starts_at' => $now->copy()->addDays(7)->format('Y-m-d\\TH:i'),
-            'ends_at' => $now->copy()->addDays(8)->format('Y-m-d\\TH:i'),
-            'window_starts_at' => $now->copy()->addDays(1)->format('Y-m-d\\TH:i'),
+            'starts_at' => $now->copy()->addDays(7)->format(datetime_local_input_format()),
+            'ends_at' => $now->copy()->addDays(8)->format(datetime_local_input_format()),
+            'window_starts_at' => $now->copy()->addDays(1)->format(datetime_local_input_format()),
         ];
     }
 }

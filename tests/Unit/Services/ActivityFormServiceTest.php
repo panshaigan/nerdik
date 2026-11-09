@@ -129,7 +129,7 @@ final class ActivityFormServiceTest extends TestCase
         $form->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
         $form->self_hosted_venue_place_id = $venue->id;
         $form->self_hosted_room_name = 'Table 3';
-        $form->self_hosted_starts_at = now()->addDay()->startOfHour()->format('Y-m-d\TH:i');
+        $form->self_hosted_starts_at = now()->addDay()->startOfHour()->format(datetime_local_input_format());
         $form->tag_ids = [];
         $form->new_tags = [];
         $form->new_places = [];
@@ -217,7 +217,7 @@ final class ActivityFormServiceTest extends TestCase
         $form->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
         $form->self_hosted_venue_place_id = $venue->id;
         $form->self_hosted_room_name = null;
-        $form->self_hosted_starts_at = now()->addDays(2)->startOfHour()->format('Y-m-d\TH:i');
+        $form->self_hosted_starts_at = now()->addDays(2)->startOfHour()->format(datetime_local_input_format());
         $form->tag_ids = [];
         $form->new_tags = [];
         $form->new_places = [];

@@ -49,7 +49,7 @@ final class EventEditionDateBumperTest extends TestCase
     {
         $original = Carbon::parse('2026-06-15 17:00:00', 'UTC');
         $formatted = $this->bumper->formatForDatetimeLocal($original);
-        $expected = $this->bumper->bump($original)->format('Y-m-d\TH:i');
+        $expected = $this->bumper->bump($original)->format(datetime_local_input_format());
 
         $this->assertSame($expected, $formatted);
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $formatted);

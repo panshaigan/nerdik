@@ -187,7 +187,13 @@
                                         wire:target="openScheduleActivityModal"
                                         data-ui="event-show-schedule-activity"
                                     >
-                                        {{ __('ui.events.schedule_activity_action') }}
+                                        <span wire:loading.remove wire:target="openScheduleActivityModal">
+                                            {{ __('ui.events.schedule_activity_action') }}
+                                        </span>
+                                        <span wire:loading wire:target="openScheduleActivityModal" class="inline-flex items-center gap-2">
+                                            <span class="loading loading-spinner loading-xs" aria-hidden="true"></span>
+                                            {{ __('ui.common.loading') }}
+                                        </span>
                                     </x-ui.overflow-menu-item>
                                 @endif
                                 <x-ui.overflow-menu-item

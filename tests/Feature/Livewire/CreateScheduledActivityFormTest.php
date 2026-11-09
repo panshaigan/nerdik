@@ -46,8 +46,8 @@ class CreateScheduledActivityFormTest extends TestCase
         ]);
 
         $activityName = 'Dungeon Crawl Alpha';
-        $startsAt = $event->starts_at->copy()->addHours(2)->format('Y-m-d\TH:i');
-        $endsAt = $event->starts_at->copy()->addHours(4)->format('Y-m-d\TH:i');
+        $startsAt = $event->starts_at->copy()->addHours(2)->format(datetime_local_input_format());
+        $endsAt = $event->starts_at->copy()->addHours(4)->format(datetime_local_input_format());
         $rpg = $this->rpgActivityType();
 
         Livewire::actingAs($owner)
@@ -83,8 +83,8 @@ class CreateScheduledActivityFormTest extends TestCase
         Livewire::test(CreateScheduledActivityForm::class, ['eventId' => $event->id])
             ->set('name', 'Blocked')
             ->set('activity_type_id', $rpg->id)
-            ->set('starts_at', now()->addDay()->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDay()->addHours(2)->format('Y-m-d\TH:i'))
+            ->set('starts_at', now()->addDay()->format(datetime_local_input_format()))
+            ->set('ends_at', now()->addDay()->addHours(2)->format(datetime_local_input_format()))
             ->call('save')
             ->assertStatus(403);
     }
@@ -108,8 +108,8 @@ class CreateScheduledActivityFormTest extends TestCase
             ->test(CreateScheduledActivityForm::class, ['eventId' => $event->id])
             ->set('name', 'Cancelled block')
             ->set('activity_type_id', $rpg->id)
-            ->set('starts_at', now()->addDay()->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDay()->addHours(2)->format('Y-m-d\TH:i'))
+            ->set('starts_at', now()->addDay()->format(datetime_local_input_format()))
+            ->set('ends_at', now()->addDay()->addHours(2)->format(datetime_local_input_format()))
             ->call('save')
             ->assertStatus(403);
     }
@@ -158,8 +158,8 @@ class CreateScheduledActivityFormTest extends TestCase
         Livewire::actingAs($owner)
             ->test(CreateScheduledActivityForm::class, ['eventId' => $event->id])
             ->set('name', 'Needs venue')
-            ->set('starts_at', now()->addDay()->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDay()->addHours(2)->format('Y-m-d\TH:i'))
+            ->set('starts_at', now()->addDay()->format(datetime_local_input_format()))
+            ->set('ends_at', now()->addDay()->addHours(2)->format(datetime_local_input_format()))
             ->call('save')
             ->assertHasErrors(['venue_place_id']);
 
@@ -167,8 +167,8 @@ class CreateScheduledActivityFormTest extends TestCase
             ->test(CreateScheduledActivityForm::class, ['eventId' => $event->id])
             ->set('name', 'Bad times')
             ->set('venue_place_id', $venue->id)
-            ->set('starts_at', now()->addDay()->addHours(4)->format('Y-m-d\TH:i'))
-            ->set('ends_at', now()->addDay()->addHours(2)->format('Y-m-d\TH:i'))
+            ->set('starts_at', now()->addDay()->addHours(4)->format(datetime_local_input_format()))
+            ->set('ends_at', now()->addDay()->addHours(2)->format(datetime_local_input_format()))
             ->call('save')
             ->assertHasErrors(['ends_at']);
     }

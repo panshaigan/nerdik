@@ -91,14 +91,14 @@ class FormatTimeInUserTzTest extends TestCase
         $user = User::factory()->create();
         $user->profile()->update([
             'timezone' => 'Europe/Warsaw',
-            'time_display_format' => TimeDisplayFormat::TwelveHour,
+            'time_display_format' => TimeDisplayFormat::TwentyFourHour,
         ]);
 
         $this->actingAs($user);
 
         $this->assertSame(
-            '2026-07-01T16:30',
-            format_in_user_tz(Carbon::parse('2026-07-01 14:30:00', 'UTC'), 'Y-m-d\TH:i'),
+            '2026-07-01 16:30',
+            format_in_user_tz(Carbon::parse('2026-07-01 14:30:00', 'UTC'), datetime_local_input_format()),
         );
     }
 
