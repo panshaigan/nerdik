@@ -558,7 +558,6 @@ return [
             'play_area_radius_unit' => 'km',
             'play_area_clear' => 'Clear area',
             'interest_tags_title' => 'What I want to play',
-            'interest_tags_placeholder' => 'Search or create tags',
             'interest_tags_empty' => 'No interest tags yet.',
             'play_area_empty' => 'No play area set.',
             'play_area_preview_caption' => ':label · :radius km',

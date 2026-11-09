@@ -122,7 +122,7 @@ new class extends Component
         </h2>
     </header>
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
 
     <div class="space-y-3" data-ui="profile-availability-weekdays-form">
         <h3 class="text-sm font-semibold text-base-content">

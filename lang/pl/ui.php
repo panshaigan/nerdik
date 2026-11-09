@@ -558,7 +558,6 @@ return [
             'play_area_radius_unit' => 'km',
             'play_area_clear' => 'Wyczyść obszar',
             'interest_tags_title' => 'W co chcę grać',
-            'interest_tags_placeholder' => 'Szukaj lub utwórz tagi',
             'interest_tags_empty' => 'Brak tagów zainteresowań.',
             'play_area_empty' => 'Nie ustawiono obszaru gry.',
             'play_area_preview_caption' => ':label · :radius km',

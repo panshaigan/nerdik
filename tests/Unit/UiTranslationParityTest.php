@@ -50,7 +50,7 @@ class UiTranslationParityTest extends TestCase
             preg_match_all("/(?:__|trans|trans_choice)\\(['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches);
 
             foreach ($matches[1] as $key) {
-                if (str_ends_with($key, '.')) {
+                if (str_ends_with($key, '.') || str_ends_with($key, '_')) {
                     continue;
                 }
 
@@ -154,7 +154,7 @@ class UiTranslationParityTest extends TestCase
                 // quoted literals assigned to variables then translated (e.g. __($key)).
                 if (preg_match_all("/['\"](ui\\.[^'\"]+)['\"]/", $contents, $matches)) {
                     foreach ($matches[1] as $key) {
-                        if (str_ends_with($key, '.')) {
+                        if (str_ends_with($key, '.') || str_ends_with($key, '_')) {
                             continue;
                         }
 
@@ -221,7 +221,9 @@ class UiTranslationParityTest extends TestCase
     {
         return [
             'activities.types.' => 'activities.types.',
+            'activities.propose_nouns.' => 'activities.propose_nouns.',
             'activities.host_title.' => 'activities.host_title.',
+            'profile.availability.weekday_' => 'profile.availability.weekday_',
             'calendar.targets.' => 'calendar.targets.',
             'familiarity.levels.' => 'familiarity.levels.',
             'features.' => 'features.',

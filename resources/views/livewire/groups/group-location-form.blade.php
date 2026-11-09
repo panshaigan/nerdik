@@ -5,7 +5,7 @@
         </h2>
     </header>
 
-    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.form_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
+    <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />
 
     @if ($canManage)
         <div class="space-y-4 overflow-visible" data-ui="group-location-editor">
