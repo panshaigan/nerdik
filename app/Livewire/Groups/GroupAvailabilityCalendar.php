@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Groups;
 
+use App\Models\Activity;
 use App\Models\Group;
 use App\Services\GroupAvailabilityService;
 use Illuminate\Support\Carbon;
@@ -66,9 +67,37 @@ class GroupAvailabilityCalendar extends Component
         return $this->minAvailable > 0;
     }
 
+    public function createActivityUrlForSelectedDate(Group $group): ?string
+    {
+        if ($this->selectedDate === null) {
+            return null;
+        }
+
+        $dayStart = Carbon::parse($this->selectedDate, display_timezone())->startOfDay();
+        $todayStart = Carbon::now(display_timezone())->startOfDay();
+        if ($dayStart->lessThan($todayStart)) {
+            return null;
+        }
+
+        $query = [
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'self_hosted_starts_at' => $this->selectedDate.'T18:00',
+        ];
+
+        $groupTagIds = $group->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        if ($groupTagIds !== []) {
+            $query['tag_ids'] = $groupTagIds;
+        }
+
+        return url_with_return(
+            route('activities.create').'?'.http_build_query($query),
+            route('groups.show', $group, false),
+        );
+    }
+
     public function render(GroupAvailabilityService $calendar)
     {
-        $group = Group::query()->visibleTo(Auth::user())->whereKey($this->groupId)->firstOrFail();
+        $group = Group::query()->visibleTo(Auth::user())->with('tags')->whereKey($this->groupId)->firstOrFail();
 
         $monthDate = Carbon::parse($this->month.'-01');
         $minAvailable = $this->minAvailable > 0 ? $this->minAvailable : null;

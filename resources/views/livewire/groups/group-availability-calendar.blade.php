@@ -120,7 +120,20 @@
                         </ul>
                     </div>
                 @endforeach
-                <div class="flex justify-end">
+                @php
+                    $createActivityUrl = $this->createActivityUrlForSelectedDate($group);
+                @endphp
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                    @if ($createActivityUrl !== null)
+                        <x-button
+                            type="button"
+                            class="btn-primary"
+                            icon="o-plus"
+                            :link="$createActivityUrl"
+                            data-ui="group-day-create-activity"
+                            :label="__('ui.activities.create_activity')"
+                        />
+                    @endif
                     <x-button type="button" class="btn-ghost" wire:click="closeDayDetail">
                         {{ __('ui.common.close') }}
                     </x-button>

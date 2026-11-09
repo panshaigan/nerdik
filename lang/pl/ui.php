@@ -961,7 +961,7 @@ return [
             'heading' => 'Sugerowane na sesję',
             'optional_label' => 'Opcjonalnie.',
             'not_a_gate' => 'Nie są wymagane, żeby dołączyć — to tylko podpowiedzi.',
-            'host_provides' => 'Organizator zapewnia',
+            'host_provides' => 'Prowadzący zapewnia',
             'form_heading' => 'Sugerowane na sesję',
             'form_not_a_gate' => 'Nie są wymagane, żeby dołączyć — opcjonalne podpowiedzi dla uczestników.',
             'inherited_heading' => 'Z typu aktywności i tagów gier',

@@ -296,6 +296,7 @@ class ManageActivityForm extends Component
         }
 
         $this->applyProposalContextPrefill();
+        $this->applyGroupCalendarPrefill();
 
         if ($this->editingActivityId === null && $this->activity_type_id === null) {
             $this->activity_type_id = $this->defaultActivityTypeId();
@@ -594,6 +595,53 @@ class ManageActivityForm extends Component
         $trim = trim($raw);
 
         return $trim === '' ? null : $trim;
+    }
+
+    private function applyGroupCalendarPrefill(): void
+    {
+        if ($this->editingActivityId !== null
+            || $this->duplicateQuerySlug() !== null
+            || $this->proposal_event_id !== null) {
+            return;
+        }
+
+        if (! request()->filled('hosting_mode')
+            && ! request()->filled('self_hosted_starts_at')
+            && ! request()->has('tag_ids')) {
+            return;
+        }
+
+        if (request()->has('tag_ids')) {
+            $raw = request()->query('tag_ids');
+            $ids = [];
+            if (is_array($raw)) {
+                $ids = array_values(array_filter(array_map('intval', $raw)));
+            } elseif (is_string($raw) && $raw !== '') {
+                $ids = array_values(array_filter(array_map('intval', explode(',', $raw))));
+            }
+            if ($ids !== []) {
+                $this->tag_ids = Tag::query()
+                    ->whereIn('id', $ids)
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->values()
+                    ->all();
+                $this->new_tags = [];
+            }
+        }
+
+        $hostingMode = (int) request()->query('hosting_mode', 0);
+        if ($hostingMode === Activity::HOSTING_MODE_SELF_HOSTED) {
+            $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+        }
+
+        if (request()->filled('self_hosted_starts_at')) {
+            $raw = request()->query('self_hosted_starts_at');
+            if (is_string($raw) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', trim($raw)) === 1) {
+                $this->self_hosted_starts_at = trim($raw);
+                $this->hosting_mode = Activity::HOSTING_MODE_SELF_HOSTED;
+            }
+        }
     }
 
     /**
