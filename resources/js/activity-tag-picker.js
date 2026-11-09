@@ -87,6 +87,20 @@ const BADGE_TONE_CLASS = {
     error: 'badge-error',
 };
 
+function readAtpLivewireSyncMethod(root) {
+    const cfgEl = root.querySelector('script[type="application/json"][data-atp-config]');
+    if (!cfgEl) {
+        return null;
+    }
+    try {
+        const method = JSON.parse(cfgEl.textContent || '{}').livewireSyncMethod;
+
+        return typeof method === 'string' && method.trim() !== '' ? method.trim() : null;
+    } catch {
+        return null;
+    }
+}
+
 function syncLivewireTagState(root, tagIds, newTagsPayload) {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
         return;
@@ -100,7 +114,18 @@ function syncLivewireTagState(root, tagIds, newTagsPayload) {
         return;
     }
     const wire = window.Livewire.find(id);
-    if (!wire || typeof wire.set !== 'function') {
+    if (!wire) {
+        return;
+    }
+
+    const syncMethod = readAtpLivewireSyncMethod(root);
+    if (syncMethod && typeof wire.call === 'function') {
+        wire.call(syncMethod, tagIds, newTagsPayload);
+
+        return;
+    }
+
+    if (typeof wire.set !== 'function') {
         return;
     }
     if (typeof wire.get === 'function' || typeof wire.$get === 'function') {

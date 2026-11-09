@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Group;
 use App\Models\User;
+use App\Support\BrowseTagFilter;
 use App\Support\Geo\BoundingBox;
 use App\Support\Geo\Haversine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -15,10 +16,6 @@ use Illuminate\Support\Facades\DB;
 class GroupPublicDirectoryService
 {
     private const float EARTH_RADIUS_KM = Haversine::EARTH_RADIUS_KM;
-
-    public function __construct(
-        private readonly TagSelectionService $tagSelection,
-    ) {}
 
     /**
      * @param  list<int>  $tagIds
@@ -46,12 +43,7 @@ class GroupPublicDirectoryService
 
         $tagIds = array_values(array_unique(array_map('intval', $tagIds)));
         if ($tagIds !== []) {
-            $expanded = $this->tagSelection->expandTagIdsToDescendants($tagIds);
-            if ($expanded === []) {
-                return $query->whereRaw('1 = 0')->paginate($perPage);
-            }
-
-            $query->whereHas('tags', fn (Builder $tags) => $tags->whereIn('tags.id', $expanded));
+            BrowseTagFilter::apply($query, $tagIds, matchAll: true, relation: 'tags');
         }
 
         if ($nearMyPlayArea) {

@@ -9,6 +9,8 @@ use App\Livewire\Groups\GroupAvailabilityCalendar;
 use App\Livewire\Groups\GroupFindDirectory;
 use App\Livewire\Groups\ShowGroup;
 use App\Models\Group;
+use App\Models\Tag;
+use App\Models\TagCategory;
 use App\Models\User;
 use App\Services\GroupMembershipService;
 use App\Support\Search\GlobalNavSearch as GlobalNavSearchService;
@@ -120,6 +122,33 @@ final class GroupPublicVisibilityTest extends TestCase
 
         Livewire::test(GroupAvailabilityCalendar::class, ['groupId' => $group->id])
             ->assertStatus(404);
+    }
+
+    public function test_find_directory_filters_by_selected_tags(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $category = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
+        $bladeTag = Tag::factory()->for($category, 'tagCategory')->create();
+        $dndTag = Tag::factory()->for($category, 'tagCategory')->create();
+
+        $matching = Group::factory()->public()->withOwnerMember()->create([
+            'created_by' => $owner->id,
+            'name' => 'Cyberpunk Nights',
+        ]);
+        $matching->tags()->attach([$bladeTag->id]);
+
+        $other = Group::factory()->public()->withOwnerMember()->create([
+            'created_by' => $owner->id,
+            'name' => 'Fantasy Tavern',
+        ]);
+        $other->tags()->attach([$dndTag->id]);
+
+        Livewire::actingAs($viewer)
+            ->test(GroupFindDirectory::class)
+            ->call('syncFindTagsFromPicker', [$bladeTag->id], [])
+            ->assertSee('Cyberpunk Nights')
+            ->assertDontSee('Fantasy Tavern');
     }
 
     public function test_find_directory_lists_public_group_and_skips_private_and_mine(): void

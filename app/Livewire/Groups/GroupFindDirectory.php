@@ -20,6 +20,11 @@ class GroupFindDirectory extends Component
     /** @var list<int> */
     public array $tag_ids = [];
 
+    /**
+     * @var list<array{label: string, category_id: int|string}>
+     */
+    public array $new_tags = [];
+
     public bool $nearMyPlayArea = false;
 
     public function updatedNameQuery(): void
@@ -29,6 +34,29 @@ class GroupFindDirectory extends Component
 
     public function updatedTagIds(): void
     {
+        $this->resetPage();
+    }
+
+    /**
+     * @param  list<int|string>  $tag_ids
+     * @param  list<array{label: string, category_id: int|string}>  $new_tags
+     */
+    public function syncFindTagsFromPicker(array $tag_ids, array $new_tags = []): void
+    {
+        $this->tag_ids = array_values(array_unique(array_filter(
+            array_map(static fn ($id) => (int) $id, $tag_ids),
+            static fn (int $id) => $id > 0
+        )));
+
+        $this->new_tags = collect($new_tags)
+            ->filter(static fn ($row) => is_array($row) && isset($row['label'], $row['category_id']))
+            ->map(static fn (array $row) => [
+                'label' => trim((string) $row['label']),
+                'category_id' => (int) $row['category_id'],
+            ])
+            ->values()
+            ->all();
+
         $this->resetPage();
     }
 
@@ -58,6 +86,7 @@ class GroupFindDirectory extends Component
                 'createTag' => __('ui.tags.create_tag'),
                 'auto' => __('ui.tags.auto'),
             ],
+            'livewireSyncMethod' => 'syncFindTagsFromPicker',
         ];
     }
 
