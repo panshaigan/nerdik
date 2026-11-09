@@ -77,18 +77,24 @@ function loadOnce(key, shouldLoad, loader) {
     return load;
 }
 
+function scheduleActivityFormsPresent() {
+    return document.querySelector('[data-ui="schedule-activity-form-host"], form[data-schedule-activity-form]') !== null;
+}
+
 function bootSlotForms() {
     const shouldLoad =
-        document.querySelector('[data-slot-mass-form], [data-schedule-activity-form], #slot-edit-modal') !== null;
+        scheduleActivityFormsPresent()
+        || document.querySelector('[data-slot-mass-form], #slot-edit-modal') !== null;
 
-    loadOnce('slot-forms', shouldLoad, async () => {
-        const [{ initSlotEditForm }, { initSlotMassForm }] = await Promise.all([
+    return loadOnce('slot-forms', shouldLoad, async () => {
+        const [{ initSlotEditForm }, { initSlotMassForm, refreshScheduleActivityForm }] = await Promise.all([
             import('./slot-form-modal'),
             import('./slot-mass-form'),
         ]);
 
         window.initSlotEditForm = initSlotEditForm;
         window.initSlotMassForm = initSlotMassForm;
+        window.refreshScheduleActivityForm = refreshScheduleActivityForm;
 
         const bootForms = () => {
             document.querySelectorAll('form[data-schedule-activity-form]').forEach((form) => {
@@ -121,6 +127,14 @@ function bootSlotForms() {
         }
     });
 }
+
+function ensureScheduleActivityFormReady() {
+    bootSlotForms();
+
+    return moduleLoads.get('slot-forms') ?? Promise.resolve();
+}
+
+window.ensureScheduleActivityFormReady = ensureScheduleActivityFormReady;
 
 function tagSelectorNeedsImmediateBoot(root) {
     const configElement = root.querySelector('script[type="application/json"][data-ts-config]');
@@ -295,7 +309,7 @@ function bootFeatureModules() {
     bootActivityTagPickersFeature();
     loadOnce(
         'datetime-pickers',
-        document.querySelector('input[data-ui-datetime]') !== null,
+        document.querySelector('input[data-ui-datetime]') !== null || scheduleActivityFormsPresent(),
         () => import('./datetime-picker').then(({ bootDateTimePickers }) => bootDateTimePickers()),
     );
     loadOnce(

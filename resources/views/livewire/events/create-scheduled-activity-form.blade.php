@@ -17,7 +17,20 @@
                 data-slot-mass-form
                 novalidate
                 x-data
-                x-init="$watch('$wire.modalOpen', (open) => { if (open) { $nextTick(() => window.initSlotMassForm?.(document.getElementById('event-schedule-activity-form'))) } })"
+                x-init="$watch('$wire.modalOpen', async (open) => {
+                    if (!open) {
+                        return;
+                    }
+                    await (window.ensureScheduleActivityFormReady?.() ?? Promise.resolve());
+                    $nextTick(() => {
+                        const form = document.getElementById('event-schedule-activity-form');
+                        if (!form) {
+                            return;
+                        }
+                        delete form.dataset.slotMassFormInitialized;
+                        window.initSlotMassForm?.(form);
+                    });
+                })"
             >
                 @php
                     $slotMassConfig = [

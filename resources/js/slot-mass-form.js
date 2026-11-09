@@ -1,21 +1,87 @@
 /**
+ * @param {string | undefined | null} value
+ * @returns {Date | null}
+ */
+function parseDatetimeLocalValue(value) {
+    if (!value || typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) {
+        const fallback = new Date(trimmed);
+        return Number.isNaN(fallback.getTime()) ? null : fallback;
+    }
+
+    const [, y, m, d, h, min, s] = match;
+
+    return new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        Number(h),
+        Number(min),
+        s ? Number(s) : 0,
+        0,
+    );
+}
+
+/**
+ * @param {Date} date
+ * @returns {string}
+ */
+function formatDatetimeLocalValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+async function ensureDateTimePickerModule() {
+    if (typeof window.bootDateTimePickers === 'function') {
+        window.bootDateTimePickers();
+
+        return;
+    }
+
+    const mod = await import('./datetime-picker');
+    mod.bootDateTimePickers();
+    window.bootDateTimePickers = mod.bootDateTimePickers;
+    window.primeDatetimePickersIn = mod.primeDatetimePickersIn;
+}
+
+/**
  * Slot mass-create / edit form (venue, room, activity chips, name suggestions).
  *
  * @param {HTMLFormElement} form
+ * @param {{ refreshOnly?: boolean }} [options]
  */
-export function initSlotMassForm(form) {
-    if (!form || form.dataset.slotMassFormInitialized) {
+export function initSlotMassForm(form, options = {}) {
+    if (!form) {
         return;
     }
-    form.dataset.slotMassFormInitialized = '1';
 
     const massForm = form;
 
     if (form.hasAttribute('data-schedule-activity-form')) {
-        initScheduleActivityLivewireForm(massForm);
+        void initScheduleActivityLivewireForm(massForm, options);
+        form.dataset.slotMassFormInitialized = '1';
 
         return;
     }
+
+    if (form.dataset.slotMassFormInitialized) {
+        return;
+    }
+    form.dataset.slotMassFormInitialized = '1';
 
     massForm.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') {
@@ -280,27 +346,11 @@ export function initSlotMassForm(form) {
     }
 
     function parseLocalDateTime(value) {
-        if (!value) {
-            return null;
-        }
-        const parsed = new Date(value);
-
-        return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    function datetimeInputFormat() {
-        return document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i';
+        return parseDatetimeLocalValue(value);
     }
 
     function formatLocalDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const separator = datetimeInputFormat().includes('T') ? 'T' : ' ';
-
-        return `${year}-${month}-${day}${separator}${hours}:${minutes}`;
+        return formatDatetimeLocalValue(date);
     }
 
     function getCurrentEventId() {
@@ -406,115 +456,102 @@ export function initSlotMassForm(form) {
 }
 
 /**
- * Livewire schedule-activity modal: datetime defaults/limits and room autocomplete (no mass POST).
- *
  * @param {HTMLFormElement} form
  */
-function initScheduleActivityLivewireForm(form) {
-    const configJson = form.querySelector('[data-slot-mass-config]');
-    const roomsJson = form.querySelector('[data-schedule-activity-rooms]');
+export async function refreshScheduleActivityForm(form) {
+    if (!form?.hasAttribute('data-schedule-activity-form')) {
+        return;
+    }
+
     let eventDatetimeBounds = {};
     let roomsByVenueId = {};
     try {
-        const parsed = JSON.parse(configJson?.textContent || '{}');
+        const parsed = JSON.parse(form.querySelector('[data-slot-mass-config]')?.textContent || '{}');
         eventDatetimeBounds = parsed.eventDatetimeBounds || {};
     } catch {
         eventDatetimeBounds = {};
     }
     try {
-        roomsByVenueId = JSON.parse(roomsJson?.textContent || '{}');
+        roomsByVenueId = JSON.parse(form.querySelector('[data-schedule-activity-rooms]')?.textContent || '{}');
     } catch {
         roomsByVenueId = {};
     }
 
-    const startsField = form.querySelector('[data-schedule-activity-field="starts_at"]');
-    const endsField = form.querySelector('[data-schedule-activity-field="ends_at"]');
-    const startsAtInput = startsField?.querySelector('input[data-ui-datetime]') ?? null;
-    const endsAtInput = endsField?.querySelector('input[data-ui-datetime]') ?? null;
-    const venueSelect =
-        form.querySelector('[data-schedule-activity-venue-select] select') ??
-        form.querySelector('select[wire\\:model="venue_place_id"]');
+    const eventBounds = Object.values(eventDatetimeBounds)[0] || null;
+    const startsAtInput =
+        form.querySelector('[data-schedule-activity-field="starts_at"] input[data-ui-datetime]') ?? null;
+    const endsAtInput =
+        form.querySelector('[data-schedule-activity-field="ends_at"] input[data-ui-datetime]') ?? null;
+
+    const eventStart = (eventBounds?.starts_at || '').replace('T', ' ');
+    const eventEnd = (eventBounds?.ends_at || '').replace('T', ' ');
+
+    if (startsAtInput instanceof HTMLInputElement) {
+        startsAtInput.min = eventStart;
+        startsAtInput.max = eventEnd;
+        if (startsAtInput.value.includes('T')) {
+            startsAtInput.value = startsAtInput.value.replace('T', ' ');
+        }
+        if (!startsAtInput.value.trim() && eventStart) {
+            startsAtInput.value = eventStart;
+            startsAtInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    if (endsAtInput instanceof HTMLInputElement) {
+        endsAtInput.min = eventStart;
+        endsAtInput.max = eventEnd;
+        if (endsAtInput.value.includes('T')) {
+            endsAtInput.value = endsAtInput.value.replace('T', ' ');
+        }
+        if (!endsAtInput.value.trim()) {
+            const baseDate =
+                parseDatetimeLocalValue(startsAtInput?.value || '') || parseDatetimeLocalValue(eventStart);
+            if (baseDate) {
+                const defaultEnd = new Date(baseDate.getTime() + 4 * 60 * 60 * 1000);
+                let finalEnd = defaultEnd;
+                const eventEndDate = parseDatetimeLocalValue(eventEnd);
+                if (eventEndDate && finalEnd > eventEndDate) {
+                    finalEnd = eventEndDate;
+                }
+                endsAtInput.value = formatDatetimeLocalValue(finalEnd);
+                endsAtInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+    }
+
+    await ensureDateTimePickerModule();
+    window.primeDatetimePickersIn?.(form);
+
+    return { roomsByVenueId };
+}
+
+/**
+ * Livewire schedule-activity modal: datetime defaults/limits and room autocomplete (no mass POST).
+ *
+ * @param {HTMLFormElement} form
+ * @param {{ refreshOnly?: boolean }} [options]
+ */
+async function initScheduleActivityLivewireForm(form, options = {}) {
+    const { roomsByVenueId } = (await refreshScheduleActivityForm(form)) ?? {};
+
+    if (options.refreshOnly === true || form.dataset.scheduleActivityUiBound === '1') {
+        return;
+    }
+    form.dataset.scheduleActivityUiBound = '1';
+
     const roomInput = form.querySelector('[data-slot-room-input] input') ?? form.querySelector('[data-slot-room-input]');
     const roomPopup = form.querySelector('[data-slot-room-popup]');
-
-    const eventBounds = Object.values(eventDatetimeBounds)[0] || null;
-
-    function parseLocalDateTime(value) {
-        if (!value) {
-            return null;
-        }
-        const parsed = new Date(value);
-
-        return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    function formatLocalDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-
-        const separator = (document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i').includes('T') ? 'T' : ' ';
-
-        return `${year}-${month}-${day}${separator}${hours}:${minutes}`;
-    }
-
-    function applyEventDatetimeLimits() {
-        const eventStart = eventBounds?.starts_at || '';
-        const eventEnd = eventBounds?.ends_at || '';
-        if (startsAtInput) {
-            startsAtInput.min = eventStart;
-            startsAtInput.max = eventEnd;
-        }
-        if (endsAtInput) {
-            endsAtInput.min = eventStart;
-            endsAtInput.max = eventEnd;
-        }
-    }
-
-    function syncInputValue(input, value) {
-        if (!(input instanceof HTMLInputElement)) {
-            return;
-        }
-        input.value = value;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-
-    function defaultStartsAtIfEmpty() {
-        if (!startsAtInput || startsAtInput.value) {
-            return;
-        }
-        if (eventBounds?.starts_at) {
-            syncInputValue(startsAtInput, eventBounds.starts_at);
-        }
-    }
-
-    function defaultEndsAtIfEmpty() {
-        if (!endsAtInput || endsAtInput.value) {
-            return;
-        }
-
-        const baseDate =
-            parseLocalDateTime(startsAtInput?.value || '') || parseLocalDateTime(eventBounds?.starts_at || '');
-        if (!baseDate) {
-            return;
-        }
-
-        const defaultEnd = new Date(baseDate.getTime() + 4 * 60 * 60 * 1000);
-        let finalEnd = defaultEnd;
-        const eventEndDate = parseLocalDateTime(eventBounds?.ends_at || '');
-        if (eventEndDate && finalEnd > eventEndDate) {
-            finalEnd = eventEndDate;
-        }
-        syncInputValue(endsAtInput, formatLocalDateTime(finalEnd));
-    }
 
     function currentVenueId() {
         const hiddenVenue = form.querySelector('[data-schedule-activity-venue-select] input[type="hidden"]');
         if (hiddenVenue?.value) {
             return String(hiddenVenue.value);
         }
+
+        const venueSelect =
+            form.querySelector('[data-schedule-activity-venue-select] select') ??
+            form.querySelector('select[wire\\:model="venue_place_id"]');
 
         return venueSelect?.value ? String(venueSelect.value) : '';
     }
@@ -525,33 +562,46 @@ function initScheduleActivityLivewireForm(form) {
             return [];
         }
 
-        return roomsByVenueId[vid] || roomsByVenueId[Number.parseInt(vid, 10)] || [];
+        let map = roomsByVenueId ?? {};
+        try {
+            map = JSON.parse(form.querySelector('[data-schedule-activity-rooms]')?.textContent || '{}');
+        } catch {
+            map = roomsByVenueId ?? {};
+        }
+
+        return map[vid] || map[Number.parseInt(vid, 10)] || [];
     }
 
     if (roomInput instanceof HTMLInputElement && roomPopup) {
         wireRoomAutocomplete(roomInput, roomPopup, form, () => getRoomsForVenue());
     }
 
-    venueSelect?.addEventListener('change', () => {
-        if (roomInput instanceof HTMLInputElement) {
-            roomInput.value = '';
-            roomInput.dispatchEvent(new Event('input', { bubbles: true }));
+    form.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLSelectElement)) {
+            return;
+        }
+        if (!target.closest('[data-schedule-activity-venue-select]') && target.getAttribute('wire:model') !== 'venue_place_id') {
+            return;
+        }
+        const room = form.querySelector('[data-slot-room-input] input');
+        if (room instanceof HTMLInputElement) {
+            room.value = '';
+            room.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
 
-    applyEventDatetimeLimits();
-    startsAtInput?.addEventListener('focus', defaultStartsAtIfEmpty);
-    startsAtInput?.addEventListener('click', defaultStartsAtIfEmpty);
-    endsAtInput?.addEventListener('focus', defaultEndsAtIfEmpty);
-    endsAtInput?.addEventListener('click', defaultEndsAtIfEmpty);
-
-    if (typeof window.bootDateTimePickers === 'function') {
-        window.bootDateTimePickers();
-    } else {
-        import('./datetime-picker')
-            .then(({ bootDateTimePickers }) => bootDateTimePickers())
-            .catch(() => {});
-    }
+    form.addEventListener(
+        'focusin',
+        (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement) || !target.hasAttribute('data-ui-datetime')) {
+                return;
+            }
+            void refreshScheduleActivityForm(form);
+        },
+        true,
+    );
 }
 
 /**

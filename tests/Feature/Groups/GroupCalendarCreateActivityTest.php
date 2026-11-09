@@ -51,7 +51,7 @@ final class GroupCalendarCreateActivityTest extends TestCase
             ->withQueryParams(['group_calendar' => $token])
             ->test(ManageActivityForm::class)
             ->assertSet('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
-            ->assertSet('self_hosted_starts_at', $futureDate->format('Y-m-d').'T18:00')
+            ->assertSet('self_hosted_starts_at', $futureDate->format('Y-m-d').' 18:00')
             ->assertSet('participation_mode', ParticipationMode::HostApproval->value)
             ->assertSet('min_participants', 1)
             ->assertSet('max_participants', 1)
@@ -158,7 +158,7 @@ final class GroupCalendarCreateActivityTest extends TestCase
             ->set('activity_type_id', $activityTypeId)
             ->set('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->set('self_hosted_place_id', $venue->id)
-            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').'T18:00')
+            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').' 18:00')
             ->set('cancellation_deadline_in_hours', 24)
             ->call('save')
             ->assertHasNoErrors();
@@ -220,7 +220,7 @@ final class GroupCalendarCreateActivityTest extends TestCase
             ->set('activity_type_id', $activityTypeId)
             ->set('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->set('self_hosted_place_id', $venue->id)
-            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').'T18:00')
+            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').' 18:00')
             ->set('cancellation_deadline_in_hours', 24)
             ->call('save')
             ->assertHasNoErrors();
@@ -269,7 +269,7 @@ final class GroupCalendarCreateActivityTest extends TestCase
             ->set('activity_type_id', $activityTypeId)
             ->set('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->set('self_hosted_place_id', $venue->id)
-            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').'T18:00')
+            ->set('self_hosted_starts_at', $futureDate->format('Y-m-d').' 18:00')
             ->set('cancellation_deadline_in_hours', 24)
             ->call('save')
             ->assertHasNoErrors();

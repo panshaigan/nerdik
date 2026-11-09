@@ -22,7 +22,21 @@ function appLocale() {
 }
 
 function datetimeInputFormat() {
-    return document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i';
+    const raw = document.body?.dataset?.datetimeInputFormat || 'Y-m-d H:i';
+
+    return raw.replace(/T/g, ' ');
+}
+
+function flatpickrDateFormat() {
+    return datetimeInputFormat().replace(/\\/g, '\\\\');
+}
+
+function normalizeDatetimeDisplayValue(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return String(value).trim().replace('T', ' ');
 }
 
 function pad2(n) {
@@ -30,12 +44,6 @@ function pad2(n) {
 }
 
 function formatLocalDateTime(d) {
-    const usesT = datetimeInputFormat().includes('T');
-
-    if (usesT) {
-        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-    }
-
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
@@ -193,7 +201,7 @@ function ensureInstance(input) {
 
     const fp = flatpickr(input, {
         enableTime: true,
-        dateFormat: datetimeInputFormat().replace(/\\/g, '\\\\'),
+        dateFormat: flatpickrDateFormat(),
         time_24hr: useTwentyFourHourClock(),
         minuteIncrement: minuteIncrementFromDom(),
         disableMobile: true,
@@ -205,8 +213,9 @@ function ensureInstance(input) {
         maxDate: maxDate || undefined,
         ...(locale === 'pl' ? { locale: Polish } : {}),
         onChange(_selectedDates, dateStr) {
-            if (input.value !== dateStr) {
-                input.value = dateStr;
+            const normalized = normalizeDatetimeDisplayValue(dateStr);
+            if (input.value !== normalized) {
+                input.value = normalized;
             }
             dispatchValueEvents(input);
         },
@@ -250,10 +259,31 @@ function datetimeInputFromEventTarget(target) {
         return directInput;
     }
 
+    const scheduleField = target.closest('[data-schedule-activity-field]');
+    const scheduleInput = scheduleField?.querySelector('input[data-ui-datetime]');
+    if (scheduleInput instanceof HTMLInputElement) {
+        return scheduleInput;
+    }
+
     const shell = target.closest('label.input');
     const nested = shell?.querySelector('input[data-ui-datetime]');
 
     return nested instanceof HTMLInputElement ? nested : null;
+}
+
+/**
+ * @param {ParentNode} [root]
+ */
+export function primeDatetimePickersIn(root = document) {
+    const scope = root instanceof Element || root instanceof Document ? root : document;
+
+    scope.querySelectorAll('input[data-ui-datetime]').forEach((el) => {
+        if (el instanceof HTMLInputElement) {
+            el.value = normalizeDatetimeDisplayValue(el.value);
+            ensureInstance(el);
+            syncInstanceFromInput(el);
+        }
+    });
 }
 
 function syncMountedDatetimePickers() {
@@ -376,4 +406,9 @@ export function bootDateTimePickers() {
             });
         });
     }
+}
+
+if (typeof window !== 'undefined') {
+    window.bootDateTimePickers = bootDateTimePickers;
+    window.primeDatetimePickersIn = primeDatetimePickersIn;
 }

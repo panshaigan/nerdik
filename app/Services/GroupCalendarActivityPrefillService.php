@@ -82,7 +82,7 @@ class GroupCalendarActivityPrefillService
         return new GroupCalendarActivityPrefillData(
             group: $group,
             date: $date,
-            selfHostedStartsAt: $date.'T18:00',
+            selfHostedStartsAt: $date.' 18:00',
             tagIds: $tagIds,
             enrollableUsers: $enrollable,
             playerCount: $playerCount,

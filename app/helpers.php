@@ -120,11 +120,11 @@ if (! function_exists('time_format_iso_token')) {
 if (! function_exists('apply_display_time_format_to_php')) {
     /**
      * Map PHP date-format time tokens to the user's clock preference.
-     * Skips datetime-local patterns (contain \T) which must stay 24-hour.
+     * Keeps {@see datetime_local_input_format()} on 24-hour tokens when the UI format uses them.
      */
     function apply_display_time_format_to_php(string $format): string
     {
-        if (str_contains($format, '\T') || display_time_format() === TimeDisplayFormat::TwentyFourHour) {
+        if (display_time_format() === TimeDisplayFormat::TwentyFourHour) {
             return $format;
         }
 
