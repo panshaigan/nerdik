@@ -23,6 +23,8 @@ fi
 
 echo 'Playwright Chromium not found; installing browser (first run may take a minute)...' >&2
 
+playwright_prepare_browser_cache_dir "$APP_USER"
+
 if [[ "$(id -u)" -eq 0 ]]; then
     # Sail image already runs `playwright install-deps` at build time (docker/sail/Dockerfile).
     if [[ "${LARAVEL_SAIL:-}" != "1" ]]; then

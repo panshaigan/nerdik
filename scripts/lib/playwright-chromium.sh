@@ -63,6 +63,21 @@ playwright_remove_node_modules_browsers() {
     fi
 }
 
+# Named Docker volumes are often root-owned when first mounted; Playwright runs as the app user.
+playwright_prepare_browser_cache_dir() {
+    local app_user="$1"
+    local cache
+
+    cache="$(playwright_browser_cache_dir "$app_user")"
+    mkdir -p "$cache"
+
+    if [[ "$(id -u)" -ne 0 ]]; then
+        return 0
+    fi
+
+    chown -R "$(id -u "$app_user"):$(id -g "$app_user")" "$cache"
+}
+
 playwright_chromium_installed() {
     local app_user="$1"
     local cache

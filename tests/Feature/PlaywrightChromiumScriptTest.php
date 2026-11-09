@@ -128,6 +128,7 @@ BASH;
         $this->assertStringContainsString('exec -u root', $check);
         $this->assertStringContainsString('exec -u sail laravel.test env -u PLAYWRIGHT_BROWSERS_PATH', $makefile);
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $makefile);
+        $this->assertStringContainsString('playwright_prepare_browser_cache_dir', $ensure);
         $this->assertStringContainsString('runuser -u "$APP_USER"', $ensure);
         $this->assertStringContainsString('env -u PLAYWRIGHT_BROWSERS_PATH', $ensure);
         $this->assertStringContainsString('LARAVEL_SAIL', $ensure);
