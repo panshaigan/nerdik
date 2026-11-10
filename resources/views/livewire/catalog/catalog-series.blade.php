@@ -1,38 +1,58 @@
-<div class="pt-4 pb-12 px-1">
-    <div class="ui-filter-form-events mx-auto w-full max-w-7xl space-y-6 mt-6 sm:px-6 lg:px-8">
-        @include('livewire.catalog.partials.catalog-toolbar', [
-            'placeholder' => __('ui.catalog.search_series_placeholder'),
-        ])
-
-        <div class="flex flex-wrap gap-2" data-ui="catalog-series-kind-tabs" role="tablist">
-            <button
-                type="button"
-                wire:click="$set('kind', 'events')"
-                @class([
-                    'btn btn-sm',
-                    'btn-primary' => $kind === 'events',
-                    'btn-ghost' => $kind !== 'events',
-                ])
-                role="tab"
-                aria-selected="{{ $kind === 'events' ? 'true' : 'false' }}"
-                data-ui="catalog-series-tab-events"
+<div class="pt-4 pb-12 px-4 nav:px-6 lg:px-8">
+    <div class="ui-filter-form-events w-full space-y-6 mt-6">
+        <div
+            class="ui-filter-form ui-browse-events-filter-shell mb-10"
+            data-ui="catalog-toolbar"
+        >
+            <div
+                class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
+                data-ui="catalog-series-toolbar"
             >
-                {{ __('ui.catalog.tab_event_series') }}
-            </button>
-            <button
-                type="button"
-                wire:click="$set('kind', 'activities')"
-                @class([
-                    'btn btn-sm',
-                    'btn-primary' => $kind === 'activities',
-                    'btn-ghost' => $kind !== 'activities',
-                ])
-                role="tab"
-                aria-selected="{{ $kind === 'activities' ? 'true' : 'false' }}"
-                data-ui="catalog-series-tab-activities"
-            >
-                {{ __('ui.catalog.tab_activity_series') }}
-            </button>
+                <div class="ui-browse-events-toolbar-search min-w-0 w-full sm:flex-1">
+                    <x-input
+                        wire:model.live.debounce.300ms="q"
+                        :placeholder="__('ui.catalog.search_series_placeholder')"
+                        type="search"
+                        :omit-error="true"
+                        class="ui-field w-full"
+                        data-ui="catalog-search"
+                    />
+                </div>
+                <div
+                    class="flex shrink-0 flex-wrap gap-2"
+                    data-ui="catalog-series-kind-tabs"
+                    role="tablist"
+                >
+                    <button
+                        type="button"
+                        wire:click="$set('kind', 'events')"
+                        @class([
+                            'btn btn-sm',
+                            'btn-primary' => $kind === 'events',
+                            'btn-ghost' => $kind !== 'events',
+                        ])
+                        role="tab"
+                        aria-selected="{{ $kind === 'events' ? 'true' : 'false' }}"
+                        data-ui="catalog-series-tab-events"
+                    >
+                        {{ __('ui.catalog.tab_event_series') }}
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('kind', 'activities')"
+                        @class([
+                            'btn btn-sm',
+                            'btn-primary' => $kind === 'activities',
+                            'btn-ghost' => $kind !== 'activities',
+                        ])
+                        role="tab"
+                        aria-selected="{{ $kind === 'activities' ? 'true' : 'false' }}"
+                        data-ui="catalog-series-tab-activities"
+                    >
+                        {{ __('ui.catalog.tab_activity_series') }}
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="relative min-h-[12rem]">

@@ -1,5 +1,5 @@
 <div class="space-y-8 py-8" data-ui="group-show">
-    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="min-w-0">
                 <h1 class="text-2xl font-semibold text-base-content">{{ $group->name }}</h1>

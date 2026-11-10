@@ -34,6 +34,7 @@
         @endif
         {{ $attributes->class([
             'ui-card ui-catalog-card card group relative flex h-full min-h-36 w-full cursor-pointer flex-col overflow-hidden p-5 no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0 sm:min-h-40 sm:p-6',
+            'ui-listing-card__surface' => ! $transparent,
             'ui-content-card' => ! $transparent,
             'ui-tile-active' => $transparent,
             'text-left' => ! filled($href) && ! $stacked,
