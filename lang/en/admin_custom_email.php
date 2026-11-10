@@ -12,6 +12,8 @@ return [
         'placeholders_hint' => 'You can use these placeholders in the subject and message (replaced per recipient).',
         'send_as_notification' => 'Send as in-app notification',
         'send_as_notification_hint' => 'Deliver inside the app instead of email. Recipients see it in their notification list.',
+        'notification_url' => 'Click destination URL',
+        'notification_url_hint' => 'App path when the recipient opens the notification, e.g. /search or /events/my-event. Must be a relative path on this site.',
     ],
 
     'placeholder_tokens' => [
@@ -42,6 +44,7 @@ return [
         'body_required' => 'Enter a message.',
         'no_eligible_recipients' => 'No eligible recipients. Users must have a verified email and must not be administrators.',
         'no_recipients_selected' => 'Select at least one eligible recipient.',
+        'notification_url_required' => 'Enter a relative click destination URL (e.g. /search).',
     ],
 
     'notifications' => [

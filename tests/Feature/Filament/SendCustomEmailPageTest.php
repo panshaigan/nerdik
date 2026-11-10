@@ -81,10 +81,12 @@ final class SendCustomEmailPageTest extends TestCase
             ->set('composeData.subject', 'Hello')
             ->set('composeData.bodyHtml', '<p>Hi</p>')
             ->set('composeData.sendAsNotification', true)
+            ->set('composeData.notificationUrl', '/search')
             ->callTableBulkAction('send', [$recipient]);
 
         Queue::assertPushed(SendAdminCustomEmailToUserJob::class, function (SendAdminCustomEmailToUserJob $job): bool {
-            return $job->sendAsNotification === true;
+            return $job->sendAsNotification === true
+                && $job->inAppClickUrl === '/search';
         });
     }
 }

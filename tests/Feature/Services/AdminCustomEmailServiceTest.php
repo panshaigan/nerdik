@@ -86,11 +86,34 @@ final class AdminCustomEmailServiceTest extends TestCase
             '<p>Body</p>',
             [$recipient->id],
             sendAsNotification: true,
+            notificationUrl: 'search',
         );
 
         Queue::assertPushed(SendAdminCustomEmailToUserJob::class, function (SendAdminCustomEmailToUserJob $job): bool {
-            return $job->sendAsNotification === true;
+            return $job->sendAsNotification === true
+                && $job->inAppClickUrl === '/search';
         });
+    }
+
+    #[Test]
+    public function dispatch_as_notification_requires_relative_click_url(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $recipient = User::factory()->create([
+            'email_verified_at' => now(),
+            'is_admin' => false,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AdminCustomEmailService::class)->dispatchToRecipients(
+            $admin,
+            'Subject',
+            '<p>Body</p>',
+            [$recipient->id],
+            sendAsNotification: true,
+            notificationUrl: '',
+        );
     }
 
     #[Test]

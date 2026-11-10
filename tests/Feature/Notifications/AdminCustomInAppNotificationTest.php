@@ -31,6 +31,7 @@ final class AdminCustomInAppNotificationTest extends TestCase
         $user->notify(new AdminCustomInAppNotification(
             'Hello there',
             '<p>Details inside</p>',
+            '/search',
         ));
 
         $this->assertSame(0, SentEmail::query()->count());
@@ -45,6 +46,7 @@ final class AdminCustomInAppNotificationTest extends TestCase
         $this->assertSame('Hello there', $data['subject']);
         $this->assertSame('Hello there', $data['toast_title']);
         $this->assertStringContainsString('Details inside', (string) ($data['body_html'] ?? ''));
+        $this->assertSame('/search', $data['url']);
         Mail::assertNothingSent();
     }
 
@@ -64,6 +66,7 @@ final class AdminCustomInAppNotificationTest extends TestCase
             subjectTemplate: 'Hi {name}',
             bodyHtmlTemplate: '<p>For {name}</p>',
             sendAsNotification: true,
+            inAppClickUrl: '/dashboard',
         );
 
         $job->handle(
@@ -80,6 +83,7 @@ final class AdminCustomInAppNotificationTest extends TestCase
         $this->assertSame('admin_custom_message', $data['type']);
         $this->assertSame('Hi Ada Lovelace', $data['toast_title']);
         $this->assertStringContainsString('Ada Lovelace', (string) ($data['body_html'] ?? ''));
+        $this->assertSame('/dashboard', $data['url']);
 
         Mail::assertNothingSent();
     }

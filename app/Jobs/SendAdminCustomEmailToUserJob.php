@@ -27,6 +27,7 @@ final class SendAdminCustomEmailToUserJob implements ShouldBeUnique, ShouldQueue
         public readonly string $bodyHtmlTemplate,
         public readonly bool $bypassEligibility = false,
         public readonly bool $sendAsNotification = false,
+        public readonly string $inAppClickUrl = '',
     ) {}
 
     public function uniqueId(): string
@@ -78,7 +79,7 @@ final class SendAdminCustomEmailToUserJob implements ShouldBeUnique, ShouldQueue
 
         if ($this->sendAsNotification) {
             $user->notify(
-                (new AdminCustomInAppNotification($subject, $bodyHtml))
+                (new AdminCustomInAppNotification($subject, $bodyHtml, $this->inAppClickUrl))
                     ->locale($user->preferredLocale()),
             );
 

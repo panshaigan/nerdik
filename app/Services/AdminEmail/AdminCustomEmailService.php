@@ -7,6 +7,7 @@ namespace App\Services\AdminEmail;
 use App\Jobs\SendAdminCustomEmailToUserJob;
 use App\Models\User;
 use App\Support\AdminEmail\AdminEmailRecipientCriteria;
+use App\Support\Notifications\RelativeAppUrl;
 use App\Support\RichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -59,9 +60,11 @@ final class AdminCustomEmailService
         string $bodyHtml,
         iterable $userIds,
         bool $sendAsNotification = false,
+        ?string $notificationUrl = null,
     ): AdminEmailDispatchResult {
         $subject = trim($subjectTemplate);
         $sanitizedBody = RichText::sanitize($bodyHtml);
+        $inAppClickUrl = $this->resolveInAppClickUrl($sendAsNotification, $notificationUrl);
 
         if ($subject === '') {
             throw ValidationException::withMessages([
@@ -103,6 +106,7 @@ final class AdminCustomEmailService
                 subjectTemplate: $subject,
                 bodyHtmlTemplate: $sanitizedBody,
                 sendAsNotification: $sendAsNotification,
+                inAppClickUrl: $inAppClickUrl ?? '',
             );
         }
 
@@ -118,9 +122,11 @@ final class AdminCustomEmailService
         string $subjectTemplate,
         string $bodyHtml,
         bool $sendAsNotification = false,
+        ?string $notificationUrl = null,
     ): void {
         $subject = trim($subjectTemplate);
         $sanitizedBody = RichText::sanitize($bodyHtml);
+        $inAppClickUrl = $this->resolveInAppClickUrl($sendAsNotification, $notificationUrl);
 
         if ($subject === '') {
             throw ValidationException::withMessages([
@@ -140,6 +146,24 @@ final class AdminCustomEmailService
             bodyHtmlTemplate: $sanitizedBody,
             bypassEligibility: true,
             sendAsNotification: $sendAsNotification,
+            inAppClickUrl: $inAppClickUrl ?? '',
         );
+    }
+
+    public function resolveInAppClickUrl(bool $sendAsNotification, ?string $notificationUrl): ?string
+    {
+        if (! $sendAsNotification) {
+            return null;
+        }
+
+        $normalized = RelativeAppUrl::normalize((string) $notificationUrl);
+
+        if ($normalized === null) {
+            throw ValidationException::withMessages([
+                'notificationUrl' => [__('admin_custom_email.validation.notification_url_required')],
+            ]);
+        }
+
+        return $normalized;
     }
 }

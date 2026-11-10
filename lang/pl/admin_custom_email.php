@@ -12,6 +12,8 @@ return [
         'placeholders_hint' => 'Możesz użyć tych placeholderów w temacie i treści (zastępowane osobno dla każdego odbiorcy).',
         'send_as_notification' => 'Wyślij jako powiadomienie w aplikacji',
         'send_as_notification_hint' => 'Dostarcz w aplikacji zamiast e-mailem. Odbiorcy zobaczą wiadomość na liście powiadomień.',
+        'notification_url' => 'Adres URL po kliknięciu',
+        'notification_url_hint' => 'Ścieżka w aplikacji po otwarciu powiadomienia, np. /search lub /events/moje-wydarzenie. Tylko względna ścieżka w tej witrynie.',
     ],
 
     'placeholder_tokens' => [
@@ -42,6 +44,7 @@ return [
         'body_required' => 'Podaj treść wiadomości.',
         'no_eligible_recipients' => 'Brak uprawnionych odbiorców. Użytkownik musi mieć zweryfikowany e-mail i nie być administratorem.',
         'no_recipients_selected' => 'Wybierz co najmniej jednego uprawnionego odbiorcę.',
+        'notification_url_required' => 'Podaj względną ścieżkę docelową (np. /search).',
     ],
 
     'notifications' => [

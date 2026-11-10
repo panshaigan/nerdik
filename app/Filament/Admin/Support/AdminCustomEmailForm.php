@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Utilities\Get;
 
 final class AdminCustomEmailForm
 {
@@ -33,6 +34,14 @@ final class AdminCustomEmailForm
                 ->label(__('admin_custom_email.fields.send_as_notification'))
                 ->helperText(__('admin_custom_email.fields.send_as_notification_hint'))
                 ->default(false)
+                ->live()
+                ->columnSpanFull(),
+            TextInput::make('notificationUrl')
+                ->label(__('admin_custom_email.fields.notification_url'))
+                ->helperText(__('admin_custom_email.fields.notification_url_hint'))
+                ->maxLength(2048)
+                ->visible(fn (Get $get): bool => (bool) $get('sendAsNotification'))
+                ->required(fn (Get $get): bool => (bool) $get('sendAsNotification'))
                 ->columnSpanFull(),
         ];
 

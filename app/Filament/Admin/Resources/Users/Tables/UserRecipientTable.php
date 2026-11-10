@@ -114,6 +114,7 @@ final class UserRecipientTable
                         (string) ($data['bodyHtml'] ?? ''),
                         $records->modelKeys(),
                         (bool) ($data['sendAsNotification'] ?? false),
+                        (string) ($data['notificationUrl'] ?? ''),
                     );
                 } catch (ValidationException $exception) {
                     Notification::make()

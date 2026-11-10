@@ -47,11 +47,12 @@ class SendCustomEmail extends Page implements HasTable
 
     protected string $view = 'filament-panels::pages.page';
 
-    /** @var array{subject?: string, bodyHtml?: string, sendAsNotification?: bool} */
+    /** @var array{subject?: string, bodyHtml?: string, sendAsNotification?: bool, notificationUrl?: string} */
     public array $composeData = [
         'subject' => '',
         'bodyHtml' => '',
         'sendAsNotification' => false,
+        'notificationUrl' => '',
     ];
 
     public static function getNavigationLabel(): string
@@ -111,6 +112,7 @@ class SendCustomEmail extends Page implements HasTable
                             (string) ($this->composeData['subject'] ?? ''),
                             (string) ($this->composeData['bodyHtml'] ?? ''),
                             (bool) ($this->composeData['sendAsNotification'] ?? false),
+                            (string) ($this->composeData['notificationUrl'] ?? ''),
                         );
                     } catch (ValidationException $exception) {
                         $this->sendValidationNotification($exception);
@@ -162,6 +164,7 @@ class SendCustomEmail extends Page implements HasTable
                                     (string) ($this->composeData['bodyHtml'] ?? ''),
                                     $records->modelKeys(),
                                     (bool) ($this->composeData['sendAsNotification'] ?? false),
+                                    (string) ($this->composeData['notificationUrl'] ?? ''),
                                 );
                             } catch (ValidationException $exception) {
                                 $this->sendValidationNotification($exception);

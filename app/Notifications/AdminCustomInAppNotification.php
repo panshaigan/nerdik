@@ -20,6 +20,7 @@ class AdminCustomInAppNotification extends Notification implements ShouldQueue, 
     public function __construct(
         public string $subject,
         public string $htmlBody,
+        public string $clickUrl,
     ) {}
 
     /**
@@ -43,7 +44,7 @@ class AdminCustomInAppNotification extends Notification implements ShouldQueue, 
             'type' => 'admin_custom_message',
             'subject' => $this->subject,
             'body_html' => RichText::html($this->htmlBody)->toHtml(),
-            'url' => route('notifications.index', [], false),
+            'url' => $this->clickUrl,
             'toast_title' => $this->subject,
             'toast_description' => RichText::excerpt($this->htmlBody, 500),
         ];
