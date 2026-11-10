@@ -12,7 +12,10 @@ use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Services\ActivityParticipationViewService;
+use App\Services\Dashboard\DashboardActionQueueService;
 use App\Services\Dashboard\DashboardFeedPresentationService;
+use App\Services\Dashboard\DashboardGroupsStripService;
+use App\Services\Dashboard\DashboardThisWeekService;
 use App\Services\Dashboard\UpcomingFeedQueryService;
 use App\Services\EventActivitySignupService;
 use App\Services\EventShowReadCache;
@@ -73,6 +76,9 @@ class Dashboard extends Component
         DashboardFeedPresentationService $feedPresentation,
         UpcomingFeedQueryService $upcomingFeedQuery,
         PlatformStatsService $platformStatsService,
+        DashboardThisWeekService $thisWeekService,
+        DashboardGroupsStripService $groupsStripService,
+        DashboardActionQueueService $actionQueueService,
     ) {
         $user = Auth::user();
         $this->toastFromSessionStatus();
@@ -173,6 +179,11 @@ class Dashboard extends Component
             ? []
             : app(EventShowReadCache::class)->programmeActivityCounts($eventIds);
 
+        $thisWeekItems = $thisWeekService->itemsForThisWeek($feedItems);
+        $feedIsEmpty = $feedMonthGroups->total() === 0;
+        $groupsStrip = $groupsStripService->forUser($user);
+        $dashboardActionItems = $actionQueueService->itemsFor($user);
+
         return view('livewire.dashboard.dashboard', [
             'platformStats' => $platformStats,
             'platformStatsUrls' => $platformStats !== null ? [
@@ -185,6 +196,13 @@ class Dashboard extends Component
             'upcomingInterestedActivitiesCount' => $upcomingActivityStats['interested'],
             'upcomingParticipatingActivitiesCount' => $upcomingActivityStats['participating'],
             'upcomingCreatedActivitiesCount' => $upcomingActivityStats['created'],
+            'thisWeekItems' => $thisWeekItems,
+            'feedIsEmpty' => $feedIsEmpty,
+            'dashboardActionItems' => $dashboardActionItems,
+            'dashboardGroupsStrip' => [
+                'groupCards' => $groupsStrip['groups'],
+                'suggestedGroup' => $groupsStrip['suggested_group'],
+            ],
             'feedMonthGroups' => $feedMonthGroups,
             'interestedEventIds' => $interestedEventIds,
             'eventProgrammeActivityCounts' => $eventProgrammeActivityCounts,

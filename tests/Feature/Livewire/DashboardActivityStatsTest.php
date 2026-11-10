@@ -163,7 +163,8 @@ class DashboardActivityStatsTest extends TestCase
             ->test(Dashboard::class)
             ->assertViewHas('upcomingInterestedActivitiesCount', 1)
             ->assertViewHas('upcomingParticipatingActivitiesCount', 1)
-            ->assertViewHas('upcomingCreatedActivitiesCount', 1);
+            ->assertViewHas('upcomingCreatedActivitiesCount', 1)
+            ->assertSeeHtml('data-ui="dashboard-activity-stats"');
     }
 
     public function test_dashboard_shows_zero_stats_when_feed_is_empty(): void
@@ -175,6 +176,7 @@ class DashboardActivityStatsTest extends TestCase
             ->assertViewHas('upcomingInterestedActivitiesCount', 0)
             ->assertViewHas('upcomingParticipatingActivitiesCount', 0)
             ->assertViewHas('upcomingCreatedActivitiesCount', 0)
+            ->assertSeeHtml('data-ui="dashboard-quick-actions"')
             ->assertSee(__('ui.dashboard.empty'));
     }
 }

@@ -16,6 +16,36 @@ class DashboardTimelineFeedTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_dashboard_shows_this_week_section_for_items_in_current_week(): void
+    {
+        $viewer = User::factory()->create();
+        $organizer = User::factory()->create();
+        $thisWeekStart = now()->addDays(2)->setTime(14, 0);
+        $nextMonthStart = now()->addMonth()->setTime(14, 0);
+
+        $thisWeekActivity = Activity::factory()->create([
+            'name' => 'Dashboard This Week Activity',
+            'created_by' => $organizer->id,
+            'starts_at' => $thisWeekStart,
+            'ends_at' => $thisWeekStart->copy()->addHours(2),
+        ]);
+
+        $laterActivity = Activity::factory()->create([
+            'name' => 'Dashboard Later Month Activity',
+            'created_by' => $organizer->id,
+            'starts_at' => $nextMonthStart,
+            'ends_at' => $nextMonthStart->copy()->addHours(2),
+        ]);
+
+        $viewer->interestedActivities()->attach([$thisWeekActivity->id, $laterActivity->id]);
+
+        Livewire::actingAs($viewer)
+            ->test(Dashboard::class)
+            ->assertSeeHtml('data-ui="dashboard-this-week"')
+            ->assertSee('Dashboard This Week Activity')
+            ->assertSee('Dashboard Later Month Activity');
+    }
+
     public function test_dashboard_groups_items_in_the_same_month_under_one_timeline_heading(): void
     {
         $viewer = User::factory()->create();

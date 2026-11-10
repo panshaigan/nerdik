@@ -8,14 +8,41 @@
             ])
         @endif
 
-        <section class="space-y-4">
+        @include('livewire.dashboard.partials.personal-activity-stats', [
+            'upcomingCreatedActivitiesCount' => $upcomingCreatedActivitiesCount,
+            'upcomingParticipatingActivitiesCount' => $upcomingParticipatingActivitiesCount,
+            'upcomingInterestedActivitiesCount' => $upcomingInterestedActivitiesCount,
+        ])
+
+        @include('livewire.dashboard.partials.needs-action', [
+            'actionItems' => $dashboardActionItems,
+        ])
+
+        @include('livewire.dashboard.partials.this-week', [
+            'thisWeekItems' => $thisWeekItems,
+            'browsingReturnUrl' => $browsingReturnUrl,
+            'interestedEventIds' => $interestedEventIds,
+            'interestedActivityIds' => $interestedActivityIds,
+            'eventProgrammeActivityCounts' => $eventProgrammeActivityCounts,
+        ])
+
+        @include('livewire.dashboard.partials.groups-strip', $dashboardGroupsStrip)
+
+        @include('livewire.dashboard.partials.quick-actions', [
+            'compact' => ! $feedIsEmpty,
+        ])
+
+        <section id="dashboard-feed" class="space-y-4 scroll-mt-24">
             @php
                 $now = now();
                 $autoOpenDone = false;
             @endphp
-            @if ($feedMonthGroups->isEmpty())
+            @if ($feedIsEmpty)
                 <p class="text-sm opacity-70">{{ __('ui.dashboard.empty') }}</p>
             @else
+                <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">
+                    {{ __('ui.dashboard.upcoming') }}
+                </p>
                 <div class="relative min-h-[12rem]">
                     <x-ui.livewire-loading-overlay
                         target="previousPage,nextPage,gotoPage"

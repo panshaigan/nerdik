@@ -4,6 +4,7 @@ namespace App\Services\Dashboard;
 
 use App\Models\Activity;
 use App\Models\Event;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +24,15 @@ class UpcomingFeedQueryService
             'participating' => $this->countUpcomingParticipatingActivities($userId),
             'created' => $this->countUpcomingCreatedActivities($userId),
         ];
+    }
+
+    /**
+     * @param  Builder<Activity>  $query
+     */
+    public function constrainToUpcomingActivities(Builder $query): void
+    {
+        $activitySortExpr = $this->activitySortExpression();
+        $query->whereRaw($activitySortExpr.' >= ?', [now()]);
     }
 
     public function countUpcomingInterestedActivities(int $userId): int
