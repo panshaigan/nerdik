@@ -28,6 +28,10 @@
         }
     }
 
+    [data-ui='group-show'] .ui-content-card {
+        margin-inline: 0;
+    }
+
     .ui-content-card:not(.ui-listing-card__surface) .tab-lifted {
         --tab-bg: transparent;
         --tab-border-color: transparent;

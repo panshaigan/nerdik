@@ -38,14 +38,19 @@ final class GroupDiscoverMatchesTest extends TestCase
         app(UserPlayPreferencesService::class)->syncInterestTags($match, [(int) $tag->id]);
         app(UserPlayPreferencesService::class)->syncInterestTags($other, [(int) $otherTag->id]);
 
-        $ids = app(GroupCandidateDiscoveryService::class)
-            ->candidates($group->fresh(['tags']), $owner)
-            ->pluck('id')
-            ->all();
+        $page = app(GroupCandidateDiscoveryService::class)
+            ->candidates($group->fresh(['tags']), $owner);
+
+        $ids = $page->pluck('id')->all();
 
         $this->assertContains($match->id, $ids);
         $this->assertNotContains($other->id, $ids);
         $this->assertNotContains($owner->id, $ids);
+
+        $matchedUser = $page->firstWhere('id', $match->id);
+        $this->assertNotNull($matchedUser);
+        $this->assertSame(['Co-op'], $matchedUser->discovery_match_tag_labels);
+        $this->assertNull($matchedUser->discovery_match_play_area_caption);
     }
 
     public function test_candidates_match_overlapping_play_areas(): void
@@ -67,13 +72,18 @@ final class GroupDiscoverMatchesTest extends TestCase
         app(UserPlayPreferencesService::class)->savePlayArea($nearby, 52.24, 21.02, 25, null);
         app(UserPlayPreferencesService::class)->savePlayArea($far, 50.0, 14.0, 25, null);
 
-        $ids = app(GroupCandidateDiscoveryService::class)
-            ->candidates($group->fresh(), $owner)
-            ->pluck('id')
-            ->all();
+        $page = app(GroupCandidateDiscoveryService::class)
+            ->candidates($group->fresh(), $owner);
+
+        $ids = $page->pluck('id')->all();
 
         $this->assertContains($nearby->id, $ids);
         $this->assertNotContains($far->id, $ids);
+
+        $nearbyUser = $page->firstWhere('id', $nearby->id);
+        $this->assertNotNull($nearbyUser);
+        $this->assertSame([], $nearbyUser->discovery_match_tag_labels);
+        $this->assertNotNull($nearbyUser->discovery_match_play_area_caption);
     }
 
     public function test_candidates_require_tags_and_location_when_both_set(): void
@@ -156,7 +166,8 @@ final class GroupDiscoverMatchesTest extends TestCase
             ->get(route('groups.show', ['group' => $group, 'tab' => 'discover']))
             ->assertOk()
             ->assertSeeHtml('data-ui="group-show-tab-discover"')
-            ->assertSee('discover_me');
+            ->assertSee('discover_me')
+            ->assertSee('LFG');
     }
 
     public function test_member_does_not_see_discover_tab(): void

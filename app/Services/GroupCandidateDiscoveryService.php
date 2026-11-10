@@ -6,7 +6,9 @@ namespace App\Services;
 
 use App\Enums\UserRequestType;
 use App\Models\Group;
+use App\Models\Tag;
 use App\Models\User;
+use App\Models\UserPlayArea;
 use App\Models\UserRequest;
 use App\Support\Geo\BoundingBox;
 use App\Support\Geo\Haversine;
@@ -60,15 +62,16 @@ class GroupCandidateDiscoveryService
             ->where('is_deleted', false)
             ->when($excludedIds !== [], fn (Builder $q) => $q->whereNotIn('id', $excludedIds));
 
+        $expandedTagIds = [];
         if ($hasTags) {
             $tagIds = $group->tags->pluck('id')->map(fn ($id) => (int) $id)->all();
-            $expanded = $this->tagSelection->expandTagIdsToDescendants($tagIds);
+            $expandedTagIds = $this->tagSelection->expandTagIdsToDescendants($tagIds);
 
-            if ($expanded === []) {
+            if ($expandedTagIds === []) {
                 return $this->emptyPage($perPage);
             }
 
-            $query->whereHas('interestTags', fn (Builder $q) => $q->whereIn('tags.id', $expanded));
+            $query->whereHas('interestTags', fn (Builder $q) => $q->whereIn('tags.id', $expandedTagIds));
         }
 
         if ($hasLocation) {
@@ -81,17 +84,92 @@ class GroupCandidateDiscoveryService
             ->paginate($perPage);
 
         $pendingRecipientIds = $this->pendingInviteRecipientIds($group, $actor);
+        $locale = app()->getLocale();
 
-        $paginator->getCollection()->transform(function (User $user) use ($pendingRecipientIds): User {
+        $paginator->getCollection()->transform(function (User $user) use (
+            $pendingRecipientIds,
+            $group,
+            $hasTags,
+            $hasLocation,
+            $expandedTagIds,
+            $locale,
+        ): User {
             $user->setAttribute(
                 'has_pending_group_invite',
                 in_array((int) $user->id, $pendingRecipientIds, true),
+            );
+            $user->setAttribute(
+                'discovery_match_tag_labels',
+                $hasTags
+                    ? $this->matchingInterestTagLabels($user, $expandedTagIds, $locale)
+                    : [],
+            );
+            $user->setAttribute(
+                'discovery_match_play_area_caption',
+                $hasLocation
+                    ? $this->matchingPlayAreaCaption($group, $user->playArea)
+                    : null,
             );
 
             return $user;
         });
 
         return $paginator;
+    }
+
+    /**
+     * @param  list<int>  $expandedGroupTagIds
+     * @return list<string>
+     */
+    public function matchingInterestTagLabels(User $candidate, array $expandedGroupTagIds, ?string $locale = null): array
+    {
+        if ($expandedGroupTagIds === []) {
+            return [];
+        }
+
+        $locale ??= app()->getLocale();
+        $expandedSet = array_fill_keys($expandedGroupTagIds, true);
+
+        return $candidate->interestTags
+            ->filter(fn (Tag $tag): bool => isset($expandedSet[(int) $tag->id]))
+            ->map(fn (Tag $tag): string => (string) $tag->displayLabel($locale))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function matchingPlayAreaCaption(Group $group, ?UserPlayArea $playArea): ?string
+    {
+        if (! $group->hasLocation() || $playArea === null) {
+            return null;
+        }
+
+        $overlaps = Haversine::circlesOverlapKm(
+            (float) $group->latitude,
+            (float) $group->longitude,
+            (int) $group->radius_km,
+            (float) $playArea->latitude,
+            (float) $playArea->longitude,
+            (int) $playArea->radius_km,
+        );
+
+        if (! $overlaps) {
+            return null;
+        }
+
+        $radius = (int) $playArea->radius_km;
+        $label = filled($playArea->label) ? (string) $playArea->label : null;
+
+        if ($label !== null) {
+            return __('ui.profile.preferences.play_area_preview_caption', [
+                'label' => $label,
+                'radius' => $radius,
+            ]);
+        }
+
+        return __('ui.profile.preferences.play_area_preview_caption_no_label', [
+            'radius' => $radius,
+        ]);
     }
 
     /**
