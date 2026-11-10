@@ -33,4 +33,38 @@ class DashboardThisWeekService
             ->take($limit)
             ->values();
     }
+
+    /**
+     * @param  Collection<int, array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}>  $feedItems
+     * @param  Collection<int, array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}>  $exclude
+     * @return Collection<int, array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}>
+     */
+    public function excludeFromFeed(Collection $feedItems, Collection $exclude): Collection
+    {
+        if ($exclude->isEmpty()) {
+            return $feedItems->values();
+        }
+
+        $excludeKeys = $exclude
+            ->map(fn (array $item): string => $this->listingKey($item))
+            ->flip();
+
+        return $feedItems
+            ->reject(fn (array $item): bool => $excludeKeys->has($this->listingKey($item)))
+            ->values();
+    }
+
+    /**
+     * @param  array{kind: string, event?: mixed, activity?: mixed, starts_at: ?Carbon}  $item
+     */
+    public function listingKey(array $item): string
+    {
+        $id = match ($item['kind'] ?? '') {
+            'event' => (int) ($item['event']?->id ?? 0),
+            'activity' => (int) ($item['activity']?->id ?? 0),
+            default => 0,
+        };
+
+        return ($item['kind'] ?? 'unknown').':'.$id;
+    }
 }

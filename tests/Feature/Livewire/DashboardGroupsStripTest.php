@@ -24,7 +24,11 @@ class DashboardGroupsStripTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Dashboard::class)
-            ->assertSeeHtml('data-ui="dashboard-groups-strip"')
+            ->assertViewHas('userGroupsCount', 1)
+            ->assertSeeHtml('data-ui="dashboard-stat-my-groups"')
+            ->assertDontSeeHtml('data-ui="dashboard-groups-panel"')
+            ->call('toggleGroupsPanel')
+            ->assertSeeHtml('data-ui="dashboard-groups-panel"')
             ->assertSee('Dashboard Member Group')
             ->assertSeeHtml('data-ui="dashboard-group-card"');
     }
@@ -37,7 +41,7 @@ class DashboardGroupsStripTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(Dashboard::class)
-            ->assertSeeHtml('data-ui="dashboard-groups-strip"')
+            ->call('toggleGroupsPanel')
             ->assertDontSee('Secret Other Group');
     }
 
@@ -52,6 +56,7 @@ class DashboardGroupsStripTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(Dashboard::class)
+            ->call('toggleGroupsPanel')
             ->assertSeeHtml('data-ui="dashboard-group-suggested"')
             ->assertSee('Suggested Public Crew');
     }

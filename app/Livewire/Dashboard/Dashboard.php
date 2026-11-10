@@ -40,6 +40,13 @@ class Dashboard extends Component
 
     private const GROUPS_PER_PAGE = 8;
 
+    public bool $groupsPanelOpen = false;
+
+    public function toggleGroupsPanel(): void
+    {
+        $this->groupsPanelOpen = ! $this->groupsPanelOpen;
+    }
+
     public function toggleEventInterest(int $eventId, UserInterestService $interests): void
     {
         $event = Event::query()->whereKey($eventId)->firstOrFail();
@@ -149,8 +156,11 @@ class Dashboard extends Component
             ->filter()
             ->values();
 
+        $thisWeekItems = $thisWeekService->itemsForThisWeek($feedItems);
+        $feedItemsForTimeline = $thisWeekService->excludeFromFeed($feedItems, $thisWeekItems);
+
         $feedMonthGroups = $this->paginateMonthGroups(
-            $feedPresentation->monthGroupsForFeedItems($feedItems),
+            $feedPresentation->monthGroupsForFeedItems($feedItemsForTimeline),
         );
 
         $interestedEventIds = $user->interestedEvents()->pluck('events.id')->map(fn ($id) => (int) $id)->all();
@@ -179,7 +189,6 @@ class Dashboard extends Component
             ? []
             : app(EventShowReadCache::class)->programmeActivityCounts($eventIds);
 
-        $thisWeekItems = $thisWeekService->itemsForThisWeek($feedItems);
         $feedIsEmpty = $feedMonthGroups->total() === 0;
         $groupsStrip = $groupsStripService->forUser($user);
         $dashboardActionItems = $actionQueueService->itemsFor($user);
@@ -199,6 +208,8 @@ class Dashboard extends Component
             'thisWeekItems' => $thisWeekItems,
             'feedIsEmpty' => $feedIsEmpty,
             'dashboardActionItems' => $dashboardActionItems,
+            'userGroupsCount' => $groupsStrip['total_count'],
+            'groupsPanelOpen' => $this->groupsPanelOpen,
             'dashboardGroupsStrip' => [
                 'groupCards' => $groupsStrip['groups'],
                 'suggestedGroup' => $groupsStrip['suggested_group'],

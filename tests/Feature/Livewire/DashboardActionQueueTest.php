@@ -116,4 +116,42 @@ class DashboardActionQueueTest extends TestCase
             ->assertSeeHtml('data-ui="dashboard-action-user_waitlist"')
             ->assertSee('Queue Player Waitlist');
     }
+
+    public function test_my_pending_proposal_appears_on_dashboard(): void
+    {
+        $host = User::factory()->create();
+        $event = Event::factory()->create(['name' => 'Queue Awaiting Event']);
+        $activity = Activity::factory()->create(['created_by' => $host->id]);
+
+        ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $host->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(Dashboard::class)
+            ->assertSeeHtml('data-ui="dashboard-action-my_pending_proposal"')
+            ->assertSee('Queue Awaiting Event');
+    }
+
+    public function test_upcoming_lottery_draw_appears_for_hosted_lottery_activity(): void
+    {
+        $host = User::factory()->create();
+        $startsAt = now()->addDays(3);
+
+        Activity::factory()->lottery()->create([
+            'created_by' => $host->id,
+            'name' => 'Queue Lottery Draw',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(2),
+            'lottery_resolved_at' => null,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(Dashboard::class)
+            ->assertSeeHtml('data-ui="dashboard-action-lottery_draw"')
+            ->assertSee('Queue Lottery Draw');
+    }
 }

@@ -12,10 +12,13 @@
             'upcomingCreatedActivitiesCount' => $upcomingCreatedActivitiesCount,
             'upcomingParticipatingActivitiesCount' => $upcomingParticipatingActivitiesCount,
             'upcomingInterestedActivitiesCount' => $upcomingInterestedActivitiesCount,
+            'userGroupsCount' => $userGroupsCount,
         ])
 
-        @include('livewire.dashboard.partials.needs-action', [
-            'actionItems' => $dashboardActionItems,
+        @include('livewire.dashboard.partials.dashboard-toolbar', [
+            'feedIsEmpty' => $feedIsEmpty,
+            'groupsPanelOpen' => $groupsPanelOpen,
+            'dashboardGroupsStrip' => $dashboardGroupsStrip,
         ])
 
         @include('livewire.dashboard.partials.this-week', [
@@ -26,10 +29,8 @@
             'eventProgrammeActivityCounts' => $eventProgrammeActivityCounts,
         ])
 
-        @include('livewire.dashboard.partials.groups-strip', $dashboardGroupsStrip)
-
-        @include('livewire.dashboard.partials.quick-actions', [
-            'compact' => ! $feedIsEmpty,
+        @include('livewire.dashboard.partials.needs-action', [
+            'actionItems' => $dashboardActionItems,
         ])
 
         <section id="dashboard-feed" class="space-y-4 scroll-mt-24">

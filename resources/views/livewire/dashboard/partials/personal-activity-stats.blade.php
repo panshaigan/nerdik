@@ -4,9 +4,10 @@
     /** @var int $upcomingCreatedActivitiesCount */
     /** @var int $upcomingParticipatingActivitiesCount */
     /** @var int $upcomingInterestedActivitiesCount */
+    /** @var int $userGroupsCount */
 @endphp
 
-<div class="grid grid-cols-2 gap-3 lg:grid-cols-3" data-ui="dashboard-activity-stats">
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-4" data-ui="dashboard-activity-stats">
     <a
         href="{{ BrowseSearchUrl::myActivities() }}"
         wire:navigate
@@ -36,13 +37,27 @@
 
     <a
         href="#dashboard-feed"
-        class="ui-activity-show-info-panel ui-activity-show-stat-panel col-span-2 flex items-center rounded-2xl transition-opacity hover:opacity-90 lg:col-span-1"
+        class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl transition-opacity hover:opacity-90"
         data-ui="dashboard-stat-interested-activities"
     >
         <x-stat
             :title="__('ui.dashboard.stats_interested_activities')"
             :value="$upcomingInterestedActivitiesCount"
             icon="o-heart"
+            class="ui-stat-embed ui-activity-show-stat"
+        />
+    </a>
+
+    <a
+        href="{{ route('groups.index') }}"
+        wire:navigate
+        class="ui-activity-show-info-panel ui-activity-show-stat-panel flex items-center rounded-2xl transition-opacity hover:opacity-90"
+        data-ui="dashboard-stat-my-groups"
+    >
+        <x-stat
+            :title="__('ui.dashboard.stats_my_groups')"
+            :value="$userGroupsCount"
+            icon="o-user-group"
             class="ui-stat-embed ui-activity-show-stat"
         />
     </a>

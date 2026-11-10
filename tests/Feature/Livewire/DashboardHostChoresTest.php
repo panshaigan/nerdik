@@ -84,6 +84,42 @@ class DashboardHostChoresTest extends TestCase
             ->assertSee('Chore Mark Absences');
     }
 
+    public function test_propose_next_edition_surfaces_for_host_after_series_event_ends(): void
+    {
+        $host = User::factory()->create();
+        $series = EventSeries::factory()->create();
+        $pastStart = now()->subDays(3);
+        $pastEvent = Event::factory()->create([
+            'name' => 'Chore Host Past Edition',
+            'event_series_id' => $series->id,
+            'starts_at' => $pastStart,
+            'ends_at' => $pastStart->copy()->addHours(4),
+        ]);
+        Event::factory()->create([
+            'name' => 'Chore Host Next Edition',
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addMonth(),
+            'ends_at' => now()->addMonth()->addHours(4),
+        ]);
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => $pastStart,
+            'ends_at' => $pastStart->copy()->addHours(2),
+        ]);
+        Slot::factory()->create([
+            'event_id' => $pastEvent->id,
+            'activity_id' => $activity->id,
+            'starts_at' => $pastStart,
+            'ends_at' => $pastStart->copy()->addHours(2),
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(Dashboard::class)
+            ->assertSeeHtml('data-ui="dashboard-action-propose_next_edition"')
+            ->assertSee('Chore Host Next Edition');
+    }
+
     public function test_follow_next_edition_surfaces_after_series_event_ends(): void
     {
         $viewer = User::factory()->create();

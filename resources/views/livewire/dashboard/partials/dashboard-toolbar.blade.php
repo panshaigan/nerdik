@@ -1,16 +1,14 @@
 @php
-    $compact = $compact ?? false;
+    /** @var bool $feedIsEmpty */
+    /** @var bool $groupsPanelOpen */
 @endphp
 
-<section
-    class="{{ $compact ? 'space-y-2' : 'space-y-4 rounded-2xl border border-dashed border-base-300 bg-base-100/50 p-6' }}"
-    data-ui="dashboard-quick-actions"
->
-    @if (! $compact)
+<section class="space-y-4" data-ui="dashboard-toolbar">
+    @if ($feedIsEmpty)
         <p class="text-sm text-base-content/70">{{ __('ui.dashboard.empty_hint') }}</p>
     @endif
 
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2" data-ui="dashboard-quick-actions">
         <x-button
             :link="url_with_return(route('activities.create'))"
             wire:navigate
@@ -32,15 +30,6 @@
         @endif
 
         <x-button
-            :link="route('groups.index')"
-            wire:navigate
-            class="btn-ghost btn-sm"
-            icon="o-user-group"
-            :label="__('ui.nav.my_groups')"
-            data-ui="dashboard-action-groups"
-        />
-
-        <x-button
             :link="route('search.index')"
             wire:navigate
             class="btn-ghost btn-sm"
@@ -48,5 +37,25 @@
             :label="__('ui.nav.search')"
             data-ui="dashboard-action-search"
         />
+
+        <x-button
+            type="button"
+            wire:click="toggleGroupsPanel"
+            wire:loading.attr="disabled"
+            wire:target="toggleGroupsPanel"
+            class="btn-ghost btn-sm {{ $groupsPanelOpen ? 'btn-active' : '' }}"
+            icon="o-user-group"
+            :label="__('ui.nav.my_groups')"
+            :aria-expanded="$groupsPanelOpen ? 'true' : 'false'"
+            aria-controls="dashboard-groups-panel-region"
+            spinner="toggleGroupsPanel"
+            data-ui="dashboard-action-groups"
+        />
     </div>
+
+    @if ($groupsPanelOpen)
+        <div id="dashboard-groups-panel-region">
+            @include('livewire.dashboard.partials.groups-panel', $dashboardGroupsStrip)
+        </div>
+    @endif
 </section>

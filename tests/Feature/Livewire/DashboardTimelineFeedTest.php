@@ -16,6 +16,51 @@ class DashboardTimelineFeedTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_all_upcoming_feed_omits_listings_already_shown_in_this_week(): void
+    {
+        $viewer = User::factory()->create();
+        $organizer = User::factory()->create();
+        $thisWeekStart = now()->addDays(2)->setTime(10, 0);
+        $laterStart = now()->addWeeks(3)->setTime(10, 0);
+
+        $thisWeekActivity = Activity::factory()->create([
+            'name' => 'Dedupe This Week Only',
+            'created_by' => $organizer->id,
+            'starts_at' => $thisWeekStart,
+            'ends_at' => $thisWeekStart->copy()->addHours(2),
+        ]);
+
+        $laterActivity = Activity::factory()->create([
+            'name' => 'Dedupe Later Feed Only',
+            'created_by' => $organizer->id,
+            'starts_at' => $laterStart,
+            'ends_at' => $laterStart->copy()->addHours(2),
+        ]);
+
+        $viewer->interestedActivities()->attach([$thisWeekActivity->id, $laterActivity->id]);
+
+        $component = Livewire::actingAs($viewer)->test(Dashboard::class);
+
+        $component
+            ->assertSeeHtml('data-ui="dashboard-this-week"')
+            ->assertSee('Dedupe This Week Only');
+
+        $laterLabel = format_datetime_in_user_tz($laterStart, 'MMMM YYYY');
+
+        $component
+            ->assertSee($laterLabel)
+            ->assertSee('Dedupe Later Feed Only');
+
+        $html = $component->html();
+        $thisWeekHeadingPos = strpos($html, 'data-ui="dashboard-this-week"');
+        $feedHeadingPos = strpos($html, 'dashboard-feed-group-');
+        $this->assertNotFalse($thisWeekHeadingPos);
+        $this->assertNotFalse($feedHeadingPos);
+
+        $feedSegment = substr($html, $feedHeadingPos);
+        $this->assertStringNotContainsString('Dedupe This Week Only', $feedSegment);
+    }
+
     public function test_dashboard_shows_this_week_section_for_items_in_current_week(): void
     {
         $viewer = User::factory()->create();

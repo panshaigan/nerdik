@@ -24,10 +24,13 @@ class DashboardGroupsStripService
      * @return array{
      *     groups: list<array{group: Group, users_count: int, next_free_day: ?CarbonInterface}>,
      *     suggested_group: ?Group,
+     *     total_count: int,
      * }
      */
     public function forUser(User $user): array
     {
+        $totalCount = Group::query()->forUser($user)->count();
+
         $groups = Group::query()
             ->forUser($user)
             ->withCount('users')
@@ -52,36 +55,41 @@ class DashboardGroupsStripService
         return [
             'groups' => $cards,
             'suggested_group' => $suggested instanceof Group ? $suggested : null,
+            'total_count' => $totalCount,
         ];
     }
 
     private function nextSharedFreeDay(Group $group): ?CarbonInterface
     {
-        $timezone = display_timezone();
-        $today = now()->setTimezone($timezone)->startOfDay();
+        try {
+            $timezone = display_timezone();
+            $today = now()->setTimezone($timezone)->startOfDay();
 
-        for ($monthOffset = 0; $monthOffset < 2; $monthOffset++) {
-            $month = $today->copy()->addMonths($monthOffset);
-            $summary = $this->availability->monthSummary($group, $month);
-            $days = $summary['days'] ?? [];
+            for ($monthOffset = 0; $monthOffset < 2; $monthOffset++) {
+                $month = $today->copy()->addMonths($monthOffset);
+                $summary = $this->availability->monthSummary($group, $month);
+                $days = $summary['days'] ?? [];
 
-            foreach ($days as $dateKey => $counts) {
-                $day = Carbon::parse($dateKey, $timezone)->startOfDay();
-                if ($day->lessThan($today)) {
-                    continue;
-                }
+                foreach ($days as $dateKey => $counts) {
+                    $day = Carbon::parse($dateKey, $timezone)->startOfDay();
+                    if ($day->lessThan($today)) {
+                        continue;
+                    }
 
-                $available = (int) ($counts['available'] ?? 0);
-                $total = (int) ($counts['total'] ?? 0);
-                if ($total < 1) {
-                    continue;
-                }
+                    $available = (int) ($counts['available'] ?? 0);
+                    $total = (int) ($counts['total'] ?? 0);
+                    if ($total < 1) {
+                        continue;
+                    }
 
-                $threshold = $total <= 2 ? $total : 2;
-                if ($available >= $threshold) {
-                    return $day;
+                    $threshold = $total <= 2 ? $total : 2;
+                    if ($available >= $threshold) {
+                        return $day;
+                    }
                 }
             }
+        } catch (\Throwable) {
+            return null;
         }
 
         return null;
