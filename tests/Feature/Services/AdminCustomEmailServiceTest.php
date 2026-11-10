@@ -70,6 +70,30 @@ final class AdminCustomEmailServiceTest extends TestCase
     }
 
     #[Test]
+    public function dispatch_queues_job_with_send_as_notification_flag(): void
+    {
+        Queue::fake();
+
+        $admin = User::factory()->admin()->create();
+        $recipient = User::factory()->create([
+            'email_verified_at' => now(),
+            'is_admin' => false,
+        ]);
+
+        app(AdminCustomEmailService::class)->dispatchToRecipients(
+            $admin,
+            'Subject',
+            '<p>Body</p>',
+            [$recipient->id],
+            sendAsNotification: true,
+        );
+
+        Queue::assertPushed(SendAdminCustomEmailToUserJob::class, function (SendAdminCustomEmailToUserJob $job): bool {
+            return $job->sendAsNotification === true;
+        });
+    }
+
+    #[Test]
     public function test_send_queues_job_with_bypass_eligibility(): void
     {
         Queue::fake();

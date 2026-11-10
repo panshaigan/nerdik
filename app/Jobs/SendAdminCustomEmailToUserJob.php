@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\User;
 use App\Notifications\AdminCustomEmailNotification;
+use App\Notifications\AdminCustomInAppNotification;
 use App\Services\AdminEmail\AdminCustomEmailService;
 use App\Support\AdminEmail\AdminEmailPlaceholderReplacer;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -25,6 +26,7 @@ final class SendAdminCustomEmailToUserJob implements ShouldBeUnique, ShouldQueue
         public readonly string $subjectTemplate,
         public readonly string $bodyHtmlTemplate,
         public readonly bool $bypassEligibility = false,
+        public readonly bool $sendAsNotification = false,
     ) {}
 
     public function uniqueId(): string
@@ -42,10 +44,15 @@ final class SendAdminCustomEmailToUserJob implements ShouldBeUnique, ShouldQueue
      */
     public function middleware(): array
     {
-        return [
-            new RateLimited('admin-custom-email'),
+        $middleware = [
             (new WithoutOverlapping($this->uniqueId()))->dontRelease(),
         ];
+
+        if (! $this->sendAsNotification) {
+            array_unshift($middleware, new RateLimited('admin-custom-email'));
+        }
+
+        return $middleware;
     }
 
     public function handle(
@@ -68,6 +75,15 @@ final class SendAdminCustomEmailToUserJob implements ShouldBeUnique, ShouldQueue
 
         $subject = $placeholders->replaceSubject($this->subjectTemplate, $user);
         $bodyHtml = $placeholders->replaceBodyHtml($this->bodyHtmlTemplate, $user);
+
+        if ($this->sendAsNotification) {
+            $user->notify(
+                (new AdminCustomInAppNotification($subject, $bodyHtml))
+                    ->locale($user->preferredLocale()),
+            );
+
+            return;
+        }
 
         $user->notify(
             (new AdminCustomEmailNotification($subject, $bodyHtml))

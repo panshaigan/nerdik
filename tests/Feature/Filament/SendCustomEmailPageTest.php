@@ -64,4 +64,27 @@ final class SendCustomEmailPageTest extends TestCase
 
         Queue::assertPushed(SendAdminCustomEmailToUserJob::class, 1);
     }
+
+    #[Test]
+    public function send_bulk_action_passes_send_as_notification_flag(): void
+    {
+        Queue::fake();
+
+        $admin = User::factory()->admin()->create();
+        $recipient = User::factory()->create([
+            'email_verified_at' => now(),
+            'is_admin' => false,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(SendCustomEmail::class)
+            ->set('composeData.subject', 'Hello')
+            ->set('composeData.bodyHtml', '<p>Hi</p>')
+            ->set('composeData.sendAsNotification', true)
+            ->callTableBulkAction('send', [$recipient]);
+
+        Queue::assertPushed(SendAdminCustomEmailToUserJob::class, function (SendAdminCustomEmailToUserJob $job): bool {
+            return $job->sendAsNotification === true;
+        });
+    }
 }

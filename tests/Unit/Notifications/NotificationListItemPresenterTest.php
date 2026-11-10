@@ -132,6 +132,28 @@ final class NotificationListItemPresenterTest extends TestCase
     }
 
     #[Test]
+    public function it_maps_admin_custom_message_using_toast_metadata(): void
+    {
+        $user = User::factory()->create();
+        $notification = DatabaseNotificationFactory::new()
+            ->for($user, 'notifiable')
+            ->state([
+                'data' => [
+                    'type' => 'admin_custom_message',
+                    'toast_title' => 'Platform update',
+                    'toast_description' => 'We refreshed the browse filters.',
+                ],
+            ])
+            ->create();
+
+        $display = $this->presenter->from($notification);
+
+        $this->assertSame('Platform update', $display->title);
+        $this->assertSame('We refreshed the browse filters.', $display->subtitle);
+        $this->assertSame('o-megaphone', $display->icon);
+    }
+
+    #[Test]
     public function it_falls_back_for_unknown_types(): void
     {
         $user = User::factory()->create();

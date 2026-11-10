@@ -47,10 +47,11 @@ class SendCustomEmail extends Page implements HasTable
 
     protected string $view = 'filament-panels::pages.page';
 
-    /** @var array{subject?: string, bodyHtml?: string} */
+    /** @var array{subject?: string, bodyHtml?: string, sendAsNotification?: bool} */
     public array $composeData = [
         'subject' => '',
         'bodyHtml' => '',
+        'sendAsNotification' => false,
     ];
 
     public static function getNavigationLabel(): string
@@ -109,6 +110,7 @@ class SendCustomEmail extends Page implements HasTable
                             $admin,
                             (string) ($this->composeData['subject'] ?? ''),
                             (string) ($this->composeData['bodyHtml'] ?? ''),
+                            (bool) ($this->composeData['sendAsNotification'] ?? false),
                         );
                     } catch (ValidationException $exception) {
                         $this->sendValidationNotification($exception);
@@ -116,9 +118,13 @@ class SendCustomEmail extends Page implements HasTable
                         return;
                     }
 
+                    $asNotification = (bool) ($this->composeData['sendAsNotification'] ?? false);
+
                     Notification::make()
                         ->success()
-                        ->title(__('admin_custom_email.notifications.test_queued'))
+                        ->title($asNotification
+                            ? __('admin_custom_email.notifications.test_queued_in_app')
+                            : __('admin_custom_email.notifications.test_queued'))
                         ->send();
                 }),
         ];
@@ -134,9 +140,14 @@ class SendCustomEmail extends Page implements HasTable
                         ->icon(Heroicon::OutlinedPaperAirplane)
                         ->requiresConfirmation()
                         ->modalHeading(__('admin_custom_email.confirm.send_heading'))
-                        ->modalDescription(fn (): string => __('admin_custom_email.confirm.send_body', [
-                            'count' => $this->getSelectedTableRecords(shouldFetchSelectedRecords: false)->count(),
-                        ]))
+                        ->modalDescription(function (): string {
+                            $count = $this->getSelectedTableRecords(shouldFetchSelectedRecords: false)->count();
+                            $asNotification = (bool) ($this->composeData['sendAsNotification'] ?? false);
+
+                            return $asNotification
+                                ? __('admin_custom_email.confirm.send_body_notification', ['count' => $count])
+                                : __('admin_custom_email.confirm.send_body', ['count' => $count]);
+                        })
                         ->action(function (Collection $records, AdminCustomEmailService $adminEmail): void {
                             $admin = Auth::user();
 
@@ -150,6 +161,7 @@ class SendCustomEmail extends Page implements HasTable
                                     (string) ($this->composeData['subject'] ?? ''),
                                     (string) ($this->composeData['bodyHtml'] ?? ''),
                                     $records->modelKeys(),
+                                    (bool) ($this->composeData['sendAsNotification'] ?? false),
                                 );
                             } catch (ValidationException $exception) {
                                 $this->sendValidationNotification($exception);
@@ -180,6 +192,8 @@ class SendCustomEmail extends Page implements HasTable
 
     private function sendDispatchNotification(AdminEmailDispatchResult $result): void
     {
+        $asNotification = (bool) ($this->composeData['sendAsNotification'] ?? false);
+
         $body = __('admin_custom_email.notifications.sent_summary', [
             'queued' => $result->queued,
             'skipped' => $result->skippedIneligible,
@@ -188,7 +202,9 @@ class SendCustomEmail extends Page implements HasTable
 
         Notification::make()
             ->success()
-            ->title(__('admin_custom_email.notifications.sent_title'))
+            ->title($asNotification
+                ? __('admin_custom_email.notifications.sent_title_notifications')
+                : __('admin_custom_email.notifications.sent_title'))
             ->body($body)
             ->send();
     }

@@ -10,6 +10,8 @@ return [
         'body' => 'Treść',
         'placeholders' => 'Dostępne placeholdery',
         'placeholders_hint' => 'Możesz użyć tych placeholderów w temacie i treści (zastępowane osobno dla każdego odbiorcy).',
+        'send_as_notification' => 'Wyślij jako powiadomienie w aplikacji',
+        'send_as_notification_hint' => 'Dostarcz w aplikacji zamiast e-mailem. Odbiorcy zobaczą wiadomość na liście powiadomień.',
     ],
 
     'placeholder_tokens' => [
@@ -32,6 +34,7 @@ return [
     'confirm' => [
         'send_heading' => 'Wysłać wiadomość do wybranych użytkowników?',
         'send_body' => 'To doda do kolejki :count wiadomości. Każda wiadomość w kolejce to jedno wysłanie u dostawcy (np. jeden kredyt Brevo). Odbiorcy nie zobaczą adresów innych osób.',
+        'send_body_notification' => 'To doda do kolejki :count powiadomień w aplikacji. Każdy odbiorca zobaczy wiadomość tylko na własnej liście powiadomień.',
     ],
 
     'validation' => [
@@ -43,7 +46,9 @@ return [
 
     'notifications' => [
         'test_queued' => 'Testowa wiadomość dodana do kolejki.',
+        'test_queued_in_app' => 'Testowe powiadomienie dodane do kolejki.',
         'sent_title' => 'Wiadomości w kolejce',
+        'sent_title_notifications' => 'Powiadomienia w kolejce',
         'sent_summary' => 'W kolejce: :queued. Pominięto nieuprawnionych: :skipped. Pominięto z powodu limitu: :over_limit.',
     ],
 ];

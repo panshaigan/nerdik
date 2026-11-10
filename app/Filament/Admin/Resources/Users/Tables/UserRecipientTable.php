@@ -113,6 +113,7 @@ final class UserRecipientTable
                         (string) ($data['subject'] ?? ''),
                         (string) ($data['bodyHtml'] ?? ''),
                         $records->modelKeys(),
+                        (bool) ($data['sendAsNotification'] ?? false),
                     );
                 } catch (ValidationException $exception) {
                     Notification::make()
@@ -123,9 +124,13 @@ final class UserRecipientTable
                     return;
                 }
 
+                $asNotification = (bool) ($data['sendAsNotification'] ?? false);
+
                 Notification::make()
                     ->success()
-                    ->title(__('admin_custom_email.notifications.sent_title'))
+                    ->title($asNotification
+                        ? __('admin_custom_email.notifications.sent_title_notifications')
+                        : __('admin_custom_email.notifications.sent_title'))
                     ->body(__('admin_custom_email.notifications.sent_summary', [
                         'queued' => $result->queued,
                         'skipped' => $result->skippedIneligible,

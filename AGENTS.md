@@ -71,6 +71,13 @@ Open these files first. Do not grep the whole app when one of these owns the fea
 - Accept/reject: `app/Services/ActivityProposalDecisionService.php`
 - Slot fit checks: `app/Services/SlotParticipationConstraintService.php`
 
+## Groups and availability
+
+- Profile availability tab: `resources/views/livewire/profile/update-availability-form.blade.php`, `app/Services/UserAvailabilityService.php`
+- Groups UI: `app/Livewire/Groups/MyGroups.php`, `ShowGroup.php`, `GroupAvailabilityCalendar.php`
+- Membership + calendar aggregation: `app/Services/GroupMembershipService.php`, `app/Services/GroupAvailabilityService.php`
+- Group invites: `UserRequestType::GroupInvite`, handler `GroupInviteRequestHandler.php`
+
 ## User requests (invites, join requests)
 
 - Registry: `app/Services/UserRequests/UserRequestHandlerRegistry.php`

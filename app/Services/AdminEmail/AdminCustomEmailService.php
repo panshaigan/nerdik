@@ -58,6 +58,7 @@ final class AdminCustomEmailService
         string $subjectTemplate,
         string $bodyHtml,
         iterable $userIds,
+        bool $sendAsNotification = false,
     ): AdminEmailDispatchResult {
         $subject = trim($subjectTemplate);
         $sanitizedBody = RichText::sanitize($bodyHtml);
@@ -101,6 +102,7 @@ final class AdminCustomEmailService
                 recipientUserId: (int) $recipient->getKey(),
                 subjectTemplate: $subject,
                 bodyHtmlTemplate: $sanitizedBody,
+                sendAsNotification: $sendAsNotification,
             );
         }
 
@@ -115,6 +117,7 @@ final class AdminCustomEmailService
         User $sender,
         string $subjectTemplate,
         string $bodyHtml,
+        bool $sendAsNotification = false,
     ): void {
         $subject = trim($subjectTemplate);
         $sanitizedBody = RichText::sanitize($bodyHtml);
@@ -136,6 +139,7 @@ final class AdminCustomEmailService
             subjectTemplate: $subject,
             bodyHtmlTemplate: $sanitizedBody,
             bypassEligibility: true,
+            sendAsNotification: $sendAsNotification,
         );
     }
 }

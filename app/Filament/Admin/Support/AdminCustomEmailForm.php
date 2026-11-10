@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Support;
 
 use App\Filament\Forms\Components\TinyMceEditor;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Component;
 
@@ -27,6 +28,11 @@ final class AdminCustomEmailForm
                 ->label(__('admin_custom_email.fields.body'))
                 ->helperText(__('admin_custom_email.fields.placeholders_hint'))
                 ->required()
+                ->columnSpanFull(),
+            Toggle::make('sendAsNotification')
+                ->label(__('admin_custom_email.fields.send_as_notification'))
+                ->helperText(__('admin_custom_email.fields.send_as_notification_hint'))
+                ->default(false)
                 ->columnSpanFull(),
         ];
 

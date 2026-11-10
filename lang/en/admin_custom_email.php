@@ -10,6 +10,8 @@ return [
         'body' => 'Message',
         'placeholders' => 'Available placeholders',
         'placeholders_hint' => 'You can use these placeholders in the subject and message (replaced per recipient).',
+        'send_as_notification' => 'Send as in-app notification',
+        'send_as_notification_hint' => 'Deliver inside the app instead of email. Recipients see it in their notification list.',
     ],
 
     'placeholder_tokens' => [
@@ -32,6 +34,7 @@ return [
     'confirm' => [
         'send_heading' => 'Send email to selected users?',
         'send_body' => 'This will queue :count email(s). Each queued message uses one provider send (e.g. one Brevo credit). Recipients will not see each other\'s addresses.',
+        'send_body_notification' => 'This will queue :count in-app notification(s). Recipients see each message only in their own notification list.',
     ],
 
     'validation' => [
@@ -43,7 +46,9 @@ return [
 
     'notifications' => [
         'test_queued' => 'Test email queued.',
+        'test_queued_in_app' => 'Test notification queued.',
         'sent_title' => 'Emails queued',
+        'sent_title_notifications' => 'Notifications queued',
         'sent_summary' => 'Queued :queued. Skipped ineligible: :skipped. Skipped over limit: :over_limit.',
     ],
 ];
