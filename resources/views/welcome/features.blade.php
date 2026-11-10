@@ -3,7 +3,7 @@
         'find' => [
             'label' => 'tab_find',
             'intro' => 'tab_find_intro',
-            'bullets' => ['tab_find_1', 'tab_find_2', 'tab_find_3', 'tab_find_4', 'tab_find_5'],
+            'bullets' => ['tab_find_1', 'tab_find_2', 'tab_find_3', 'tab_find_4', 'tab_find_5', 'tab_find_6'],
         ],
         'host' => [
             'label' => 'tab_host',

@@ -59,6 +59,15 @@ final class FeatureCatalog
                         ],
                     ],
                     [
+                        'group_key' => 'players_groups',
+                        'items' => [
+                            ['id' => 'players_groups_calendar', 'icon' => 'o-user-group', 'title_key' => 'players_groups_calendar_title', 'body_key' => 'players_groups_calendar_body'],
+                            ['id' => 'players_groups_visibility', 'icon' => 'o-globe-alt', 'title_key' => 'players_groups_visibility_title', 'body_key' => 'players_groups_visibility_body'],
+                            ['id' => 'players_groups_discover', 'icon' => 'o-sparkles', 'title_key' => 'players_groups_discover_title', 'body_key' => 'players_groups_discover_body'],
+                            ['id' => 'players_groups_host_from_calendar', 'icon' => 'o-plus-circle', 'title_key' => 'players_groups_host_from_calendar_title', 'body_key' => 'players_groups_host_from_calendar_body'],
+                        ],
+                    ],
+                    [
                         'group_key' => 'players_follow_along',
                         'items' => [
                             ['id' => 'players_interests', 'icon' => 'o-heart', 'title_key' => 'players_interests_title', 'body_key' => 'players_interests_body'],
@@ -85,6 +94,7 @@ final class FeatureCatalog
                         'group_key' => 'players_account',
                         'items' => [
                             ['id' => 'players_profile_identity', 'icon' => 'o-identification', 'title_key' => 'players_profile_identity_title', 'body_key' => 'players_profile_identity_body'],
+                            ['id' => 'players_play_preferences', 'icon' => 'o-map-pin', 'title_key' => 'players_play_preferences_title', 'body_key' => 'players_play_preferences_body'],
                             ['id' => 'players_contact_methods', 'icon' => 'o-at-symbol', 'title_key' => 'players_contact_methods_title', 'body_key' => 'players_contact_methods_body'],
                             ['id' => 'players_avatar_gallery', 'icon' => 'o-photo', 'title_key' => 'players_avatar_gallery_title', 'body_key' => 'players_avatar_gallery_body'],
                             ['id' => 'players_organizer_request', 'icon' => 'o-hand-raised', 'title_key' => 'players_organizer_request_title', 'body_key' => 'players_organizer_request_body'],
@@ -198,6 +208,7 @@ final class FeatureCatalog
                         'group_key' => 'organizers_plan',
                         'items' => [
                             ['id' => 'organizers_slots', 'icon' => 'o-table-cells', 'title_key' => 'organizers_slots_title', 'body_key' => 'organizers_slots_body'],
+                            ['id' => 'organizers_schedule_activity', 'icon' => 'o-play', 'title_key' => 'organizers_schedule_activity_title', 'body_key' => 'organizers_schedule_activity_body'],
                             ['id' => 'organizers_slot_constraints', 'icon' => 'o-adjustments-horizontal', 'title_key' => 'organizers_slot_constraints_title', 'body_key' => 'organizers_slot_constraints_body'],
                             ['id' => 'organizers_detach_map_series', 'icon' => 'o-map', 'title_key' => 'organizers_detach_map_series_title', 'body_key' => 'organizers_detach_map_series_body'],
                         ],

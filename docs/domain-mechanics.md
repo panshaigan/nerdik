@@ -1,6 +1,6 @@
 # Domain Mechanics
 
-This document describes the app-level rules and flows behind events, activities, proposals, and participation.
+This document describes the app-level rules and flows behind events, activities, proposals, participation, groups, and play preferences.
 
 ## Entity Lifecycle
 
@@ -58,6 +58,10 @@ If no fitting slot exists, proposal remains pending.
 - Accept assigns the activity to a chosen free slot (or auto-selects a fitting free slot when no slot ID is provided).
 - Reject clears accepted slot and marks proposal rejected.
 - Decision triggers status updates and notifications to the proposal creator.
+
+## Organizer Schedule Without Proposal
+
+Event organizers (and co-organizers) can create a scheduled activity and its slot in one modal from the event page. That path does not go through `ActivityProposal`; the activity is created already in `SCHEDULED_ON_EVENT`.
 
 ## Participation And Waitlist Mechanics
 
@@ -120,6 +124,14 @@ A `!` indicator appears on a user’s badge when they have been banned by at lea
 - **Availability is global per user:** weekday defaults and date exceptions live on the user profile; every group aggregates members’ resolved status for each calendar day.
 - Resolve order for a date: date exception → weekday default → uncertain when no defaults are stored.
 - Group calendar UI shows per-day available counts, optional minimum-available / all-members filters, and day detail lists (available / unavailable / uncertain).
+- Owners set optional **location** (play area) and **tags**. The **Discover** tab lists users whose play preferences overlap those tags/area so members can invite them.
+- From a calendar day, a member can create an activity prefilled with that date. Members marked **available** that day (except the host, and except users the host has banned) can be enrolled automatically, up to activity capacity.
+
+## Play Preferences And Browse Matching
+
+- Each user may set a **play area** (map bbox/radius) and **interest tags** on the profile Play preferences tab.
+- Those preferences appear on the user contact preview when the viewer is allowed to open it.
+- Browse `/search` can apply the signed-in user’s preferences in one step (tags + play-area bbox). Find groups can filter public groups by the same play area and by tags.
 
 ## Time, Audit, And Deletion Conventions
 
