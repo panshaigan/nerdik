@@ -106,7 +106,7 @@ Tag with `#[Group('slow')]` / `#[Group('infra')]` on the test class (or method).
 
 Covers UI journeys PHPUnit cannot see well: login return URLs, saved search restore, the browse map, joining from the event plan, tabbed create forms, image crop on the event form, slot edit modal, notification bell, mobile nav drawer, waitlist join/leave, and activity propose/accept on the event plan.
 
-Second-wave fixtures (from `e2e:prepare`) include an occupied slot and empty slot on the join event, a host-approval waitlist activity, a player draft activity, a pre-seeded pending proposal, and an unread proposal notification for the organizer.
+Second-wave fixtures (from `e2e:prepare`) include an occupied slot and empty slot on the join event, a host-approval waitlist activity, a player draft activity, a pre-seeded pending proposal, and an unread proposal notification for the organizer. Newer specs also rely on a public group the player has not joined yet, player play preferences (tag + play area), and schedule-activity datetime hints for the fixture event.
 
 With Sail already running:
 

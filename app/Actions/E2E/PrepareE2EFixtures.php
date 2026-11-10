@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\E2E;
 
 use App\Enums\ActivityProposalStatus;
+use App\Enums\GroupVisibility;
 use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -13,11 +14,17 @@ use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
+use App\Models\Group;
 use App\Models\Place;
 use App\Models\Slot;
+use App\Models\Tag;
+use App\Models\TagCategory;
+use App\Models\TagTranslation;
 use App\Models\User;
+use App\Models\UserPlayArea;
 use App\Models\UserProfile;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Services\UserPlayPreferencesService;
 use Database\Factories\DatabaseNotificationFactory;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Notifications\DatabaseNotification;
@@ -61,6 +68,12 @@ final class PrepareE2EFixtures
     public const PLACE_LNG = 17.0323;
 
     public const ENROLLMENT_NAME = 'E2E Playwright Enrollment';
+
+    public const PUBLIC_GROUP_NAME = 'E2E Playwright Public Group';
+
+    public const PUBLIC_GROUP_SLUG = 'e2e-playwright-public-group';
+
+    public const PLAY_PREFERENCE_TAG_LABEL = 'E2E Playwright Game';
 
     /**
      * @return list<string>
@@ -111,9 +124,16 @@ final class PrepareE2EFixtures
         $draftActivity = $this->upsertDraftActivity($player);
         $pendingProposal = $this->upsertPendingProposal($player, $event, $place);
         $notification = $this->upsertOrganizerNotification($organizer, $pendingProposal);
+        $publicGroup = $this->upsertPublicGroup($organizer, $player);
+        $playPreferenceTag = $this->upsertPlayerPlayPreferences($player, $organizer);
 
         $this->resetPlayerParticipation($activity, $player);
         $this->resetPlayerParticipation($waitlistActivity, $player);
+
+        $scheduleStartsAt = $event->starts_at?->copy()->addHours(2)->format(datetime_local_input_format())
+            ?? now()->addDays(14)->addHours(2)->format(datetime_local_input_format());
+        $scheduleEndsAt = $event->starts_at?->copy()->addHours(4)->format(datetime_local_input_format())
+            ?? now()->addDays(14)->addHours(4)->format(datetime_local_input_format());
 
         $payload = [
             'player' => [
@@ -169,6 +189,20 @@ final class PrepareE2EFixtures
             ],
             'map' => [
                 'path' => '/search?map_view=1&q='.rawurlencode(self::EVENT_NAME).'&min_lat=51.05&max_lat=51.16&min_lng=16.97&max_lng=17.09',
+            ],
+            'public_group' => [
+                'name' => $publicGroup->name,
+                'slug' => $publicGroup->slug,
+                'path' => '/groups/'.$publicGroup->slug,
+            ],
+            'play_preferences' => [
+                'tag_id' => $playPreferenceTag->id,
+                'tag_label' => self::PLAY_PREFERENCE_TAG_LABEL,
+            ],
+            'schedule_activity' => [
+                'starts_at' => $scheduleStartsAt,
+                'ends_at' => $scheduleEndsAt,
+                'venue_name' => $place->name,
             ],
         ];
 
@@ -479,6 +513,75 @@ final class PrepareE2EFixtures
     {
         return (int) (ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id
             ?? ActivityType::query()->value('id'));
+    }
+
+    private function upsertPublicGroup(User $organizer, User $player): Group
+    {
+        $group = Group::query()->updateOrCreate(
+            ['slug' => self::PUBLIC_GROUP_SLUG],
+            [
+                'name' => self::PUBLIC_GROUP_NAME,
+                'description' => 'Deterministic Playwright public group fixture.',
+                'visibility' => GroupVisibility::Public,
+                'created_by' => $organizer->id,
+                'updated_by' => $organizer->id,
+            ],
+        );
+
+        if (! $group->users()->whereKey($organizer->id)->exists()) {
+            $group->users()->attach($organizer->id);
+        }
+
+        $group->users()->detach($player->id);
+
+        return $group;
+    }
+
+    private function upsertPlayerPlayPreferences(User $player, User $organizer): Tag
+    {
+        $category = TagCategory::query()->firstOrCreate(
+            ['key' => TagCategory::KEY_GAME],
+        );
+
+        $tag = Tag::query()
+            ->whereHas('translations', fn ($query) => $query
+                ->where('locale', 'en')
+                ->where('label', self::PLAY_PREFERENCE_TAG_LABEL))
+            ->first();
+
+        if ($tag === null) {
+            $tag = Tag::query()->create([
+                'tag_category_id' => $category->id,
+                'created_by' => $organizer->id,
+                'updated_by' => $organizer->id,
+            ]);
+
+            TagTranslation::query()->create([
+                'tag_id' => $tag->id,
+                'locale' => 'en',
+                'label' => self::PLAY_PREFERENCE_TAG_LABEL,
+            ]);
+
+            TagTranslation::query()->create([
+                'tag_id' => $tag->id,
+                'locale' => 'pl',
+                'label' => 'E2E Playwright Gra',
+            ]);
+        }
+
+        UserPlayArea::query()->updateOrCreate(
+            ['user_id' => $player->id],
+            [
+                'latitude' => self::PLACE_LAT,
+                'longitude' => self::PLACE_LNG,
+                'radius_km' => 25,
+                'label' => 'E2E play area',
+            ],
+        );
+
+        app(UserPlayPreferencesService::class)->syncInterestTags($player, [(int) $tag->id]);
+
+        return $tag;
     }
 
     private function resetPlayerParticipation(Activity $activity, User $player): void

@@ -6,6 +6,7 @@ namespace App\Actions\E2E;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\Group;
 use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -25,6 +26,7 @@ final class CleanupE2EPlaywrightLeftovers
         $this->deleteNonFixtureEvents($userIds);
         $this->deleteNonFixtureActivities($userIds);
         $this->deleteNonFixtureSlotsOnJoinEvent();
+        $this->deleteNonFixtureGroups($userIds);
     }
 
     /**
@@ -78,5 +80,17 @@ final class CleanupE2EPlaywrightLeftovers
             ->withTrashed()
             ->where('event_id', $event->id)
             ->each(fn (Slot $slot) => $slot->forceDelete());
+    }
+
+    /**
+     * @param  Collection<int, int>  $userIds
+     */
+    private function deleteNonFixtureGroups(Collection $userIds): void
+    {
+        Group::query()
+            ->withTrashed()
+            ->whereIn('created_by', $userIds)
+            ->where('slug', '!=', PrepareE2EFixtures::PUBLIC_GROUP_SLUG)
+            ->each(fn (Group $group) => $group->forceDelete());
     }
 }

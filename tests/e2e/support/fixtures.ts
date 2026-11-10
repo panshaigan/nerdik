@@ -14,6 +14,9 @@ export type E2EFixtures = {
     notification: { id: string; expected_path: string };
     place: { name: string; latitude: number; longitude: number };
     map: { path: string };
+    public_group: { name: string; slug: string; path: string };
+    play_preferences: { tag_id: number; tag_label: string };
+    schedule_activity: { starts_at: string; ends_at: string; venue_name: string };
 };
 
 export function fixtureFilePath(): string {

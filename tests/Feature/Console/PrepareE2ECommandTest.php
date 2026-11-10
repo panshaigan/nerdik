@@ -6,6 +6,7 @@ namespace Tests\Feature\Console;
 
 use App\Actions\E2E\PrepareE2EFixtures;
 use App\Enums\ActivityProposalStatus;
+use App\Enums\GroupVisibility;
 use App\Enums\ParticipationMode;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
@@ -13,8 +14,10 @@ use App\Models\ActivityUser;
 use App\Models\ActivityWaitlistEntry;
 use App\Models\Event;
 use App\Models\EventEnrollmentWindow;
+use App\Models\Group;
 use App\Models\Slot;
 use App\Models\User;
+use App\Models\UserPlayArea;
 use App\Notifications\ProposalSubmittedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
@@ -103,6 +106,18 @@ final class PrepareE2ECommandTest extends TestCase
         $this->assertNotNull($emptySlot);
         $this->assertNotNull($pendingActivity);
         $this->assertTrue($emptySlot->fitsProposalActivity($pendingActivity));
+
+        $publicGroup = Group::query()->where('slug', PrepareE2EFixtures::PUBLIC_GROUP_SLUG)->first();
+        $this->assertNotNull($publicGroup);
+        $this->assertSame(GroupVisibility::Public, $publicGroup->visibility);
+        $this->assertFalse($publicGroup->users()->whereKey($player->id)->exists());
+
+        $this->assertNotNull(
+            UserPlayArea::query()->where('user_id', $player->id)->first(),
+        );
+        $this->assertNotNull($decoded['public_group']['path'] ?? null);
+        $this->assertNotNull($decoded['play_preferences']['tag_id'] ?? null);
+        $this->assertNotNull($decoded['schedule_activity']['starts_at'] ?? null);
     }
 
     #[Test]

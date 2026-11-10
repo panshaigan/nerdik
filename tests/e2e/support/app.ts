@@ -120,6 +120,36 @@ export function uniqueLabel(prefix: string): string {
     return `${prefix} ${Date.now()}`;
 }
 
+export async function openEventManageMenu(page: Page): Promise<void> {
+    const manage = page.locator('[data-ui="event-show-manage"]');
+    await expect(manage).toBeVisible({ timeout: 20_000 });
+    await manage.click();
+    await expect(page.locator('[data-ui="event-show-manage-list"]')).toBeVisible();
+}
+
+export async function submitScheduleActivityForm(
+    page: Page,
+    payload: { name: string; startsAt: string; endsAt: string },
+): Promise<void> {
+    await page.evaluate(
+        async ({ name, startsAt, endsAt }) => {
+            const form = document.getElementById('event-schedule-activity-form');
+            const wireId = form?.closest('[wire\\:id]')?.getAttribute('wire:id');
+            if (!wireId || typeof window.Livewire === 'undefined') {
+                throw new Error('Schedule activity form not ready');
+            }
+
+            const component = window.Livewire.find(wireId);
+            await component?.set('name', name);
+            await component?.set('starts_at', startsAt);
+            await component?.set('ends_at', endsAt);
+            await component?.call('save');
+        },
+        payload,
+    );
+    await waitForLivewireIdle(page);
+}
+
 export function futureDatetimeRange(): { start: string; end: string } {
     const start = new Date();
     start.setDate(start.getDate() + 10);
