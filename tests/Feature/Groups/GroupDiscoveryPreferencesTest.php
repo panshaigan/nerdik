@@ -7,6 +7,9 @@ namespace Tests\Feature\Groups;
 use App\Livewire\Groups\GroupLocationForm;
 use App\Livewire\Groups\GroupTagsForm;
 use App\Livewire\Groups\ShowGroup;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
@@ -37,6 +40,7 @@ final class GroupDiscoveryPreferencesTest extends TestCase
     public function test_owner_can_save_group_location(): void
     {
         $owner = User::factory()->create();
+        $city = $this->createCity('Warsaw');
         $group = app(GroupMembershipService::class)->create($owner, 'Location Party');
 
         Livewire::actingAs($owner)
@@ -44,7 +48,8 @@ final class GroupDiscoveryPreferencesTest extends TestCase
             ->set('playLatitude', 52.2297)
             ->set('playLongitude', 21.0122)
             ->set('playRadiusKm', 40)
-            ->set('playLabel', 'Warsaw')
+            ->set('playLabel', 'Przemysłowa 7')
+            ->set('playCityId', $city->id)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('group-location-updated');
@@ -53,7 +58,8 @@ final class GroupDiscoveryPreferencesTest extends TestCase
 
         $this->assertTrue($group->hasLocation());
         $this->assertSame(40, (int) $group->radius_km);
-        $this->assertSame('Warsaw', $group->location_label);
+        $this->assertSame('Przemysłowa 7', $group->location_label);
+        $this->assertSame($city->id, (int) $group->city_id);
     }
 
     public function test_owner_can_clear_group_location(): void
@@ -79,6 +85,7 @@ final class GroupDiscoveryPreferencesTest extends TestCase
 
         $this->assertFalse($group->hasLocation());
         $this->assertNull($group->location_label);
+        $this->assertNull($group->city_id);
     }
 
     public function test_owner_can_save_group_tags(): void
@@ -130,5 +137,18 @@ final class GroupDiscoveryPreferencesTest extends TestCase
             ->test(ShowGroup::class, ['groupId' => $group->id])
             ->assertSet('tab', 'members')
             ->assertSet('mountedTabs', ['members']);
+    }
+
+    private function createCity(string $enName): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create(['country_id' => $country->id]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => 'en',
+            'name' => $enName,
+        ]);
+
+        return $city;
     }
 }

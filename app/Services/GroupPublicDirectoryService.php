@@ -31,7 +31,7 @@ class GroupPublicDirectoryService
 
         $query = Group::query()
             ->publiclyDiscoverable()
-            ->with(['tags.translations'])
+            ->with(['tags.translations', 'city.translations'])
             ->withCount('users')
             ->when($memberGroupIds !== [], fn (Builder $q) => $q->whereNotIn('groups.id', $memberGroupIds));
 

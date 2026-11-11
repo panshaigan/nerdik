@@ -10,7 +10,7 @@ const RADIUS_SYNC_DEBOUNCE_MS = 120;
 
 /**
  * @param {HTMLElement} root
- * @param {{ latitude: number|null, longitude: number|null, radiusKm: number, label: string|null }} payload
+ * @param {{ latitude: number|null, longitude: number|null, radiusKm: number, label: string|null, cityId: number|null }} payload
  */
 function syncLivewirePlayArea(root, payload) {
     if (typeof window.Livewire === 'undefined' || typeof window.Livewire.find !== 'function') {
@@ -38,6 +38,7 @@ function syncLivewirePlayArea(root, payload) {
         payload.longitude,
         payload.radiusKm,
         payload.label,
+        payload.cityId,
     );
 }
 
@@ -127,12 +128,16 @@ export function initPlayAreaMap(root) {
     let circle = null;
     let radiusSyncTimer = null;
 
-    /** @type {{ latitude: number|null, longitude: number|null, radiusKm: number, label: string|null }} */
+    const initialCityId = cfg.cityId != null && cfg.cityId !== '' ? Number(cfg.cityId) : null;
+    const hasInitialCityId = Number.isFinite(initialCityId) && initialCityId > 0;
+
+    /** @type {{ latitude: number|null, longitude: number|null, radiusKm: number, label: string|null, cityId: number|null }} */
     let state = {
         latitude: hasInitial ? initialLat : null,
         longitude: hasInitial ? initialLng : null,
         radiusKm,
         label: cfg.label || null,
+        cityId: hasInitialCityId ? initialCityId : null,
     };
 
     function updateRadiusDisplay() {
@@ -202,6 +207,7 @@ export function initPlayAreaMap(root) {
         state.latitude = null;
         state.longitude = null;
         state.label = null;
+        state.cityId = null;
         updateClearVisibility();
     }
 
@@ -212,7 +218,7 @@ export function initPlayAreaMap(root) {
     /**
      * @param {number} lat
      * @param {number} lng
-     * @param {{ reverse?: boolean, label?: string|null }} options
+     * @param {{ reverse?: boolean, label?: string|null, cityId?: number|null }} options
      */
     async function setLocationFromCoords(lat, lng, options = {}) {
         state.latitude = lat;
@@ -224,12 +230,18 @@ export function initPlayAreaMap(root) {
             state.label = options.label;
         }
 
+        if (options.cityId !== undefined) {
+            state.cityId = options.cityId;
+        }
+
         if (options.reverse && cfg.reverseUrl) {
             try {
                 const { data } = await axios.get(cfg.reverseUrl, {
                     params: { lat, lng },
                 });
                 state.label = data.address_short || data.display_name || state.label;
+                const cityId = data.city_id != null ? Number(data.city_id) : null;
+                state.cityId = Number.isFinite(cityId) && cityId > 0 ? cityId : state.cityId;
             } catch {
                 // Keep coords even if reverse geocode fails.
             }
@@ -342,9 +354,11 @@ export function initPlayAreaMap(root) {
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
                     return;
                 }
+                const cityId = r.city_id != null ? Number(r.city_id) : null;
                 void setLocationFromCoords(lat, lng, {
                     reverse: false,
                     label: r.address_short || r.label || null,
+                    cityId: Number.isFinite(cityId) && cityId > 0 ? cityId : null,
                 });
                 if (searchInput) {
                     searchInput.value = '';

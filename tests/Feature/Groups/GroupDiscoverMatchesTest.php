@@ -8,6 +8,9 @@ use App\Enums\UserRequestStatus;
 use App\Enums\UserRequestType;
 use App\Livewire\Groups\GroupDiscoverMatches;
 use App\Livewire\Groups\ShowGroup;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
@@ -84,6 +87,38 @@ final class GroupDiscoverMatchesTest extends TestCase
         $this->assertNotNull($nearbyUser);
         $this->assertSame([], $nearbyUser->discovery_match_tag_labels);
         $this->assertNotNull($nearbyUser->discovery_match_play_area_caption);
+    }
+
+    public function test_play_area_caption_includes_street_and_city(): void
+    {
+        $owner = User::factory()->create();
+        $candidate = User::factory()->create();
+        $city = $this->createCity('Warsaw');
+        $group = app(GroupMembershipService::class)->create($owner, 'Caption Party');
+
+        app(GroupDiscoveryPreferencesService::class)->saveLocation(
+            $group,
+            $owner,
+            52.2297,
+            21.0122,
+            25,
+            'Group center',
+        );
+        app(UserPlayPreferencesService::class)->savePlayArea(
+            $candidate,
+            52.24,
+            21.02,
+            25,
+            'Przemysłowa 7',
+            $city->id,
+        );
+
+        $caption = app(GroupCandidateDiscoveryService::class)
+            ->matchingPlayAreaCaption($group->fresh(), $candidate->fresh()->playArea);
+
+        $this->assertNotNull($caption);
+        $this->assertStringContainsString('Przemysłowa 7, Warsaw', $caption);
+        $this->assertStringContainsString('25', $caption);
     }
 
     public function test_candidates_require_tags_and_location_when_both_set(): void
@@ -237,5 +272,18 @@ final class GroupDiscoverMatchesTest extends TestCase
         ]);
 
         return $tag;
+    }
+
+    private function createCity(string $enName): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create(['country_id' => $country->id]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => 'en',
+            'name' => $enName,
+        ]);
+
+        return $city;
     }
 }

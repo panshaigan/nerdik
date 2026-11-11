@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Profile;
 
 use App\Livewire\Activities\UserContactPopover;
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagTranslation;
@@ -95,6 +98,7 @@ final class ProfilePlayPreferencesTest extends TestCase
     {
         $viewer = User::factory()->create();
         $target = User::factory()->create();
+        $city = $this->createCity('Warsaw');
         $category = TagCategory::factory()->create(['key' => TagCategory::KEY_GAME]);
         $tag = Tag::factory()->for($category, 'tagCategory')->create();
         TagTranslation::query()->create([
@@ -108,14 +112,28 @@ final class ProfilePlayPreferencesTest extends TestCase
             'latitude' => 52.2297,
             'longitude' => 21.0122,
             'radius_km' => 25,
-            'label' => 'Warsaw',
+            'label' => 'Przemysłowa 7',
+            'city_id' => $city->id,
         ]);
         $target->interestTags()->sync([$tag->id]);
 
         Livewire::actingAs($viewer)
             ->test(UserContactPopover::class, ['targetUserId' => $target->id])
-            ->assertSee('Warsaw', false)
+            ->assertSee('Przemysłowa 7, Warsaw', false)
             ->assertSee('Azul', false)
             ->assertSeeHtml('data-ui="user-contact-popover-tab-play-preferences"');
+    }
+
+    private function createCity(string $enName): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create(['country_id' => $country->id]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => 'en',
+            'name' => $enName,
+        ]);
+
+        return $city;
     }
 }

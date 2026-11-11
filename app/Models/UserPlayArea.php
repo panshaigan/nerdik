@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\PlayAreaLocationSummary;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +16,7 @@ class UserPlayArea extends Model
         'longitude',
         'radius_km',
         'label',
+        'city_id',
     ];
 
     /**
@@ -32,5 +34,15 @@ class UserPlayArea extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function locationLine(?string $locale = null): ?string
+    {
+        return PlayAreaLocationSummary::line($this->label, $this->city, $locale);
     }
 }

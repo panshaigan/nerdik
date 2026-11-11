@@ -27,6 +27,8 @@ class GroupLocationForm extends Component
 
     public ?string $playLabel = null;
 
+    public ?int $playCityId = null;
+
     public function mount(int $groupId): void
     {
         $this->groupId = $groupId;
@@ -45,6 +47,7 @@ class GroupLocationForm extends Component
             'longitude' => $this->playLongitude,
             'radiusKm' => $this->playRadiusKm,
             'label' => $this->playLabel,
+            'cityId' => $this->playCityId,
             'minRadiusKm' => GroupDiscoveryPreferencesService::MIN_RADIUS_KM,
             'maxRadiusKm' => GroupDiscoveryPreferencesService::MAX_RADIUS_KM,
             'defaultRadiusKm' => GroupDiscoveryPreferencesService::DEFAULT_RADIUS_KM,
@@ -56,6 +59,7 @@ class GroupLocationForm extends Component
         ?float $longitude,
         int $radiusKm,
         ?string $label,
+        ?int $cityId = null,
     ): void {
         $this->playLatitude = $latitude;
         $this->playLongitude = $longitude;
@@ -65,6 +69,7 @@ class GroupLocationForm extends Component
         );
         $normalized = $label !== null ? trim($label) : null;
         $this->playLabel = $normalized === '' ? null : $normalized;
+        $this->playCityId = $cityId;
         $this->skipRender();
     }
 
@@ -86,6 +91,7 @@ class GroupLocationForm extends Component
                 'max:'.GroupDiscoveryPreferencesService::MAX_RADIUS_KM,
             ],
             'playLabel' => ['nullable', 'string', 'max:255'],
+            'playCityId' => ['nullable', 'integer', 'exists:cities,id'],
         ]);
 
         try {
@@ -97,6 +103,7 @@ class GroupLocationForm extends Component
                     (float) $this->playLongitude,
                     (int) $this->playRadiusKm,
                     $this->playLabel,
+                    $this->playCityId,
                 );
             } else {
                 $preferences->clearLocation($group, $user);
@@ -129,11 +136,13 @@ class GroupLocationForm extends Component
             $this->playLongitude = (float) $group->longitude;
             $this->playRadiusKm = (int) $group->radius_km;
             $this->playLabel = $group->location_label;
+            $this->playCityId = $group->city_id !== null ? (int) $group->city_id : null;
         } else {
             $this->playLatitude = null;
             $this->playLongitude = null;
             $this->playRadiusKm = GroupDiscoveryPreferencesService::DEFAULT_RADIUS_KM;
             $this->playLabel = null;
+            $this->playCityId = null;
         }
     }
 

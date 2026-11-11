@@ -198,7 +198,7 @@ class UserContactPopover extends Component
             ->with([
                 'profile',
                 'organization',
-                'playArea',
+                'playArea.city.translations',
                 'interestTags.translations',
                 'interestTags.tagCategory.translations',
             ])
@@ -250,9 +250,10 @@ class UserContactPopover extends Component
             return null;
         }
 
-        $caption = filled($area->label)
+        $locationLine = $area->locationLine();
+        $caption = $locationLine !== null
             ? (string) __('ui.profile.availability.play_area_preview_caption', [
-                'label' => $area->label,
+                'label' => $locationLine,
                 'radius' => $area->radius_km,
             ])
             : (string) __('ui.profile.availability.play_area_preview_caption_no_label', [

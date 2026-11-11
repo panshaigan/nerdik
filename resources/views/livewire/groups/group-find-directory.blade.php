@@ -57,7 +57,7 @@
                 @endif
                 @if ($group->hasLocation())
                     <p class="mt-2 text-xs text-base-content/60">
-                        {{ $group->location_label ?: __('ui.groups.location_untitled') }}
+                        {{ $group->locationLine() ?: __('ui.groups.location_untitled') }}
                         · {{ __('ui.groups.location_radius_summary', ['km' => (int) $group->radius_km]) }}
                     </p>
                 @endif

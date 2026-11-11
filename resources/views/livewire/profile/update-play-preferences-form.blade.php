@@ -20,6 +20,8 @@ new class extends Component
 
     public ?string $playLabel = null;
 
+    public ?int $playCityId = null;
+
     /** @var list<int> */
     public array $tag_ids = [];
 
@@ -46,11 +48,13 @@ new class extends Component
             $this->playLongitude = (float) $playArea->longitude;
             $this->playRadiusKm = (int) $playArea->radius_km;
             $this->playLabel = $playArea->label;
+            $this->playCityId = $playArea->city_id !== null ? (int) $playArea->city_id : null;
         } else {
             $this->playLatitude = null;
             $this->playLongitude = null;
             $this->playRadiusKm = UserPlayPreferencesService::DEFAULT_RADIUS_KM;
             $this->playLabel = null;
+            $this->playCityId = null;
         }
 
         $this->tag_ids = $user->interestTags
@@ -73,6 +77,7 @@ new class extends Component
             'longitude' => $this->playLongitude,
             'radiusKm' => $this->playRadiusKm,
             'label' => $this->playLabel,
+            'cityId' => $this->playCityId,
             'minRadiusKm' => UserPlayPreferencesService::MIN_RADIUS_KM,
             'maxRadiusKm' => UserPlayPreferencesService::MAX_RADIUS_KM,
             'defaultRadiusKm' => UserPlayPreferencesService::DEFAULT_RADIUS_KM,
@@ -121,6 +126,7 @@ new class extends Component
         ?float $longitude,
         int $radiusKm,
         ?string $label,
+        ?int $cityId = null,
     ): void {
         $this->playLatitude = $latitude;
         $this->playLongitude = $longitude;
@@ -130,6 +136,7 @@ new class extends Component
         );
         $normalized = $label !== null ? trim($label) : null;
         $this->playLabel = $normalized === '' ? null : $normalized;
+        $this->playCityId = $cityId;
         $this->skipRender();
     }
 
@@ -160,6 +167,7 @@ new class extends Component
                     'max:'.UserPlayPreferencesService::MAX_RADIUS_KM,
                 ],
                 'playLabel' => ['nullable', 'string', 'max:255'],
+                'playCityId' => ['nullable', 'integer', 'exists:cities,id'],
                 'tag_ids' => ['nullable', 'array'],
                 'tag_ids.*' => ['integer', 'exists:tags,id'],
                 'new_tags' => ['nullable', 'array'],
@@ -174,6 +182,7 @@ new class extends Component
                     (float) $this->playLongitude,
                     (int) $this->playRadiusKm,
                     $this->playLabel,
+                    $this->playCityId,
                 );
             } else {
                 $preferences->clearPlayArea($user);

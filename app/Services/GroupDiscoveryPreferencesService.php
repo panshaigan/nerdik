@@ -30,6 +30,7 @@ class GroupDiscoveryPreferencesService
         float $longitude,
         int $radiusKm,
         ?string $label = null,
+        ?int $cityId = null,
     ): Group {
         $this->assertCanManage($group, $actor);
         $this->assertValidCoordinates($latitude, $longitude);
@@ -45,6 +46,7 @@ class GroupDiscoveryPreferencesService
             'longitude' => $longitude,
             'radius_km' => $radiusKm,
             'location_label' => $normalizedLabel,
+            'city_id' => $cityId,
         ]);
         $group->save();
 
@@ -60,6 +62,7 @@ class GroupDiscoveryPreferencesService
             'longitude' => null,
             'radius_km' => null,
             'location_label' => null,
+            'city_id' => null,
         ]);
         $group->save();
 

@@ -22,6 +22,7 @@ class UserPlayPreferencesService
         float $longitude,
         int $radiusKm,
         ?string $label = null,
+        ?int $cityId = null,
     ): UserPlayArea {
         $this->assertValidCoordinates($latitude, $longitude);
         $this->assertValidRadius($radiusKm);
@@ -38,6 +39,7 @@ class UserPlayPreferencesService
                 'longitude' => $longitude,
                 'radius_km' => $radiusKm,
                 'label' => $normalizedLabel,
+                'city_id' => $cityId,
             ],
         );
     }

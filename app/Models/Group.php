@@ -6,12 +6,14 @@ namespace App\Models;
 
 use App\Enums\GroupVisibility;
 use App\Models\Concerns\PrunesExpiredSoftDeletes;
+use App\Support\PlayAreaLocationSummary;
 use App\Traits\HasAutoSlug;
 use App\Traits\HasMetaColumns;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -38,6 +40,7 @@ class Group extends Model
         'longitude',
         'radius_km',
         'location_label',
+        'city_id',
         'created_by',
         'updated_by',
     ];
@@ -70,9 +73,19 @@ class Group extends Model
         return $this->morphToMany(Tag::class, 'taggable', 'taggables');
     }
 
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
     public function hasLocation(): bool
     {
         return $this->latitude !== null && $this->longitude !== null && $this->radius_km !== null;
+    }
+
+    public function locationLine(?string $locale = null): ?string
+    {
+        return PlayAreaLocationSummary::line($this->location_label, $this->city, $locale);
     }
 
     public function isVisibleTo(?User $user): bool

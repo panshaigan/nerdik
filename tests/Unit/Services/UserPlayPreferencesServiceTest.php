@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Models\City;
+use App\Models\CityTranslation;
+use App\Models\Country;
 use App\Models\Tag;
 use App\Models\TagCategory;
 use App\Models\TagRelation;
@@ -99,6 +102,18 @@ final class UserPlayPreferencesServiceTest extends TestCase
         $this->assertSame([(int) $existing->id], $user->interestTags->pluck('id')->all());
     }
 
+    public function test_save_play_area_persists_city_id(): void
+    {
+        $user = User::factory()->create();
+        $city = $this->createCity('Warsaw');
+        $service = app(UserPlayPreferencesService::class);
+
+        $area = $service->savePlayArea($user, 52.2297, 21.0122, 25, 'Przemysłowa 7', $city->id);
+
+        $this->assertSame('Przemysłowa 7', $area->label);
+        $this->assertSame($city->id, (int) $area->city_id);
+    }
+
     public function test_play_area_updates_in_place_for_user(): void
     {
         $user = User::factory()->create();
@@ -110,5 +125,18 @@ final class UserPlayPreferencesServiceTest extends TestCase
         $this->assertSame($first->id, $second->id);
         $this->assertSame(1, UserPlayArea::query()->where('user_id', $user->id)->count());
         $this->assertSame('Warsaw', $second->label);
+    }
+
+    private function createCity(string $enName): City
+    {
+        $country = Country::query()->create(['iso_alpha2' => 'PL']);
+        $city = City::factory()->create(['country_id' => $country->id]);
+        CityTranslation::query()->create([
+            'city_id' => $city->id,
+            'locale' => 'en',
+            'name' => $enName,
+        ]);
+
+        return $city;
     }
 }

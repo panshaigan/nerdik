@@ -28,7 +28,7 @@
     @elseif ($group->hasLocation())
         <div class="rounded-lg border border-base-300 bg-base-100 px-4 py-3 text-sm" data-ui="group-location-readonly">
             <p class="font-medium text-base-content">
-                {{ $group->location_label ?: __('ui.groups.location_untitled') }}
+                {{ $group->locationLine() ?: __('ui.groups.location_untitled') }}
             </p>
             <p class="mt-1 text-base-content/70">
                 {{ __('ui.groups.location_radius_summary', ['km' => (int) $group->radius_km]) }}

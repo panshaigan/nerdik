@@ -79,7 +79,7 @@ class GroupCandidateDiscoveryService
         }
 
         $paginator = $query
-            ->with(['playArea', 'interestTags.translations'])
+            ->with(['playArea.city.translations', 'interestTags.translations'])
             ->orderBy('nickname')
             ->paginate($perPage);
 
@@ -158,11 +158,11 @@ class GroupCandidateDiscoveryService
         }
 
         $radius = (int) $playArea->radius_km;
-        $label = filled($playArea->label) ? (string) $playArea->label : null;
+        $locationLine = $playArea->locationLine();
 
-        if ($label !== null) {
+        if ($locationLine !== null) {
             return __('ui.profile.availability.play_area_preview_caption', [
-                'label' => $label,
+                'label' => $locationLine,
                 'radius' => $radius,
             ]);
         }
