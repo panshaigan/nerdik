@@ -55,8 +55,7 @@
                         $hue = (int) round($ratio * 120);
                         $dayStyle = $inMonth
                             ? sprintf(
-                                'background-color: hsl(%d 72%% 88%%); border-color: hsl(%d 55%% 42%%); color: hsl(%d 45%% 18%%);',
-                                $hue,
+                                'background-color: hsl(%d 65%% 32%% / 0.42); border-color: hsl(%d 55%% 40%% / 0.55);',
                                 $hue,
                                 $hue,
                             )

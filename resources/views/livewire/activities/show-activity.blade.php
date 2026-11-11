@@ -12,6 +12,19 @@
     $participantsCounterValue = ((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞');
     $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.$participantsCounterValue.'</span>';
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
+    $schedulePlaceLabel = null;
+    if ($schedule->scheduleVenue !== null) {
+        $schedulePlaceLabel = $schedule->scheduleVenue->compactVenueSummary();
+        if (filled($schedule->scheduleRoom)) {
+            $schedulePlaceLabel .= ' ('.$schedule->scheduleRoom.')';
+        }
+    }
+    $schedulePlaceLinks = \App\Support\Browse\BrowseSearchUrl::placeLinks($schedule->scheduleVenue, $schedulePlaceLabel);
+    $schedulePlaceFallback = $schedule->schedulePlaceSummary ?? '';
+    $hasSchedulePlace = $schedulePlaceLinks !== [] || $schedulePlaceFallback !== '';
+    $hasScheduleDateTime = filled($schedule->scheduleDateSummary);
+    $showScheduleHeader = $hasSchedulePlace || $hasScheduleDateTime || $hasOpenRunBlurb;
+    $showHeroMeta = $showScheduleHeader || $showHeroHost || $activity->activitySeries;
 @endphp
 
 <div class="relative" data-show-activity-id="{{ $activity->id }}" data-ui-activity-invite-context="{{ $activity->id }}">
@@ -45,23 +58,43 @@
             @endif
         </x-slot:titlePrefix>
 
-        @if ($showHeroHost)
+        @if ($showHeroMeta)
             <x-slot:subtitle>
-                <span class="text-glow-base-100">{{ $activityTypeLabel }}</span>
-                @if ($event)
-                    <span class="text-glow-base-100">@</span>
-                    <a
-                        href="{{ route('events.show', $event) }}"
-                        wire:navigate
-                        class="link link-primary break-words text-glow-base-100"
-                        data-ui="activity-show-hero-event-link"
-                    >{{ $event->name }}</a>
+                @if ($hasSchedulePlace)
+                    <div class="mb-1">
+                        <x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />
+                        <x-browse.place-search-links
+                            :places="$schedulePlaceLinks"
+                            :fallback="$schedulePlaceFallback"
+                            link-class="link link-primary text-glow-base-100"
+                        />
+                    </div>
                 @endif
-                @if ($activity->duration_in_minutes)
-                    <span class="text-glow-base-100"><x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}</span>
+                @if ($showScheduleHeader && ($hasScheduleDateTime || $hasOpenRunBlurb || $hasSchedulePlace))
+                    <div @class(['mb-1' => $showHeroHost || $activity->activitySeries])>
+                        <x-icon name="o-calendar" class="inline h-4 w-4 align-text-bottom" />
+                        {{ $schedule->scheduleDateSummary ?: __('ui.activities.show_open_run') }}
+                    </div>
+                @endif
+                @if ($showHeroHost)
+                    <div class="space-x-1">
+                        <span class="text-glow-base-100">{{ $activityTypeLabel }}</span>
+                        @if ($event)
+                            <span class="text-glow-base-100">@</span>
+                            <a
+                                href="{{ route('events.show', $event) }}"
+                                wire:navigate
+                                class="link link-primary break-words text-glow-base-100"
+                                data-ui="activity-show-hero-event-link"
+                            >{{ $event->name }}</a>
+                        @endif
+                        @if ($activity->duration_in_minutes && ! $hasScheduleDateTime)
+                            <span class="text-glow-base-100"><x-icon name="o-clock" class="inline h-4 w-4 align-text-bottom" />{{ $activity->duration_for_humans }}</span>
+                        @endif
+                    </div>
                 @endif
                 @if ($activity->activitySeries)
-                    <span class="ml-2" data-ui="activity-show-series-link">
+                    <span @class(['ml-0' => ! $showHeroHost]) data-ui="activity-show-series-link">
                         <x-icon name="o-rectangle-stack" class="inline h-4 w-4 align-text-bottom" />
                         <a
                             href="{{ route('activity-series.show', $activity->activitySeries) }}"
@@ -70,17 +103,6 @@
                         >{{ __('ui.activities.series_link', ['name' => $activity->activitySeries->name]) }}</a>
                     </span>
                 @endif
-            </x-slot:subtitle>
-        @elseif ($activity->activitySeries)
-            <x-slot:subtitle>
-                <span data-ui="activity-show-series-link">
-                    <x-icon name="o-rectangle-stack" class="inline h-4 w-4 align-text-bottom" />
-                    <a
-                        href="{{ route('activity-series.show', $activity->activitySeries) }}"
-                        wire:navigate
-                        class="link link-primary text-glow-base-100"
-                    >{{ __('ui.activities.series_link', ['name' => $activity->activitySeries->name]) }}</a>
-                </span>
             </x-slot:subtitle>
         @endif
 

@@ -148,8 +148,30 @@ class FormatTimeInUserTzTest extends TestCase
         $end = Carbon::parse('2026-07-01 16:00:00', 'UTC');
 
         $this->assertSame(
-            '1 Jul 2026 · 04:00 PM - 06:00 PM',
+            'Wed 1 Jul 2026 · 04:00 PM - 06:00 PM',
             format_datetime_range_compact($start, $end),
+        );
+    }
+
+    public function test_format_date_range_compact_includes_weekday_for_same_day(): void
+    {
+        $start = Carbon::parse('2026-11-11 10:00:00', 'UTC');
+        $end = Carbon::parse('2026-11-11 18:00:00', 'UTC');
+
+        $this->assertSame(
+            'Wed, Nov 11, 2026',
+            format_date_range_compact($start, $end),
+        );
+    }
+
+    public function test_format_date_range_compact_includes_weekdays_for_same_month_range(): void
+    {
+        $start = Carbon::parse('2026-11-11 10:00:00', 'UTC');
+        $end = Carbon::parse('2026-11-15 18:00:00', 'UTC');
+
+        $this->assertSame(
+            'Wed, Nov 11 - Sun, 15, 2026',
+            format_date_range_compact($start, $end),
         );
     }
 }

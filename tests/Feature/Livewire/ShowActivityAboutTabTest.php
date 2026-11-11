@@ -60,6 +60,10 @@ final class ShowActivityAboutTabTest extends TestCase
         $this->assertStringContainsString('Convention Center', $html);
         $this->assertStringContainsString('1 Main Street', $html);
         $this->assertStringContainsString('Wroclaw', $html);
+        $this->assertStringContainsString(
+            format_datetime_range_compact(now()->addDay()->setTime(10, 0), now()->addDay()->setTime(12, 0)),
+            $html,
+        );
         $this->assertStringContainsString('data-ui="activity-show-schedule-map"', $html);
 
         Carbon::setTestNow();

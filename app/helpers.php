@@ -308,10 +308,10 @@ if (! function_exists('date_range_template')) {
         }
 
         $defaults = [
-            'same_day' => ':start_month_short :start_day, :year',
-            'same_month' => ':start_month_short :start_day-:end_day, :year',
-            'same_year' => ':start_month_short :start_day - :end_month_short :end_day, :year',
-            'different_year' => ':start_month_short :start_day, :start_year - :end_month_short :end_day, :end_year',
+            'same_day' => ':start_weekday_short, :start_month_short :start_day, :year',
+            'same_month' => ':start_weekday_short, :start_month_short :start_day - :end_weekday_short, :end_day, :year',
+            'same_year' => ':start_weekday_short, :start_month_short :start_day - :end_weekday_short, :end_month_short :end_day, :year',
+            'different_year' => ':start_weekday_short, :start_month_short :start_day, :start_year - :end_weekday_short, :end_month_short :end_day, :end_year',
         ];
 
         return $defaults[$variant] ?? ':start_month_short :start_day, :start_year - :end_month_short :end_day, :end_year';
@@ -363,6 +363,8 @@ if (! function_exists('format_date_range_localized')) {
             ':end_month_long' => $e->translatedFormat('F'),
             ':start_month_long_genitive' => $startMonthLongGenitive,
             ':end_month_long_genitive' => $endMonthLongGenitive,
+            ':start_weekday_short' => $s->translatedFormat('D'),
+            ':end_weekday_short' => $e->translatedFormat('D'),
         ]);
     }
 }
@@ -391,18 +393,18 @@ if (! function_exists('format_datetime_range_compact')) {
         $e = ($end instanceof Carbon ? $end->copy() : Carbon::parse($end))->setTimezone($tz)->locale($locale);
 
         if ($s->isSameDay($e)) {
-            return $s->translatedFormat('j M Y').' · '.format_time_in_user_tz($s).' - '.format_time_in_user_tz($e);
+            return $s->translatedFormat('D j M Y').' · '.format_time_in_user_tz($s).' - '.format_time_in_user_tz($e);
         }
 
         if ($s->isSameYear($e) && $s->isSameMonth($e)) {
-            return $s->translatedFormat('j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
+            return $s->translatedFormat('D j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('D j').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
         }
 
         if ($s->isSameYear($e)) {
-            return $s->translatedFormat('j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j M').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
+            return $s->translatedFormat('D j M').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('D j M').' '.format_time_in_user_tz($e).', '.$s->translatedFormat('Y');
         }
 
-        return $s->translatedFormat('j M Y').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('j M Y').' '.format_time_in_user_tz($e);
+        return $s->translatedFormat('D j M Y').' '.format_time_in_user_tz($s).' → '.$e->translatedFormat('D j M Y').' '.format_time_in_user_tz($e);
     }
 }
 

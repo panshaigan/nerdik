@@ -36,12 +36,6 @@ class ThemeToggle extends Component
                             theme: $persist('{{ $darkTheme }}').as('mary-theme'),
                             class: $persist('{{ $darkClass }}').as('mary-class'),
                             init() {
-                                if (this.theme == '{{ $darkTheme }}') {
-                                    this.$refs.sun.classList.add('swap-off');
-                                    this.$refs.sun.classList.remove('swap-on');
-                                    this.$refs.moon.classList.add('swap-on');
-                                    this.$refs.moon.classList.remove('swap-off');
-                                }
                                 this.setToggle()
                             },
                             setToggle() {
@@ -61,7 +55,8 @@ class ThemeToggle extends Component
                         @click="toggle()"
                         @mary-toggle-theme.window="toggle()"
                         aria-label="{{ __('ui.nav.toggle_theme') }}"
-                        {{ $attributes->class("swap swap-rotate") }}
+                        {{ $attributes->class("swap swap-rotate swap-active") }}
+                        :class="{ 'swap-active': theme === '{{ $darkTheme }}' }"
                     >
                         <x-mary-icon x-ref="sun" name="o-sun" class="swap-on" />
                         <x-mary-icon x-ref="moon" name="o-moon" class="swap-off" />
