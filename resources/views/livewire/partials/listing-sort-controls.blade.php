@@ -3,19 +3,24 @@
     $fields = $fields ?? ['date', 'name'];
     $dirAsc = strtolower($sort_dir ?? 'asc') === 'asc';
     $activeSort = $sort ?? 'date';
+    $labelNamespace = $labelNamespace ?? 'ui.browse';
 @endphp
 <div class="flex flex-wrap items-center gap-x-6 gap-y-2 pl-2" data-ui="{{ $prefix }}-sort-controls">
     @foreach ($fields as $field)
         @php
             $labelKey = match ($field) {
-                'host' => 'ui.browse.sort_host',
-                'name' => 'ui.browse.sort_name',
-                default => 'ui.browse.sort_date',
+                'host' => $labelNamespace.'.sort_host',
+                'name' => $labelNamespace.'.sort_name',
+                'popularity' => $labelNamespace.'.sort_popularity',
+                'activities' => $labelNamespace.'.sort_activities',
+                default => $labelNamespace.'.sort_date',
             };
             $toggleKey = match ($field) {
-                'host' => 'ui.browse.sort_toggle_host',
-                'name' => 'ui.browse.sort_toggle_name',
-                default => 'ui.browse.sort_toggle_date',
+                'host' => $labelNamespace.'.sort_toggle_host',
+                'name' => $labelNamespace.'.sort_toggle_name',
+                'popularity' => $labelNamespace.'.sort_toggle_popularity',
+                'activities' => $labelNamespace.'.sort_toggle_activities',
+                default => $labelNamespace.'.sort_toggle_date',
             };
             $isActive = $activeSort === $field;
         @endphp

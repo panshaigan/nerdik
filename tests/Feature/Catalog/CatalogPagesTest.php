@@ -9,15 +9,19 @@ use App\Livewire\Catalog\CatalogPlaces;
 use App\Livewire\Catalog\CatalogSeries;
 use App\Models\Activity;
 use App\Models\ActivitySeries;
+use App\Models\ActivityUser;
 use App\Models\Event;
 use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
+use App\Models\Slot;
 use App\Models\User;
 use App\Support\Browse\BrowseSearchUrl;
+use App\Support\Catalog\CatalogSeriesSortStats;
 use App\Support\Seo\Seo;
 use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -169,15 +173,24 @@ class CatalogPagesTest extends TestCase
             ->assertDontSee('Catalog Private Series Marker', false)
             ->assertDontSee('Catalog Cancelled Series Marker', false)
             ->assertSeeHtml('data-ui="catalog-series-card"')
-            ->assertSeeHtml('data-ui="catalog-series-tab-events"')
-            ->assertSeeHtml('data-ui="catalog-series-tab-activities"')
             ->assertSee('<title>'.Seo::pageTitle((string) __('ui.catalog.series_title')).'</title>', false);
     }
 
-    public function test_guest_can_view_activity_series_catalog_tab(): void
+    public function test_guest_sees_event_and_activity_series_in_one_catalog(): void
     {
         $this->seed(ActivityTypeSeeder::class);
         $owner = User::factory()->create();
+
+        $visibleEventSeries = EventSeries::factory()->create([
+            'name' => 'Catalog Mixed Event Series Marker',
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'organization_id' => null,
+            'event_series_id' => $visibleEventSeries->id,
+            'name' => 'Mixed Event Edition',
+        ]);
 
         $visible = ActivitySeries::factory()->create([
             'name' => 'Catalog Visible Activity Series Marker',
@@ -206,7 +219,8 @@ class CatalogPagesTest extends TestCase
 
         Livewire::withoutLazyLoading()
             ->test(CatalogSeries::class)
-            ->set('kind', 'activities')
+            ->assertSee('Catalog Mixed Event Series Marker')
+            ->assertSee(route('event-series.show', $visibleEventSeries), false)
             ->assertSee('Catalog Visible Activity Series Marker')
             ->assertSee(route('activity-series.show', $visible), false)
             ->assertDontSee('Catalog Draft Activity Series Marker');
@@ -260,11 +274,132 @@ class CatalogPagesTest extends TestCase
             'event_series_id' => $other->id,
         ]);
 
+        $this->seed(ActivityTypeSeeder::class);
+        $matchingActivity = ActivitySeries::factory()->create([
+            'name' => 'Catalog Query Matching Activity Series',
+            'created_by' => $owner->id,
+        ]);
+        $matchingActivitySession = Activity::factory()->selfHosted()->create([
+            'created_by' => $owner->id,
+            'activity_series_id' => $matchingActivity->id,
+            'name' => 'Matching Activity Session',
+        ]);
+        $matchingActivitySession->update([
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(2),
+        ]);
+
         Livewire::withoutLazyLoading()
             ->test(CatalogSeries::class)
             ->set('q', 'Matching Series')
             ->assertSee('Catalog Query Matching Series')
-            ->assertDontSee('Catalog Query Other Series');
+            ->assertDontSee('Catalog Query Other Series')
+            ->assertDontSee('Catalog Query Matching Activity Series');
+    }
+
+    public function test_series_catalog_defaults_to_popularity_sort(): void
+    {
+        Cache::forget(CatalogSeriesSortStats::CACHE_KEY);
+        $this->seed(ActivityTypeSeeder::class);
+
+        $host = User::factory()->create();
+        $guestOne = User::factory()->create();
+        $guestTwo = User::factory()->create();
+
+        $popular = ActivitySeries::factory()->create([
+            'name' => 'Catalog Sort Popular Series',
+            'created_by' => $host->id,
+        ]);
+        $quiet = ActivitySeries::factory()->create([
+            'name' => 'Catalog Sort Quiet Series',
+            'created_by' => $host->id,
+        ]);
+
+        $popularActivity = Activity::factory()->selfHosted()->create([
+            'created_by' => $host->id,
+            'activity_series_id' => $popular->id,
+        ]);
+        $popularActivity->update([
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(2),
+        ]);
+
+        Activity::factory()->selfHosted()->create([
+            'created_by' => $host->id,
+            'activity_series_id' => $quiet->id,
+        ])->update([
+            'starts_at' => now()->addDays(4),
+            'ends_at' => now()->addDays(4)->addHours(2),
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $popularActivity->id,
+            'user_id' => $guestOne->id,
+            'is_absent' => false,
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $popularActivity->id,
+            'user_id' => $guestTwo->id,
+            'is_absent' => false,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(CatalogSeries::class)
+            ->assertSet('sort', 'popularity')
+            ->assertSeeInOrder(['Catalog Sort Popular Series', 'Catalog Sort Quiet Series']);
+    }
+
+    public function test_series_catalog_can_sort_by_name_and_activities(): void
+    {
+        Cache::forget(CatalogSeriesSortStats::CACHE_KEY);
+        $this->seed(ActivityTypeSeeder::class);
+        $owner = User::factory()->create();
+
+        $alpha = EventSeries::factory()->create([
+            'name' => 'Catalog Sort Alpha Series',
+            'created_by' => $owner->id,
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $alpha->id,
+            'starts_at' => now()->addDays(10),
+            'ends_at' => now()->addDays(10)->addHours(3),
+        ]);
+
+        $zebra = EventSeries::factory()->create([
+            'name' => 'Catalog Sort Zebra Series',
+            'created_by' => $owner->id,
+        ]);
+        $zebraEvent = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'event_series_id' => $zebra->id,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        $activityOne = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        $activityTwo = Activity::factory()->scheduled()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $zebraEvent->id,
+            'activity_id' => $activityOne->id,
+        ]);
+        Slot::factory()->create([
+            'event_id' => $zebraEvent->id,
+            'activity_id' => $activityTwo->id,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->test(CatalogSeries::class)
+            ->set('sort', 'name')
+            ->assertSeeInOrder(['Catalog Sort Alpha Series', 'Catalog Sort Zebra Series'])
+            ->set('sort', 'activities')
+            ->assertSeeInOrder(['Catalog Sort Zebra Series', 'Catalog Sort Alpha Series']);
     }
 
     public function test_guest_cannot_open_organization_management_index(): void

@@ -11,6 +11,9 @@ use App\Models\Organization;
 use App\Models\Place;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class CatalogQuery
 {
@@ -49,11 +52,7 @@ final class CatalogQuery
      */
     public static function series(string $q = ''): Builder
     {
-        $query = EventSeries::query()
-            ->whereHas('events', function (Builder $events): void {
-                $events->where('events.is_public', true)
-                    ->whereNull('events.cancelled_at');
-            })
+        return self::visibleEventSeries($q)
             ->withCount([
                 'events as upcoming_public_events_count' => function (Builder $events): void {
                     $events->where('events.is_public', true)
@@ -64,10 +63,6 @@ final class CatalogQuery
             ])
             ->orderBy('event_series.name')
             ->orderBy('event_series.id');
-
-        self::applyUnaccentSearch($query, $q, ['event_series.name']);
-
-        return $query;
     }
 
     /**
@@ -77,10 +72,7 @@ final class CatalogQuery
     {
         $startsAtSql = Activity::scheduleStartsAtSql();
 
-        $query = ActivitySeries::query()
-            ->whereHas('activities', function (Builder $activities): void {
-                $activities->attachedToPublicEvent();
-            })
+        return self::visibleActivitySeries($q)
             ->withCount([
                 'activities as upcoming_public_activities_count' => function (Builder $activities) use ($startsAtSql): void {
                     $activities->attachedToPublicEvent()
@@ -90,6 +82,201 @@ final class CatalogQuery
             ])
             ->orderBy('activity_series.name')
             ->orderBy('activity_series.id');
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array{kind: 'event'|'activity', eventSeries?: EventSeries, activitySeries?: ActivitySeries}>
+     */
+    public static function paginatedSeries(
+        string $q = '',
+        int $perPage = 21,
+        int $page = 1,
+        string $sort = 'popularity',
+        string $sortDir = 'desc',
+    ): LengthAwarePaginator {
+        $sort = in_array($sort, ['popularity', 'activities', 'name'], true) ? $sort : 'popularity';
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
+
+        $eventPart = self::visibleEventSeries($q)->select([
+            DB::raw("'event' as listing_kind"),
+            'event_series.id as listing_id',
+            'event_series.name as sort_name',
+        ]);
+
+        $activityPart = self::visibleActivitySeries($q)->select([
+            DB::raw("'activity' as listing_kind"),
+            'activity_series.id as listing_id',
+            'activity_series.name as sort_name',
+        ]);
+
+        /** @var Collection<int, object{listing_kind: string, listing_id: int|string, sort_name: string}> $rows */
+        $rows = collect(
+            DB::query()
+                ->fromSub($eventPart->toBase()->unionAll($activityPart->toBase()), 'merged')
+                ->get()
+        );
+
+        $sortStats = app(CatalogSeriesSortStats::class)->all();
+
+        $sorted = $rows
+            ->sort(fn (object $left, object $right): int => self::compareSeriesCatalogRows($left, $right, $sort, $sortDir, $sortStats))
+            ->values();
+
+        $total = $sorted->count();
+        $pageRows = $sorted->forPage($page, $perPage)->values();
+
+        $eventIds = [];
+        $activityIds = [];
+        foreach ($pageRows as $row) {
+            if ($row->listing_kind === 'event') {
+                $eventIds[] = (int) $row->listing_id;
+            } else {
+                $activityIds[] = (int) $row->listing_id;
+            }
+        }
+
+        $eventSeries = $eventIds === []
+            ? collect()
+            : self::series($q)
+                ->whereIn('event_series.id', $eventIds)
+                ->get()
+                ->keyBy('id');
+
+        $activitySeries = $activityIds === []
+            ? collect()
+            : self::activitySeries($q)
+                ->whereIn('activity_series.id', $activityIds)
+                ->get()
+                ->keyBy('id');
+
+        $items = $pageRows->map(function (object $row) use ($eventSeries, $activitySeries): ?array {
+            if ($row->listing_kind === 'event') {
+                $series = $eventSeries->get((int) $row->listing_id);
+
+                return $series instanceof EventSeries
+                    ? ['kind' => 'event', 'eventSeries' => $series]
+                    : null;
+            }
+
+            $series = $activitySeries->get((int) $row->listing_id);
+
+            return $series instanceof ActivitySeries
+                ? ['kind' => 'activity', 'activitySeries' => $series]
+                : null;
+        })->filter()->values();
+
+        return new LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()],
+        );
+    }
+
+    /**
+     * @param  array{
+     *     activity: array<int, array{activities: int, participants: int}>,
+     *     event: array<int, array{activities: int, participants: int}>,
+     * }  $sortStats
+     */
+    private static function compareSeriesCatalogRows(
+        object $left,
+        object $right,
+        string $sort,
+        string $sortDir,
+        array $sortStats,
+    ): int {
+        $primary = match ($sort) {
+            'name' => self::compareSeriesCatalogNames((string) $left->sort_name, (string) $right->sort_name),
+            'activities' => self::compareSeriesCatalogCounts(
+                self::seriesSortActivities($left, $sortStats),
+                self::seriesSortActivities($right, $sortStats),
+            ),
+            default => self::compareSeriesCatalogCounts(
+                self::seriesSortParticipants($left, $sortStats),
+                self::seriesSortParticipants($right, $sortStats),
+            ),
+        };
+
+        if ($primary !== 0) {
+            return $sortDir === 'asc' ? $primary : -$primary;
+        }
+
+        $nameCompare = self::compareSeriesCatalogNames((string) $left->sort_name, (string) $right->sort_name);
+        if ($nameCompare !== 0) {
+            return $nameCompare;
+        }
+
+        $kindCompare = strcmp((string) $left->listing_kind, (string) $right->listing_kind);
+        if ($kindCompare !== 0) {
+            return $kindCompare;
+        }
+
+        return ((int) $left->listing_id) <=> ((int) $right->listing_id);
+    }
+
+    /**
+     * @param  array{
+     *     activity: array<int, array{activities: int, participants: int}>,
+     *     event: array<int, array{activities: int, participants: int}>,
+     * }  $sortStats
+     */
+    private static function seriesSortParticipants(object $row, array $sortStats): int
+    {
+        $bucket = $row->listing_kind === 'activity' ? 'activity' : 'event';
+
+        return $sortStats[$bucket][(int) $row->listing_id]['participants'] ?? 0;
+    }
+
+    /**
+     * @param  array{
+     *     activity: array<int, array{activities: int, participants: int}>,
+     *     event: array<int, array{activities: int, participants: int}>,
+     * }  $sortStats
+     */
+    private static function seriesSortActivities(object $row, array $sortStats): int
+    {
+        $bucket = $row->listing_kind === 'activity' ? 'activity' : 'event';
+
+        return $sortStats[$bucket][(int) $row->listing_id]['activities'] ?? 0;
+    }
+
+    private static function compareSeriesCatalogNames(string $left, string $right): int
+    {
+        return strnatcasecmp($left, $right);
+    }
+
+    private static function compareSeriesCatalogCounts(int $left, int $right): int
+    {
+        return $left <=> $right;
+    }
+
+    /**
+     * @return Builder<EventSeries>
+     */
+    private static function visibleEventSeries(string $q = ''): Builder
+    {
+        $query = EventSeries::query()
+            ->whereHas('events', function (Builder $events): void {
+                $events->where('events.is_public', true)
+                    ->whereNull('events.cancelled_at');
+            });
+
+        self::applyUnaccentSearch($query, $q, ['event_series.name']);
+
+        return $query;
+    }
+
+    /**
+     * @return Builder<ActivitySeries>
+     */
+    private static function visibleActivitySeries(string $q = ''): Builder
+    {
+        $query = ActivitySeries::query()
+            ->whereHas('activities', function (Builder $activities): void {
+                $activities->attachedToPublicEvent();
+            });
 
         self::applyUnaccentSearch($query, $q, ['activity_series.name']);
 
