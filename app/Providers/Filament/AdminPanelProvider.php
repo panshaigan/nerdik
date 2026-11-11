@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Admin\Enums\AdminNavigationGroup;
 use App\Http\Controllers\Admin\SentEmailPreviewController;
 use App\Http\Middleware\AuthenticateAdminPanel;
+use App\Http\Middleware\TouchMemberPresence;
 use App\Support\Filament\ConfigureFilamentDisplay;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -73,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                TouchMemberPresence::class,
             ])
             ->authMiddleware([
                 AuthenticateAdminPanel::class,

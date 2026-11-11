@@ -20,16 +20,27 @@ class PlatformStatsOverviewWidget extends StatsOverviewWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected ?string $pollingInterval = '30s';
+
     protected function getStats(): array
     {
-        $stats = app(PlatformStatsService::class)->stats();
+        $stats = app(PlatformStatsService::class)->stats(withOnlineMembers: true);
 
         return [
+            $this->onlineMembersStat($stats),
             $this->membersStat($stats),
             $this->engagedMembersStat($stats),
             $this->upcomingEventsStat($stats),
             $this->upcomingActivitiesStat($stats),
         ];
+    }
+
+    private function onlineMembersStat(PlatformStats $stats): Stat
+    {
+        return Stat::make(__('ui.platform_stats.online_members'), $stats->onlineMembersCount)
+            ->description($stats->onlineMembersWindowDescription())
+            ->descriptionIcon(Heroicon::OutlinedSignal, IconPosition::Before)
+            ->url(UserResource::getUrl('index'));
     }
 
     private function membersStat(PlatformStats $stats): Stat

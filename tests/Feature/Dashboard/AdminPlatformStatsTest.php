@@ -7,9 +7,11 @@ namespace Tests\Feature\Dashboard;
 use App\Livewire\Dashboard\Dashboard;
 use App\Models\Activity;
 use App\Models\User;
+use App\Services\Platform\PlatformOnlineMembersQuery;
 use App\Services\Platform\PlatformStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -23,6 +25,7 @@ final class AdminPlatformStatsTest extends TestCase
         parent::setUp();
 
         Cache::forget(PlatformStatsService::CACHE_KEY);
+        Cache::forget(PlatformOnlineMembersQuery::CACHE_KEY);
     }
 
     #[Test]
@@ -38,14 +41,21 @@ final class AdminPlatformStatsTest extends TestCase
             'ends_at' => now()->addDays(2),
         ]);
 
-        $stats = app(PlatformStatsService::class)->stats();
+        $member = User::factory()->create();
+        DB::table('user_presence')->insert([
+            'user_id' => $member->id,
+            'last_seen_at' => now(),
+        ]);
+
+        $stats = app(PlatformStatsService::class)->stats(withOnlineMembers: true);
 
         Livewire::actingAs($admin)
             ->test(Dashboard::class)
-            ->assertViewHas('platformStats', fn ($value) => $value !== null)
+            ->assertViewHas('platformStats', fn ($value) => $value !== null && $value->onlineMembersCount >= 1)
             ->assertSeeHtml('data-ui="dashboard-admin-platform-stats"')
             ->assertSee((string) $stats->membersCount, false)
-            ->assertSee((string) $stats->engagedMembersCount, false);
+            ->assertSee((string) $stats->engagedMembersCount, false)
+            ->assertSee((string) $stats->onlineMembersCount, false);
     }
 
     #[Test]

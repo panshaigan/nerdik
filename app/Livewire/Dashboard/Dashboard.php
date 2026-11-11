@@ -91,7 +91,7 @@ class Dashboard extends Component
         $this->toastFromSessionStatus();
 
         $platformStats = $user->is_admin
-            ? $platformStatsService->stats()
+            ? $platformStatsService->stats(withOnlineMembers: true)
             : null;
 
         $upcomingActivityStats = $upcomingFeedQuery->upcomingActivityStatsForUser($user->id);
@@ -196,6 +196,7 @@ class Dashboard extends Component
         return view('livewire.dashboard.dashboard', [
             'platformStats' => $platformStats,
             'platformStatsUrls' => $platformStats !== null ? [
+                'online_members' => UserResource::getUrl('index'),
                 'members' => UserResource::getUrl('index'),
                 'engaged_members' => UserResource::getUrl('index'),
                 'upcoming_events' => EventResource::getUrl('index'),

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class PlatformStatsService
 {
-    public const CACHE_KEY = 'platform.stats.v2';
+    public const CACHE_KEY = 'platform.stats.v3';
 
     public const CACHE_TTL_SECONDS = 600;
 
@@ -19,20 +19,25 @@ final class PlatformStatsService
         private PlatformEngagementQuery $engagementQuery,
         private PlatformListingCountsQuery $listingCountsQuery,
         private WelcomePublicListingQuery $publicListingQuery,
+        private PlatformOnlineMembersQuery $onlineMembersQuery,
     ) {}
 
-    public function stats(?Carbon $now = null): PlatformStats
+    public function stats(?Carbon $now = null, bool $withOnlineMembers = false): PlatformStats
     {
-        $now = $now ?? now();
+        $resolvedNow = $now ?? now();
 
         /** @var PlatformStats $stats */
         $stats = Cache::remember(
             self::CACHE_KEY,
             self::CACHE_TTL_SECONDS,
-            fn (): PlatformStats => $this->compute($now),
+            fn (): PlatformStats => $this->compute($resolvedNow),
         );
 
-        return $stats;
+        if (! $withOnlineMembers) {
+            return $stats;
+        }
+
+        return $stats->withOnlineMembersCount($this->onlineMembersQuery->count($now));
     }
 
     private function compute(Carbon $now): PlatformStats

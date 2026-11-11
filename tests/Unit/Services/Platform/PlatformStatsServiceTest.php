@@ -7,6 +7,7 @@ namespace Tests\Unit\Services\Platform;
 use App\Models\Activity;
 use App\Models\Event;
 use App\Models\User;
+use App\Services\Platform\PlatformOnlineMembersQuery;
 use App\Services\Platform\PlatformStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,7 @@ final class PlatformStatsServiceTest extends TestCase
         parent::setUp();
 
         Cache::forget(PlatformStatsService::CACHE_KEY);
+        Cache::forget(PlatformOnlineMembersQuery::CACHE_KEY);
     }
 
     #[Test]
@@ -152,5 +154,47 @@ final class PlatformStatsServiceTest extends TestCase
         $second = $service->stats();
 
         $this->assertSame($first->membersCount, $second->membersCount);
+    }
+
+    #[Test]
+    public function it_leaves_online_members_off_the_cached_stats_payload(): void
+    {
+        $now = Carbon::parse('2026-02-15 12:00:00');
+        $user = User::factory()->create();
+
+        $this->touchPresence($user->id, $now);
+
+        $stats = app(PlatformStatsService::class)->stats($now);
+
+        $this->assertSame(0, $stats->onlineMembersCount);
+    }
+
+    #[Test]
+    public function it_attaches_online_members_without_using_the_long_stats_cache(): void
+    {
+        $now = Carbon::parse('2026-02-15 12:00:00');
+        $service = app(PlatformStatsService::class);
+
+        $first = $service->stats($now, withOnlineMembers: true);
+
+        $this->touchPresence(User::factory()->create()->id, $now);
+
+        $second = $service->stats($now, withOnlineMembers: true);
+
+        $this->assertSame($first->membersCount, $second->membersCount);
+        $this->assertSame(0, $first->onlineMembersCount);
+        $this->assertSame(1, $second->onlineMembersCount);
+    }
+
+    private function touchPresence(int $userId, Carbon $lastSeenAt): void
+    {
+        DB::table('user_presence')->upsert(
+            [
+                'user_id' => $userId,
+                'last_seen_at' => $lastSeenAt,
+            ],
+            ['user_id'],
+            ['last_seen_at'],
+        );
     }
 }

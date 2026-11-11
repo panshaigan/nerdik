@@ -4,6 +4,7 @@ use App\Http\Middleware\ForceLivewireJson;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StoreBrowsingReturnUrl;
+use App\Http\Middleware\TouchMemberPresence;
 use App\Support\Logging\RedactsSensitiveData;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->appendToGroup('web', SetCacheHeaders::class);
         $middleware->appendToGroup('web', SecurityHeaders::class);
+        $middleware->appendToGroup('web', TouchMemberPresence::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);

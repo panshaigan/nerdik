@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\TouchMemberPresence;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\ActivitySeries;
@@ -69,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(ActivityFamiliarityService::class);
+        $this->app->singleton(TouchMemberPresence::class);
 
         parent::register();
     }

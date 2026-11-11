@@ -23,7 +23,35 @@ final readonly class PlatformStats
         public int $upcomingListingsCount,
         public int $ongoingListingsCount,
         public array $memberSignupTrend,
+        public int $onlineMembersCount = 0,
     ) {}
+
+    public function withOnlineMembersCount(int $onlineMembersCount): self
+    {
+        return new self(
+            membersCount: $this->membersCount,
+            membersAddedThisMonth: $this->membersAddedThisMonth,
+            membersAddedThisWeek: $this->membersAddedThisWeek,
+            membersAddedLast7Days: $this->membersAddedLast7Days,
+            membersAddedLast3Days: $this->membersAddedLast3Days,
+            engagedMembersCount: $this->engagedMembersCount,
+            upcomingEventsCount: $this->upcomingEventsCount,
+            upcomingActivitiesCount: $this->upcomingActivitiesCount,
+            eventsCreatedThisMonth: $this->eventsCreatedThisMonth,
+            activitiesCreatedThisMonth: $this->activitiesCreatedThisMonth,
+            upcomingListingsCount: $this->upcomingListingsCount,
+            ongoingListingsCount: $this->ongoingListingsCount,
+            memberSignupTrend: $this->memberSignupTrend,
+            onlineMembersCount: $onlineMembersCount,
+        );
+    }
+
+    public function onlineMembersWindowDescription(): string
+    {
+        return __('ui.platform_stats.online_window', [
+            'minutes' => PlatformOnlineMembersQuery::WINDOW_MINUTES,
+        ]);
+    }
 
     public function usersCount(): int
     {
@@ -43,7 +71,6 @@ final readonly class PlatformStats
     {
         return implode(' · ', [
             __('ui.platform_stats.trend_this_month', ['count' => $this->membersAddedThisMonth]),
-            __('ui.platform_stats.trend_this_week', ['count' => $this->membersAddedThisWeek]),
             __('ui.platform_stats.trend_last_7_days', ['count' => $this->membersAddedLast7Days]),
             __('ui.platform_stats.trend_last_3_days', ['count' => $this->membersAddedLast3Days]),
         ]);
