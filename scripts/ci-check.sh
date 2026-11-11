@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Run local checks that mirror GitHub CI (ci.yml + optional docker.yml build).
 #
-# Steps: gitleaks, compose, npm ci/build, migrate, tests, composer audit, pint
-#        (FULL=1 also builds the production Docker image)
+# Steps: gitleaks, compose, npm ci/build, migrate, composer audit, pint,
+#        Playwright e2e, then PHPUnit last (slow / flaky tests at the end).
+#        FULL=1 also builds the production Docker image.
 #
 # Usage:
 #   ./scripts/ci-check.sh          # all CI checks except Docker image build
@@ -59,7 +60,7 @@ ensure_sail_running() {
     fi
 }
 
-run_test_job() {
+run_app_prepare() {
     step "npm ci"
     # Older e2e installs left root-owned Chromium files in node_modules
     # (PLAYWRIGHT_BROWSERS_PATH=0). npm ci runs as sail and cannot delete them.
@@ -72,9 +73,23 @@ run_test_job() {
 
     step "php artisan migrate --force"
     "$SAIL" artisan migrate --force
+}
 
-    step "php artisan test --compact -parallel"
-    "$SAIL" artisan test --compact -parallel
+run_e2e() {
+    step "php artisan e2e:prepare"
+    "$SAIL" artisan e2e:prepare
+
+    step "Playwright Chromium"
+    "$SAIL" exec -u root laravel.test ./scripts/ensure-playwright-chromium.sh
+
+    step "Playwright tests"
+    "$SAIL" exec -u root laravel.test rm -rf test-results playwright-report
+    "$SAIL" exec -u sail laravel.test env -u PLAYWRIGHT_BROWSERS_PATH npx playwright test
+}
+
+run_phpunit() {
+    step "php artisan test --compact --parallel"
+    "$SAIL" artisan test --compact --parallel
 }
 
 run_composer_audit() {
@@ -101,9 +116,11 @@ run_docker_build() {
 run_gitleaks
 run_compose
 ensure_sail_running
-run_test_job
+run_app_prepare
 run_composer_audit
 run_pint
+run_e2e
+run_phpunit
 
 if [[ "$FULL" == "1" ]]; then
     run_docker_build

@@ -143,6 +143,25 @@ BASH;
         $this->assertStringNotContainsString('PLAYWRIGHT_BROWSERS_PATH=0', $dockerfile);
     }
 
+    public function test_ci_check_runs_playwright_before_phpunit(): void
+    {
+        $check = file_get_contents(base_path('scripts/ci-check.sh'));
+        $this->assertIsString($check);
+
+        $invocation = strstr($check, "run_app_prepare\n");
+        $this->assertIsString($invocation);
+
+        $e2e = strpos($invocation, "run_e2e\n");
+        $phpunit = strpos($invocation, "run_phpunit\n");
+        $pint = strpos($invocation, "run_pint\n");
+
+        $this->assertNotFalse($pint);
+        $this->assertNotFalse($e2e);
+        $this->assertNotFalse($phpunit);
+        $this->assertLessThan($phpunit, $e2e);
+        $this->assertLessThan($e2e, $pint);
+    }
+
     private function removeTree(string $root): void
     {
         if (! is_dir($root)) {
