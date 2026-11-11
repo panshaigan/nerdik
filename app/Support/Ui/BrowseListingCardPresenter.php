@@ -39,6 +39,8 @@ final class BrowseListingCardPresenter
         $participantsFilled = isset($activity->participants_count)
             ? (int) $activity->participants_count
             : (int) $activity->participants()->where('is_absent', false)->count();
+        $participantsMax = $activity->max_participants !== null ? (int) $activity->max_participants : null;
+        $showParticipants = $participantsMax !== null || $participantsFilled >= 3;
         $timeSourceStartsAt = $activity->slot?->starts_at ?? $activity->starts_at;
         $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
         $place = $activity->slot?->place ?? $activity->place;
@@ -67,9 +69,9 @@ final class BrowseListingCardPresenter
             hostOrganization: $activity->organization,
             parentEventName: $parentEvent !== null ? (string) $parentEvent->name : null,
             parentEventUrl: $parentEvent !== null ? route('events.show', $parentEvent) : null,
-            showParticipants: true,
+            showParticipants: $showParticipants,
             participantsFilled: $participantsFilled,
-            participantsMax: $activity->max_participants !== null ? (int) $activity->max_participants : null,
+            participantsMax: $participantsMax,
             badgeItems: $this->badgeGroupBuilder->build(
                 $activity,
                 ActivityBadgeGroupConfig::browseCard(),

@@ -67,6 +67,50 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
+    public function from_activity_hides_participants_on_uncapped_card_when_fewer_than_three(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'max_participants' => null,
+        ]);
+        $activity->setAttribute('participants_count', 2);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertFalse($viewData->showParticipants);
+        $this->assertSame(2, $viewData->participantsFilled);
+        $this->assertNull($viewData->participantsMax);
+    }
+
+    #[Test]
+    public function from_activity_shows_participants_on_uncapped_card_when_at_least_three(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'max_participants' => null,
+        ]);
+        $activity->setAttribute('participants_count', 3);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertTrue($viewData->showParticipants);
+    }
+
+    #[Test]
+    public function from_activity_shows_participants_on_capped_card_even_when_empty(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'max_participants' => 10,
+        ]);
+        $activity->setAttribute('participants_count', 0);
+
+        $viewData = $this->presenter->fromActivity($activity, []);
+
+        $this->assertTrue($viewData->showParticipants);
+    }
+
+    #[Test]
     public function from_activity_exposes_participants_without_kind_corner_label(): void
     {
         $user = User::factory()->create();
