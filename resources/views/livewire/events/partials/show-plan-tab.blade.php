@@ -482,15 +482,15 @@
                                     <x-ui.hr
                                         color="neutral"
                                         text="{{ __('ui.events.event_boundary_starts') }}"
-                                        left-edge-icon="s-chevron-right"
-                                        right-edge-icon="s-chevron-left"
+                                        left-edge-icon=""
+                                        right-edge-icon=""
                                     />
                                 @else
                                     <x-ui.hr
                                         color="neutral"
                                         text="{{ __('ui.events.event_boundary_ends') }}"
-                                        left-edge-icon="s-chevron-right"
-                                        right-edge-icon="s-chevron-left"
+                                        left-edge-icon=""
+                                        right-edge-icon=""
                                     />
                                 @endif
                             </p>
