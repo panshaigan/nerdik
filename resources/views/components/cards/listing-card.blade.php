@@ -174,7 +174,7 @@
                             @if ($d->participantsMax !== null)
                                     {{ __('ui.browse.participants_filled_max', ['filled' => $d->participantsFilled, 'max' => $d->participantsMax]) }}
                                 @else
-                                    {{ __('ui.browse.participants_filled_no_cap', ['filled' => $d->participantsFilled]) }}
+                                    {{ $d->participantsFilled }}
                                 @endif
                         </span>
                         </dd>

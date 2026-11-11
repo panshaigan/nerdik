@@ -835,7 +835,6 @@ return [
         'no_events_or_activities' => 'Brak pasujących wydarzeń lub aktywności.',
         'participants_count' => 'Uczestnicy',
         'participants_filled_max' => ':filled / :max',
-        'participants_filled_no_cap' => ':filled (bez limitu)',
         'only_events' => 'Tylko wydarzenia',
         'only_activities' => 'Tylko aktywności',
         'only_free_places' => 'Aktywności z wolnymi miejscami',
