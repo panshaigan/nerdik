@@ -174,6 +174,8 @@ class UiTranslationParityTest extends TestCase
                         $static["profile.notifications.{$groupKey}"] = true;
                     }
                 }
+
+                $this->registerListingSortUiKeys($static, $contents);
             }
         }
 
@@ -240,5 +242,48 @@ class UiTranslationParityTest extends TestCase
         }
 
         return str_ends_with($path, '.php') && ! str_ends_with($path, '.blade.php');
+    }
+
+    /**
+     * @param  array<string, true>  $static
+     */
+    private function registerListingSortUiKeys(array &$static, string $contents): void
+    {
+        if (! str_contains($contents, "\$labelNamespace.'.sort_")) {
+            return;
+        }
+
+        foreach ($this->listingSortUiKeySuffixes()['browse'] as $suffix) {
+            $static["browse.{$suffix}"] = true;
+        }
+
+        foreach ($this->listingSortUiKeySuffixes()['catalog'] as $suffix) {
+            $static["catalog.{$suffix}"] = true;
+        }
+    }
+
+    /**
+     * @return array{browse: list<string>, catalog: list<string>}
+     */
+    private function listingSortUiKeySuffixes(): array
+    {
+        return [
+            'browse' => [
+                'sort_name',
+                'sort_date',
+                'sort_host',
+                'sort_toggle_date',
+                'sort_toggle_name',
+                'sort_toggle_host',
+            ],
+            'catalog' => [
+                'sort_name',
+                'sort_popularity',
+                'sort_activities',
+                'sort_toggle_popularity',
+                'sort_toggle_activities',
+                'sort_toggle_name',
+            ],
+        ];
     }
 }
