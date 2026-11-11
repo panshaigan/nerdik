@@ -27,8 +27,8 @@ class GuestTimezoneDisplayTest extends TestCase
             ->get(route('events.show', $event));
 
         $response->assertOk();
-        $response->assertSee('Jan 14-15, 2026', false);
-        $response->assertDontSee('Jan 15-16, 2026', false);
+        $response->assertSee('Wed, Jan 14 - Thu, 15, 2026', false);
+        $response->assertDontSee('Thu, Jan 15 - Fri, 16, 2026', false);
     }
 
     public function test_guest_event_page_without_cookie_uses_warsaw_fallback(): void
@@ -44,7 +44,7 @@ class GuestTimezoneDisplayTest extends TestCase
         $response = $this->get(route('events.show', $event));
 
         $response->assertOk();
-        $response->assertSee('Jan 15-16, 2026', false);
-        $response->assertDontSee('Jan 14-15, 2026', false);
+        $response->assertSee('Thu, Jan 15 - Fri, 16, 2026', false);
+        $response->assertDontSee('Wed, Jan 14 - Thu, 15, 2026', false);
     }
 }
