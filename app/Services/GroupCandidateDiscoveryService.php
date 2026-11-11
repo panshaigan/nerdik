@@ -161,13 +161,13 @@ class GroupCandidateDiscoveryService
         $label = filled($playArea->label) ? (string) $playArea->label : null;
 
         if ($label !== null) {
-            return __('ui.profile.preferences.play_area_preview_caption', [
+            return __('ui.profile.availability.play_area_preview_caption', [
                 'label' => $label,
                 'radius' => $radius,
             ]);
         }
 
-        return __('ui.profile.preferences.play_area_preview_caption_no_label', [
+        return __('ui.profile.availability.play_area_preview_caption_no_label', [
             'radius' => $radius,
         ]);
     }

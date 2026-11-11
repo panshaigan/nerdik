@@ -71,9 +71,6 @@ new class extends Component
         <h2 class="text-lg font-medium text-base-content">
             {{ __('ui.profile.notifications.title') }}
         </h2>
-        <p class="mt-1 text-sm text-base-content/70">
-            {{ __('ui.profile.notifications.intro') }}
-        </p>
     </header>
 
     <x-ui.form-errors :title="__('ui.status.oops')" :description="__('ui.status.fix_errors')" icon="o-face-frown" class="!mx-0 mb-4" />

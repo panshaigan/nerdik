@@ -11,7 +11,7 @@
     data-ui="dashboard-groups-panel"
 >
     @if ($groupCards !== [])
-        <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" role="list">
+        <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
             @foreach ($groupCards as $card)
                 @php($group = $card['group'])
                 <li

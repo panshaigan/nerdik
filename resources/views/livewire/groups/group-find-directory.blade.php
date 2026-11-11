@@ -1,7 +1,6 @@
 <section class="mt-12" data-ui="groups-find">
     <header class="mb-4">
         <h2 class="text-lg font-semibold text-base-content">{{ __('ui.groups.find_title') }}</h2>
-        <p class="mt-1 text-sm text-base-content/70">{{ __('ui.groups.find_hint') }}</p>
     </header>
 
     <div class="mb-6 space-y-4 rounded-lg border border-base-300 bg-base-100 p-4" data-ui="groups-find-filters">
