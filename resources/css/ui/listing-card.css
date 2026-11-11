@@ -11,6 +11,9 @@
         --ui-listing-card-ease: cubic-bezier(0.22, 1, 0.36, 1);
         --ui-listing-card-duration: 0.75s;
         position: relative;
+        /* Keep toolbar z-index inside the card so browse search suggestions stack above it. */
+        z-index: 0;
+        isolation: isolate;
         outline: 0 solid transparent;
         border-radius: var(--rounded-box, 1rem);
         box-shadow: var(--ui-listing-card-shadow);

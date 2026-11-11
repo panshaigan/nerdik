@@ -127,6 +127,11 @@
         overflow: visible;
     }
 
+    .ui-browse-events-toolbar-search {
+        position: relative;
+        z-index: 30;
+    }
+
     .ui-browse-events-toolbar .ui-browse-events-toolbar-search [data-ts-field].input {
         min-height: 2.5rem;
     }

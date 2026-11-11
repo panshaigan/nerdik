@@ -3,7 +3,7 @@
 @endphp
 
 <article
-    class="ui-card ui-listing-card {{ $d->cardModifierClass }} card group relative flex h-full flex-col"
+    class="ui-card ui-listing-card {{ $d->cardModifierClass }} card group relative z-0 isolate flex h-full flex-col"
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
 >
