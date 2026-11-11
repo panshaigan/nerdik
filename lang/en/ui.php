@@ -860,6 +860,7 @@ return [
         'date_range_clear' => 'Clear dates',
         'location_label' => 'Location',
         'organization' => 'Organization',
+        'activity_type' => 'Activity type',
         'no_activities_found' => 'No activities found.',
     ],
     'activities' => [

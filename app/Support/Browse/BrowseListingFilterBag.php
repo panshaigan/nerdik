@@ -32,6 +32,7 @@ final class BrowseListingFilterBag
         public readonly ?string $toDate = null,
         public readonly ?int $placeId = null,
         public readonly ?int $organizationId = null,
+        public readonly ?int $activityTypeId = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -71,6 +72,7 @@ final class BrowseListingFilterBag
             toDate: self::nullableDateString($request->input('to_date')),
             placeId: Place::venueIdForFilter(self::positiveInt($request->input('place_id'))),
             organizationId: self::positiveInt($request->input('organization_id')),
+            activityTypeId: self::positiveInt($request->input('activity_type_id')),
         );
     }
 
@@ -157,6 +159,7 @@ final class BrowseListingFilterBag
             toDate: $this->toDate,
             placeId: $this->placeId,
             organizationId: $this->organizationId,
+            activityTypeId: $this->activityTypeId,
         );
     }
 

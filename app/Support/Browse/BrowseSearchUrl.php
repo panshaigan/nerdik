@@ -286,6 +286,10 @@ final class BrowseSearchUrl
             $params['organization_id'] = $bag->organizationId;
         }
 
+        if ($bag->activityTypeId !== null) {
+            $params['activity_type_id'] = $bag->activityTypeId;
+        }
+
         $normalizedSort = in_array($sort, ['name', 'date'], true) ? $sort : 'date';
         if ($normalizedSort !== 'date') {
             $params['sort'] = $normalizedSort;

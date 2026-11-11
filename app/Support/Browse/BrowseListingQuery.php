@@ -54,6 +54,10 @@ final class BrowseListingQuery
 
         BrowseDateRangeOverlap::applyToEventQuery($query, $filters->fromDate, $filters->toDate);
 
+        if ($filters->activityTypeId !== null) {
+            self::constrainEventToActivityType($query, $filters->activityTypeId);
+        }
+
         if ($filters->organizationId !== null) {
             $query->where('events.organization_id', $filters->organizationId);
         }
@@ -121,6 +125,10 @@ final class BrowseListingQuery
 
         BrowseDateRangeOverlap::applyToActivityQuery($query, $filters->fromDate, $filters->toDate);
 
+        if ($filters->activityTypeId !== null) {
+            $query->where('activities.activity_type_id', $filters->activityTypeId);
+        }
+
         if ($filters->organizationId !== null) {
             $organizationId = $filters->organizationId;
             $query->where(function (Builder $orgScope) use ($organizationId): void {
@@ -150,6 +158,25 @@ final class BrowseListingQuery
         }
 
         return $query;
+    }
+
+    /**
+     * Events that host this type: a live activity of that type, or a slot explicitly limited to it.
+     *
+     * @param  Builder<Event>  $query
+     */
+    private static function constrainEventToActivityType(Builder $query, int $activityTypeId): void
+    {
+        $query->whereHas('slots', function (Builder $slot) use ($activityTypeId): void {
+            $slot->where(function (Builder $match) use ($activityTypeId): void {
+                $match->whereHas('activity', function (Builder $activity) use ($activityTypeId): void {
+                    $activity->where('activities.activity_type_id', $activityTypeId)
+                        ->whereNull('activities.cancelled_at');
+                })->orWhereHas('activityTypes', function (Builder $types) use ($activityTypeId): void {
+                    $types->whereKey($activityTypeId);
+                });
+            });
+        });
     }
 
     /**

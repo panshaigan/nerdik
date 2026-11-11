@@ -236,4 +236,31 @@ final class BrowseSearchUrlTest extends TestCase
         $this->assertStringContainsString('place_id=4', $url);
         $this->assertStringContainsString('organization_id=7', $url);
     }
+
+    public function test_return_url_and_request_round_trip_activity_type(): void
+    {
+        $bag = new BrowseListingFilterBag(
+            q: '',
+            tagIds: [],
+            tagsMatchAll: false,
+            includePastEvents: false,
+            onlyEvents: false,
+            onlyActivities: false,
+            onlyMine: false,
+            onlyFreePlaces: false,
+            minLat: null,
+            maxLat: null,
+            minLng: null,
+            maxLng: null,
+            activityTypeId: 5,
+        );
+
+        $url = BrowseSearchUrl::returnUrlFromFilterBag($bag);
+
+        $this->assertStringContainsString('activity_type_id=5', $url);
+
+        $parsed = BrowseListingFilterBag::fromRequest(Request::create($url));
+
+        $this->assertSame(5, $parsed->activityTypeId);
+    }
 }

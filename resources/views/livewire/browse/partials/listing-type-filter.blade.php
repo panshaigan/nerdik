@@ -37,6 +37,17 @@
             <p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">
                 {{ __('ui.browse.filters_section_show') }}
             </p>
+            <x-select
+                id="browse_activity_type_id"
+                wire:model.live="activity_type_id"
+                :label="__('ui.browse.activity_type')"
+                :options="$browseActivityTypeOptions ?? []"
+                :placeholder="__('ui.browse.any')"
+                placeholder-value=""
+                class="ui-field ui-field-activity-type w-full"
+                data-ui="browse-activity-type-select"
+                :omit-error="true"
+            />
             <div class="flex flex-col gap-3">
                 <x-checkbox
                     wire:model.live="include_past_events"

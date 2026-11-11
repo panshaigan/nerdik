@@ -85,6 +85,13 @@ final class BrowseSearchStateTest extends TestCase
         $this->assertFalse(BrowseSearchState::requestHasSearchParams($request));
     }
 
+    public function test_request_has_search_params_detects_activity_type(): void
+    {
+        $request = Request::create('/search?activity_type_id=3');
+
+        $this->assertTrue(BrowseSearchState::requestHasSearchParams($request));
+    }
+
     public function test_index_url_returns_cached_search_url(): void
     {
         session([BrowseSearchState::SESSION_KEY => '/search?q=nav']);
