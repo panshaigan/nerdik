@@ -78,7 +78,10 @@
                 @endif
                 @if ($showHeroHost)
                     <div class="space-x-1">
-                        <span class="text-glow-base-100">{{ $activityTypeLabel }}</span>
+                        <span class="text-glow-base-100">
+                            <x-icon name="o-squares-2x2" class="inline h-4 w-4 align-text-bottom" />
+                            {{ $activityTypeLabel }}
+                        </span>
                         @if ($event)
                             <span class="text-glow-base-100">@</span>
                             <a
