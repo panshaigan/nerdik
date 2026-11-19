@@ -430,8 +430,9 @@ class ScheduledNotificationCollectorTest extends TestCase
             'ends_at' => now()->addDay()->setTime(16, 0),
         ]);
 
-        $this->assertCollectHasCategory($user, $referenceNow, 'dashboard_feed');
-
+        $item = collect($this->collectItems($user, $referenceNow))->firstWhere('category', 'dashboard_feed');
+        $this->assertNotNull($item);
+        $this->assertSame(route('dashboard', [], false), $item['url'] ?? null);
     }
 
     public function test_dashboard_feed_activity_line_mentions_late_announce(): void

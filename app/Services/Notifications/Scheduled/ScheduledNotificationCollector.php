@@ -164,7 +164,7 @@ class ScheduledNotificationCollector
             'category' => 'dashboard_feed',
             'title' => __('ui.notifications.scheduled.dashboard_feed_title', ['count' => count($lines)]),
             'lines' => $lines,
-            'url' => route('dashboard'),
+            'url' => route('dashboard', [], false),
             'dedupe_key' => $this->dedupeKey('dashboard_feed', (int) $user->id, $tomorrowStart),
         ]]);
     }

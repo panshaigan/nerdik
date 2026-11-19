@@ -23,4 +23,13 @@ final class RelativeAppUrlTest extends TestCase
         $this->assertNull(RelativeAppUrl::normalize('//evil.example'));
         $this->assertNull(RelativeAppUrl::normalize('https://evil.example'));
     }
+
+    #[Test]
+    public function it_strips_same_app_absolute_urls_to_path(): void
+    {
+        config(['app.url' => 'http://localhost']);
+
+        $this->assertSame('/dashboard', RelativeAppUrl::normalize('http://localhost/dashboard'));
+        $this->assertNull(RelativeAppUrl::normalize('https://evil.example/dashboard'));
+    }
 }

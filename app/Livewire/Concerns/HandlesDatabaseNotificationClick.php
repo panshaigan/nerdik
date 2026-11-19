@@ -3,8 +3,8 @@
 namespace App\Livewire\Concerns;
 
 use App\Support\Livewire\SpaNavigate;
+use App\Support\Notifications\RelativeAppUrl;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 trait HandlesDatabaseNotificationClick
 {
@@ -33,8 +33,8 @@ trait HandlesDatabaseNotificationClick
         if (($data['type'] ?? '') === 'scheduled_periodic_digest') {
             $items = $data['items'] ?? [];
             if (count($items) === 1) {
-                $itemUrl = $items[0]['url'] ?? '';
-                if (is_string($itemUrl) && Str::startsWith($itemUrl, '/') && ! Str::startsWith($itemUrl, '//')) {
+                $itemUrl = RelativeAppUrl::normalize((string) ($items[0]['url'] ?? ''));
+                if ($itemUrl !== null) {
                     $this->redirectToNotificationUrl($itemUrl);
 
                     return;
@@ -42,10 +42,8 @@ trait HandlesDatabaseNotificationClick
             }
         }
 
-        $url = $data['url'] ?? '';
-        $safeUrl = is_string($url) && Str::startsWith($url, '/') && ! Str::startsWith($url, '//')
-            ? $url
-            : route('dashboard');
+        $safeUrl = RelativeAppUrl::normalize((string) ($data['url'] ?? ''))
+            ?? route('dashboard', [], false);
 
         $this->redirectToNotificationUrl($safeUrl);
     }

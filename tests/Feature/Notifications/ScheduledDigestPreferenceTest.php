@@ -114,6 +114,57 @@ class ScheduledDigestPreferenceTest extends TestCase
             ->assertRedirect($itemUrl);
     }
 
+    public function test_single_dashboard_feed_digest_click_redirects_to_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $dashboardUrl = route('dashboard', [], false);
+        $payload = (new ScheduledPeriodicDigestNotification([
+            [
+                'category' => 'dashboard_feed',
+                'title' => "Tomorrow's participations:",
+                'lines' => ['Board Games at 14:00.'],
+                'url' => $dashboardUrl,
+                'dedupe_key' => 'dashboard_feed:1:2026-06-02',
+            ],
+        ], '2026-06-01'))->toArray($user);
+
+        $notification = $user->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => ScheduledPeriodicDigestNotification::class,
+            'data' => $payload,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('handleNotificationClick', $notification->id)
+            ->assertRedirect($dashboardUrl);
+    }
+
+    public function test_single_dashboard_feed_digest_click_accepts_legacy_absolute_dashboard_url(): void
+    {
+        $user = User::factory()->create();
+        $payload = (new ScheduledPeriodicDigestNotification([
+            [
+                'category' => 'dashboard_feed',
+                'title' => "Tomorrow's participations:",
+                'lines' => ['Board Games at 14:00.'],
+                'url' => route('dashboard'),
+                'dedupe_key' => 'dashboard_feed:1:2026-06-02',
+            ],
+        ], '2026-06-01'))->toArray($user);
+
+        $notification = $user->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => ScheduledPeriodicDigestNotification::class,
+            'data' => $payload,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->call('handleNotificationClick', $notification->id)
+            ->assertRedirect(route('dashboard', [], false));
+    }
+
     public function test_multi_item_digest_click_redirects_to_notifications_index(): void
     {
         $user = User::factory()->create();

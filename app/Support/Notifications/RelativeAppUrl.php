@@ -10,8 +10,17 @@ final class RelativeAppUrl
     {
         $url = trim($url);
 
-        if ($url === '' || str_contains($url, '://')) {
+        if ($url === '') {
             return null;
+        }
+
+        if (str_contains($url, '://')) {
+            $appRoot = rtrim((string) config('app.url'), '/');
+            if ($appRoot === '' || ! str_starts_with($url, $appRoot.'/')) {
+                return null;
+            }
+
+            $url = substr($url, strlen($appRoot));
         }
 
         if (! str_starts_with($url, '/')) {

@@ -152,7 +152,7 @@ class LivewireSecurityHardeningTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationList::class)
             ->call('handleNotificationClick', $externalId)
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('dashboard', [], false));
 
         $internal = Livewire::actingAs($user)
             ->test(NotificationList::class)
