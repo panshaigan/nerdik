@@ -71,15 +71,17 @@ Follow [deployment.md](deployment.md) before exposing a server to the internet.
 | Secrets (DB, Reverb, OAuth, mail) | Server `.env` or secret manager only |
 | Sail-only tools | Do not expose Adminer, Mailpit, or Vite dev server in production |
 | Staging Mailpit | UI at `STAGING_MAILPIT_DOMAIN` must use `MAILPIT_UI_AUTH`; never expose Mailpit without authentication |
-| PHP runtime | **≥ 8.5.12** (PHP2Shell: CVE-2026-109618 / CVE-2026-109619). Production image pins `php:8.5.12-*-bookworm`; Sail build fails below 8.5.12. |
+| PHP runtime | **Prod ≥ 8.5.13** (`php:8.5.13-*-bookworm`). **Sail ≥ 8.5.12** (Ondřej PPA on Noble may lag Docker Hub). |
 
 ### PHP2Shell / core PHP RCE
 
 Unauthenticated RCE in the PHP engine (before Laravel). Application code cannot mitigate it.
 
-- Production base images: `php:8.5.12-cli-bookworm` / `php:8.5.12-fpm-bookworm` in [`docker/production/Dockerfile`](../docker/production/Dockerfile).
-- Runtime flags in [`docker/production/conf.d/php2shell.ini`](../docker/production/conf.d/php2shell.ini) and Sail [`docker/sail/php.ini`](../docker/sail/php.ini): `session.upload_progress.enabled=0`, `fatal_error_backtraces=0` (also covers CVE-2026-115560 until the next regular PHP bugfix).
-- After a PHP security release: bump the pinned tag, rebuild GHCR via CI, redeploy with `IMAGE_TAG=<sha>`, and `make sail-rebuild` locally. Confirm with `php -v` inside the app container.
+- Production base images: `php:8.5.13-cli-bookworm` / `php:8.5.13-fpm-bookworm` in [`docker/production/Dockerfile`](../docker/production/Dockerfile).
+- Sail installs PHP from Ondřej’s PPA ([`docker/sail/Dockerfile`](../docker/sail/Dockerfile)); raise the Sail floor to 8.5.13 once Noble publishes it.
+- Runtime flags in [`docker/production/conf.d/php2shell.ini`](../docker/production/conf.d/php2shell.ini) and Sail [`docker/sail/php.ini`](../docker/sail/php.ini): `session.upload_progress.enabled=0`, `fatal_error_backtraces=0`, `zend.exception_ignore_args=1` (defense in depth; do not skip the image pin).
+- Do not enable nginx `fastcgi_keep_conn` (or Apache `enablereuse`) in front of PHP-FPM — that path was the highest-severity 2026-11-19 vector (CVE-2026-129289).
+- After a PHP security release: bump the production pin, rebuild GHCR via CI, redeploy with `IMAGE_TAG=<sha>`, and locally run `make sail-rebuild-app` (PHP image only; leaves pgsql alone). Use `make sail-rebuild` only for a full stack rebuild. Confirm with `php -v` inside the app container.
 
 Additional checklist:
 

@@ -22,7 +22,7 @@ passthrough_args = $(if $(ARGS),$(ARGS),$(filter-out $@,$(MAKECMDGOALS)) $(cmdli
 .PHONY: up down restart reload-env ps logs shell migrate refresh fresh seed seed-minimal seed-standard seed-maximal \
         test test-fast test-e2e test-coverage-services npm composer tinker serve cache artisan pint sail regenerate-tags test-all \
         maintenance deploy release release-push release-repush init dump-schema sync-from-prod sync-to-staging check \
-        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild restart-db \
+        backup-prod backup-prod-dry-run restore-prod sail-build sail-rebuild sail-rebuild-app restart-db \
         regenerate-backgrounds regenerate-brand-logo regenerate-welcome-image boost
 
 # Data sync flags
@@ -251,12 +251,21 @@ restore-prod:
 
 NO_CACHE ?=
 
+# PHP app services that share image sail-8.5/app (not pgsql/mailpit/adminer).
+SAIL_APP_SERVICES := laravel.test worker reverb scheduler pulse
+
 sail-build:
 	$(SAIL) build $(if $(NO_CACHE),--no-cache,)
 
+# Full stack rebuild (including pgsql). Prefer sail-rebuild-app for PHP-only bumps.
 sail-rebuild: down
 	$(SAIL) build --no-cache
 	$(SAIL) up -d
+
+# Rebuild only the Sail PHP image and recreate app containers; leave pgsql running.
+sail-rebuild-app:
+	$(SAIL) build --no-cache laravel.test
+	$(SAIL) up -d --force-recreate $(SAIL_APP_SERVICES)
 
 restart-db:
 	$(SAIL) build --no-cache pgsql

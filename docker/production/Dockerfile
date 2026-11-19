@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
-# Pin patch release for PHP2Shell (CVE-2026-109618 / CVE-2026-109619).
+# Pin patch release for PHP security advisories (php2shell + 2026-11-19).
 # Bump the patch when pulling newer official php:8.5.*-bookworm images.
-FROM php:8.5.12-cli-bookworm AS vendor
+FROM php:8.5.13-cli-bookworm AS vendor
 
-RUN php -r 'exit(version_compare(PHP_VERSION, "8.5.12", ">=") ? 0 : 1);' \
+RUN php -r 'exit(version_compare(PHP_VERSION, "8.5.13", ">=") ? 0 : 1);' \
     && apt-get update && apt-get install -y --no-install-recommends \
         git \
         unzip \
@@ -72,9 +72,9 @@ COPY --from=vendor /app /app
 
 RUN npm run build
 
-FROM php:8.5.12-fpm-bookworm AS runtime
+FROM php:8.5.13-fpm-bookworm AS runtime
 
-RUN php -r 'exit(version_compare(PHP_VERSION, "8.5.12", ">=") ? 0 : 1);' \
+RUN php -r 'exit(version_compare(PHP_VERSION, "8.5.13", ">=") ? 0 : 1);' \
     && apt-get update && apt-get install -y --no-install-recommends \
         gosu \
         nginx \
