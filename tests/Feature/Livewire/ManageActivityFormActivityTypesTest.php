@@ -61,7 +61,7 @@ class ManageActivityFormActivityTypesTest extends TestCase
     }
 
     #[Test]
-    public function save_rejects_participants_above_activity_type_limit(): void
+    public function save_clamps_participants_above_activity_type_limit(): void
     {
         $this->seed(ActivityTypeSeeder::class);
         $user = User::factory()->create();
@@ -75,9 +75,17 @@ class ManageActivityFormActivityTypesTest extends TestCase
             ->set('activity_type_id', $boardTypeId)
             ->set('min_participants', 2)
             ->set('max_participants', 7)
+            ->assertSet('max_participants', 6)
             ->set('hosting_mode', Activity::HOSTING_MODE_DRAFT)
             ->call('save')
-            ->assertHasErrors(['max_participants']);
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('activities', [
+            'name' => 'Too Many Players',
+            'activity_type_id' => $boardTypeId,
+            'max_participants' => 6,
+        ]);
     }
 
     #[Test]

@@ -10,17 +10,19 @@ use App\Models\TagCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
+use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
+use Tests\Support\AssertsResponsiveMedia;
 use Tests\Support\CreatesPublicImageFixture;
 use Tests\TestCase;
 
 final class AttachModelMediaFromPublicTest extends TestCase
 {
+    use AssertsResponsiveMedia;
     use CreatesPublicImageFixture;
     use RefreshDatabase;
 
     #[Test]
-    public function it_queues_media_conversions_when_enabled(): void
+    public function it_queues_responsive_image_generation_when_enabled(): void
     {
         Queue::fake();
 
@@ -38,14 +40,12 @@ final class AttachModelMediaFromPublicTest extends TestCase
 
         app(AttachModelMediaFromPublic::class)($tag, [$fixture]);
 
-        Queue::assertPushed(PerformConversionsJob::class);
+        Queue::assertPushed(GenerateResponsiveImagesJob::class);
     }
 
     #[Test]
-    public function it_does_not_queue_media_conversions_when_disabled(): void
+    public function it_generates_responsive_images_synchronously_when_queue_disabled(): void
     {
-        Queue::fake();
-
         config([
             'media.queue_conversions' => false,
             'media-library.queue_conversions_by_default' => false,
@@ -59,6 +59,8 @@ final class AttachModelMediaFromPublicTest extends TestCase
 
         app(AttachModelMediaFromPublic::class)($tag, [$fixture]);
 
-        Queue::assertNothingPushed();
+        $media = $tag->fresh()?->getFirstMedia('images');
+        $this->assertNotNull($media);
+        $this->assertMediaHasResponsiveConversions($media);
     }
 }

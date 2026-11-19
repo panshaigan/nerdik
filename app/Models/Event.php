@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Event extends Model implements HasMedia
 {
