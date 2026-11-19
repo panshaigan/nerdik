@@ -141,7 +141,7 @@ class NotificationMailLocaleTest extends TestCase
                 $items = $notification->toArray($user)['items'] ?? [];
 
                 return collect($items)->contains(
-                    fn (array $item): bool => str_contains((string) ($item['title'] ?? ''), 'Okno zapisów: One More Game')
+                    fn (array $item): bool => str_contains((string) ($item['title'] ?? ''), 'Otwarcie zapisów: One More Game')
                 );
             }
         );

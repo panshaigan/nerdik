@@ -308,10 +308,6 @@ class ManageActivityForm extends Component
 
         $this->normalizeParticipantBounds();
 
-        if ($this->editingActivityId === null && $this->cancellation_deadline_in_hours === null) {
-            $this->cancellation_deadline_in_hours = 24;
-        }
-
         if ($this->editingActivityId === null && $this->participation_mode === ParticipationMode::Lottery->value && $this->lottery_draw_in_hours === null) {
             $this->lottery_draw_in_hours = 24;
         }
@@ -999,6 +995,8 @@ class ManageActivityForm extends Component
                 $this->{$key} = $value >= 1 ? $value : null;
             }
         }
+
+        $this->normalizeCancellationDeadlineHours();
 
         if ($this->proposal_event_id === '' || $this->proposal_event_id === 0) {
             $this->proposal_event_id = null;
@@ -1700,6 +1698,32 @@ class ManageActivityForm extends Component
         if ($this->min_participants !== null && $this->max_participants !== null && $this->min_participants > $this->max_participants) {
             $this->min_participants = $this->max_participants;
         }
+
+        $this->normalizeCancellationDeadlineHours();
+    }
+
+    private function normalizeCancellationDeadlineHours(): void
+    {
+        if ($this->max_participants === null) {
+            $this->cancellation_deadline_in_hours = null;
+
+            return;
+        }
+
+        if ($this->editingActivityId === null && $this->cancellation_deadline_in_hours === null) {
+            $this->cancellation_deadline_in_hours = 24;
+        }
+    }
+
+    public function updatedMaxParticipants(mixed $value): void
+    {
+        if ($value === '' || $value === null) {
+            $this->max_participants = null;
+        } else {
+            $this->max_participants = (int) $value;
+        }
+
+        $this->normalizeParticipantBounds();
     }
 
     private function normalizeAgeBounds(): void

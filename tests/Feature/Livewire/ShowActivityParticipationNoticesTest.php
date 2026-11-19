@@ -132,6 +132,23 @@ class ShowActivityParticipationNoticesTest extends TestCase
         $this->assertStringContainsString($expectedMessage, $html);
     }
 
+    public function test_uncapped_activity_omits_cancellation_deadline_notice_even_when_hours_set(): void
+    {
+        $startsAt = Carbon::parse('2026-07-10 18:00:00', 'UTC');
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => $startsAt,
+            'max_participants' => null,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        $html = Livewire::test(ShowActivity::class, ['activity' => $activity])
+            ->set('tab', 'participation')
+            ->html();
+
+        $this->assertStringNotContainsString('data-ui="activity-show-cancellation-deadline"', $html);
+    }
+
     public function test_activity_without_cancellation_deadline_hours_omits_notice(): void
     {
         $activity = Activity::factory()->create([

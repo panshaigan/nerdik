@@ -325,6 +325,33 @@ class ManageActivityFormUiTest extends TestCase
         $this->assertNotNull($activity);
         $this->assertSame(3, $activity->min_participants);
         $this->assertNull($activity->max_participants);
+        $this->assertNull($activity->cancellation_deadline_in_hours);
+    }
+
+    public function test_uncapped_activity_clears_cancellation_deadline_on_edit_save(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $user = User::factory()->create();
+        $activityTypeId = (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id;
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'activity_type_id' => $activityTypeId,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'max_participants' => 8,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('max_participants', null)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $activity->refresh();
+        $this->assertNull($activity->max_participants);
+        $this->assertNull($activity->cancellation_deadline_in_hours);
     }
 
     public function test_participant_range_saves_maximum_only(): void

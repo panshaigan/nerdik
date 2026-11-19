@@ -173,6 +173,7 @@
                     />
                 </div>
 
+                @if ($max_participants !== null)
                 <div
                     x-data="{
                         value: @entangle('cancellation_deadline_in_hours'),
@@ -247,6 +248,7 @@
                         class="range-xs w-full"
                     />
                 </div>
+                @endif
             </div>
         </div>
     </div>

@@ -68,6 +68,19 @@ class ActivityCancellationDeadlineTest extends TestCase
     }
 
     #[Test]
+    public function returns_null_when_max_participants_unset(): void
+    {
+        $activity = Activity::factory()->create([
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDay(),
+            'max_participants' => null,
+            'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        $this->assertNull($activity->cancellationDeadlineAt());
+    }
+
+    #[Test]
     public function returns_null_when_start_time_missing(): void
     {
         $activity = Activity::factory()->create([

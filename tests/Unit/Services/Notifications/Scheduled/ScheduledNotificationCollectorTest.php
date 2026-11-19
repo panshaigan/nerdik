@@ -110,6 +110,36 @@ class ScheduledNotificationCollectorTest extends TestCase
 
     }
 
+    public function test_cancellation_deadline_skipped_when_activity_is_uncapped(): void
+    {
+        $referenceNow = CarbonImmutable::parse('2026-06-01 09:00:00');
+        $this->travelTo($referenceNow->toDateTimeString());
+
+        $user = User::factory()->create();
+        $user->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledParticipantDeadlinePreferences(),
+        ]);
+        $host = User::factory()->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'starts_at' => now()->addHours(40),
+            'ends_at' => now()->addHours(42),
+            'max_participants' => null,
+            'cancellation_deadline_in_hours' => 8,
+        ]);
+        DB::table('activity_user')->insert([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'is_absent' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->assertCollectEmpty($user, $referenceNow);
+    }
+
     public function test_cancellation_deadline_same_day_is_not_included(): void
     {
         $referenceNow = CarbonImmutable::parse('2026-06-01 09:00:00');
@@ -752,6 +782,29 @@ class ScheduledNotificationCollectorTest extends TestCase
             'starts_at' => now()->addDays(5)->setTime(18, 0),
             'ends_at' => now()->addDays(5)->setTime(20, 0),
             'cancellation_deadline_in_hours' => 24,
+        ]);
+
+        $this->assertCollectEmpty($host, $referenceNow);
+    }
+
+    public function test_host_low_participation_skipped_when_activity_is_uncapped(): void
+    {
+        $referenceNow = CarbonImmutable::parse('2026-06-01 09:00:00');
+        $this->travelTo($referenceNow->toDateTimeString());
+        config()->set('scheduled_notifications.host_low_participation_deadline_offsets', [3, 1]);
+        $host = User::factory()->create();
+        $host->profile()->update([
+            'timezone' => 'UTC',
+            'notification_preferences' => $this->onlyScheduledHostLowParticipationPreferences(),
+        ]);
+
+        Activity::factory()->create([
+            'created_by' => $host->id,
+            'min_participants' => 4,
+            'max_participants' => null,
+            'starts_at' => now()->addDays(20)->setTime(18, 0),
+            'ends_at' => now()->addDays(20)->setTime(20, 0),
+            'cancellation_deadline_in_hours' => 17 * 24,
         ]);
 
         $this->assertCollectEmpty($host, $referenceNow);

@@ -32,6 +32,7 @@ class ManageActivityFormLotteryTest extends TestCase
             ->set('activity_type_id', $activityTypeId)
             ->set('participation_mode', ParticipationMode::Lottery->value)
             ->set('lottery_draw_in_hours', 24)
+            ->set('max_participants', 6)
             ->set('cancellation_deadline_in_hours', 12)
             ->set('hosting_mode', Activity::HOSTING_MODE_SELF_HOSTED)
             ->set('self_hosted_place_id', $venue->id)

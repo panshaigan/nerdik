@@ -368,6 +368,10 @@ class Activity extends Model implements HasMedia
 
     public function cancellationDeadlineAt(): ?Carbon
     {
+        if ($this->max_participants === null) {
+            return null;
+        }
+
         if ($this->cancellation_deadline_in_hours === null) {
             return null;
         }

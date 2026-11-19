@@ -176,6 +176,7 @@ class ScheduledNotificationCollector
     {
         return Activity::query()
             ->whereHas('participants', fn ($query) => $query->where('user_id', $user->id)->where('is_absent', false))
+            ->whereNotNull('max_participants')
             ->whereNotNull('cancellation_deadline_in_hours')
             ->whereNull('cancelled_at')
             ->with('slot')
@@ -285,6 +286,7 @@ class ScheduledNotificationCollector
 
         return Activity::query()
             ->where('created_by', $user->id)
+            ->whereNotNull('max_participants')
             ->whereNotNull('min_participants')
             ->whereNotNull('cancellation_deadline_in_hours')
             ->whereNull('cancelled_at')
@@ -604,13 +606,9 @@ class ScheduledNotificationCollector
 
     private function cancellationDeadlineAt(Activity $activity): ?CarbonImmutable
     {
-        $activityStart = $activity->slot?->starts_at ?? $activity->starts_at;
-        if ($activityStart === null || $activity->cancellation_deadline_in_hours === null) {
-            return null;
-        }
+        $deadline = $activity->cancellationDeadlineAt();
 
-        return CarbonImmutable::instance($activityStart)
-            ->subHours((int) $activity->cancellation_deadline_in_hours);
+        return $deadline !== null ? CarbonImmutable::instance($deadline) : null;
     }
 
     private function isWithinLookahead(CarbonImmutable $referenceNow, CarbonImmutable $target): bool
