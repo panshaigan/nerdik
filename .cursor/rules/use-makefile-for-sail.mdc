@@ -1,5 +1,5 @@
 ---
-description: Prefer Makefile targets over raw Sail for Artisan, tests, and tooling
+description: Prefer Makefile targets over raw Sail/Docker; never bypass Make without asking
 alwaysApply: true
 ---
 
@@ -20,6 +20,12 @@ This project wraps Sail (and compose) through the root [Makefile](Makefile). Pre
 
 - `./vendor/bin/sail …` or `vendor/bin/sail …` for day-to-day Artisan, tests, Composer, or npm
 - Bare `php artisan` / `phpunit` on the host when Sail is the local runtime
+- Raw `docker` / `docker compose` / `docker.exe` for app lifecycle
+- Starting or troubleshooting Docker Desktop / docker.sock yourself
+
+## If Make/Sail is unavailable
+
+Stop and ask the user. Do **not** launch Docker Desktop, poke sockets, fall back to host PHP, or invent alternate run paths unless the user explicitly asks.
 
 ## Flags and passthrough
 
@@ -33,4 +39,4 @@ make artisan route:list --path=api
 
 ## Exceptions
 
-Use `./vendor/bin/sail` only when no Make target covers the need (e.g. obscure Sail subcommands), or when a script/docs already document a Sail-only path (`sail-build`, `restart-db`).
+Use `./vendor/bin/sail` only when no Make target covers the need (e.g. obscure Sail subcommands), or when a script/docs already document a Sail-only path (`sail-build`, `restart-db`) — and only after asking if it is outside Make.
