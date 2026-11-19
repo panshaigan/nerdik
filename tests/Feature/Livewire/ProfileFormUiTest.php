@@ -162,4 +162,36 @@ class ProfileFormUiTest extends TestCase
             ->assertDontSeeHtml('data-ui="profile-identity-form"')
             ->assertDontSeeHtml('data-ui="profile-avatar-form"');
     }
+
+    public function test_availability_tab_exposes_flatpickr_date_range_hooks(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::withQueryParams(['tab' => 'availability'])
+            ->actingAs($user)
+            ->test(ProfileTabs::class)
+            ->assertSet('tab', 'availability')
+            ->assertSeeHtml('data-ui="profile-availability-date-range"')
+            ->assertSeeHtml('data-browse-date-range')
+            ->assertSeeHtml('data-from-prop="exceptionFrom"')
+            ->assertSeeHtml('data-to-prop="exceptionTo"')
+            ->assertSeeHtml('data-browse-date-range-input');
+    }
+
+    public function test_availability_exception_range_can_be_added_from_livewire_state(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        Volt::test('profile.update-availability-form')
+            ->set('exceptionFrom', now()->addDay()->toDateString())
+            ->set('exceptionTo', now()->addDays(2)->toDateString())
+            ->set('exceptionStatus', 'unavailable')
+            ->call('addException')
+            ->assertHasNoErrors()
+            ->assertSet('exceptionFrom', '')
+            ->assertSet('exceptionTo', '')
+            ->assertCount('exceptionRanges', 1);
+    }
 }

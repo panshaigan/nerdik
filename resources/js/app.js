@@ -224,48 +224,52 @@ function bootBrowseDateRangePickersOnDemand() {
         }
 
         root.dataset.dateRangeLoaderBound = '1';
-        let ready = false;
+        /** @type {Promise<typeof import('./browse-date-range-picker') | void> | null} */
+        let modulePromise = null;
 
-        const ensureReady = () => loadOnce(
-            'browse-date-range-picker',
-            true,
-            () => import('./browse-date-range-picker').then(({ bootBrowseDateRangePickers }) => {
-                bootBrowseDateRangePickers();
-            }),
-        ).then(() => {
-            ready = true;
-        });
+        const ensureReady = () => {
+            if (modulePromise === null) {
+                modulePromise = loadOnce(
+                    'browse-date-range-picker',
+                    true,
+                    () => import('./browse-date-range-picker').then((mod) => {
+                        mod.bootBrowseDateRangePickers();
 
-        root.addEventListener('pointerenter', ensureReady, { once: true });
-        root.addEventListener('focusin', ensureReady, { once: true });
+                        return mod;
+                    }),
+                );
+            }
+
+            return modulePromise;
+        };
+
+        root.addEventListener('pointerenter', () => {
+            void ensureReady();
+        }, { once: true });
+        root.addEventListener('focusin', () => {
+            void ensureReady();
+        }, { once: true });
         root.addEventListener('click', async (event) => {
-            if (ready) {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target || !root.contains(target)) {
                 return;
             }
 
-            const target = event.target instanceof Element ? event.target : null;
-            const trigger = target?.closest('[data-browse-date-range-trigger]');
-            const rangeInput = target?.closest('[data-browse-date-range-input]');
+            const trigger = target.closest('[data-browse-date-range-trigger]');
+            const rangeInput = target.closest('[data-browse-date-range-input]');
+            const visibleInput = root.querySelector('input[data-browse-date-range-input]:not(.sr-only)');
+            const clickedVisibleChrome = visibleInput instanceof HTMLInputElement
+                && Boolean(visibleInput.closest('.relative')?.contains(target));
 
-            if (!(trigger instanceof HTMLElement) && !(rangeInput instanceof HTMLInputElement)) {
+            if (!(trigger instanceof HTMLElement) && !(rangeInput instanceof HTMLInputElement) && !clickedVisibleChrome) {
                 return;
             }
 
             event.preventDefault();
             event.stopImmediatePropagation();
-            await ensureReady();
 
-            if (trigger instanceof HTMLElement) {
-                trigger.click();
-
-                return;
-            }
-
-            const input = root.querySelector('[data-browse-date-range-input]');
-            if (input instanceof HTMLInputElement) {
-                input.focus();
-                input.click();
-            }
+            const mod = await ensureReady();
+            mod?.openBrowseDateRangePicker?.(root);
         }, { capture: true });
     });
 }

@@ -6,6 +6,8 @@ import { Polish } from 'flatpickr/dist/l10n/pl.js';
 /** @type {WeakMap<HTMLElement, import('flatpickr').Instance>} */
 const instances = new WeakMap();
 
+let livewireMorphHookRegistered = false;
+
 /**
  * @returns {import('livewire').Component | null}
  */
@@ -122,6 +124,23 @@ function updateVisibleInputDisplay(input, from, to) {
 
 /**
  * @param {HTMLElement} root
+ * @param {string} from
+ * @param {string} to
+ */
+function updateChrome(root, from, to) {
+    const trigger = root.querySelector('[data-browse-date-range-trigger]');
+    if (trigger instanceof HTMLElement) {
+        updateTriggerActiveState(trigger, from, to);
+    }
+
+    const input = root.querySelector('[data-browse-date-range-input]');
+    if (input instanceof HTMLInputElement) {
+        updateVisibleInputDisplay(input, from, to);
+    }
+}
+
+/**
+ * @param {HTMLElement} root
  */
 function defaultDatesFromRoot(root) {
     /** @type {Date[]} */
@@ -140,38 +159,60 @@ function defaultDatesFromRoot(root) {
 
 /**
  * @param {HTMLElement} root
+ * @param {import('flatpickr').Instance | undefined} fp
+ */
+function instanceOwnsCurrentInput(root, fp) {
+    if (!fp) {
+        return false;
+    }
+
+    const input = root.querySelector('[data-browse-date-range-input]');
+
+    return input instanceof HTMLInputElement && fp.input === input;
+}
+
+/**
+ * @param {HTMLElement} root
+ */
+function destroyPicker(root) {
+    const fp = instances.get(root);
+    if (!fp) {
+        return;
+    }
+
+    fp.destroy();
+    instances.delete(root);
+}
+
+/**
+ * @param {HTMLElement} root
  */
 function syncPickerFromRoot(root) {
     const fp = instances.get(root);
-    if (!fp) {
+    if (!instanceOwnsCurrentInput(root, fp)) {
+        destroyPicker(root);
+        initBrowseDateRangePicker(root);
+
         return;
     }
 
     const dates = defaultDatesFromRoot(root);
     fp.setDate(dates.length > 0 ? dates : [], false);
 
-    const from = root.dataset.fromDate ?? '';
-    const to = root.dataset.toDate ?? '';
-    const trigger = root.querySelector('[data-browse-date-range-trigger]');
-    if (trigger instanceof HTMLElement) {
-        updateTriggerActiveState(trigger, from, to);
-    }
-
-    const input = root.querySelector('[data-browse-date-range-input]');
-    if (input instanceof HTMLInputElement) {
-        updateVisibleInputDisplay(input, from, to);
-    }
+    updateChrome(root, root.dataset.fromDate ?? '', root.dataset.toDate ?? '');
 }
 
 /**
  * @param {HTMLElement} root
  */
 function initBrowseDateRangePicker(root) {
-    if (instances.has(root)) {
+    if (instanceOwnsCurrentInput(root, instances.get(root))) {
         syncPickerFromRoot(root);
 
         return;
     }
+
+    destroyPicker(root);
 
     const input = root.querySelector('[data-browse-date-range-input]');
     const trigger = root.querySelector('[data-browse-date-range-trigger]');
@@ -188,53 +229,44 @@ function initBrowseDateRangePicker(root) {
         enableTime: false,
         dateFormat: 'Y-m-d',
         allowInput: false,
+        clickOpens: true,
+        // Keep the calendar outside Livewire-morphed subtrees so range selection
+        // is not destroyed after the first date sync.
+        appendTo: document.body,
         defaultDate: defaultDates.length > 0 ? defaultDates : undefined,
         ...(minDate ? { minDate } : {}),
         ...(locale === 'pl' ? { locale: Polish } : {}),
         onChange(selectedDates) {
-            const wire = findWire(root);
-
+            // Defer Livewire sync until the range is complete. Syncing after the
+            // first click morphs the host and orphans Flatpickr mid-selection.
             if (selectedDates.length === 0) {
-                syncWire(wire, root, null, null);
-                if (trigger instanceof HTMLElement) {
-                    updateTriggerActiveState(trigger, '', '');
-                }
-                updateVisibleInputDisplay(input, '', '');
+                syncWire(findWire(root), root, null, null);
+                updateChrome(root, '', '');
 
                 return;
             }
 
             if (selectedDates.length === 1) {
                 const day = formatYmd(selectedDates[0]);
-                syncWire(wire, root, day, null);
-                if (trigger instanceof HTMLElement) {
-                    updateTriggerActiveState(trigger, day, '');
-                }
-                updateVisibleInputDisplay(input, day, '');
+                updateChrome(root, day, '');
 
                 return;
             }
 
             const from = formatYmd(selectedDates[0]);
             const to = formatYmd(selectedDates[1]);
-            syncWire(wire, root, from, to);
-            if (trigger instanceof HTMLElement) {
-                updateTriggerActiveState(trigger, from, to);
-            }
-            updateVisibleInputDisplay(input, from, to);
+            syncWire(findWire(root), root, from, to);
+            updateChrome(root, from, to);
         },
         onClose(selectedDates) {
+            // Single-day ranges never fire onChange with length === 2; finalize here.
             if (selectedDates.length !== 1) {
                 return;
             }
 
             const day = formatYmd(selectedDates[0]);
-            const wire = findWire(root);
-            syncWire(wire, root, day, day);
-            if (trigger instanceof HTMLElement) {
-                updateTriggerActiveState(trigger, day, day);
-            }
-            updateVisibleInputDisplay(input, day, day);
+            syncWire(findWire(root), root, day, day);
+            updateChrome(root, day, day);
         },
         onReady(_selectedDates, _dateStr, instance) {
             const clearLabel = root.dataset.clearLabel || 'Clear';
@@ -251,10 +283,7 @@ function initBrowseDateRangePicker(root) {
                 } else {
                     syncWire(wire, root, null, null);
                 }
-                if (trigger instanceof HTMLElement) {
-                    updateTriggerActiveState(trigger, '', '');
-                }
-                updateVisibleInputDisplay(input, '', '');
+                updateChrome(root, '', '');
                 instance.close();
             });
             instance.calendarContainer?.appendChild(clearBtn);
@@ -279,6 +308,24 @@ function initBrowseDateRangePicker(root) {
     instances.set(root, fp);
 }
 
+/**
+ * @param {HTMLElement} root
+ */
+export function openBrowseDateRangePicker(root) {
+    if (!(root instanceof HTMLElement)) {
+        return;
+    }
+
+    initBrowseDateRangePicker(root);
+
+    const fp = instances.get(root);
+    if (!fp) {
+        return;
+    }
+
+    fp.open();
+}
+
 export function bootBrowseDateRangePickers() {
     document.querySelectorAll('[data-browse-date-range]').forEach((root) => {
         if (root instanceof HTMLElement) {
@@ -287,9 +334,18 @@ export function bootBrowseDateRangePickers() {
     });
 }
 
-if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.hook === 'function') {
-    window.Livewire.hook('commit', ({ succeed }) => {
-        succeed(() => {
+function registerLivewireMorphHook() {
+    if (livewireMorphHookRegistered) {
+        return true;
+    }
+
+    if (typeof window.Livewire === 'undefined' || typeof window.Livewire.hook !== 'function') {
+        return false;
+    }
+
+    livewireMorphHookRegistered = true;
+    window.Livewire.hook('morphed', () => {
+        requestAnimationFrame(() => {
             document.querySelectorAll('[data-browse-date-range]').forEach((root) => {
                 if (!(root instanceof HTMLElement)) {
                     return;
@@ -303,4 +359,10 @@ if (typeof window.Livewire !== 'undefined' && typeof window.Livewire.hook === 'f
             });
         });
     });
+
+    return true;
 }
+
+registerLivewireMorphHook();
+document.addEventListener('livewire:init', registerLivewireMorphHook);
+document.addEventListener('livewire:initialized', registerLivewireMorphHook);

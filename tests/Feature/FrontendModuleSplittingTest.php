@@ -49,6 +49,7 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('bootImageCropperFeature', $source);
         $this->assertStringContainsString('[data-browse-date-range]', $source);
         $this->assertStringContainsString('dateRangeLoaderBound', $source);
+        $this->assertStringContainsString('openBrowseDateRangePicker', $source);
         $this->assertStringContainsString('event.stopImmediatePropagation();', $source);
         $this->assertStringContainsString('[data-activity-tag-picker]', $source);
         $this->assertStringContainsString('new MutationObserver(queueFeatureBoot)', $source);
@@ -66,6 +67,9 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringNotContainsString('flatpickr.min.css', $entrypoint);
         $this->assertStringContainsString("import 'flatpickr/dist/flatpickr.min.css';", $dateRangePicker);
         $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $dateRangePicker);
+        $this->assertStringContainsString('appendTo: document.body', $dateRangePicker);
+        $this->assertStringContainsString('export function openBrowseDateRangePicker', $dateRangePicker);
+        $this->assertStringContainsString("window.Livewire.hook('morphed'", $dateRangePicker);
         $this->assertStringContainsString("import 'flatpickr/dist/flatpickr.min.css';", $datetimePicker);
         $this->assertStringContainsString("import '../css/vendor/flatpickr-theme.css';", $datetimePicker);
         $this->assertStringContainsString('time_24hr:', $datetimePicker);
