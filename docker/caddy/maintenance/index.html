@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="refresh" content="15">
     <title>Nerdik — Maintenance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -93,5 +92,37 @@
         <p>We're updating Nerdik and will be back shortly. Thanks for your patience.</p>
         <div class="spinner" role="status" aria-label="Loading"></div>
     </main>
+    <script>
+        (function () {
+            var checkIntervalMs = 3000;
+            var checkUrl = '/up';
+
+            function reloadTop() {
+                var topWindow = window.top || window;
+                topWindow.location.reload();
+            }
+
+            function checkService() {
+                fetch(checkUrl, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                })
+                    .then(function (response) {
+                        if (response.ok) {
+                            reloadTop();
+                            return;
+                        }
+
+                        window.setTimeout(checkService, checkIntervalMs);
+                    })
+                    .catch(function () {
+                        window.setTimeout(checkService, checkIntervalMs);
+                    });
+            }
+
+            window.setTimeout(checkService, checkIntervalMs);
+        })();
+    </script>
 </body>
 </html>

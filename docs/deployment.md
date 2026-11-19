@@ -299,7 +299,7 @@ Omit `IMAGE_TAG` only if `NERDIK_IMAGE` in `.env` already points at the image yo
 
 ### Maintenance mode
 
-Production serves a branded static page from Caddy when maintenance is enabled. This covers deploy downtime (app container restarting) and manual maintenance windows.
+Production serves a branded static page from Caddy when maintenance is enabled, and for upstream 502–504 after a short retry window (`lb_try_duration 3s`) so brief dial blips do not flash the page. The page polls `/up` and reloads `window.top` when the app is healthy again (including when Livewire showed the page in its error iframe).
 
 | Command | Action |
 |---------|--------|

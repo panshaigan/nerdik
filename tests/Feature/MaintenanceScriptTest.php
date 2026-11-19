@@ -102,7 +102,10 @@ class MaintenanceScriptTest extends TestCase
         $this->assertStringContainsString('@maintenance file /etc/caddy/state/maintenance', $caddyfile);
         $this->assertStringContainsString('root /', $caddyfile);
         $this->assertStringContainsString('error 503', $caddyfile);
-        $this->assertStringContainsString('header Refresh "15"', $caddyfile);
+        $this->assertStringContainsString('lb_try_duration 3s', $caddyfile);
+        $this->assertStringContainsString('lb_try_interval 250ms', $caddyfile);
+        $this->assertStringContainsString('dial_timeout 1s', $caddyfile);
+        $this->assertStringNotContainsString('header Refresh', $caddyfile);
         $this->assertStringContainsString('status 503', $caddyfile);
         $this->assertStringContainsString('root * /etc/caddy/maintenance', $caddyfile);
         $this->assertStringContainsString('handle_errors {', $caddyfile);
@@ -123,8 +126,9 @@ class MaintenanceScriptTest extends TestCase
         $this->assertIsString($html);
         $this->assertStringContainsString('We\'ll be right back', $html);
         $this->assertStringContainsString('updating Nerdik', $html);
-        $this->assertStringContainsString('http-equiv="refresh"', $html);
-        $this->assertStringContainsString('content="15"', $html);
+        $this->assertStringNotContainsString('http-equiv="refresh"', $html);
+        $this->assertStringContainsString("checkUrl = '/up'", $html);
+        $this->assertStringContainsString('topWindow.location.reload()', $html);
         $this->assertStringContainsString('viewBox="0 0 1271 1180"', $html);
         $this->assertStringContainsString('fill="#021A2A"', $html);
         $this->assertStringNotContainsString('viewBox="271 153 827 809"', $html);

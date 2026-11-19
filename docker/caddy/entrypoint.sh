@@ -30,15 +30,20 @@ ${APP_DOMAIN} {
 	}
 
 	handle {
+		# Retry brief upstream dial/connect blips before surfacing the maintenance page.
+		# dial_timeout must stay below lb_try_duration so more than one attempt fits.
 		reverse_proxy nerdik-prod-app:80 {
+			lb_try_duration 3s
+			lb_try_interval 250ms
 			transport http {
 				read_timeout 30s
-				dial_timeout 5s
+				dial_timeout 1s
 			}
 		}
 	}
 
 	# Flag mode (error 503) and upstream 502–504 share this page.
+	# Recovery refresh is handled by JS in the page (always reloads window.top).
 	handle_errors {
 		@upstream expression {http.error.status_code} >= 502 && {http.error.status_code} <= 504
 		handle @upstream {
@@ -46,7 +51,6 @@ ${APP_DOMAIN} {
 			rewrite * /index.html
 			header Cache-Control "no-store"
 			header Retry-After "300"
-			header Refresh "15"
 			file_server {
 				status 503
 			}
