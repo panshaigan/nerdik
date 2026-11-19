@@ -1,10 +1,23 @@
 @if ($previewActivity)
     @php
         $previewParticipantCount = (int) ($previewActivity->participants_count ?? 0);
-        $previewParticipationLabel = __('ui.activities.show_participation_section')
-            .' <span class="badge badge-primary badge-sm ml-2">'
-            .$previewParticipantCount.'/'.($previewActivity->max_participants ?? '∞')
-            .'</span>';
+        $previewParticipantsMax = $previewActivity->max_participants !== null
+            ? (int) $previewActivity->max_participants
+            : null;
+        $previewParticipantsCounter = app(\App\Support\Ui\ActivityParticipantsCounter::class);
+        $previewShowParticipantsCounter = $previewParticipantsCounter->shouldShow(
+            $previewParticipantsMax,
+            $previewParticipantCount,
+        );
+        $previewParticipantCounterValue = $previewShowParticipantsCounter
+            ? $previewParticipantsCounter->label($previewParticipantsMax, $previewParticipantCount)
+            : '';
+        $previewParticipationLabel = $previewShowParticipantsCounter
+            ? __('ui.activities.show_participation_section')
+                .' <span class="badge badge-primary badge-sm ml-2">'
+                .$previewParticipantCounterValue
+                .'</span>'
+            : __('ui.activities.show_participation_section');
         $previewCanJoinWaitlist = $previewActivityParticipation?->canJoin
             && ($previewActivity->isHostApprovalMode() || $previewActivity->isLotteryMode() || $previewActivityParticipation?->isFull);
         $previewCanJoinDirectly = $previewActivityParticipation?->canJoin

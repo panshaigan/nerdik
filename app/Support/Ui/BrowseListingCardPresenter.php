@@ -19,6 +19,7 @@ final class BrowseListingCardPresenter
         private ActivityListingImageResolver $activityListingImageResolver,
         private EventListingImageResolver $eventListingImageResolver,
         private EventShowReadCache $eventShowReadCache,
+        private ActivityParticipantsCounter $participantsCounter,
     ) {}
 
     /**
@@ -40,7 +41,7 @@ final class BrowseListingCardPresenter
             ? (int) $activity->participants_count
             : (int) $activity->participants()->where('is_absent', false)->count();
         $participantsMax = $activity->max_participants !== null ? (int) $activity->max_participants : null;
-        $showParticipants = $participantsMax !== null || $participantsFilled >= 3;
+        $showParticipants = $this->participantsCounter->shouldShow($participantsMax, $participantsFilled);
         $timeSourceStartsAt = $activity->slot?->starts_at ?? $activity->starts_at;
         $timeSourceEndsAt = $activity->slot?->ends_at ?? $activity->ends_at;
         $place = $activity->slot?->place ?? $activity->place;

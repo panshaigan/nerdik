@@ -9,8 +9,16 @@
         : __('ui.activities.host');
     $hasOpenRunBlurb = $slot && ! $event;
     $hostUser = $activity->creator;
-    $participantsCounterValue = ((int) $activity->participants->count()).'/'.($activity->max_participants ?? '∞');
-    $participationSlotsLabel = __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.$participantsCounterValue.'</span>';
+    $participantsFilled = (int) $activity->participants->count();
+    $participantsMax = $activity->max_participants !== null ? (int) $activity->max_participants : null;
+    $participantsCounter = app(\App\Support\Ui\ActivityParticipantsCounter::class);
+    $showParticipantsCounter = $participantsCounter->shouldShow($participantsMax, $participantsFilled);
+    $participantsCounterValue = $showParticipantsCounter
+        ? $participantsCounter->label($participantsMax, $participantsFilled)
+        : '';
+    $participationSlotsLabel = $showParticipantsCounter
+        ? __('ui.activities.show_participation_section').' <span class="badge badge-primary badge-sm ml-2">'.$participantsCounterValue.'</span>'
+        : __('ui.activities.show_participation_section');
     $showHeroHost = ! $activity->is_host_passive && $hostUser;
     $schedulePlaceLabel = null;
     if ($schedule->scheduleVenue !== null) {
@@ -172,15 +180,17 @@
                     data-ui="activity-show-badge-group"
                 />
                 <div class="mt-2 flex items-end gap-3">
-                    <div class="min-w-0 flex-1" data-ui="activity-show-participants-stat">
-                        <x-stat
-                            title="{{ __('ui.activities.show_participation_section') }}"
-                            value="{{ $participantsCounterValue }}"
-                            icon="o-users"
-                            color="text-base-content"
-                            class="ui-stat-embed ui-activity-show-stat"
-                        />
-                    </div>
+                    @if ($showParticipantsCounter)
+                        <div class="min-w-0 flex-1" data-ui="activity-show-participants-stat">
+                            <x-stat
+                                title="{{ __('ui.activities.show_participation_section') }}"
+                                value="{{ $participantsCounterValue }}"
+                                icon="o-users"
+                                color="text-base-content"
+                                class="ui-stat-embed ui-activity-show-stat"
+                            />
+                        </div>
+                    @endif
                     <div class="ml-auto shrink-0 self-end" data-ui="activity-show-follow">
                         <x-ui.follow-interest-button
                             :has-interest="$hasInterest"

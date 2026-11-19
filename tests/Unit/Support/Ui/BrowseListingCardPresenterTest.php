@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Support\Browse\BrowseSearchUrl;
 use App\Support\Ui\BrowseListingCardPresenter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\AttachesFixtureMedia;
 use Tests\Support\SeedsListingDefaultMedia;
@@ -67,29 +68,33 @@ final class BrowseListingCardPresenterTest extends TestCase
     }
 
     #[Test]
-    public function from_activity_hides_participants_on_uncapped_card_when_fewer_than_three(): void
+    public function from_activity_hides_participants_on_uncapped_card_when_at_or_below_threshold(): void
     {
+        Config::set('activities.uncapped_participants_counter_threshold', 6);
+
         $activity = Activity::factory()->create([
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
             'max_participants' => null,
         ]);
-        $activity->setAttribute('participants_count', 2);
+        $activity->setAttribute('participants_count', 6);
 
         $viewData = $this->presenter->fromActivity($activity, []);
 
         $this->assertFalse($viewData->showParticipants);
-        $this->assertSame(2, $viewData->participantsFilled);
+        $this->assertSame(6, $viewData->participantsFilled);
         $this->assertNull($viewData->participantsMax);
     }
 
     #[Test]
-    public function from_activity_shows_participants_on_uncapped_card_when_at_least_three(): void
+    public function from_activity_shows_participants_on_uncapped_card_when_above_threshold(): void
     {
+        Config::set('activities.uncapped_participants_counter_threshold', 6);
+
         $activity = Activity::factory()->create([
             'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
             'max_participants' => null,
         ]);
-        $activity->setAttribute('participants_count', 3);
+        $activity->setAttribute('participants_count', 7);
 
         $viewData = $this->presenter->fromActivity($activity, []);
 
