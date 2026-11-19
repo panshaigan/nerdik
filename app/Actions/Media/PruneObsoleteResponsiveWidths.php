@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Media;
 
+use App\Models\Media;
+use App\Support\Media\SimpleMediaFileNamer;
+use App\Support\Media\SimpleResponsiveImage;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\Support\PathGenerator\PathGeneratorFactory;
 
 final class PruneObsoleteResponsiveWidths
@@ -186,14 +188,19 @@ final class PruneObsoleteResponsiveWidths
 
     private function responsiveFileWidth(string $fileName): ?int
     {
+        if (preg_match('/^'.preg_quote(SimpleMediaFileNamer::RESPONSIVE_BASENAME, '/').'_(\d+)\./', $fileName, $matches)) {
+            return (int) $matches[1];
+        }
+
         if (! str_contains($fileName, '___')) {
             return null;
         }
 
-        if (! preg_match('/___[^_]+_(\d+)_\d+\./', $fileName, $matches)) {
+        try {
+            // Dummy media is unused for width(); Spatie parses ___conversion_w_h from the name.
+            return (new SimpleResponsiveImage($fileName, new Media))->width();
+        } catch (\Throwable) {
             return null;
         }
-
-        return (int) $matches[1];
     }
 }

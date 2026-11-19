@@ -24,8 +24,7 @@ trait InteractsWithAvatarImage
             ->singleFile()
             ->useDisk('public');
 
-        $this->addMediaCollection(UserGalleryCatalog::COLLECTION)
-            ->useDisk('public');
+        $this->registerOptimizedImageCollection(UserGalleryCatalog::COLLECTION);
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -48,8 +47,6 @@ trait InteractsWithAvatarImage
                 $conversion->nonQueued();
             }
         }
-
-        $this->registerOptimizedConversionsForCollections([UserGalleryCatalog::COLLECTION]);
     }
 
     public function avatarConversionsPending(): bool

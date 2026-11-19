@@ -14,15 +14,12 @@ trait InteractsWithActivityTypeImages
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('images')
-            ->useDisk('public');
-
-        $this->addMediaCollection('event_listing')
-            ->useDisk('public');
+        $this->registerOptimizedImageCollection('images');
+        $this->registerOptimizedImageCollection('event_listing');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerOptimizedConversionsForCollections(['images', 'event_listing']);
+        // Normalized WebP original + collection responsives; no full-size conversion.
     }
 }

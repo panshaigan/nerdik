@@ -53,10 +53,6 @@ final class ResolveAvatarUrl
                 : $profile?->galleryMedia()->first();
 
             if ($galleryMedia !== null) {
-                if ($galleryMedia->hasGeneratedConversion('webp')) {
-                    return $galleryMedia->getUrl('webp');
-                }
-
                 return $galleryMedia->getUrl();
             }
 

@@ -14,9 +14,7 @@ trait InteractsWithUploadedLogo
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('logo')
-            ->singleFile()
-            ->useDisk('public');
+        $this->registerOptimizedImageCollection('logo', singleFile: true);
 
         $this->addMediaCollection('source')
             ->singleFile()
@@ -25,7 +23,7 @@ trait InteractsWithUploadedLogo
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerOptimizedConversionsForCollections(['logo']);
+        // Normalized WebP original + collection responsives; no full-size conversion.
     }
 
     public function cropSourceImageUrl(): ?string

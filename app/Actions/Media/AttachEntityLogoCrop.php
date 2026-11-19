@@ -15,6 +15,7 @@ final class AttachEntityLogoCrop
 {
     public function __construct(
         private StoreCroppedPublicImage $storeCroppedPublicImage,
+        private AttachOptimizedImage $attachOptimizedImage,
     ) {}
 
     public function __invoke(
@@ -37,12 +38,16 @@ final class AttachEntityLogoCrop
         $absolutePath = Storage::disk('public')->path($tempRelativePath);
 
         $model->clearMediaCollection('logo');
-        $model->addMedia($absolutePath)
-            ->withCustomProperties([
+        ($this->attachOptimizedImage)(
+            $model,
+            $absolutePath,
+            'logo',
+            [
                 'width' => $width,
                 'height' => $height,
-            ])
-            ->toMediaCollection('logo');
+            ],
+            preserveOriginal: false,
+        );
 
         Storage::disk('public')->delete($tempRelativePath);
         $timing?->checkpoint('media_attachment');

@@ -491,14 +491,18 @@ After changing `media.conversion_qualities` (or other conversion settings), exis
 ./scripts/compose-exec.sh prod exec app php artisan media:backfill-thumbnails --reencode
 ```
 
-After deploying a change that **removes** a conversion format (e.g. dropping AVIF while keeping WebP) or **shrinks** `media.responsive_widths`, purge obsolete derivative files and DB keys. Dry-run first:
+After deploying optimized-image pipeline changes (normalized WebP original ≤1536, no full-size `webp` conversion twin, fewer responsive widths), rebuild derivatives. Dry-run first:
 
 ```bash
+./scripts/compose-exec.sh prod exec app php artisan media:normalize-originals --dry-run --force
+./scripts/compose-exec.sh prod exec app php artisan media:normalize-originals --force
+./scripts/compose-exec.sh prod exec app php artisan media:rename-simple-filenames --dry-run --force
+./scripts/compose-exec.sh prod exec app php artisan media:rename-simple-filenames --force
 ./scripts/compose-exec.sh prod exec app php artisan media:prune-obsolete-derivatives --dry-run --force
 ./scripts/compose-exec.sh prod exec app php artisan media:prune-obsolete-derivatives --force
 ```
 
-This runs Spatie `media-library:clean` (deprecated conversion names) plus width pruning for responsive files no longer in config. Do not re-encode remaining WebP derivatives for a format drop — existing WebP stays valid. The weekly schedule already runs `media-library:clean`; run `media:prune-obsolete-derivatives` once manually after deploy so disk is freed immediately.
+`media:normalize-originals` rewrites oversized/non-WebP originals and regenerates responsives from the original. `media:rename-simple-filenames` renames disk originals to `original.webp`, clears legacy `___media_library_original_*` responsive files, and regenerates `responsive_{width}.webp` names. `media:prune-obsolete-derivatives` runs Spatie `media-library:clean` (drops deprecated `webp`/`avif` conversion twins) plus width pruning. The weekly schedule already runs `media-library:clean`; run all three commands once after deploy so disk is freed immediately.
 
 ### Convert / shrink media originals to WebP
 

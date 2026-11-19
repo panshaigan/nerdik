@@ -24,6 +24,7 @@ use App\Observers\ActivityProposalObserver;
 use App\Observers\ActivityUserObserver;
 use App\Observers\SlotObserver;
 use App\Services\ActivityFamiliarityService;
+use App\Support\Media\SimpleResponsiveImageGenerator;
 use App\View\Components\Collapse;
 use App\View\Components\Editor;
 use App\View\Components\Modal;
@@ -51,6 +52,7 @@ use Intervention\Image\ImageManager;
 use Livewire\Mechanisms\FrontendAssets\FrontendAssets;
 use SocialiteProviders\Discord\Provider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
+use Spatie\MediaLibrary\ResponsiveImages\ResponsiveImageGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -71,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(ActivityFamiliarityService::class);
         $this->app->singleton(TouchMemberPresence::class);
+
+        $this->app->bind(ResponsiveImageGenerator::class, SimpleResponsiveImageGenerator::class);
 
         parent::register();
     }

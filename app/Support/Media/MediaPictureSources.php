@@ -51,18 +51,25 @@ final class MediaPictureSources
 
     public function avifSrcset(): string
     {
-        return $this->srcsetForConversion('avif');
+        return $this->srcsetForNamedConversion('avif');
     }
 
     public function webpSrcset(): string
     {
-        return $this->srcsetForConversion('webp');
+        $fromOriginal = $this->srcsetForOriginal();
+
+        if ($fromOriginal !== '') {
+            return $fromOriginal;
+        }
+
+        return $this->srcsetForNamedConversion('webp');
     }
 
     public function webpSrc(): string
     {
-        if ($this->media->hasGeneratedConversion('webp') && $this->media->hasResponsiveImages('webp')) {
-            $cappedSrcset = $this->srcsetForConversion('webp');
+        $cappedSrcset = $this->webpSrcset();
+
+        if ($cappedSrcset !== '') {
             $url = $this->largestWidthUrlFromSrcset($cappedSrcset);
 
             if ($url !== null) {
@@ -74,19 +81,14 @@ final class MediaPictureSources
             return $this->media->getUrl('webp');
         }
 
-        if ($this->media->hasResponsiveImages('webp')) {
-            $urls = $this->media->getResponsiveImageUrls('webp');
-
-            return $urls[0] ?? $this->media->getUrl();
-        }
-
         return $this->media->getUrl();
     }
 
     public function displaySrc(): string
     {
-        if ($this->media->hasGeneratedConversion('webp') && $this->media->hasResponsiveImages('webp')) {
-            $cappedSrcset = $this->srcsetForConversion('webp');
+        $cappedSrcset = $this->webpSrcset();
+
+        if ($cappedSrcset !== '') {
             $url = $this->smallestFittingWidthUrlFromSrcset($cappedSrcset, $this->targetDisplayPixelWidth());
 
             if ($url !== null) {
@@ -96,14 +98,6 @@ final class MediaPictureSources
 
         if ($this->media->hasGeneratedConversion('webp')) {
             return $this->media->getUrl('webp');
-        }
-
-        if ($this->media->hasResponsiveImages('webp')) {
-            $urls = $this->media->getResponsiveImageUrls('webp');
-
-            if ($urls !== []) {
-                return $urls[0];
-            }
         }
 
         return $this->media->getUrl();
@@ -156,7 +150,18 @@ final class MediaPictureSources
         return (int) max(1, (int) round($originalHeight * ($renderedWidth / (int) $originalWidth)));
     }
 
-    private function srcsetForConversion(string $conversion): string
+    private function srcsetForOriginal(): string
+    {
+        if (! $this->media->hasResponsiveImages()) {
+            return '';
+        }
+
+        return $this->filterSrcsetByMaxWidth(
+            $this->sanitizeSrcset($this->media->getSrcset()),
+        );
+    }
+
+    private function srcsetForNamedConversion(string $conversion): string
     {
         if (! $this->media->hasGeneratedConversion($conversion)) {
             return '';
@@ -277,12 +282,7 @@ final class MediaPictureSources
             return $this->maxSrcsetWidth;
         }
 
-        $srcset = $this->srcsetForConversion('webp');
-
-        if ($srcset === '') {
-            $srcset = $this->srcsetForConversion('avif');
-        }
-
+        $srcset = $this->webpSrcset();
         $entries = $this->parseSrcsetEntries($srcset);
         $widths = array_values(array_filter(
             array_column($entries, 'width'),

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\Media\PruneObsoleteResponsiveWidths;
+use App\Models\Media;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Signature('media:prune-obsolete-derivatives
         {--dry-run : Report removals without deleting files}

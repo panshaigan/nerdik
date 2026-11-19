@@ -4,58 +4,44 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
-use App\Support\Media\ImageFormatCapabilities;
-use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\MediaCollections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait RegistersOptimizedImageConversions
 {
     /**
+     * Display collections store a single normalized WebP original (≤ max edge)
+     * plus Spatie responsives generated from that original — no full-size twin
+     * conversion.
+     */
+    protected function registerOptimizedImageCollection(
+        string $name,
+        bool $singleFile = false,
+    ): MediaCollection {
+        $collection = $this->addMediaCollection($name)->useDisk('public');
+
+        if ($singleFile) {
+            $collection->singleFile();
+        }
+
+        if ($this->shouldGenerateResponsiveImages()) {
+            $collection->withResponsiveImages();
+        }
+
+        return $collection;
+    }
+
+    /**
      * @param  list<string>  $collections
+     *
+     * @deprecated Kept for call-site compatibility; optimized collections no longer register format conversions.
      */
     protected function registerOptimizedConversionsForCollections(
         array $collections,
         int $maxWidth = 1536,
         int $maxHeight = 1536,
     ): void {
-        $queued = (bool) config('media.queue_conversions', true)
-            && ! $this->shouldRunConversionsSynchronously();
-
-        foreach ($this->conversionFormatsForEnvironment() as $format) {
-            $conversion = $this->addMediaConversion($format['name'])
-                ->format($format['extension'])
-                ->quality((int) config("media.conversion_qualities.{$format['name']}", 85))
-                ->fit(Fit::Max, $maxWidth, $maxHeight)
-                ->performOnCollections(...$collections);
-
-            if ($this->shouldGenerateResponsiveImages()) {
-                $conversion->withResponsiveImages();
-            }
-
-            if ($queued) {
-                $conversion->queued();
-            } else {
-                $conversion->nonQueued();
-            }
-        }
-    }
-
-    /**
-     * @return list<array{name: string, extension: string}>
-     */
-    protected function conversionFormatsForEnvironment(): array
-    {
-        if (! app()->environment('testing')) {
-            return ImageFormatCapabilities::productionConversionFormats();
-        }
-
-        $formats = config('media.test_profile', 'minimal') === 'full'
-            ? config('media.full_test_formats', ['avif', 'webp'])
-            : config('media.testing.conversion_formats', ['webp']);
-
-        return ImageFormatCapabilities::mapFormatNamesToDefinitions(
-            ImageFormatCapabilities::filterSupportedFormatNames($formats),
-        );
+        unset($collections, $maxWidth, $maxHeight);
     }
 
     protected function shouldGenerateResponsiveImages(): bool

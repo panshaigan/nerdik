@@ -25,8 +25,6 @@ final class ActivityTypeFilamentImageUploadTest extends TestCase
     #[Test]
     public function admin_can_upload_activity_type_and_event_listing_images(): void
     {
-        config(['media.testing.conversion_formats' => ['avif', 'webp']]);
-
         Storage::fake('public');
 
         $this->seed(ActivityTypeSeeder::class);

@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Media;
 use App\Support\Media\ConfiguredWidthCalculator;
 use App\Support\Media\PrefixedPathGenerator;
+use App\Support\Media\SimpleMediaFileNamer;
 use Spatie\ImageOptimizer\Optimizers\Avifenc;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
@@ -17,11 +19,9 @@ use Spatie\MediaLibrary\Conversions\ImageGenerators\Video;
 use Spatie\MediaLibrary\Conversions\ImageGenerators\Webp;
 use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
 use Spatie\MediaLibrary\Downloaders\DefaultDownloader;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\MediaCollections\Models\Observers\MediaObserver;
 use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 use Spatie\MediaLibrary\ResponsiveImages\TinyPlaceholderGenerator\Blurred;
-use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Spatie\MediaLibrary\Support\FileRemover\DefaultFileRemover;
 use Spatie\MediaLibrary\Support\UrlGenerator\DefaultUrlGenerator;
 use Spatie\MediaLibraryPro\Models\TemporaryUpload;
@@ -102,7 +102,7 @@ return [
     /*
      * This is the class that is responsible for naming generated files.
      */
-    'file_namer' => DefaultFileNamer::class,
+    'file_namer' => SimpleMediaFileNamer::class,
 
     /*
      * The class that contains the strategy for determining a media file's path.

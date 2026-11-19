@@ -7,6 +7,7 @@ namespace App\Actions\Activities;
 use App\Actions\Images\AttachSourceImageFromPath;
 use App\Actions\Images\StoreCroppedPublicImage;
 use App\Actions\Images\StoreSourcePublicImage;
+use App\Actions\Media\AttachOptimizedImage;
 use App\Models\Activity;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +23,7 @@ final class StoreUploadedActivityLogo
         private StoreCroppedPublicImage $storeCroppedPublicImage,
         private StoreSourcePublicImage $storeSourcePublicImage,
         private AttachSourceImageFromPath $attachSourceImageFromPath,
+        private AttachOptimizedImage $attachOptimizedImage,
     ) {}
 
     public function __invoke(
@@ -41,12 +43,16 @@ final class StoreUploadedActivityLogo
         $absolutePath = Storage::disk('public')->path($tempRelativePath);
 
         $activity->clearMediaCollection('logo');
-        $activity->addMedia($absolutePath)
-            ->withCustomProperties([
+        ($this->attachOptimizedImage)(
+            $activity,
+            $absolutePath,
+            'logo',
+            [
                 'width' => self::COVER_WIDTH,
                 'height' => self::COVER_HEIGHT,
-            ])
-            ->toMediaCollection('logo');
+            ],
+            preserveOriginal: false,
+        );
 
         Storage::disk('public')->delete($tempRelativePath);
         $this->deleteLegacyLogoFiles($activity);

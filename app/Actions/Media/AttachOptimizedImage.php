@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Actions\Media;
 
+use App\Models\Media;
+use App\Support\Media\SimpleMediaFileNamer;
+use Illuminate\Support\Facades\File;
 use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class AttachOptimizedImage
 {
+    public function __construct(
+        private readonly NormalizeMediaOriginal $normalizeMediaOriginal,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $extraCustomProperties
      */
@@ -19,19 +25,27 @@ final class AttachOptimizedImage
         array $extraCustomProperties = [],
         bool $preserveOriginal = true,
     ): Media {
-        $imageSize = @getimagesize($absolutePath);
+        $normalized = ($this->normalizeMediaOriginal)($absolutePath);
 
-        $adder = $model->addMedia($absolutePath);
+        $adder = $model->addMedia($normalized['path'])
+            ->usingFileName(SimpleMediaFileNamer::ORIGINAL_FILE_NAME);
 
-        if ($preserveOriginal) {
+        // Keep seed/public sources when we did not rewrite into a temp file.
+        if ($preserveOriginal && ! $normalized['temporary']) {
             $adder->preservingOriginal();
         }
 
-        return $adder
+        $media = $adder
             ->withCustomProperties(array_merge([
-                'width' => $imageSize !== false ? $imageSize[0] : null,
-                'height' => $imageSize !== false ? $imageSize[1] : null,
+                'width' => $normalized['width'],
+                'height' => $normalized['height'],
             ], $extraCustomProperties))
             ->toMediaCollection($collection);
+
+        if ($normalized['temporary'] && File::isFile($normalized['path'])) {
+            File::delete($normalized['path']);
+        }
+
+        return $media;
     }
 }

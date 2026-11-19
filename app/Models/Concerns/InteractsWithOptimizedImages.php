@@ -14,12 +14,11 @@ trait InteractsWithOptimizedImages
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('images')
-            ->useDisk('public');
+        $this->registerOptimizedImageCollection('images');
     }
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerOptimizedConversionsForCollections(['images']);
+        // Normalized WebP original + collection responsives; no full-size conversion.
     }
 }

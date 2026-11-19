@@ -28,12 +28,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Production conversion formats
+    | Max edge for display originals
     |--------------------------------------------------------------------------
     |
-    | Spatie conversions registered per optimized image collection. WebP-only
-    | keeps derivative count manageable; AVIF can be re-enabled via config when
-    | needed.
+    | Uploads are normalized to WebP at most this many pixels on the long edge
+    | before attach. That file is Spatie's original; responsives derive from it.
+    |
+    */
+    'max_edge' => 1536,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy conversion formats (unused for optimized collections)
+    |--------------------------------------------------------------------------
+    |
+    | Optimized display collections no longer register full-size format
+    | conversions. Kept for tests/tools that still reference the key.
     |
     */
     'conversion_formats' => ['webp'],

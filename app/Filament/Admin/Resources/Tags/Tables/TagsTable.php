@@ -45,7 +45,6 @@ class TagsTable
                 BelongsToColumn::record('tagCategory', label: 'Category', searchable: true),
                 SpatieMediaLibraryImageColumn::make('images')
                     ->collection('images')
-                    ->conversion('webp')
                     ->limit(3)
                     ->stacked(),
                 TextColumn::make('popularity_score')

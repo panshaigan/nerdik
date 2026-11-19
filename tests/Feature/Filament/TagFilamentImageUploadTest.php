@@ -23,8 +23,6 @@ final class TagFilamentImageUploadTest extends TestCase
     #[Test]
     public function admin_can_upload_tag_images_with_responsive_conversions(): void
     {
-        config(['media.testing.conversion_formats' => ['avif', 'webp']]);
-
         Storage::fake('public');
 
         $admin = User::factory()->admin()->create();

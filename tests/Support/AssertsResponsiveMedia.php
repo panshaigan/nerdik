@@ -11,7 +11,10 @@ trait AssertsResponsiveMedia
 {
     protected function assertMediaHasResponsiveConversions(Media $media): void
     {
-        Assert::assertTrue($media->hasGeneratedConversion('webp'), 'Expected webp conversion for media '.$media->id);
+        Assert::assertTrue(
+            $media->hasResponsiveImages() || $media->hasResponsiveImages('webp'),
+            'Expected original (or legacy webp) responsive images for media '.$media->id,
+        );
         Assert::assertNotEmpty($media->responsive_images, 'Expected responsive images for media '.$media->id);
     }
 

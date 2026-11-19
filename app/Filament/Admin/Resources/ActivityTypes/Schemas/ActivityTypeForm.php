@@ -35,7 +35,6 @@ class ActivityTypeForm
                             ->image()
                             ->reorderable()
                             ->responsiveImages()
-                            ->conversion('webp')
                             ->visibility('public')
                             ->columnSpanFull(),
                     ])
@@ -49,7 +48,6 @@ class ActivityTypeForm
                             ->image()
                             ->reorderable()
                             ->responsiveImages()
-                            ->conversion('webp')
                             ->visibility('public')
                             ->columnSpanFull(),
                     ])

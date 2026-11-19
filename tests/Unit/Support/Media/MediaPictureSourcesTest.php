@@ -181,7 +181,7 @@ final class MediaPictureSourcesTest extends TestCase
         $tag = Tag::factory()->create();
         $media = $this->attachTagSampleMedia($tag, 'tests/fixtures/fixture-no-placeholder.jpg');
 
-        $rawSrcset = $media->getSrcset('webp');
+        $rawSrcset = $media->getSrcset();
         $this->assertStringContainsString('data:image/svg+xml;base64,', $rawSrcset);
 
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card', 'No placeholder');

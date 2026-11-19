@@ -7,6 +7,7 @@ namespace App\Actions\Events;
 use App\Actions\Images\AttachSourceImageFromPath;
 use App\Actions\Images\StoreCroppedPublicImage;
 use App\Actions\Images\StoreSourcePublicImage;
+use App\Actions\Media\AttachOptimizedImage;
 use App\Models\Event;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +23,7 @@ final class StoreUploadedEventLogo
         private StoreCroppedPublicImage $storeCroppedPublicImage,
         private StoreSourcePublicImage $storeSourcePublicImage,
         private AttachSourceImageFromPath $attachSourceImageFromPath,
+        private AttachOptimizedImage $attachOptimizedImage,
     ) {}
 
     public function __invoke(
@@ -41,12 +43,16 @@ final class StoreUploadedEventLogo
         $absolutePath = Storage::disk('public')->path($tempRelativePath);
 
         $event->clearMediaCollection('logo');
-        $event->addMedia($absolutePath)
-            ->withCustomProperties([
+        ($this->attachOptimizedImage)(
+            $event,
+            $absolutePath,
+            'logo',
+            [
                 'width' => self::COVER_WIDTH,
                 'height' => self::COVER_HEIGHT,
-            ])
-            ->toMediaCollection('logo');
+            ],
+            preserveOriginal: false,
+        );
 
         Storage::disk('public')->delete($tempRelativePath);
         $this->deleteLegacyLogoFiles($event);

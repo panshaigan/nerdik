@@ -26,7 +26,6 @@ class TagForm
                             ->image()
                             ->reorderable()
                             ->responsiveImages()
-                            ->conversion('webp')
                             ->visibility('public')
                             ->columnSpanFull(),
                     ])

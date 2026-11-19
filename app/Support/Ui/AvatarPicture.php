@@ -48,11 +48,7 @@ final readonly class AvatarPicture
                 : $profile?->galleryMedia()->first();
 
             if ($galleryMedia !== null) {
-                $url = $galleryMedia->hasGeneratedConversion('webp')
-                    ? $galleryMedia->getUrl('webp')
-                    : $galleryMedia->getUrl();
-
-                return new self(url: $url);
+                return new self(url: $galleryMedia->getUrl());
             }
 
             return new self;
