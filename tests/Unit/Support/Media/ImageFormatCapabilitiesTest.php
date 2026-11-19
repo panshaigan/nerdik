@@ -17,20 +17,33 @@ final class ImageFormatCapabilitiesTest extends TestCase
     }
 
     #[Test]
-    public function production_conversion_formats_never_include_avif_when_unsupported(): void
+    public function production_conversion_formats_use_config_and_filter_unsupported_avif(): void
     {
+        config(['media.conversion_formats' => ['avif', 'webp']]);
+
         $formatNames = array_column(
             ImageFormatCapabilities::productionConversionFormats(),
             'name',
         );
 
         if (! ImageFormatCapabilities::supportsAvif()) {
-            $this->assertNotContains('avif', $formatNames);
+            $this->assertSame(['webp'], $formatNames);
         } else {
-            $this->assertContains('avif', $formatNames);
+            $this->assertSame(['avif', 'webp'], $formatNames);
         }
+    }
 
-        $this->assertSame(['webp'], array_values(array_diff($formatNames, ['avif'])));
+    #[Test]
+    public function production_conversion_formats_default_to_webp_from_config(): void
+    {
+        config(['media.conversion_formats' => ['webp']]);
+
+        $formatNames = array_column(
+            ImageFormatCapabilities::productionConversionFormats(),
+            'name',
+        );
+
+        $this->assertSame(['webp'], $formatNames);
     }
 
     #[Test]

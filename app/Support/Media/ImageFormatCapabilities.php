@@ -32,8 +32,11 @@ final class ImageFormatCapabilities
      */
     public static function productionConversionFormats(): array
     {
+        /** @var list<string> $formatNames */
+        $formatNames = config('media.conversion_formats', ['webp']);
+
         return self::mapFormatNamesToDefinitions(
-            self::filterSupportedFormatNames(['avif', 'webp']),
+            self::filterSupportedFormatNames($formatNames),
         );
     }
 

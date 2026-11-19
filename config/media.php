@@ -24,7 +24,19 @@ return [
     | enough. Never upscaled beyond the original dimensions.
     |
     */
-    'responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+    'responsive_widths' => [128, 384, 768, 1536],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Production conversion formats
+    |--------------------------------------------------------------------------
+    |
+    | Spatie conversions registered per optimized image collection. WebP-only
+    | keeps derivative count manageable; AVIF can be re-enabled via config when
+    | needed.
+    |
+    */
+    'conversion_formats' => ['webp'],
 
     'min_responsive_width' => 20,
 
@@ -71,7 +83,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | PHPUnit uses MEDIA_TEST_PROFILE=minimal by default. Set profile to "full"
-    | in a single test to exercise avif/webp + full responsive widths.
+    | in a single test to exercise full conversion formats + responsive widths.
     |
     */
     'test_profile' => env('MEDIA_TEST_PROFILE', 'minimal'),
@@ -84,7 +96,7 @@ return [
         'generate_responsive_images' => true,
     ],
 
-    'full_test_formats' => ['avif', 'webp'],
+    'full_test_formats' => ['webp'],
 
     /*
     |--------------------------------------------------------------------------
@@ -109,7 +121,7 @@ return [
         ],
         'tag_card' => [
             'sizes' => '(max-width: 640px) 100vw, 384px',
-            'max_srcset_width' => 512,
+            'max_srcset_width' => 768,
         ],
         'tag_hero' => [
             'sizes' => '(max-width: 1024px) calc(100vw - 3rem), calc(min(80rem, 100vw) - 4rem)',
@@ -119,7 +131,7 @@ return [
         'listing_card' => [
             'sizes' => '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 767px) calc(100vw - 3.5rem), (max-width: 1023px) calc((100vw - 6.5rem) / 3), (max-width: 1279px) calc((100vw - 7.5rem) / 3), 389px',
             'display_width' => 256,
-            'max_srcset_width' => 512,
+            'max_srcset_width' => 768,
         ],
         'plan_slot' => [
             'sizes' => '(max-width: 639px) calc(100vw - 0.5rem), (max-width: 1023px) calc((100vw - 3.5rem) / 2), calc((min(80rem, 100vw) - 7.5rem) / 3)',

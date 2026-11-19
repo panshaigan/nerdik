@@ -24,7 +24,7 @@ final class MediaPictureSourcesTest extends TestCase
 
         config([
             'media.test_profile' => 'full',
-            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+            'media.responsive_widths' => [128, 384, 768, 1536],
         ]);
     }
 
@@ -36,7 +36,6 @@ final class MediaPictureSourcesTest extends TestCase
 
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'tag_card', 'Test tag');
 
-        $this->assertNotSame('', $sources->avifSrcset());
         $this->assertNotSame('', $sources->webpSrcset());
         $this->assertNotSame('', $sources->webpSrc());
         $this->assertSame('(max-width: 640px) 100vw, 384px', $sources->sizes());
@@ -56,9 +55,9 @@ final class MediaPictureSourcesTest extends TestCase
             '(max-width: 1024px) calc(100vw - 3rem), calc(min(80rem, 100vw) - 4rem)',
             $sources->sizes(),
         );
-        $this->assertStringContainsString('1024w', $webpSrcset);
+        $this->assertStringContainsString('768w', $webpSrcset);
         $this->assertGreaterThanOrEqual(
-            1024,
+            768,
             $this->largestSrcsetWidth($webpSrcset),
         );
     }
@@ -68,7 +67,7 @@ final class MediaPictureSourcesTest extends TestCase
     {
         config([
             'media.test_profile' => 'full',
-            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+            'media.responsive_widths' => [128, 384, 768, 1536],
         ]);
 
         $tag = Tag::factory()->create();
@@ -77,12 +76,11 @@ final class MediaPictureSourcesTest extends TestCase
         $sources = MediaPictureSources::fromMediaWithPreset($media, 'listing_card', 'Cap test');
         $webpSrcset = $sources->webpSrcset();
 
-        $this->assertStringNotContainsString('768w', $webpSrcset);
-        $this->assertStringNotContainsString('1024w', $webpSrcset);
-        $this->assertStringContainsString('512w', $webpSrcset);
-        $this->assertSame(512, $sources->width());
+        $this->assertStringNotContainsString('1536w', $webpSrcset);
+        $this->assertStringContainsString('768w', $webpSrcset);
+        $this->assertSame(768, $sources->width());
         $this->assertSame(
-            (int) round(((int) $media->getCustomProperty('height')) * (512 / (int) $media->getCustomProperty('width'))),
+            (int) round(((int) $media->getCustomProperty('height')) * (768 / (int) $media->getCustomProperty('width'))),
             $sources->height(),
         );
         $this->assertSame(
@@ -96,7 +94,7 @@ final class MediaPictureSourcesTest extends TestCase
     {
         config([
             'media.test_profile' => 'full',
-            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+            'media.responsive_widths' => [128, 384, 768, 1536],
         ]);
 
         $tag = Tag::factory()->create();
@@ -119,7 +117,7 @@ final class MediaPictureSourcesTest extends TestCase
     {
         config([
             'media.test_profile' => 'full',
-            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+            'media.responsive_widths' => [128, 384, 768, 1536],
         ]);
 
         $tag = Tag::factory()->create();
@@ -142,7 +140,7 @@ final class MediaPictureSourcesTest extends TestCase
         $sources = MediaPictureSources::fromMedia(
             $media,
             sizes: '(max-width: 767px) 100vw, (max-width: 1279px) 25vw, 286px',
-            maxSrcsetWidth: 512,
+            maxSrcsetWidth: 768,
             displayWidth: 150,
         );
 
@@ -153,7 +151,7 @@ final class MediaPictureSourcesTest extends TestCase
         $this->assertNotNull($webpWidth);
         $this->assertLessThan($webpWidth, $displayWidth);
         $this->assertSame(384, $displayWidth);
-        $this->assertSame(512, $webpWidth);
+        $this->assertSame(768, $webpWidth);
     }
 
     #[Test]
@@ -164,7 +162,7 @@ final class MediaPictureSourcesTest extends TestCase
 
         $sources = MediaPictureSources::fromMedia(
             $media,
-            maxSrcsetWidth: 512,
+            maxSrcsetWidth: 768,
             displayWidth: 150,
         );
 
@@ -205,7 +203,6 @@ final class MediaPictureSourcesTest extends TestCase
         $html = view('components.media-picture', ['sources' => $sources])->render();
 
         $this->assertStringContainsString('<picture', $html);
-        $this->assertStringContainsString('type="image/avif"', $html);
         $this->assertStringContainsString('type="image/webp"', $html);
         $this->assertStringContainsString('<img', $html);
     }

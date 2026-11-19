@@ -17,7 +17,7 @@ final class ConfiguredWidthCalculatorTest extends TestCase
         parent::setUp();
 
         config([
-            'media.responsive_widths' => [128, 256, 384, 512, 768, 1024, 1536],
+            'media.responsive_widths' => [128, 384, 768, 1536],
         ]);
 
         $this->calculator = new ConfiguredWidthCalculator;
@@ -28,7 +28,7 @@ final class ConfiguredWidthCalculatorTest extends TestCase
     {
         $widths = $this->calculator->calculateWidths(0, 400, 300);
 
-        $this->assertSame([128, 256, 384], $widths->all());
+        $this->assertSame([128, 384], $widths->all());
     }
 
     #[Test]
@@ -36,7 +36,7 @@ final class ConfiguredWidthCalculatorTest extends TestCase
     {
         $widths = $this->calculator->calculateWidths(0, 2000, 1500);
 
-        $this->assertSame([128, 256, 384, 512, 768, 1024, 1536], $widths->all());
+        $this->assertSame([128, 384, 768, 1536], $widths->all());
     }
 
     #[Test]
