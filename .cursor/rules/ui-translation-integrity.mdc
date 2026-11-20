@@ -1,0 +1,39 @@
+---
+description: Always verify ui.php translation integrity after text/copy changes
+globs: lang/**/*.php,resources/views/**/*.blade.php,app/**/*.php
+alwaysApply: true
+---
+
+# UI translation integrity
+
+Whenever you **add, rename, remove, or change** user-facing copy or `ui.*` keys, you must keep `lang/en/ui.php` and `lang/pl/ui.php` in sync and prove it with the parity suite before finishing.
+
+This has failed in CI many times when agents changed English only, left orphan keys, or referenced keys that do not exist.
+
+## Required checklist
+
+1. **Both locales** — every key change in `lang/en/ui.php` must be mirrored in `lang/pl/ui.php` (same key tree; Polish string required).
+2. **No orphans** — do not leave keys that nothing in `app/`, `resources/views/`, `routes/`, or `tests/` references.
+3. **No missing refs** — Blade/`__()` / `trans()` / `trans_choice()` must only use keys that exist in `en/ui.php`.
+4. **Run the gate** after any such change:
+
+```bash
+make test ARGS='--filter=UiTranslationParityTest'
+```
+
+Do not consider the task done until that test passes.
+
+## What the suite enforces
+
+`tests/Unit/UiTranslationParityTest.php`:
+
+- EN and PL have identical key sets
+- Every EN key is referenced somewhere scannable (or covered by an allowed dynamic prefix)
+- Public Blade views only reference existing EN keys
+
+## Common failure modes
+
+- Edited `en/ui.php` but forgot `pl/ui.php` (or vice versa)
+- Renamed/removed a view string but left the old key in both locale files
+- Added `__('ui.…')` in a view/component without adding the key to both locale files
+- Kept a longer label key after switching the UI to a `_short` variant
