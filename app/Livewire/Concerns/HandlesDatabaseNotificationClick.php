@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Concerns;
 
-use App\Support\Livewire\SpaNavigate;
 use App\Support\Notifications\RelativeAppUrl;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,7 +19,8 @@ trait HandlesDatabaseNotificationClick
         // Do not dispatch database-notifications-updated before redirect: that
         // races a second Livewire update against navigation and aborts mid-flight
         // (Sentry UnhandledRejection with Livewire's {status,body,json,errors}).
-        // The destination page loads fresh unread indicators.
+        // Full-page redirect (not wire:navigate) so the destination and nav badge
+        // are not served from Livewire's navigate cache with stale unread state.
 
         if ($isActionable) {
             $this->redirectToNotificationUrl(
@@ -50,6 +50,6 @@ trait HandlesDatabaseNotificationClick
 
     private function redirectToNotificationUrl(string $url): void
     {
-        $this->redirect($url, navigate: SpaNavigate::allowed($url));
+        $this->redirect($url, navigate: false);
     }
 }

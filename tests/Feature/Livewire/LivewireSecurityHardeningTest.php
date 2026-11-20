@@ -159,7 +159,8 @@ class LivewireSecurityHardeningTest extends TestCase
             ->call('handleNotificationClick', $internalId)
             ->assertRedirect('/profile');
 
-        $this->assertTrue($internal->effects['redirectUsingNavigate'] ?? false);
+        $this->assertArrayNotHasKey('redirectUsingNavigate', $internal->effects);
+        $this->assertNotNull($user->notifications()->find($internalId)?->read_at);
     }
 
     public function test_notification_redirect_to_filament_admin_skips_spa_navigate(): void
@@ -195,5 +196,6 @@ class LivewireSecurityHardeningTest extends TestCase
             ->assertRedirect($adminUrl);
 
         $this->assertArrayNotHasKey('redirectUsingNavigate', $component->effects);
+        $this->assertNotNull($user->notifications()->find($notificationId)?->read_at);
     }
 }

@@ -46,6 +46,9 @@ class NotificationDropdownTest extends TestCase
             ->assertSeeHtml('data-ui="nav-notifications-badge"')
             ->call('handleNotificationClick', $visible->id)
             ->assertRedirect($visible->data['url']);
+
+        $this->assertNotNull($visible->fresh()->read_at);
+        $this->assertSame(0, $user->fresh()->unreadNotifications()->count());
     }
 
     public function test_dropdown_only_shows_the_latest_preview_limit(): void

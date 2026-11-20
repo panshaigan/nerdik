@@ -112,6 +112,8 @@ class ScheduledDigestPreferenceTest extends TestCase
             ->call('handleNotificationClick', $notification->id)
             ->assertNotDispatched('database-notifications-updated')
             ->assertRedirect($itemUrl);
+
+        $this->assertNotNull($notification->fresh()->read_at);
     }
 
     public function test_single_dashboard_feed_digest_click_redirects_to_dashboard(): void
