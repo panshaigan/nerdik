@@ -1262,7 +1262,6 @@ return [
         'page_subtitle' => 'Your notification history.',
         'timeline_heading' => 'Notification history',
         'dropdown_heading' => 'Notifications',
-        'view_all' => 'View all notifications',
         'view_all_short' => 'View all',
         'clear_all' => 'Clear all',
         'mark_all_read' => 'Mark all as read',

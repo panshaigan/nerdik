@@ -13,6 +13,17 @@ class DashboardThisWeekServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Freeze early in the week so in-week fixtures stay valid regardless of CI weekday.
+        $timezone = display_timezone();
+        $this->travelTo(
+            now()->setTimezone($timezone)->startOfWeek()->setTime(10, 0)->utc()->toDateTimeString()
+        );
+    }
+
     public function test_items_for_this_week_returns_only_items_within_current_week(): void
     {
         $timezone = display_timezone();
@@ -35,16 +46,17 @@ class DashboardThisWeekServiceTest extends TestCase
     {
         $timezone = display_timezone();
         $now = now()->setTimezone($timezone);
+        $limit = 2;
 
         $feed = Collection::times(5, fn (int $i) => [
             'kind' => 'activity',
-            'starts_at' => $now->copy()->addDays($i),
+            'starts_at' => $now->copy()->addHours($i),
         ]);
 
         $service = new DashboardThisWeekService;
-        $items = $service->itemsForThisWeek($feed, 3);
+        $items = $service->itemsForThisWeek($feed, $limit);
 
-        $this->assertCount(3, $items);
+        $this->assertCount($limit, $items);
     }
 
     public function test_exclude_from_feed_removes_items_shown_in_this_week(): void
@@ -60,7 +72,7 @@ class DashboardThisWeekServiceTest extends TestCase
         ]);
 
         $service = new DashboardThisWeekService;
-        $thisWeek = $service->itemsForThisWeek($feed, 3);
+        $thisWeek = $service->itemsForThisWeek($feed, 10);
         $remaining = $service->excludeFromFeed($feed, $thisWeek);
 
         $this->assertCount(1, $thisWeek);
