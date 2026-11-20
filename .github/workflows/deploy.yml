@@ -110,7 +110,7 @@ jobs:
         if: steps.config.outputs.skip != 'true' && vars.PROD_APP_URL != ''
         env:
           SMOKE_URL: ${{ vars.PROD_APP_URL }}/up
-          SMOKE_INITIAL_DELAY: "10"
+          SMOKE_INITIAL_DELAY: "60"
           SMOKE_ATTEMPTS: "3"
           SMOKE_INTERVAL: "10"
         run: ./scripts/smoke-up.sh

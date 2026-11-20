@@ -65,7 +65,7 @@ Go to **Settings → Secrets and variables → Actions → Variables**.
 |----------|---------|
 | `PROD_APP_URL` | `https://nerdik.app` |
 
-When set, the Deploy workflow runs a smoke check (`GET /up`) after deploy via [`scripts/smoke-up.sh`](../scripts/smoke-up.sh) (10s settle, 3 attempts, 10s apart).
+When set, the Deploy workflow runs a smoke check (`GET /up`) after deploy via [`scripts/smoke-up.sh`](../scripts/smoke-up.sh) (60s settle, 3 attempts, 10s apart).
 
 ## E. GitHub environments
 

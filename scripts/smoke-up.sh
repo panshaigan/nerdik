@@ -6,7 +6,7 @@
 #
 # Env:
 #   SMOKE_URL             Health URL (default: first arg, or https://nerdik.app/up)
-#   SMOKE_INITIAL_DELAY   Seconds to wait before the first attempt (default: 10)
+#   SMOKE_INITIAL_DELAY   Seconds to wait before the first attempt (default: 60)
 #   SMOKE_ATTEMPTS        Total attempts before failing (default: 3)
 #   SMOKE_INTERVAL        Seconds between failed attempts (default: 10)
 #   SMOKE_CONNECT_TIMEOUT curl --connect-timeout (default: 10)
@@ -14,7 +14,7 @@
 set -euo pipefail
 
 SMOKE_URL="${SMOKE_URL:-${1:-https://nerdik.app/up}}"
-SMOKE_INITIAL_DELAY="${SMOKE_INITIAL_DELAY:-10}"
+SMOKE_INITIAL_DELAY="${SMOKE_INITIAL_DELAY:-60}"
 SMOKE_ATTEMPTS="${SMOKE_ATTEMPTS:-3}"
 SMOKE_INTERVAL="${SMOKE_INTERVAL:-10}"
 SMOKE_CONNECT_TIMEOUT="${SMOKE_CONNECT_TIMEOUT:-10}"

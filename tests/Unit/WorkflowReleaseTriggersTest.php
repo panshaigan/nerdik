@@ -77,7 +77,7 @@ final class WorkflowReleaseTriggersTest extends TestCase
         $this->assertStringContainsString('./scripts/smoke-up.sh', $deploy);
         $this->assertStringContainsString('SMOKE_ATTEMPTS: "3"', $deploy);
         $this->assertStringContainsString('SMOKE_INTERVAL: "10"', $deploy);
-        $this->assertStringContainsString('SMOKE_INITIAL_DELAY: "10"', $deploy);
+        $this->assertStringContainsString('SMOKE_INITIAL_DELAY: "60"', $deploy);
         $this->assertStringNotContainsString("release:\n    types:", $deploy);
         $this->assertStringNotContainsString('- published', $deploy);
     }
