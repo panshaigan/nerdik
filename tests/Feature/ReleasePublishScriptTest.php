@@ -27,6 +27,7 @@ final class ReleasePublishScriptTest extends TestCase
             $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
             $this->assertStringContainsString('would skip make check, then write VERSION=1.2.4', $process->getOutput());
             $this->assertStringContainsString('would commit, push, tag v1.2.4', $process->getOutput());
+            $this->assertStringContainsString('then Deploy', $process->getOutput());
             $this->assertStringNotContainsString('would run make check', $process->getOutput());
             $this->assertSame("1.2.3\n", (string) file_get_contents($root.'/VERSION'));
         } finally {
@@ -136,6 +137,62 @@ TXT;
         $this->assertSame('success', $this->classify($labels, 120, 119));
     }
 
+    #[Test]
+    public function deploy_status_stays_pending_until_a_newer_run_succeeds(): void
+    {
+        $labels = <<<'TXT'
+completed successfully:  Run 40 of Deploy. Deploy to production
+TXT;
+
+        $this->assertSame('pending', $this->classifyDeploy($labels, 40));
+    }
+
+    #[Test]
+    public function deploy_status_succeeds_for_a_newer_successful_run(): void
+    {
+        $labels = <<<'TXT'
+completed successfully:  Run 41 of Deploy. Deploy to production
+completed successfully:  Run 40 of Deploy. Deploy to production
+TXT;
+
+        $this->assertSame('success', $this->classifyDeploy($labels, 40));
+    }
+
+    #[Test]
+    public function deploy_status_fails_when_the_newest_run_failed(): void
+    {
+        $labels = <<<'TXT'
+failed:  Run 41 of Deploy. Deploy to production
+completed successfully:  Run 40 of Deploy. Deploy to production
+TXT;
+
+        $this->assertSame('failure', $this->classifyDeploy($labels, 40));
+    }
+
+    #[Test]
+    public function smoke_up_retries_before_failing(): void
+    {
+        $process = new Process(
+            ['bash', 'scripts/smoke-up.sh', 'http://127.0.0.1:9/up'],
+            base_path(),
+            array_merge($_ENV, [
+                'SMOKE_INITIAL_DELAY' => '0',
+                'SMOKE_ATTEMPTS' => '3',
+                'SMOKE_INTERVAL' => '0',
+                'SMOKE_CONNECT_TIMEOUT' => '1',
+                'SMOKE_MAX_TIME' => '1',
+            ]),
+        );
+        $process->setTimeout(15);
+        $process->run();
+
+        $this->assertFalse($process->isSuccessful());
+        $output = $process->getOutput().$process->getErrorOutput();
+        $this->assertStringContainsString('Attempt 1/3:', $output);
+        $this->assertStringContainsString('Attempt 3/3:', $output);
+        $this->assertStringContainsString('Health check FAILED after 3 attempts:', $output);
+    }
+
     /**
      * @param  array<string, string>  $env
      */
@@ -178,6 +235,29 @@ BASH;
                 'LABELS' => $labels,
                 'MIN_CI' => (string) $minCi,
                 'MIN_DOCKER' => (string) $minDocker,
+            ]),
+        );
+        $process->run();
+
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput().$process->getOutput());
+
+        return trim($process->getOutput());
+    }
+
+    private function classifyDeploy(string $labels, int $minDeploy): string
+    {
+        $script = <<<'BASH'
+set -euo pipefail
+source scripts/release.sh
+classify_deploy_status "$LABELS" "$MIN_DEPLOY"
+BASH;
+
+        $process = new Process(
+            ['bash', '-c', $script],
+            base_path(),
+            array_merge($_ENV, [
+                'LABELS' => $labels,
+                'MIN_DEPLOY' => (string) $minDeploy,
             ]),
         );
         $process->run();

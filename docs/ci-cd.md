@@ -79,8 +79,8 @@ make release 1.12.5          # strict version
 
 1. Every **60s**, poll Actions for the release tag until **CI** and **Docker** succeed (fails fast on a red check)
 2. Then every **30s**, poll `/releases/latest` until the published tag matches the release (e.g. `v1.10.14`)
-
-It does **not** wait on Deploy. It always ends with a smoke check of `https://nerdik.app/up` and prints `https://nerdik.app`.
+3. Then every **30s**, poll Actions for a newer **Deploy** run until it succeeds (fails fast on a red Deploy)
+4. Ends with a smoke check of `https://nerdik.app/up` via [`scripts/smoke-up.sh`](../scripts/smoke-up.sh): **10s** settle, then up to **3** attempts with **10s** between failures (override with `SMOKE_INITIAL_DELAY`, `SMOKE_ATTEMPTS`, `SMOKE_INTERVAL`)
 
 Flags: `DRY_RUN=1` (plan only), `SKIP_WATCH=1` (push/tag without web polling), `SKIP_SMOKE=1` (skip final `/up` check).
 
@@ -211,7 +211,7 @@ cd /opt/nerdik && IMAGE_TAG=1.0.0 make deploy
 | Command | Use |
 |---------|-----|
 | `make check` | Run local CI parity (tests, audit, compose, gitleaks, pint); `FULL=1` adds Docker build |
-| `make release` | `make check`, then bump VERSION, push tag, watch GitHub CI/CD + Release page, smoke `nerdik.app/up` |
+| `make release` | `make check`, then bump VERSION, push tag, watch GitHub CI/CD + Release + Deploy, smoke `nerdik.app/up` (retry) |
 | `make release-push` | Same publish as `make release`, without `make check` |
 | `make release-repush` | Move an existing release tag onto HEAD and push it again after a failed GitHub run |
 | `make deploy` | In this checkout: git pull + deploy latest SHA (`APP_ENV` selects prod vs staging) |

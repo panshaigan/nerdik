@@ -98,6 +98,19 @@ jobs:
             cd "${DEPLOY_PATH:-/opt/nerdik}"
             IMAGE_TAG=${{ steps.tag.outputs.value }} ./scripts/vps-deploy.sh
 
+      - name: Checkout smoke script
+        if: steps.config.outputs.skip != 'true' && vars.PROD_APP_URL != ''
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            scripts/smoke-up.sh
+          sparse-checkout-cone-mode: false
+
       - name: Smoke check
         if: steps.config.outputs.skip != 'true' && vars.PROD_APP_URL != ''
-        run: curl -fsS "${{ vars.PROD_APP_URL }}/up"
+        env:
+          SMOKE_URL: ${{ vars.PROD_APP_URL }}/up
+          SMOKE_INITIAL_DELAY: "10"
+          SMOKE_ATTEMPTS: "3"
+          SMOKE_INTERVAL: "10"
+        run: ./scripts/smoke-up.sh

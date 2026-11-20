@@ -15,6 +15,7 @@
 #   SKIP_WATCH=1  Push and tag only; skip GitHub web polling
 #   SKIP_SMOKE=1  Skip final https://nerdik.app/up check
 #   RELEASE_ROOT  Checkout to operate on (tests). Defaults to the repo root.
+#   SMOKE_*       Passed through to scripts/smoke-up.sh (delay / attempts / interval)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,11 +28,13 @@ cd "$ROOT"
 VERSION_FILE="${ROOT}/VERSION"
 CI_POLL_INTERVAL=60
 RELEASE_POLL_INTERVAL=30
+DEPLOY_POLL_INTERVAL=30
 WATCH_TIMEOUT=7200
 APP_URL="https://nerdik.app"
 HEALTH_URL="${APP_URL}/up"
 DEFAULT_GITHUB_REPO="panshaigan/nerdik"
 CURL_UA="Mozilla/5.0 (compatible; nerdik-release/1.0)"
+SMOKE_UP_SCRIPT="${SCRIPT_DIR}/smoke-up.sh"
 
 RELEASE_VERSION=""
 RELEASE_SHA=""
@@ -330,6 +333,141 @@ watch_github_release() {
     die "Timed out after ${WATCH_TIMEOUT}s waiting for GitHub Release ${RELEASE_TAG}."
 }
 
+# Deploy runs via workflow_run after Release, so it is listed under workflow:Deploy
+# (not branch:v*), often on the default branch tip.
+fetch_deploy_action_labels() {
+    local html
+    html="$(fetch_html "${GITHUB_WEB}/actions?query=workflow%3ADeploy")" || return 1
+    printf '%s' "$html" | grep -oE 'aria-label="((completed successfully|failed|queued|in progress|cancelled|waiting|skipped)[^"]*)"' \
+        | sed -E 's/^aria-label="//; s/"$//' \
+        | grep -E 'Run [0-9]+ of Deploy\.' \
+        || true
+}
+
+max_deploy_run() {
+    local labels="$1"
+    local line run
+    local deploy=0
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        if [[ "$line" =~ Run\ ([0-9]+)\ of\ Deploy\. ]]; then
+            run="${BASH_REMATCH[1]}"
+            if [[ "$run" -gt "$deploy" ]]; then
+                deploy="$run"
+            fi
+        fi
+    done <<<"$labels"
+
+    printf '%s\n' "$deploy"
+}
+
+# Returns: pending | success | failure
+# Uses the newest Deploy run above min_deploy_run (previous attempts do not count).
+classify_deploy_status() {
+    local labels="$1"
+    local min_deploy="${2:-0}"
+    local line lower run state
+    local deploy_run=0
+    local deploy_state=""
+
+    if [[ -z "$labels" ]]; then
+        echo "pending"
+        return 0
+    fi
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        if [[ ! "$line" =~ Run\ ([0-9]+)\ of\ Deploy\. ]]; then
+            continue
+        fi
+
+        run="${BASH_REMATCH[1]}"
+        lower="$(printf '%s' "$line" | tr '[:upper:]' '[:lower:]')"
+        state="$(workflow_run_state "$lower")"
+
+        if [[ "$run" -gt "$deploy_run" ]]; then
+            deploy_run="$run"
+            deploy_state="$state"
+        fi
+    done <<<"$labels"
+
+    if [[ "$deploy_run" -le "$min_deploy" ]]; then
+        echo "pending"
+        return 0
+    fi
+
+    if [[ "$deploy_state" == "failure" ]]; then
+        echo "failure"
+        return 0
+    fi
+
+    if [[ "$deploy_state" == "success" ]]; then
+        echo "success"
+        return 0
+    fi
+
+    echo "pending"
+}
+
+snapshot_deploy_run() {
+    local labels
+
+    if ! labels="$(fetch_deploy_action_labels)"; then
+        printf '0\n'
+        return 0
+    fi
+
+    max_deploy_run "$labels"
+}
+
+watch_deploy() {
+    local min_deploy="${1:-0}"
+    local deadline=$((SECONDS + WATCH_TIMEOUT))
+    local labels status
+
+    step "Watching Deploy on ${GITHUB_WEB} — every ${DEPLOY_POLL_INTERVAL}s (after run ${min_deploy})"
+
+    while (( SECONDS < deadline )); do
+        if ! labels="$(fetch_deploy_action_labels)"; then
+            echo "Deploy: could not fetch Actions page; retrying..."
+            sleep "$DEPLOY_POLL_INTERVAL"
+            continue
+        fi
+
+        status="$(classify_deploy_status "$labels" "$min_deploy")"
+
+        if [[ -n "$labels" ]]; then
+            while IFS= read -r line; do
+                [[ -n "$line" ]] && echo "  ${line}"
+            done <<<"$labels"
+        else
+            echo "Deploy: no Actions runs listed yet"
+        fi
+
+        case "$status" in
+            success)
+                echo ""
+                echo "Deploy complete for ${RELEASE_TAG}"
+                return 0
+                ;;
+            failure)
+                echo "" >&2
+                echo "Deploy failed for ${RELEASE_TAG}." >&2
+                echo "See: ${GITHUB_WEB}/actions?query=workflow%3ADeploy" >&2
+                die "Deploy failed."
+                ;;
+            pending)
+                echo "Deploy: still pending..."
+                ;;
+        esac
+
+        sleep "$DEPLOY_POLL_INTERVAL"
+    done
+
+    die "Timed out after ${WATCH_TIMEOUT}s waiting for Deploy."
+}
+
 smoke_check_production() {
     if [[ "${SKIP_SMOKE:-}" == "1" ]]; then
         return 0
@@ -337,7 +475,12 @@ smoke_check_production() {
 
     step "Production smoke check"
 
-    if curl -fsS --max-time 15 "$HEALTH_URL" >/dev/null; then
+    if [[ ! -x "$SMOKE_UP_SCRIPT" ]]; then
+        echo "Missing executable smoke script: ${SMOKE_UP_SCRIPT}" >&2
+        return 1
+    fi
+
+    if SMOKE_URL="$HEALTH_URL" "$SMOKE_UP_SCRIPT"; then
         echo "Production health check OK: ${HEALTH_URL}"
         return 0
     fi
@@ -386,6 +529,7 @@ snapshot_workflow_runs() {
 finish_after_tag_push() {
     local min_ci="${1:-0}"
     local min_docker="${2:-0}"
+    local min_deploy=0
 
     RELEASE_SHA="$(git rev-parse HEAD)"
     echo "Pushed ${RELEASE_TAG} (${RELEASE_SHA}) to ${GITHUB_REPO}"
@@ -396,7 +540,10 @@ finish_after_tag_push() {
     fi
 
     watch_commit_ci "$min_ci" "$min_docker"
+    # Snapshot before Release finishes so the upcoming Deploy run must be newer.
+    min_deploy="$(snapshot_deploy_run)"
     watch_github_release
+    watch_deploy "$min_deploy"
 }
 
 repush_release() {
@@ -431,7 +578,7 @@ repush_release() {
 
     if [[ "${DRY_RUN:-}" == "1" ]]; then
         echo "DRY_RUN: would push HEAD, move ${RELEASE_TAG} to HEAD, delete it on origin, and push the tag again"
-        echo "DRY_RUN: would watch ${GITHUB_WEB} for a new CI/CD run"
+        echo "DRY_RUN: would watch ${GITHUB_WEB} for a new CI/CD run, Release, then Deploy"
         return 0
     fi
 
@@ -479,7 +626,7 @@ publish_release() {
             echo "DRY_RUN: would run make check, then write VERSION=${RELEASE_VERSION}"
         fi
         echo "DRY_RUN: would commit, push, tag ${RELEASE_TAG}"
-        echo "DRY_RUN: would watch ${GITHUB_WEB} for CI/CD then Release ${RELEASE_TAG}"
+        echo "DRY_RUN: would watch ${GITHUB_WEB} for CI/CD, Release ${RELEASE_TAG}, then Deploy"
         return 0
     fi
 
