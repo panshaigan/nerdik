@@ -1263,6 +1263,8 @@ return [
         'timeline_heading' => 'Historia powiadomień',
         'dropdown_heading' => 'Powiadomienia',
         'view_all' => 'Zobacz wszystkie powiadomienia',
+        'view_all_short' => 'Zobacz wszystkie',
+        'clear_all' => 'Wyczyść',
         'mark_all_read' => 'Oznacz wszystkie jako przeczytane',
         'updating' => 'Aktualizowanie...',
         'empty' => 'Brak powiadomień.',

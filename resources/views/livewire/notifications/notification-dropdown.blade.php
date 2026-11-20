@@ -38,8 +38,12 @@
                     wire:click="handleNotificationClick('{{ $notification->id }}')"
                     wire:loading.attr="disabled"
                     wire:target="handleNotificationClick"
-                    class="flex w-full gap-3 border-b border-base-300 px-4 py-3 text-start last:border-b-0 hover:bg-base-200/50 light:border-neutral {{ $display->isUnread ? 'bg-primary/5' : '' }}"
+                    @class([
+                        'flex w-full gap-3 border-b border-base-300 px-4 py-3 text-start last:border-b-0 hover:bg-base-200/50 light:border-neutral',
+                        'border-s-2 border-s-primary bg-primary/5' => $display->isUnread,
+                    ])
                     data-ui="nav-notification-item"
+                    @if ($display->isUnread) data-notification-unread="true" @endif
                 >
                     @if ($display->icon)
                         <x-mary-icon name="{{ $display->icon }}" class="mt-0.5 h-5 w-5 shrink-0 opacity-70" />
@@ -57,13 +61,33 @@
             @endforelse
         </div>
 
-        <a
-            href="{{ route('notifications.index') }}"
-            wire:navigate
-            class="block border-t border-base-300 px-4 py-3 text-center text-sm font-medium text-primary hover:bg-base-200/50 light:border-neutral"
-            data-ui="nav-notifications-view-all"
+        <div
+            class="grid grid-cols-2 divide-x divide-base-300 border-t border-base-300 light:divide-neutral light:border-neutral"
+            data-ui="nav-notifications-footer"
         >
-            {{ __('ui.notifications.view_all') }}
-        </a>
+            <button
+                type="button"
+                wire:click="markAllRead"
+                wire:loading.attr="disabled"
+                wire:target="markAllRead"
+                @class([
+                    'px-2 py-3 text-center text-xs font-medium hover:bg-base-200/50 sm:px-3 sm:text-sm',
+                    'font-medium text-base-content/80' => $unreadCount > 0,
+                    'text-base-content/60' => $unreadCount === 0,
+                ])
+                data-ui="nav-notifications-clear-all"
+            >
+                <span wire:loading.remove wire:target="markAllRead">{{ __('ui.notifications.clear_all') }}</span>
+                <span wire:loading wire:target="markAllRead">{{ __('ui.notifications.updating') }}</span>
+            </button>
+            <a
+                href="{{ route('notifications.index') }}"
+                wire:navigate
+                class="px-2 py-3 text-center text-xs font-medium text-primary hover:bg-base-200/50 sm:px-3 sm:text-sm"
+                data-ui="nav-notifications-view-all"
+            >
+                {{ __('ui.notifications.view_all_short') }}
+            </a>
+        </div>
     </div>
 </div>

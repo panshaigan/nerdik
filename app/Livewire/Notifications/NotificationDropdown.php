@@ -7,10 +7,12 @@ use App\Support\Notifications\NotificationListItemPresenter;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class NotificationDropdown extends Component
 {
     use HandlesDatabaseNotificationClick;
+    use Toast;
 
     public const PREVIEW_LIMIT = 8;
 
@@ -18,6 +20,17 @@ class NotificationDropdown extends Component
     public function refreshNotificationDropdown(): void
     {
         //
+    }
+
+    public function markAllRead(): void
+    {
+        $updated = Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+
+        if ($updated > 0) {
+            $this->success(__('All notifications marked as read.'));
+        }
+
+        $this->dispatch('database-notifications-updated', resetPagination: false);
     }
 
     public function render(NotificationListItemPresenter $presenter)
