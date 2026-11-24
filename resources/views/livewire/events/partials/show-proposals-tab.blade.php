@@ -71,6 +71,18 @@
                         @endif
                         <x-button
                             type="button"
+                            class="btn-ghost btn-square btn-sm shrink-0"
+                            :tooltip="__('ui.events.ignore')"
+                            :aria-label="__('ui.events.ignore')"
+                            wire:click="ignorePendingProposal({{ $proposal->id }})"
+                            wire:loading.attr="disabled"
+                            data-ui="event-show-proposal-ignore"
+                        >
+                            <span class="sr-only">{{ __('ui.events.ignore') }}</span>
+                            <x-icon name="o-eye-slash" class="h-5 w-5" />
+                        </x-button>
+                        <x-button
+                            type="button"
                             class="btn-error btn-square btn-sm shrink-0"
                             :title="__('ui.events.reject')"
                             wire:click="rejectPendingProposal({{ $proposal->id }})"

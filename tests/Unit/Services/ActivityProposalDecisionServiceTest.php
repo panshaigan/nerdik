@@ -110,6 +110,33 @@ class ActivityProposalDecisionServiceTest extends TestCase
     }
 
     #[Test]
+    public function reject_without_notify_marks_rejected_and_skips_notification(): void
+    {
+        Notification::fake();
+
+        $owner = User::factory()->create();
+        $proposer = User::factory()->create();
+        $event = Event::factory()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->create($this->fittingActivityAttributes($proposer));
+        $proposal = ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $proposer->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        app(ActivityProposalDecisionService::class)->reject($proposal, notify: false);
+
+        $proposal->refresh();
+        $activity->refresh();
+
+        $this->assertSame(ActivityProposalStatus::Rejected, $proposal->status);
+        $this->assertNull($proposal->accepted_slot_id);
+        $this->assertSame(Activity::HOSTING_MODE_DRAFT, (int) $activity->hosting_mode);
+        Notification::assertNothingSent();
+    }
+
+    #[Test]
     public function accept_with_null_slot_id_auto_selects_fitting_free_slot(): void
     {
         $owner = User::factory()->create();

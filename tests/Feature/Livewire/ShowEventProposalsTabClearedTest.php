@@ -9,8 +9,10 @@ use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
 use App\Models\User;
+use App\Notifications\ProposalRejectedNotification;
 use App\Services\EventShowReadCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -61,5 +63,30 @@ class ShowEventProposalsTabClearedTest extends TestCase
             ->assertDontSee(__('ui.events.show_proposals'));
 
         $this->assertContains('plan', $shell->get('mountedTabs'));
+    }
+
+    public function test_ignore_pending_proposal_rejects_without_notification(): void
+    {
+        Notification::fake();
+
+        $owner = User::factory()->create();
+        $proposer = User::factory()->create();
+        $event = Event::factory()->public()->create(['created_by' => $owner->id]);
+        $activity = Activity::factory()->proposed()->create(['created_by' => $proposer->id]);
+        $proposal = ActivityProposal::factory()->create([
+            'activity_id' => $activity->id,
+            'event_id' => $event->id,
+            'created_by' => $proposer->id,
+            'status' => ActivityProposalStatus::Pending,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(EventShowProposalsTab::class, ['eventId' => $event->id])
+            ->call('ignorePendingProposal', $proposal->id)
+            ->assertHasNoErrors()
+            ->assertDispatched('event-show-shell-refresh');
+
+        $this->assertSame(ActivityProposalStatus::Rejected, $proposal->fresh()->status);
+        Notification::assertNotSentTo($proposer, ProposalRejectedNotification::class);
     }
 }

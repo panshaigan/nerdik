@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Use Makefile for Sail commands
 
-This project wraps Sail (and compose) through the root [Makefile](Makefile). Prefer those targets so cwd, env, and app-cmd routing stay consistent.
+This project wraps Sail (and compose) through the root [Makefile](Makefile). **Always** run Artisan, tests, Pint, Composer, and npm through Make. Sail works; if a Make command fails, that is a real failure — not a cue to invent another runtime.
 
 ## Prefer
 
@@ -16,25 +16,28 @@ This project wraps Sail (and compose) through the root [Makefile](Makefile). Pre
 - `make up` / `make down` / `make restart` / `make shell` / `make tinker`
 - `make composer …` / `make npm …`
 
-## Do not default to
+## Do not
 
 - `./vendor/bin/sail …` or `vendor/bin/sail …` for day-to-day Artisan, tests, Composer, or npm
-- Bare `php artisan` / `phpunit` on the host when Sail is the local runtime
+- Bare `php artisan` / `phpunit` / `./vendor/bin/phpunit` on the host
 - Raw `docker` / `docker compose` / `docker.exe` for app lifecycle
 - Starting or troubleshooting Docker Desktop / docker.sock yourself
+- **Workarounds when Make fails once** — do not retry via host PHP, Sail directly, “Docker is not running” recovery, sandbox privilege gymnastics framed as an alternate path, or any other bypass. Re-run the **same** `make …` command (with needed tool permissions if the sandbox blocked Docker), or stop and ask the user.
 
-## If Make/Sail is unavailable
+## If Make fails
 
-Stop and ask the user. Do **not** launch Docker Desktop, poke sockets, fall back to host PHP, or invent alternate run paths unless the user explicitly asks.
+1. Retry the same Make target with unrestricted permissions if the sandbox blocked Docker/Sail.
+2. If it still fails, **stop and ask the user**. Do not switch tools or invent alternate run paths unless the user explicitly asks.
 
 ## Flags and passthrough
 
-GNU Make can eat `--flags`. Prefer `./bin/make` on `PATH`, or:
+GNU Make can eat `--flags` and unquoted `|`. Pass args after `make --`:
 
 ```bash
-make test --filter=HasAutoSlugTest
-make artisan route:list --path=api
-# or: make test ARGS='--filter=HasAutoSlugTest'
+make -- test --filter=HasAutoSlugTest
+make -- test --filter='FooTest|BarTest'
+make -- artisan route:list --path=api
+# also fine: make test ARGS='--filter=HasAutoSlugTest'
 ```
 
 ## Exceptions

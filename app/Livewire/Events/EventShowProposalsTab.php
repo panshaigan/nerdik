@@ -166,6 +166,19 @@ class EventShowProposalsTab extends Component
 
     public function rejectPendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
     {
+        $this->decidePendingProposal($proposalId, $decisions, notify: true);
+    }
+
+    public function ignorePendingProposal(int $proposalId, ActivityProposalDecisionService $decisions): void
+    {
+        $this->decidePendingProposal($proposalId, $decisions, notify: false);
+    }
+
+    private function decidePendingProposal(
+        int $proposalId,
+        ActivityProposalDecisionService $decisions,
+        bool $notify,
+    ): void {
         $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
         abort_unless(auth()->user()?->canModifyEntity($event), 403);
 
@@ -180,9 +193,9 @@ class EventShowProposalsTab extends Component
             return;
         }
 
-        $decisions->reject($proposal);
+        $decisions->reject($proposal, notify: $notify);
         $this->dispatch('event-show-shell-refresh');
-        $this->success(__('ui.status.proposal_rejected'));
+        $this->success(__($notify ? 'ui.status.proposal_rejected' : 'ui.status.proposal_ignored'));
     }
 
     public function render(ActivityBadgeGroupBuilder $badgeGroupBuilder): View

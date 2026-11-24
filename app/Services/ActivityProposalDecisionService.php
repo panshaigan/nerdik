@@ -87,8 +87,11 @@ class ActivityProposalDecisionService
         }
     }
 
-    /** Caller must ensure the proposal is still pending. */
-    public function reject(ActivityProposal $proposal): void
+    /**
+     * Reject a proposal (optionally without notifying the creator — "ignore").
+     * Caller must ensure the proposal is still pending.
+     */
+    public function reject(ActivityProposal $proposal, bool $notify = true): void
     {
         $proposal->update([
             'status' => ActivityProposalStatus::Rejected,
@@ -96,7 +99,9 @@ class ActivityProposalDecisionService
         ]);
         $this->hostingModes->markRejectedProposal($proposal->activity);
 
-        $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
+        if ($notify) {
+            $proposal->creator?->notify(new ProposalRejectedNotification($proposal->fresh(['activity', 'event'])));
+        }
     }
 
     public function detachActivityFromSlot(Event $event, Slot $slot): bool

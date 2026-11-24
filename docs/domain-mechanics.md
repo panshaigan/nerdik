@@ -57,7 +57,8 @@ If no fitting slot exists, proposal remains pending.
 
 - Accept assigns the activity to a chosen free slot (or auto-selects a fitting free slot when no slot ID is provided).
 - Reject clears accepted slot and marks proposal rejected.
-- Decision triggers status updates and notifications to the proposal creator.
+- Ignore is the same as reject but skips notifying the proposal creator.
+- Decision triggers status updates and (except ignore) notifications to the proposal creator.
 
 ## Organizer Schedule Without Proposal
 
