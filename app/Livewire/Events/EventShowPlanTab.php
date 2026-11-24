@@ -491,6 +491,10 @@ class EventShowPlanTab extends Component
         ]);
 
         $slotHourGroups = $slotPresentation->slotHourGroupsForEvent($event);
+        $planTabAutoOpenDay = $slotPresentation->closestSlotDayForAutoOpen(
+            $slotHourGroups,
+            (bool) $this->showEmptySlots,
+        );
 
         $hasEmptySlots = $event->slots->contains(
             fn (Slot $slot): bool => $slot->activity === null,
@@ -542,6 +546,7 @@ class EventShowPlanTab extends Component
             'emptySlotsRestricted' => $this->shouldRestrictEmptySlots($event, $user),
             'interestedActivityIds' => $interestedActivityIds,
             'slotHourGroups' => $slotHourGroups,
+            'planTabAutoOpenDay' => $planTabAutoOpenDay,
             'slotCardBadgeItemsByActivityId' => $slotCardBadgeItemsByActivityId,
             'slotTypeBadgeItemsBySlotId' => $slotTypeBadgeItemsBySlotId,
             'activityCoverPicturesById' => $activityCoverPicturesById,

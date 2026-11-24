@@ -76,6 +76,52 @@ class EventSlotPresentationService
         return $out;
     }
 
+    /**
+     * Display-timezone calendar date for the slot group whose start is nearest to now.
+     * Used to expand every visible group on that day in the plan tab.
+     *
+     * @param  list<array{label: string, slots: Collection<int, Slot>, starts_at: ?Carbon, boundary?: string}>  $slotHourGroups
+     */
+    public function closestSlotDayForAutoOpen(array $slotHourGroups, bool $showEmptySlots, ?Carbon $now = null): ?string
+    {
+        $now ??= now();
+        $timezone = display_timezone();
+        $closestStartsAt = null;
+        $closestDistance = null;
+
+        foreach ($slotHourGroups as $group) {
+            if (($group['boundary'] ?? null) !== null) {
+                continue;
+            }
+
+            $startsAt = $group['starts_at'] ?? null;
+            if ($startsAt === null) {
+                continue;
+            }
+
+            $slots = $group['slots'];
+            if (! $showEmptySlots) {
+                $slots = $slots->filter(fn (Slot $slot): bool => $slot->activity !== null)->values();
+            }
+
+            if ($slots->isEmpty()) {
+                continue;
+            }
+
+            $distance = $now->diffInSeconds($startsAt, absolute: true);
+            if ($closestDistance === null || $distance < $closestDistance) {
+                $closestDistance = $distance;
+                $closestStartsAt = $startsAt;
+            }
+        }
+
+        if ($closestStartsAt === null) {
+            return null;
+        }
+
+        return $closestStartsAt->copy()->setTimezone($timezone)->toDateString();
+    }
+
     public function enrollmentPresentation(Event $event, Carbon $now): EventEnrollmentPresentationData
     {
         $activeEnrollmentWindow = $event->enrollmentWindows->first(function ($w) use ($now) {

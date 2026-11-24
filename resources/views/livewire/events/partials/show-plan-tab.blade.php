@@ -38,7 +38,6 @@
         $hasEventDescription = filled(rich_text_excerpt($event->description));
         $hasEnrollmentWindows = $event->enrollmentWindows->isNotEmpty();
         $hasEntityLinks = $event->links->isNotEmpty() || ($canManageEvent ?? false);
-        $autoOpenDone = false;
         $proposeReturnPath = route('events.show', ['event' => $event, 'tab' => 'plan'], false);
         $guestProposeLoginUrl = login_url($proposeReturnPath);
     @endphp
@@ -159,10 +158,9 @@
                 @if ($visibleSlots->isNotEmpty())
                     @php
                         $groupStartsAt = $group['starts_at'] ?? null;
-                        $shouldAutoOpen = ! $autoOpenDone;
-                        if ($shouldAutoOpen) {
-                            $autoOpenDone = true;
-                        }
+                        $shouldAutoOpen = $groupStartsAt !== null
+                            && ($planTabAutoOpenDay ?? null) !== null
+                            && $groupStartsAt->copy()->setTimezone(display_timezone())->toDateString() === $planTabAutoOpenDay;
                     @endphp
                     <x-collapse
                         class="ui-timeline-collapse"

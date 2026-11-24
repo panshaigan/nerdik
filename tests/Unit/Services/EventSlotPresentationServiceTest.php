@@ -191,4 +191,41 @@ class EventSlotPresentationServiceTest extends TestCase
             collect($groups)->contains(fn (array $group): bool => ($group['boundary'] ?? null) === 'event_start'),
         );
     }
+
+    public function test_closest_slot_day_for_auto_open_uses_nearest_visible_group_start(): void
+    {
+        $service = new EventSlotPresentationService;
+        $user = User::factory()->create();
+        $now = Carbon::parse('2026-05-07 22:00:00', 'UTC');
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => $now->copy()->subDays(2),
+            'ends_at' => $now->copy()->addDays(2),
+        ]);
+
+        $earlierToday = Carbon::parse('2026-05-07 08:00:00', 'UTC');
+        $tomorrowMorning = Carbon::parse('2026-05-08 09:00:00', 'UTC');
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => $earlierToday,
+            'ends_at' => $earlierToday->copy()->addHour(),
+            'created_by' => $user->id,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => $tomorrowMorning,
+            'ends_at' => $tomorrowMorning->copy()->addHour(),
+            'created_by' => $user->id,
+        ]);
+
+        $event->load('slots');
+        $groups = $service->slotHourGroupsForEvent($event);
+
+        $closestDay = $service->closestSlotDayForAutoOpen($groups, true, $now);
+
+        $this->assertSame('2026-05-08', $closestDay);
+    }
 }
