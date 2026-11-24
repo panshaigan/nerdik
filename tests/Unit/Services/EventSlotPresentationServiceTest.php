@@ -39,7 +39,7 @@ class EventSlotPresentationServiceTest extends TestCase
         $newerSlot = Slot::factory()->create([
             'event_id' => $event->id,
             'name' => 'Slot Beta',
-            'starts_at' => $startsAt->copy()->addMinutes(15),
+            'starts_at' => $startsAt,
             'ends_at' => $startsAt->copy()->addHour(),
             'created_by' => $user->id,
         ]);
@@ -55,6 +55,47 @@ class EventSlotPresentationServiceTest extends TestCase
 
         $orderedIds = $slotGroup['slots']->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->assertSame([(int) $olderSlot->id, (int) $newerSlot->id], $orderedIds);
+    }
+
+    public function test_slot_groups_separate_different_start_minutes(): void
+    {
+        $service = new EventSlotPresentationService;
+        $user = User::factory()->create();
+        $startsAt1430 = Carbon::parse('2026-06-12 14:30:00', 'UTC');
+        $startsAt1445 = Carbon::parse('2026-06-12 14:45:00', 'UTC');
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => $startsAt1430->copy()->subDay(),
+            'ends_at' => $startsAt1445->copy()->addDay(),
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Slot at 14:30',
+            'starts_at' => $startsAt1430,
+            'ends_at' => $startsAt1430->copy()->addHour(),
+            'created_by' => $user->id,
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Slot at 14:45',
+            'starts_at' => $startsAt1445,
+            'ends_at' => $startsAt1445->copy()->addHour(),
+            'created_by' => $user->id,
+        ]);
+
+        $event->load('slots');
+        $groups = $service->slotHourGroupsForEvent($event);
+
+        $nonEmptyGroups = collect($groups)
+            ->filter(fn (array $group): bool => $group['slots']->isNotEmpty())
+            ->values();
+
+        $this->assertCount(2, $nonEmptyGroups);
+        $this->assertCount(1, $nonEmptyGroups[0]['slots']);
+        $this->assertCount(1, $nonEmptyGroups[1]['slots']);
     }
 
     public function test_omits_event_start_boundary_when_equal_to_first_slot_start(): void

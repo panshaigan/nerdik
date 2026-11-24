@@ -27,7 +27,10 @@ class EventSlotPresentationService
                 return '__no_time__';
             }
 
-            return format_in_user_tz($slot->starts_at, 'Y-m-d H');
+            return $slot->starts_at
+                ->copy()
+                ->setTimezone(display_timezone())
+                ->format('Y-m-d H:i');
         })->sortKeys();
 
         $out = [];
@@ -35,7 +38,7 @@ class EventSlotPresentationService
             $out[] = [
                 'label' => $key === '__no_time__'
                     ? __('ui.events.slots_group_no_time')
-                    : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:00'),
+                    : format_datetime_in_user_tz($groupSlots->first()->starts_at, 'ddd, D MMM · HH:mm'),
                 'slots' => $groupSlots->sortBy(fn (Slot $slot): int => (int) $slot->id)->values(),
                 'starts_at' => $key === '__no_time__'
                     ? null
@@ -49,7 +52,7 @@ class EventSlotPresentationService
 
         if ($prependEventStart) {
             array_unshift($out, [
-                'label' => format_datetime_in_user_tz($event->starts_at, 'ddd, D MMM · HH:00'),
+                'label' => format_datetime_in_user_tz($event->starts_at, 'ddd, D MMM · HH:mm'),
                 'slots' => collect(),
                 'starts_at' => $event->starts_at,
                 'boundary' => 'event_start',
@@ -63,7 +66,7 @@ class EventSlotPresentationService
 
         if ($appendEventEnd) {
             $out[] = [
-                'label' => format_datetime_in_user_tz($event->ends_at, 'ddd, D MMM · HH:00'),
+                'label' => format_datetime_in_user_tz($event->ends_at, 'ddd, D MMM · HH:mm'),
                 'slots' => collect(),
                 'starts_at' => $event->ends_at,
                 'boundary' => 'event_end',
