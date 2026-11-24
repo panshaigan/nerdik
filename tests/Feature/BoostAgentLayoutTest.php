@@ -33,7 +33,9 @@ class BoostAgentLayoutTest extends TestCase
     public function test_unused_boost_agent_trees_and_brand_svg_are_absent(): void
     {
         $this->assertFileDoesNotExist(base_path('CLAUDE.md'));
-        $this->assertDirectoryDoesNotExist(base_path('.claude'));
+        // Boost installs Claude skills under .claude/skills; an empty .claude may
+        // exist as a Cursor agent-store mount and is not a Boost leftover.
+        $this->assertDirectoryDoesNotExist(base_path('.claude/skills'));
         $this->assertDirectoryDoesNotExist(base_path('.junie'));
         $this->assertFileDoesNotExist(base_path('.mcp.json'));
         $this->assertFileDoesNotExist(base_path('resources/brand/nerdik_brand_logo.svg'));
