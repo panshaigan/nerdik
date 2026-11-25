@@ -2,6 +2,8 @@
     $groupMeta = [
         'events' => ['icon' => 'o-calendar', 'label' => __('ui.nav.search_group_events')],
         'activities' => ['icon' => 'o-puzzle-piece', 'label' => __('ui.nav.search_group_activities')],
+        'event_series' => ['icon' => 'o-rectangle-stack', 'label' => __('ui.nav.search_group_event_series')],
+        'activity_series' => ['icon' => 'o-queue-list', 'label' => __('ui.nav.search_group_activity_series')],
         'organizations' => ['icon' => 'o-building-office-2', 'label' => __('ui.nav.search_group_organizations')],
         'users' => ['icon' => 'o-user', 'label' => __('ui.nav.search_group_users')],
         'places' => ['icon' => 'o-map-pin', 'label' => __('ui.nav.search_group_places')],

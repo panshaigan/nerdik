@@ -6,7 +6,9 @@ namespace Tests\Feature;
 
 use App\Livewire\Layout\GlobalNavSearch;
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
@@ -110,6 +112,135 @@ class GlobalNavSearchTest extends TestCase
             ->call('openUserPreview', $user->id)
             ->assertSet('userPreviewModalOpen', true)
             ->assertSet('previewUserId', $user->id);
+    }
+
+    public function test_public_event_series_is_suggested_hidden_when_only_private_or_cancelled_editions(): void
+    {
+        $owner = User::factory()->create();
+        $visibleSeries = EventSeries::factory()->create([
+            'name' => 'Nav Search Event Series Visible',
+            'created_by' => $owner->id,
+        ]);
+
+        Event::factory()->public()->create([
+            'name' => 'Edition A',
+            'event_series_id' => $visibleSeries->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $hiddenSeries = EventSeries::factory()->create([
+            'name' => 'Nav Search Event Series Hidden',
+            'created_by' => $owner->id,
+        ]);
+
+        Event::factory()->create([
+            'name' => 'Secret edition',
+            'is_public' => false,
+            'event_series_id' => $hiddenSeries->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $cancelledOnlySeries = EventSeries::factory()->create([
+            'name' => 'Nav Search Event Series Cancelled',
+            'created_by' => $owner->id,
+        ]);
+
+        Event::factory()->public()->create([
+            'name' => 'Cancelled edition',
+            'event_series_id' => $cancelledOnlySeries->id,
+            'created_by' => $owner->id,
+            'cancelled_at' => now(),
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $results = GlobalNavSearchService::search('Nav Search Event Series', null);
+        $labels = array_column($results['event_series'], 'label');
+        $urls = array_column($results['event_series'], 'url');
+
+        $this->assertContains('Nav Search Event Series Visible', $labels);
+        $this->assertContains(route('event-series.show', $visibleSeries), $urls);
+        $this->assertNotContains('Nav Search Event Series Hidden', $labels);
+        $this->assertNotContains('Nav Search Event Series Cancelled', $labels);
+    }
+
+    public function test_activity_series_suggested_only_when_attached_to_public_event(): void
+    {
+        $owner = User::factory()->create();
+
+        $visibleSeries = ActivitySeries::factory()->create([
+            'name' => 'Nav Search Activity Series Visible',
+            'created_by' => $owner->id,
+        ]);
+
+        $activity = Activity::factory()->scheduled()->create([
+            'name' => 'Visible session',
+            'activity_series_id' => $visibleSeries->id,
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $event = Event::factory()->public()->create([
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(4),
+        ]);
+
+        Slot::factory()->create([
+            'event_id' => $event->id,
+            'activity_id' => $activity->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $hiddenSeries = ActivitySeries::factory()->create([
+            'name' => 'Nav Search Activity Series Hidden',
+            'created_by' => $owner->id,
+        ]);
+
+        Activity::factory()->scheduled()->create([
+            'name' => 'Orphan session',
+            'activity_series_id' => $hiddenSeries->id,
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+        ]);
+
+        $results = GlobalNavSearchService::search('Nav Search Activity Series', null);
+        $labels = array_column($results['activity_series'], 'label');
+
+        $this->assertContains('Nav Search Activity Series Visible', $labels);
+        $this->assertSame(
+            route('activity-series.show', $visibleSeries),
+            collect($results['activity_series'])->firstWhere('label', 'Nav Search Activity Series Visible')['url'] ?? null
+        );
+        $this->assertNotContains('Nav Search Activity Series Hidden', $labels);
+    }
+
+    public function test_livewire_renders_series_suggestion_group_heading(): void
+    {
+        app()->setLocale('en');
+
+        $owner = User::factory()->create();
+        $series = EventSeries::factory()->create([
+            'name' => 'Nav Livewire Event Series',
+            'created_by' => $owner->id,
+        ]);
+
+        Event::factory()->public()->create([
+            'event_series_id' => $series->id,
+            'created_by' => $owner->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        Livewire::test(GlobalNavSearch::class)
+            ->set('q', 'Nav Livewire Event')
+            ->assertSee('Nav Livewire Event Series')
+            ->assertSee(__('ui.nav.search_group_event_series'));
     }
 
     public function test_place_suggestion_links_to_browse_search_for_venue(): void

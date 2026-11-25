@@ -9,6 +9,8 @@ return [
         'close_search' => 'Close search',
         'search_group_events' => 'Events',
         'search_group_activities' => 'Activities',
+        'search_group_event_series' => 'Event series',
+        'search_group_activity_series' => 'Activity series',
         'search_group_organizations' => 'Organizations',
         'search_group_users' => 'Users',
         'search_group_places' => 'Places',

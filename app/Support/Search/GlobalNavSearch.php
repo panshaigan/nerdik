@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Support\Search;
 
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventSeries;
 use App\Models\Group;
 use App\Models\Organization;
 use App\Models\Place;
@@ -26,6 +28,8 @@ final class GlobalNavSearch
      * @return array{
      *     events: list<array{kind: string, id: int, label: string, url: string}>,
      *     activities: list<array{kind: string, id: int, label: string, url: string}>,
+     *     event_series: list<array{kind: string, id: int, label: string, url: string}>,
+     *     activity_series: list<array{kind: string, id: int, label: string, url: string}>,
      *     organizations: list<array{kind: string, id: int, label: string, url: null}>,
      *     users: list<array{kind: string, id: int, label: string, url: null}>,
      *     places: list<array{kind: string, id: int, label: string, url: string}>,
@@ -45,6 +49,8 @@ final class GlobalNavSearch
         return [
             'events' => self::searchEvents($trimmed, $user, $limit),
             'activities' => self::searchActivities($trimmed, $user, $limit),
+            'event_series' => self::searchEventSeries($trimmed, $limit),
+            'activity_series' => self::searchActivitySeries($trimmed, $limit),
             'organizations' => self::searchOrganizations($trimmed, $limit),
             'users' => self::searchUsers($trimmed, $limit),
             'places' => self::searchPlaces($trimmed, $limit),
@@ -57,6 +63,8 @@ final class GlobalNavSearch
      * @return array{
      *     events: list<array{kind: string, id: int, label: string, url: string}>,
      *     activities: list<array{kind: string, id: int, label: string, url: string}>,
+     *     event_series: list<array{kind: string, id: int, label: string, url: string}>,
+     *     activity_series: list<array{kind: string, id: int, label: string, url: string}>,
      *     organizations: list<array{kind: string, id: int, label: string, url: null}>,
      *     users: list<array{kind: string, id: int, label: string, url: null}>,
      *     places: list<array{kind: string, id: int, label: string, url: string}>,
@@ -69,6 +77,8 @@ final class GlobalNavSearch
         return [
             'events' => [],
             'activities' => [],
+            'event_series' => [],
+            'activity_series' => [],
             'organizations' => [],
             'users' => [],
             'places' => [],
@@ -163,6 +173,40 @@ final class GlobalNavSearch
             'label' => (string) $activity->name,
             'url' => route('activities.show', $activity),
         ])->all();
+    }
+
+    /**
+     * @return list<array{kind: string, id: int, label: string, url: string}>
+     */
+    private static function searchEventSeries(string $query, int $limit): array
+    {
+        return CatalogQuery::series($query)
+            ->limit($limit)
+            ->get()
+            ->map(static fn (EventSeries $series): array => [
+                'kind' => 'event_series',
+                'id' => (int) $series->id,
+                'label' => (string) $series->name,
+                'url' => route('event-series.show', $series),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{kind: string, id: int, label: string, url: string}>
+     */
+    private static function searchActivitySeries(string $query, int $limit): array
+    {
+        return CatalogQuery::activitySeries($query)
+            ->limit($limit)
+            ->get()
+            ->map(static fn (ActivitySeries $series): array => [
+                'kind' => 'activity_series',
+                'id' => (int) $series->id,
+                'label' => (string) $series->name,
+                'url' => route('activity-series.show', $series),
+            ])
+            ->all();
     }
 
     /**

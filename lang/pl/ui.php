@@ -9,6 +9,8 @@ return [
         'close_search' => 'Zamknij wyszukiwanie',
         'search_group_events' => 'Wydarzenia',
         'search_group_activities' => 'Aktywności',
+        'search_group_event_series' => 'Serie wydarzeń',
+        'search_group_activity_series' => 'Serie aktywności',
         'search_group_organizations' => 'Organizacje',
         'search_group_users' => 'Użytkownicy',
         'search_group_places' => 'Miejsca',
