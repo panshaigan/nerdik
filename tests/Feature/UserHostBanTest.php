@@ -39,10 +39,10 @@ class UserHostBanTest extends TestCase
 
         Livewire::actingAs($host)
             ->test(UserContactPopover::class, ['targetUserId' => $target->id])
-            ->assertSee(__('ui.profile.ban_user'))
+            ->assertSeeHtml('data-ui="user-contact-popover-ban"')
             ->call('banUser')
-            ->assertSee(__('ui.profile.unban_user'))
-            ->assertDontSee(__('ui.profile.ban_user'));
+            ->assertSeeHtml('data-ui="user-contact-popover-unban"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-ban"');
 
         $this->assertTrue(
             UserHostBan::query()
@@ -54,7 +54,7 @@ class UserHostBanTest extends TestCase
         Livewire::actingAs($host)
             ->test(UserContactPopover::class, ['targetUserId' => $target->id])
             ->call('unbanUser')
-            ->assertSee(__('ui.profile.ban_user'));
+            ->assertSeeHtml('data-ui="user-contact-popover-ban"');
 
         $this->assertFalse(
             UserHostBan::query()
@@ -71,8 +71,8 @@ class UserHostBanTest extends TestCase
 
         Livewire::actingAs($viewer)
             ->test(UserContactPopover::class, ['targetUserId' => $target->id])
-            ->assertDontSee(__('ui.profile.ban_user'))
-            ->assertDontSee(__('ui.profile.unban_user'));
+            ->assertDontSeeHtml('data-ui="user-contact-popover-ban"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-unban"');
     }
 
     public function test_host_cannot_ban_self(): void
@@ -86,7 +86,7 @@ class UserHostBanTest extends TestCase
 
         Livewire::actingAs($host)
             ->test(UserContactPopover::class, ['targetUserId' => $host->id])
-            ->assertDontSee(__('ui.profile.ban_user'));
+            ->assertDontSeeHtml('data-ui="user-contact-popover-ban"');
 
         $this->expectException(ValidationException::class);
         app(UserHostBanService::class)->ban($host, $host);
