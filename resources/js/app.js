@@ -323,6 +323,11 @@ function bootFeatureModules() {
         () => import('./event-show-slot-forms').then(({ initEventShowSlotForms }) => initEventShowSlotForms()),
     );
     loadOnce(
+        'event-plan-slot-sort',
+        document.querySelector('[data-ui="event-show-slots"][data-plan-sort-enabled="1"]') !== null,
+        () => import('./event-plan-slot-sort').then(({ initEventPlanSlotSort }) => initEventPlanSlotSort()),
+    );
+    loadOnce(
         'proposal-event-autocomplete',
         document.querySelector('[data-proposal-event-autocomplete]') !== null,
         () => import('./activities/proposal-event-autocomplete').then(

@@ -1133,6 +1133,7 @@ return [
         'edit_slot' => 'Edytuj slot',
         'detach_activity_from_slot' => 'Odłącz aktywność od tego slotu',
         'detach_activity_from_slot_confirm' => 'Odłączyć tę aktywność od slotu? Wróci do listy oczekujących propozycji.',
+        'move_activity_handle' => 'Przytrzymaj, a następnie przeciągnij do innego slotu',
         'show_empty_slots' => 'Pokaż puste miejsca',
         'hide_empty_slots' => 'Ukryj puste miejsca',
         'no_slots_yet' => 'Brak slotów.',
@@ -1374,6 +1375,8 @@ return [
         'slot_activity_type_or_duration_mismatch' => 'Ten slot nie pasuje do typu, czasu trwania ani pojemności tej aktywności. Wybierz inny slot.',
         'no_fitting_slot_for_proposal' => 'Brak wolnego slotu pasującego do tej aktywności (typ i czas trwania). Dodaj lub zmień slot i spróbuj ponownie.',
         'activity_detached_from_slot' => 'Aktywność została odłączona od slotu i ponownie oczekuje na decyzję.',
+        'activity_moved_to_slot' => 'Aktywność przeniesiona do wybranego slotu.',
+        'activities_swapped_slots' => 'Aktywności zamienione między slotami.',
     ],
     'interests' => [
         'added_event' => 'Obserwujesz wydarzenie',

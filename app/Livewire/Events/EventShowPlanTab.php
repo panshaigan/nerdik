@@ -11,6 +11,7 @@ use App\Models\Slot;
 use App\Models\User;
 use App\Services\ActivityHostingModeService;
 use App\Services\ActivityProposalDecisionService;
+use App\Services\ActivitySlotAssignmentService;
 use App\Services\EventSlotPresentationService;
 use App\Services\SlotScheduleSyncService;
 use App\Services\UserInterestService;
@@ -338,6 +339,66 @@ class EventShowPlanTab extends Component
 
         $this->refreshAfterSlotMutation();
         $this->success(__('ui.status.activity_detached_from_slot'));
+    }
+
+    public function moveActivityToSlot(
+        int $activityId,
+        int $position,
+        int $targetSlotId,
+        ActivitySlotAssignmentService $assignments,
+    ): void {
+        unset($position);
+
+        $event = Event::query()->visibleTo(auth()->user())->whereKey($this->eventId)->firstOrFail();
+        $this->authorizeCreatedBy($event);
+
+        $sourceSlot = Slot::query()
+            ->where('event_id', $event->id)
+            ->where('activity_id', $activityId)
+            ->with(['activity', 'activityTypes'])
+            ->first();
+
+        if ($sourceSlot === null) {
+            throw ValidationException::withMessages([
+                'activity_id' => [__('validation.exists', ['attribute' => 'activity_id'])],
+            ]);
+        }
+
+        $targetSlot = Slot::query()
+            ->whereKey($targetSlotId)
+            ->where('event_id', $event->id)
+            ->with(['activity', 'activityTypes'])
+            ->firstOrFail();
+
+        try {
+            $result = $assignments->moveOrSwap($event, $sourceSlot, $targetSlot);
+        } catch (ValidationException $e) {
+            $messages = collect($e->errors())->flatten()->filter()->values();
+            if ($messages->isNotEmpty()) {
+                $this->warning((string) $messages->first());
+            } else {
+                $this->warning(__('ui.status.oops'));
+            }
+
+            foreach ($e->errors() as $fieldMessages) {
+                foreach ($fieldMessages as $message) {
+                    $this->addError('moveActivityToSlot', $message);
+                }
+            }
+
+            return;
+        }
+
+        if ($result === ActivitySlotAssignmentService::RESULT_NOOP) {
+            return;
+        }
+
+        $this->refreshAfterSlotMutation();
+
+        $this->success(match ($result) {
+            ActivitySlotAssignmentService::RESULT_SWAP => __('ui.status.activities_swapped_slots'),
+            default => __('ui.status.activity_moved_to_slot'),
+        });
     }
 
     public function cancelSlotActivity(int $slotId, ActivityHostingModeService $hostingModes): void

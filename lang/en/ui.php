@@ -1133,6 +1133,7 @@ return [
         'edit_slot' => 'Edit slot',
         'detach_activity_from_slot' => 'Remove activity from this slot',
         'detach_activity_from_slot_confirm' => 'Remove this activity from the slot? It will return to pending proposals.',
+        'move_activity_handle' => 'Press and hold, then drag to another slot',
         'show_empty_slots' => 'Show empty slots',
         'hide_empty_slots' => 'Hide empty slots',
         'no_slots_yet' => 'No slots yet.',
@@ -1374,6 +1375,8 @@ return [
         'slot_activity_type_or_duration_mismatch' => 'That slot does not fit this activity’s type, duration, or room capacity. Choose another slot.',
         'no_fitting_slot_for_proposal' => 'No free slot fits this activity (type and duration). Add or adjust a slot, then try again.',
         'activity_detached_from_slot' => 'The activity was removed from the slot and is pending again.',
+        'activity_moved_to_slot' => 'Activity moved to the chosen slot.',
+        'activities_swapped_slots' => 'Activities swapped between slots.',
     ],
     'interests' => [
         'added_event' => 'Event followed',

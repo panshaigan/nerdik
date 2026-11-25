@@ -2,6 +2,7 @@
     id="ui-event-show-slots"
     class="ui-event-show-slots p-0 sm:p-6"
     data-ui="event-show-slots"
+    @if ($canManageEvent ?? false) data-plan-sort-enabled="1" @endif
     x-data="{
         selectedProposalSlotIds: $wire.entangle('proposalSlotIds'),
         proposeActivityBaseUrl: @js(url_with_return(route('activities.create'), route('events.show', ['event' => $event, 'tab' => 'plan'], false))),
@@ -147,6 +148,19 @@
         @endif
     @endauth
 
+    @php
+        $eventPlanSortableConfig = ($canManageEvent ?? false)
+            ? json_encode([
+                'delay' => 280,
+                'delayOnTouchOnly' => false,
+                'forceFallback' => true,
+                'fallbackOnBody' => true,
+                'draggable' => '[wire\\:sort\\:item]',
+                'sort' => false,
+            ], JSON_THROW_ON_ERROR)
+            : null;
+    @endphp
+
     <ul class="space-y-6">
         @forelse ($slotHourGroups as $group)
             @php
@@ -174,7 +188,7 @@
                             </p>
                         </x-slot:heading>
                         <x-slot:content>
-                            <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            <ul class="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($visibleSlots as $slot)
                             @php
                                 $activity = $slot->activity;
@@ -188,13 +202,27 @@
                                     ? ($slotTypeBadgeItemsBySlotId[(int) $slot->id] ?? [])
                                     : [];
                                 $showActivityDetailsLink = $activity?->isPubliclyShowable() ?? false;
+                                $planActivitySortable = ($canManageEvent ?? false)
+                                    && $activity
+                                    && ! $activity->isCancelled();
                             @endphp
                             <li
+                                @if ($canManageEvent ?? false)
+                                    data-event-plan-sort-slot="{{ $slot->id }}"
+                                    wire:sort="moveActivityToSlot"
+                                    wire:sort:group="event-plan-slots-{{ $event->id }}"
+                                    wire:sort:group-id="{{ $slot->id }}"
+                                    @if ($eventPlanSortableConfig)
+                                        wire:sort:config='{!! $eventPlanSortableConfig !!}'
+                                    @endif
+                                @endif
                                 @class([
+                                    'flex flex-col' => (bool) $activity,
                                     'ui-tile-active' => $activity && !$activity?->isCancelled(),
                                     'ui-tile-empty' => ! $activity || $activity?->isCancelled(),
                                     'status-dots group relative w-full overflow-visible rounded-xl border border-transparent',
-                                    'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity,
+                                    'status-dots-active ui-tile-plan-sortable ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity && $planActivitySortable,
+                                    'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0' => $activity && ! $planActivitySortable,
                                     'transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/10 motion-reduce:hover:translate-y-0' => ! $activity,
                                     'cursor-pointer select-none' => $activity || (auth()->check() && ! $activity && ($canShowPlanActivityProposalUi ?? false)),
                                 ])
@@ -207,14 +235,28 @@
                                     @php
                                         $activityCoverPicture = $activityCoverPicturesById[(int) $activity->id] ?? null;
                                     @endphp
-                                    @if ($activityCoverPicture?->hasDisplayableImage())
-                                        <x-ui.cover-backdrop
-                                            :picture="$activityCoverPicture"
-                                            class="rounded-xl"
-                                        />
-                                    @endif
+                                    <div
+                                        @class([
+                                            'relative z-[1] flex w-full min-h-0 flex-1 flex-col overflow-hidden rounded-[inherit]',
+                                            'cursor-grab active:cursor-grabbing' => $planActivitySortable,
+                                        ])
+                                        @if ($planActivitySortable)
+                                            wire:sort:item="{{ $activity->id }}"
+                                            data-event-plan-sort-item="{{ $activity->id }}"
+                                            aria-label="{{ __('ui.events.move_activity_handle') }}"
+                                        @endif
+                                    >
+                                        @if ($activityCoverPicture?->hasDisplayableImage())
+                                            <x-ui.cover-backdrop
+                                                :picture="$activityCoverPicture"
+                                                class="rounded-xl"
+                                            />
+                                        @endif
                                 @endif
-                                <div class="status-dots-toolbar relative z-[3] flex items-center pointer-events-none">
+                                <div
+                                    class="status-dots-toolbar relative z-[3] flex items-center pointer-events-none"
+                                    @if ($planActivitySortable) wire:sort:ignore @endif
+                                >
                                     <div class="flex-1"></div>
                                     @auth
                                         @php
@@ -348,7 +390,13 @@
                                         @endif
                                     @endauth
                                 </div>
-                                <div class="px-3 pb-3 sm:px-4">
+                                <div
+                                    @class([
+                                        'px-3 pb-3 sm:px-4',
+                                        'relative flex min-h-0 flex-1 flex-col' => (bool) $activity,
+                                    ])
+                                    @if ($planActivitySortable) data-plan-sort-preview-host="1" @endif
+                                >
                                     @if ($activity)
                                         {{--
                                             Alpine $dispatch so the browser event target is this button:
@@ -357,14 +405,19 @@
                                         --}}
                                         <button
                                             type="button"
-                                            x-on:click="$el.setAttribute('data-loading', 'true'); $dispatch('open-event-activity-preview', { activityId: {{ (int) $activity->id }} })"
-                                            class="peer absolute inset-0 z-[1] block cursor-pointer rounded-lg bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40 motion-reduce:transition-none data-loading:cursor-wait"
+                                            x-on:click="if (document.body.classList.contains('sorting')) { $event.preventDefault(); $event.stopPropagation(); return }; $el.setAttribute('data-loading', 'true'); $dispatch('open-event-activity-preview', { activityId: {{ (int) $activity->id }} })"
+                                            @class([
+                                                'peer absolute inset-0 z-[1] block rounded-lg motion-reduce:transition-none data-loading:cursor-wait',
+                                                'cursor-pointer bg-primary/[0.02] ring-inset ring-primary/0 transition duration-200 group-hover:ring-2 group-hover:ring-primary/25 active:bg-primary/[0.08] active:ring-2 active:ring-primary/40' => ! $planActivitySortable,
+                                                'cursor-grab bg-transparent ring-0 active:cursor-grabbing active:bg-transparent' => $planActivitySortable,
+                                            ])
                                             aria-label="{{ $activity->name }}"
                                             data-ui="event-show-slot-open-activity-preview"
                                         >
                                         </button>
                                         <div
                                             class="pointer-events-auto absolute inset-0 z-[15] flex items-center justify-center rounded-xl bg-base-100/60 backdrop-blur-[1px] not-peer-data-loading:hidden"
+                                            @if ($planActivitySortable) wire:sort:ignore @endif
                                             aria-live="polite"
                                             role="status"
                                             data-ui="event-show-slot-activity-preview-loading"
@@ -483,6 +536,9 @@
                                         </div>
                                     @endif
                                 </div>
+                                @if ($activity)
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

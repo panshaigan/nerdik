@@ -12,6 +12,7 @@
 @import './ui/overlays.css';
 @import './ui/badges-tooltips.css';
 @import './ui/utilities.css';
+@import './ui/event-plan-sort.css';
 @import './ui/core.css';
 
 @plugin "@tailwindcss/typography";

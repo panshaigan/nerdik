@@ -1,0 +1,52 @@
+@layer components {
+    [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .ui-tile-plan-sortable [data-ui='event-show-slot-open-activity-preview']:hover,
+    [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .ui-tile-plan-sortable [data-ui='event-show-slot-open-activity-preview']:focus-visible,
+    [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .ui-tile-plan-sortable [data-ui='event-show-slot-open-activity-preview']:active {
+        box-shadow: none !important;
+        --tw-ring-shadow: 0 0 #0000 !important;
+    }
+
+    [data-ui='event-show-slots'][data-plan-sort-enabled='1']
+        .ui-tile-plan-sortable.status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:active):not(:has(.status-dots-toolbar :active)),
+    [data-ui='event-show-slots'][data-plan-sort-enabled='1']
+        .ui-tile-plan-sortable.status-dots-active.ui-tile-pressable:has([data-ui='event-show-slot-open-activity-preview']:focus-visible) {
+        border-color: color-mix(in oklab, var(--brand-primary) 34%, transparent);
+        box-shadow:
+            inset 0 0 0 1px color-mix(in oklab, var(--brand-primary) 12%, transparent),
+            0 0 22px -18px color-mix(in oklab, var(--brand-primary) 65%, transparent);
+        transform: none;
+    }
+
+    body.sorting [data-ui='event-show-slots'][data-plan-sort-enabled='1'] [data-event-plan-sort-slot] {
+        min-height: var(--plan-sort-slot-min-height, auto);
+        max-height: var(--plan-sort-slot-min-height, none);
+        overflow: hidden;
+    }
+
+    body.sorting [data-ui='event-show-slots'][data-plan-sort-enabled='1'] [data-event-plan-sort-slot][data-plan-sort-awaiting] {
+        pointer-events: none;
+    }
+
+    body.sorting [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .ui-tile-plan-sortable.ui-tile-pressable {
+        transform: none !important;
+    }
+
+    body.sorting
+        [data-ui='event-show-slots'][data-plan-sort-enabled='1']
+        [data-plan-sort-preview-host='1']
+        [data-ui='event-show-slot-open-activity-preview'] {
+        box-shadow: none !important;
+        --tw-ring-shadow: 0 0 #0000 !important;
+    }
+
+    body.sorting [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .sortable-ghost {
+        opacity: 0.45;
+    }
+
+    body.sorting [data-ui='event-show-slots'][data-plan-sort-enabled='1'] .sortable-drag {
+        opacity: 0.95;
+        box-shadow:
+            0 10px 24px -12px color-mix(in oklab, var(--brand-primary) 55%, transparent),
+            0 0 0 1px color-mix(in oklab, var(--brand-primary) 40%, transparent);
+    }
+}
