@@ -102,6 +102,7 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
             UserRequestType::ActivityInvite => __('ui.user_requests.received_activity_invite'),
             UserRequestType::GroupInvite => __('ui.user_requests.received_group_invite'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.received_organizer_flag'),
+            UserRequestType::PageAlias => __('ui.user_requests.received_page_alias'),
         };
     }
 
@@ -131,6 +132,10 @@ class UserRequestReceivedNotification extends Notification implements ShouldQueu
             ]),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.mail_organizer_flag', [
                 'name' => $requesterName,
+            ]),
+            UserRequestType::PageAlias => __('ui.user_requests.mail_page_alias', [
+                'name' => $requesterName,
+                'subject' => $subjectLabel,
             ]),
         };
     }

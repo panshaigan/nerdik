@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\UserRequests;
 
 use App\Enums\UserRequestStatus;
-use App\Enums\UserRequestType;
 use App\Models\User;
 use App\Models\UserRequest;
 use App\Notifications\UserRequestReceivedNotification;
@@ -18,7 +17,7 @@ class UserRequestNotifier
     {
         $request->loadMissing(['requester', 'recipient', 'subject']);
 
-        if ($request->type === UserRequestType::EventOrganizerFlag) {
+        if ($request->type->isAdminQueue()) {
             $admins = User::query()->where('is_admin', true)->get();
             Notification::send($admins, new UserRequestReceivedNotification($request));
 

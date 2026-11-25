@@ -27,6 +27,7 @@ class UserRequest extends Model
         'subject_type',
         'subject_id',
         'message',
+        'payload',
         'responded_at',
         'responded_by_id',
         'expires_at',
@@ -42,6 +43,7 @@ class UserRequest extends Model
             'type' => UserRequestType::class,
             'status' => UserRequestStatus::class,
             'resolution_outcome' => UserRequestResolutionOutcome::class,
+            'payload' => 'array',
             'responded_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
@@ -89,7 +91,7 @@ class UserRequest extends Model
             if ($user->is_admin) {
                 $inner->orWhere(function (Builder $adminQuery): void {
                     $adminQuery
-                        ->where('type', UserRequestType::EventOrganizerFlag)
+                        ->whereIn('type', UserRequestType::adminQueueTypeValues())
                         ->whereNull('recipient_id');
                 });
             }
@@ -110,7 +112,7 @@ class UserRequest extends Model
                 if ($user->is_admin) {
                     $inner->orWhere(function (Builder $adminQuery): void {
                         $adminQuery
-                            ->where('type', UserRequestType::EventOrganizerFlag)
+                            ->whereIn('type', UserRequestType::adminQueueTypeValues())
                             ->whereNull('recipient_id');
                     });
                 }
@@ -141,7 +143,7 @@ class UserRequest extends Model
         }
 
         return $user->is_admin
-            && $this->type === UserRequestType::EventOrganizerFlag
+            && $this->type->isAdminQueue()
             && $this->recipient_id === null;
     }
 

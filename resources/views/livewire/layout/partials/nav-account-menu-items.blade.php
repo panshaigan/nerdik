@@ -12,6 +12,24 @@
 @endphp
 
 <li>
+    <button
+        type="button"
+        class="{{ $menuActionClass }}"
+        data-ui="nav-page-alias"
+        @if ($closeOnClick)
+            @click="close()"
+        @endif
+        @click="$dispatch('open-page-alias-modal', { path: window.location.pathname + window.location.search })"
+    >
+        <x-icon name="o-link" class="h-4 w-4 shrink-0" />
+        @if (auth()->user()->is_admin)
+            {{ __('ui.page_aliases.create') }}
+        @else
+            {{ __('ui.page_aliases.request') }}
+        @endif
+    </button>
+</li>
+<li>
     <a
         wire:navigate
         href="{{ route('profile') }}"

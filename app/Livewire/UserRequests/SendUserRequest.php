@@ -147,6 +147,8 @@ class SendUserRequest extends Component
             UserRequestType::OrganizationJoinRequest => __('ui.user_requests.request_to_join_organization'),
             UserRequestType::ActivityInvite => __('ui.user_requests.invite_to_activity'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.request_organizer_access'),
+            UserRequestType::PageAlias => __('ui.page_aliases.request'),
+            UserRequestType::GroupInvite => __('ui.user_requests.invite_to_group'),
         };
     }
 
@@ -165,6 +167,8 @@ class SendUserRequest extends Component
                 ? __('ui.user_requests.invite_to_named_activity', ['activity' => $subject->name])
                 : __('ui.user_requests.invite_to_activity'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.request_organizer_access'),
+            UserRequestType::PageAlias => __('ui.page_aliases.request'),
+            UserRequestType::GroupInvite => __('ui.user_requests.invite_to_group'),
         };
     }
 

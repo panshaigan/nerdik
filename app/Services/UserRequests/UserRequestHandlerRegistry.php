@@ -21,6 +21,7 @@ class UserRequestHandlerRegistry
             Handlers\ActivityInviteRequestHandler::class,
             Handlers\EventOrganizerFlagRequestHandler::class,
             Handlers\GroupInviteRequestHandler::class,
+            Handlers\PageAliasRequestHandler::class,
         ];
 
         foreach ($handlerClasses as $class) {

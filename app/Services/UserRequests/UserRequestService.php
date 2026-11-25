@@ -26,23 +26,27 @@ class UserRequestService
         ?User $recipient,
         ?Model $subject,
         ?string $message = null,
+        ?array $payload = null,
     ): UserRequest {
         $handler = $this->handlers->get($type);
         $handler->assertCanSend($requester, $recipient, $subject);
 
         $normalizedMessage = $this->normalizeMessage($message);
 
-        $this->assertNoDuplicatePending($type, $requester, $recipient, $subject);
+        if ($type !== UserRequestType::PageAlias) {
+            $this->assertNoDuplicatePending($type, $requester, $recipient, $subject);
+        }
 
         $expiresAt = $this->expirationResolver->resolve($type, $subject);
 
-        $request = DB::transaction(function () use ($type, $requester, $recipient, $subject, $normalizedMessage, $expiresAt): UserRequest {
+        $request = DB::transaction(function () use ($type, $requester, $recipient, $subject, $normalizedMessage, $payload, $expiresAt): UserRequest {
             $attributes = [
                 'type' => $type,
                 'status' => UserRequestStatus::Pending,
                 'requester_id' => $requester->id,
                 'recipient_id' => $recipient?->id,
                 'message' => $normalizedMessage,
+                'payload' => $payload,
                 'expires_at' => $expiresAt,
             ];
 

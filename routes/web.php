@@ -17,6 +17,7 @@ use App\Http\Controllers\FeedbackEditorUploadController;
 use App\Http\Controllers\GeocodeController;
 use App\Http\Controllers\InterestController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\PageAliasRedirectController;
 use App\Http\Controllers\ParticipationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\RobotsTxtController;
@@ -231,3 +232,5 @@ Route::get('activities/{activity}', function (Activity $activity) {
 })->name('activities.show');
 
 require __DIR__.'/auth.php';
+
+Route::fallback(PageAliasRedirectController::class)->name('page-alias.redirect');

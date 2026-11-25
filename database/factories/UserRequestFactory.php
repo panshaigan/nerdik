@@ -66,4 +66,18 @@ final class UserRequestFactory extends Factory
             'subject_id' => null,
         ]);
     }
+
+    public function pageAlias(string $alias = 'test-alias', string $targetPath = '/dashboard'): self
+    {
+        return $this->state(fn (): array => [
+            'type' => UserRequestType::PageAlias,
+            'recipient_id' => null,
+            'subject_type' => null,
+            'subject_id' => null,
+            'payload' => [
+                'alias' => $alias,
+                'target_path' => $targetPath,
+            ],
+        ]);
+    }
 }

@@ -364,6 +364,7 @@ new class extends Component
     </template>
 
     @auth
+        <livewire:page-aliases.page-alias-modal :key="'nav-page-alias-modal-'.auth()->id()" />
         @if (! auth()->user()->canCreateEvents())
             <livewire:user-requests.send-user-request
                 type="event_organizer_flag"

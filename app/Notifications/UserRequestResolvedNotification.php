@@ -140,6 +140,7 @@ class UserRequestResolvedNotification extends Notification implements ShouldQueu
             UserRequestType::ActivityInvite => __('ui.user_requests.received_activity_invite'),
             UserRequestType::GroupInvite => __('ui.user_requests.received_group_invite'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.received_organizer_flag'),
+            UserRequestType::PageAlias => __('ui.user_requests.received_page_alias'),
         };
 
         $parts = array_values(array_filter(

@@ -161,7 +161,7 @@ class RespondToUserRequest extends Component
                     && ! $request->isExpiredByTime()
                     && (
                         (int) $request->recipient_id === (int) $user?->id
-                        || ($request->type === UserRequestType::EventOrganizerFlag && $user?->is_admin === true)
+                        || ($request->type->isAdminQueue() && $user?->is_admin === true)
                     );
 
                 if ($canRespond) {

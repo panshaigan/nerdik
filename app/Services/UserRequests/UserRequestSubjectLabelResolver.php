@@ -28,6 +28,24 @@ class UserRequestSubjectLabelResolver
                 ? $subject->name
                 : __('ui.common.unknown_user'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.organizer_flag_subject'),
+            UserRequestType::PageAlias => $this->pageAliasSubjectLabel($request),
         };
+    }
+
+    private function pageAliasSubjectLabel(UserRequest $request): string
+    {
+        /** @var array<string, mixed>|null $payload */
+        $payload = $request->payload;
+        $alias = is_array($payload) ? ($payload['alias'] ?? null) : null;
+        $targetPath = is_array($payload) ? ($payload['target_path'] ?? null) : null;
+
+        if (! is_string($alias) || $alias === '' || ! is_string($targetPath) || $targetPath === '') {
+            return __('ui.page_aliases.unknown_subject');
+        }
+
+        return __('ui.page_aliases.request_subject', [
+            'alias' => $alias,
+            'target' => $targetPath,
+        ]);
     }
 }
