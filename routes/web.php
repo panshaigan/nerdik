@@ -7,6 +7,7 @@ use App\Http\Controllers\Browse\BrowseMapFeaturesController;
 use App\Http\Controllers\DownloadActivityCalendarController;
 use App\Http\Controllers\DownloadActivityParticipantsPdfController;
 use App\Http\Controllers\DownloadActivitySeriesCalendarController;
+use App\Http\Controllers\DownloadEnrollmentWindowCalendarController;
 use App\Http\Controllers\DownloadEventCalendarController;
 use App\Http\Controllers\DownloadEventParticipantsPdfController;
 use App\Http\Controllers\DownloadEventSeriesCalendarController;
@@ -187,6 +188,10 @@ Route::middleware(['auth'])->group(function () {
 Route::get('events/{event}/calendar.ics', DownloadEventCalendarController::class)
     ->middleware('throttle:60,1')
     ->name('events.calendar.ics');
+
+Route::get('events/{event}/enrollment-windows/{enrollmentWindow}/calendar.ics', DownloadEnrollmentWindowCalendarController::class)
+    ->middleware('throttle:60,1')
+    ->name('events.enrollment-windows.calendar.ics');
 
 Route::get('events/{event}', function (Event $event) {
     abort_unless($event->isVisibleTo(auth()->user()), 404);

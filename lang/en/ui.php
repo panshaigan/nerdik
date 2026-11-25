@@ -575,6 +575,7 @@ return [
     ],
     'calendar' => [
         'add_to_calendar' => 'Add to calendar',
+        'enrollment_window_title' => '(:event) — :window',
         'targets' => [
             'google' => 'Google Calendar',
             'outlook' => 'Outlook',

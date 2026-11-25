@@ -7,12 +7,14 @@ namespace Tests\Feature\Notifications;
 use App\Models\Activity;
 use App\Models\ActivityProposal;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\Place;
 use App\Models\User;
 use App\Notifications\ActivityCancelledNotification;
 use App\Notifications\EventCancelledNotification;
 use App\Notifications\EventReopenedNotification;
 use App\Notifications\ProposalAcceptedNotification;
+use App\Notifications\Scheduled\ScheduledPeriodicDigestNotification;
 use App\Notifications\WaitlistPromotedNotification;
 use App\Support\Calendar\IcsMethod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,6 +23,46 @@ use Tests\TestCase;
 final class NotificationCalendarIcsAttachmentTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_scheduled_digest_mail_attaches_enrollment_window_ics(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDay()->utc()->startOfMinute();
+        $endsAt = $startsAt->copy()->addHours(2);
+        $event = Event::factory()->public()->create([
+            'name' => 'Digest Con',
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addDay(),
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Wave A',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        $mail = (new ScheduledPeriodicDigestNotification([
+            [
+                'category' => 'interested_enrollment_window',
+                'title' => 'Enrollments',
+                'lines' => ['Starts soon'],
+                'url' => route('events.show', $event, false),
+                'enrollment_window_id' => $window->id,
+                'dedupe_key' => 'interested_enrollment_window:'.$event->id.':'.$startsAt->toIso8601String(),
+            ],
+        ], '2026-06-01'))->toMail($user);
+
+        $attachments = $mail->rawAttachments;
+        $this->assertCount(1, $attachments);
+        $data = (string) ($attachments[0]['data'] ?? '');
+        $this->assertStringContainsString('METHOD:PUBLISH', $data);
+        $this->assertStringContainsString('UID:enrollment-window-'.$window->id.'@', $data);
+        $this->assertStringContainsString('Wave A', $data);
+        $this->assertSame(
+            'text/calendar; charset=UTF-8; method=PUBLISH',
+            $attachments[0]['options']['mime'],
+        );
+    }
 
     public function test_waitlist_promoted_mail_attaches_publish_ics(): void
     {

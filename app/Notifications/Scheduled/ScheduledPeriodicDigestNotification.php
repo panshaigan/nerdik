@@ -7,7 +7,10 @@ namespace App\Notifications\Scheduled;
 use App\Contracts\ProvidesSentEmailContext;
 use App\Enums\NotificationPreferenceKey;
 use App\Enums\SentEmailKind;
+use App\Models\EventEnrollmentWindow;
 use App\Models\User;
+use App\Notifications\Concerns\AttachesCalendarIcs;
+use App\Support\Calendar\CalendarLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
@@ -17,10 +20,11 @@ use Illuminate\Notifications\Notification;
 
 class ScheduledPeriodicDigestNotification extends Notification implements ProvidesSentEmailContext, ShouldQueue, ShouldQueueAfterCommit
 {
+    use AttachesCalendarIcs;
     use Queueable;
 
     /**
-     * @param  list<array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string}>  $items
+     * @param  list<array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string, enrollment_window_id?: int}>  $items
      */
     public function __construct(
         private readonly array $items,
@@ -75,6 +79,57 @@ class ScheduledPeriodicDigestNotification extends Notification implements Provid
             $absoluteUrl = url($item['url']);
             $label = $this->digestLinkLabel((string) ($item['category'] ?? ''));
             $mail->line("[{$label}]({$absoluteUrl})");
+        }
+
+        return $this->attachEnrollmentWindowCalendars($mail, $items);
+    }
+
+    /**
+     * @param  list<array{category: string, title: string, lines: list<string>, url: string, dedupe_key: string, enrollment_window_id?: int}>  $items
+     */
+    private function attachEnrollmentWindowCalendars(MailMessage $mail, array $items): MailMessage
+    {
+        $windowIds = [];
+        foreach ($items as $item) {
+            if (($item['category'] ?? '') !== 'interested_enrollment_window') {
+                continue;
+            }
+            $id = $item['enrollment_window_id'] ?? null;
+            if (is_int($id)) {
+                $windowIds[$id] = true;
+            }
+        }
+
+        if ($windowIds === []) {
+            return $mail;
+        }
+
+        $windows = EventEnrollmentWindow::query()
+            ->with(['event.places.city'])
+            ->whereIn('id', array_keys($windowIds))
+            ->get()
+            ->keyBy('id');
+
+        $calendarLinks = app(CalendarLinks::class);
+        $attachedIds = [];
+
+        foreach (array_keys($windowIds) as $windowId) {
+            if (isset($attachedIds[$windowId])) {
+                continue;
+            }
+
+            $window = $windows->get($windowId);
+            if ($window === null) {
+                continue;
+            }
+
+            $payload = $calendarLinks->forEnrollmentWindow($window);
+            if ($payload === null) {
+                continue;
+            }
+
+            $mail = $this->attachCalendarIcs($mail, $payload);
+            $attachedIds[$windowId] = true;
         }
 
         return $mail;

@@ -49,6 +49,7 @@ class ShowEventPlanMapLayoutTest extends TestCase
             ->assertSeeHtml('data-ui="event-show-plan-info"')
             ->assertSeeHtml('data-ui="event-show-plan-enrollment"')
             ->assertSeeHtml('data-ui="event-show-enrollment-window"')
+            ->assertSeeHtml('data-ui="calendar-menu"')
             ->assertSee(__('ui.events.show_info'))
             ->assertSee('Unique plan description copy for layout test.')
             ->assertSee('Early bird')

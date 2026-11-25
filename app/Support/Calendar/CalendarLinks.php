@@ -7,6 +7,7 @@ namespace App\Support\Calendar;
 use App\Models\Activity;
 use App\Models\ActivitySeries;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\EventSeries;
 use App\Models\Place;
 use App\Support\Ui\ActivityShowSchedulePresenter;
@@ -28,6 +29,56 @@ final class CalendarLinks
         }
 
         return $this->buildEventPayload($event, IcsMethod::Publish, sequence: 0);
+    }
+
+    public function forEnrollmentWindow(EventEnrollmentWindow $window): ?CalendarPayload
+    {
+        $window->loadMissing(['event.places.city']);
+        $event = $window->event;
+
+        if ($event === null || $event->isCancelled()) {
+            return null;
+        }
+
+        if ($window->starts_at === null || $window->ends_at === null) {
+            return null;
+        }
+
+        $startsAt = $window->starts_at;
+        $endsAt = $window->ends_at;
+        if ($endsAt->lt($startsAt)) {
+            $endsAt = $startsAt;
+        }
+
+        $venues = $this->eventVenues($event);
+        [$location, $latitude, $longitude] = $this->locationFromVenues($venues);
+
+        $eventName = (string) $event->name;
+        $title = (string) __('ui.calendar.enrollment_window_title', [
+            'window' => (string) $window->name,
+            'event' => $eventName,
+        ]);
+        $description = $this->descriptionFromRichText($event->description, $eventName);
+        $url = route('events.show', $event);
+
+        return new CalendarPayload(
+            uid: $this->uid('enrollment-window', (int) $window->id),
+            title: $title,
+            description: $description,
+            location: $location,
+            url: $url,
+            startsAt: $startsAt,
+            endsAt: $endsAt,
+            downloadFilename: $this->downloadFilename($title, IcsMethod::Publish),
+            icsDownloadUrl: route('events.enrollment-windows.calendar.ics', [
+                'event' => $event,
+                'enrollmentWindow' => $window,
+            ]),
+            latitude: $latitude,
+            longitude: $longitude,
+            method: IcsMethod::Publish,
+            sequence: 0,
+        );
     }
 
     /**

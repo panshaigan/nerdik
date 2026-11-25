@@ -99,6 +99,7 @@ class ScheduledNotificationCollector
                         ]),
                     ],
                     'url' => route('events.show', ['event' => $event], false),
+                    'enrollment_window_id' => (int) $nextWindow->id,
                     'dedupe_key' => $this->dedupeKey('interested_enrollment_window', (int) $event->id, $windowStart),
                 ];
             })

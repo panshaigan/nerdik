@@ -3,6 +3,7 @@
         @php
             $isThisWindowActive = $activeEnrollmentWindow && $activeEnrollmentWindow->is($window);
             $maxLabel = $window->maxActivitiesPerUserEffective();
+            $enrollmentWindowCalendarPayload = app(\App\Support\Calendar\CalendarLinks::class)->forEnrollmentWindow($window);
         @endphp
         <li
             @class([
@@ -12,11 +13,16 @@
             ])
             data-ui="event-show-enrollment-window"
         >
-            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pb-3">
+            <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-3">
                 <span class="font-semibold text-base-content">{{ $window->name }}</span>
-                @if ($isThisWindowActive)
-                    <span class="badge badge-success badge-sm shrink-0">{{ __('ui.events.enrollment_window_active_badge') }}</span>
-                @endif
+                <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    @if ($isThisWindowActive)
+                        <span class="badge badge-success badge-sm">{{ __('ui.events.enrollment_window_active_badge') }}</span>
+                    @endif
+                    @if ($enrollmentWindowCalendarPayload)
+                        <x-ui.calendar-menu :payload="$enrollmentWindowCalendarPayload" open-upward />
+                    @endif
+                </div>
             </div>
             <div class="py-3">
                 <p class="mt-1 tabular-nums text-base-content/80">

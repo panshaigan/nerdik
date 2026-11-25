@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Livewire\Events\ShowEvent;
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
@@ -53,6 +54,73 @@ final class CalendarExportTest extends TestCase
         ]);
 
         $this->get(route('events.calendar.ics', $event))->assertNotFound();
+    }
+
+    public function test_guest_can_download_enrollment_window_ics(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(2)->setTime(8, 0)->utc();
+        $endsAt = $startsAt->copy()->addHours(6);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Festival',
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addDay(),
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'First wave',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        $response = $this->get(route('events.enrollment-windows.calendar.ics', [
+            'event' => $event,
+            'enrollmentWindow' => $window,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/calendar; charset=utf-8');
+        $response->assertSee('BEGIN:VEVENT', false);
+        $response->assertSee('UID:enrollment-window-'.$window->id.'@', false);
+        $response->assertSee('DTSTART:'.$startsAt->format('Ymd\THis\Z'), false);
+        $response->assertSee('DTEND:'.$endsAt->format('Ymd\THis\Z'), false);
+    }
+
+    public function test_enrollment_window_ics_returns_not_found_for_wrong_event(): void
+    {
+        $user = User::factory()->create();
+        $eventA = Event::factory()->public()->create(['created_by' => $user->id]);
+        $eventB = Event::factory()->public()->create(['created_by' => $user->id]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $eventA->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $this->get(route('events.enrollment-windows.calendar.ics', [
+            'event' => $eventB,
+            'enrollmentWindow' => $window,
+        ]))->assertNotFound();
+    }
+
+    public function test_draft_event_enrollment_window_ics_returns_not_found(): void
+    {
+        $owner = User::factory()->create();
+        $guest = User::factory()->create();
+        $event = Event::factory()->private()->create(['created_by' => $owner->id]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDays(2),
+        ]);
+
+        $this->actingAs($guest)
+            ->get(route('events.enrollment-windows.calendar.ics', [
+                'event' => $event,
+                'enrollmentWindow' => $window,
+            ]))
+            ->assertNotFound();
     }
 
     public function test_guest_can_download_self_hosted_activity_ics(): void

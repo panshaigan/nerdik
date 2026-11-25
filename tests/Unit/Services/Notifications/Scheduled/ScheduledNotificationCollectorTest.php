@@ -46,6 +46,33 @@ class ScheduledNotificationCollectorTest extends TestCase
         $this->assertCollectEmpty($user, $referenceNow);
     }
 
+    public function test_interested_enrollment_window_within_lookahead_includes_window_id(): void
+    {
+        $referenceNow = CarbonImmutable::parse('2026-06-01 09:00:00');
+        $this->travelTo($referenceNow->toDateTimeString());
+
+        $user = User::factory()->create();
+        $user->profile()->update(['timezone' => 'UTC']);
+        $organizer = User::factory()->create();
+        $event = Event::factory()->create([
+            'created_by' => $organizer->id,
+            'starts_at' => now()->addDays(30),
+            'ends_at' => now()->addDays(31),
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->addHours(6),
+            'ends_at' => now()->addDays(1),
+        ]);
+        $user->interestedEvents()->attach($event->id);
+
+        $item = collect($this->collectItems($user, $referenceNow))
+            ->first(fn (array $row): bool => ($row['category'] ?? '') === 'interested_enrollment_window');
+
+        $this->assertNotNull($item);
+        $this->assertSame($window->id, $item['enrollment_window_id']);
+    }
+
     public function test_organizer_pending_proposals_are_not_collected_in_digest(): void
     {
         $referenceNow = CarbonImmutable::parse('2026-06-02 09:00:00');

@@ -6,6 +6,7 @@ namespace Tests\Unit\Support\Calendar;
 
 use App\Models\Activity;
 use App\Models\Event;
+use App\Models\EventEnrollmentWindow;
 use App\Models\EventSeries;
 use App\Models\Place;
 use App\Models\User;
@@ -38,6 +39,55 @@ final class CalendarLinksTest extends TestCase
         ]);
 
         $this->assertNull($this->calendarLinks->forEvent($event));
+    }
+
+    public function test_for_enrollment_window_returns_null_when_parent_event_cancelled(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'cancelled_at' => now(),
+            'cancelled_by' => $user->id,
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Wave one',
+        ]);
+
+        $this->assertNull($this->calendarLinks->forEnrollmentWindow($window));
+    }
+
+    public function test_for_enrollment_window_builds_payload_for_open_window(): void
+    {
+        $user = User::factory()->create();
+        $startsAt = now()->addDays(2)->utc()->startOfMinute();
+        $endsAt = $startsAt->copy()->addHours(4);
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'name' => 'Signup Con',
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Early access',
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+        ]);
+
+        $payload = $this->calendarLinks->forEnrollmentWindow($window);
+
+        $this->assertNotNull($payload);
+        $this->assertStringContainsString('Early access', $payload->title);
+        $this->assertStringContainsString('Signup Con', $payload->title);
+        $this->assertTrue($payload->startsAt->equalTo($startsAt));
+        $this->assertTrue($payload->endsAt->equalTo($endsAt));
+        $this->assertStringContainsString('enrollment-window-'.$window->id.'@', $payload->uid);
+        $this->assertSame(
+            route('events.enrollment-windows.calendar.ics', [
+                'event' => $event,
+                'enrollmentWindow' => $window,
+            ]),
+            $payload->icsDownloadUrl,
+        );
     }
 
     public function test_for_activity_returns_null_when_cancelled(): void
