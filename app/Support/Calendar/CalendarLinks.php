@@ -314,6 +314,9 @@ final class CalendarLinks
 
     /**
      * Subscribe to the series ICS feed — Google/Outlook template URLs only accept one event.
+     *
+     * Google's cid deep-link expects webcal://; https:// often fails with a bogus
+     * "email address isn't associated with an active Google Calendar account" error.
      */
     private function seriesSubscribeUrl(CalendarSeriesPayload $payload, CalendarTarget $target): string
     {
@@ -321,7 +324,7 @@ final class CalendarLinks
 
         return match ($target) {
             CalendarTarget::Google => 'https://calendar.google.com/calendar/render?'.http_build_query([
-                'cid' => $icsUrl,
+                'cid' => $this->webcalUrl($icsUrl),
             ], '', '&', PHP_QUERY_RFC3986),
             CalendarTarget::Outlook => 'https://outlook.live.com/calendar/0/addfromweb?'.http_build_query([
                 'url' => $icsUrl,

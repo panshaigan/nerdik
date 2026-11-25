@@ -539,7 +539,10 @@ final class CalendarLinksTest extends TestCase
         $this->assertNotNull($google);
         $this->assertStringStartsWith('https://calendar.google.com/calendar/render?', $google);
         $this->assertStringContainsString('cid=', $google);
-        $this->assertStringContainsString(rawurlencode($payload->icsDownloadUrl), $google);
+        $this->assertStringContainsString(
+            rawurlencode($this->calendarLinks->webcalUrl($payload->icsDownloadUrl)),
+            $google,
+        );
         $this->assertStringNotContainsString('action=TEMPLATE', $google);
 
         $outlook = $this->calendarLinks->seriesIntentUrl($payload, CalendarTarget::Outlook);
