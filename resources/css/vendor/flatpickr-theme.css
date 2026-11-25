@@ -7,6 +7,17 @@
     color: var(--color-base-content);
 }
 
+/**
+ * DaisyUI dialog.modal is a full-viewport grid. Keep calendars appended there on
+ * the viewport (see positionCalendarInDialog) instead of a misplaced grid area.
+ */
+dialog.modal > .flatpickr-calendar {
+    position: fixed;
+    margin: 0;
+    justify-self: start;
+    align-self: start;
+}
+
 .flatpickr-months .flatpickr-month,
 .flatpickr-current-month .flatpickr-monthDropdown-months,
 .flatpickr-current-month input.cur-year,

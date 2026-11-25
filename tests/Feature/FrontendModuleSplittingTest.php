@@ -75,6 +75,7 @@ final class FrontendModuleSplittingTest extends TestCase
         $this->assertStringContainsString('time_24hr:', $datetimePicker);
         $this->assertStringContainsString('disableMobile: true', $datetimePicker);
         $this->assertStringContainsString('appendParentFor(input)', $datetimePicker);
+        $this->assertStringContainsString('positionCalendarInDialog', $datetimePicker);
         $this->assertStringContainsString('datetimeInputFormat()', $datetimePicker);
         $this->assertStringContainsString('./datetime-picker-bridge', $entrypoint);
         $bridge = (string) file_get_contents(resource_path('js/datetime-picker-bridge.js'));

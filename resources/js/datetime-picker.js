@@ -187,14 +187,65 @@ function appendParentFor(input) {
 }
 
 /**
+ * DaisyUI `.modal` is `display: grid; place-items: center`. Flatpickr calendars
+ * appended there become absolute children of a grid area (often a row below the
+ * modal box), so default top/left math lands the popup at the bottom of the screen.
+ * Use fixed + viewport coords so the calendar sits under the clicked input.
+ *
+ * @param {import('flatpickr').Instance} self
+ * @param {HTMLElement} [customPositionElement]
+ */
+function positionCalendarInDialog(self, customPositionElement) {
+    const calendar = self.calendarContainer;
+    const positionElement = customPositionElement || self._positionElement;
+    if (!calendar || !positionElement) {
+        return;
+    }
+
+    calendar.style.position = 'fixed';
+
+    const inputBounds = positionElement.getBoundingClientRect();
+    const calendarHeight = Array.prototype.reduce.call(
+        calendar.children,
+        (acc, child) => acc + child.offsetHeight,
+        0,
+    ) || calendar.offsetHeight;
+    const calendarWidth = calendar.offsetWidth || 0;
+    const spaceBelow = window.innerHeight - inputBounds.bottom;
+    const showOnTop = spaceBelow < calendarHeight && inputBounds.top > calendarHeight;
+
+    let top = showOnTop
+        ? inputBounds.top - calendarHeight - 2
+        : inputBounds.bottom + 2;
+    let left = inputBounds.left;
+
+    if (left + calendarWidth > window.innerWidth - 8) {
+        left = Math.max(8, window.innerWidth - calendarWidth - 8);
+    }
+    left = Math.max(8, left);
+    top = Math.max(8, Math.min(top, window.innerHeight - calendarHeight - 8));
+
+    calendar.style.top = `${top}px`;
+    calendar.style.left = `${left}px`;
+    calendar.style.right = 'auto';
+    calendar.classList.toggle('arrowTop', !showOnTop);
+    calendar.classList.toggle('arrowBottom', showOnTop);
+}
+
+/**
  * @param {HTMLInputElement} input
  * @returns {import('flatpickr').Instance}
  */
 function ensureInstance(input) {
+    const appendTo = appendParentFor(input);
     const existing = instances.get(input);
     if (existing) {
         // Livewire may have replaced the node; drop stale instance.
         if (!input.isConnected) {
+            existing.destroy();
+            instances.delete(input);
+        } else if (existing.config.appendTo !== appendTo) {
+            // Dialog open/close changes append target; rebuild so positioning stays correct.
             existing.destroy();
             instances.delete(input);
         } else {
@@ -208,6 +259,7 @@ function ensureInstance(input) {
     const defaultDate = parseDatetimeLocal(input.value);
     const minDate = parseDatetimeLocal(input.getAttribute('min'));
     const maxDate = parseDatetimeLocal(input.getAttribute('max'));
+    const appendedToDialog = appendTo instanceof HTMLDialogElement;
 
     const fp = flatpickr(input, {
         enableTime: true,
@@ -217,7 +269,8 @@ function ensureInstance(input) {
         disableMobile: true,
         allowInput: false,
         clickOpens: false,
-        appendTo: appendParentFor(input),
+        appendTo,
+        ...(appendedToDialog ? { position: positionCalendarInDialog } : {}),
         defaultDate: defaultDate || undefined,
         minDate: minDate || undefined,
         maxDate: maxDate || undefined,
