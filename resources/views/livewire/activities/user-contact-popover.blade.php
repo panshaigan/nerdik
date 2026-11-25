@@ -43,27 +43,19 @@
                                 />
                             </div>
                         </div>
-                        <div class="min-w-0 space-y-2">
-                            <p class="truncate text-lg font-semibold text-base-content">{{ $targetUser->displayName() }}</p>
-                            @if ($targetUser->organization !== null)
-                                @php
-                                    $organization = $targetUser->organization;
-                                    $orgLabel = filled($organization->acronym)
-                                        ? (string) $organization->acronym
-                                        : (string) $organization->name;
-                                @endphp
-                                <div class="flex justify-center" data-ui="user-contact-popover-organization">
+                        @if ($targetUser->organization !== null)
+                            <div class="min-w-0" data-ui="user-contact-popover-organization">
+                                <div class="flex justify-center">
                                     <livewire:activities.organization-badge-contact
-                                        :organization="$organization"
-                                        :name="$orgLabel"
+                                        :organization="$targetUser->organization"
                                         size="sm"
                                         name-class="truncate text-xs font-medium text-base-content/80"
                                         container-class="inline-flex max-w-full min-w-0"
-                                        :key="'user-contact-org-'.$organization->id.'-'.$targetUser->id"
+                                        :key="'user-contact-org-'.$targetUser->organization->id.'-'.$targetUser->id"
                                     />
                                 </div>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 </x-slot:heading>
 

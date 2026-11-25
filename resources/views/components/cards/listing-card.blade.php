@@ -14,6 +14,7 @@
                     :link="$d->detailsUrl"
                     wire:navigate
                     class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                    :tooltip-bottom="$d->kind === 'activity' ? __('ui.activities.show_details') : __('ui.events.show_details')"
                     :aria-label="$d->openDetailsAriaLabel"
                     icon="o-arrow-top-right-on-square"
                     data-ui="{{ $d->dataUiPrefix }}-open-details"
@@ -26,6 +27,7 @@
                             type="button"
                             wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
                             class="ui-listing-card__tool ui-listing-card__tool--interest ui-listing-card__tool--interested btn btn-xs btn-square rounded-lg ui-action ui-action-interest-remove"
+                            :tooltip-bottom="__('ui.interests.remove_from_interests')"
                             :aria-label="__('ui.interests.remove_from_interests')"
                             icon="s-star"
                             data-ui="{{ $d->dataUiPrefix }}-interest-remove"
@@ -35,6 +37,7 @@
                             type="button"
                             wire:click.stop="{{ $d->interestWireMethod }}({{ $d->id }})"
                             class="ui-listing-card__tool ui-listing-card__tool--interest btn btn-xs btn-square rounded-lg ui-action ui-action-interest-add"
+                            :tooltip-bottom="__('ui.interests.add_to_interests')"
                             :aria-label="__('ui.interests.add_to_interests')"
                             icon="o-star"
                             data-ui="{{ $d->dataUiPrefix }}-interest-add"
@@ -45,6 +48,7 @@
                     <x-button
                         :link="$d->editUrl"
                         class="ui-listing-card__tool ui-listing-card__tool--accent btn btn-xs btn-square rounded-lg"
+                        :tooltip-bottom="$d->editTitle"
                         :aria-label="$d->editTitle"
                         icon="o-pencil"
                         data-ui="{{ $d->dataUiPrefix }}-edit"
@@ -57,6 +61,7 @@
                     :link="$d->detailsUrl"
                     wire:navigate
                     class="ui-listing-card__tool ui-listing-card__tool--details btn btn-xs btn-square rounded-lg"
+                    :tooltip-bottom="$d->kind === 'activity' ? __('ui.activities.show_details') : __('ui.events.show_details')"
                     :aria-label="$d->openDetailsAriaLabel"
                     icon="o-arrow-top-right-on-square"
                     data-ui="{{ $d->dataUiPrefix }}-open-details"

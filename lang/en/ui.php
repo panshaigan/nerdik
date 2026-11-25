@@ -54,7 +54,7 @@ return [
         'features' => 'Features',
     ],
     'impersonation' => [
-        'log_in_as' => 'Log in as',
+        'log_in_as' => 'Log in',
         'account_mutation_blocked' => 'Account changes are disabled while impersonating another user. Leave impersonation first.',
     ],
     'me' => [
@@ -720,8 +720,8 @@ return [
         'contact_absences_stat' => 'Marked absent',
         'contact_no_hosted_activities' => 'No hosted activities yet.',
         'contact_no_played_activities' => 'No participated activities yet.',
-        'ban_user' => 'Ban user',
-        'unban_user' => 'Unban user',
+        'ban_user' => 'Ban',
+        'unban_user' => 'Unban',
         'cannot_ban_self' => 'You cannot ban yourself.',
         'ban_unauthorized' => 'Only hosts can ban users.',
         'reputation_warning_tooltip' => 'Warning: banned by :bans host(s) and marked absent :absences time(s).',

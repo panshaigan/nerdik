@@ -579,7 +579,7 @@ class ProfileContactPopoverTest extends TestCase
         $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_BOARD), $html);
     }
 
-    public function test_user_contact_popover_shows_hero_with_organization(): void
+    public function test_user_contact_popover_shows_organization_name_not_acronym(): void
     {
         $viewer = User::factory()->create();
         $organization = Organization::factory()->create([
@@ -597,9 +597,25 @@ class ProfileContactPopoverTest extends TestCase
             ])
             ->html();
 
-        $this->assertStringContainsString('pixel_mage', $html);
-        $this->assertStringContainsString('CGN', $html);
+        $this->assertStringContainsString('Castle Games Night', $html);
+        $this->assertStringNotContainsString('>CGN<', $html);
         $this->assertStringNotContainsString('pixel_mage [CGN]', $html);
+    }
+
+    public function test_user_badge_contact_modal_title_uses_display_name(): void
+    {
+        $viewer = User::factory()->create();
+        $target = User::factory()->create([
+            'nickname' => 'pixel_mage',
+        ]);
+
+        Livewire::actingAs($viewer)
+            ->test(UserBadgeContact::class, [
+                'user' => $target,
+            ])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSeeHtml('>'.$target->displayName().'<');
     }
 
     public function test_user_contact_popover_uses_google_email_when_main_email_hidden(): void

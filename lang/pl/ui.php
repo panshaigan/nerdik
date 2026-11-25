@@ -54,7 +54,7 @@ return [
         'features' => 'Funkcje',
     ],
     'impersonation' => [
-        'log_in_as' => 'Zaloguj jako',
+        'log_in_as' => 'Zaloguj',
         'account_mutation_blocked' => 'Zmiany konta są wyłączone podczas podszywania się pod innego użytkownika. Najpierw zakończ podszywanie.',
     ],
     'me' => [
@@ -720,8 +720,8 @@ return [
         'contact_absences_stat' => 'Oznaczenia nieobecności',
         'contact_no_hosted_activities' => 'Brak prowadzonych aktywności.',
         'contact_no_played_activities' => 'Brak aktywności, w których uczestniczysz.',
-        'ban_user' => 'Zbanuj użytkownika',
-        'unban_user' => 'Odbanuj użytkownika',
+        'ban_user' => 'Banuj',
+        'unban_user' => 'Odbanuj',
         'cannot_ban_self' => 'Nie możesz zbanować siebie.',
         'ban_unauthorized' => 'Tylko gospodarze mogą banować użytkowników.',
         'reputation_warning_tooltip' => 'Ostrzeżenie: zbanowany przez :bans gospodarza/y i oznaczony jako nieobecny :absences raz(y).',

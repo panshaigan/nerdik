@@ -28,7 +28,7 @@
         @teleport('body')
             <x-modal
                 wire:model="modalOpen"
-                :title="__('ui.common.user')"
+                :title="$user->displayName()"
                 box-class="overflow-x-hidden ui-modal-surface ui-overlay-shell ui-overlay-sheet"
                 class="backdrop-blur modal-bottom md:modal-end"
                 separator

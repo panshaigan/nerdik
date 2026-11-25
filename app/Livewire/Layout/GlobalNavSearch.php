@@ -105,11 +105,15 @@ class GlobalNavSearch extends Component
     public function render(): View
     {
         $suggestions = $this->suggestions();
+        $previewUser = $this->previewUserId !== null
+            ? User::query()->whereKey($this->previewUserId)->first()
+            : null;
 
         return view('livewire.layout.global-nav-search', [
             'suggestions' => $suggestions,
             'hasSuggestions' => self::hasAnySuggestions($suggestions),
             'showSuggestions' => $this->shouldShowSuggestions($suggestions),
+            'previewUser' => $previewUser,
         ]);
     }
 
