@@ -241,6 +241,15 @@ class UserContactPopover extends Component
         ];
     }
 
+    public function openInvite(string $kind, int $subjectId): void
+    {
+        match ($kind) {
+            'activity' => $this->openActivityInvite($subjectId),
+            'organization' => $this->openOrganizationInvite($subjectId),
+            default => abort(404),
+        };
+    }
+
     public function openActivityInvite(int $activityId): void
     {
         $viewer = auth()->user();

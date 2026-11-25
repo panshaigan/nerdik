@@ -715,7 +715,7 @@ class ProfileContactPopoverTest extends TestCase
         $this->assertStringNotContainsString(__('ui.profile.contact_methods_title'), $html);
     }
 
-    public function test_user_contact_popover_shows_direct_org_invite_when_owner_has_one_organization(): void
+    public function test_user_contact_popover_shows_direct_invite_when_owner_has_one_organization(): void
     {
         $owner = User::factory()->create();
         $target = User::factory()->create(['organization_id' => null]);
@@ -729,11 +729,12 @@ class ProfileContactPopoverTest extends TestCase
                 'targetUserId' => $target->id,
             ])
             ->assertViewHas('organizationInviteOptions', fn (array $options): bool => count($options) === 1)
-            ->assertDontSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
-            ->assertSee(__('ui.user_requests.invite_to_organization'));
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
     }
 
-    public function test_user_contact_popover_shows_org_invite_dropdown_when_owner_has_multiple_organizations(): void
+    public function test_user_contact_popover_shows_unified_invite_dropdown_for_multiple_organizations(): void
     {
         $owner = User::factory()->create();
         $target = User::factory()->create(['organization_id' => null]);
@@ -751,7 +752,8 @@ class ProfileContactPopoverTest extends TestCase
                 'targetUserId' => $target->id,
             ])
             ->assertViewHas('organizationInviteOptions', fn (array $options): bool => count($options) === 2)
-            ->assertSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
+            ->assertSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_organizations_section'))
             ->assertSee('Alpha Guild')
             ->assertSee('Beta Guild');
     }
@@ -773,7 +775,7 @@ class ProfileContactPopoverTest extends TestCase
             ->test(UserContactPopover::class, [
                 'targetUserId' => $target->id,
             ])
-            ->call('openOrganizationInvite', $beta->id)
+            ->call('openInvite', 'organization', $beta->id)
             ->assertDispatched(
                 'open-send-user-request',
                 type: 'organization_invite',
@@ -802,11 +804,12 @@ class ProfileContactPopoverTest extends TestCase
                 return count($options) === 1
                     && $options[0]['id'] === $other->id;
             })
-            ->assertDontSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
-            ->assertSee(__('ui.user_requests.invite_to_organization'));
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
     }
 
-    public function test_user_contact_popover_shows_direct_activity_invite_when_owner_has_one_future_activity(): void
+    public function test_user_contact_popover_shows_direct_invite_when_owner_has_one_future_activity(): void
     {
         $owner = User::factory()->create();
         $target = User::factory()->create();
@@ -823,11 +826,12 @@ class ProfileContactPopoverTest extends TestCase
                 'targetUserId' => $target->id,
             ])
             ->assertViewHas('activityInviteOptions', fn (array $options): bool => count($options) === 1)
-            ->assertDontSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
-            ->assertSee(__('ui.user_requests.invite_to_activity'));
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
     }
 
-    public function test_user_contact_popover_shows_activity_invite_dropdown_when_owner_has_multiple_future_activities(): void
+    public function test_user_contact_popover_shows_unified_invite_dropdown_for_multiple_future_activities(): void
     {
         $owner = User::factory()->create();
         $target = User::factory()->create();
@@ -851,9 +855,38 @@ class ProfileContactPopoverTest extends TestCase
                 'targetUserId' => $target->id,
             ])
             ->assertViewHas('activityInviteOptions', fn (array $options): bool => count($options) === 2)
-            ->assertSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
+            ->assertSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_activities_section'))
             ->assertSee('Alpha Future Game')
             ->assertSee('Beta Future Game');
+    }
+
+    public function test_user_contact_popover_merges_activity_and_organization_invites_into_one_dropdown(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create(['organization_id' => null]);
+        Activity::factory()->create([
+            'name' => 'Future Game Night',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(3),
+        ]);
+        Organization::factory()->create([
+            'name' => 'Solo Guild',
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertSee(__('ui.user_requests.invite_activities_section'))
+            ->assertSee(__('ui.user_requests.invite_organizations_section'))
+            ->assertSee('Future Game Night')
+            ->assertSee('Solo Guild');
     }
 
     public function test_user_contact_popover_activity_invite_options_are_only_activities_created_by_viewer(): void
@@ -923,8 +956,9 @@ class ProfileContactPopoverTest extends TestCase
                 return count($options) === 1
                     && $options[0]['id'] === $open->id;
             })
-            ->assertDontSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
-            ->assertSee(__('ui.user_requests.invite_to_activity'));
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
     }
 
     public function test_user_contact_popover_dispatches_activity_invite_open_for_selected_activity(): void
@@ -950,7 +984,7 @@ class ProfileContactPopoverTest extends TestCase
             ->test(UserContactPopover::class, [
                 'targetUserId' => $target->id,
             ])
-            ->call('openActivityInvite', $beta->id)
+            ->call('openInvite', 'activity', $beta->id)
             ->assertDispatched(
                 'open-send-user-request',
                 type: 'activity_invite',
