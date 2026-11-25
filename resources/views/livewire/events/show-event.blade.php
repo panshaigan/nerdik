@@ -15,30 +15,6 @@
 
     <div class="relative z-0 space-y-4 sm:space-y-6">
     <x-page-header :title="$title" :user="$event->creator" :organization="$event?->organization">
-        <x-slot:titlePrefix>
-            @if ($previousInSeries)
-                <x-popover class="inline-flex transition-none" position="bottom" offset="8">
-                    <x-slot:trigger>
-                        <a
-                            href="{{ route('events.show', $previousInSeries) }}"
-                            wire:navigate
-                            @class([
-                                'btn btn-ghost btn-square btn-sm shrink-0 text-base-content/70 hover:text-base-content',
-                                'opacity-50' => $previousInSeries->isCancelled(),
-                            ])
-                            aria-label="{{ __('ui.events.series_previous') }}: {{ $previousInSeries->name }}"
-                            data-ui="event-show-series-prev"
-                        >
-                            <x-icon name="o-chevron-left" class="h-6 w-6" />
-                        </a>
-                    </x-slot:trigger>
-                    <x-slot:content class="!w-auto max-w-xs whitespace-normal text-sm text-base-content">
-                        {{ $previousInSeries->name }}
-                    </x-slot:content>
-                </x-popover>
-            @endif
-        </x-slot:titlePrefix>
-
         <x-slot:subtitle>
             <div class="mb-1">
                 <x-icon name="o-map-pin" class="inline h-4 w-4 align-text-bottom" />
@@ -48,19 +24,43 @@
                     link-class="link link-primary text-glow-base-100"
                 />
             </div>
-            <div class="">
+            <div @class(['mb-1' => $event->eventSeries])>
                 <x-icon name="o-calendar" class="inline h-4 w-4 align-text-bottom" />{{ $eventDateSummary }}
-                @if ($event->eventSeries)
-                    <span class="ml-2" data-ui="event-show-series-link">
-                        <x-icon name="o-rectangle-stack" class="inline h-4 w-4 align-text-bottom" />
-                        <a
-                            href="{{ route('event-series.show', $event->eventSeries) }}"
-                            wire:navigate
-                            class="link link-primary text-glow-base-100"
-                        >{{ __('ui.events.series_link', ['name' => $event->eventSeries->name]) }}</a>
-                    </span>
-                @endif
             </div>
+            @if ($event->eventSeries)
+                <div class="space-x-1" data-ui="event-show-series-link">
+                    <x-icon name="o-rectangle-stack" class="inline h-4 w-4 align-text-bottom" />
+                    @if ($previousInSeries)
+                        <a
+                            href="{{ route('events.show', $previousInSeries) }}"
+                            wire:navigate
+                            @class([
+                                'link link-primary text-glow-base-100',
+                                'opacity-50' => $previousInSeries->isCancelled(),
+                            ])
+                            aria-label="{{ __('ui.events.series_previous') }}: {{ $previousInSeries->name }}"
+                            data-ui="event-show-series-prev"
+                        >&lt;&lt;</a>
+                    @endif
+                    <a
+                        href="{{ route('event-series.show', $event->eventSeries) }}"
+                        wire:navigate
+                        class="link link-primary text-glow-base-100"
+                    >{{ __('ui.events.series_link', ['name' => $event->eventSeries->name]) }}</a>
+                    @if ($nextInSeries)
+                        <a
+                            href="{{ route('events.show', $nextInSeries) }}"
+                            wire:navigate
+                            @class([
+                                'link link-primary text-glow-base-100',
+                                'opacity-50' => $nextInSeries->isCancelled(),
+                            ])
+                            aria-label="{{ __('ui.events.series_next') }}: {{ $nextInSeries->name }}"
+                            data-ui="event-show-series-next"
+                        >&gt;&gt;</a>
+                    @endif
+                </div>
+            @endif
         </x-slot:subtitle>
 
         <x-slot:titleSuffix>
@@ -92,27 +92,6 @@
                                 <span class="mt-0.5 block">{{ $event->cancelled_at ? format_datetime_in_user_tz($event->cancelled_at) : '—' }}</span>
                             </p>
                         </div>
-                    </x-slot:content>
-                </x-popover>
-            @endif
-            @if ($nextInSeries)
-                <x-popover class="inline-flex transition-none" position="bottom" offset="8">
-                    <x-slot:trigger>
-                        <a
-                            href="{{ route('events.show', $nextInSeries) }}"
-                            wire:navigate
-                            @class([
-                                'btn btn-ghost btn-square btn-sm shrink-0 text-base-content/70 hover:text-base-content',
-                                'opacity-50' => $nextInSeries->isCancelled(),
-                            ])
-                            aria-label="{{ __('ui.events.series_next') }}: {{ $nextInSeries->name }}"
-                            data-ui="event-show-series-next"
-                        >
-                            <x-icon name="o-chevron-right" class="h-6 w-6" />
-                        </a>
-                    </x-slot:trigger>
-                    <x-slot:content class="!w-auto max-w-xs whitespace-normal text-sm text-base-content">
-                        {{ $nextInSeries->name }}
                     </x-slot:content>
                 </x-popover>
             @endif

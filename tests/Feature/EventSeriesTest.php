@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Livewire\Events\ManageEventForm;
+use App\Livewire\Events\ShowEvent;
 use App\Livewire\Events\ShowEventSeries;
 use App\Models\Activity;
 use App\Models\ActivityUser;
@@ -400,6 +401,54 @@ class EventSeriesTest extends TestCase
         $this->assertSame($first->id, $second->previousInSeries()?->id);
         $this->assertSame($third->id, $second->nextInSeries()?->id);
         $this->assertTrue($second->nextInSeries()?->isCancelled());
+    }
+
+    public function test_show_event_series_nav_links_beside_series_catalog_link(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $user->id]);
+        $first = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(1),
+            'ends_at' => now()->addDays(1)->addHours(3),
+        ]);
+        $second = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(10),
+            'ends_at' => now()->addDays(10)->addHours(3),
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'starts_at' => now()->addDays(20),
+            'ends_at' => now()->addDays(20)->addHours(3),
+        ]);
+
+        $middleHtml = Livewire::actingAs($user)
+            ->test(ShowEvent::class, ['event' => $second])
+            ->html();
+
+        $this->assertStringContainsString(
+            'href="'.route('events.show', $first).'"',
+            $middleHtml,
+        );
+        $this->assertStringContainsString('data-ui="event-show-series-prev"', $middleHtml);
+        $this->assertStringContainsString('data-ui="event-show-series-next"', $middleHtml);
+        $this->assertStringContainsString(
+            'href="'.route('event-series.show', $series).'"',
+            $middleHtml,
+        );
+        $this->assertSame(1, substr_count($middleHtml, 'data-ui="event-show-series-prev"'));
+        $this->assertSame(1, substr_count($middleHtml, 'data-ui="event-show-series-next"'));
+
+        $firstHtml = Livewire::actingAs($user)
+            ->test(ShowEvent::class, ['event' => $first])
+            ->html();
+
+        $this->assertStringNotContainsString('data-ui="event-show-series-prev"', $firstHtml);
+        $this->assertStringContainsString('data-ui="event-show-series-next"', $firstHtml);
     }
 
     public function test_listing_card_includes_series_link_for_events(): void

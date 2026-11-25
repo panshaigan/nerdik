@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Livewire\Activities\ManageActivityForm;
+use App\Livewire\Activities\ShowActivity;
 use App\Livewire\Activities\ShowActivitySeries;
 use App\Models\Activity;
 use App\Models\ActivitySeries;
@@ -386,6 +387,56 @@ class ActivitySeriesTest extends TestCase
         $this->assertSame($first->id, $second->previousInSeries()?->id);
         $this->assertSame($third->id, $second->nextInSeries()?->id);
         $this->assertTrue($second->nextInSeries()?->isCancelled());
+    }
+
+    public function test_show_activity_series_nav_links_beside_series_catalog_link(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+
+        $user = User::factory()->create();
+        $series = ActivitySeries::factory()->create(['created_by' => $user->id]);
+        $first = $this->createSelfHostedActivity([
+            'created_by' => $user->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(1),
+            'ends_at' => now()->addDays(1)->addHours(3),
+        ]);
+        $second = $this->createSelfHostedActivity([
+            'created_by' => $user->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(10),
+            'ends_at' => now()->addDays(10)->addHours(3),
+        ]);
+        $this->createSelfHostedActivity([
+            'created_by' => $user->id,
+            'activity_series_id' => $series->id,
+            'starts_at' => now()->addDays(20),
+            'ends_at' => now()->addDays(20)->addHours(3),
+        ]);
+
+        $middleHtml = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $second])
+            ->html();
+
+        $this->assertStringContainsString(
+            'href="'.route('activities.show', $first).'"',
+            $middleHtml,
+        );
+        $this->assertStringContainsString('data-ui="activity-show-series-prev"', $middleHtml);
+        $this->assertStringContainsString('data-ui="activity-show-series-next"', $middleHtml);
+        $this->assertStringContainsString(
+            'href="'.route('activity-series.show', $series).'"',
+            $middleHtml,
+        );
+        $this->assertSame(1, substr_count($middleHtml, 'data-ui="activity-show-series-prev"'));
+        $this->assertSame(1, substr_count($middleHtml, 'data-ui="activity-show-series-next"'));
+
+        $firstHtml = Livewire::actingAs($user)
+            ->test(ShowActivity::class, ['activity' => $first])
+            ->html();
+
+        $this->assertStringNotContainsString('data-ui="activity-show-series-prev"', $firstHtml);
+        $this->assertStringContainsString('data-ui="activity-show-series-next"', $firstHtml);
     }
 
     public function test_listing_card_includes_series_link_for_activities(): void
