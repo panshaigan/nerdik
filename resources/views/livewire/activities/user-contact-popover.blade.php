@@ -6,7 +6,9 @@
     $activityInviteCount = count($activityInviteOptions);
     $organizationInviteOptions = $organizationInviteOptions ?? [];
     $organizationInviteCount = count($organizationInviteOptions);
-    $inviteCount = $activityInviteCount + $organizationInviteCount;
+    $groupInviteOptions = $groupInviteOptions ?? [];
+    $groupInviteCount = count($groupInviteOptions);
+    $inviteCount = $activityInviteCount + $organizationInviteCount + $groupInviteCount;
     $hasFooterActions = $targetUser !== null && (
         $inviteCount > 0
         || (($organizationJoinSubjectId ?? null) && ($organizationJoinRecipientId ?? null))
@@ -221,10 +223,16 @@
         <div class="flex shrink-0 flex-wrap gap-2 border-t border-base-300 px-4 py-3" data-ui="user-contact-popover-requests">
             @if ($inviteCount === 1)
                 @php
-                    $singleInviteKind = $activityInviteCount === 1 ? 'activity' : 'organization';
-                    $singleInviteId = $singleInviteKind === 'activity'
-                        ? $activityInviteOptions[0]['id']
-                        : $organizationInviteOptions[0]['id'];
+                    $singleInviteKind = match (true) {
+                        $activityInviteCount === 1 => 'activity',
+                        $organizationInviteCount === 1 => 'organization',
+                        default => 'group',
+                    };
+                    $singleInviteId = match ($singleInviteKind) {
+                        'activity' => $activityInviteOptions[0]['id'],
+                        'organization' => $organizationInviteOptions[0]['id'],
+                        default => $groupInviteOptions[0]['id'],
+                    };
                 @endphp
                 <x-button
                     type="button"
@@ -279,6 +287,22 @@
                                         wire:click="openInvite('organization', {{ $organizationInviteOption['id'] }})"
                                     >
                                         {{ $organizationInviteOption['name'] }}
+                                    </button>
+                                </li>
+                            @endforeach
+                        @endif
+                        @if ($groupInviteCount > 0)
+                            <li @class(['menu-title', 'mt-1 border-t border-base-300 pt-2 light:border-neutral' => ($activityInviteCount + $organizationInviteCount) > 0]) role="presentation">
+                                <span>{{ __('ui.user_requests.invite_groups_section') }}</span>
+                            </li>
+                            @foreach ($groupInviteOptions as $groupInviteOption)
+                                <li wire:key="group-invite-option-{{ $groupInviteOption['id'] }}" role="none">
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        wire:click="openInvite('group', {{ $groupInviteOption['id'] }})"
+                                    >
+                                        {{ $groupInviteOption['name'] }}
                                     </button>
                                 </li>
                             @endforeach
@@ -343,6 +367,16 @@
                 :recipient-id="$targetUser->id"
                 :show-trigger="false"
                 :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteOption['id']"
+            />
+        @endforeach
+        @foreach ($groupInviteOptions as $groupInviteOption)
+            <livewire:user-requests.send-user-request
+                type="group_invite"
+                subject-type="group"
+                :subject-id="$groupInviteOption['id']"
+                :recipient-id="$targetUser->id"
+                :show-trigger="false"
+                :key="'group-invite-'.$targetUser->id.'-'.$groupInviteOption['id']"
             />
         @endforeach
     @endif

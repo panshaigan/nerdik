@@ -15,6 +15,7 @@ use App\Models\Organization;
 use App\Models\Place;
 use App\Models\Slot;
 use App\Models\User;
+use App\Services\GroupMembershipService;
 use App\Support\Browse\BrowseSearchUrl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
@@ -861,7 +862,7 @@ class ProfileContactPopoverTest extends TestCase
             ->assertSee('Beta Future Game');
     }
 
-    public function test_user_contact_popover_merges_activity_and_organization_invites_into_one_dropdown(): void
+    public function test_user_contact_popover_merges_activity_organization_and_group_invites_into_one_dropdown(): void
     {
         $owner = User::factory()->create();
         $target = User::factory()->create(['organization_id' => null]);
@@ -876,6 +877,7 @@ class ProfileContactPopoverTest extends TestCase
             'name' => 'Solo Guild',
             'created_by' => $owner->id,
         ]);
+        app(GroupMembershipService::class)->create($owner, 'Weekend Crew');
 
         Livewire::actingAs($owner)
             ->test(UserContactPopover::class, [
@@ -885,8 +887,85 @@ class ProfileContactPopoverTest extends TestCase
             ->assertDontSeeHtml('data-ui="user-contact-popover-invite"')
             ->assertSee(__('ui.user_requests.invite_activities_section'))
             ->assertSee(__('ui.user_requests.invite_organizations_section'))
+            ->assertSee(__('ui.user_requests.invite_groups_section'))
             ->assertSee('Future Game Night')
-            ->assertSee('Solo Guild');
+            ->assertSee('Solo Guild')
+            ->assertSee('Weekend Crew');
+    }
+
+    public function test_user_contact_popover_shows_direct_invite_when_owner_has_one_group(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        app(GroupMembershipService::class)->create($owner, 'Solo Crew');
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('groupInviteOptions', fn (array $options): bool => count($options) === 1)
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
+    }
+
+    public function test_user_contact_popover_shows_unified_invite_dropdown_for_multiple_groups(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        app(GroupMembershipService::class)->create($owner, 'Alpha Crew');
+        app(GroupMembershipService::class)->create($owner, 'Beta Crew');
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('groupInviteOptions', fn (array $options): bool => count($options) === 2)
+            ->assertSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_groups_section'))
+            ->assertSee('Alpha Crew')
+            ->assertSee('Beta Crew');
+    }
+
+    public function test_user_contact_popover_dispatches_group_invite_open_for_selected_group(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        app(GroupMembershipService::class)->create($owner, 'Alpha Crew');
+        $beta = app(GroupMembershipService::class)->create($owner, 'Beta Crew');
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->call('openInvite', 'group', $beta->id)
+            ->assertDispatched(
+                'open-send-user-request',
+                type: 'group_invite',
+                subjectId: $beta->id,
+            );
+    }
+
+    public function test_user_contact_popover_excludes_groups_target_already_belongs_to(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        $membership = app(GroupMembershipService::class);
+        $memberGroup = $membership->create($owner, 'Already Member Crew');
+        $openGroup = $membership->create($owner, 'Open Seat Crew');
+        $membership->addMember($memberGroup, $target);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('groupInviteOptions', function (array $options) use ($openGroup): bool {
+                return count($options) === 1
+                    && $options[0]['id'] === $openGroup->id;
+            })
+            ->assertSeeHtml('data-ui="user-contact-popover-invite"')
+            ->assertDontSeeHtml('data-ui="user-contact-popover-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite'));
     }
 
     public function test_user_contact_popover_activity_invite_options_are_only_activities_created_by_viewer(): void

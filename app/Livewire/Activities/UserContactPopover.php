@@ -5,6 +5,7 @@ namespace App\Livewire\Activities;
 use App\Enums\UserRequestType;
 use App\Models\Activity;
 use App\Models\ActivityUser;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\Tag;
 use App\Models\User;
@@ -234,6 +235,7 @@ class UserContactPopover extends Component
             'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
             'activityInviteOptions' => $this->resolveActivityInviteOptions($viewer, $targetUser),
             'organizationInviteOptions' => $this->resolveOrganizationInviteOptions($viewer, $targetUser),
+            'groupInviteOptions' => $this->resolveGroupInviteOptions($viewer, $targetUser),
             'organizationJoinSubjectId' => $this->resolveOrganizationJoinSubjectId($viewer, $targetUser),
             'organizationJoinRecipientId' => $this->resolveOrganizationJoinRecipientId($viewer, $targetUser),
             'playAreaPreview' => $this->resolvePlayAreaPreview($targetUser),
@@ -246,6 +248,7 @@ class UserContactPopover extends Component
         match ($kind) {
             'activity' => $this->openActivityInvite($subjectId),
             'organization' => $this->openOrganizationInvite($subjectId),
+            'group' => $this->openGroupInvite($subjectId),
             default => abort(404),
         };
     }
@@ -301,6 +304,33 @@ class UserContactPopover extends Component
             'open-send-user-request',
             type: UserRequestType::OrganizationInvite->value,
             subjectId: $organizationId,
+        );
+    }
+
+    public function openGroupInvite(int $groupId): void
+    {
+        $viewer = auth()->user();
+        if (! $viewer instanceof User) {
+            abort(403);
+        }
+
+        $targetUser = User::query()->whereKey($this->targetUserId)->first();
+        if (! $targetUser instanceof User) {
+            abort(404);
+        }
+
+        $allowedIds = collect($this->resolveGroupInviteOptions($viewer, $targetUser))
+            ->pluck('id')
+            ->all();
+
+        if (! in_array($groupId, $allowedIds, true)) {
+            abort(403);
+        }
+
+        $this->dispatch(
+            'open-send-user-request',
+            type: UserRequestType::GroupInvite->value,
+            subjectId: $groupId,
         );
     }
 
@@ -455,6 +485,28 @@ class UserContactPopover extends Component
             ->all();
     }
 
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function resolveGroupInviteOptions(User $viewer, User $targetUser): array
+    {
+        if ($viewer->is($targetUser)) {
+            return [];
+        }
+
+        return Group::query()
+            ->where('created_by', $viewer->id)
+            ->whereDoesntHave('users', fn ($query) => $query->whereKey($targetUser->id))
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Group $group): array => [
+                'id' => (int) $group->id,
+                'name' => (string) $group->name,
+            ])
+            ->values()
+            ->all();
+    }
+
     private function resolveOrganizationJoinSubjectId(User $viewer, User $targetUser): ?int
     {
         $organization = $targetUser->organization;
@@ -518,6 +570,7 @@ class UserContactPopover extends Component
             ],
             'activityInviteOptions' => [],
             'organizationInviteOptions' => [],
+            'groupInviteOptions' => [],
             'organizationJoinSubjectId' => null,
             'organizationJoinRecipientId' => null,
             'playAreaPreview' => null,

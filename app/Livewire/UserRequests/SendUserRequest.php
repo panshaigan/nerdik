@@ -6,6 +6,7 @@ namespace App\Livewire\UserRequests;
 
 use App\Enums\UserRequestType;
 use App\Models\Activity;
+use App\Models\Group;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\UserRequests\UserRequestHandlerRegistry;
@@ -168,7 +169,9 @@ class SendUserRequest extends Component
                 : __('ui.user_requests.invite_to_activity'),
             UserRequestType::EventOrganizerFlag => __('ui.user_requests.request_organizer_access'),
             UserRequestType::PageAlias => __('ui.page_aliases.request'),
-            UserRequestType::GroupInvite => __('ui.user_requests.invite_to_group'),
+            UserRequestType::GroupInvite => $subject instanceof Group
+                ? __('ui.user_requests.invite_to_named_group', ['group' => $subject->name])
+                : __('ui.user_requests.invite_to_group'),
         };
     }
 
@@ -189,7 +192,7 @@ class SendUserRequest extends Component
         return User::query()->find($this->recipientId);
     }
 
-    private function resolveSubject(): Organization|Activity|null
+    private function resolveSubject(): Organization|Activity|Group|null
     {
         if ($this->subjectType === null || $this->subjectId === null) {
             return null;
@@ -198,6 +201,7 @@ class SendUserRequest extends Component
         return match ($this->subjectType) {
             'organization' => Organization::query()->find($this->subjectId),
             'activity' => Activity::query()->find($this->subjectId),
+            'group' => Group::query()->find($this->subjectId),
             default => null,
         };
     }
