@@ -1098,7 +1098,7 @@ return [
         'propose_activity' => 'Zaproponuj :types',
         'propose_activity_short' => 'Zaproponuj',
         'want_to_propose_activity' => 'Chcesz zaproponować :types?',
-        'plan_propose_hero_title' => 'Zaproponuj :types na ten event',
+        'plan_propose_hero_title' => 'Zaproponuj :types na te wydarzenie',
         'plan_propose_hero_description' => 'Utwórz :types i zaproponuj poprowadzenie na tym wydarzeniu. Stuknij wolne miejsca powyżej, żeby wskazać termin i miejsce, i kliknij przycisk.',
         'propose_types_overflow' => 'lub coś innego',
         'propose_types_pair' => ':first lub :second',
