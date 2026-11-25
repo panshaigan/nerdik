@@ -43,10 +43,26 @@
         .meta {
             margin: 0 0 4px;
         }
+        table.participants-columns {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            table-layout: fixed;
+        }
+        table.participants-columns > tbody > tr > td.participants-column {
+            vertical-align: top;
+            padding: 0 10px 0 0;
+        }
+        table.participants-columns > tbody > tr > td.participants-column:last-child {
+            padding-right: 0;
+        }
         table.participants {
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
+        }
+        table.participants-columns table.participants {
+            margin-top: 0;
         }
         table.participants th,
         table.participants td {
@@ -101,7 +117,11 @@
         'scheduleBits' => $scheduleBits,
         'brandLogos' => $brandLogos,
     ])
-    @include('pdf.partials.activity-roster', ['roster' => $roster, 'showHeading' => false])
+    @include('pdf.partials.activity-roster', [
+        'roster' => $roster,
+        'showHeading' => false,
+        'maxParticipantColumns' => 3,
+    ])
     <div class="table-sign-page">
         @include('pdf.partials.activity-table-sign', [
             'roster' => $roster,

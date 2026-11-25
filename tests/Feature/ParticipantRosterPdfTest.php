@@ -223,6 +223,37 @@ final class ParticipantRosterPdfTest extends TestCase
         $this->assertStringNotContainsString('roster-footer-logo', $html);
     }
 
+    public function test_activity_roster_uses_multi_column_participant_layout_when_list_is_large(): void
+    {
+        $brandLogos = $this->pdfBrandLogos();
+
+        $few = $this->activityRosterFixture(participants: 12);
+        $fewHtml = view('pdf.activity-participants', [
+            'roster' => $few,
+            'brandLogos' => $brandLogos,
+        ])->render();
+        $this->assertStringNotContainsString('class="participants-columns"', $fewHtml);
+        $this->assertSame(0, substr_count($fewHtml, 'class="participants-column"'));
+
+        $many = $this->activityRosterFixture(participants: 19);
+        $manyHtml = view('pdf.activity-participants', [
+            'roster' => $many,
+            'brandLogos' => $brandLogos,
+        ])->render();
+        $this->assertStringContainsString('class="participants-columns"', $manyHtml);
+        $this->assertSame(2, substr_count($manyHtml, 'class="participants-column"'));
+        $this->assertStringContainsString('player_01', $manyHtml);
+        $this->assertStringContainsString('player_19', $manyHtml);
+
+        $crowded = $this->activityRosterFixture(participants: 25);
+        $crowdedHtml = view('pdf.activity-participants', [
+            'roster' => $crowded,
+            'brandLogos' => $brandLogos,
+        ])->render();
+        $this->assertSame(3, substr_count($crowdedHtml, 'class="participants-column"'));
+        $this->assertStringContainsString('player_25', $crowdedHtml);
+    }
+
     public function test_event_roster_includes_where_when_three_column_layout_and_skips_cancelled(): void
     {
         $owner = User::factory()->create();
@@ -456,6 +487,38 @@ final class ParticipantRosterPdfTest extends TestCase
             ->get(route('activities.participants.pdf', $activity))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+    }
+
+    /**
+     * @return array{
+     *     name: string,
+     *     documentTitle: string,
+     *     host: string|null,
+     *     gameNames: list<string>,
+     *     slotName: string|null,
+     *     when: string|null,
+     *     where: string|null,
+     *     participants: list<array{name: string, is_absent: bool}>
+     * }
+     */
+    private function activityRosterFixture(int $participants): array
+    {
+        return [
+            'name' => 'Large Table',
+            'documentTitle' => 'Large Table - Participant roster',
+            'host' => 'gm_host',
+            'gameNames' => ['Demo Game'],
+            'slotName' => null,
+            'when' => null,
+            'where' => null,
+            'participants' => array_map(
+                fn (int $i): array => [
+                    'name' => sprintf('player_%02d', $i),
+                    'is_absent' => false,
+                ],
+                range(1, $participants),
+            ),
+        ];
     }
 
     /**

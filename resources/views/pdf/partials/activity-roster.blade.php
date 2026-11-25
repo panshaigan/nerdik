@@ -1,6 +1,7 @@
 @php
     /** @var array{name: string, host: string|null, gameNames: list<string>, when: string|null, where: string|null, participants: list<array{name: string, is_absent: bool}>} $roster */
     $showHeading = $showHeading ?? true;
+    $maxParticipantColumns = max(1, (int) ($maxParticipantColumns ?? 1));
     $gameLabel = count($roster['gameNames']) === 1
         ? __('ui.pdf.roster.game')
         : __('ui.pdf.roster.games');
@@ -11,6 +12,18 @@
         ],
         fn (?string $bit): bool => $bit !== null,
     ));
+
+    $participants = $roster['participants'];
+    $participantCount = count($participants);
+    $participantColumnCount = 1;
+    if ($maxParticipantColumns >= 3 && $participantCount > 24) {
+        $participantColumnCount = 3;
+    } elseif ($maxParticipantColumns >= 2 && $participantCount > 12) {
+        $participantColumnCount = 2;
+    }
+    $participantColumns = $participantColumnCount > 1
+        ? array_chunk($participants, (int) ceil($participantCount / $participantColumnCount))
+        : [$participants];
 @endphp
 <section class="activity-roster">
     @if ($showHeading)
@@ -27,31 +40,26 @@
         <p class="meta"><strong>{{ $gameLabel }}:</strong> {{ implode(', ', $roster['gameNames']) }}</p>
     @endif
 
-    <table class="participants">
-        <thead>
+    @if ($participantColumnCount > 1)
+        <table class="participants-columns">
             <tr>
-                <th class="col-name">{{ __('ui.pdf.roster.participant') }}</th>
-                <th class="col-check">{{ __('ui.pdf.roster.present') }}</th>
+                @foreach ($participantColumns as $columnParticipants)
+                    <td class="participants-column">
+                        @include('pdf.partials.activity-roster-participants-table', [
+                            'participants' => $columnParticipants,
+                            'showHeader' => true,
+                        ])
+                    </td>
+                @endforeach
+                @for ($i = count($participantColumns); $i < $participantColumnCount; $i++)
+                    <td class="participants-column"></td>
+                @endfor
             </tr>
-        </thead>
-        <tbody>
-            @forelse ($roster['participants'] as $participant)
-                <tr>
-                    <td class="col-name">
-                        {{ $participant['name'] }}
-                        @if ($participant['is_absent'])
-                            <span class="absent-note">({{ __('ui.pdf.roster.absent_note') }})</span>
-                        @endif
-                    </td>
-                    <td class="col-check">
-                        <span class="checkbox"></span>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="2" class="empty">{{ __('ui.pdf.roster.no_participants') }}</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+        </table>
+    @else
+        @include('pdf.partials.activity-roster-participants-table', [
+            'participants' => $participants,
+            'showHeader' => true,
+        ])
+    @endif
 </section>
