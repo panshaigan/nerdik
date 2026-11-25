@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Activities\CopyActivityLogoMedia;
 use App\Actions\Activities\DeleteUploadedActivityLogo;
 use App\Actions\Media\AttachEntityLogoCrop;
 use App\Actions\Media\StoreUserGalleryImage;
@@ -112,6 +113,10 @@ class ActivityFormService
                 ? __('ui.status.activity_updated_with_proposal', ['event' => $proposalCreated->event->name])
                 : __('Activity updated.');
         } else {
+            $duplicateSource = $form->duplicateSourceActivity();
+            if ($duplicateSource?->created_by !== null) {
+                $payload['created_by'] = $duplicateSource->created_by;
+            }
             $activity = Activity::create($payload);
             $timing->checkpoint('model');
             $this->resolveSelfHostedPlaceSelection($form, $activity, $locationResolver);
@@ -121,7 +126,12 @@ class ActivityFormService
             $timing->checkpoint('tags');
             $this->syncActivitySuggestedBring($form, $activity);
             $timing->checkpoint('suggested_bring');
+            $logoMediaSource = $this->duplicateSourceToCopyLogoFrom($form);
             $this->applyActivityLogoFromForm($form, $activity, $timing);
+            if ($logoMediaSource !== null) {
+                app(CopyActivityLogoMedia::class)($logoMediaSource, $activity);
+                $timing->checkpoint('image_copy');
+            }
             $proposalCreated = $this->createProposalForActivityIfRequested($form, $activity, $hostingModes);
             $timing->checkpoint('proposal');
             $this->enrollGroupCalendarMembersIfRequested($form, $activity);
@@ -338,6 +348,32 @@ class ActivityFormService
         }
 
         $form->self_hosted_place_id = $venue->id;
+    }
+
+    /**
+     * Duplicate source whose entity-owned logo crop should be copied: only while the form still
+     * points at the source's image (same gallery pick or kept upload) and no new crop was made.
+     */
+    private function duplicateSourceToCopyLogoFrom(ManageActivityForm $form): ?Activity
+    {
+        if ($form->croppedLogo !== null) {
+            return null;
+        }
+
+        $source = $form->duplicateSourceActivity();
+        if ($source === null) {
+            return null;
+        }
+
+        $formSource = ActivityLogoSource::tryFrom((string) ($form->logo_source ?? ''));
+        $keepsGalleryCrop = $formSource === ActivityLogoSource::Gallery
+            && $source->logo_source === ActivityLogoSource::Gallery
+            && $form->gallery_media_id !== null
+            && (int) $form->gallery_media_id === (int) $source->gallery_media_id;
+        $keepsUpload = $formSource === ActivityLogoSource::Upload
+            && $source->logo_source === ActivityLogoSource::Upload;
+
+        return $keepsGalleryCrop || $keepsUpload ? $source : null;
     }
 
     private function applyActivityLogoFromForm(

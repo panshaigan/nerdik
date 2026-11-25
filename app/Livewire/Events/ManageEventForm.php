@@ -781,8 +781,10 @@ class ManageEventForm extends Component
 
             abort_unless(Auth::user()?->canCreateEvents(), 403, __('ui.events.only_event_organizers_can_create'));
 
-            $validated['created_by'] = Auth::id();
-            $duplicateSlotsFrom = $this->duplicateSlotsFromEventId;
+            $duplicateSource = $this->duplicateSlotsFromEventId !== null
+                ? Event::query()->find($this->duplicateSlotsFromEventId)
+                : null;
+            $validated['created_by'] = $this->ownerIdForNewEvent();
 
             $event = Event::create($validated);
             $timing->checkpoint('model');
@@ -793,11 +795,8 @@ class ManageEventForm extends Component
             $timing->checkpoint('enrollment_windows');
             $this->applyEventLogoFromForm($event, $timing);
 
-            if ($duplicateSlotsFrom !== null) {
-                $source = Event::query()->find($duplicateSlotsFrom);
-                if ($source !== null && Auth::user()?->canModifyEntity($source)) {
-                    $slotCloneService->cloneEmptySlots($source, $event);
-                }
+            if ($duplicateSource !== null && Auth::user()?->canModifyEntity($duplicateSource)) {
+                $slotCloneService->cloneEmptySlots($duplicateSource, $event);
             }
             $timing->checkpoint('slots');
 
@@ -1087,7 +1086,7 @@ class ManageEventForm extends Component
             $id = (int) $id;
         }
 
-        $userId = Auth::id();
+        $userId = $this->editingEventId === null ? $this->ownerIdForNewEvent() : Auth::id();
         if ($id !== null && $userId !== null) {
             $owned = EventSeries::query()
                 ->whereKey($id)
@@ -1106,9 +1105,24 @@ class ManageEventForm extends Component
         return $this->findOrCreateEventSeriesForUser($name)->id;
     }
 
-    protected function findOrCreateEventSeriesForUser(string $name): EventSeries
+    /**
+     * Admins duplicating someone else's event create it on behalf of the source creator.
+     */
+    private function ownerIdForNewEvent(): ?int
     {
         $userId = Auth::id();
+        if ($this->duplicateSlotsFromEventId === null || Auth::user()?->is_admin !== true) {
+            return $userId;
+        }
+
+        $sourceCreatorId = Event::query()->whereKey($this->duplicateSlotsFromEventId)->value('created_by');
+
+        return $sourceCreatorId !== null ? (int) $sourceCreatorId : $userId;
+    }
+
+    protected function findOrCreateEventSeriesForUser(string $name): EventSeries
+    {
+        $userId = $this->editingEventId === null ? $this->ownerIdForNewEvent() : Auth::id();
         $existing = EventSeries::query()
             ->where('created_by', $userId)
             ->whereRaw('LOWER(name) = LOWER(?)', [$name])

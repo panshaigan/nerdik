@@ -5,12 +5,14 @@ namespace Tests\Feature;
 use App\Enums\ParticipationMode;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Models\Activity;
+use App\Models\ActivitySeries;
 use App\Models\ActivityType;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Slot;
 use App\Models\Tag;
 use App\Models\User;
+use Database\Seeders\ActivityTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -155,5 +157,40 @@ class ActivityDuplicatePrefillTest extends TestCase
             ->assertSet('description', '')
             ->assertSet('activity_type_id', null)
             ->assertSet('tag_ids', []);
+    }
+
+    public function test_admin_duplicates_another_users_activity_keeping_original_creator_and_series(): void
+    {
+        app()->setLocale('en');
+        $this->seed(ActivityTypeSeeder::class);
+
+        $owner = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $series = ActivitySeries::factory()->create([
+            'name' => 'Owner Cycle',
+            'created_by' => $owner->id,
+        ]);
+        $source = Activity::factory()->create([
+            'created_by' => $owner->id,
+            'updated_by' => $owner->id,
+            'name' => 'Owner Session',
+            'activity_type_id' => ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id,
+            'activity_series_id' => $series->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('name', 'Owner Session (copy)')
+            ->assertSet('activity_series_id', $series->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $copy = Activity::query()->where('name', 'Owner Session (copy)')->first();
+        $this->assertNotNull($copy);
+        $this->assertSame($owner->id, $copy->created_by);
+        $this->assertSame($series->id, $copy->activity_series_id);
+        $this->assertSame(1, ActivitySeries::query()->where('name', 'Owner Cycle')->count());
     }
 }

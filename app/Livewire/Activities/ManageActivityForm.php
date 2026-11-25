@@ -199,6 +199,9 @@ class ManageActivityForm extends Component
     #[Locked]
     public ?string $groupCalendarToken = null;
 
+    #[Locked]
+    public ?int $duplicateSourceActivityId = null;
+
     private bool $allowHostingModeChangeWithoutConfirm = false;
 
     public function mount(?Activity $activity = null): void
@@ -278,9 +281,8 @@ class ManageActivityForm extends Component
             $source = Activity::query()
                 ->with(['tags', 'activitySeries', 'organization', 'place.parent'])
                 ->where('slug', $dupSlug)
-                ->where('created_by', auth()->id())
                 ->first();
-            if ($source !== null) {
+            if ($source !== null && Auth::user()?->canModifyEntity($source)) {
                 $this->applyDuplicatePrefillFromActivity($source);
             }
         } elseif (request()->filled('proposal_event_id')) {
@@ -554,11 +556,9 @@ class ManageActivityForm extends Component
 
     private function hasExistingUploadedLogo(): bool
     {
-        if ($this->editingActivityId === null) {
-            return false;
-        }
-
-        $activity = Activity::query()->find($this->editingActivityId);
+        $activity = $this->editingActivityId !== null
+            ? Activity::query()->find($this->editingActivityId)
+            : $this->duplicateSourceActivity();
         if ($activity === null) {
             return false;
         }
@@ -566,8 +566,27 @@ class ManageActivityForm extends Component
         $source = $activity->logo_source;
         $isUpload = $source === ActivityLogoSource::Upload
             || (is_string($source) && $source === ActivityLogoSource::Upload->value);
+        if (! $isUpload) {
+            return false;
+        }
 
-        return $isUpload && ($activity->getFirstMedia('logo') !== null || filled($activity->logo_path));
+        // Duplicates copy logo media only; a legacy logo_path file cannot be shared safely.
+        return $activity->getFirstMedia('logo') !== null
+            || ($this->editingActivityId !== null && filled($activity->logo_path));
+    }
+
+    /**
+     * Source activity for a duplicate prefill, re-authorized (owner or admin) on every use.
+     */
+    public function duplicateSourceActivity(): ?Activity
+    {
+        if ($this->editingActivityId !== null || $this->duplicateSourceActivityId === null) {
+            return null;
+        }
+
+        $source = Activity::query()->find($this->duplicateSourceActivityId);
+
+        return $source !== null && Auth::user()?->canModifyEntity($source) ? $source : null;
     }
 
     private function pruneInvalidTagMediaSelection(): void
@@ -664,6 +683,11 @@ class ManageActivityForm extends Component
         $this->collect_familiarity = (bool) $source->collect_familiarity;
         $this->tag_ids = $source->tags->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $this->new_tags = [];
+        $this->duplicateSourceActivityId = (int) $source->id;
+        $this->hydrateLogoFieldsFromActivity($source);
+        if ($this->logo_source === ActivityLogoSource::Upload->value && ! $this->hasExistingUploadedLogo()) {
+            $this->logo_source = null;
+        }
 
         $this->proposal_event_id = null;
         $this->proposal_preferred_start_time = null;
@@ -1308,7 +1332,7 @@ class ManageActivityForm extends Component
                     $user = Auth::user();
                     $currentlyAttachedId = $this->editingActivityId !== null
                         ? Activity::query()->whereKey($this->editingActivityId)->value('gallery_media_id')
-                        : null;
+                        : $this->duplicateSourceActivity()?->gallery_media_id;
                     $currentlyAttachedId = $currentlyAttachedId !== null ? (int) $currentlyAttachedId : null;
                     if ($user === null || ! app(UserGalleryCatalog::class)->isAllowedGalleryMediaId(
                         (int) $value,
@@ -1880,6 +1904,7 @@ class ManageActivityForm extends Component
         $galleryCropSourceUrl = null;
         $galleryCropPreviewUrl = null;
         $catalog = app(UserGalleryCatalog::class);
+        $logoImageActivity = $editingActivity ?? $this->duplicateSourceActivity();
 
         if ($this->logo_source === ActivityLogoSource::Gallery->value && $this->gallery_media_id !== null) {
             $user = Auth::user();
@@ -1892,10 +1917,10 @@ class ManageActivityForm extends Component
                 $galleryCropPreviewUrl = $catalog->previewUrl($galleryMedia);
             }
 
-            if ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Gallery) {
-                $logoMedia = $editingActivity->getFirstMedia('logo');
+            if ($logoImageActivity !== null && $logoImageActivity->logo_source === ActivityLogoSource::Gallery) {
+                $logoMedia = $logoImageActivity->getFirstMedia('logo');
                 if ($logoMedia !== null
-                    && (int) $editingActivity->gallery_media_id === (int) $this->gallery_media_id
+                    && (int) $logoImageActivity->gallery_media_id === (int) $this->gallery_media_id
                 ) {
                     $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->webpSrc();
                 }
@@ -1904,12 +1929,12 @@ class ManageActivityForm extends Component
             if ($logoPreviewUrl === null) {
                 $logoPreviewUrl = $galleryCropPreviewUrl;
             }
-        } elseif ($editingActivity !== null && $editingActivity->logo_source === ActivityLogoSource::Upload) {
-            $logoMedia = $editingActivity->getFirstMedia('logo');
+        } elseif ($logoImageActivity !== null && $logoImageActivity->logo_source === ActivityLogoSource::Upload) {
+            $logoMedia = $logoImageActivity->getFirstMedia('logo');
             if ($logoMedia !== null) {
                 $logoPreviewUrl = MediaPictureSources::fromMediaWithPreset($logoMedia, 'listing_card')->webpSrc();
             }
-            $cropSourceImageUrl = $editingActivity->cropSourceImageUrl();
+            $cropSourceImageUrl = $logoImageActivity->cropSourceImageUrl();
         }
 
         if ($this->croppedLogo !== null) {
@@ -2014,7 +2039,7 @@ class ManageActivityForm extends Component
             $id = (int) $id;
         }
 
-        $userId = Auth::id();
+        $userId = $this->seriesOwnerId();
         if ($id !== null && $userId !== null) {
             $owned = ActivitySeries::query()
                 ->whereKey($id)
@@ -2035,7 +2060,7 @@ class ManageActivityForm extends Component
 
     protected function findOrCreateActivitySeriesForUser(string $name): ActivitySeries
     {
-        $userId = Auth::id();
+        $userId = $this->seriesOwnerId();
         $existing = ActivitySeries::query()
             ->where('created_by', $userId)
             ->whereRaw('LOWER(name) = LOWER(?)', [$name])
@@ -2049,6 +2074,16 @@ class ManageActivityForm extends Component
             'name' => $name,
             'created_by' => $userId,
         ]);
+    }
+
+    /**
+     * Series belong to the activity creator, so an admin duplicate stays in the owner's series.
+     */
+    private function seriesOwnerId(): ?int
+    {
+        $ownerId = $this->duplicateSourceActivity()?->created_by ?? Auth::id();
+
+        return $ownerId !== null ? (int) $ownerId : null;
     }
 
     /**

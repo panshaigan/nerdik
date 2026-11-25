@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
+use App\Actions\Activities\DeleteUploadedActivityLogo;
 use App\Actions\Activities\StoreUploadedActivityLogo;
+use App\Actions\Media\AttachEntityLogoCrop;
 use App\Actions\Media\StoreUserGalleryImage;
 use App\Enums\ActivityLogoSource;
 use App\Jobs\ProcessUserGallerySourceImageJob;
@@ -431,6 +433,149 @@ final class ManageActivityFormImageTest extends TestCase
             ->set('gallery_media_id', (int) $foreign->id)
             ->call('save')
             ->assertHasErrors(['gallery_media_id']);
+    }
+
+    #[Test]
+    public function duplicate_prefills_and_saves_source_tag_image(): void
+    {
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        [$tag, $media] = $this->createTagWithImage('Duplicate Tag Image');
+        $source = $this->createOwnedActivity($user, [
+            'logo_source' => ActivityLogoSource::Tag,
+            'tag_media_id' => $media->id,
+        ]);
+        $source->tags()->attach($tag->id);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('logo_source', ActivityLogoSource::Tag->value)
+            ->assertSet('selected_tag_media_id', (int) $media->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $copy = $this->duplicatedActivity($source);
+        $this->assertSame(ActivityLogoSource::Tag, $copy->logo_source);
+        $this->assertSame((int) $media->id, (int) $copy->tag_media_id);
+    }
+
+    #[Test]
+    public function duplicate_keeps_gallery_image_and_copies_its_crop(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $galleryMedia = app(StoreUserGalleryImage::class)(
+            $user,
+            UploadedFile::fake()->image('gallery.jpg', 800, 450),
+            1280,
+            720,
+        );
+        $source = $this->createOwnedActivity($user, [
+            'logo_source' => ActivityLogoSource::Gallery,
+            'gallery_media_id' => $galleryMedia->id,
+        ]);
+        app(AttachEntityLogoCrop::class)($source, UploadedFile::fake()->image('crop.jpg', 800, 450), 1280, 720);
+        $sourceCrop = $source->fresh()->getFirstMedia('logo');
+        $this->assertNotNull($sourceCrop);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('logo_source', ActivityLogoSource::Gallery->value)
+            ->assertSet('gallery_media_id', (int) $galleryMedia->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $copy = $this->duplicatedActivity($source);
+        $this->assertSame(ActivityLogoSource::Gallery, $copy->logo_source);
+        $this->assertSame((int) $galleryMedia->id, (int) $copy->gallery_media_id);
+        $copyCrop = $copy->getFirstMedia('logo');
+        $this->assertNotNull($copyCrop);
+        $this->assertNotSame((int) $sourceCrop->id, (int) $copyCrop->id);
+        $this->assertNotNull($source->fresh()->getFirstMedia('logo'));
+    }
+
+    #[Test]
+    public function duplicate_with_different_gallery_image_does_not_copy_source_crop(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $store = app(StoreUserGalleryImage::class);
+        $sourceGallery = $store($user, UploadedFile::fake()->image('a.jpg', 800, 450), 1280, 720);
+        $otherGallery = $store($user, UploadedFile::fake()->image('b.jpg', 800, 450), 1280, 720);
+        $source = $this->createOwnedActivity($user, [
+            'logo_source' => ActivityLogoSource::Gallery,
+            'gallery_media_id' => $sourceGallery->id,
+        ]);
+        app(AttachEntityLogoCrop::class)($source, UploadedFile::fake()->image('crop.jpg', 800, 450), 1280, 720);
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->set('gallery_media_id', (int) $otherGallery->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $copy = $this->duplicatedActivity($source);
+        $this->assertSame((int) $otherGallery->id, (int) $copy->gallery_media_id);
+        $this->assertNull($copy->getFirstMedia('logo'));
+    }
+
+    #[Test]
+    public function duplicate_copies_uploaded_logo_without_requiring_new_crop(): void
+    {
+        Storage::fake('public');
+        $this->seed(ActivityTypeSeeder::class);
+        $user = User::factory()->create();
+        $source = $this->createOwnedActivity($user, [
+            'logo_source' => ActivityLogoSource::Upload,
+            'logo_path' => null,
+        ]);
+        app(StoreUploadedActivityLogo::class)(
+            $source,
+            UploadedFile::fake()->image('existing.jpg', 800, 450),
+            UploadedFile::fake()->image('original.jpg', 640, 360),
+        );
+
+        Livewire::actingAs($user)
+            ->withQueryParams(['duplicate' => $source->slug])
+            ->test(ManageActivityForm::class)
+            ->assertSet('logo_source', ActivityLogoSource::Upload->value)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $copy = $this->duplicatedActivity($source);
+        $this->assertSame(ActivityLogoSource::Upload, $copy->logo_source);
+        $this->assertNotNull($copy->getFirstMedia('logo'));
+        $this->assertNotNull($copy->cropSourceImageUrl());
+
+        app(DeleteUploadedActivityLogo::class)($source->fresh());
+        $this->assertNotNull($copy->fresh()->getFirstMedia('logo'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function createOwnedActivity(User $user, array $attributes): Activity
+    {
+        return Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'activity_type_id' => (int) ActivityType::findBySlug(ActivityType::SLUG_RPG)?->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+            'tag_media_id' => null,
+            ...$attributes,
+        ]);
+    }
+
+    private function duplicatedActivity(Activity $source): Activity
+    {
+        return Activity::query()
+            ->where('name', $source->name.__('ui.activities.duplicate_name_suffix'))
+            ->firstOrFail();
     }
 
     /**
