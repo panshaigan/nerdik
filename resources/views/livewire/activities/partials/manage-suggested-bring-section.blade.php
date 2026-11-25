@@ -39,7 +39,7 @@
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm checkbox-primary"
-                                wire:model.live="provided_bring_item_ids"
+                                wire:model.renderless.live="provided_bring_item_ids"
                                 value="{{ $row['id'] }}"
                                 data-ui="activity-form-suggested-bring-provided"
                             />

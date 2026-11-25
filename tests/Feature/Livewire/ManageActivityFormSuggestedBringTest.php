@@ -42,6 +42,34 @@ final class ManageActivityFormSuggestedBringTest extends TestCase
     }
 
     #[Test]
+    public function it_syncs_inherited_host_provides_without_requiring_a_full_remorph(): void
+    {
+        $host = User::factory()->create();
+        $rpg = ActivityType::factory()->create(['slug' => ActivityType::SLUG_RPG]);
+        $inherited = SuggestedBringItem::factory()
+            ->state([
+                'bringable_type' => 'activity_type',
+                'bringable_id' => $rpg->id,
+            ])
+            ->withTranslations(['en' => 'Pencil'])
+            ->create();
+
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'activity_type_id' => $rpg->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+
+        $this->actingAs($host);
+
+        // updatedProvidedBringItemIds() skipRender keeps TinyMCE on this tab from remorphing.
+        Livewire::test(ManageActivityForm::class, ['activity' => $activity])
+            ->set('tab', 'minor-details')
+            ->set('provided_bring_item_ids', [(int) $inherited->id])
+            ->assertSet('provided_bring_item_ids', [(int) $inherited->id]);
+    }
+
+    #[Test]
     public function it_persists_extras_and_provisions_on_save(): void
     {
         $host = User::factory()->create();

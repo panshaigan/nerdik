@@ -359,6 +359,12 @@ class ManageActivityForm extends Component
         $this->skipRender();
     }
 
+    public function updatedProvidedBringItemIds(): void
+    {
+        // Live host-provides toggles on the additional-info tab must not remorph TinyMCE.
+        $this->skipRender();
+    }
+
     private function normalizeFormTab(?string $value): string
     {
         return in_array($value, self::FORM_TAB_ORDER, true) ? $value : 'main-details';
