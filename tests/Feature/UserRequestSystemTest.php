@@ -96,6 +96,31 @@ class UserRequestSystemTest extends TestCase
             ->assertSet('modalOpen', true);
     }
 
+    public function test_organization_invite_modal_uses_organization_name_and_overlay_sheet(): void
+    {
+        $owner = User::factory()->create();
+        $invitee = User::factory()->create(['organization_id' => null]);
+        $organization = Organization::factory()->create([
+            'name' => 'Castle Games Night',
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(SendUserRequest::class, [
+                'type' => 'organization_invite',
+                'subjectType' => 'organization',
+                'subjectId' => $organization->id,
+                'recipientId' => $invitee->id,
+            ])
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSee(__('ui.user_requests.invite_to_named_organization', [
+                'organization' => 'Castle Games Night',
+            ]))
+            ->assertSeeHtml('ui-overlay-sheet')
+            ->assertSeeHtml('md:modal-end');
+    }
+
     public function test_organization_invite_accept_moves_recipient_and_leaves_previous_org(): void
     {
         Notification::fake();

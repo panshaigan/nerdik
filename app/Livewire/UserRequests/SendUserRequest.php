@@ -150,6 +150,24 @@ class SendUserRequest extends Component
         };
     }
 
+    public function modalTitle(): string
+    {
+        $subject = $this->resolveSubject();
+
+        return match (UserRequestType::from($this->type)) {
+            UserRequestType::OrganizationInvite => $subject instanceof Organization
+                ? __('ui.user_requests.invite_to_named_organization', ['organization' => $subject->name])
+                : __('ui.user_requests.invite_to_organization'),
+            UserRequestType::OrganizationJoinRequest => $subject instanceof Organization
+                ? __('ui.user_requests.request_to_join_named_organization', ['organization' => $subject->name])
+                : __('ui.user_requests.request_to_join_organization'),
+            UserRequestType::ActivityInvite => $subject instanceof Activity
+                ? __('ui.user_requests.invite_to_named_activity', ['activity' => $subject->name])
+                : __('ui.user_requests.invite_to_activity'),
+            UserRequestType::EventOrganizerFlag => __('ui.user_requests.request_organizer_access'),
+        };
+    }
+
     public function render(UserRequestHandlerRegistry $handlers)
     {
         return view('livewire.user-requests.send-user-request', [
