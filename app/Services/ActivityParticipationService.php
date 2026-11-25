@@ -379,6 +379,19 @@ class ActivityParticipationService
         return null;
     }
 
+    public function claimParticipantsInfoReveal(Activity $activity, User $user): bool
+    {
+        if (! filled(rich_text_excerpt($activity->participants_only_description))) {
+            return false;
+        }
+
+        return ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $user->id)
+            ->whereNull('participants_info_seen_at')
+            ->update(['participants_info_seen_at' => now()]) > 0;
+    }
+
     protected function recordParticipationMutation(Activity $activity, User $user): void
     {
         RateLimiter::hit($this->participationRateLimitKey($activity, $user), 60);

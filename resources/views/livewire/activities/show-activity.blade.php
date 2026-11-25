@@ -330,6 +330,10 @@
         confirm-action="runConfirmedAction"
     />
 
+    @if ($isParticipant && filled(rich_text_excerpt($activity->participants_only_description)))
+        @include('livewire.activities.partials.participants-info-modal', ['activity' => $activity])
+    @endif
+
     @if ($canManageEntityLinks ?? false)
         <livewire:entity-links.manage-entity-links
             :linkable="$activity"

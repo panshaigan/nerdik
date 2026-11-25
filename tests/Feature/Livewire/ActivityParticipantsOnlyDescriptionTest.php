@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire;
 
+use App\Enums\ParticipationMode;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Livewire\Activities\ShowActivity;
 use App\Models\Activity;
@@ -76,5 +77,95 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
 
         $hostHtml = Livewire::actingAs($host)->test(ShowActivity::class, ['activity' => $activity])->html();
         $this->assertStringContainsString($marker, $hostHtml);
+    }
+
+    #[Test]
+    public function join_opens_participants_info_modal_once_and_switches_to_info_tab(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 5,
+            'participants_only_description' => self::PRIVATE_MARKUP,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->call('join')
+            ->assertSet('participantsInfoModalOpen', true)
+            ->assertSet('tab', 'info');
+
+        $roster = ActivityUser::query()
+            ->where('activity_id', $activity->id)
+            ->where('user_id', $member->id)
+            ->firstOrFail();
+        $this->assertNotNull($roster->participants_info_seen_at);
+
+        Livewire::actingAs($member)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSet('participantsInfoModalOpen', false);
+    }
+
+    #[Test]
+    public function pre_enrolled_participant_sees_modal_once_on_first_visit(): void
+    {
+        $host = User::factory()->create();
+        $participant = User::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create([
+            'created_by' => $host->id,
+            'participants_only_description' => self::PRIVATE_MARKUP,
+        ]);
+
+        ActivityUser::query()->create([
+            'activity_id' => $activity->id,
+            'user_id' => $participant->id,
+        ]);
+
+        Livewire::actingAs($participant)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSet('participantsInfoModalOpen', true)
+            ->assertSet('tab', 'info');
+
+        Livewire::actingAs($participant)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSet('participantsInfoModalOpen', false);
+    }
+
+    #[Test]
+    public function join_without_participants_only_text_does_not_open_modal(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 5,
+            'participants_only_description' => null,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->call('join')
+            ->assertSet('participantsInfoModalOpen', false);
+    }
+
+    #[Test]
+    public function host_not_on_roster_does_not_get_participants_info_modal(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->selfHosted()->create([
+            'created_by' => $host->id,
+            'participants_only_description' => self::PRIVATE_MARKUP,
+        ]);
+
+        Livewire::actingAs($host)
+            ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSet('participantsInfoModalOpen', false);
     }
 }

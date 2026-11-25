@@ -9,12 +9,18 @@
         @endif
 
         @if (($isParticipant || $canManageActivity) && filled(rich_text_excerpt($activity->participants_only_description)))
-            <div
-                class="rich-text-content text-justify text-base-content/80"
+            <section
+                class="rounded-xl border border-primary/40 bg-primary/5 p-4 sm:p-5"
                 data-ui="activity-show-participants-only-description"
             >
-                {!! rich_text($activity->participants_only_description) !!}
-            </div>
+                <header class="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
+                    <x-icon name="o-lock-closed" class="h-4 w-4" />
+                    {{ __('ui.activities.participants_only_description') }}
+                </header>
+                <div class="rich-text-content text-justify text-base-content/90">
+                    {!! rich_text($activity->participants_only_description) !!}
+                </div>
+            </section>
         @endif
 
         @if (! empty($suggestedBringRows))

@@ -1083,6 +1083,9 @@ return [
         'tab_participation_rules' => 'Participation rules',
         'participants_only_description' => 'Only for participants',
         'participants_only_description_help' => 'This text is visible only to participants of this activity.',
+        'participants_info_modal_title' => 'Special info for participants',
+        'participants_info_modal_intro' => 'The host left this information for participants only. You can also find it on the activity page.',
+        'participants_info_modal_ack' => 'Got it',
     ],
     'events' => [
         'host' => 'Host',

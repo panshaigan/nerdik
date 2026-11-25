@@ -41,6 +41,8 @@ class ShowActivity extends Component
     /** Bumped when another client changes roster while this viewer has the Participation tab open. */
     public int $participationBroadcastRefreshTick = 0;
 
+    public bool $participantsInfoModalOpen = false;
+
     protected array $queryString = [
         'tab' => ['except' => 'info'],
     ];
@@ -56,6 +58,7 @@ class ShowActivity extends Component
 
         $this->activityId = $activity->id;
         $this->tab = $this->normalizeTab($this->tab);
+        $this->revealParticipantsInfoIfUnseen($activity);
     }
 
     public function updatedTab(string $value): void
@@ -244,6 +247,8 @@ class ShowActivity extends Component
         $this->beginFamiliarityOrRun($activity, 'join', function (?array $snapshot) use ($participation, $activity, $user): void {
             $participation->join($activity, $user, $snapshot);
             $this->toastFromSessionStatus();
+            $activity->refresh();
+            $this->revealParticipantsInfoIfUnseen($activity);
         });
     }
 
@@ -288,6 +293,11 @@ class ShowActivity extends Component
         };
 
         $this->toastFromSessionStatus();
+
+        if ($pendingAction === 'join') {
+            $activity->refresh();
+            $this->revealParticipantsInfoIfUnseen($activity);
+        }
     }
 
     public function leaveWaitlist(ActivityParticipationService $participation): void
@@ -446,6 +456,21 @@ class ShowActivity extends Component
             'lotteryDrawNotices' => $vm->lotteryDrawNotices,
             'suggestedBringRows' => $suggestedBringRows,
         ]);
+    }
+
+    private function revealParticipantsInfoIfUnseen(Activity $activity): void
+    {
+        $user = auth()->user();
+        if (! $user instanceof User) {
+            return;
+        }
+
+        if (! app(ActivityParticipationService::class)->claimParticipantsInfoReveal($activity, $user)) {
+            return;
+        }
+
+        $this->tab = 'info';
+        $this->participantsInfoModalOpen = true;
     }
 
     private function normalizeTab(?string $value): string

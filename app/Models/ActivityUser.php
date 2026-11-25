@@ -15,6 +15,7 @@ class ActivityUser extends Model
         'is_absent',
         'late_minutes',
         'familiarity',
+        'participants_info_seen_at',
         'created_by',
         'updated_by',
         'deleted_at',
@@ -25,6 +26,7 @@ class ActivityUser extends Model
         'is_absent' => 'boolean',
         'late_minutes' => 'integer',
         'familiarity' => 'array',
+        'participants_info_seen_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 

@@ -1083,6 +1083,9 @@ return [
         'tab_participation_rules' => 'Zasady udziału',
         'participants_only_description' => 'Tylko dla uczestników',
         'participants_only_description_help' => 'Ten tekst jest widoczny tylko dla uczestników tej aktywności.',
+        'participants_info_modal_title' => 'Specjalne informacje dla uczestników',
+        'participants_info_modal_intro' => 'Prowadzący zostawił te informacje tylko dla uczestników. Znajdziesz je też na stronie aktywności.',
+        'participants_info_modal_ack' => 'Rozumiem',
     ],
     'events' => [
         'host' => 'Organizator',
