@@ -1458,6 +1458,8 @@ return [
         'followed_upcoming' => 'You are now following upcoming editions.',
         'unfollowed_upcoming' => 'You stopped following upcoming editions.',
         'create_new_event' => 'Create new event',
+        'show_past' => 'Show past',
+        'hide_past' => 'Hide past',
     ],
     'activity_series' => [
         'tab_activities' => 'Activities',
@@ -1480,6 +1482,8 @@ return [
         'followed_upcoming' => 'You are now following upcoming sessions.',
         'unfollowed_upcoming' => 'You stopped following upcoming sessions.',
         'create_new_activity' => 'Create new activity',
+        'show_past' => 'Show past',
+        'hide_past' => 'Hide past',
     ],
     'pagination' => [
         'navigation' => 'Pagination Navigation',

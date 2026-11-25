@@ -6,6 +6,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Livewire\Concerns\WithSeriesActivitiesSort;
+use App\Livewire\Concerns\WithSeriesShowPast;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
@@ -39,6 +40,7 @@ class ShowEventSeries extends Component
     use WithActivityPreviewModal;
     use WithEventPreviewModal;
     use WithSeriesActivitiesSort;
+    use WithSeriesShowPast;
     use WithUiConfirmModal;
 
     #[Locked]
@@ -236,16 +238,31 @@ class ShowEventSeries extends Component
         abort_unless($series->isVisibleTo(auth()->user()), 404);
         $series->load('links');
 
-        /** @var Collection<int, Event> $events */
-        $events = $this->seriesEventsQuery()
+        /** @var Collection<int, Event> $allEvents */
+        $allEvents = $this->seriesEventsQuery()
             ->with(Event::listingCardEagerLoad())
             ->orderBy('starts_at')
             ->orderBy('id')
             ->get();
 
-        $activities = $this->seriesActivities($events);
-        $hosts = $this->uniqueActivityHosts($activities);
-        $stats = $this->seriesStats($events, $activities, $activityPeopleStats);
+        $events = $this->showPast
+            ? $allEvents
+            : $allEvents->filter(fn (Event $event): bool => ! $event->hasEnded())->values();
+
+        $allActivities = $this->seriesActivities($allEvents);
+        $activities = $this->showPast
+            ? $allActivities
+            : $allActivities->filter(fn (Activity $activity): bool => ! $activity->hasEnded())->values();
+        $hosts = $this->uniqueActivityHosts($allActivities);
+        $stats = $this->seriesStats($allEvents, $allActivities, $activityPeopleStats);
+
+        $seriesEventIds = $allEvents->pluck('id')->all();
+        $hasPastActivitiesOnEditions = $seriesEventIds !== []
+            && Activity::query()
+                ->whereHas('slot', fn (Builder $q) => $q->whereIn('event_id', $seriesEventIds))
+                ->ended()
+                ->exists();
+        $hasPast = $this->seriesEventsQuery()->ended()->exists() || $hasPastActivitiesOnEditions;
 
         $eventStatsById = [];
         $eventCoverPicturesById = [];
@@ -312,12 +329,13 @@ class ShowEventSeries extends Component
             'sharePayload' => $shareLinks->forEventSeries($series),
             'calendarPayload' => $calendarLinks->forEventSeries($series, $upcomingEvents),
             'canManageSeries' => $user !== null && $user->canModifyEntity($series),
-            'latestEvent' => $events
+            'latestEvent' => $allEvents
                 ->sortBy([
                     ['starts_at', 'desc'],
                     ['id', 'desc'],
                 ])
                 ->first(),
+            'hasPast' => $hasPast,
             'hasUpcomingFollow' => $hasUpcomingFollow,
             'hasUpcomingInterest' => $hasUpcomingInterest,
             'upcomingInterestedPeopleCount' => $upcomingInterestedPeopleCount,

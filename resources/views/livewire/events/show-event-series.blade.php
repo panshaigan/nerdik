@@ -102,6 +102,13 @@
                     </div>
                 </x-slot:toolbar>
                 <x-tab name="events" :label="__('ui.event_series.tab_events')" class="p-4 sm:p-6" data-ui="event-series-tab-events" icon="o-calendar-days">
+                    @include('livewire.partials.series-show-past-toggle', [
+                        'hasPast' => $hasPast,
+                        'showPast' => $showPast,
+                        'dataUi' => 'event-series-show-past',
+                        'showLabel' => __('ui.event_series.show_past'),
+                        'hideLabel' => __('ui.event_series.hide_past'),
+                    ])
                     @if ($events->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_events') }}</p>
                     @else
@@ -128,6 +135,7 @@
                                     ];
                                     $editionCoverPicture = $eventCoverPicturesById[$editionId] ?? null;
                                     $isInterestedInEdition = in_array($editionId, $interestedEventIds ?? [], true);
+                                    $editionIsPast = $showPast && $edition->hasEnded();
                                 @endphp
                                 <div
                                     wire:key="series-edition-{{ $edition->id }}"
@@ -135,8 +143,10 @@
                                         'ui-tile-active status-dots group relative w-full overflow-visible rounded-xl border border-transparent',
                                         'status-dots-active ui-tile-pressable !border-primary/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-primary/15 motion-reduce:hover:translate-y-0',
                                         'opacity-50' => $edition->isCancelled(),
+                                        'opacity-60' => $editionIsPast && ! $edition->isCancelled(),
                                     ])
                                     data-ui="event-series-edition"
+                                    @if ($editionIsPast) data-past="1" @endif
                                 >
                                     @if ($editionCoverPicture?->hasDisplayableImage())
                                         <x-ui.cover-backdrop
@@ -302,6 +312,13 @@
                 </x-tab>
 
                 <x-tab name="activities" :label="__('ui.event_series.tab_activities')" class="p-4 sm:p-6" data-ui="event-series-tab-activities" icon="o-puzzle-piece">
+                    @include('livewire.partials.series-show-past-toggle', [
+                        'hasPast' => $hasPast,
+                        'showPast' => $showPast,
+                        'dataUi' => 'event-series-show-past',
+                        'showLabel' => __('ui.event_series.show_past'),
+                        'hideLabel' => __('ui.event_series.hide_past'),
+                    ])
                     @if ($activities->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.event_series.empty_activities') }}</p>
                     @else
@@ -316,7 +333,14 @@
                             data-ui="event-series-activities-list"
                         >
                             @foreach ($activities as $activity)
-                                <div wire:key="series-activity-{{ $activity->id }}" class="contents">
+                                @php
+                                    $activityIsPast = $showPast && $activity->hasEnded();
+                                @endphp
+                                <div
+                                    wire:key="series-activity-{{ $activity->id }}"
+                                    @class(['contents', 'opacity-60' => $activityIsPast])
+                                    @if ($activityIsPast) data-past="1" @endif
+                                >
                                     <x-cards.listing-card
                                         :listing="$activity"
                                         :interested-ids="$interestedActivityIds"

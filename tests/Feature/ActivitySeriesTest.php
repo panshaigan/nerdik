@@ -141,14 +141,25 @@ class ActivitySeriesTest extends TestCase
             'ends_at' => now()->addMonth()->addHours(4),
         ]);
 
-        $this->get(route('activity-series.show', $series))
+        $this->actingAs($user)
+            ->get(route('activity-series.show', $series))
             ->assertOk()
             ->assertSeeLivewire(ShowActivitySeries::class)
-            ->assertSee('Weekly RPG I', false)
             ->assertSee('Weekly RPG II', false);
 
-        Livewire::test(ShowActivitySeries::class, ['activitySeries' => $series])
+        Livewire::actingAs($user)->test(ShowActivitySeries::class, ['activitySeries' => $series])
             ->assertSet('tab', 'activities')
+            ->assertSet('showPast', false)
+            ->assertViewHas('activities', function (\Illuminate\Support\Collection $activities): bool {
+                return $activities->count() === 1
+                    && $activities->first()?->name === 'Weekly RPG II';
+            })
+            ->assertSee('Weekly RPG II', false)
+            ->assertSeeHtml('data-ui="activity-series-show-past"')
+            ->call('toggleShowPast')
+            ->assertSet('showPast', true)
+            ->assertSee('Weekly RPG I', false)
+            ->assertSeeHtml('data-past="1"')
             ->assertSeeHtml('data-ui="activity-series-show-follow"')
             ->assertSee(__('ui.activity_series.stats_sessions'), false)
             ->assertSeeHtml('data-preserve-scroll');

@@ -249,6 +249,11 @@ class Activity extends Model implements HasMedia
         return 'COALESCE((SELECT slots.starts_at FROM slots WHERE slots.activity_id = activities.id AND slots.deleted_at IS NULL LIMIT 1), activities.starts_at)';
     }
 
+    public static function scheduleEndsAtSql(): string
+    {
+        return 'COALESCE((SELECT COALESCE(slots.ends_at, slots.starts_at) FROM slots WHERE slots.activity_id = activities.id AND slots.deleted_at IS NULL LIMIT 1), COALESCE(activities.ends_at, activities.starts_at))';
+    }
+
     public function scheduleStartsAt(): ?Carbon
     {
         $this->loadMissing('slot');
@@ -256,6 +261,46 @@ class Activity extends Model implements HasMedia
         $startsAt = $this->slot?->starts_at ?? $this->starts_at;
 
         return $startsAt !== null ? Carbon::parse($startsAt) : null;
+    }
+
+    public function scheduleEndsAt(): ?Carbon
+    {
+        $this->loadMissing('slot');
+
+        $endsAt = $this->slot?->ends_at ?? $this->ends_at;
+        if ($endsAt !== null) {
+            return Carbon::parse($endsAt);
+        }
+
+        return $this->scheduleStartsAt();
+    }
+
+    /**
+     * Wall-clock end used for browse and series past/current filtering.
+     */
+    public function hasEnded(?Carbon $now = null): bool
+    {
+        $now ??= now();
+        $scheduleEnd = $this->scheduleEndsAt();
+        if ($scheduleEnd === null) {
+            return false;
+        }
+
+        return $scheduleEnd->lt($now);
+    }
+
+    /** @param  Builder<Activity>  $query */
+    public function scopeNotEnded(Builder $query): void
+    {
+        $sql = self::scheduleEndsAtSql();
+        $query->whereRaw("({$sql}) >= ?", [now()]);
+    }
+
+    /** @param  Builder<Activity>  $query */
+    public function scopeEnded(Builder $query): void
+    {
+        $sql = self::scheduleEndsAtSql();
+        $query->whereRaw("({$sql}) < ?", [now()]);
     }
 
     /**

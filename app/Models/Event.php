@@ -152,6 +152,32 @@ class Event extends Model implements HasMedia
     }
 
     /**
+     * Wall-clock end used for browse and series past/current filtering.
+     */
+    public function hasEnded(?Carbon $now = null): bool
+    {
+        $now ??= now();
+        $end = $this->ends_at ?? $this->starts_at;
+        if ($end === null) {
+            return false;
+        }
+
+        return Carbon::parse($end)->lt($now);
+    }
+
+    /** @param  Builder<Event>  $query */
+    public function scopeNotEnded(Builder $query): void
+    {
+        $query->whereRaw('COALESCE(events.ends_at, events.starts_at) >= ?', [now()]);
+    }
+
+    /** @param  Builder<Event>  $query */
+    public function scopeEnded(Builder $query): void
+    {
+        $query->whereRaw('COALESCE(events.ends_at, events.starts_at) < ?', [now()]);
+    }
+
+    /**
      * Whether “propose an activity” CTAs may be shown for this event.
      */
     public function allowsActivityProposalUi(?Carbon $now = null): bool

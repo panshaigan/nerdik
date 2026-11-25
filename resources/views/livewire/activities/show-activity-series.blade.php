@@ -103,6 +103,13 @@
                 </x-slot:toolbar>
 
                 <x-tab name="activities" :label="__('ui.activity_series.tab_activities')" class="p-4 sm:p-6" data-ui="activity-series-tab-activities" icon="o-puzzle-piece">
+                    @include('livewire.partials.series-show-past-toggle', [
+                        'hasPast' => $hasPast,
+                        'showPast' => $showPast,
+                        'dataUi' => 'activity-series-show-past',
+                        'showLabel' => __('ui.activity_series.show_past'),
+                        'hideLabel' => __('ui.activity_series.hide_past'),
+                    ])
                     @if ($activities->isEmpty())
                         <p class="text-base-content/70">{{ __('ui.activity_series.empty_activities') }}</p>
                     @else
@@ -117,7 +124,14 @@
                             data-ui="activity-series-activities-list"
                         >
                             @foreach ($activities as $activity)
-                                <div wire:key="series-activity-{{ $activity->id }}" class="contents">
+                                @php
+                                    $activityIsPast = $showPast && $activity->hasEnded();
+                                @endphp
+                                <div
+                                    wire:key="series-activity-{{ $activity->id }}"
+                                    @class(['contents', 'opacity-60' => $activityIsPast])
+                                    @if ($activityIsPast) data-past="1" @endif
+                                >
                                     <x-cards.listing-card
                                         :listing="$activity"
                                         :interested-ids="$interestedActivityIds"

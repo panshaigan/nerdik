@@ -142,13 +142,23 @@ class EventSeriesTest extends TestCase
         $this->get(route('event-series.show', $series))
             ->assertOk()
             ->assertSeeLivewire(ShowEventSeries::class)
-            ->assertSee('Porzucane I', false)
             ->assertSee('Porzucane II', false)
             ->assertSeeHtml('data-ui="event-series-edition"')
             ->assertSeeHtml('data-ui="event-card"');
 
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
+            ->assertSet('showPast', false)
+            ->assertViewHas('events', function (\Illuminate\Support\Collection $events): bool {
+                return $events->count() === 1
+                    && $events->first()?->name === 'Porzucane II';
+            })
+            ->assertSeeHtml('data-ui="event-series-show-past"')
+            ->assertSee('Porzucane II', false)
+            ->call('toggleShowPast')
+            ->assertSet('showPast', true)
+            ->assertSee('Porzucane I', false)
+            ->assertSeeHtml('data-past="1"')
             ->assertSeeHtml('data-ui="event-series-edition-stats"')
             ->assertSeeHtml('data-ui="event-card-open-preview"')
             ->assertSeeHtml('data-ui="event-series-show-follow"')
@@ -156,6 +166,36 @@ class EventSeriesTest extends TestCase
             ->assertSee(__('ui.event_series.stats_activities'), false)
             ->assertSee(__('ui.event_series.stats_participants'), false)
             ->assertSeeHtml('data-preserve-scroll');
+    }
+
+    public function test_series_show_stats_still_count_past_when_past_editions_hidden(): void
+    {
+        $user = User::factory()->create();
+        $series = EventSeries::factory()->create(['created_by' => $user->id]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Past Edition Visible In Stats',
+            'starts_at' => now()->subWeek(),
+            'ends_at' => now()->subWeek()->addHours(4),
+        ]);
+        Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'event_series_id' => $series->id,
+            'name' => 'Upcoming Edition',
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addHours(4),
+        ]);
+
+        Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
+            ->assertSet('showPast', false)
+            ->assertViewHas('events', fn (\Illuminate\Support\Collection $events): bool => $events->count() === 1)
+            ->set('tab', 'stats')
+            ->assertViewHas('stats', function (array $stats): bool {
+                return $stats['editions_count'] === 2
+                    && $stats['past_count'] === 1
+                    && $stats['upcoming_count'] === 1;
+            });
     }
 
     public function test_owner_manage_menu_creates_event_by_duplicating_latest_edition(): void

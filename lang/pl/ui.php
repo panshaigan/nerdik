@@ -1458,6 +1458,8 @@ return [
         'followed_upcoming' => 'Śledzisz teraz nadchodzące edycje.',
         'unfollowed_upcoming' => 'Przestałeś śledzić nadchodzące edycje.',
         'create_new_event' => 'Utwórz nowe wydarzenie',
+        'show_past' => 'Pokaż poprzednie',
+        'hide_past' => 'Ukryj poprzednie',
     ],
     'activity_series' => [
         'tab_activities' => 'Aktywności',
@@ -1480,6 +1482,8 @@ return [
         'followed_upcoming' => 'Śledzisz teraz nadchodzące sesje.',
         'unfollowed_upcoming' => 'Przestałeś śledzić nadchodzące sesje.',
         'create_new_activity' => 'Utwórz nową aktywność',
+        'show_past' => 'Pokaż przeszłe',
+        'hide_past' => 'Ukryj przeszłe',
     ],
     'editor' => [
         'block_formats' => 'Akapit=p; Nagłówek 2=h2; Nagłówek 3=h3',
