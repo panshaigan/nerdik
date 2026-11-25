@@ -8,6 +8,15 @@
             <p class="text-sm text-base-content/60">{{ __('ui.activities.show_no_description') }}</p>
         @endif
 
+        @if (($isParticipant || $canManageActivity) && filled(rich_text_excerpt($activity->participants_only_description)))
+            <div
+                class="rich-text-content text-justify text-base-content/80"
+                data-ui="activity-show-participants-only-description"
+            >
+                {!! rich_text($activity->participants_only_description) !!}
+            </div>
+        @endif
+
         @if (! empty($suggestedBringRows))
             <x-activities.suggested-bring-show :rows="$suggestedBringRows" class="mt-2" />
         @endif

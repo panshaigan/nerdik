@@ -27,6 +27,10 @@
                     @include('livewire.activities.partials.manage-main-details-tab')
                 </x-tab>
 
+                <x-tab name="minor-details" :label="$this->tabLabel('minor-details', __('ui.activities.tab_minor_details'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-minor-details" icon="o-queue-list">
+                    @include('livewire.activities.partials.manage-minor-details-tab')
+                </x-tab>
+
                 <x-tab name="participation-rules" :label="$this->tabLabel('participation-rules', __('ui.activities.tab_participation_rules'))" class="px-4 py-4 sm:px-6 sm:py-6" data-ui="activity-manage-tab-participation-rules" icon="o-users">
                     @include('livewire.activities.partials.manage-participation-rules-tab')
                 </x-tab>

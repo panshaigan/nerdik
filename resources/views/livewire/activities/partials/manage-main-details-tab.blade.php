@@ -262,5 +262,3 @@
     />
     <x-field-error :messages="$errors->get('description')" class="mt-2" />
 </div>
-
-@include('livewire.activities.partials.manage-suggested-bring-section')

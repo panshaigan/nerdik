@@ -1079,7 +1079,10 @@ return [
         'no_participants' => 'Brak uczestników.',
         'waitlist_empty_hint' => 'Na liście oczekujących nikogo jeszcze nie ma.',
         'tab_main_details' => 'Główne dane',
+        'tab_minor_details' => 'Dodatkowe',
         'tab_participation_rules' => 'Zasady udziału',
+        'participants_only_description' => 'Tylko dla uczestników',
+        'participants_only_description_help' => 'Ten tekst jest widoczny tylko dla uczestników tej aktywności.',
     ],
     'events' => [
         'host' => 'Organizator',

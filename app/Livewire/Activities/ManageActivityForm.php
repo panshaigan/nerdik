@@ -58,7 +58,7 @@ class ManageActivityForm extends Component
     private const ORGANIZATION_SUGGESTIONS_LIMIT = 500;
 
     /** @var list<string> */
-    private const FORM_TAB_ORDER = ['main-details', 'participation-rules', 'tags', 'image', 'hosting-mode'];
+    private const FORM_TAB_ORDER = ['main-details', 'minor-details', 'participation-rules', 'tags', 'image', 'hosting-mode'];
 
     public ?int $editingActivityId = null;
 
@@ -84,6 +84,8 @@ class ManageActivityForm extends Component
     public string $name = '';
 
     public string $description = '';
+
+    public string $participants_only_description = '';
 
     public string $slug = '';
 
@@ -212,6 +214,7 @@ class ManageActivityForm extends Component
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
+            $this->participants_only_description = (string) ($activity->participants_only_description ?? '');
             $this->activity_type_id = $activity->activity_type_id;
             $this->activity_series_id = $activity->activity_series_id;
             $this->activity_series_name = (string) (optional($activity->activitySeries)->name ?? '');
@@ -449,8 +452,8 @@ class ManageActivityForm extends Component
 
         return match ($root) {
             'name', 'description', 'activity_type_id', 'min_participants', 'max_participants',
-            'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours',
-            'provided_bring_item_ids', 'suggested_bring_extras' => 'main-details',
+            'minimum_age', 'maximum_age', 'duration_in_minutes', 'cancellation_deadline_in_hours' => 'main-details',
+            'participants_only_description', 'provided_bring_item_ids', 'suggested_bring_extras' => 'minor-details',
             'lottery_draw_in_hours', 'participation_mode', 'allows_observers', 'collect_familiarity' => 'participation-rules',
             'tag_ids', 'new_tags' => 'tags',
             'logo_source', 'selected_tag_media_id', 'gallery_media_id', 'croppedLogo', 'sourceImage' => 'image',
@@ -663,6 +666,7 @@ class ManageActivityForm extends Component
         $maxBase = max(0, 255 - mb_strlen($suffix));
         $this->name = mb_substr($base, 0, $maxBase).$suffix;
         $this->description = (string) ($source->description ?? '');
+        $this->participants_only_description = (string) ($source->participants_only_description ?? '');
         $this->activity_type_id = $source->activity_type_id;
         $this->activity_series_id = $source->activity_series_id;
         $this->activity_series_name = (string) (optional($source->activitySeries)->name ?? '');
@@ -1177,6 +1181,7 @@ class ManageActivityForm extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'participants_only_description' => ['nullable', 'string'],
             'activity_type_id' => $activityTypeRules,
             'activity_series_id' => ['nullable', 'integer', Rule::exists(ActivitySeries::class, 'id')->withoutTrashed()],
             'activity_series_name' => ['nullable', 'string', 'max:255'],

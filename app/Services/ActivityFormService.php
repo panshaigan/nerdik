@@ -42,6 +42,7 @@ class ActivityFormService
         PersistenceTiming $timing,
     ): mixed {
         $validated['description'] = RichText::sanitize($validated['description'] ?? null);
+        $validated['participants_only_description'] = RichText::sanitize($validated['participants_only_description'] ?? null);
         $timing->checkpoint('rich_text_sanitization');
         $validated['participation_mode'] = ParticipationMode::tryFrom((string) ($validated['participation_mode'] ?? ''))
             ?? ParticipationMode::Open;

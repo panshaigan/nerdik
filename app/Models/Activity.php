@@ -69,6 +69,7 @@ class Activity extends Model implements HasMedia
     protected $fillable = [
         'name',
         'description',
+        'participants_only_description',
         'activity_type_id',
         'activity_series_id',
         'organization_id',
