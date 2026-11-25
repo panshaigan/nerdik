@@ -2,10 +2,12 @@
     $hasContactSections = $contacts['email'] !== null
         || $contacts['facebook'] !== null
         || $contacts['discord'] !== null;
+    $activityInviteOptions = $activityInviteOptions ?? [];
+    $activityInviteCount = count($activityInviteOptions);
     $organizationInviteOptions = $organizationInviteOptions ?? [];
     $organizationInviteCount = count($organizationInviteOptions);
     $hasFooterActions = $targetUser !== null && (
-        ($activityInviteSubjectId ?? null)
+        $activityInviteCount > 0
         || $organizationInviteCount > 0
         || (($organizationJoinSubjectId ?? null) && ($organizationJoinRecipientId ?? null))
         || ($canBanTarget ?? false)
@@ -230,14 +232,45 @@
 
     @if ($hasFooterActions)
         <div class="flex shrink-0 flex-wrap gap-2 border-t border-base-300 px-4 py-3" data-ui="user-contact-popover-requests">
-            @if ($activityInviteSubjectId)
+            @if ($activityInviteCount === 1)
                 <livewire:user-requests.send-user-request
                     type="activity_invite"
                     subject-type="activity"
-                    :subject-id="$activityInviteSubjectId"
+                    :subject-id="$activityInviteOptions[0]['id']"
                     :recipient-id="$targetUser->id"
-                    :key="'activity-invite-'.$targetUser->id.'-'.$activityInviteSubjectId"
+                    :key="'activity-invite-'.$targetUser->id.'-'.$activityInviteOptions[0]['id']"
                 />
+            @elseif ($activityInviteCount > 1)
+                <div class="dropdown dropdown-top" data-ui="user-contact-popover-activity-invite-menu">
+                    <div
+                        tabindex="0"
+                        role="button"
+                        class="btn btn-sm btn-outline"
+                        aria-haspopup="menu"
+                        aria-label="{{ __('ui.user_requests.invite_to_activity') }}"
+                    >
+                        {{ __('ui.user_requests.invite_to_activity') }}
+                        <x-icon name="o-chevron-up" class="h-4 w-4 opacity-70" />
+                    </div>
+                    <ul
+                        tabindex="0"
+                        role="menu"
+                        class="dropdown-content menu z-[100] mb-1 w-64 rounded-box border border-base-300 bg-base-100 p-1 shadow light:border-neutral"
+                        data-ui="user-contact-popover-activity-invite-menu-list"
+                    >
+                        @foreach ($activityInviteOptions as $activityInviteOption)
+                            <li wire:key="activity-invite-option-{{ $activityInviteOption['id'] }}" role="none">
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    wire:click="openActivityInvite({{ $activityInviteOption['id'] }})"
+                                >
+                                    {{ $activityInviteOption['name'] }}
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
             @if ($organizationInviteCount === 1)
                 <livewire:user-requests.send-user-request
@@ -318,6 +351,18 @@
                 >{{ __('ui.impersonation.log_in_as') }}</button>
             @endif
         </div>
+        @if ($activityInviteCount > 1)
+            @foreach ($activityInviteOptions as $activityInviteOption)
+                <livewire:user-requests.send-user-request
+                    type="activity_invite"
+                    subject-type="activity"
+                    :subject-id="$activityInviteOption['id']"
+                    :recipient-id="$targetUser->id"
+                    :show-trigger="false"
+                    :key="'activity-invite-'.$targetUser->id.'-'.$activityInviteOption['id']"
+                />
+            @endforeach
+        @endif
         @if ($organizationInviteCount > 1)
             @foreach ($organizationInviteOptions as $organizationInviteOption)
                 <livewire:user-requests.send-user-request

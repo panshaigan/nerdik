@@ -1517,7 +1517,7 @@ return [
         'send_request' => 'Wyślij prośbę',
         'send_invite' => 'Wyślij zaproszenie',
         'request_organizer_access' => 'Uzyskaj status organizatora wydarzeń',
-        'invite_to_organization' => 'Zaproś do organizacji',
+        'invite_to_organization' => 'Zaproś',
         'invite_to_named_organization' => 'Zaproś do :organization',
         'request_to_join_organization' => 'Poproś o dołączenie',
         'request_to_join_named_organization' => 'Poproś o dołączenie do :organization',

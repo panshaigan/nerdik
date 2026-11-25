@@ -805,4 +805,156 @@ class ProfileContactPopoverTest extends TestCase
             ->assertDontSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
             ->assertSee(__('ui.user_requests.invite_to_organization'));
     }
+
+    public function test_user_contact_popover_shows_direct_activity_invite_when_owner_has_one_future_activity(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        Activity::factory()->create([
+            'name' => 'Solo Future Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(3),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('activityInviteOptions', fn (array $options): bool => count($options) === 1)
+            ->assertDontSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_to_activity'));
+    }
+
+    public function test_user_contact_popover_shows_activity_invite_dropdown_when_owner_has_multiple_future_activities(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        Activity::factory()->create([
+            'name' => 'Alpha Future Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(3),
+        ]);
+        Activity::factory()->create([
+            'name' => 'Beta Future Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('activityInviteOptions', fn (array $options): bool => count($options) === 2)
+            ->assertSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
+            ->assertSee('Alpha Future Game')
+            ->assertSee('Beta Future Game');
+    }
+
+    public function test_user_contact_popover_activity_invite_options_are_only_activities_created_by_viewer(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $otherHost = User::factory()->create();
+        $target = User::factory()->create();
+
+        Activity::factory()->create([
+            'name' => 'Admin Owned Game',
+            'created_by' => $admin->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(3),
+        ]);
+        $foreign = Activity::factory()->create([
+            'name' => 'Someone Else Game',
+            'created_by' => $otherHost->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3)->addHours(3),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+                'contextActivityId' => $foreign->id,
+            ])
+            ->assertViewHas('activityInviteOptions', function (array $options): bool {
+                return count($options) === 1
+                    && $options[0]['name'] === 'Admin Owned Game';
+            })
+            ->assertDontSee('Someone Else Game');
+    }
+
+    public function test_user_contact_popover_excludes_activities_target_already_joined(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        $joined = Activity::factory()->create([
+            'name' => 'Already Joined Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(3),
+        ]);
+        $open = Activity::factory()->create([
+            'name' => 'Open Seat Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(4),
+            'ends_at' => now()->addDays(4)->addHours(3),
+        ]);
+        ActivityUser::query()->create([
+            'activity_id' => $joined->id,
+            'user_id' => $target->id,
+            'is_absent' => false,
+            'deleted_at' => null,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+                'contextActivityId' => $joined->id,
+            ])
+            ->assertViewHas('activityInviteOptions', function (array $options) use ($open): bool {
+                return count($options) === 1
+                    && $options[0]['id'] === $open->id;
+            })
+            ->assertDontSeeHtml('data-ui="user-contact-popover-activity-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_to_activity'));
+    }
+
+    public function test_user_contact_popover_dispatches_activity_invite_open_for_selected_activity(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create();
+        Activity::factory()->create([
+            'name' => 'Alpha Future Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(2),
+            'ends_at' => now()->addDays(2)->addHours(3),
+        ]);
+        $beta = Activity::factory()->create([
+            'name' => 'Beta Future Game',
+            'created_by' => $owner->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'starts_at' => now()->addDays(5),
+            'ends_at' => now()->addDays(5)->addHours(3),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->call('openActivityInvite', $beta->id)
+            ->assertDispatched(
+                'open-send-user-request',
+                type: 'activity_invite',
+                subjectId: $beta->id,
+            );
+    }
 }

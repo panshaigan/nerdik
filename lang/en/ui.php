@@ -1527,7 +1527,7 @@ return [
         'send_request' => 'Send request',
         'send_invite' => 'Send invitation',
         'request_organizer_access' => 'Request event organizer features',
-        'invite_to_organization' => 'Invite to organization',
+        'invite_to_organization' => 'Invite',
         'invite_to_named_organization' => 'Invite to :organization',
         'request_to_join_organization' => 'Request to join',
         'request_to_join_named_organization' => 'Request to join :organization',

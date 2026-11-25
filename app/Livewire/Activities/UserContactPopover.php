@@ -232,13 +232,40 @@ class UserContactPopover extends Component
             'hostBanCount' => $reputation['ban_count'],
             'absenceCount' => $reputation['absence_count'],
             'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
-            'activityInviteSubjectId' => $this->contextActivityId,
+            'activityInviteOptions' => $this->resolveActivityInviteOptions($viewer, $targetUser),
             'organizationInviteOptions' => $this->resolveOrganizationInviteOptions($viewer, $targetUser),
             'organizationJoinSubjectId' => $this->resolveOrganizationJoinSubjectId($viewer, $targetUser),
             'organizationJoinRecipientId' => $this->resolveOrganizationJoinRecipientId($viewer, $targetUser),
             'playAreaPreview' => $this->resolvePlayAreaPreview($targetUser),
             'interestTagBadges' => $this->resolveInterestTagBadges($targetUser),
         ];
+    }
+
+    public function openActivityInvite(int $activityId): void
+    {
+        $viewer = auth()->user();
+        if (! $viewer instanceof User) {
+            abort(403);
+        }
+
+        $targetUser = User::query()->whereKey($this->targetUserId)->first();
+        if (! $targetUser instanceof User) {
+            abort(404);
+        }
+
+        $allowedIds = collect($this->resolveActivityInviteOptions($viewer, $targetUser))
+            ->pluck('id')
+            ->all();
+
+        if (! in_array($activityId, $allowedIds, true)) {
+            abort(403);
+        }
+
+        $this->dispatch(
+            'open-send-user-request',
+            type: UserRequestType::ActivityInvite->value,
+            subjectId: $activityId,
+        );
     }
 
     public function openOrganizationInvite(int $organizationId): void
@@ -320,6 +347,68 @@ class UserContactPopover extends Component
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function resolveActivityInviteOptions(User $viewer, User $targetUser): array
+    {
+        if ($viewer->is($targetUser)) {
+            return [];
+        }
+
+        if ($this->contextActivityId !== null) {
+            $activity = Activity::query()->find($this->contextActivityId);
+            if ($activity instanceof Activity
+                && (int) $activity->created_by === (int) $viewer->id
+                && $this->activityAllowsInviteTo($activity, $targetUser)) {
+                return [[
+                    'id' => (int) $activity->id,
+                    'name' => (string) $activity->name,
+                ]];
+            }
+        }
+
+        $startsAtSql = Activity::scheduleStartsAtSql();
+
+        return Activity::query()
+            ->where('created_by', $viewer->id)
+            ->whereNull('cancelled_at')
+            ->whereIn('hosting_mode', [
+                Activity::HOSTING_MODE_SELF_HOSTED,
+                Activity::HOSTING_MODE_SCHEDULED_ON_EVENT,
+            ])
+            ->whereRaw("{$startsAtSql} > ?", [now()])
+            ->whereDoesntHave('participants', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->whereDoesntHave('waitlist', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->orderByRaw("{$startsAtSql} ASC")
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Activity $activity): array => [
+                'id' => (int) $activity->id,
+                'name' => (string) $activity->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function activityAllowsInviteTo(Activity $activity, User $targetUser): bool
+    {
+        if ($activity->isCancelled() || ! $activity->isJoinableMode()) {
+            return false;
+        }
+
+        $startsAt = $activity->scheduleStartsAt();
+        if ($startsAt === null || $startsAt->isPast()) {
+            return false;
+        }
+
+        if ($activity->participants()->where('user_id', $targetUser->id)->exists()) {
+            return false;
+        }
+
+        return ! $activity->waitlist()->where('user_id', $targetUser->id)->exists();
     }
 
     /**
@@ -418,7 +507,7 @@ class UserContactPopover extends Component
                 'facebook' => null,
                 'discord' => null,
             ],
-            'activityInviteSubjectId' => null,
+            'activityInviteOptions' => [],
             'organizationInviteOptions' => [],
             'organizationJoinSubjectId' => null,
             'organizationJoinRecipientId' => null,
