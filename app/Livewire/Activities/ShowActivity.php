@@ -5,6 +5,7 @@ namespace App\Livewire\Activities;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Domain\ActivityBadges\ActivityBadgeGroupConfig;
 use App\Livewire\Concerns\WithFamiliarityPrompt;
+use App\Livewire\Concerns\WithParticipantsInfoJoinModal;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
 use App\Models\Activity;
@@ -29,6 +30,7 @@ class ShowActivity extends Component
 {
     use Toast;
     use WithFamiliarityPrompt;
+    use WithParticipantsInfoJoinModal;
     use WithUiConfirmModal;
 
     #[Locked]
@@ -40,8 +42,6 @@ class ShowActivity extends Component
 
     /** Bumped when another client changes roster while this viewer has the Participation tab open. */
     public int $participationBroadcastRefreshTick = 0;
-
-    public bool $participantsInfoModalOpen = false;
 
     protected array $queryString = [
         'tab' => ['except' => 'info'],
@@ -455,16 +455,6 @@ class ShowActivity extends Component
             'lotteryDrawNotices' => $vm->lotteryDrawNotices,
             'suggestedBringRows' => $suggestedBringRows,
         ]);
-    }
-
-    private function openParticipantsInfoModalAfterJoin(Activity $activity): void
-    {
-        if (! filled(rich_text_excerpt($activity->participants_only_description))) {
-            return;
-        }
-
-        $this->tab = 'info';
-        $this->participantsInfoModalOpen = true;
     }
 
     private function normalizeTab(?string $value): string

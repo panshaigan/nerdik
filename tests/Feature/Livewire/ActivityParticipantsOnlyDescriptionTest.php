@@ -7,6 +7,7 @@ namespace Tests\Feature\Livewire;
 use App\Enums\ParticipationMode;
 use App\Livewire\Activities\ManageActivityForm;
 use App\Livewire\Activities\ShowActivity;
+use App\Livewire\Browse\BrowseActivities;
 use App\Models\Activity;
 use App\Models\ActivityType;
 use App\Models\ActivityUser;
@@ -143,6 +144,29 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
             ->test(ShowActivity::class, ['activity' => $activity])
             ->call('join')
             ->assertSet('participantsInfoModalOpen', false);
+    }
+
+    #[Test]
+    public function join_from_listing_preview_opens_participants_info_modal(): void
+    {
+        $host = User::factory()->create();
+        $member = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'updated_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'participation_mode' => ParticipationMode::Open,
+            'max_participants' => 5,
+            'participants_only_description' => self::PRIVATE_MARKUP,
+        ]);
+
+        Livewire::withoutLazyLoading()
+            ->actingAs($member)
+            ->test(BrowseActivities::class)
+            ->call('openListingActivityPreview', $activity->id)
+            ->call('joinPreviewActivity')
+            ->assertSet('participantsInfoModalOpen', true)
+            ->assertSet('activityPreviewTab', 'info');
     }
 
     #[Test]

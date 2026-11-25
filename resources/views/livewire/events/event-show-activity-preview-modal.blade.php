@@ -11,4 +11,8 @@
     ])
 
     @include('livewire.partials.familiarity-prompt-modal')
+
+    @if ($previewActivity && filled(rich_text_excerpt($previewActivity->participants_only_description)))
+        @include('livewire.activities.partials.participants-info-modal', ['activity' => $previewActivity])
+    @endif
 </div>

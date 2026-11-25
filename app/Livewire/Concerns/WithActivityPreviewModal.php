@@ -19,6 +19,7 @@ use Livewire\Attributes\On;
 trait WithActivityPreviewModal
 {
     use WithFamiliarityPrompt;
+    use WithParticipantsInfoJoinModal;
 
     public bool $activityPreviewModalOpen = false;
 
@@ -109,7 +110,7 @@ trait WithActivityPreviewModal
 
         $this->beginFamiliarityOrRun($activity, 'join_preview', function (?array $snapshot) use ($participation, $activity, $user): void {
             $participation->join($activity, $user, $snapshot);
-            $this->showPreviewParticipationTab();
+            $this->afterPreviewJoinSucceeded($activity);
             $this->toastPreviewParticipationStatus();
         });
     }
@@ -157,7 +158,12 @@ trait WithActivityPreviewModal
             default => null,
         };
 
-        $this->showPreviewParticipationTab();
+        if ($pendingAction === 'join_preview') {
+            $this->afterPreviewJoinSucceeded($activity);
+        } else {
+            $this->showPreviewParticipationTab();
+        }
+
         $this->toastPreviewParticipationStatus();
     }
 
@@ -351,5 +357,20 @@ trait WithActivityPreviewModal
         if (is_string($status) && $status !== '') {
             $this->info($status);
         }
+    }
+
+    private function afterPreviewJoinSucceeded(Activity $activity): void
+    {
+        $activity->refresh();
+        $this->openParticipantsInfoModalAfterJoin($activity);
+
+        if ($this->participantsInfoModalOpen) {
+            $this->activityPreviewRefreshTick++;
+            $this->afterPreviewParticipationChanged();
+
+            return;
+        }
+
+        $this->showPreviewParticipationTab();
     }
 }
