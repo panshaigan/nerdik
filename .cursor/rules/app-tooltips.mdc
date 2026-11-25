@@ -13,6 +13,10 @@ When the user asks for a **tooltip**, they mean this app’s DaisyUI tooltip —
 - Raw / non-Mary hosts: DaisyUI classes `tooltip` / `tooltip-top|bottom|left|right` plus `data-tip="…"`
 - Pair with `:aria-label` (or visible text) for accessibility when the control is icon-only
 
+## Placement
+
+Default to **above** the element (`tooltip-top` / `:tooltip-top`). Only use another side when the user asks, or when the host sits at the very top edge of a clipping viewport and top is impossible. Never default to `bottom`.
+
 ## Do not
 
 - `title="…"` / `title="{{ … }}"` for user-facing tips

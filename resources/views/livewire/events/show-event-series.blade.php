@@ -163,7 +163,7 @@
                                                 wire:navigate
                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                                 :aria-label="__('ui.events.show_details').': '.$edition->name"
-                                                :tooltip-bottom="__('ui.events.show_details')"
+                                                :tooltip-top="__('ui.events.show_details')"
                                                 icon="o-arrow-top-right-on-square"
                                                 data-ui="event-card-open-details"
                                             />
@@ -173,7 +173,7 @@
                                                         :link="$editionMeta['edit_url']"
                                                         class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-primary"
                                                         :aria-label="__('ui.events.edit_event').': '.$edition->name"
-                                                        :tooltip-bottom="__('ui.events.edit_event')"
+                                                        :tooltip-top="__('ui.events.edit_event')"
                                                         icon="o-pencil"
                                                         data-ui="event-card-edit"
                                                     />
@@ -187,7 +187,7 @@
                                                                 type="button"
                                                                 wire:click="toggleEventInterest({{ $editionId }})"
                                                                 class="btn btn-ghost btn-square btn-sm text-lg text-warning ui-action ui-action-interest-remove"
-                                                                :tooltip-bottom="__('ui.interests.remove_from_interests')"
+                                                                :tooltip-top="__('ui.interests.remove_from_interests')"
                                                                 data-ui="event-card-interest-remove"
                                                                 icon="s-star"
                                                             />
@@ -196,7 +196,7 @@
                                                                 type="button"
                                                                 wire:click="toggleEventInterest({{ $editionId }})"
                                                                 class="btn-ghost btn-square btn-sm text-base-content/80 hover:text-warning ui-action ui-action-interest-add"
-                                                                :tooltip-bottom="__('ui.interests.add_to_interests')"
+                                                                :tooltip-top="__('ui.interests.add_to_interests')"
                                                                 data-ui="event-card-interest-add"
                                                                 icon="o-star"
                                                             />
