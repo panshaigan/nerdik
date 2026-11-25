@@ -106,7 +106,7 @@ class GlobalNavSearch extends Component
     {
         $suggestions = $this->suggestions();
         $previewUser = $this->previewUserId !== null
-            ? User::query()->whereKey($this->previewUserId)->first()
+            ? User::query()->with('organization')->whereKey($this->previewUserId)->first()
             : null;
 
         return view('livewire.layout.global-nav-search', [

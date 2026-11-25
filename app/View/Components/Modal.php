@@ -23,11 +23,15 @@ class Modal extends Component
         public ?bool $persistent = false,
         public ?bool $withoutTrapFocus = false,
         public ?string $actions = null,
+        public mixed $titleAddon = null,
     ) {}
 
     public function render(): View|Closure|string
     {
         return <<<'HTML'
+                @php
+                    $hasTitleAddon = filled($titleAddon);
+                @endphp
                 @if($id)
                 <dialog
                     {{ $attributes->except('wire:model')->class(["modal"]) }}
@@ -41,7 +45,22 @@ class Modal extends Component
                         @endif
 
                         @if($title)
-                            <x-mary-header :title="$title" :subtitle="$subtitle" size="text-xl" :separator="$separator" class="!mb-5" />
+                            @if($hasTitleAddon)
+                                <div class="mb-5" data-ui="modal-title-with-addon">
+                                    <div class="flex min-w-0 flex-wrap items-center gap-2 pe-10">
+                                        <div class="min-w-0 -translate-y-1 truncate text-xl font-extrabold leading-none">{{ $title }}</div>
+                                        <div class="min-w-0 max-w-full shrink" data-ui="modal-title-addon">{{ $titleAddon }}</div>
+                                    </div>
+                                    @if($subtitle)
+                                        <div class="mt-1 text-sm text-base-content/50">{{ $subtitle }}</div>
+                                    @endif
+                                    @if($separator)
+                                        <hr class="mt-3 border-t-[length:var(--border)] border-base-content/10" />
+                                    @endif
+                                </div>
+                            @else
+                                <x-mary-header :title="$title" :subtitle="$subtitle" size="text-xl" :separator="$separator" class="!mb-5" />
+                            @endif
                         @endif
 
                         <div>
@@ -118,7 +137,22 @@ class Modal extends Component
                             @endif
 
                             @if($title)
-                                <x-mary-header :title="$title" :subtitle="$subtitle" size="text-xl" :separator="$separator" class="!mb-5" />
+                                @if($hasTitleAddon)
+                                    <div class="mb-5" data-ui="modal-title-with-addon">
+                                        <div class="flex min-w-0 flex-wrap items-center gap-2 pe-10">
+                                            <div class="min-w-0 -translate-y-1 truncate text-xl font-extrabold leading-none">{{ $title }}</div>
+                                            <div class="min-w-0 max-w-full shrink" data-ui="modal-title-addon">{{ $titleAddon }}</div>
+                                        </div>
+                                        @if($subtitle)
+                                            <div class="mt-1 text-sm text-base-content/50">{{ $subtitle }}</div>
+                                        @endif
+                                        @if($separator)
+                                            <hr class="mt-3 border-t-[length:var(--border)] border-base-content/10" />
+                                        @endif
+                                    </div>
+                                @else
+                                    <x-mary-header :title="$title" :subtitle="$subtitle" size="text-xl" :separator="$separator" class="!mb-5" />
+                                @endif
                             @endif
 
                             <div>

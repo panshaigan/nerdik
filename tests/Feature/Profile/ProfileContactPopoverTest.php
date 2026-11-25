@@ -579,7 +579,7 @@ class ProfileContactPopoverTest extends TestCase
         $this->assertStringContainsString(__('ui.activities.types.'.ActivityType::SLUG_BOARD), $html);
     }
 
-    public function test_user_contact_popover_shows_organization_name_not_acronym(): void
+    public function test_user_badge_contact_modal_title_shows_organization_name_not_acronym(): void
     {
         $viewer = User::factory()->create();
         $organization = Organization::factory()->create([
@@ -591,15 +591,15 @@ class ProfileContactPopoverTest extends TestCase
             'organization_id' => $organization->id,
         ]);
 
-        $html = Livewire::actingAs($viewer)
-            ->test(UserContactPopover::class, [
-                'targetUserId' => $target->id,
+        Livewire::actingAs($viewer)
+            ->test(UserBadgeContact::class, [
+                'user' => $target,
             ])
-            ->html();
-
-        $this->assertStringContainsString('Castle Games Night', $html);
-        $this->assertStringNotContainsString('>CGN<', $html);
-        $this->assertStringNotContainsString('pixel_mage [CGN]', $html);
+            ->call('openModal')
+            ->assertSet('modalOpen', true)
+            ->assertSeeHtml('data-ui="modal-title-addon"')
+            ->assertSee('Castle Games Night')
+            ->assertDontSee('>CGN<', false);
     }
 
     public function test_user_badge_contact_modal_title_uses_display_name(): void

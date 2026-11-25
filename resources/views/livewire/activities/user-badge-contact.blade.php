@@ -34,6 +34,17 @@
                 separator
                 data-ui="overlay-sheet"
             >
+                @if ($user->organization !== null)
+                    <x-slot:title-addon>
+                        <livewire:activities.organization-badge-contact
+                            :organization="$user->organization"
+                            size="sm"
+                            name-class="truncate text-xs font-medium text-base-content/80"
+                            container-class="inline-flex max-w-full min-w-0"
+                            :key="'user-modal-org-'.$user->organization->id.'-'.$user->id"
+                        />
+                    </x-slot:title-addon>
+                @endif
                 <livewire:activities.user-contact-popover
                     :target-user-id="$user->id"
                     :context-activity-id="$contextActivityId"

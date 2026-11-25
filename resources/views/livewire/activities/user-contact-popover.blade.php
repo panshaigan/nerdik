@@ -33,7 +33,7 @@
                 data-ui="overlay-sticky-tabs"
             >
                 <x-slot:heading>
-                    <div class="flex flex-col items-center gap-3 px-4 pt-4 pb-3 text-center" data-ui="user-contact-popover-hero">
+                    <div class="flex flex-col items-center px-4 pt-4 pb-3 text-center" data-ui="user-contact-popover-hero">
                         <div class="avatar">
                             <div class="h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-base-300 bg-base-300 shadow-[0_0_24px_color-mix(in_oklch,var(--color-primary)_28%,transparent)]">
                                 @php
@@ -47,19 +47,6 @@
                                 />
                             </div>
                         </div>
-                        @if ($targetUser->organization !== null)
-                            <div class="min-w-0" data-ui="user-contact-popover-organization">
-                                <div class="flex justify-center">
-                                    <livewire:activities.organization-badge-contact
-                                        :organization="$targetUser->organization"
-                                        size="sm"
-                                        name-class="truncate text-xs font-medium text-base-content/80"
-                                        container-class="inline-flex max-w-full min-w-0"
-                                        :key="'user-contact-org-'.$targetUser->organization->id.'-'.$targetUser->id"
-                                    />
-                                </div>
-                            </div>
-                        @endif
                     </div>
                 </x-slot:heading>
 

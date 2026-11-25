@@ -300,6 +300,17 @@
                 separator
                 data-ui="overlay-sheet"
             >
+                @if ($previewUser?->organization !== null)
+                    <x-slot:title-addon>
+                        <livewire:activities.organization-badge-contact
+                            :organization="$previewUser->organization"
+                            size="sm"
+                            name-class="truncate text-xs font-medium text-base-content/80"
+                            container-class="inline-flex max-w-full min-w-0"
+                            :key="'global-nav-user-modal-org-'.$previewUser->organization->id.'-'.$previewUser->id"
+                        />
+                    </x-slot:title-addon>
+                @endif
                 <livewire:activities.user-contact-popover
                     :target-user-id="$previewUserId"
                     :key="'global-nav-user-contact-popover-'.$previewUserId"

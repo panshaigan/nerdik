@@ -45,6 +45,8 @@ class UserBadgeContact extends Component
 
     public function render()
     {
+        $this->user->loadMissing('organization');
+
         return view('livewire.activities.user-badge-contact');
     }
 }
