@@ -1227,7 +1227,7 @@ return [
         'no_places_on_event' => 'No places are linked to this event yet.',
         'room_optional' => 'Room (optional)',
         'room_placeholder' => 'Search or add a room...',
-        'venue_required_when_event_has_places' => 'Choose a venue — this event has places, so the slot needs one.',
+        'venue_required_when_event_has_places' => 'Choose a venue',
         'venue_not_linked_to_event' => 'The selected venue is not linked to this event.',
         'slot_update_breaks_assigned_activity' => 'These slot settings no longer fit the assigned activity (type, duration, or room capacity).',
         'tab_details' => 'Details',
