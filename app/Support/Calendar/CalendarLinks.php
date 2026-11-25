@@ -24,7 +24,7 @@ final class CalendarLinks
 
     public function forEvent(Event $event): ?CalendarPayload
     {
-        if ($event->isCancelled()) {
+        if ($event->isCancelled() || $event->hasEnded()) {
             return null;
         }
 
@@ -41,6 +41,10 @@ final class CalendarLinks
         }
 
         if ($window->starts_at === null || $window->ends_at === null) {
+            return null;
+        }
+
+        if ($window->ends_at->lt(now())) {
             return null;
         }
 
@@ -163,7 +167,7 @@ final class CalendarLinks
 
     public function forActivity(Activity $activity): ?CalendarPayload
     {
-        if ($activity->isCancelled()) {
+        if ($activity->isCancelled() || $activity->hasEnded()) {
             return null;
         }
 

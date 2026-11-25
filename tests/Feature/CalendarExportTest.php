@@ -56,6 +56,68 @@ final class CalendarExportTest extends TestCase
         $this->get(route('events.calendar.ics', $event))->assertNotFound();
     }
 
+    public function test_past_event_ics_returns_not_found(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        $this->get(route('events.calendar.ics', $event))->assertNotFound();
+    }
+
+    public function test_past_enrollment_window_ics_returns_not_found(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addDay(),
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        $this->get(route('events.enrollment-windows.calendar.ics', [
+            'event' => $event,
+            'enrollmentWindow' => $window,
+        ]))->assertNotFound();
+    }
+
+    public function test_past_activity_ics_returns_not_found(): void
+    {
+        $user = User::factory()->create();
+        $place = Place::factory()->venue()->create();
+        $startsAt = now()->subDays(2);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addHours(2),
+        ]);
+
+        $this->get(route('activities.calendar.ics', $activity))->assertNotFound();
+    }
+
+    public function test_past_event_show_hides_calendar_menu(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        Livewire::test(ShowEvent::class, ['event' => $event])
+            ->assertDontSeeHtml('data-ui="calendar-menu"');
+    }
+
     public function test_guest_can_download_enrollment_window_ics(): void
     {
         $user = User::factory()->create();

@@ -41,6 +41,18 @@ final class CalendarLinksTest extends TestCase
         $this->assertNull($this->calendarLinks->forEvent($event));
     }
 
+    public function test_for_event_returns_null_when_ended(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        $this->assertNull($this->calendarLinks->forEvent($event));
+    }
+
     public function test_for_enrollment_window_returns_null_when_parent_event_cancelled(): void
     {
         $user = User::factory()->create();
@@ -52,6 +64,24 @@ final class CalendarLinksTest extends TestCase
         $window = EventEnrollmentWindow::factory()->create([
             'event_id' => $event->id,
             'name' => 'Wave one',
+        ]);
+
+        $this->assertNull($this->calendarLinks->forEnrollmentWindow($window));
+    }
+
+    public function test_for_enrollment_window_returns_null_when_ended(): void
+    {
+        $user = User::factory()->create();
+        $event = Event::factory()->public()->create([
+            'created_by' => $user->id,
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addDay(),
+        ]);
+        $window = EventEnrollmentWindow::factory()->create([
+            'event_id' => $event->id,
+            'name' => 'Closed wave',
+            'starts_at' => now()->subDays(3),
+            'ends_at' => now()->subDay(),
         ]);
 
         $this->assertNull($this->calendarLinks->forEnrollmentWindow($window));
@@ -104,6 +134,23 @@ final class CalendarLinksTest extends TestCase
             'ends_at' => (clone $startsAt)->addHours(2),
             'cancelled_at' => now(),
             'cancelled_by' => $user->id,
+        ]);
+
+        $this->assertNull($this->calendarLinks->forActivity($activity));
+    }
+
+    public function test_for_activity_returns_null_when_ended(): void
+    {
+        $user = User::factory()->create();
+        $place = Place::factory()->venue()->create();
+        $startsAt = now()->subDays(2)->setSecond(0);
+        $activity = Activity::factory()->create([
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+            'hosting_mode' => Activity::HOSTING_MODE_SELF_HOSTED,
+            'place_id' => $place->id,
+            'starts_at' => $startsAt,
+            'ends_at' => (clone $startsAt)->addHours(2),
         ]);
 
         $this->assertNull($this->calendarLinks->forActivity($activity));
