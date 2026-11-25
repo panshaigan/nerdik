@@ -80,7 +80,7 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
     }
 
     #[Test]
-    public function join_opens_participants_info_modal_once_and_switches_to_info_tab(): void
+    public function join_opens_participants_info_modal_and_switches_to_info_tab(): void
     {
         $host = User::factory()->create();
         $member = User::factory()->create();
@@ -95,15 +95,10 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
 
         Livewire::actingAs($member)
             ->test(ShowActivity::class, ['activity' => $activity])
+            ->assertSet('participantsInfoModalOpen', false)
             ->call('join')
             ->assertSet('participantsInfoModalOpen', true)
             ->assertSet('tab', 'info');
-
-        $roster = ActivityUser::query()
-            ->where('activity_id', $activity->id)
-            ->where('user_id', $member->id)
-            ->firstOrFail();
-        $this->assertNotNull($roster->participants_info_seen_at);
 
         Livewire::actingAs($member)
             ->test(ShowActivity::class, ['activity' => $activity])
@@ -111,7 +106,7 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
     }
 
     #[Test]
-    public function pre_enrolled_participant_sees_modal_once_on_first_visit(): void
+    public function existing_participant_does_not_get_modal_on_page_load(): void
     {
         $host = User::factory()->create();
         $participant = User::factory()->create();
@@ -124,11 +119,6 @@ final class ActivityParticipantsOnlyDescriptionTest extends TestCase
             'activity_id' => $activity->id,
             'user_id' => $participant->id,
         ]);
-
-        Livewire::actingAs($participant)
-            ->test(ShowActivity::class, ['activity' => $activity])
-            ->assertSet('participantsInfoModalOpen', true)
-            ->assertSet('tab', 'info');
 
         Livewire::actingAs($participant)
             ->test(ShowActivity::class, ['activity' => $activity])

@@ -58,7 +58,6 @@ class ShowActivity extends Component
 
         $this->activityId = $activity->id;
         $this->tab = $this->normalizeTab($this->tab);
-        $this->revealParticipantsInfoIfUnseen($activity);
     }
 
     public function updatedTab(string $value): void
@@ -248,7 +247,7 @@ class ShowActivity extends Component
             $participation->join($activity, $user, $snapshot);
             $this->toastFromSessionStatus();
             $activity->refresh();
-            $this->revealParticipantsInfoIfUnseen($activity);
+            $this->openParticipantsInfoModalAfterJoin($activity);
         });
     }
 
@@ -296,7 +295,7 @@ class ShowActivity extends Component
 
         if ($pendingAction === 'join') {
             $activity->refresh();
-            $this->revealParticipantsInfoIfUnseen($activity);
+            $this->openParticipantsInfoModalAfterJoin($activity);
         }
     }
 
@@ -458,14 +457,9 @@ class ShowActivity extends Component
         ]);
     }
 
-    private function revealParticipantsInfoIfUnseen(Activity $activity): void
+    private function openParticipantsInfoModalAfterJoin(Activity $activity): void
     {
-        $user = auth()->user();
-        if (! $user instanceof User) {
-            return;
-        }
-
-        if (! app(ActivityParticipationService::class)->claimParticipantsInfoReveal($activity, $user)) {
+        if (! filled(rich_text_excerpt($activity->participants_only_description))) {
             return;
         }
 

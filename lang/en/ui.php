@@ -1084,7 +1084,7 @@ return [
         'participants_only_description' => 'Only for participants',
         'participants_only_description_help' => 'This text is visible only to participants of this activity.',
         'participants_info_modal_title' => 'Special info for participants',
-        'participants_info_modal_intro' => 'The host left this information for participants only. You can also find it on the activity page.',
+        'participants_info_modal_intro' => 'The host left this information for participants only. You can always find it on this activity page under About.',
         'participants_info_modal_ack' => 'Got it',
     ],
     'events' => [
@@ -1295,6 +1295,8 @@ return [
         'propose_activity' => 'Propose an activity',
         'waitlist_promoted_subject' => 'You got a place on :activity',
         'waitlist_promoted_line_1' => 'You have been moved from the waitlist and are now a participant in the activity:',
+        'waitlist_promoted_participants_info_heading' => 'Information for participants:',
+        'waitlist_promoted_participants_info_on_page' => 'You can also read this on the activity page at any time.',
         'view_activity' => 'View activity',
         'mail_do_not_reply' => 'Do not reply to this email. Reply to :email.',
         'mail_manage_notification_settings' => 'Manage notification settings',

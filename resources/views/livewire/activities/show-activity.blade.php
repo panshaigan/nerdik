@@ -330,7 +330,7 @@
         confirm-action="runConfirmedAction"
     />
 
-    @if ($isParticipant && filled(rich_text_excerpt($activity->participants_only_description)))
+    @if (filled(rich_text_excerpt($activity->participants_only_description)))
         @include('livewire.activities.partials.participants-info-modal', ['activity' => $activity])
     @endif
 

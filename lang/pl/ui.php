@@ -1084,7 +1084,7 @@ return [
         'participants_only_description' => 'Tylko dla uczestników',
         'participants_only_description_help' => 'Ten tekst jest widoczny tylko dla uczestników tej aktywności.',
         'participants_info_modal_title' => 'Specjalne informacje dla uczestników',
-        'participants_info_modal_intro' => 'Prowadzący zostawił te informacje tylko dla uczestników. Znajdziesz je też na stronie aktywności.',
+        'participants_info_modal_intro' => 'Prowadzący zostawił te informacje tylko dla uczestników. Zawsze znajdziesz je na tej stronie aktywności w zakładce informacje.',
         'participants_info_modal_ack' => 'Rozumiem',
     ],
     'events' => [
@@ -1295,6 +1295,8 @@ return [
         'propose_activity' => 'Zaproponuj aktywność',
         'waitlist_promoted_subject' => 'Masz miejsce w: :activity',
         'waitlist_promoted_line_1' => 'Zostałeś(-aś) przeniesiony(-a) z listy oczekujących i jesteś teraz uczestnikiem aktywności:',
+        'waitlist_promoted_participants_info_heading' => 'Informacje dla uczestników:',
+        'waitlist_promoted_participants_info_on_page' => 'Możesz też odczytać je w dowolnym momencie na stronie aktywności.',
         'view_activity' => 'Zobacz aktywność',
         'activity_cancelled_list' => 'Aktywność anulowana',
         'activity_cancelled_toast' => '":activity" została anulowana (:by)',
