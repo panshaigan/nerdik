@@ -138,25 +138,6 @@
         --tt-tail: calc(100% + 1px + 0.2rem);
     }
 
-    .card.ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
-        .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::before,
-    .card.ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
-        .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::after {
-        opacity: 1;
-        --tt-pos: 0rem;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-        .card.ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
-            .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::before,
-        .card.ui-listing-card:is(:hover, :focus-within) .ui-listing-card__toolbar
-            .btn:is(.tooltip, .lg\:tooltip)[data-tip]:not([data-tip=""])::after {
-            transition:
-                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1) 90ms,
-                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) 90ms;
-        }
-    }
-
     @media (prefers-reduced-motion: reduce) {
         .card.ui-listing-card {
             transition: none;

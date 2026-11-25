@@ -46,6 +46,7 @@ final class ShowActivitySuggestedBringTest extends TestCase
         $this->assertStringContainsString(__('ui.activities.suggested_bring.optional_label'), $html);
         $this->assertStringContainsString(__('ui.activities.suggested_bring.not_a_gate'), $html);
         $this->assertStringContainsString('Paper', $html);
+        $this->assertStringContainsString('data-ui="activity-show-suggested-bring-host-provides"', $html);
         $this->assertStringContainsString(__('ui.activities.suggested_bring.host_provides'), $html);
     }
 

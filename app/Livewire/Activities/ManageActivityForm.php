@@ -210,7 +210,7 @@ class ManageActivityForm extends Component
     {
         if ($activity?->exists) {
             $this->authorizeCreatedBy($activity);
-            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries', 'organization', 'providedSuggestedBringItems', 'suggestedBringExtras']);
+            $activity->load(['tags', 'place.parent', 'slot.event', 'activitySeries', 'organization', 'providedSuggestedBringItems', 'suggestedBringExtras.translations']);
             $this->editingActivityId = $activity->id;
             $this->name = (string) $activity->name;
             $this->description = (string) ($activity->description ?? '');
@@ -258,7 +258,7 @@ class ManageActivityForm extends Component
                 ->all();
             $this->suggested_bring_extras = $activity->suggestedBringExtras
                 ->map(fn ($item): array => [
-                    'label' => (string) $item->label,
+                    'label' => $item->displayLabel(),
                     'host_provides' => (bool) $item->host_provides,
                 ])
                 ->values()

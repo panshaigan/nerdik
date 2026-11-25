@@ -1027,7 +1027,7 @@ return [
             'heading' => 'Sugerowane na sesję',
             'optional_label' => 'Opcjonalnie.',
             'not_a_gate' => 'Możesz przynieść, jeśli chcesz korzystać z własnych rzeczy.',
-            'host_provides' => 'Prowadzący przeniesie',
+            'host_provides' => 'Prowadzący przyniesie',
             'form_heading' => 'Sugerowane na sesję',
             'form_not_a_gate' => 'Podpowiedzi dla uczestników. Np. jakie kostki zabrać.',
             'inherited_heading' => 'Z typu aktywności i tagów gier',

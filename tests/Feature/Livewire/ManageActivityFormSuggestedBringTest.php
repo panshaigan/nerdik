@@ -19,6 +19,29 @@ final class ManageActivityFormSuggestedBringTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function it_hydrates_existing_custom_extras_when_editing(): void
+    {
+        $host = User::factory()->create();
+        $activity = Activity::factory()->create([
+            'created_by' => $host->id,
+            'hosting_mode' => Activity::HOSTING_MODE_DRAFT,
+        ]);
+
+        SuggestedBringItem::factory()
+            ->forActivity($activity)
+            ->state(['host_provides' => true, 'sort_order' => 0])
+            ->withTranslations(['en' => 'Name tag', 'pl' => 'Identyfikator'])
+            ->create();
+
+        $this->actingAs($host);
+
+        Livewire::test(ManageActivityForm::class, ['activity' => $activity])
+            ->assertSet('suggested_bring_extras', [
+                ['label' => 'Name tag', 'host_provides' => true],
+            ]);
+    }
+
+    #[Test]
     public function it_persists_extras_and_provisions_on_save(): void
     {
         $host = User::factory()->create();
