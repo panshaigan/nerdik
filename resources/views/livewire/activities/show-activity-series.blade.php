@@ -124,22 +124,24 @@
                             data-ui="activity-series-activities-list"
                         >
                             @foreach ($activities as $activity)
-                                @php
-                                    $activityIsPast = $showPast && $activity->hasEnded();
-                                @endphp
-                                <div
-                                    wire:key="series-activity-{{ $activity->id }}"
-                                    @class(['contents', 'opacity-60' => $activityIsPast])
-                                    @if ($activityIsPast) data-past="1" @endif
-                                >
+                                <div wire:key="series-activity-{{ $activity->id }}" class="min-w-0">
                                     <x-cards.listing-card
                                         :listing="$activity"
                                         :interested-ids="$interestedActivityIds"
                                         :return-url="$browsingReturnUrl"
+                                        :is-past="$showPast && $activity->hasEnded()"
                                     />
                                 </div>
                             @endforeach
                         </div>
+                        @if ($activities->hasPages())
+                            <div
+                                class="ui-browse-events-pagination mx-auto mt-6 max-w-5xl rounded-xl p-4"
+                                data-ui="activity-series-activities-pagination"
+                            >
+                                {{ $activities->links() }}
+                            </div>
+                        @endif
                     @endif
                 </x-tab>
 

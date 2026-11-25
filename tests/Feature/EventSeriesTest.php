@@ -149,7 +149,7 @@ class EventSeriesTest extends TestCase
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('tab', 'events')
             ->assertSet('showPast', false)
-            ->assertViewHas('events', function (\Illuminate\Support\Collection $events): bool {
+            ->assertViewHas('events', function ($events): bool {
                 return $events->count() === 1
                     && $events->first()?->name === 'Porzucane II';
             })
@@ -189,7 +189,7 @@ class EventSeriesTest extends TestCase
 
         Livewire::test(ShowEventSeries::class, ['eventSeries' => $series])
             ->assertSet('showPast', false)
-            ->assertViewHas('events', fn (\Illuminate\Support\Collection $events): bool => $events->count() === 1)
+            ->assertViewHas('events', fn ($events): bool => $events->count() === 1)
             ->set('tab', 'stats')
             ->assertViewHas('stats', function (array $stats): bool {
                 return $stats['editions_count'] === 2

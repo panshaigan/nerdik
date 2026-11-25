@@ -3,9 +3,15 @@
 @endphp
 
 <article
-    class="ui-card ui-listing-card {{ $d->cardModifierClass }} card group relative z-0 isolate flex h-full flex-col"
+    @class([
+        'ui-card ui-listing-card',
+        $d->cardModifierClass,
+        'card group relative z-0 isolate flex h-full flex-col',
+        'opacity-60' => $isPast,
+    ])
     data-ui="{{ $d->dataUiPrefix }}"
     id="ui-{{ $d->dataUiPrefix }}-{{ $d->id }}"
+    @if ($isPast) data-past="1" @endif
 >
     <div class="ui-listing-card__toolbar pointer-events-auto absolute right-2 top-2 z-30 flex shrink-0 items-start gap-1">
         @auth

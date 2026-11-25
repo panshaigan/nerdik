@@ -150,7 +150,7 @@ class ActivitySeriesTest extends TestCase
         Livewire::actingAs($user)->test(ShowActivitySeries::class, ['activitySeries' => $series])
             ->assertSet('tab', 'activities')
             ->assertSet('showPast', false)
-            ->assertViewHas('activities', function (\Illuminate\Support\Collection $activities): bool {
+            ->assertViewHas('activities', function ($activities): bool {
                 return $activities->count() === 1
                     && $activities->first()?->name === 'Weekly RPG II';
             })

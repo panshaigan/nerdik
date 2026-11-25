@@ -5,6 +5,7 @@ namespace App\Livewire\Activities;
 use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithSeriesActivitiesSort;
+use App\Livewire\Concerns\WithSeriesListingPagination;
 use App\Livewire\Concerns\WithSeriesShowPast;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
@@ -32,6 +33,7 @@ class ShowActivitySeries extends Component
     use Toast;
     use WithActivityPreviewModal;
     use WithSeriesActivitiesSort;
+    use WithSeriesListingPagination;
     use WithSeriesShowPast;
     use WithUiConfirmModal;
 
@@ -67,6 +69,11 @@ class ShowActivitySeries extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+    }
+
+    protected function resetSeriesListingPages(): void
+    {
+        $this->resetSeriesActivitiesPage();
     }
 
     public function toggleActivityInterest(int $activityId, UserInterestService $interests): void
@@ -203,18 +210,22 @@ class ShowActivitySeries extends Component
         abort_unless($series->isVisibleTo(auth()->user()), 404);
         $series->load('links');
 
-        $activitiesQuery = $this->seriesActivitiesQuery()
+        /** @var Collection<int, Activity> $allActivities */
+        $allActivities = $this->seriesActivitiesQuery()
+            ->with(['slot', 'creator'])
+            ->get();
+
+        $activitiesListQuery = $this->seriesActivitiesQuery()
             ->with(Activity::listingCardEagerLoad())
             ->withCount('interestedUsers');
-
-        $this->applySeriesActivitySort($activitiesQuery);
-
-        /** @var Collection<int, Activity> $allActivities */
-        $allActivities = $activitiesQuery->get();
-
-        $activities = $this->showPast
-            ? $allActivities
-            : $allActivities->filter(fn (Activity $activity): bool => ! $activity->hasEnded())->values();
+        $this->applySeriesActivitySort($activitiesListQuery);
+        if (! $this->showPast) {
+            $activitiesListQuery->notEnded();
+        }
+        $activities = $activitiesListQuery->paginate(
+            $this->seriesListingsPerPage(),
+            pageName: $this->seriesActivitiesPageName(),
+        );
 
         $hosts = $this->uniqueActivityHosts($allActivities);
         $stats = $this->seriesStats($allActivities, $activityPeopleStats);
@@ -223,7 +234,7 @@ class ShowActivitySeries extends Component
         $user = Auth::user();
         $interestedActivityIds = $user !== null
             ? $user->interestedActivities()
-                ->whereIn('activities.id', $activities->pluck('id'))
+                ->whereIn('activities.id', $allActivities->pluck('id'))
                 ->pluck('activities.id')
                 ->map(fn ($id) => (int) $id)
                 ->all()

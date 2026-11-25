@@ -28,6 +28,10 @@ trait WithSeriesActivitiesSort
             $this->sort = $field;
             $this->sort_dir = 'asc';
         }
+
+        if (method_exists($this, 'resetSeriesActivitiesPage')) {
+            $this->resetSeriesActivitiesPage();
+        }
     }
 
     public function updatedSort(): void

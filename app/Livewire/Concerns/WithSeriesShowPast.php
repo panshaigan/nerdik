@@ -12,5 +12,9 @@ trait WithSeriesShowPast
     public function toggleShowPast(): void
     {
         $this->showPast = ! $this->showPast;
+
+        if (method_exists($this, 'resetSeriesListingPages')) {
+            $this->resetSeriesListingPages();
+        }
     }
 }

@@ -6,6 +6,7 @@ use App\Domain\ActivityBadges\ActivityBadgeGroupBuilder;
 use App\Livewire\Concerns\WithActivityPreviewModal;
 use App\Livewire\Concerns\WithEventPreviewModal;
 use App\Livewire\Concerns\WithSeriesActivitiesSort;
+use App\Livewire\Concerns\WithSeriesListingPagination;
 use App\Livewire\Concerns\WithSeriesShowPast;
 use App\Livewire\Concerns\WithUiConfirmModal;
 use App\Livewire\EntityLinks\ManageEntityLinks;
@@ -40,6 +41,7 @@ class ShowEventSeries extends Component
     use WithActivityPreviewModal;
     use WithEventPreviewModal;
     use WithSeriesActivitiesSort;
+    use WithSeriesListingPagination;
     use WithSeriesShowPast;
     use WithUiConfirmModal;
 
@@ -75,6 +77,12 @@ class ShowEventSeries extends Component
     public function updatedTab(string $value): void
     {
         $this->tab = $this->normalizeTab($value);
+    }
+
+    protected function resetSeriesListingPages(): void
+    {
+        $this->resetSeriesEventsPage();
+        $this->resetSeriesActivitiesPage();
     }
 
     public function toggleEventInterest(int $eventId, UserInterestService $interests): void
@@ -245,14 +253,31 @@ class ShowEventSeries extends Component
             ->orderBy('id')
             ->get();
 
-        $events = $this->showPast
-            ? $allEvents
-            : $allEvents->filter(fn (Event $event): bool => ! $event->hasEnded())->values();
+        $eventsListQuery = $this->seriesEventsQuery()
+            ->with(Event::listingCardEagerLoad())
+            ->orderBy('starts_at')
+            ->orderBy('id');
+        if (! $this->showPast) {
+            $eventsListQuery->notEnded();
+        }
+        $events = $eventsListQuery->paginate(
+            $this->seriesListingsPerPage(),
+            pageName: $this->seriesEventsPageName(),
+        );
 
-        $allActivities = $this->seriesActivities($allEvents);
-        $activities = $this->showPast
-            ? $allActivities
-            : $allActivities->filter(fn (Activity $activity): bool => ! $activity->hasEnded())->values();
+        $allActivities = $this->seriesEditionActivities($allEvents);
+
+        $activitiesListQuery = $this->seriesEditionActivitiesQuery($allEvents)
+            ->with(Activity::listingCardEagerLoad())
+            ->withCount('interestedUsers');
+        $this->applySeriesActivitySort($activitiesListQuery);
+        if (! $this->showPast) {
+            $activitiesListQuery->notEnded();
+        }
+        $activities = $activitiesListQuery->paginate(
+            $this->seriesListingsPerPage(),
+            pageName: $this->seriesActivitiesPageName(),
+        );
         $hosts = $this->uniqueActivityHosts($allActivities);
         $stats = $this->seriesStats($allEvents, $allActivities, $activityPeopleStats);
 
@@ -293,14 +318,14 @@ class ShowEventSeries extends Component
         $user = Auth::user();
         $interestedEventIds = $user !== null
             ? $user->interestedEvents()
-                ->whereIn('events.id', $events->pluck('id'))
+                ->whereIn('events.id', $allEvents->pluck('id'))
                 ->pluck('events.id')
                 ->map(fn ($id) => (int) $id)
                 ->all()
             : [];
         $interestedActivityIds = $user !== null
             ? $user->interestedActivities()
-                ->whereIn('activities.id', $activities->pluck('id'))
+                ->whereIn('activities.id', $allActivities->pluck('id'))
                 ->pluck('activities.id')
                 ->map(fn ($id) => (int) $id)
                 ->all()
@@ -380,20 +405,27 @@ class ShowEventSeries extends Component
 
     /**
      * @param  Collection<int, Event>  $events
-     * @return Collection<int, Activity>
+     * @return Builder<Activity>
      */
-    private function seriesActivities(Collection $events): Collection
+    private function seriesEditionActivitiesQuery(Collection $events): Builder
     {
         $eventIds = $events->pluck('id')->all();
         if ($eventIds === []) {
-            return collect();
+            return Activity::query()->whereRaw('0 = 1');
         }
 
-        $query = Activity::query()
-            ->whereHas('slot', fn ($q) => $q->whereIn('event_id', $eventIds))
-            ->with(Activity::listingCardEagerLoad())
-            ->withCount('interestedUsers');
+        return Activity::query()
+            ->whereHas('slot', fn (Builder $q) => $q->whereIn('event_id', $eventIds));
+    }
 
+    /**
+     * @param  Collection<int, Event>  $events
+     * @return Collection<int, Activity>
+     */
+    private function seriesEditionActivities(Collection $events): Collection
+    {
+        $query = $this->seriesEditionActivitiesQuery($events)
+            ->with(['slot', 'creator']);
         $this->applySeriesActivitySort($query);
 
         return $query->get();
