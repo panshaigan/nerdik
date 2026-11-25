@@ -714,4 +714,95 @@ class ProfileContactPopoverTest extends TestCase
         $this->assertStringNotContainsString('mailto:participant@example.test', $html);
         $this->assertStringNotContainsString(__('ui.profile.contact_methods_title'), $html);
     }
+
+    public function test_user_contact_popover_shows_direct_org_invite_when_owner_has_one_organization(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create(['organization_id' => null]);
+        Organization::factory()->create([
+            'name' => 'Solo Guild',
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('organizationInviteOptions', fn (array $options): bool => count($options) === 1)
+            ->assertDontSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_to_organization'));
+    }
+
+    public function test_user_contact_popover_shows_org_invite_dropdown_when_owner_has_multiple_organizations(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create(['organization_id' => null]);
+        Organization::factory()->create([
+            'name' => 'Alpha Guild',
+            'created_by' => $owner->id,
+        ]);
+        Organization::factory()->create([
+            'name' => 'Beta Guild',
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('organizationInviteOptions', fn (array $options): bool => count($options) === 2)
+            ->assertSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
+            ->assertSee('Alpha Guild')
+            ->assertSee('Beta Guild');
+    }
+
+    public function test_user_contact_popover_dispatches_org_invite_open_for_selected_organization(): void
+    {
+        $owner = User::factory()->create();
+        $target = User::factory()->create(['organization_id' => null]);
+        Organization::factory()->create([
+            'name' => 'Alpha Guild',
+            'created_by' => $owner->id,
+        ]);
+        $beta = Organization::factory()->create([
+            'name' => 'Beta Guild',
+            'created_by' => $owner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->call('openOrganizationInvite', $beta->id)
+            ->assertDispatched(
+                'open-send-user-request',
+                type: 'organization_invite',
+                subjectId: $beta->id,
+            );
+    }
+
+    public function test_user_contact_popover_excludes_target_current_organization_from_invite_options(): void
+    {
+        $owner = User::factory()->create();
+        $current = Organization::factory()->create([
+            'name' => 'Current Guild',
+            'created_by' => $owner->id,
+        ]);
+        $other = Organization::factory()->create([
+            'name' => 'Other Guild',
+            'created_by' => $owner->id,
+        ]);
+        $target = User::factory()->create(['organization_id' => $current->id]);
+
+        Livewire::actingAs($owner)
+            ->test(UserContactPopover::class, [
+                'targetUserId' => $target->id,
+            ])
+            ->assertViewHas('organizationInviteOptions', function (array $options) use ($other): bool {
+                return count($options) === 1
+                    && $options[0]['id'] === $other->id;
+            })
+            ->assertDontSeeHtml('data-ui="user-contact-popover-org-invite-menu"')
+            ->assertSee(__('ui.user_requests.invite_to_organization'));
+    }
 }

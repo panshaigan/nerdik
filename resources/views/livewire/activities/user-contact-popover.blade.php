@@ -2,9 +2,11 @@
     $hasContactSections = $contacts['email'] !== null
         || $contacts['facebook'] !== null
         || $contacts['discord'] !== null;
+    $organizationInviteOptions = $organizationInviteOptions ?? [];
+    $organizationInviteCount = count($organizationInviteOptions);
     $hasFooterActions = $targetUser !== null && (
         ($activityInviteSubjectId ?? null)
-        || ($organizationInviteSubjectId ?? null)
+        || $organizationInviteCount > 0
         || (($organizationJoinSubjectId ?? null) && ($organizationJoinRecipientId ?? null))
         || ($canBanTarget ?? false)
         || $canImpersonateTarget
@@ -237,14 +239,45 @@
                     :key="'activity-invite-'.$targetUser->id.'-'.$activityInviteSubjectId"
                 />
             @endif
-            @if ($organizationInviteSubjectId)
+            @if ($organizationInviteCount === 1)
                 <livewire:user-requests.send-user-request
                     type="organization_invite"
                     subject-type="organization"
-                    :subject-id="$organizationInviteSubjectId"
+                    :subject-id="$organizationInviteOptions[0]['id']"
                     :recipient-id="$targetUser->id"
-                    :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteSubjectId"
+                    :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteOptions[0]['id']"
                 />
+            @elseif ($organizationInviteCount > 1)
+                <div class="dropdown dropdown-top" data-ui="user-contact-popover-org-invite-menu">
+                    <div
+                        tabindex="0"
+                        role="button"
+                        class="btn btn-sm btn-outline"
+                        aria-haspopup="menu"
+                        aria-label="{{ __('ui.user_requests.invite_to_organization') }}"
+                    >
+                        {{ __('ui.user_requests.invite_to_organization') }}
+                        <x-icon name="o-chevron-up" class="h-4 w-4 opacity-70" />
+                    </div>
+                    <ul
+                        tabindex="0"
+                        role="menu"
+                        class="dropdown-content menu z-[100] mb-1 w-56 rounded-box border border-base-300 bg-base-100 p-1 shadow light:border-neutral"
+                        data-ui="user-contact-popover-org-invite-menu-list"
+                    >
+                        @foreach ($organizationInviteOptions as $organizationInviteOption)
+                            <li wire:key="org-invite-option-{{ $organizationInviteOption['id'] }}" role="none">
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    wire:click="openOrganizationInvite({{ $organizationInviteOption['id'] }})"
+                                >
+                                    {{ $organizationInviteOption['name'] }}
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
             @if ($canBanTarget)
                 @if ($isBannedByViewer)
@@ -285,5 +318,17 @@
                 >{{ __('ui.impersonation.log_in_as') }}</button>
             @endif
         </div>
+        @if ($organizationInviteCount > 1)
+            @foreach ($organizationInviteOptions as $organizationInviteOption)
+                <livewire:user-requests.send-user-request
+                    type="organization_invite"
+                    subject-type="organization"
+                    :subject-id="$organizationInviteOption['id']"
+                    :recipient-id="$targetUser->id"
+                    :show-trigger="false"
+                    :key="'organization-invite-'.$targetUser->id.'-'.$organizationInviteOption['id']"
+                />
+            @endforeach
+        @endif
     @endif
 </div>

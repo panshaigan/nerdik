@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Activities;
 
+use App\Enums\UserRequestType;
 use App\Models\Activity;
 use App\Models\ActivityUser;
 use App\Models\Organization;
@@ -232,12 +233,39 @@ class UserContactPopover extends Component
             'absenceCount' => $reputation['absence_count'],
             'contacts' => $this->resolveContactSections($targetUser, $canViewContact),
             'activityInviteSubjectId' => $this->contextActivityId,
-            'organizationInviteSubjectId' => $this->resolveOrganizationInviteSubjectId($viewer, $targetUser),
+            'organizationInviteOptions' => $this->resolveOrganizationInviteOptions($viewer, $targetUser),
             'organizationJoinSubjectId' => $this->resolveOrganizationJoinSubjectId($viewer, $targetUser),
             'organizationJoinRecipientId' => $this->resolveOrganizationJoinRecipientId($viewer, $targetUser),
             'playAreaPreview' => $this->resolvePlayAreaPreview($targetUser),
             'interestTagBadges' => $this->resolveInterestTagBadges($targetUser),
         ];
+    }
+
+    public function openOrganizationInvite(int $organizationId): void
+    {
+        $viewer = auth()->user();
+        if (! $viewer instanceof User) {
+            abort(403);
+        }
+
+        $targetUser = User::query()->whereKey($this->targetUserId)->first();
+        if (! $targetUser instanceof User) {
+            abort(404);
+        }
+
+        $allowedIds = collect($this->resolveOrganizationInviteOptions($viewer, $targetUser))
+            ->pluck('id')
+            ->all();
+
+        if (! in_array($organizationId, $allowedIds, true)) {
+            abort(403);
+        }
+
+        $this->dispatch(
+            'open-send-user-request',
+            type: UserRequestType::OrganizationInvite->value,
+            subjectId: $organizationId,
+        );
     }
 
     /**
@@ -294,24 +322,39 @@ class UserContactPopover extends Component
             ->all();
     }
 
-    private function resolveOrganizationInviteSubjectId(User $viewer, User $targetUser): ?int
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function resolveOrganizationInviteOptions(User $viewer, User $targetUser): array
     {
         if ($this->contextOrganizationId !== null) {
             $organization = Organization::query()->find($this->contextOrganizationId);
             if ($organization instanceof Organization
                 && $viewer->canModifyEntity($organization)
                 && (int) $targetUser->organization_id !== (int) $organization->id) {
-                return $organization->id;
+                return [[
+                    'id' => (int) $organization->id,
+                    'name' => (string) $organization->name,
+                ]];
             }
         }
 
-        $ownedOrganizationId = Organization::query()
+        $query = Organization::query()
             ->where('created_by', $viewer->id)
-            ->whereKeyNot($targetUser->organization_id)
-            ->orderBy('name')
-            ->value('id');
+            ->orderBy('name');
 
-        return $ownedOrganizationId !== null ? (int) $ownedOrganizationId : null;
+        if ($targetUser->organization_id !== null) {
+            $query->whereKeyNot($targetUser->organization_id);
+        }
+
+        return $query
+            ->get(['id', 'name'])
+            ->map(fn (Organization $organization): array => [
+                'id' => (int) $organization->id,
+                'name' => (string) $organization->name,
+            ])
+            ->values()
+            ->all();
     }
 
     private function resolveOrganizationJoinSubjectId(User $viewer, User $targetUser): ?int
@@ -376,7 +419,7 @@ class UserContactPopover extends Component
                 'discord' => null,
             ],
             'activityInviteSubjectId' => null,
-            'organizationInviteSubjectId' => null,
+            'organizationInviteOptions' => [],
             'organizationJoinSubjectId' => null,
             'organizationJoinRecipientId' => null,
             'playAreaPreview' => null,

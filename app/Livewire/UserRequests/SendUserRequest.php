@@ -49,9 +49,13 @@ class SendUserRequest extends Component
     }
 
     #[On('open-send-user-request')]
-    public function handleOpenSendUserRequest(string $type): void
+    public function handleOpenSendUserRequest(string $type, ?int $subjectId = null): void
     {
         if ($this->showTrigger || $type !== $this->type) {
+            return;
+        }
+
+        if ($subjectId !== null && (int) $this->subjectId !== $subjectId) {
             return;
         }
 

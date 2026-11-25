@@ -75,6 +75,27 @@ class UserRequestSystemTest extends TestCase
             ->assertSet('modalOpen', false);
     }
 
+    public function test_hidden_send_user_request_opens_only_for_matching_subject_id(): void
+    {
+        $owner = User::factory()->create();
+        $invitee = User::factory()->create(['organization_id' => null]);
+        $organization = Organization::factory()->create(['created_by' => $owner->id]);
+        $otherOrganization = Organization::factory()->create(['created_by' => $owner->id]);
+
+        Livewire::actingAs($owner)
+            ->test(SendUserRequest::class, [
+                'type' => 'organization_invite',
+                'subjectType' => 'organization',
+                'subjectId' => $organization->id,
+                'recipientId' => $invitee->id,
+                'showTrigger' => false,
+            ])
+            ->dispatch('open-send-user-request', type: 'organization_invite', subjectId: $otherOrganization->id)
+            ->assertSet('modalOpen', false)
+            ->dispatch('open-send-user-request', type: 'organization_invite', subjectId: $organization->id)
+            ->assertSet('modalOpen', true);
+    }
+
     public function test_organization_invite_accept_moves_recipient_and_leaves_previous_org(): void
     {
         Notification::fake();
